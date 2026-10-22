@@ -1,5 +1,8 @@
 """Logical conversation positions over durable edit and checkpoint attempts."""
 
+from llm.core.continuations import RestartRecord, ResumeRecord
+
+from llm.core.agents import AgentBinding
 from llm.core.models import MessageStatus
 from dataclasses import dataclass, field, replace
 
@@ -11,7 +14,7 @@ TURN_OPTION = "_hub_turn"
 
 
 def edit_source(message):
-    value = message.metadata.get("request_context", {}).get(TURN_OPTION, {})
+    value = message.metadata.get(AgentBinding.CONTEXT_FIELD, {}).get(TURN_OPTION, {})
     return value.get("source", "") if isinstance(value, dict) else ""
 
 
@@ -29,7 +32,7 @@ class LogicalTurn:
                     if index == 0 or str(group[0].status) != MessageStatus.CANCELLED]
         start = 0
         for index, group in enumerate(attempts):
-            if group[0].metadata.get("restart") or edit_source(group[0]) and not group[0].metadata.get("resume"):
+            if group[0].metadata.get(RestartRecord.KEY) or edit_source(group[0]) and not group[0].metadata.get(ResumeRecord.KEY):
                 start = index
         return attempts[start:]
 
@@ -45,7 +48,7 @@ class TurnIndex:
         by_run = {}
         for group in conversation_turns(records):
             request = group[0]
-            parent = (request.metadata.get("resume") or request.metadata.get("restart") or {}).get("run_id")
+            parent = (request.metadata.get(ResumeRecord.KEY) or request.metadata.get(RestartRecord.KEY) or {}).get(ResumeRecord.SOURCE_RUN)
             turn = by_run.get(parent) or self.by_id.get(edit_source(request))
             if turn is None:
                 turn = LogicalTurn()
@@ -56,7 +59,7 @@ class TurnIndex:
                 by_run[run_id] = turn
 
     def display(self, messages):
-        if not any(edit_source(m) or m.metadata.get("resume") or m.metadata.get("restart") for m in self.records):
+        if not any(edit_source(m) or m.metadata.get(ResumeRecord.KEY) or m.metadata.get(RestartRecord.KEY) for m in self.records):
             return continued_messages(self.records, messages)
         by_id = {message.id: message for message in messages}
         result = []

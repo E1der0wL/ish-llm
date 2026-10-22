@@ -19,4 +19,4 @@ def merge_trace(*groups):
 
 
 def tool_trace(steps):
-    return tuple(TraceItem(step.id, "tool", step.name, step.status, step.started_at) for step in steps)
+    return tuple(TraceItem(step.id, TraceItem.TOOL, step.name, step.status, step.started_at) for step in steps)

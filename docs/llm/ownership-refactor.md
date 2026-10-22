@@ -3,12 +3,14 @@
 ## 상태와 범위
 
 2026-10-22 `refactor/llm-clean`의 `488acbe9ffa12a89410cbf74179cdc890e3357a5`를 기준으로 한다.
-이번 갱신은 [확정된 계약](contract-ownership.md)과 작업 목록을 문서화한다. 아래 제품 변경과
-감사 도구 확장은 아직 구현하지 않았다. 문서 검증 결과는 [갱신 기록](documentation-review.md)에 남긴다.
+최초 갱신은 [확정된 계약](contract-ownership.md)과 작업 목록을 문서화했다. 이후 사용자 요청으로
+구현을 진행 중이며 [단계별 구현·검증 기록](ownership-verification.md)에 실제 결과와 남은 게이트를 남긴다.
+최초 문서 검증 결과는 [갱신 기록](documentation-review.md)에 보존한다.
 
 H1–H5 → P1 → A–F의 기존 기능·안전성 검증 기록은 보존한다. 그 결과를 의미 있는 리터럴과
 책임 경계의 전수 정리 완료 증거로 승계하지 않는다. 기존 완료 안내에서 이 범위의 판단이
-충분하지 않았으며, 아래 확인된 중복과 추가 조사 항목은 미완료다.
+충분하지 않았다. 이번 구현은 아래 확인된 중복과 추가 공통 계약을 정리했으며,
+최종 통합·원격 CI 게이트 결과는 별도로 기록한다.
 
 구현 기준은 현재 작업 브랜치 하나다. main·refactor/llm-backend·Draft PR #1은 변경하지 않는다.
 기존 작업을 초기화하거나 main에서 다시 시작하지 않는다. 과거 브랜치는 필요한 알고리즘·
@@ -21,13 +23,13 @@ H1–H5 → P1 → A–F의 기존 기능·안전성 검증 기록은 보존한�
 
 | ID | 근거·대상 | 현재 판정과 필요한 작업 |
 |---|---|---|
-| OW-01 | `OutputJournal.__init__`, `RunRepository.__init__`, `BackendServices.output_index_stride` | **중복 확인·미수정**. 동일 기본값 128을 세 곳에서 선언. 인덱스 Owner의 기본값을 공유하고 명시 설정·0 비활성·검증 의미 보존 |
-| OW-02 | `Project.validate_conversation_storage`, `services/schema.py:describe_project_config` | **중복 확인·미수정**. file/memory/None 허용값을 검증기와 Schema에서 각각 선언. 수명주기 속성 Owner 지정, 실제 저장소 선택 소비자도 대조 |
-| OW-03 | `ProjectManager.describe_config`, `ProjectHandle._describe_config`, `services/schema.py` | **구조 확인·설계 조사 필요**. 설정 스냅샷·편집 값·Schema를 별도로 조합. 공개 설명/Projection Owner 지정과 공통 선언 파생 범위 결정. 원본·사본·CAS·effective 값 비저장 보존 |
-| OW-04 | `RunRepository.result_catalog`, `_usage_record`, `completion_records`; `CompletionResult`와 usage 소비자 | **구조 확인·설계 조사 필요**. 결과·사용량 부분 투영과 metadata 컨테이너 접근의 책임 점검. CompletionResult 검증 위임·필수 컨테이너·중복 ID 거부 유지 |
-| OW-05 | `tests/llm/check_architecture.py:scan_source` | **검출 한계 확인·미보강**. 기존 문법 규칙이 OW-01/02와 위 Project/Run 메서드의 일반 키 접근을 후보로 잡지 않음. 후보 수와 계약 적합성을 구분하고 참조·기본값·필드 집합·소비 경로 감사 보강 |
-| OW-06 | 신규·중첩·재개·다중 Agent의 binding/승인, Hub 정책 소비, Adapter 경계 | **추가 조사 대상**. 기존 구현·검증을 재사용해 실제 중복이나 우회가 남았는지 확인. 전체를 이미 위반으로 확정하거나 재구현 대상으로 간주하지 않음 |
-| OW-07 | `tests/llm/fixtures/architecture_reviews.json`의 clean-refactor.md 참조 70건 | **계약 변경에 따른 근거 재검토 필요**. 과거 개별 분류를 삭제·자동 갱신하지 않고, 강화된 계약과 해당 발생/선언/소비자를 대조해 유지·수정·미해결을 판정. 현재 정적 게이트 상태는 문서 갱신 기록에 별도 보고 |
+| OW-01 | `OutputJournal.__init__`, `RunRepository.__init__`, `BackendServices.output_index_stride` | **구현·집중 검증 통과, O7 로컬 전체 통과; 원격 CI는 Commit/Push 기록 참조**. 동일 기본값 128을 세 곳에서 선언. 인덱스 Owner의 기본값을 공유하고 명시 설정·0 비활성·검증 의미 보존 |
+| OW-02 | `Project.validate_conversation_storage`, `services/schema.py:describe_project_config` | **구현·집중 검증 통과, O7 로컬 전체 통과; 원격 CI는 Commit/Push 기록 참조**. file/memory/None 허용값을 검증기와 Schema에서 각각 선언. 수명주기 속성 Owner 지정, 실제 저장소 선택 소비자도 대조 |
+| OW-03 | `ProjectManager.describe_config`, `ProjectHandle._describe_config`, `services/schema.py` | **구현·집중 검증 통과, O7 로컬 전체 통과; 원격 CI는 Commit/Push 기록 참조**. 설정 스냅샷·편집 값·Schema를 별도로 조합. 공개 설명/Projection Owner 지정과 공통 선언 파생 범위 결정. 원본·사본·CAS·effective 값 비저장 보존 |
+| OW-04 | `RunRepository.result_catalog`, `_usage_record`, `completion_records`; `CompletionResult`와 usage 소비자 | **구현·집중 검증 통과, O7 로컬 전체 통과; 원격 CI는 Commit/Push 기록 참조**. 결과·사용량 부분 투영과 metadata 컨테이너 접근의 책임 점검. CompletionResult 검증 위임·필수 컨테이너·중복 ID 거부 유지 |
+| OW-05 | `tests/llm/check_architecture.py:scan_source` | **S7 보강·음성 시험 통과, 동적 감사 계속**. 기존 문법 규칙이 OW-01/02와 위 Project/Run 메서드의 일반 키 접근을 후보로 잡지 않음. 후보 수와 계약 적합성을 구분하고 참조·기본값·필드 집합·소비 경로 감사 보강 |
+| OW-06 | 신규·중첩·재개·다중 Agent의 binding/승인, Hub 정책 소비, Adapter 경계 | **Owner 연결·집중 검증 완료, O7 로컬 전체 통과; 원격 CI는 Commit/Push 기록 참조**. ToolRegistry binding Projection·AgentBinding·Resume/Checkpoint envelope·오류 분류를 공통화. 승인/예산/효과는 실행 경계에서 같은 Owner로 최신 검증 |
+| OW-07 | `tests/llm/fixtures/architecture_reviews.json`의 clean-refactor.md 참조 70건 | **159건 개별 재검토 완료, 현재 통합 게이트 대기**. 과거 개별 분류를 삭제·자동 갱신하지 않고, 강화된 계약과 해당 발생/선언/소비자를 대조해 유지·수정·미해결을 판정. 현재 정적 게이트 상태는 문서 갱신 기록에 별도 보고 |
 
 각 항목은 해당 파일의 현재 심볼에서 조사하며 줄 번호를 고정 계약으로 삼지 않는다.
 `RunStatus` 참조, Owner 내부의 필수 기록 검증, 진단용 ContextVar 이름 등은 의미에 따라 판정한다.
@@ -35,19 +37,19 @@ H1–H5 → P1 → A–F의 기존 기능·안전성 검증 기록은 보존한�
 
 ## 작업 순서와 산출물
 
-아래 순서는 계획이며 진행·검증 완료 표시가 아니다. 실제 안전성 결함이 발견되면 수정과
+아래 표의 현재 상태와 [검증 기록](ownership-verification.md)을 함께 본다. 실제 안전성 결함이 발견되면 수정과
 재검증을 우선한다. 각 소단계는 영향이 입증된 범위로 분리하고 관련 소단계를 상위 게이트로 묶는다.
 
 | 단계 | 작업 | 산출물·완료 판단 | 현재 상태 |
 |---|---|---|---|
-| O0 범위·Owner 목록 | 기존 감사·38개 데이터군·검증 기록 재사용. OW-07의 근거 재검토와 변경·미분류 범위의 선언/검증/저장/소비 연결·책임 혼재 조사 | 계약별 구체적 Owner·실제 소비자·확정 중복·조사 후보·검증 범위. 기존 근거를 재사용하고 필요한 범위만 재검토 | 초기 OW 목록만 작성; 전체 O0 미완료 |
-| O1 선언·제약 | OW-01/02부터 기본값·허용값·필드 집합·경로의 정규 선언 연결. 한 번 쓰는 계약 값도 포함 | Schema·Reader/Writer·소비자 연결, 명시값·M/N/V·현재 형식 보존 시험 | 미착수 |
-| O2 설명·조회·저장 경계 | OW-03/04의 공개 설명과 Projection Owner 확정. Manager/Facade의 private 저장 해석을 담당 Owner로 이관 | 필요한 조회 투영과 명시 변경 API, 사본·CAS·필수 증거·unknown usage·조회 비용 검증 | 미착수 |
-| O3 도메인 전이·검증 | 도메인별 중복 규칙과 내부 직접 수정 조사. 선언·전이·검증 구현 공유, 경계별 재검증 유지 | 실제 중복의 제거 또는 정당한 차이의 근거, 저장·실행·재개 최신 상태 검증 | 미착수 |
-| O4 실행·자원 경계 | 신규/중첩/Resume/다중 Agent의 binding·승인·예산·retry·효과·취소·cleanup 경로 대조 | 같은 계약의 동일 Owner 호출, 경로별 차이·불변식·작업/자원 수명·원자성 증거 | 미착수 |
-| O5 Hub·Adapter·확장 | Hub의 Backend 정책 재계산·오류 문자열 해석, SDK wire 유출, 내장 구현 전제 조사/정리 | 공개 계획·구조화된 오류·공통 모델 소비, custom Repository/Engine/Component/Adapter 계약 검증 | 미착수 |
-| O6 감사 도구 | OW-05의 누락 패턴과 책임 경계 감사를 작은 규칙으로 추가. 각 구현 단계부터 관련 규칙·음성 사례도 함께 보강 | 정상 Owner 선언/참조와 외부 재선언을 구분하는 회귀, 기존 S1–S6/R3 유지, 동적 미검출 범위 명시 | 미착수 |
-| O7 통합 완료 | 남은 후보·Owner/소비 연결·영향 범위를 확인하고 현재 통합 소스의 Level 3 실행 | 전체 LLM/Hub·정적 감사·R3·문서·필요 실환경, Push SHA의 실제 CI와 미검증 범위 기록 | 미착수 |
+| O0 범위·Owner 목록 | 기존 감사·38개 데이터군·검증 기록 재사용. OW-07의 근거 재검토와 변경·미분류 범위의 선언/검증/저장/소비 연결·책임 혼재 조사 | 계약별 구체적 Owner·실제 소비자·확정 중복·조사 후보·검증 범위. 기존 근거를 재사용하고 필요한 범위만 재검토 | OW-01–07·추가 공통 계약의 Owner/소비 연결과 기존 감사 대조 완료. 정적 미검출 경계는 기록 |
+| O1 선언·제약 | OW-01/02부터 기본값·허용값·필드 집합·경로의 정규 선언 연결. 한 번 쓰는 계약 값도 포함 | Schema·Reader/Writer·소비자 연결, 명시값·M/N/V·현재 형식 보존 시험 | 기본값·종류·경로·필드 선언 및 직접 소비 연결 완료, Level 1/2 통과; O7 로컬 전체 통과; 원격 CI는 검증 기록 참조 |
+| O2 설명·조회·저장 경계 | OW-03/04의 공개 설명과 Projection Owner 확정. Manager/Facade의 private 저장 해석을 담당 Owner로 이관 | 필요한 조회 투영과 명시 변경 API, 사본·CAS·필수 증거·unknown usage·조회 비용 검증 | 영수증·설정 설명·Hub view·Resume/Restart Projection 구현과 Level 1/2 통과; O7 로컬 전체 통과; 원격 CI는 검증 기록 참조 |
+| O3 도메인 전이·검증 | 도메인별 중복 규칙과 내부 직접 수정 조사. 선언·전이·검증 구현 공유, 경계별 재검증 유지 | 실제 중복의 제거 또는 정당한 차이의 근거, 저장·실행·재개 최신 상태 검증 | 정책·RAG·Agent binding·Checkpoint·Workflow 제약 정리 및 Level 1/2 통과; O7 로컬 전체 통과; 원격 CI는 검증 기록 참조 |
+| O4 실행·자원 경계 | 신규/중첩/Resume/다중 Agent의 binding·승인·예산·retry·효과·취소·cleanup 경로 대조 | 같은 계약의 동일 Owner 호출, 경로별 차이·불변식·작업/자원 수명·원자성 증거 | ToolRegistry binding 공통화·신규/중첩/재개 경계 대조, 관련 안전성·R3 통과; O7 로컬 전체 통과; 원격 CI는 검증 기록 참조 |
+| O5 Hub·Adapter·확장 | Hub의 Backend 정책 재계산·오류 문자열 해석, SDK wire 유출, 내장 구현 전제 조사/정리 | 공개 계획·구조화된 오류·공통 모델 소비, custom Repository/Engine/Component/Adapter 계약 검증 | 공통 오류 분류·표시 종류·설정 view·Adapter Schema·확장 소비 정리 및 Level 1/2 통과; O7 로컬 전체 통과; 원격 CI는 검증 기록 참조 |
+| O6 감사 도구 | OW-05의 누락 패턴과 책임 경계 감사를 작은 규칙으로 추가. 각 구현 단계부터 관련 규칙·음성 사례도 함께 보강 | 정상 Owner 선언/참조와 외부 재선언을 구분하는 회귀, 기존 S1–S6/R3 유지, 동적 미검출 범위 명시 | S7·S6와 음성 시험 보강, 159건 개별 대조 후 현재 137건 정적 검토 통과; O7 로컬 전체 통과; 원격 CI는 검증 기록 참조 |
+| O7 통합 완료 | 남은 후보·Owner/소비 연결·영향 범위를 확인하고 현재 통합 소스의 Level 3 실행 | 전체 LLM/Hub·정적 감사·R3·문서·필요 실환경, Push SHA의 실제 CI와 미검증 범위 기록 | 로컬 전체 LLM/Hub·R3·정적·문서·환경 통과. 커밋 작성 시점에는 정확한 Push SHA 원격 CI 확인 전 |
 
 O1–O6의 관련 소단계를 묶는 게이트와 O7에서는 Level 3를 수행한다. 공유 저장·승인·예산·효과·
 공개 계약 변경의 영향이 제한됨을 입증하지 못하면 소단계에서도 Level 3로 승격한다.

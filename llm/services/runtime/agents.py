@@ -48,17 +48,5 @@ class RunAgentResolver:
             engine = bound
         return AgentInvocation(binding, engine, self.engines)
 
-    @staticmethod
-    def metadata(binding, request_context=UNSET):
-        value = {"agent_binding": AgentBinding.read(binding)}
-        if request_context is not UNSET:
-            value["request_context"] = deepcopy(request_context)
-        return value
-
     def source(self, project, run):
-        if "agent_binding" not in run.metadata:
-            raise ValueError("Run is missing its original Agent binding")
-        binding = self.current(project, run.metadata["agent_binding"])
-        if binding["agent_id"] != run.agent_id or binding["engine"] != run.engine:
-            raise ValueError("Run Agent and Engine binding mismatch")
-        return binding
+        return self.current(project, AgentBinding.from_run(run))

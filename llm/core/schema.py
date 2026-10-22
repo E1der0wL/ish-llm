@@ -1,11 +1,32 @@
 """UI에서 공유할 JSON Schema. 공급자의 열린 인자를 닫힌 목록으로 제한하지 않는다."""
 
 from copy import deepcopy
+import json
 from jsonschema import Draft202012Validator
 
 
 def field(kind, description="", **constraints):
     return {"type": kind, "description": description, **constraints}
+
+
+def validate_declared_fields(values, properties):
+    """Validate explicit JSON fields without defaults or lossy numeric coercion.
+
+    Owners supply the same property declarations used by their public Schema.
+    Runtime SDK objects must stay outside this JSON-only projection.
+    """
+    json.dumps(values, allow_nan=False)
+    for name, value in values.items():
+        if name not in properties:
+            raise ValueError("Unknown declared field: " + name)
+        spec = properties[name]
+        error = next(Draft202012Validator(spec).iter_errors(value), None)
+        if error is not None:
+            raise ValueError(name + ": " + error.message)
+        kinds = spec.get("type", ())
+        if value is not None and (kinds == "integer" or isinstance(kinds, list) and "integer" in kinds):
+            if type(value) is not int:
+                raise ValueError(name + " must be an integer")
 
 
 def object_schema(properties=None, **extra):

@@ -1,5 +1,8 @@
 """Automatic titles use an ordinary, isolated backend Session/Run."""
 
+from llm.core.models import StepKind
+
+from llm.core.agents import AgentBinding
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelRole, copy_model
 
 from llm.core.models import RunStatus
@@ -17,7 +20,7 @@ TITLE_ENGINE = "_hub_title"
 
 class TitleEngine(BaseEngine):
     def __init__(self, **kwargs):
-        super().__init__("Conversation title", kind="llm", **kwargs)
+        super().__init__("Conversation title", kind=StepKind.LLM, **kwargs)
 
     def describe_config(self):
         from llm.core.schema import object_schema, implementation_schema
@@ -56,7 +59,7 @@ class SessionNamer:
     async def _completion(self, session, record, source):
         """Borrow provider settings, without borrowing the conversation's output contract."""
         project = await session.project.aget_data()
-        definition = (source.metadata["agent_binding"]["definition"] if source else
+        definition = (AgentBinding.definition_from_metadata(source.metadata) if source else
                       await session.project.agents.aload(record.metadata.get("hub_title_agent", self.runtime.config.agent_id)))
         selected = self.runtime.backend.engines.resolve_agent(definition)
         params = {}

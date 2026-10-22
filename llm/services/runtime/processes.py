@@ -1,5 +1,6 @@
 """등록 Tool의 JSON 프로토콜과 일반 argv 실행이 공유하는 Linux 격리·회수 경계."""
 
+from llm.core.models import RunErrorCode
 import asyncio
 from dataclasses import asdict
 import json
@@ -76,7 +77,7 @@ class ProcessToolRunner:
         try:
             command = list(self.commands[name])
         except KeyError:
-            raise ExecutionLimitError("process_failed", f"No process command registered for Tool: {name}") from None
+            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, f"No process command registered for Tool: {name}") from None
         return self._sandbox(command)
 
     def _sandbox(self, command):
@@ -84,7 +85,7 @@ class ProcessToolRunner:
             return command
         bwrap = shutil.which("bwrap")
         if not bwrap:
-            raise ExecutionLimitError("sandbox_unavailable", "Linux Bubblewrap is required; no unsandboxed fallback is allowed")
+            raise ExecutionLimitError(RunErrorCode.SANDBOX_UNAVAILABLE, "Linux Bubblewrap is required; no unsandboxed fallback is allowed")
         args = [bwrap, "--unshare-all", "--unshare-user", "--die-with-parent", "--new-session",
                 "--cap-drop", "ALL", "--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp"]
         if self.allow_network:
@@ -132,7 +133,7 @@ class ProcessToolRunner:
                         return b"".join(chunks)
                     total += len(chunk)
                     if self.max_output_bytes is not None and total > self.max_output_bytes:
-                        raise ExecutionLimitError("process_failed", "Tool process output limit exceeded")
+                        raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, "Tool process output limit exceeded")
                     chunks.append(chunk)
 
             readers = [asyncio.create_task(read(process.stdout)), asyncio.create_task(read(process.stderr))]
@@ -170,11 +171,11 @@ class ProcessToolRunner:
     async def _execute(self, call):
         code, stdout, stderr = await self._launch(self._command(call.name), asdict(call))
         if code != 0:
-            raise ExecutionLimitError("process_failed", f"Tool process exited with {code}: {stderr.decode('utf-8', errors='replace')}")
+            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, f"Tool process exited with {code}: {stderr.decode('utf-8', errors='replace')}")
         try:
             return json.loads(stdout.decode("utf-8"))
         except (ValueError, UnicodeError) as error:
-            raise ExecutionLimitError("process_failed", "Tool process must return one UTF-8 JSON value") from error
+            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, "Tool process must return one UTF-8 JSON value") from error
 
     def _admission(self):
         loop = asyncio.get_running_loop()
@@ -206,9 +207,9 @@ class ProcessToolRunner:
     def validate_tool(self, name, isolation):
         """실행 계약이 요구하는 격리 수준과 등록 명령을 사전 검증한다."""
         if name not in self.commands or isolation == ToolIsolation.SANDBOX and self.isolation != ToolIsolation.SANDBOX:
-            raise ExecutionLimitError("tool_contract", "Runner does not satisfy Tool isolation requirements")
+            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Runner does not satisfy Tool isolation requirements")
         if self.isolation == ToolIsolation.SANDBOX and shutil.which("bwrap") is None:
-            raise ExecutionLimitError("tool_contract", "Bubblewrap is required")
+            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Bubblewrap is required")
 
     async def __call__(self, tool: Any, call: "ToolCall") -> Any:
         """큐 대기도 timeout에 포함한다. 호출별 프로세스 그룹은 완료·실패·취소 시 회수한다."""

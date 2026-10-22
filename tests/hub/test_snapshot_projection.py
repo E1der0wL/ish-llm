@@ -13,6 +13,7 @@ from hub.locales import Language
 from hub.ui.live import LiveHubView
 from hub.ui.presentation import present
 from hub.widget.transcript.conversation import render_messages
+from llm.core.results import CompletionResult
 
 
 def headers(messages, language):
@@ -25,8 +26,8 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         start = "2026-10-12T00:00:"
         run = NS(id="r", status="running", started_at=start + "00+00:00", ended_at=None,
             metadata={"completions": [
-                {"id": "c1", "started_at": start + "01+00:00", "reasoning_content": "Inspect files"},
-                {"id": "c2", "started_at": start + "09+00:00", "reasoning_content": "Now verify"}]})
+                asdict(CompletionResult(id="c1", started_at=start + "01+00:00", reasoning_content="Inspect files")),
+                asdict(CompletionResult(id="c2", started_at=start + "09+00:00", reasoning_content="Now verify"))]})
         record = NS(id="a", role="assistant", content="Partial", status="streaming", created_at="", run_id="r", metadata={})
         steps = tuple(NS(id=f"t{i}", name=f"tool_{i}", status="completed", kind="tool", started_at=start + f"0{i+2}+00:00") for i in range(7))
         for reader in (SnapshotReader(), SnapshotReader()):
@@ -35,8 +36,8 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_reconciliation_restores_all_rounds_above_partial_answer(self):
         run = NS(id="r", status="running", started_at=None, ended_at=None,
-                 metadata={"completions": [{"reasoning_content": "First"},
-                     {"reasoning_content": {"thinking": "Second"}}]})
+                 metadata={"completions": [asdict(CompletionResult(reasoning_content="First")),
+                     asdict(CompletionResult(reasoning_content="Second"))]})
         record = NS(id="a", role="assistant", content="Partial answer", status="streaming",
                     created_at="", run_id="r", metadata={})
         reader = SnapshotReader()
@@ -55,7 +56,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         config = NS(agent_id="assistant", model=None, file_root=None, user_profile=NS(display_name="Account"))
         record = NS(id="s", title="Session", config={}, metadata={"hub_auto_title": True})
         run = NS(id="r", session_id="s", status="running", engine="loop", started_at="2026-10-01T00:00:00+00:00",
-                 ended_at=None, error=None, metadata={"completions": [{"status": "running", "reasoning_content": "Summary", "model": "test/model"}]})
+                 ended_at=None, error=None, metadata={"completions": [asdict(CompletionResult(reasoning_content="Summary", model="test/model"))]})
         handle = NS(id="r", aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=[NS(name="LLM", status="running", kind="llm")])))
         status = NS(status="running", queued_count=2, active_runs=[NS(run_id="r", agent_id="assistant")])
         message = NS(id="m", role="assistant", content="", status="streaming", created_at=run.started_at, run_id="r", metadata={})
@@ -101,3 +102,11 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(shown, headers(present(snapshot, view.t).messages, view.t))
         self.assertIn(UNICODE.reasoning, shown)
         view.close()
+
+    async def test_snapshot_rejects_missing_or_malformed_completion_evidence(self):
+        reader = SnapshotReader()
+        valid = asdict(CompletionResult(reasoning_content="visible"))
+        for metadata in ({}, {"completions": [{"reasoning_content": "visible"}]},
+                         {"completions": [{**valid, "reasoning_content": {"thinking": "visible"}}]}):
+            with self.subTest(metadata=metadata), self.assertRaises(ValueError):
+                await reader.run_display(None, "r", run=NS(id="r", metadata=metadata))

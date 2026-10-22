@@ -7,7 +7,13 @@ import random
 import time
 from copy import deepcopy
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Callable, ClassVar
+
+
+class RetryBackoff(StrEnum):
+    FIXED = "fixed"
+    EXPONENTIAL = "exponential"
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,7 +59,7 @@ class RetryPolicy:
     delay_seconds: float | None = None
     max_delay_seconds: float | None = None
     deadline: float | None = None
-    backoff: str = "fixed"
+    backoff: str = RetryBackoff.FIXED.value
 
     def __post_init__(self):
         if self.max_attempts is not None and (type(self.max_attempts) is not int
@@ -64,7 +70,7 @@ class RetryPolicy:
                 raise ValueError("Retry delay must be finite and nonnegative")
         if self.deadline is not None and (type(self.deadline) not in (int, float) or not math.isfinite(self.deadline)):
             raise ValueError("Retry deadline must be finite")
-        if self.backoff not in ("fixed", "exponential"):
+        if self.backoff not in tuple(RetryBackoff):
             raise ValueError("Unknown retry backoff")
 
     @property
@@ -96,7 +102,7 @@ class RetryPolicy:
     def delay(self, attempt: int, *, minimum: float | None = None, jitter: bool = False) -> float:
         """대기 가능한 간격을 계산한다. 기한 밖의 재시도를 관찰자에게 예약했다고 알리지 않는다."""
         value = self.delay_seconds if self.delay_seconds is not None else 0
-        if value and self.backoff == "exponential":
+        if value and self.backoff == RetryBackoff.EXPONENTIAL:
             # 큰 지수도 overflow로 작업 경계를 깨뜨리지 않게 cap/기한에서 처리한다.
             try:
                 value = math.ldexp(value, attempt - 1)

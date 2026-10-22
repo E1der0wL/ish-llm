@@ -7,6 +7,20 @@ from .contracts import Diagnostic, JsonValue, ResourceRef
 from .interactions import InteractionView
 
 
+class PlanBlockerCode(StrEnum):
+    """Shared lifecycle-plan reasons; a code is evidence, never authorization."""
+
+    ACTIVE_RUN = "active_run"
+    ACTIVE_WORKER = "active_worker"
+    NOT_RESUMABLE = "not_resumable"
+    RESUME_REQUIRED = "resume_required"
+    INTERACTION_REQUIRED = "interaction_required"
+    ENGINE_UNAVAILABLE = "engine_unavailable"
+    RESTART_UNPROVEN = "restart_unproven"
+    RESTART_RESERVED = "restart_reserved"
+    INPUT_UNAVAILABLE = "input_unavailable"
+
+
 @dataclass(frozen=True, slots=True)
 class CheckpointPlan(JsonValue):
     """Run 전체 체크포인트 또는 RAG Job의 정리 계획. 원문/실행 payload는 노출하지 않는다."""

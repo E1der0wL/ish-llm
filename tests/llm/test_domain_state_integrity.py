@@ -14,6 +14,21 @@ from tests.llm import test_repositories as repositories
 class DomainStateTests(unittest.TestCase):
     setUp = repositories.RepositoryTests.setUp
 
+    def test_direct_model_readers_reject_wrong_versions_without_changing_source(self):
+        for model, filename in ((self.project, "project.json"), (self.session, "session.json"),
+                                (self.run, "run.json"), (self.step, "step.json")):
+            path = model.paths.root / filename
+            original = path.read_bytes()
+            for version in (None, False, True, 1.0, "1", 0, 2):
+                with self.subTest(model=type(model).__name__, version=version):
+                    record = json.loads(original)
+                    record["storage_version"] = version
+                    before = deepcopy(record)
+                    with self.assertRaises(ValueError):
+                        type(model).from_record(record, model.paths)
+                    self.assertEqual(record, before)
+                    self.assertEqual(path.read_bytes(), original)
+
     def test_stale_objects_cannot_reopen_terminal_execution_records(self):
         old_step = deepcopy(self.step)
         self.steps.start(self.step)

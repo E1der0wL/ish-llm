@@ -17,6 +17,7 @@ from llm.core.paths import ProjectPaths, SessionPaths
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.storage import async_method
 from llm.services.query import Query, select
+from llm.services.schema import ProjectConfiguration
 
 if TYPE_CHECKING:
     from llm.llm import LargeLanguageModel
@@ -86,14 +87,7 @@ class ProjectHandle(AsyncFacade):
         self.app._check_open()
         value = self.app.project_manager.describe_config(self._snapshot, config=config,
                                                        expected_version=expected_version)
-        value["schema"] = self.app.describe_project_config(components=list(value["components"]))
-        form_config = deepcopy(value["project"]["config"])
-        value["values"] = {"title": value["project"]["title"],
-                           "conversation_storage": value["project"]["conversation_storage"],
-                           "components": list(value["components"]), "config": form_config}
-        from llm.services.schema import effective_engines
-        value["effective_engines"] = effective_engines(self.app, value["project"]["config"])
-        return value
+        return ProjectConfiguration.describe(self.app, value)
 
     @property
     def id(self) -> str:

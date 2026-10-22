@@ -150,10 +150,9 @@ class RequestAdmission:
         for identifier, run in by_agent.items():
             binding = admission["bindings"][identifier]
             if (run.session_id != session_id or run.engine != binding["engine"]
-                    or run.metadata.get("agent_binding") != binding):
+                    or run.metadata.get(AgentBinding.METADATA_FIELD) != binding):
                 raise ValueError("Run differs from its admitted owner or Agent binding")
-            if (("request_context" in run.metadata) != ("request_context" in message.metadata)
-                    or run.metadata.get("request_context") != message.metadata.get("request_context")):
+            if AgentBinding.request_context(run.metadata) != AgentBinding.request_context(message.metadata):
                 raise ValueError("Run differs from its original request context")
         return [by_agent[identifier] for identifier in admission["recipients"]]
 

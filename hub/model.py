@@ -47,6 +47,9 @@ class ChatMessage:
 
 @dataclass(frozen=True, slots=True)
 class TraceItem:
+    TOOL: ClassVar[str] = "tool"
+    REASONING: ClassVar[str] = "reasoning"
+
     id: str
     kind: str
     text: str

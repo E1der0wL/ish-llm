@@ -1,5 +1,7 @@
 """Bounded, immutable table data shared by renderers and interactive viewers."""
 
+from hub.ui.output.model import OutputBlock
+
 from dataclasses import dataclass
 import json
 import math
@@ -17,7 +19,7 @@ class TableData:
     def from_block(cls, block):
         if len(block.text.encode("utf-8")) > 262144:
             raise ValueError("Table source exceeds 256 KiB")
-        if block.kind == "hub-table":
+        if block.kind == OutputBlock.HUB_TABLE:
             data = json.loads(block.text)
             columns, rows = data["columns"], data["rows"]
         else:

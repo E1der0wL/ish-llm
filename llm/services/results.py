@@ -1,6 +1,8 @@
 """Session 또는 Project 범위에서 Run의 실행 결과를 조회한다. 주입된 저장소를 사용하며 결과 자체를 별도 파일로 저장하지 않는다.
 
 Read Run-owned execution observations from Project or Session scope."""
+
+from llm.core.models import StepKind
 from llm.services.query import Query, select
 
 from typing import Optional, Protocol, Union
@@ -72,7 +74,7 @@ class RunResultQuery:
         session = self.sessions.load(project, session_id)
         run = self.runs.load(session, run_id)
         step = steps.load(run, step_id)
-        if step.kind != "tool" or step.status != StepStatus.COMPLETED or step.output is None:
+        if step.kind != StepKind.TOOL or step.status != StepStatus.COMPLETED or step.output is None:
             raise ValueError("Completed Tool result required")
         value = step.output.data
         content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)

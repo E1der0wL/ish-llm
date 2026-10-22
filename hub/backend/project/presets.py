@@ -1,7 +1,8 @@
 """Preset persistence and application through the existing settings service."""
 
+from llm.services.schema import ProjectConfiguration
+
 import asyncio
-import json
 from copy import deepcopy
 
 from ...config.presets import PresetStore
@@ -20,7 +21,9 @@ class PresetService:
 
     async def export(self, identifier):
         record = await self.settings.load_project(identifier)
-        project = {key: deepcopy(record["values"][key]) for key in ("config", "components", "conversation_storage")}
+        form = ProjectConfiguration.view(record).values
+        project = form.to_dict()
+        del project["title"]
         project["config"].get("parameters", {}).get("engines", {}).pop("_hub_title", None)
         return {"version": self.store.VERSION, "global": await asyncio.to_thread(self.store.globals, self.settings.runtime.config.user_profile),
                 "project": project}
@@ -37,12 +40,13 @@ class PresetService:
         project = await self.settings._project(identifier)
         await self.settings._idle_sessions(project)
         record = await self.settings.load_project(identifier)
-        candidate = {**record["values"], **deepcopy(value["project"])}
-        hidden = record["values"]["config"].get("parameters", {}).get("engines", {}).get("_hub_title")
+        view = ProjectConfiguration.view(record)
+        candidate = {**view.values.to_dict(), **deepcopy(value["project"])}
+        hidden = view.values.config.get("parameters", {}).get("engines", {}).get("_hub_title")
         if hidden is not None:
             candidate["config"].setdefault("parameters", {}).setdefault("engines", {})["_hub_title"] = deepcopy(hidden)
         self._check_fixed(record, candidate)
-        requests = [("save_project", (identifier, candidate, record["config_version"], record["values"]["components"]))]
+        requests = [("save_project", (identifier, candidate, view.config_version, view.values.components))]
         requests.extend(("save_global", (section, values)) for section, values in value["global"].items())
         batch = await self.settings.save_all(requests)
         if not batch["error"]:
@@ -52,42 +56,4 @@ class PresetService:
 
     @staticmethod
     def _check_fixed(record, candidate):
-        # Effective settings are observations. Never materialize host-fixed
-        # leaves by importing a preset from another project.
-        missing = object()
-        def at(value, path):
-            for part in path:
-                if not isinstance(value, dict) or part not in value:
-                    return missing
-                value = value[part]
-            return value
-        fixed = set()
-        def schema_locks(schema, path=()):
-            if not isinstance(schema, dict):
-                return
-            if schema.get("x-host-override"):
-                fixed.add(path)
-            for key, child in schema.get("properties", {}).items():
-                schema_locks(child, (*path, key))
-            for child in schema.get("allOf", ()):
-                schema_locks(child, path)
-        schema_locks(record.get("schema", {}))
-        engine_keys = record.get("schema", {}).get("x-engines", {})
-        engines = [(engine_keys.get(name, {}).get("configuration_key", name), view)
-                   for name, view in record.get("effective_engines", {}).items()]
-        components = [(name, spec.get("effective") or {}) for name, spec in record.get("components", {}).items()]
-        for kind, entries in (("engines", engines), ("components", components)):
-            for name, view in entries:
-                for pointer, editable in view.get("editable", {}).items():
-                    if editable:
-                        continue
-                    path = ("config", "parameters", kind, name,
-                            *(part.replace("~1", "/").replace("~0", "~") for part in pointer.lstrip("/").split("/")))
-                    fixed.add(path)
-        for path in fixed:
-            before, after = at(record["values"], path), at(candidate, path)
-            if before is missing and after is missing:
-                continue
-            if (before is missing or after is missing or
-                    json.dumps(before, sort_keys=True, allow_nan=False) != json.dumps(after, sort_keys=True, allow_nan=False)):
-                raise ValueError("Host-fixed setting: " + ".".join(path))
+        ProjectConfiguration.validate_edit(record, candidate)

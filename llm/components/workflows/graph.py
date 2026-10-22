@@ -1,6 +1,7 @@
 """분기·병렬·반복을 표현하는 버전 1 그래프 문서와 순수 구조 검증. 실행 기능은 없다."""
 
 from collections import deque
+from enum import StrEnum
 from copy import deepcopy
 from typing import Optional
 from jsonschema import Draft202012Validator
@@ -9,6 +10,39 @@ from jsonschema.exceptions import ValidationError
 from llm.components.base import Component
 from llm.core.schema import object_schema, open_schema, metadata_schema, field
 from .bindings import pointer_parts, validate_contract
+
+
+class ControlNodeType(StrEnum):
+    BRANCH = "branch"
+    PARALLEL = "parallel"
+    JOIN = "join"
+    LOOP = "loop"
+    END = "end"
+    WORKFLOW = "workflow"
+
+    @classmethod
+    def structural(cls):
+        return frozenset(cls) - {cls.WORKFLOW}
+
+
+class ConditionOperator(StrEnum):
+    EQ = "eq"
+    NE = "ne"
+    LT = "lt"
+    LE = "le"
+    GT = "gt"
+    GE = "ge"
+    IN = "in"
+    EXISTS = "exists"
+
+
+class JoinWait(StrEnum):
+    ALL = "all"
+
+
+class LoopLimit(StrEnum):
+    CONTINUE = "continue"
+    FAIL = "fail"
 
 
 COMMON_NODE_FIELDS = {"type", "inputs", "outputs", "input_schema", "output_schema",
@@ -22,14 +56,14 @@ def workflow_schema():
                      for name in ("input_schema", "output_schema", "resume_schema")})
     common = {**contract, "type": field("string", minLength=1), "metadata": metadata_schema(),
               "pause_before": field("boolean"), "timeout_seconds": field(["number", "null"], exclusiveMinimum=0)}
-    condition = object_schema({"path": field("string"), "op": field("string", enum=["eq", "ne", "lt", "le", "gt", "ge", "in", "exists"]),
+    condition = object_schema({"path": field("string"), "op": field("string", enum=list(ConditionOperator)),
                                "value": {"x-schema-owner": "Workflow condition literal", "x-open-kind": "data"}}, required=["path", "op"])
     fields = {
-        "branch": {"cases": field("array", items=object_schema({"port": field("string"), "when": condition}, required=["port", "when"])), "default": field("string")},
-        "parallel": {"join": field("string")}, "join": {"wait": field("string", enum=["all"])},
-        "loop": {"body": {"$ref": "#"}, "max_iterations": field("integer", minimum=1), "while": condition,
-                 "on_limit": field("string", enum=["continue", "fail"])},
-        "end": {}, "workflow": {"workflow": field("string", minLength=1)},
+        ControlNodeType.BRANCH: {"cases": field("array", items=object_schema({"port": field("string"), "when": condition}, required=["port", "when"])), "default": field("string")},
+        ControlNodeType.PARALLEL: {"join": field("string")}, ControlNodeType.JOIN: {"wait": field("string", enum=list(JoinWait))},
+        ControlNodeType.LOOP: {"body": {"$ref": "#"}, "max_iterations": field("integer", minimum=1), "while": condition,
+                 "on_limit": field("string", enum=list(LoopLimit))},
+        ControlNodeType.END: {}, ControlNodeType.WORKFLOW: {"workflow": field("string", minLength=1)},
     }
     variants = [object_schema({**common, **options, "type": {"const": kind}}, required=["type"])
                 for kind, options in fields.items()]
@@ -71,11 +105,11 @@ def _condition(value) -> None:
     path = value.get("path")
     pointer_parts(path)
     op = value.get("op")
-    if op not in ("eq", "ne", "lt", "le", "gt", "ge", "in", "exists"):
+    if op not in tuple(ConditionOperator):
         raise ValueError("Unsupported condition operator")
-    if op != "exists" and "value" not in value:
+    if op != ConditionOperator.EXISTS and "value" not in value:
         raise ValueError("Condition requires value")
-    if op == "in" and not isinstance(value["value"], list):
+    if op == ConditionOperator.IN and not isinstance(value["value"], list):
         raise ValueError("Condition 'in' requires an array")
 
 
@@ -107,12 +141,12 @@ def validate_graph(data: dict, *, _depth: int = 0) -> None:
         if not isinstance(node, dict):
             raise ValueError("Node must be an object")
         _text(node.get("type"), "Node type")
-        if node["type"] == "workflow":
+        if node["type"] == ControlNodeType.WORKFLOW:
             _text(node.get("workflow"), "Workflow reference")
         if "pause_before" in node and type(node["pause_before"]) is not bool:
             raise ValueError("pause_before must be boolean")
         validate_contract(node)
-        if node["type"] in ("branch", "parallel", "join", "loop", "end") and any(
+        if node["type"] in ControlNodeType.structural() and any(
                 key in node for key in ("inputs", "outputs", "input_schema", "output_schema")):
             raise ValueError("Bindings belong to action nodes, not control nodes")
     seen = set()
@@ -157,10 +191,10 @@ def validate_graph(data: dict, *, _depth: int = 0) -> None:
     joins = {}
     for name, node in nodes.items():
         kind, links = node["type"], outgoing[name]
-        if kind == "end":
+        if kind == ControlNodeType.END:
             if links:
                 raise ValueError("End node cannot have outgoing edges")
-        elif kind == "branch":
+        elif kind == ControlNodeType.BRANCH:
             cases = node.get("cases")
             if not isinstance(cases, list) or not cases:
                 raise ValueError("Branch requires ordered cases")
@@ -174,9 +208,9 @@ def validate_graph(data: dict, *, _depth: int = 0) -> None:
             actual = [edge.get("port") for edge in links]
             if len(set(ports)) != len(ports) or sorted(actual, key=str) != sorted(ports):
                 raise ValueError("Branch requires one edge for each distinct case/default port")
-        elif kind == "parallel":
+        elif kind == ControlNodeType.PARALLEL:
             join = _text(node.get("join"), "Parallel join")
-            if join not in nodes or nodes[join]["type"] != "join" or join in joins:
+            if join not in nodes or nodes[join]["type"] != ControlNodeType.JOIN or join in joins:
                 raise ValueError("Parallel requires its own join node")
             joins[join] = name
             if len(links) < 2 or len({edge["target"] for edge in links}) != len(links):
@@ -186,20 +220,20 @@ def validate_graph(data: dict, *, _depth: int = 0) -> None:
         else:
             if len(links) != 1 or "port" in links[0]:
                 raise ValueError("Action, join and loop nodes require one unlabelled successor")
-            if kind == "join" and node.get("wait", "all") != "all":
+            if kind == ControlNodeType.JOIN and node.get("wait", JoinWait.ALL) != JoinWait.ALL:
                 raise ValueError("Join supports wait='all'")
-            if kind == "loop":
+            if kind == ControlNodeType.LOOP:
                 limit = node.get("max_iterations")
                 if type(limit) is not int or limit < 1:
                     raise ValueError("Loop requires positive integer max_iterations")
                 if "while" in node:
                     _condition(node["while"])
-                if node.get("on_limit") not in ("continue", "fail"):
+                if node.get("on_limit") not in tuple(LoopLimit):
                     raise ValueError("Loop requires on_limit='continue' or 'fail'")
                 validate_graph(node.get("body"), _depth=_depth + 1)
 
     for name, node in nodes.items():
-        if node["type"] == "join" and name not in joins:
+        if node["type"] == ControlNodeType.JOIN and name not in joins:
             raise ValueError("Join must belong to a parallel node")
     for join, fork in joins.items():
         # 모든 경로가 지정된 join에 도달해야 한다. 조기 종료나 외부 진입은 교착의 원인이 된다.

@@ -4,6 +4,8 @@
 파일 I/O는 호출자의 StorageIO/워크스페이스 소유권 안에서 수행한다.
 """
 
+from llm.core.checkpoints import CheckpointOperation
+
 from copy import deepcopy
 import hashlib
 import json
@@ -173,7 +175,7 @@ class CheckpointRepository:
         ProjectConfig.validate_json(data)
         name = data["name"]
         root = self._root(run, name)
-        if data["operation"] == "initialize":
+        if data["operation"] == CheckpointOperation.INITIALIZE:
             names = self.names(run)
             if name in names or root.exists():
                 raise ValueError("Checkpoint already initialized")
@@ -186,7 +188,7 @@ class CheckpointRepository:
             self._manifest(run, name, {"schema_version": self.SCHEMA_VERSION, "run_id": run.id,
                 "engine": run.engine, "header": data["header"], "records": records, "record_revisions": {}})
             run.metadata.setdefault("checkpoints", []).append(name)
-        elif data["operation"] == "record":
+        elif data["operation"] == CheckpointOperation.RECORD:
             stored, _ = self._stored(run, name)
             key, value = data["key"], data["value"]
             self._entry(key, value)

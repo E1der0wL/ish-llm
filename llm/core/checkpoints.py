@@ -1,9 +1,10 @@
 """체크포인트 수명 공통 계약. 파일과 Engine/Component payload는 소유자가 관리한다."""
 
-from dataclasses import dataclass
+from copy import deepcopy
+from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional
+from typing import ClassVar, Optional
 
 from .contracts import Diagnostic, JsonValue
 from .plans import CheckpointPlan
@@ -18,6 +19,74 @@ class CheckpointStatus(StrEnum):
     WAITING = "waiting"
     RESPONDED = "responded"
     NOT_APPLIED = "not_applied"
+
+
+class CheckpointOperation(StrEnum):
+    INITIALIZE = "initialize"
+    RECORD = "record"
+
+
+@dataclass(frozen=True, slots=True)
+class CheckpointEnvelope:
+    """Common nested identity and lifecycle; the child owns the opaque payload."""
+
+    KIND_FIELD: ClassVar[str] = "node_type"
+    KIND: ClassVar[str] = "engine_record"
+    PAYLOAD_FIELD: ClassVar[str] = "payload"
+    engine_scope: str
+    checkpoint_name: str
+    local_key: str
+    status: str
+    container: bool
+    requires_retry: bool
+
+    def __post_init__(self):
+        if any(not isinstance(value, str) or not value.strip()
+               for value in (self.engine_scope, self.checkpoint_name, self.local_key)):
+            raise ValueError("Checkpoint envelope requires scope, name and local key")
+        if (self.status not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
+                or type(self.container) is not bool or type(self.requires_retry) is not bool
+                or self.requires_retry != (self.status == CheckpointStatus.STARTED and not self.container)):
+            raise ValueError("Invalid checkpoint envelope lifecycle")
+
+    def to_dict(self):
+        return {self.KIND_FIELD: self.KIND, **asdict(self)}
+
+    @classmethod
+    def is_record(cls, record):
+        return record.get(cls.KIND_FIELD) == cls.KIND
+
+    @classmethod
+    def belongs_to(cls, record, scope, name):
+        return record.get("engine_scope") == scope and record.get("checkpoint_name") == name
+
+    @classmethod
+    def from_dict(cls, record):
+        if not cls.is_record(record):
+            raise ValueError("Expected a nested Engine checkpoint envelope")
+        return cls(**{item.name: record.get(item.name) for item in fields(cls)})
+
+    @classmethod
+    def read(cls, record):
+        envelope = cls.from_dict(record)
+        payload = record.get(cls.PAYLOAD_FIELD)
+        if not isinstance(payload, dict):
+            raise ValueError("Checkpoint envelope requires an object payload")
+        return envelope, payload
+
+    @classmethod
+    def attach(cls, envelope, payload):
+        cls.from_dict(envelope)
+        return {**deepcopy(envelope), cls.PAYLOAD_FIELD: deepcopy(payload)}
+
+
+class CheckpointErrorCode(StrEnum):
+    CONFLICT = "checkpoint_conflict"
+    PROTECTED = "checkpoint_protected"
+    CORRUPT = "checkpoint_corrupt"
+    MISSING = "checkpoint_missing"
+    DELETED = "checkpoint_deleted"
+    CONFIGURATION = "checkpoint_configuration"
 
 
 class CheckpointError(CodedError, ValueError):
@@ -71,28 +140,16 @@ def build_envelope(*, engine_scope, checkpoint_name, local_key, status, containe
     lifecycle facts required by persistence, steering and approval bindings.
     Field names are the existing storage contract; no migration is performed.
     """
-    if any(not isinstance(value, str) or not value.strip()
-           for value in (engine_scope, checkpoint_name, local_key)):
-        raise ValueError("Checkpoint envelope requires scope, name and local key")
-    if (status not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
-            or type(container) is not bool or type(requires_retry) is not bool
-            or requires_retry != (status == CheckpointStatus.STARTED and not container)):
-        raise ValueError("Invalid checkpoint envelope lifecycle")
-    return {"node_type": "engine_record", "engine_scope": engine_scope,
-            "checkpoint_name": checkpoint_name, "local_key": local_key,
-            "status": status, "container": container, "requires_retry": requires_retry}
+    return CheckpointEnvelope(engine_scope, checkpoint_name, local_key,
+                              status, container, requires_retry).to_dict()
 
 
 def unwrap_record(record):
     """Return one owner's payload and optional scope, not arbitrary nested JSON."""
-    if record.get("node_type") != "engine_record":
+    if not CheckpointEnvelope.is_record(record):
         return record, None
-    build_envelope(**{key: record.get(key) for key in (
-        "engine_scope", "checkpoint_name", "local_key", "status", "container", "requires_retry")})
-    payload = record.get("payload")
-    if not isinstance(payload, dict):
-        raise ValueError("Checkpoint envelope requires an object payload")
-    return payload, record["engine_scope"]
+    envelope, payload = CheckpointEnvelope.read(record)
+    return payload, envelope.engine_scope
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,7 +176,7 @@ def require_checkpoint_plan(plan: CheckpointPlan, expected_revision: str, *, act
     if action not in ("abandon", "delete"):
         raise ValueError("Unknown checkpoint action")
     if not expected_revision or expected_revision != plan.revision:
-        raise CheckpointError("checkpoint_conflict", "review a fresh checkpoint plan")
+        raise CheckpointError(CheckpointErrorCode.CONFLICT, "review a fresh checkpoint plan")
     blockers = plan.abandon_blockers if action == "abandon" else plan.delete_blockers
     if blockers:
-        raise CheckpointError("checkpoint_protected", "; ".join(item.message for item in blockers), blockers=blockers)
+        raise CheckpointError(CheckpointErrorCode.PROTECTED, "; ".join(item.message for item in blockers), blockers=blockers)

@@ -1,5 +1,8 @@
 """재시작 가능한 문서 색인 작업. 입력·준비 결과·공개 영수증을 별도로 저장한다."""
 
+from llm.core.plans import PlanBlockerCode
+
+from llm.core.checkpoints import CheckpointErrorCode
 from .status import RAGJobStatus
 import asyncio
 from contextlib import contextmanager
@@ -43,13 +46,13 @@ class RAGJobs:
         source = ResourceRef(JobStorage.KIND, identifier, project_id=project.id, component=self.data.name)
         files = tree_snapshot(self._path(identifier), exclude=(JobStorage.LEASE,))
         abandoned = job["resume_abandonment"] is not None
-        common = [Diagnostic("active_worker", "Indexing worker is still alive; cancel and await it first", source=source)] if live else []
+        common = [Diagnostic(PlanBlockerCode.ACTIVE_WORKER, "Indexing worker is still alive; cancel and await it first", source=source)] if live else []
         abandon = list(common)
         if abandoned or job["status"] in (RAGJobStatus.COMPLETED.value, RAGJobStatus.CANCELLED.value):
-            abandon.append(Diagnostic("not_resumable", "Job is already terminal or abandoned", source=source))
+            abandon.append(Diagnostic(PlanBlockerCode.NOT_RESUMABLE, "Job is already terminal or abandoned", source=source))
         delete = list(common)
         if not abandoned and job["status"] not in (RAGJobStatus.COMPLETED.value, RAGJobStatus.CANCELLED.value):
-            delete.append(Diagnostic("resume_required", "Abandon the Job before deleting it", source=source))
+            delete.append(Diagnostic(PlanBlockerCode.RESUME_REQUIRED, "Abandon the Job before deleting it", source=source))
         declarations = self._storage().inventory()[0]["jobs"][identifier]["checkpoints"]
         keys = sorted(declarations)
         return CheckpointPlan(source, keys, sum(v["bytes"] for v in files.values()), abandoned,
@@ -66,21 +69,21 @@ class RAGJobs:
         def block(code, message):
             blockers.append(Diagnostic(code, message, source=source))
         if live:
-            block("active_worker", "Cancel and await the active Job worker first")
+            block(PlanBlockerCode.ACTIVE_WORKER, "Cancel and await the active Job worker first")
         if job["resume_abandonment"] is not None or job["cancel_requested"] or job["status"] in (RAGJobStatus.COMPLETED.value, RAGJobStatus.CANCELLED.value, RAGJobStatus.QUEUED.value):
-            block("not_resumable", "Only an inactive failed or interrupted Job can resume")
+            block(PlanBlockerCode.NOT_RESUMABLE, "Only an inactive failed or interrupted Job can resume")
         try:
             self._storage().read_input(identifier, job)
             reused.extend(sorted(self._storage().checkpoints(identifier)[1]))
             if job["status"] != RAGJobStatus.QUEUED.value and job.get("configuration") != component._configuration_version:
                 state = RAGJobs.RESUME_INCOMPATIBLE
-                block("checkpoint_configuration", "RAG configuration differs from the Job's preparation")
+                block(CheckpointErrorCode.CONFIGURATION, "RAG configuration differs from the Job's preparation")
         except FileNotFoundError as error:
             state = RAGJobs.RESUME_MISSING
-            block("checkpoint_missing", str(error))
+            block(CheckpointErrorCode.MISSING, str(error))
         except (ValueError, TypeError, KeyError) as error:
             state = RAGJobs.RESUME_CORRUPT
-            block("checkpoint_corrupt", str(error))
+            block(CheckpointErrorCode.CORRUPT, str(error))
         return JobResumePlan(source, state, not blockers, sorted(reused), blockers,
             revision_token({"job": job, "files": files, "live": live, "configuration": component._configuration_version}),
             live, job["resume_abandonment"] is not None)
@@ -254,9 +257,9 @@ class RAGJobs:
         if expected_revision is not None:
             plan = self._resume_plan(identifier, live=False)
             if expected_revision != plan.revision:
-                raise CheckpointError("checkpoint_conflict", "review a fresh Job resume plan")
+                raise CheckpointError(CheckpointErrorCode.CONFLICT, "review a fresh Job resume plan")
             if not plan.can_resume:
-                raise CheckpointError("checkpoint_protected", "Job resume is blocked", blockers=plan.blockers)
+                raise CheckpointError(CheckpointErrorCode.PROTECTED, "Job resume is blocked", blockers=plan.blockers)
         if job["resume_abandonment"] is not None:
             raise ValueError("Job resume was abandoned")
         if job["status"] == RAGJobStatus.RUNNING.value:
@@ -268,7 +271,7 @@ class RAGJobs:
             raise ValueError("Job was cancelled")
         project, component = self.data._current()
         if job["status"] != RAGJobStatus.QUEUED.value and job.get("configuration") != component._configuration_version:
-            raise CheckpointError("checkpoint_configuration", "RAG configuration changed; enqueue a new Job")
+            raise CheckpointError(CheckpointErrorCode.CONFIGURATION, "RAG configuration changed; enqueue a new Job")
         maximum = component._options(project).get("ingestion", {}).get("max_active")
         if maximum is not None and (type(maximum) is not int or maximum < 1):
             raise ValueError("ingestion.max_active must be positive")
@@ -314,14 +317,14 @@ class RAGJobs:
         prepared = document["documents"] if "document_ids" in job else [document]
         expected = job["document_ids"] if "document_ids" in job else [job["document_id"]]
         if [item["id"] for item in prepared] != expected:
-            raise CheckpointError("checkpoint_corrupt", "Prepared document identity differs from Job input")
+            raise CheckpointError(CheckpointErrorCode.CORRUPT, "Prepared document identity differs from Job input")
         documents = dict(snapshot["documents"])
         changed = False
         for item in prepared:
             if item.get("preparation_configuration") != component._configuration_version:
-                raise CheckpointError("checkpoint_configuration", "RAG configuration changed since preparation; enqueue a new job")
+                raise CheckpointError(CheckpointErrorCode.CONFIGURATION, "RAG configuration changed since preparation; enqueue a new job")
             if item["profile"]["model"] != component._identity():
-                raise CheckpointError("checkpoint_configuration", "Embedding model changed since the job was prepared")
+                raise CheckpointError(CheckpointErrorCode.CONFIGURATION, "Embedding model changed since the job was prepared")
             from llm.core.embeddings import validate_vectors
             from .extraction import validate_graph
             vectors = validate_vectors(item["vectors"], dimensions=item["profile"]["dimensions"])
@@ -392,7 +395,7 @@ class RAGJobs:
         if saved is None:
             return None
         if saved["signature"] != signature:
-            raise CheckpointError("checkpoint_configuration", "Prepared batch configuration changed; enqueue a new job")
+            raise CheckpointError(CheckpointErrorCode.CONFIGURATION, "Prepared batch configuration changed; enqueue a new job")
         return saved["value"]
 
     async def _prepare_documents(self, identifier, inputs, component):

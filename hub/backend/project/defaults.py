@@ -3,14 +3,15 @@
 from copy import deepcopy
 import asyncio
 
-from llm.core.models import ProjectConfig
+from llm.core.models import ConversationStorage, ProjectConfig
 from llm.components.rag.prompts import ExtractionFailurePolicy
+from llm.components.rag.search import SearchMethod, SearchExpansion, RelationRanking
 
 from ...asset.guides import SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
 from .agents import DEFAULT_AGENT
 
 
-CONVERSATION_STORAGE = "file"
+CONVERSATION_STORAGE = ConversationStorage.FILE.value
 
 
 def creation_values(backend, values):
@@ -31,9 +32,9 @@ def rag_defaults():
     return {"config": {
         "chunk_size": 1200, "embedding_cache_max_bytes": 16 * 1024 * 1024,
         "extraction_batch_size": 8, "search_cache_chars": 1_000_000, "index_batch_size": 64,
-        "search": {"method": "hybrid", "expand": "chunk", "limit": 5, "rerank": True,
+        "search": {"method": SearchMethod.HYBRID.value, "expand": SearchExpansion.CHUNK.value, "limit": 5, "rerank": True,
                    "candidate_count": 20, "rrf_constant": 60, "max_hops": 2,
-                   "relation_limit": 20, "relation_ranking": "source"},
+                   "relation_limit": 20, "relation_ranking": RelationRanking.SOURCE.value},
         "graph": {"buffer_pool_size": 64 * 1024 * 1024, "max_num_threads": 2}},
         "policy": {"embedding_concurrency": 2, "ingestion": {"max_active": 1},
                    "extraction": {"failure_policy": ExtractionFailurePolicy.DISABLED.value}}}

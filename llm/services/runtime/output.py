@@ -1,8 +1,10 @@
 """출력 델타만 제한된 크기로 묶는다. 다른 이벤트는 저장 완료를 기다리는 실행 경계다."""
 
+from llm.core.policies import OutputBuffer
+from llm.core.results import OutputOperation, OutputVisibility
+
 import asyncio
-import math
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from io import StringIO
 from typing import Union
 
@@ -28,9 +30,9 @@ class OutputProjection:
             # 빈 본문에 공통 계약을 적용한다. 거부된 이벤트는 버퍼도 변경하지 않는다.
             updated = previous.apply(replace(value, text=""))
             buffer = self.texts.get(value.output_id)
-            if buffer is None or value.operation == "replace":
+            if buffer is None or value.operation == OutputOperation.REPLACE:
                 buffer = StringIO()
-                if value.operation == "append":
+                if value.operation == OutputOperation.APPEND:
                     buffer.write(previous.text)
             buffer.write(value.text)
             self.texts[value.output_id] = buffer
@@ -100,38 +102,16 @@ class RunOutputState:
         self._projection.add(updated)
         self.sequence = value.sequence
         change = None
-        if isinstance(value, EngineDelta) and value.visibility == "user":
+        if isinstance(value, EngineDelta) and value.visibility == OutputVisibility.USER:
             self._visible_text[value.output_id] = self._projection.texts[value.output_id]
-            change = ((value.text, "append") if value.operation == "append" else
-                      ("".join(buffer.getvalue() for buffer in self._visible_text.values()), "replace"))
+            change = ((value.text, OutputOperation.APPEND) if value.operation == OutputOperation.APPEND else
+                      ("".join(buffer.getvalue() for buffer in self._visible_text.values()), OutputOperation.REPLACE))
         return event, change
-
-
-@dataclass(frozen=True)
-class OutputBuffer:
-    """기본값 1은 즉시 저장. 묶음 모드는 다음 델타까지 Engine을 미리 진행할 수 있다."""
-
-    batch_size: int = 1
-    max_delay: float = 0.025
-    max_chars: int = 65536
-
-    def __post_init__(self):
-        for name in ("batch_size", "max_chars"):
-            if type(getattr(self, name)) is not int or getattr(self, name) < 1:
-                raise ValueError(f"{name} must be a positive integer")
-        if (isinstance(self.max_delay, bool) or not isinstance(self.max_delay, (int, float))
-                or not math.isfinite(self.max_delay) or self.max_delay <= 0):
-            raise ValueError("max_delay must be positive and finite")
-
-    def for_project(self, policy):
-        """Run 시작 시 저장한 프로젝트 정책을 적용한다. null은 호스트 기본값을 유지한다."""
-        return OutputBuffer(**{name: policy[name] if policy.get(name) is not None else getattr(self, name)
-                               for name in ("batch_size", "max_delay", "max_chars")})
 
 
 async def consume_events(events, batching, handle):
     """유한 버퍼와 시간 경계. Tool 승인/Step/체크포인트는 절대 미리 ACK하지 않는다."""
-    if batching.batch_size == 1:
+    if batching.immediate:
         async for event in events:
             await handle([event])
         return

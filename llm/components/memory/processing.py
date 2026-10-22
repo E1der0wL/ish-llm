@@ -1,5 +1,8 @@
 """Memory가 소유하는 문맥 처리. 원본 대화/Tool 결과와 실행 체크포인트는 변경하지 않는다."""
 
+from llm.core.models import RunErrorCode
+from llm.core.results import OutputVisibility
+
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelRole, copy_model
 
 import asyncio
@@ -315,7 +318,7 @@ class MemorySession(CompletionSession):
         result.update(summary=text, tool_call_ids=list(ids), source_digest=digest(prefix[:covered]), **metadata)
 
     async def _step(self, name, operation):
-        context = replace(self.context, output_visibility="internal")
+        context = replace(self.context, output_visibility=OutputVisibility.INTERNAL)
         source = {"kind": "processing", "project_id": context.project.id, "session_id": context.session.id,
                   "run_id": context.run.id, "message_id": context.run.input_message_id}
         result = {}
@@ -323,7 +326,7 @@ class MemorySession(CompletionSession):
         async def action(_context):
             async for event in operation(result, source):
                 yield event
-            yield EngineOutput(data=result, visibility="internal")
+            yield EngineOutput(data=result, visibility=OutputVisibility.INTERNAL)
 
         try:
             async with aclosing(BaseEngine().step(context, action, name=name, kind="memory",
@@ -336,7 +339,7 @@ class MemorySession(CompletionSession):
                         # 선택적 부가 기능의 실패를 숨기지 않고 완료된 fallback Step으로 기록한다.
                         # FAILED Step을 남긴 Run은 성공할 수 없다는 기존 서비스 불변식을 유지한다.
                         yield BaseEngine.step_completed_event(context, event.step_id,
-                            EngineOutput(data={"degraded": True, "error": event.error}, visibility="internal"),
+                            EngineOutput(data={"degraded": True, "error": event.error}, visibility=OutputVisibility.INTERNAL),
                             metadata={"degraded": True, "error_code": self.PROCESSING_FAILED})
                     else:
                         yield event
@@ -548,7 +551,7 @@ class MemorySession(CompletionSession):
                     try:
                         await asyncio.to_thread(self.context.completion_policy.prepare, request.to_model())
                     except ExecutionLimitError as error:
-                        if error.code != "context_budget_exceeded":
+                        if error.code != RunErrorCode.CONTEXT_BUDGET_EXCEEDED:
                             raise
                         request.messages = raw  # 앞선 처리기의 편집까지 포함한 입력으로 되돌린다.
                         entries = []

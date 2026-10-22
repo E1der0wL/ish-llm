@@ -1,19 +1,16 @@
 """Transport data only: no UI, logging, model calls or retry side effects."""
 
+from llm.core.contracts import ErrorCategory, Confidence, ErrorReason
+
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 from llm.core.model_protocol import StopReason
 
 
-class ErrorCategory(StrEnum):
-    SERVICE = "service"
-    ACCESS = "access"
-    CONTRACT = "contract"
-    RESOURCE = "resource"
-    EXECUTION = "execution"
-    INTERNAL = "internal"
-    UNKNOWN = "unknown"
+
+class HubErrorCode(StrEnum):
+    VALIDATION = "hub_validation"
 
 
 class ErrorOrigin(StrEnum):
@@ -25,11 +22,6 @@ class ErrorOrigin(StrEnum):
     ENVIRONMENT = "environment"
     UNKNOWN = "unknown"
 
-
-class Confidence(StrEnum):
-    EXPLICIT = "explicit"
-    INFERRED = "inferred"
-    UNKNOWN = "unknown"
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,7 +40,7 @@ class ErrorInfo:
     operation: str = ""
     stage: str = ""
     category: ErrorCategory = ErrorCategory.UNKNOWN
-    reason: str = "unknown"
+    reason: str = ErrorReason.UNKNOWN.value
     confidence: Confidence = Confidence.UNKNOWN
     evidence: dict[str, Any] = field(default_factory=dict)
     http_status: int | None = None

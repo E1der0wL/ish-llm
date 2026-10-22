@@ -9,6 +9,7 @@ from enum import StrEnum
 from jsonschema import Draft202012Validator
 from llm.core.models import ProjectConfig
 from llm.core.schema import open_schema, metadata_schema, validate_local_refs
+from llm.core.configuration import UNSET
 
 
 class AgentMode(StrEnum):
@@ -154,6 +155,51 @@ class AgentBinding:
     """Immutable admitted identity; missing evidence is never filled from a current definition."""
 
     SCHEMA_VERSION = 1
+    METADATA_FIELD = "agent_binding"
+    CONTEXT_FIELD = "request_context"
+    EXECUTION_FIELD = "agent_execution"
+
+    @classmethod
+    def metadata(cls, binding, request_context=UNSET):
+        value = {cls.METADATA_FIELD: cls.read(binding)}
+        if request_context is not UNSET:
+            value[cls.CONTEXT_FIELD] = deepcopy(request_context)
+        return value
+
+    @classmethod
+    def request_context(cls, metadata):
+        return metadata.get(cls.CONTEXT_FIELD, UNSET)
+
+    @classmethod
+    def from_metadata(cls, metadata):
+        if cls.METADATA_FIELD not in metadata:
+            raise ValueError("Run is missing its original Agent binding")
+        return cls.read(metadata[cls.METADATA_FIELD])
+
+    @classmethod
+    def from_run(cls, run):
+        binding = cls.from_metadata(run.metadata)
+        if binding["agent_id"] != run.agent_id or binding["engine"] != run.engine:
+            raise ValueError("Run Agent and Engine binding mismatch")
+        return binding
+
+    @classmethod
+    def definition_from_metadata(cls, metadata):
+        """Detached admitted definition for read-only consumers such as naming."""
+        return cls.from_metadata(metadata)["definition"]
+
+    @classmethod
+    def same_request(cls, left, right):
+        return cls.metadata(cls.from_metadata(left), cls.request_context(left)) == cls.metadata(
+            cls.from_metadata(right), cls.request_context(right))
+
+    @classmethod
+    def validate_run_update(cls, prior, current):
+        if (prior.agent_id != current.agent_id or prior.engine != current.engine
+                or not cls.same_request(prior.metadata, current.metadata)
+                or (cls.EXECUTION_FIELD in prior.metadata
+                    and prior.metadata[cls.EXECUTION_FIELD] != current.metadata.get(cls.EXECUTION_FIELD))):
+            raise ValueError("Run Agent evidence is immutable")
 
     @classmethod
     def create(cls, project_id, identifier, definition):

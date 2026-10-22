@@ -3,7 +3,7 @@
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
-from dataclasses import replace
+from dataclasses import asdict, replace
 import tempfile
 import threading
 from types import SimpleNamespace
@@ -19,6 +19,8 @@ from hub.widget.transcript.conversation import ConversationControl, render_messa
 from llm.components.tools import ToolComponent
 from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel
+from llm.core.results import CompletionResult
+from llm.core.models import now
 
 
 class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
@@ -102,9 +104,10 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
 
     def test_reconciliation_and_tool_gap_do_not_claim_preparation(self):
         phases = ThinkingPhases()
-        run = SimpleNamespace(id='r', status='running', metadata={'completions': [{'status': 'running'}]})
+        run = SimpleNamespace(id='r', status='running', metadata={'completions': [asdict(CompletionResult())]})
         self.assertEqual(phases.activity(run), 'thinking')
         run.metadata['completions'][-1]['status'] = 'completed'
+        run.metadata['completions'][-1]['ended_at'] = now()
         self.assertEqual(phases.activity(run), 'running')
         run.status = 'failed'
         self.assertEqual(phases.activity(run), '')

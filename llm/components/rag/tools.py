@@ -1,7 +1,7 @@
 """RAG 공개 검색 API를 현재 프로젝트에 묶인 LLM Tool로 노출한다."""
 
 from llm.components.tools.registry import Tool, ToolRegistry, ToolContract, ToolEffect, ToolIsolation
-from .search import search_schema
+from .search import retrieval_schema
 
 
 READ_CONTRACT = ToolContract(
@@ -11,23 +11,10 @@ READ_CONTRACT = ToolContract(
 
 def search_tools(data) -> ToolRegistry:
     """호출 서비스의 핸들을 사용한다. 모델 인자로 프로젝트나 파일 경로를 받지 않는다."""
-    parameters = {
-        "type": "object", "additionalProperties": False, "required": ["query"],
-        "properties": {
-            "query": {"type": "string", "minLength": 1},
-            "method": {"type": "string", "enum": ["hybrid", "bm25", "vector"]},
-            "expand": {"type": "string", "enum": ["chunk", "section", "document"]},
-            "limit": {"type": "integer", "minimum": 1},
-            "rerank": {"type": "boolean"},
-            "max_hops": {"type": "integer", "minimum": 1},
-            "relation_limit": {"type": "integer", "minimum": 1},
-        },
-    }
+    parameters = retrieval_schema()
 
     configured = data.resolve_config()["values"].get("config", {}).get("search", {})
-    specs = search_schema()["properties"]
     for name in parameters["properties"].keys() - {"query"}:
-        parameters["properties"][name] = dict(specs[name])
         if name != "rerank" and name not in configured:
             parameters["required"].append(name)
     has_reranker = data.has_reranker()

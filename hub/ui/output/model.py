@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from typing import Callable, ClassVar
 
 from ...config.theme import HubTheme
 from ...locales import Language
@@ -12,6 +12,19 @@ FragmentLines = list[list[tuple[str, str]]]
 
 @dataclass(frozen=True, slots=True)
 class OutputBlock:
+    MARKDOWN: ClassVar[str] = "markdown"
+    CODE: ClassVar[str] = "code"
+    TABLE: ClassVar[str] = "table"
+    LITERAL: ClassVar[str] = "literal"
+    PENDING: ClassVar[str] = "pending"
+    HUB_CODE: ClassVar[str] = "hub-code"
+    HUB_DIFF: ClassVar[str] = "hub-diff"
+    HUB_TABLE: ClassVar[str] = "hub-table"
+    HUB_CARD: ClassVar[str] = "hub-card"
+    HUB_CHART: ClassVar[str] = "hub-chart"
+    HUB_IMAGE: ClassVar[str] = "hub-image"
+    TAG_PATTERN: ClassVar[str] = r"hub-[a-z][a-z0-9-]*"
+
     kind: str
     text: str
     start: int

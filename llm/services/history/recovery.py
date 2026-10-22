@@ -1,9 +1,14 @@
 """도메인 참조 검사와 명시적 복구. 실행을 재생하지 않고 저장 상태만 정리한다."""
 
+from llm.core.models import ResourceKind
+
+from llm.core.results import OutputVisibility
+from llm.core.models import RunTransition
+
 from copy import deepcopy
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.plans import RecoveryPlan, RecoveryResult
-from llm.core.models import MessageRole, MessageStatus, RunStatus, StepStatus, SessionStatus, now, new_id, validate_run_transition
+from llm.core.models import ConversationStorage, MessageRole, MessageStatus, RunStatus, StepStatus, SessionStatus, now, new_id, validate_run_transition
 from llm.services.infrastructure.storage import atomic_json, record, revision_token, reject_links
 from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.steps import StepManager
@@ -20,7 +25,7 @@ def recover_session(sessions, repository, steps, session, store):
     messages = {message.id: message for message in store.list()}
     runs = repository.list(session)
     RequestAdmission.history(list(messages.values()), runs, project_id=session.project_id,
-        session_id=session.id, persistent=sessions._owner(session).conversation_storage == "file")
+        session_id=session.id, persistent=sessions._owner(session).conversation_storage == ConversationStorage.FILE)
     sessions.transfers.validate_session(sessions._owner(session), session, list(messages.values()))
     # 모든 지시를 먼저 읽어 검증한다. 뒤쪽의 손상으로 앞선 Run/Step만 복구되지 않게 한다.
     from llm.services.runtime.steering import instruction_targets, instruction_records
@@ -38,14 +43,14 @@ def recover_session(sessions, repository, steps, session, store):
     for run in runs:
         stale = run.status in (RunStatus.PENDING, RunStatus.RUNNING)
         if stale:
-            validate_run_transition(run.status, RunStatus.INTERRUPTED, reason="recovery")
+            validate_run_transition(run.status, RunStatus.INTERRUPTED, reason=RunTransition.RECOVERY)
         steps.recover(run)
         if stale:
             if "steering" in run.metadata:
                 from llm.services.runtime.steering import finish_instructions, close_targets
                 finish_instructions(store, run.id, RunErrorCode.PROCESS_RESTART.value)
                 close_targets(run, RunErrorCode.PROCESS_RESTART.value)
-            if sessions._owner(session).conversation_storage == "file" and run.assistant_message_id in messages:
+            if sessions._owner(session).conversation_storage == ConversationStorage.FILE and run.assistant_message_id in messages:
                 repository.reconcile_output(run, store)
             run.status, run.error_code, run.ended_at = RunStatus.INTERRUPTED, RunErrorCode.PROCESS_RESTART.value, now()
             repository.save(run)
@@ -78,7 +83,7 @@ class ProjectRecovery:
         from llm.services.runtime.runs import RunErrorCode
         issues, actions, signatures = [], [], []
         def issue(code, *, session=None, run=None, detail=None, repairable=False):
-            source = ResourceRef("run" if run else "session" if session else "project", run or session or project.id,
+            source = ResourceRef(ResourceKind.RUN if run else ResourceKind.SESSION if session else ResourceKind.PROJECT, run or session or project.id,
                                  project_id=project.id, session_id=session, run_id=run)
             issues.append(Diagnostic(code, code.replace("_", " "), source=source,
                                      details={"detail": detail, "repairable": repairable}))
@@ -87,7 +92,7 @@ class ProjectRecovery:
             if self.manager.ownership.session_attached((project.id, session.id)):
                 issue("runtime_attached", session=session.id)
                 continue
-            if session.status == SessionStatus.DELETED or project.conversation_storage != "file":
+            if session.status == SessionStatus.DELETED or project.conversation_storage != ConversationStorage.FILE:
                 issue("offline_file_session_required", session=session.id)
                 continue
             start = len(issues)
@@ -146,7 +151,7 @@ class ProjectRecovery:
                             issue("missing_checkpoint_message", session=session.id, run=run.id)
                     outputs = self.runs.outputs(run)
                     signatures.append([o.to_dict() if hasattr(o, "to_dict") else str(o) for o in outputs])
-                    visible = [o for o in outputs if o.visibility == "user"]
+                    visible = [o for o in outputs if o.visibility == OutputVisibility.USER]
                     final = next((o for o in visible if o.final and o.step_id is None and (o.text or o.data is None)), None)
                     text = final.text if final else "".join(o.text for o in visible)
                     if outputs and assistant is not None and text != assistant.content:
@@ -164,7 +169,7 @@ class ProjectRecovery:
             except (ValueError, OSError, KeyError, TypeError) as error:
                 issue("component_integrity", detail={"component": name, "error": str(error)})
         result = {"issues": [i.to_dict() for i in issues], "repair_sessions": actions}
-        return RecoveryPlan(ResourceRef("project", project.id, project_id=project.id), issues, actions,
+        return RecoveryPlan(ResourceRef(ResourceKind.PROJECT, project.id, project_id=project.id), issues, actions,
             revision_token({"project": record(project), "sources": signatures, **result}))
 
     def apply(self, project, expected_version):

@@ -1,5 +1,16 @@
 """Engine 간에 공유하는 Tool 호출기. 실행 인자·결과·실패를 Step 이벤트로 보고한다."""
 
+from llm.core.models import StepKind
+
+from llm.core.checkpoints import CheckpointOperation
+
+from llm.core.continuations import ResumeRecord
+
+from llm.core.tool_codes import ToolErrorCode
+
+from llm.core.models import RunErrorCode
+from llm.core.results import OutputVisibility
+
 import asyncio
 import inspect
 import json
@@ -52,7 +63,7 @@ _tool_call = ContextVar("llm_tool_call", default=None)
 class ToolExecutionError(CodedError, RuntimeError):
     """핸들러가 보장하는 실패 분류. 효과가 없다는 증거가 있을 때만 effect='none'을 사용한다."""
 
-    code = "tool_failed"
+    code = ToolErrorCode.FAILED
     NO_EFFECT, UNCERTAIN_EFFECT = "none", "uncertain"
     EFFECTS = (NO_EFFECT, UNCERTAIN_EFFECT)
 
@@ -130,7 +141,7 @@ class ToolRuntime:
 class ToolUsageError(CodedError, ValueError):
     """복원할 사용량의 무결성 오류. 승인·실행 권한·예산 소진과 구분한다."""
 
-    code = "tool_usage_corrupt"
+    code = ToolErrorCode.USAGE_CORRUPT
 
 
 class ToolExecutionScope:
@@ -142,7 +153,7 @@ class ToolExecutionScope:
 
     def __init__(self, runtime: ToolRuntime, *, policy=None, retry=None, operations=None, parent=None):
         # 외부 dict 편집으로 실행 중 승인/제약의 사본이 바뀌지 않게 한다.
-        from llm.components.tools.constraints import narrow_constraints
+        from llm.core.policies import narrow_constraints
         from llm.core.policies import normalize_policies
         policy = deepcopy({} if policy is None else policy)
         retry = deepcopy({} if retry is None else retry)
@@ -285,11 +296,11 @@ class ToolExecutionScope:
         while root.parent is not None:
             root = root.parent
         if contract.operation_key_required and self.runtime.operation_key is None:
-            raise ExecutionLimitError("tool_contract", "Tool requires an operation key adapter")
+            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Tool requires an operation key adapter")
         if contract.isolation != ToolIsolation.NONE:
             validate = getattr(self.runtime.runner, "validate_tool", None)
             if validate is None:
-                raise ExecutionLimitError("tool_contract", "Tool requires a compatible isolated runner")
+                raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Tool requires a compatible isolated runner")
             validate(tool.name, contract.isolation)
 
     def record_completion(self):
@@ -300,12 +311,12 @@ class ToolExecutionScope:
     async def authorize(self, call: ToolCall, *, decision=None, invocation=None):
         self.require_active()
         if self.allowed_tools is not None and call.name not in self.allowed_tools:
-            raise ExecutionLimitError("tool_denied", f"Tool is not allowed: {call.name}")
+            raise ExecutionLimitError(RunErrorCode.TOOL_DENIED, f"Tool is not allowed: {call.name}")
         identity = json.dumps([call.name, call.arguments], sort_keys=True, ensure_ascii=False)
         pending = decision is not None and identity in self.pending_approvals
         reserved = pending or invocation is not None and invocation in self.invocations
         if not reserved and self.max_calls is not None and self.calls >= self.max_calls:
-            raise ExecutionLimitError("tool_budget_exceeded", "Run Tool call budget exceeded")
+            raise ExecutionLimitError(RunErrorCode.TOOL_BUDGET_EXCEEDED, "Run Tool call budget exceeded")
         # await 이전에 예약하므로 동시에 진행되는 Graph 분기도 한도를 공유한다.
         if pending:
             self.pending_approvals.remove(identity)
@@ -317,7 +328,7 @@ class ToolExecutionScope:
             if self.parent is not None:
                 await self.parent.authorize(call, decision=decision, invocation=invocation)
             if decision is False:
-                raise ExecutionLimitError("tool_denied", f"Tool authorization denied: {call.name}")
+                raise ExecutionLimitError(RunErrorCode.TOOL_DENIED, f"Tool authorization denied: {call.name}")
             if self.parent is None:
                 # 기술적인 거부는 저장된 승인으로도 우회할 수 없다. ASK만 기존 결정을 소비한다.
                 if self.runtime.authorize is not None:
@@ -328,7 +339,7 @@ class ToolExecutionScope:
                             raise
                     else:
                         if allowed is not True:
-                            raise ExecutionLimitError("tool_denied", f"Tool authorization denied: {call.name}")
+                            raise ExecutionLimitError(RunErrorCode.TOOL_DENIED, f"Tool authorization denied: {call.name}")
                 if decision is not True and call.contract["approval_required"]:
                     raise ToolApprovalRequired()
         except ToolApprovalRequired:
@@ -339,7 +350,7 @@ class ToolExecutionScope:
 class ToolInvocationError(CodedError, ValueError):
     """Engine의 durable 호출 연결 오류. 관측 sink나 Tool 실행 실패가 아니다."""
 
-    code = "tool_invocation_invalid"
+    code = ToolErrorCode.INVOCATION_INVALID
 
 
 class ToolExecutor:
@@ -402,7 +413,7 @@ class ToolExecutor:
         name = (metadata or {}).get("checkpoint_name")
         if name is None or request_key is None:
             return None
-        return EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": "record",
+        return EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": CheckpointOperation.RECORD,
             "key": "@tool-retry:" + request_key, "value": {"status": CheckpointStatus.COMPLETED.value, "node_type": "tool_retry",
             "container": True, "retry": deepcopy(state)}})
 
@@ -417,14 +428,14 @@ class ToolExecutor:
                 call = replace(call, operation_key=key,
                                idempotency_key=operation_token(call.project_id, call.session_id, key))
         if tool.contract.operation_key_required and call.operation_key is None:
-            raise ExecutionLimitError("tool_contract", "Tool operation key cannot be empty")
+            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Tool operation key cannot be empty")
         return call
 
     def _request_state(self, tool, arguments, context, decision, request_key, classification):
         """권한을 부여하지 않고 기존 체크포인트 연결만 검증한다. 계측 여부와 무관하다."""
         records = (getattr(context, "checkpoint", None) or {}).get("records", {})
         run = getattr(context, "run", None)
-        decisions = getattr(run, "metadata", {}).get("resume", {}).get("decisions", {})
+        decisions = getattr(run, "metadata", {}).get(ResumeRecord.KEY, {}).get(ResumeRecord.DECISIONS, {})
         previous = records.get(request_key, {})
 
         def tool_approval(record):
@@ -509,7 +520,7 @@ class ToolExecutor:
             event = self._retry_event(retry_state, metadata, request_key)
             if event is not None:
                 yield event
-        yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="tool", name=tool.name,
+        yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind=StepKind.TOOL, name=tool.name,
                           metadata={**deepcopy(metadata or {}), "arguments": deepcopy(arguments),
                                     "phase": "authorizing", "operation_key": call.operation_key,
                                     "idempotency_key": call.idempotency_key})
@@ -691,13 +702,13 @@ class ToolExecutor:
             raise
         except Exception as error:
             if isinstance(error, asyncio.TimeoutError):
-                error = ExecutionLimitError("tool_timeout", "Tool execution or authorization timed out")
+                error = ExecutionLimitError(RunErrorCode.TOOL_TIMEOUT, "Tool execution or authorization timed out")
             yield BaseEngine.step_failed_event(step_id, error, code=ToolExecutionError.code,
                 message=f"Tool execution failed: {error}",
                 metadata={"phase": "failed", "error_code": getattr(error, "code", ToolExecutionError.code)})
             raise error
         yield EngineEvent(EngineEventType.STEP_COMPLETED, step_id=step_id,
-                          output=EngineOutput(step_id, data=value, step_id=step_id, visibility="internal"),
+                          output=EngineOutput(step_id, data=value, step_id=step_id, visibility=OutputVisibility.INTERNAL),
                           metadata={"phase": "completed", "reused": reservation["reused"]})
 
     async def execute(self, tool, arguments, *, result, metadata=None, context=None, decision=UNSET,
@@ -728,7 +739,7 @@ class ToolExecutor:
             if saved is not None and saved.get("selection") != selected:
                 raise ToolInvocationError("Selected Tool execution configuration changed")
             # Selection is durable before ASK, authorization, or any Tool effect.
-            yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": "record", "key": key,
+            yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": CheckpointOperation.RECORD, "key": key,
                 "value": {"node_type": "tool_binding", "status": CheckpointStatus.COMPLETED.value, "container": True, "selection": selected,
                           "request_key": request_key, "checkpoint_name": name}})
         decision, resumed = self._request_state(tool, arguments, context, decision, request_key, classification)

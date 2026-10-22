@@ -3,6 +3,8 @@
 Run/Step 원본을 재해석하거나 복구하지 않는다. 쓰기는 best effort, 조회 오류는 명시적이다.
 """
 
+from llm.core.models import ResourceKind
+
 import json
 import os
 import stat
@@ -55,7 +57,7 @@ def activity_event(project, run, event: str, *, time: str, status: str,
                    code: Optional[str] = None, step_id: Optional[str] = None) -> None:
     """저장 경계에서 예약한다. callback 등록·직렬화·쓰기 실패 모두 실행 결과와 격리한다."""
     try:
-        source = ResourceRef("step" if step_id is not None else "run", step_id or run.id,
+        source = ResourceRef(ResourceKind.STEP if step_id is not None else ResourceKind.RUN, step_id or run.id,
             project_id=project.id, session_id=run.session_id, run_id=run.id, step_id=step_id)
         value = ProjectActivityEvent(time, event, source, status, code)
         paths = project.paths

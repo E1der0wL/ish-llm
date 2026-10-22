@@ -14,6 +14,12 @@ from uuid import uuid4
 class FileTools:
     """실행 루트는 개발자가 지정한다. 심볼릭 링크과 상위 경로는 따라가지 않는다."""
 
+    MAX_BYTES_FIELD = "max_file_bytes"
+
+    @classmethod
+    def argument_schema(cls):
+        return {cls.MAX_BYTES_FIELD: {"type": "integer", "minimum": 1}}
+
     def __init__(self, root: Path):
         self.root = Path(root).absolute()
         self.max_bytes = None
@@ -25,9 +31,10 @@ class FileTools:
     def for_arguments(self, arguments):
         """호출별 Project argument constraint를 적용하며 파일 잠금은 공유한다."""
         selected = copy(self)
-        selected.max_bytes = arguments.get("max_file_bytes")
-        if selected.max_bytes is not None and (type(selected.max_bytes) is not int or selected.max_bytes < 1):
-            raise ValueError("max_file_bytes must be a positive integer")
+        selected.max_bytes = arguments.get(self.MAX_BYTES_FIELD)
+        if selected.max_bytes is not None:
+            from llm.core.schema import validate_declared_fields
+            validate_declared_fields({self.MAX_BYTES_FIELD: selected.max_bytes}, self.argument_schema())
         return selected
 
     def path(self, value: str, *, internal=False) -> Path:

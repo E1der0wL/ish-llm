@@ -1,5 +1,7 @@
 """공급자 초기화·진단의 단일 경계. 숨은 SDK 기본 재시도는 항상 끈다."""
 
+from llm.core.contracts import ErrorReason
+
 import importlib
 import json
 import logging
@@ -353,9 +355,9 @@ def diagnostic_failure(error, *, operation, stage, **details):
                         body = body["error"]
                     message = body.get("message") if isinstance(body, Mapping) else None
                     text = (message if isinstance(message, str) else str(current)).lower()
-                    reason = ("parameter" if any(term in text for term in (
+                    reason = (ErrorReason.PARAMETER if any(term in text for term in (
                         "unsupported parameter", "unknown parameter", "unrecognized request argument")) else
-                        "context" if any(term in text for term in (
+                        ErrorReason.CONTEXT if any(term in text for term in (
                         "context_length_exceeded", "maximum context length", "context length exceeded",
                         "context window exceeded", "exceeds the context", "exceeds context",
                         "context window limit", "too many tokens", "prompt is too long")) else None)

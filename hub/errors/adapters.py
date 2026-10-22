@@ -1,5 +1,8 @@
 """Project backend diagnostics into presentation data without reclassifying evidence."""
 
+from llm.core.contracts import DiagnosticCode, ErrorReason
+from .contracts import HubErrorCode
+
 import asyncio
 from concurrent.futures import CancelledError
 from copy import deepcopy
@@ -53,10 +56,10 @@ def from_exception(error: Exception | str | ErrorInfo, *, origin=ErrorOrigin.HUB
         raise error
     if isinstance(error, str):
         return ErrorInfo(message=error, origin=origin, operation=operation)
-    value = Diagnostic.from_exception(error, code="hub_validation" if validation else "execution_failed")
+    value = Diagnostic.from_exception(error, code=HubErrorCode.VALIDATION if validation else DiagnosticCode.EXECUTION_FAILED)
     result = from_diagnostic(value, origin=origin, operation=operation)
     # Only application-owned validation receives an application classification.
-    if value.code == "hub_validation":
-        result = replace(result, category=ErrorCategory.CONTRACT, reason="validation",
+    if value.code == HubErrorCode.VALIDATION:
+        result = replace(result, category=ErrorCategory.CONTRACT, reason=ErrorReason.VALIDATION.value,
                          confidence=Confidence.EXPLICIT, evidence={"code": value.code})
     return replace(result, traceback="".join(traceback.format_exception(error)))

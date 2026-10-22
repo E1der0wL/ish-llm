@@ -159,6 +159,24 @@ class SettingsFormTests(unittest.TestCase):
 
 
 class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_settings_keep_the_selected_adapters_declared_fields(self):
+        from types import SimpleNamespace
+        from hub.backend.project.settings import SettingsService
+        from tests.llm.test_common_provider_acceptance import IndependentAdapter
+        adapter = IndependentAdapter()
+        with tempfile.TemporaryDirectory() as directory:
+            async with LargeLanguageModel(directory, engines={
+                    "custom": LoopEngine(completion_adapter=adapter)}) as backend:
+                service = SettingsService(SimpleNamespace(backend=backend,
+                    config=HubConfig(directory, auto_title=False), t=Language()))
+                schema = service._schema()
+                engine = schema["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["custom"]
+                request = engine["properties"]["config"]["properties"]["completion"]
+                self.assertEqual(set(request["properties"]), {"model", "output_cap", "wait"})
+                self.assertNotIn("reasoning_effort", request["properties"])
+                self.assertFalse(request["additionalProperties"])
+                self.assertEqual(adapter.requests, [])
+
     async def test_project_schema_save_clone_delete_and_component_selection(self):
         with tempfile.TemporaryDirectory() as directory:
             config = HubConfig(directory, model="test/model", auto_title=False)

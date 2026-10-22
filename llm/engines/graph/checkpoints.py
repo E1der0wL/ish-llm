@@ -1,19 +1,29 @@
 """자식 Engine의 로컬 체크포인트를 부모 Workflow 실행 위치에 연결한다. 파일은 쓰지 않는다."""
 
+from llm.core.checkpoints import CheckpointOperation
+
+from llm.core.continuations import ResumeRecord
+
 import json
 from copy import deepcopy
 from llm.core.steering import INSTRUCTION_INPUT_STATUS
 from llm.core.interactions import InteractionRequest
-from llm.core.checkpoints import CheckpointStatus, build_envelope
+from llm.core.checkpoints import CheckpointEnvelope, CheckpointStatus, build_envelope
 from dataclasses import replace
 
 from llm.engines.base import EngineEvent, EngineEventType
 
 
+GRAPH_CHECKPOINT_NAME = "graph"
+GRAPH_CHECKPOINT_FORMAT = "workflow-nodes-v1"
+
+
 class EngineCheckpointScope:
     """Step ID와 독립적인 호출 경로. 내부 payload 형식은 자식 Engine이 소유한다."""
 
-    def __init__(self, owner, name, records, *, parent_name="graph"):
+    HEADER_KEY = "@header"
+
+    def __init__(self, owner, name, records, *, parent_name=GRAPH_CHECKPOINT_NAME):
         if any(not isinstance(v, str) or not v.strip() for v in (owner, name, parent_name)):
             raise ValueError("Checkpoint scope requires nonempty owner and Engine checkpoint names")
         self.owner, self.name, self.records = owner, name, records
@@ -26,38 +36,44 @@ class EngineCheckpointScope:
         return json.dumps([self.owner, "engine", self.name, local], ensure_ascii=False, separators=(",", ":"))
 
     def snapshot(self):
-        header = self.records.get(self.key("@header"))
+        header = self.records.get(self.key(self.HEADER_KEY))
         if header is None:
             return None
-        return {"header": deepcopy(header["payload"]), "records": {
-            v["local_key"]: deepcopy(v["payload"]) for v in self.records.values()
-            if v.get("engine_scope") == self.owner and v.get("checkpoint_name") == self.name and v["local_key"] != "@header"}}
+        _, header_payload = CheckpointEnvelope.read(header)
+        records = {}
+        for value in self.records.values():
+            if CheckpointEnvelope.belongs_to(value, self.owner, self.name):
+                envelope, payload = CheckpointEnvelope.read(value)
+                if envelope.local_key != self.HEADER_KEY:
+                    records[envelope.local_key] = deepcopy(payload)
+        return {"header": deepcopy(header_payload), "records": records}
 
     def context(self, context):
         snapshot = self.snapshot()
         run = deepcopy(context.run)
-        descriptor = run.metadata.get("resume", {})
+        descriptor = run.metadata.get(ResumeRecord.KEY, {})
         decisions = {}
         for key, record in self.records.items():
-            if (record.get("engine_scope") != self.owner or record.get("checkpoint_name") != self.name
-                    or key not in descriptor.get("decisions", {})):
+            if (not CheckpointEnvelope.belongs_to(record, self.owner, self.name)
+                    or key not in descriptor.get(ResumeRecord.DECISIONS, {})):
                 continue
-            local = record["local_key"]
+            envelope, payload = CheckpointEnvelope.read(record)
+            local = envelope.local_key
             parent = InteractionRequest.from_dict(record["interaction"])
-            child = InteractionRequest.from_dict(record["payload"]["interaction"])
+            child = InteractionRequest.from_dict(payload["interaction"])
             expected = self._bind(child, local)
             if (key != self.key(local) or child.binding.get("checkpoint") != self.name
                     or child.binding.get("key") != local or parent.fingerprint != expected.fingerprint):
                 raise ValueError("Child interaction does not match its checkpoint scope")
             # 부모의 승인 값 모양을 가정하지 않고 같은 선택지 ID를 자식의 원래 값으로 복원한다.
             # 수명/갱신/응답 영수증은 서비스가 검증한다. 여기서 원본 요청을 다시 승인하지 않는다.
-            option, supplied = parent.select_decision(descriptor["decisions"][key])
+            option, supplied = parent.select_decision(descriptor[ResumeRecord.DECISIONS][key])
             decisions[local] = child.decision_for(option.id, value=supplied)
-        retry = [v["local_key"] for key, v in self.records.items()
-            if v.get("engine_scope") == self.owner and v.get("checkpoint_name") == self.name
-            and key in descriptor.get("retry_nodes", [])]
-        if "resume" in run.metadata:
-            run.metadata["resume"] = {**descriptor, "decisions": decisions, "retry_nodes": retry}
+        retry = [CheckpointEnvelope.from_dict(v).local_key for key, v in self.records.items()
+            if CheckpointEnvelope.belongs_to(v, self.owner, self.name)
+            and key in descriptor.get(ResumeRecord.RETRY_NODES, [])]
+        if ResumeRecord.KEY in run.metadata:
+            run.metadata[ResumeRecord.KEY] = ResumeRecord.for_child(descriptor, decisions=decisions, retry_nodes=retry)
         return replace(context, run=run, checkpoint=snapshot, checkpoint_scope=self.owner)
 
     def wrap(self, event):
@@ -66,22 +82,22 @@ class EngineCheckpointScope:
         data = event.metadata
         if data.get("name") != self.name:
             raise ValueError("Child Engine checkpoint name mismatch")
-        if data["operation"] == "initialize":
+        if data["operation"] == CheckpointOperation.INITIALIZE:
             if self.snapshot() is not None or data.get("records"):
                 raise ValueError("Child checkpoint initialization must be empty and unique")
-            local, payload = "@header", data["header"]
+            local, payload = self.HEADER_KEY, data["header"]
             status, container = CheckpointStatus.COMPLETED, True
-        elif data["operation"] == "record":
-            if self.snapshot() is None or data["key"] == "@header":
+        elif data["operation"] == CheckpointOperation.RECORD:
+            if self.snapshot() is None or data["key"] == self.HEADER_KEY:
                 raise ValueError("Initialize child checkpoint before records")
             local, payload = data["key"], data["value"]
             from llm.core.checkpoints import checkpoint_lifecycle
             status, container = checkpoint_lifecycle(payload, data.get("lifecycle"))
         else:
             raise ValueError("Unsupported child checkpoint operation")
-        value = {**build_envelope(engine_scope=self.owner, checkpoint_name=self.name, local_key=local,
+        value = CheckpointEnvelope.attach(build_envelope(engine_scope=self.owner, checkpoint_name=self.name, local_key=local,
                     status=status, container=container, requires_retry=status == CheckpointStatus.STARTED and not container),
-                 "payload": deepcopy(payload)}
+                 payload)
         if status == CheckpointStatus.WAITING:
             if "interaction" not in payload:
                 raise ValueError("Nested waiting checkpoints require an InteractionRequest")
@@ -90,7 +106,7 @@ class EngineCheckpointScope:
         if "interaction" in payload:
             request = self._bind(InteractionRequest.from_dict(payload["interaction"]), local)
             value["interaction"] = request.to_dict()
-        return EngineEvent(EngineEventType.CHECKPOINT, interaction=request, metadata={"name": self.parent_name, "operation": "record",
+        return EngineEvent(EngineEventType.CHECKPOINT, interaction=request, metadata={"name": self.parent_name, "operation": CheckpointOperation.RECORD,
                           "key": self.key(local), "value": value})
 
     def accepted(self, event):
@@ -112,6 +128,6 @@ class EngineCheckpointScope:
     def accepted_instruction(self, event, inbox):
         if event.metadata["operation"] == "select" and not inbox.closed:
             data = event.metadata
-            self.records[data["boundary"]] = {**deepcopy(data["envelope"]), "payload": {
+            self.records[data["boundary"]] = CheckpointEnvelope.attach(data["envelope"], {
                 "kind": "instruction", "status": INSTRUCTION_INPUT_STATUS, "target_scope": self.owner,
-                "message_ids": [m.id for m in inbox.messages]}}
+                "message_ids": [m.id for m in inbox.messages]})

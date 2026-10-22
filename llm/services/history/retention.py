@@ -1,12 +1,17 @@
 """History eligibility and explicit deletion; Application owns retention selection."""
 
+from llm.core.models import ResourceKind
+
+from llm.core.continuations import ResumeRecord
+
 from copy import deepcopy
 
 from datetime import datetime, timezone
 import json
 from llm.core.contracts import ResourceRef
+from llm.core.results import CompletionRecords
 from llm.core.plans import RetentionPlan, RetentionUnit
-from llm.core.models import MessageStatus, now, new_id, RunStatus, ProjectConfig
+from llm.core.models import ConversationStorage, MessageStatus, now, new_id, RunStatus, ProjectConfig
 from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links, tree_snapshot, child
 from llm.services.runtime.usage import project_usage_policies, protects_project_usage
 from llm.services.runtime.requests import RequestAdmission
@@ -39,7 +44,7 @@ class HistoryRetention:
                 evidence = dict(row)
                 evidence.pop("tokens")
                 destination.append(evidence)
-        return RetentionPlan(ResourceRef("project", project.id, project_id=project.id),
+        return RetentionPlan(ResourceRef(ResourceKind.PROJECT, project.id, project_id=project.id),
             unit, candidates, protected, size, tokens, revision_token(proof), unit == RetentionUnit.RUN)
 
     def _references(self, project):
@@ -70,7 +75,7 @@ class HistoryRetention:
             reasons = []
             if self.manager.ownership.session_attached((project.id, session.id)) or session.active_run_ids:
                 reasons.append("runtime_attached")
-            if project.conversation_storage != "file":
+            if project.conversation_storage != ConversationStorage.FILE:
                 reasons.append("non_file_conversation")
             if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) for m in messages):
                 reasons.append("pending_message")
@@ -85,7 +90,7 @@ class HistoryRetention:
             protected_messages = set(refs["message_ids"])
             for run in runs:
                 sources.append(record(run))
-                source = run.metadata.get("resume", {}).get("run_id")
+                source = ResumeRecord.source_id(run.metadata)
                 if source:
                     keep.add(source)
                 if run.status != RunStatus.COMPLETED:
@@ -129,7 +134,7 @@ class HistoryRetention:
                     blocked.append("unfinished_or_resumable_run")
                 if run.id in keep:
                     blocked.append("recent_or_referenced")
-                if protects_project_usage(run.metadata.get("completions", []), usage_policies, at=clock):
+                if protects_project_usage(CompletionRecords.read(run.metadata), usage_policies, at=clock):
                     blocked.append("active_usage_accounting")
                 session_rows.append({**row, **({"reasons": blocked} if blocked else {})})
             blocked_ids = {row["run_id"] for row in session_rows if row.get("reasons")}
@@ -211,9 +216,9 @@ class HistoryRetention:
                 reasons.append("external_operation_history")
             if session.metadata.get("retain"):
                 reasons.append("pinned")
-            if project.conversation_storage != "file":
+            if project.conversation_storage != ConversationStorage.FILE:
                 reasons.append("non_file_conversation")
-            if protects_project_usage([e for r in runs for e in r.metadata.get("completions", [])],
+            if protects_project_usage([e for r in runs for e in CompletionRecords.read(r.metadata)],
                                       usage_policies, at=now):
                 reasons.append("active_usage_accounting")
             end = max([r.ended_at or r.created_at for r in runs] + [session.created_at])

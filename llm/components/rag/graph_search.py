@@ -1,14 +1,15 @@
 """문서 검색의 근거 문단 또는 정확한 엔티티 이름에서 시작하는 유한 방향 그래프 탐색."""
 
 from .graph_indexing import connection, rows
+from .search import RelationRanking
 import json
 
 
 def relation_order(strategy, *, source_column=True):
     """미설정은 ID 기반 안정 순서다. 지지 개수 우선 정렬은 명시적으로만 선택한다."""
-    if strategy not in (None, "source", "support_count"):
+    if strategy is not None and strategy not in tuple(RelationRanking):
         raise ValueError("Unknown graph relation ranking")
-    prefix = "r.weight DESC," if strategy == "support_count" else ""
+    prefix = "r.weight DESC," if strategy == RelationRanking.SUPPORT_COUNT else ""
     return " ORDER BY " + prefix + "r.document_id,r.source_id," + ("a.id," if source_column else "") + "b.id,r.kind,r.evidence"
 
 

@@ -1,5 +1,7 @@
 """Project execution observations without presenting checkpoint reuse as work."""
 
+from llm.core.models import StepKind
+
 from llm.core.models import StepStatus
 from hashlib import sha256
 import json
@@ -17,7 +19,7 @@ def display_steps(steps) -> tuple[StepSummary, ...]:
             continue
         kind, status = str(step.kind), str(step.status)
         identity = getattr(step, "id", "")
-        if kind == "tool":
+        if kind == StepKind.TOOL:
             call_id = metadata.get("tool_call_id")
             node_key = metadata.get("node_checkpoint_key")
             if call_id or node_key:

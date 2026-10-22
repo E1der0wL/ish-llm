@@ -16,3 +16,4 @@ class ProviderErrorCode(StrEnum):
     CONNECTION = "provider_connection"
     FAILED = "provider_failed"
     EMPTY_RESPONSE = "provider_empty_response"
+    CAPACITY = "provider_capacity"

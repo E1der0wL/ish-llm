@@ -1,5 +1,6 @@
 """모델 입력 선택 알고리즘. 설정은 호출하는 구현체가 해석하며 저장소를 소유하지 않는다."""
 
+from llm.core.models import RunErrorCode
 from llm.core.model_protocol import ModelRequest, ModelRole, copy_model
 
 from collections.abc import Callable
@@ -15,10 +16,9 @@ class CompletionPolicy:
     """
 
     def __init__(self, max_tokens: int, *, counter: Callable, reserve_tokens: int = 0):
-        if type(max_tokens) is not int or max_tokens < 1:
+        self.validate_config({"max_tokens": max_tokens, "reserve_tokens": reserve_tokens})
+        if max_tokens is None:
             raise ValueError("max_tokens must be positive")
-        if type(reserve_tokens) is not int or not 0 <= reserve_tokens < max_tokens:
-            raise ValueError("reserve_tokens must be smaller than max_tokens")
         if not callable(counter):
             raise TypeError("counter must be callable")
         self.max_tokens, self.reserve_tokens, self.counter = max_tokens, reserve_tokens, counter
@@ -61,7 +61,7 @@ class CompletionPolicy:
             return None
         name = policy.get("counter")
         if name not in counters:
-            raise ExecutionLimitError("policy_unavailable", f"Token counter is not registered: {name}")
+            raise ExecutionLimitError(RunErrorCode.POLICY_UNAVAILABLE, f"Token counter is not registered: {name}")
         return cls(policy["max_tokens"], counter=counters[name],
                    **({"reserve_tokens": policy["reserve_tokens"]} if "reserve_tokens" in policy else {}))
 
@@ -102,7 +102,7 @@ class CompletionPolicy:
 
         select(len(groups))
         if not fits():
-            raise ExecutionLimitError("context_budget_exceeded", "Current request, tools and output reserve exceed the context budget")
+            raise ExecutionLimitError(RunErrorCode.CONTEXT_BUDGET_EXCEEDED, "Current request, tools and output reserve exceed the context budget")
         # 턴이 많아도 전체 tokenizer를 턴 수만큼 반복 호출하지 않는다. 일반적인
         # 단조 토큰 계수에서는 최대한 많은 최근 턴을 보존하며 최종 후보는 항상 검증한다.
         low, high = 0, len(groups)

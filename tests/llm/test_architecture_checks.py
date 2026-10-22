@@ -19,6 +19,7 @@ class ArchitectureCheckTests(unittest.TestCase):
             "S4": "if record['schema_version'] != 1: raise ValueError()",
             "S5": "def validate_settings(data): pass",
             "S6": "import litellm\nresponse['choices'][0]",
+            "S7": "def create(output_index_stride=128): pass",
         }
         for rule, source in cases.items():
             with self.subTest(rule=rule):
@@ -172,6 +173,75 @@ class ArchitectureCheckTests(unittest.TestCase):
         compared = compare({"findings": unresolved_findings(result, reviews)}, baseline)
         self.assertEqual(compared["new"], [])
         self.assertEqual(compared["stale"], [])
+
+
+class OwnerBoundaryCheckTests(unittest.TestCase):
+    def findings(self, source, file="llm/example.py"):
+        return [item for item in scan_source(source, file) if item["rule"] == "S7"]
+
+    def test_default_and_kind_redeclarations_are_detected(self):
+        for source in ("def create(index_stride=128): pass",
+                       "output_index_stride: int = 128",
+                       "Project(conversation_storage='file')",
+                       "EngineOutput(visibility='internal', operation='replace')",
+                       "if output.operation == 'append': save()",
+                       "schema = {'conversation_storage': {'enum': ['file', 'memory', None]}}"):
+            with self.subTest(source=source):
+                self.assertTrue(self.findings(source))
+        for source in ("def create(index_stride=OutputJournal.DEFAULT_INDEX_STRIDE): pass",
+                       "Project(conversation_storage=ConversationStorage.FILE)",
+                       "schema = {'conversation_storage': ConversationStorage.schema()}",
+                       "if output.operation == OutputOperation.APPEND: save()"):
+            with self.subTest(source=source):
+                self.assertEqual(self.findings(source), [])
+
+    def test_paths_require_the_exact_owner_not_a_file_exemption(self):
+        owner = "class RunPaths:\n    def record(self): return self.root / 'run.json'"
+        self.assertEqual(self.findings(owner, "llm/core/paths.py"), [])
+        self.assertTrue(self.findings(owner, "llm/example.py"))
+        self.assertTrue(self.findings(owner.replace("def record", "def other"), "llm/core/paths.py"))
+        self.assertEqual(self.findings("path = run.paths.record"), [])
+
+    def test_receipt_and_projection_access_must_delegate(self):
+        for source in ("value = metadata['completions']", "metadata.get('completions', [])",
+                       "metadata.setdefault('completions', [])"):
+            self.assertTrue(self.findings(source))
+        self.assertEqual(self.findings("value = CompletionRecords.read(metadata)"), [])
+        owner = "class CompletionRecords:\n    def read(self): return metadata['completions']"
+        self.assertEqual(self.findings(owner, "llm/core/results.py"), [])
+        self.assertTrue(self.findings(owner.replace("CompletionRecords", "Other"), "llm/core/results.py"))
+        facade = "class ProjectHandle:\n    def _describe_config(self): return value['project']['config']"
+        self.assertTrue(self.findings(facade, "llm/services/api.py"))
+        self.assertEqual(self.findings(facade.replace("value['project']['config']",
+                         "ProjectConfiguration.describe(app, value)"), "llm/services/api.py"), [])
+
+    def test_native_reasoning_is_rejected_outside_adapter(self):
+        source = "reasoning = block.get('thinking')"
+        self.assertIn("S6", {item['rule'] for item in scan_source(source, "hub/backend/thinking.py")})
+        self.assertNotIn("S6", {item['rule'] for item in scan_source(source, "llm/providers/streaming.py")})
+
+    def test_continuation_metadata_is_distinct_from_application_commands(self):
+        for source in ("value = run.metadata['resume']", "source = message.metadata.get('restart')"):
+            self.assertTrue(self.findings(source))
+        for source in ("source = ResumeRecord.source_id(message.metadata)",
+                       "value = run.metadata[ResumeRecord.KEY]", "operation('resume')"):
+            self.assertEqual(self.findings(source), [])
+
+    def test_checkpoint_operations_and_nested_discriminator_have_owners(self):
+        for source in ("event = {'operation': 'record'}", "if record.get('node_type') == 'engine_record': read()"):
+            self.assertTrue(self.findings(source))
+        for source in ("event = {'operation': CheckpointOperation.RECORD}",
+                       "if CheckpointEnvelope.is_record(record): read()",
+                       "diagnostic('provider_initialization_failed', operation='initialize')"):
+            self.assertEqual(self.findings(source), [])
+
+    def test_builtin_kinds_use_owners_and_extension_kinds_remain_open(self):
+        for source in ("ResourceRef('run', identifier)", "ResourceRef(kind='step', id=identifier)",
+                       "EngineEvent(event_type, kind='tool')"):
+            self.assertTrue(self.findings(source))
+        for source in ("ResourceRef(ResourceKind.RUN, identifier)", "ResourceRef('custom:entry', identifier)",
+                       "EngineEvent(event_type, kind=StepKind.TOOL)"):
+            self.assertEqual(self.findings(source), [])
 
 
 class VersionGuardTests(unittest.TestCase):

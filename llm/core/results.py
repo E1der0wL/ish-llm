@@ -2,15 +2,30 @@
 
 Persistable execution observations, separate from Project configuration."""
 
+from llm.core.contracts import DiagnosticCode
+
+from llm.core.models import ResourceKind
+
 from dataclasses import asdict, dataclass, field, fields, replace
 from copy import deepcopy
 from datetime import datetime
+from enum import StrEnum
 import math
 from typing import Any, Optional
 
 from .contracts import Diagnostic, ResourceRef
 from .models import StepStatus, ProjectConfig, Run, RunStatus, Step, new_id, now
 from .model_protocol import StopReason
+
+
+class OutputVisibility(StrEnum):
+    USER = "user"
+    INTERNAL = "internal"
+
+
+class OutputOperation(StrEnum):
+    APPEND = "append"
+    REPLACE = "replace"
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,13 +38,13 @@ class EngineDelta:
     output_id: str = field(default_factory=new_id)
     text: str = ""
     step_id: Optional[str] = None
-    visibility: str = "user"
-    operation: str = "append"
+    visibility: str = OutputVisibility.USER.value
+    operation: str = OutputOperation.APPEND.value
     sequence: int = 0
 
     def __post_init__(self):
         _validate_output(self)
-        if self.operation not in ("append", "replace"):
+        if self.operation not in tuple(OutputOperation):
             raise ValueError("Output operation must be append or replace")
 
     def to_dict(self) -> dict:
@@ -53,7 +68,7 @@ class EngineOutput:
     text: str = ""
     data: Any = None
     step_id: Optional[str] = None
-    visibility: str = "user"
+    visibility: str = OutputVisibility.USER.value
     metadata: dict = field(default_factory=dict)
     sequence: int = 0
     final: bool = True
@@ -77,7 +92,7 @@ class EngineOutput:
             raise ValueError("Output identity mismatch")
         if (self.sequence or delta.sequence) and delta.sequence <= self.sequence:
             raise ValueError("Output sequence must increase")
-        return replace(self, text=(self.text + delta.text if delta.operation == "append" else delta.text),
+        return replace(self, text=(self.text + delta.text if delta.operation == OutputOperation.APPEND else delta.text),
                        sequence=delta.sequence)
 
     def to_dict(self) -> dict:
@@ -95,7 +110,7 @@ def _validate_output(value) -> None:
         raise ValueError("Output requires a nonempty ID")
     if value.step_id is not None and (not isinstance(value.step_id, str) or not value.step_id.strip()):
         raise ValueError("Output Step ID must be nonempty")
-    if not isinstance(value.text, str) or value.visibility not in ("user", "internal"):
+    if not isinstance(value.text, str) or value.visibility not in tuple(OutputVisibility):
         raise ValueError("Invalid output text/visibility")
     if type(value.sequence) is not int or value.sequence < 0:
         raise ValueError("Output sequence must be a nonnegative integer")
@@ -136,6 +151,7 @@ class ResumeOutput:
 # 개별 모델 호출의 종료 이유, 시간과 사용량을 기록한다.
 class CompletionResult:
     RESERVATION_FIELDS = ("id", "step_id", "started_at", "reserved_tokens")
+    USAGE_FIELDS = ("started_at", "usage", "usage_complete", "reserved_tokens")
 
     id: str = field(default_factory=new_id)
     step_id: Optional[str] = None
@@ -152,6 +168,10 @@ class CompletionResult:
     reserved_tokens: Optional[int] = None
     # Only text explicitly exposed by the provider, separate from the answer.
     reasoning_content: str = ""
+
+    def usage_record(self) -> dict:
+        """Detached quota projection; unknown usage and its reservation stay explicit."""
+        return {name: deepcopy(getattr(self, name)) for name in self.USAGE_FIELDS}
 
     @classmethod
     def from_record(cls, data):
@@ -210,6 +230,67 @@ class CompletionResult:
             raise ValueError("Completion update cannot erase final usage")
 
 
+class CompletionRecords:
+    """The required Run receipt container, its identities and quota projection."""
+
+    KEY = "completions"
+
+    @classmethod
+    def results(cls, metadata) -> list[CompletionResult]:
+        if not isinstance(metadata, dict) or not isinstance(metadata.get(cls.KEY), list):
+            raise ValueError("Run requires a stored completions container")
+        results = [CompletionResult.from_record(entry) for entry in metadata[cls.KEY]]
+        if len({result.id for result in results}) != len(results):
+            raise ValueError("Duplicate Run completion record")
+        return results
+
+    @classmethod
+    def read(cls, metadata) -> list[dict]:
+        cls.results(metadata)
+        return metadata[cls.KEY]
+
+    @classmethod
+    def initialize(cls, metadata) -> None:
+        """Called only while creating a new Run, never by a Reader or updater."""
+        metadata.setdefault(cls.KEY, [])
+        cls.results(metadata)
+
+    @classmethod
+    def usage(cls, metadata) -> list[dict]:
+        return [result.usage_record() for result in cls.results(metadata)]
+
+    @classmethod
+    def finalize(cls, run: Run) -> None:
+        entries = cls.read(run.metadata)
+        if run.status not in Run.ACTIVE_STATES:
+            run.metadata[cls.KEY] = [asdict(CompletionResult.for_run(entry, run)) for entry in entries]
+
+    @classmethod
+    def contains(cls, metadata, identifier: str) -> bool:
+        return any(result.id == identifier for result in cls.results(metadata))
+
+    @classmethod
+    def validate_update(cls, previous_metadata, current_metadata):
+        previous = {entry["id"]: entry for entry in cls.read(previous_metadata)}
+        current = {entry["id"]: entry for entry in cls.read(current_metadata)}
+        if not previous.keys() <= current.keys():
+            raise ValueError("Run update cannot remove stored completion receipts")
+        for identifier, entry in previous.items():
+            CompletionResult.validate_update(entry, current[identifier])
+
+    @classmethod
+    def upsert(cls, metadata, result: CompletionResult) -> None:
+        entries = cls.read(metadata)
+        value = asdict(result)
+        CompletionResult.from_record(value)
+        for index, previous in enumerate(entries):
+            if previous["id"] == result.id:
+                CompletionResult.validate_update(previous, value)
+                entries[index] = value
+                return
+        entries.append(value)
+
+
 @dataclass(slots=True)
 # 실행 결과 조회 뷰. 사용량을 모르면 0 대신 None을 유지한다.
 class ExecutionResult:
@@ -234,7 +315,7 @@ class ExecutionResult:
     @classmethod
     def from_run(cls, project_id: str, run: Run) -> "ExecutionResult":
         completions = [CompletionResult.for_run(data, run)
-                       for data in run.metadata.get("completions", [])]
+                       for data in CompletionRecords.read(run.metadata)]
         usage = {}
         for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
             values = [item.usage.get(key) for item in completions]
@@ -253,8 +334,8 @@ class ExecutionResult:
             return None
         if self.diagnostic_details:
             return Diagnostic.from_dict(self.diagnostic_details)
-        return Diagnostic(self.error_code or "execution_failed", self.error or "",
-            source=ResourceRef("run", self.run_id, project_id=self.project_id,
+        return Diagnostic(self.error_code or DiagnosticCode.EXECUTION_FAILED, self.error or "",
+            source=ResourceRef(ResourceKind.RUN, self.run_id, project_id=self.project_id,
                                session_id=self.session_id, run_id=self.run_id))
 
     @property

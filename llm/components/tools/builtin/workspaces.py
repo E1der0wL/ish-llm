@@ -4,6 +4,8 @@ Run/Step·승인·재시도는 ToolExecutor가 소유한다. 이 모듈의 recor
 소유권과 생성 완료 여부만 기록하며 실행 기록이나 재생 큐를 만들지 않는다.
 """
 
+from llm.core.models import RunErrorCode
+
 import asyncio
 from contextlib import contextmanager
 from copy import deepcopy
@@ -300,19 +302,19 @@ class BuiltinToolRunner:
     def validate_tool(self, name, isolation):
         if name == "test_workspace_execute" and isolation == ToolIsolation.SANDBOX:
             if shutil.which("bwrap") is None:
-                raise ExecutionLimitError("sandbox_unavailable", "Linux Bubblewrap is required")
+                raise ExecutionLimitError(RunErrorCode.SANDBOX_UNAVAILABLE, "Linux Bubblewrap is required")
             return
         if self.fallback is None or not hasattr(self.fallback, "validate_tool"):
-            raise ExecutionLimitError("tool_contract", "Runner does not satisfy Tool isolation requirements")
+            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Runner does not satisfy Tool isolation requirements")
         self.fallback.validate_tool(name, isolation)
 
     async def __call__(self, tool, call):
         if tool.name == "test_workspace_execute":
             if not isinstance(tool.handler, TestWorkspaces):
-                raise ExecutionLimitError("tool_contract", "Sandbox Tool requires a trusted TestWorkspaces handler")
+                raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Sandbox Tool requires a trusted TestWorkspaces handler")
             return await tool.handler(call.arguments)
         if self.fallback is not None:
             return await self.fallback(tool, call)
         if tool.contract.isolation != ToolIsolation.NONE:
-            raise ExecutionLimitError("tool_contract", "Tool requires another isolation runner")
+            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Tool requires another isolation runner")
         return await tool.handler(call.arguments)

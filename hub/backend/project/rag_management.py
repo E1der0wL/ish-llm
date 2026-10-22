@@ -1,5 +1,10 @@
 """RAG jobs, resumptions and cleanup through public component APIs only."""
 
+from llm.services.schema import ProjectConfiguration
+
+from hub.errors.operations import OperationCode
+
+from llm.core.checkpoints import CheckpointErrorCode
 import asyncio
 from datetime import datetime, timezone
 import math
@@ -27,12 +32,12 @@ class RAGManagement(DocumentManagement):
         job = await self.data.ajob(identifier)
         key = self.project_id, identifier
         if key in self.active:
-            raise OperationBlocked("hub_operation_busy", "RAG job is already active")
+            raise OperationBlocked(OperationCode.BUSY, "RAG job is already active")
         plan = await self.data.aresume_plan(identifier) if job["status"] != RAGJobStatus.QUEUED.value else None
         if key in self.active:
-            raise OperationBlocked("hub_operation_busy", "RAG job is already active")
+            raise OperationBlocked(OperationCode.BUSY, "RAG job is already active")
         if plan is not None and not plan.can_resume:
-            raise CheckpointError("checkpoint_protected", "RAG job cannot resume", blockers=plan.blockers)
+            raise CheckpointError(CheckpointErrorCode.PROTECTED, "RAG job cannot resume", blockers=plan.blockers)
         observer = RegistrationProgress(job, task=asyncio.current_task())
         self.active[key] = observer
 
@@ -84,10 +89,10 @@ class RAGManagement(DocumentManagement):
             raise ValueError("Only failed or cancelled RAG jobs can be deleted")
         plan = await self.data.acheckpoint_plan(identifier)
         if plan.revision != revision:
-            raise CheckpointError("checkpoint_conflict", "RAG job changed; review deletion again")
+            raise CheckpointError(CheckpointErrorCode.CONFLICT, "RAG job changed; review deletion again")
         if not plan.can_delete:
             if not plan.can_abandon:
-                raise CheckpointError("checkpoint_protected", "RAG job is still active; cancel and wait before deleting",
+                raise CheckpointError(CheckpointErrorCode.PROTECTED, "RAG job is still active; cancel and wait before deleting",
                                       blockers=plan.abandon_blockers)
             await self.data.aabandon_job(identifier, expected_revision=plan.revision)
             plan = await self.data.acheckpoint_plan(identifier)
@@ -129,7 +134,7 @@ class RAGManagement(DocumentManagement):
         if any(identifier in document_ids(job) and job["status"] in (RAGJobStatus.QUEUED.value, RAGJobStatus.RUNNING.value, RAGJobStatus.FAILED.value)
                and job["resume_abandonment"] is None and not job.get("cancel_requested")
                for job in await self.data.ajobs()):
-            raise OperationBlocked("hub_existing_rag_job", "An unfinished RAG job already exists; select it and retry or delete it")
+            raise OperationBlocked(OperationCode.EXISTING_RAG_JOB, "An unfinished RAG job already exists; select it and retry or delete it")
 
     async def jobs(self, *, inspect=True):
         entries = []
@@ -150,10 +155,11 @@ class RAGManagement(DocumentManagement):
     async def execute(self, action, argument="", expected_version=None, *, progress=None):
         if action == RAGAction.VISION_SETTINGS.value:
             record = await self.project.adescribe_config()
-            selected = record["values"]["components"]
+            view = ProjectConfiguration.view(record)
+            selected = view.values.components
             if "vision" not in selected:
                 await self.project.asave(components=[*selected, "vision"], expected_components=selected,
-                                         expected_version=record["config_version"])
+                                         expected_version=view.config_version)
             return {"component": "vision"}
         if action == RAGAction.JOBS.value:
             return await self.jobs(inspect=False)

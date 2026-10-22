@@ -2,6 +2,8 @@
 
 ish plugin entry point for one streaming request: python -m llm.llm --help."""
 
+from llm.core.results import OutputVisibility
+
 # The platform reads this literal with ast.literal_eval before importing us.
 # requirements lists other ish plugins; dependencies lists Python distributions.
 # dependencies is generated from pyproject.toml by tests.llm.dependencies.
@@ -35,7 +37,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Union
 
 from llm._platform import require_linux
-from llm.core.models import ProjectConfig, Run, RunStatus, Session
+from llm.core.models import ConversationStorage, ProjectConfig, Run, RunStatus, Session
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent
 from llm.core.diagnostics import ErrorClassification, classify_diagnostic
 from llm.core.checkpoints import CheckpointError
@@ -760,9 +762,8 @@ class LargeLanguageModel:
         self.provider_calls = (self.services.provider_calls if self.services.provider_calls is not None
                                else ProviderCalls(self.services.provider_limits))
         if conversation_storage is not None:
-            if conversation_storage not in ("file", "memory"):
-                raise ValueError("conversation_storage must be 'file' or 'memory'")
-            if self.services.conversations not in (conversation_store, "file"):
+            ConversationStorage.validate(conversation_storage, nullable=False)
+            if self.services.conversations not in (conversation_store, ConversationStorage.FILE):
                 raise ValueError("Choose conversation_storage or BackendServices.conversations, not both")
             self.services = replace(self.services, conversations=conversation_storage)
         self.engines = EngineRegistry()
@@ -977,7 +978,7 @@ ADD_TOOL_SOURCE = '\n'.join([
 
 
 def print_event(run: Run, event: EngineEvent) -> None:
-    if event.type == EngineEventType.TEXT_DELTA and event.delta.visibility == "user":
+    if event.type == EngineEventType.TEXT_DELTA and event.delta.visibility == OutputVisibility.USER:
         print(event.delta.text, end="", flush=True)
 
 

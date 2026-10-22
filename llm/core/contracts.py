@@ -3,13 +3,13 @@
 from copy import deepcopy
 from contextvars import ContextVar
 from dataclasses import dataclass, field, fields, is_dataclass
-from enum import Enum
+from enum import Enum, StrEnum
 import math
 from pathlib import Path
 from types import UnionType
 from typing import Any, Optional, Union, get_args, get_origin, get_type_hints
 
-from .models import RunStatus, StepStatus, ProjectConfig
+from .models import ResourceKind, RunStatus, StepStatus, ProjectConfig
 from llm.errors import exception_chain, stable_error_code, get_error_attribute
 
 
@@ -120,6 +120,72 @@ class ResourceRef(JsonValue):
             raise ValueError("Resource kind and ID must be nonempty")
 
 
+class ErrorCategory(StrEnum):
+    SERVICE = "service"
+    ACCESS = "access"
+    CONTRACT = "contract"
+    RESOURCE = "resource"
+    EXECUTION = "execution"
+    INTERNAL = "internal"
+    UNKNOWN = "unknown"
+
+class Confidence(StrEnum):
+    EXPLICIT = "explicit"
+    INFERRED = "inferred"
+    UNKNOWN = "unknown"
+
+class ErrorReason(StrEnum):
+    """Known observation reasons; unfamiliar diagnostics remain open and unknown."""
+    UNKNOWN = 'unknown'
+    RATE_LIMIT = 'rate_limit'
+    UNAVAILABLE = 'unavailable'
+    AUTHENTICATION = 'authentication'
+    PERMISSION = 'permission'
+    TIMEOUT = 'timeout'
+    CONNECTION = 'connection'
+    REQUEST = 'request'
+    CONTEXT = 'context'
+    BUDGET = 'budget'
+    FILE_MISSING = 'file_missing'
+    EMPTY = 'empty'
+    COMPLETION_INVALID = 'completion_invalid'
+    COMPLETION_LENGTH = 'completion_length'
+    COMPLETION_FILTERED = 'completion_filtered'
+    COMPLETION_INCOMPLETE = 'completion_incomplete'
+    COMPLETION_OUTPUT_LIMIT = 'completion_output_limit'
+    COMPLETION_TOOL_LIMIT = 'completion_tool_limit'
+    COMPLETION_ARGUMENT_LIMIT = 'completion_argument_limit'
+    STEP_TIMEOUT = 'step_timeout'
+    REQUEST_SIZE = 'request_size'
+    DEPENDENCY = 'dependency'
+    COMMAND = 'command'
+    TOOL_FAILED = 'tool_failed'
+    VALIDATION = 'validation'
+    DISCONNECTED = 'disconnected'
+    TOOL_ARGUMENTS = 'tool_arguments'
+    TOOL_CONTRACT = 'tool_contract'
+    LIFECYCLE = 'lifecycle'
+    SANDBOX = 'sandbox'
+    OPERATION_CONFLICT = 'operation_conflict'
+    OPERATION_UNCERTAIN = 'operation_uncertain'
+    AUTHORIZATION = 'authorization'
+    APPROVAL = 'approval'
+    RESPONSE = 'response'
+    PARAMETER = 'parameter'
+    INCOMPLETE = 'incomplete'
+    OUTPUT = 'output'
+    TOOLS = 'tools'
+    ARGUMENTS = 'arguments'
+    USAGE = 'usage'
+    REVISION = 'revision'
+    CHECKPOINT = 'checkpoint'
+    CANCELLED = 'cancelled'
+
+
+class DiagnosticCode(StrEnum):
+    EXECUTION_FAILED = "execution_failed"
+
+
 @dataclass(frozen=True, slots=True)
 class Diagnostic(JsonValue):
     """설명 가능한 진단. severity나 code는 재시도·복구·승인 권한이 아니다."""
@@ -135,7 +201,7 @@ class Diagnostic(JsonValue):
             raise ValueError("Invalid diagnostic code or severity")
 
     @classmethod
-    def from_exception(cls, error: Exception, *, code="execution_failed", source=None, boundary=None):
+    def from_exception(cls, error: Exception, *, code=DiagnosticCode.EXECUTION_FAILED, source=None, boundary=None):
         # Diagnostic은 관찰 계약이다. Run의 신뢰 판별은 stable_error_code가 별도로 한다.
         known = stable_error_code(error)
         chain = list(exception_chain(error))
@@ -175,6 +241,16 @@ class Diagnostic(JsonValue):
         return classify_diagnostic(self)
 
 
+class ActivityEventType(StrEnum):
+    RUN_STARTED = "run.started"
+    RUN_COMPLETED = "run.completed"
+    RUN_FAILED = "run.failed"
+    RUN_INTERRUPTED = "run.interrupted"
+    RUN_PAUSED = "run.paused"
+    RUN_RESUME_ABANDONED = "run.resume_abandoned"
+    STEP_FAILED = "step.failed"
+
+
 @dataclass(frozen=True, slots=True)
 class ProjectActivityEvent(JsonValue):
     """확정된 lifecycle의 참조만 제공하는 파생 인덱스. 실행·복구의 근거가 아니다."""
@@ -184,21 +260,26 @@ class ProjectActivityEvent(JsonValue):
     status: Optional[str] = None
     code: Optional[str] = None
 
+    @staticmethod
+    def run_event(status):
+        """Run log naming; activity validation still selects its allowed events."""
+        return f"{ResourceKind.RUN.value}.{status.value}"
+
     def __post_init__(self):
         from datetime import datetime
         JsonValue.__post_init__(self)
-        states = {"run.started": RunStatus.RUNNING.value, "run.completed": RunStatus.COMPLETED.value,
-                  "run.failed": RunStatus.FAILED.value, "run.interrupted": RunStatus.INTERRUPTED.value,
-                  "run.paused": RunStatus.PAUSED.value, "step.failed": StepStatus.FAILED.value}
-        valid = (self.status in {RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED} if self.event == "run.resume_abandoned"
+        states = {ActivityEventType.RUN_STARTED: RunStatus.RUNNING.value, ActivityEventType.RUN_COMPLETED: RunStatus.COMPLETED.value,
+                  ActivityEventType.RUN_FAILED: RunStatus.FAILED.value, ActivityEventType.RUN_INTERRUPTED: RunStatus.INTERRUPTED.value,
+                  ActivityEventType.RUN_PAUSED: RunStatus.PAUSED.value, ActivityEventType.STEP_FAILED: StepStatus.FAILED.value}
+        valid = (self.status in {RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED} if self.event == ActivityEventType.RUN_RESUME_ABANDONED
                  else self.event in states and self.status == states[self.event])
         if not valid:
             raise ValueError("Invalid activity lifecycle")
         ref = self.source
         kind = self.event.split(".")[0]
         if (ref.kind != kind or not all((ref.project_id, ref.session_id, ref.run_id))
-                or ref.id != (ref.step_id if kind == "step" else ref.run_id)
-                or kind == "run" and ref.step_id is not None
+                or ref.id != (ref.step_id if kind == ResourceKind.STEP else ref.run_id)
+                or kind == ResourceKind.RUN and ref.step_id is not None
                 or ref.component is not None or ref.version is not None):
             raise ValueError("Invalid activity ownership reference")
         if datetime.fromisoformat(self.time).utcoffset() is None:

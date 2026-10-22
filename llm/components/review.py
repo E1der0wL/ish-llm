@@ -72,6 +72,7 @@ class CompletionReviewObservation:
 
 class ReviewPolicy:
     INTEGER_MINIMUMS = {"max_continuations": 0, "max_attempts": 1, "max_feedback_chars": 1}
+    HOOK_TIMEOUT_MINIMUM = 0
     FIELDS = frozenset((*INTEGER_MINIMUMS, "hook_timeout"))
 
     @classmethod
@@ -85,7 +86,7 @@ class ReviewPolicy:
             if type(value[name]) is not int or value[name] < lower:
                 raise ValueError("Invalid final_review " + name)
         duration = value["hook_timeout"]
-        if type(duration) not in (int, float) or not math.isfinite(duration) or duration <= 0:
+        if type(duration) not in (int, float) or not math.isfinite(duration) or duration <= cls.HOOK_TIMEOUT_MINIMUM:
             raise ValueError("final_review hook_timeout must be positive and finite")
         return deepcopy(value)
 
@@ -94,7 +95,7 @@ class ReviewPolicy:
         properties = {name: {"type": "integer", "minimum": lower,
                              "x-narrowing": "maximum"}
                       for name, lower in cls.INTEGER_MINIMUMS.items()}
-        properties["hook_timeout"] = {"type": "number", "exclusiveMinimum": 0, "x-narrowing": "maximum"}
+        properties["hook_timeout"] = {"type": "number", "exclusiveMinimum": cls.HOOK_TIMEOUT_MINIMUM, "x-narrowing": "maximum"}
         return {"type": ["object", "null"], "properties": properties,
                 "required": sorted(cls.FIELDS), "additionalProperties": False}
 

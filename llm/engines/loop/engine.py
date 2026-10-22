@@ -2,9 +2,16 @@
 
 A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
+from llm.core.models import ResourceKind, StepKind
+
+from llm.core.checkpoints import CheckpointOperation
+
+from llm.core.continuations import ResumeRecord
+
+from llm.core.results import OutputVisibility
+
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ModelRole, ToolMode, ToolResult, copy_model
 
-import math
 from itertools import count
 import asyncio
 from copy import copy, deepcopy
@@ -70,11 +77,10 @@ class LoopEngine(BaseEngine):
         # Serialize common definitions explicitly so approval binding retains their full identity.
         values = portable({"settings": context.resolve_config(self.parameter_key),
                          "completion": self.completion_kwargs,
-                         "prompt": self.system_prompt, "agent": self._agent_options, "tools": [tool.to_dict() for tool in context.tools.definitions()],
+                         "prompt": self.system_prompt, "agent": self._agent_options,
                          "adapter": {"type": type(self.completion_adapter).__module__ + "." + type(self.completion_adapter).__qualname__,
                                      "binding": getattr(self.completion_adapter, "execution_binding", None)},
-                         "tool_contracts": context.tools.contracts(),
-                         "tool_policy": context.tool_scope.binding() if context.tool_scope else None})
+                         **context.tools.execution_binding(context.tool_scope.binding() if context.tool_scope else None)})
         policy = self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)["values"].get("policy", {}).get("final_review")
         if ReviewPolicy.read(policy) is not None:
             values["final_reviewers"] = review_identities(context.capabilities.get("completion_processors", ()))
@@ -122,7 +128,7 @@ class LoopEngine(BaseEngine):
 
     def _record(self, key, value):
         interaction = InteractionRequest.from_dict(value["interaction"]) if "interaction" in value else None
-        return EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata={"name": "loop", "operation": "record",
+        return EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata={"name": LoopEngine.checkpoint_name, "operation": CheckpointOperation.RECORD,
                                                                "key": key, "value": deepcopy(value)})
 
     parameter_layout = ParameterLayout(
@@ -151,31 +157,33 @@ class LoopEngine(BaseEngine):
 
     def _configure(self, values):
         """검증된 실행별 값으로 사본을 준비한다. 저장/공개 설정에 기본값을 만들지 않는다."""
+        from llm.core.schema import validate_declared_fields
+        validate_declared_fields({name: values[name] for name in self._option_names if name in values},
+                                 self._option_schema())
         max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars = (
             values.get(key) for key in self._option_names if key != "buffer_size")
         # Queue capacity changes backpressure only; it never drops output or limits execution.
-        buffer_size = values.get("buffer_size", 8)
+        buffer_size = values.get("buffer_size", BaseEngine.DEFAULT_BUFFER_SIZE)
         self.input_policy = deepcopy(values.get("input_policy"))
         self.provider = deepcopy(values.get("provider"))
         self.final_review = ReviewPolicy.read(values.get("final_review"))
         super().__init__("Loop", completion_adapter=self.completion_adapter, buffer_size=buffer_size)
         self.max_tool_calls, self.max_argument_chars, self.max_output_chars = max_tool_calls, max_argument_chars, max_output_chars
-        if max_iterations is not None and (type(max_iterations) is not int or max_iterations < 1):
-            raise ValueError("max_iterations must be a positive integer")
-        for value in (request_timeout, tool_timeout):
-            if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
-                    or not math.isfinite(value) or value <= 0):
-                raise ValueError("Timeouts must be positive and finite")
         self.max_iterations = max_iterations
         self.request_timeout = request_timeout
         self.tool_timeout = tool_timeout
         self.completion_kwargs = copy_model(values.get("completion", {}))
         self.system_prompt = values.get("system_prompt")
 
+    @classmethod
+    def _option_schema(cls):
+        from llm.core.schema import field
+        return {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0)
+                for name in cls._option_names}
+
     def describe_config(self):
-        from llm.core.schema import object_schema, field
-        names = self._option_names
-        properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0) for name in names}
+        from llm.core.schema import object_schema
+        properties = self._option_schema()
         properties["system_prompt"] = {"type": ["string", "null"], "description": "시스템 프롬프트"}
         properties["completion"] = self.completion_adapter.describe_config()
         properties["input_policy"] = CompletionPolicy.describe_config()
@@ -286,8 +294,8 @@ class LoopEngine(BaseEngine):
             messages.insert(0, CompletionMessage(ModelMessage(ModelRole.SYSTEM, prompt)))
         if context.checkpoint is not None:
             self.validate_resume(context.checkpoint,
-                retry_nodes=context.run.metadata.get("resume", {}).get("retry_nodes", ()),
-                decisions=context.run.metadata.get("resume", {}).get("decisions"))
+                retry_nodes=context.run.metadata.get(ResumeRecord.KEY, {}).get(ResumeRecord.RETRY_NODES, ()),
+                decisions=context.run.metadata.get(ResumeRecord.KEY, {}).get(ResumeRecord.DECISIONS))
             if context.checkpoint["header"]["binding"] != self._resume_binding:
                 raise ValueError("Loop configuration or Tool definitions changed; start a new request")
         reviewers = review_identities(context.capabilities.get("completion_processors", ())) if self.final_review is not None else []
@@ -295,7 +303,7 @@ class LoopEngine(BaseEngine):
         if review is None and context.checkpoint is not None and "review" in context.checkpoint["header"]:
             raise ValueError("Final review cannot be disabled during Resume")
         if (context.output_step_id is None or context.checkpoint_scope is not None) and context.checkpoint is None:
-            yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": "loop", "operation": "initialize",
+            yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": LoopEngine.checkpoint_name, "operation": CheckpointOperation.INITIALIZE,
                 "header": {"format": self.CHECKPOINT_FORMAT, "binding": self._resume_binding,
                            "message_ids": [m.id for m in context.messages],
                            "input_message_id": context.run.input_message_id,
@@ -304,7 +312,7 @@ class LoopEngine(BaseEngine):
             async for event in events:
                 yield event
         # 도메인별 정책/저장은 처리기가 소유한다. 각 호출의 세션은 다른 Run/Agent와 공유하지 않는다.
-        processor_context = replace(context, output_visibility="internal") if review is not None else context
+        processor_context = replace(context, output_visibility=OutputVisibility.INTERNAL) if review is not None else context
         async with CompletionPipeline(context.capabilities.get("completion_processors", ()), processor_context,
                 validate_parameters=self.completion_adapter.validate_processing, review_policy=self.final_review) as processors:
             if processors.reviewers != reviewers:
@@ -320,8 +328,8 @@ class LoopEngine(BaseEngine):
         if event.type == EngineEventType.OUTPUT and event.output is not None and event.output.step_id is None:
             raise ValueError("Processors cannot publish a reviewed final candidate")
         return replace(event,
-            delta=replace(event.delta, visibility="internal") if event.delta is not None else None,
-            output=replace(event.output, visibility="internal") if event.output is not None else None)
+            delta=replace(event.delta, visibility=OutputVisibility.INTERNAL) if event.delta is not None else None,
+            output=replace(event.output, visibility=OutputVisibility.INTERNAL) if event.output is not None else None)
 
     async def _iterate(self, context, params, messages, processors, review=None):
         """반복마다 입력 사본을 만들고 관찰 훅을 Tool 효과보다 먼저 처리한다."""
@@ -353,7 +361,7 @@ class LoopEngine(BaseEngine):
             if not saved:
                 # 부분 답변은 모델 참고 자료일 뿐이다. 완료 응답/Tool 호출/영수증으로 복원하지 않는다.
                 partial = [item for item in context.resume_outputs
-                           if item.step is not None and item.step.kind == "llm" and item.output.text
+                           if item.step is not None and item.step.kind == StepKind.LLM and item.output.text
                            and item.step.metadata.get("checkpoint_name") == self.checkpoint_name
                            and item.step.metadata.get("checkpoint_scope") == context.checkpoint_scope
                            and item.step.metadata.get("iteration") == iteration]
@@ -428,10 +436,10 @@ class LoopEngine(BaseEngine):
 
             if not saved:
                 async with aclosing(self.step(
-                    replace(context, output_visibility="internal") if review is not None else context,
-                    complete, name="LLM completion", kind="llm",
+                    replace(context, output_visibility=OutputVisibility.INTERNAL) if review is not None else context,
+                    complete, name="LLM completion", kind=StepKind.LLM,
                     timeout_seconds=self.request_timeout, metadata={"iteration": iteration,
-                        "checkpoint_name": "loop", "checkpoint_scope": context.checkpoint_scope},
+                        "checkpoint_name": LoopEngine.checkpoint_name, "checkpoint_scope": context.checkpoint_scope},
                     error_message="LLM iteration failed",
                 )) as events:
                     async for event in events:
@@ -511,7 +519,7 @@ class LoopEngine(BaseEngine):
                 key = f"tool:{iteration}:{call.id}"
                 stored = records.get(key, {})
                 result = deepcopy(stored.get("result", {}))
-                result_ref = (ResourceRef("step", stored["step_id"], run_id=stored["run_id"], step_id=stored["step_id"])
+                result_ref = (ResourceRef(ResourceKind.STEP, stored["step_id"], run_id=stored["run_id"], step_id=stored["step_id"])
                               if stored.get("status") == CheckpointStatus.COMPLETED else None)
                 executor = ToolExecutor(timeout_seconds=self.tool_timeout, max_output_chars=self.max_output_chars)
                 if stored.get("status") != CheckpointStatus.COMPLETED:
@@ -523,14 +531,14 @@ class LoopEngine(BaseEngine):
                         outer_step = None
                         async with aclosing(self.execute_tool(
                             context, tool, arguments, result=result, executor=executor,
-                            metadata={"iteration": iteration, "tool_call_id": call.id, "checkpoint_name": "loop"},
+                            metadata={"iteration": iteration, "tool_call_id": call.id, "checkpoint_name": LoopEngine.checkpoint_name},
                             checkpoint_key=key,
                         )) as events:
                             async for event in events:
                                 if outer_step is None and event.type == EngineEventType.STEP_STARTED:
                                     outer_step = event.step_id
                                 if event.type == EngineEventType.STEP_COMPLETED and event.step_id == outer_step:
-                                    result_ref = ResourceRef("step", event.step_id, run_id=context.run.id, step_id=event.step_id)
+                                    result_ref = ResourceRef(ResourceKind.STEP, event.step_id, run_id=context.run.id, step_id=event.step_id)
                                 if durable and event.type == EngineEventType.STEP_COMPLETED and event.step_id == outer_step:
                                     event = replace(event, checkpoint=self._record(key, {
                                         "status": CheckpointStatus.COMPLETED, "result": result,
@@ -543,8 +551,8 @@ class LoopEngine(BaseEngine):
                             raise
                         yield self._record(key, {"status": CheckpointStatus.WAITING, "name": tool.name,
                                                 "arguments": arguments, "prompt": str(error),
-                                                "interaction": error.request.bind("loop", key).to_dict()})
-                        yield EngineEvent(EngineEventType.PAUSED, metadata={"checkpoint": "loop", "tool_key": key})
+                                                "interaction": error.request.bind(LoopEngine.checkpoint_name, key).to_dict()})
+                        yield EngineEvent(EngineEventType.PAUSED, metadata={"checkpoint": LoopEngine.checkpoint_name, "tool_key": key})
                         return
                     except ToolExecutionError as error:
                         if durable and error.effect == ToolExecutionError.NO_EFFECT:
@@ -553,8 +561,8 @@ class LoopEngine(BaseEngine):
                 else:
                     # 재사용도 새 Run에서 관찰·원본 조회할 수 있게 기록한다. 핸들러는 호출하지 않는다.
                     async def reuse(_context):
-                        return EngineOutput(data=deepcopy(result["value"]), visibility="internal")
-                    async with aclosing(self.step(context, reuse, name=tool.name, kind="tool",
+                        return EngineOutput(data=deepcopy(result["value"]), visibility=OutputVisibility.INTERNAL)
+                    async with aclosing(self.step(context, reuse, name=tool.name, kind=StepKind.TOOL,
                             metadata={"iteration": iteration, "tool_call_id": call.id, "reused": True,
                                       "source_run_id": stored["run_id"], "source_step_id": stored["step_id"]})) as events:
                         async for event in events:

@@ -1,17 +1,13 @@
 """Transient provider-exposed reasoning phases; never a second transcript."""
 
+from llm.core.continuations import ResumeRecord
+
+from llm.core.results import CompletionRecords, OutputVisibility
+
 from llm.core.models import RunStatus
 from collections import OrderedDict
 from ...model import TraceItem
 from .trace import merge_trace
-
-
-def reasoning_text(value):
-    if isinstance(value, str):
-        return value
-    if isinstance(value, dict):
-        return reasoning_text(value.get("thinking", ""))
-    return ""
 
 
 class ThinkingPhases:
@@ -32,9 +28,9 @@ class ThinkingPhases:
             if completion.id != state["completion"]:
                 state["completion"] = completion.id
                 state["activity"] = "thinking"
-            text = reasoning_text(completion.reasoning_content)
+            text = completion.reasoning_content
             if text:
-                state["trace"][completion.id] = TraceItem("thought:" + completion.id, "reasoning", text,
+                state["trace"][completion.id] = TraceItem("thought:" + completion.id, TraceItem.REASONING, text,
                     started_at=getattr(completion, "started_at", None) or getattr(run, "started_at", "") or "")
             previous = state["seen"].get(completion.id, "")
             state["seen"][completion.id] = text
@@ -47,7 +43,7 @@ class ThinkingPhases:
                 state["activity"] = "running"
         delta = getattr(event, "delta", None)
         output = getattr(event, "output", None)
-        if any(value is not None and value.visibility == "user" and value.text for value in (delta, output)):
+        if any(value is not None and value.visibility == OutputVisibility.USER and value.text for value in (delta, output)):
             state["activity"] = "streaming"
 
     def activity(self, run) -> str:
@@ -57,10 +53,10 @@ class ThinkingPhases:
         state = self.runs.get(run.id)
         if state and state["activity"]:
             return state["activity"]
-        completions = run.metadata.get("completions", [])
+        completions = CompletionRecords.results(run.metadata)
         if completions:
-            return "thinking" if completions[-1].get("status") in (RunStatus.PENDING, RunStatus.RUNNING) else "running"
-        return "resuming" if run.metadata.get("resume") else "preparing"
+            return "thinking" if completions[-1].status in (RunStatus.PENDING, RunStatus.RUNNING) else "running"
+        return "resuming" if run.metadata.get(ResumeRecord.KEY) else "preparing"
 
     def visible(self, run_id, fallback, *, active, content):
         if not active:

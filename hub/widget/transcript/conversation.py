@@ -1,5 +1,7 @@
 """Rich Markdown rendered into PTK cells, without printing to the terminal."""
 
+from hub.ui.output.model import OutputBlock
+
 from llm.core.models import MessageStatus
 from ...model import ChatMessage
 from ...asset.icon import for_style
@@ -141,7 +143,7 @@ class ConversationControl(SelectableControl):
         self.file_root = Path.cwd()
         self.renderers = RendererRegistry()
         self.images = ImageRenderer()
-        self.renderers.register("hub-image", self.images)
+        self.renderers.register(OutputBlock.HUB_IMAGE, self.images)
         self.cursor_line = 0
         self.top_line = 0
         self.left_column = 0

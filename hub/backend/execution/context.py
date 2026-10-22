@@ -1,5 +1,8 @@
 """Only completed prior turns enter new requests; checkpoint context stays intact."""
 
+from llm.core.continuations import RestartRecord, ResumeRecord
+
+from llm.core.agents import AgentBinding
 from llm.core.models import Message, MessageRole, MessageStatus
 from llm.core.policies import ContextMode
 from llm.services.history.context import ConversationContextBuilder, ContextPolicy
@@ -10,7 +13,7 @@ from .followup import split_followup
 class HubContextBuilder(ConversationContextBuilder):
     def for_clone(self, messages):
         from .turns import TurnIndex, TURN_OPTION, edit_source
-        if not any(edit_source(m) or m.metadata.get("resume") or m.metadata.get("restart") for m in messages):
+        if not any(edit_source(m) or m.metadata.get(ResumeRecord.KEY) or m.metadata.get(RestartRecord.KEY) for m in messages):
             return super().for_clone(messages)
         records = [m for m in messages if m.role in ("system", "developer")]
         for turn in TurnIndex(messages).turns:
@@ -21,9 +24,9 @@ class HubContextBuilder(ConversationContextBuilder):
                 records.append(replace(assistants[-1], content="\n\n".join(m.content for m in assistants)))
         snapshot = super().for_clone(records)
         for message in snapshot:
-            message.metadata.pop("resume", None)
-            message.metadata.pop("restart", None)
-            message.metadata.get("request_context", {}).pop(TURN_OPTION, None)
+            ResumeRecord.remove(message.metadata)
+            RestartRecord.remove(message.metadata)
+            message.metadata.get(AgentBinding.CONTEXT_FIELD, {}).pop(TURN_OPTION, None)
         return snapshot
 
     def for_run(self, messages: list[Message], input_message_id: str, *,

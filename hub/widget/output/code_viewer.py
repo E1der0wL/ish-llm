@@ -1,5 +1,7 @@
 """Dedicated code viewer: syntax display, search, source and clean-code copy."""
 
+from hub.ui.output.model import OutputBlock
+
 import asyncio
 from markdown_it import MarkdownIt
 from prompt_toolkit.application.current import get_app
@@ -16,7 +18,7 @@ class CodeViewer(OutputInspector):
             handler=lambda: get_app().create_background_task(self.copy_code())))
 
     def code_text(self):
-        if self.item.block.kind == "hub-code":
+        if self.item.block.kind == OutputBlock.HUB_CODE:
             return self.item.block.text
         tokens = MarkdownIt("commonmark").parse(self.item.raw)
         return "".join(token.content for token in tokens if token.type in ("fence", "code_block"))

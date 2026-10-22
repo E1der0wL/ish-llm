@@ -22,6 +22,7 @@ RULES = {
     "S4": "Storage version comparison: exact type and current reader/writer contract (D02)",
     "S5": "Naming: current semantic vocabulary and Python spelling (D14)",
     "S6": "Provider wire interpretation outside Adapter: migrate in A (D12)",
+    "S7": "Owned contract redeclaration: use defaults, kinds, paths and receipt/projection Owners (O1-O6)",
 }
 RETIRED = {
     "upgrade_backup", "aupgrade_backup", "on_event", "on_run_event", "from_preferences",
@@ -41,8 +42,22 @@ DOMAIN_FIELDS = FORMAT_FIELDS | {
 }
 CONFIG_NAMES = {"config", "configuration", "policy", "policies", "session_config",
                 "agent", "host", "retry", "limits"}
-WIRE_FIELDS = {"choices", "tool_calls", "finish_reason", "function_call"}
+WIRE_FIELDS = {"choices", "tool_calls", "finish_reason", "function_call", "thinking"}
 SDK_MODULES = {"litellm", "openai", "anthropic"}
+
+# Bounded semantic contracts, not a blanket exemption for an owning file. The
+# declaration must be in the exact owner symbol; unrelated code is still scanned.
+OWNED_PATHS = {
+    "project.json": "ProjectPaths.record", "session.json": "SessionPaths.record",
+    "run.json": "RunPaths.record", "step.json": "StepPaths.record",
+    "outputs.jsonl": "RunPaths.output_path",
+}
+OWNED_DEFAULTS = {"index_stride", "output_index_stride"}
+OWNED_KINDS = {"conversation_storage": {"file", "memory"},
+               "visibility": {"user", "internal"}, "operation": {"append", "replace"}}
+CHECKPOINT_OPERATIONS = {"initialize", "record"}
+RESOURCE_KINDS = {"project", "session", "run", "step", "message"}
+STEP_KINDS = {"llm", "tool", "shell"}
 
 
 def symbol(node):
@@ -196,6 +211,8 @@ def scan_source(source, file):
                 for arg, default in defaults:
                     if policy_name(arg.arg) and default is not None and literal(default):
                         add("S2", default, owner, f"policy argument default: {arg.arg}")
+                    if arg.arg in OWNED_DEFAULTS and default is not None and literal(default):
+                        add("S7", default, owner, "journal default must reference OutputJournal.DEFAULT_INDEX_STRIDE")
         if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.Or):
             names = {symbol(part) for part in ast.walk(node)}
             if any(policy_name(name) for name in names) and not predicate(node):
@@ -203,6 +220,11 @@ def scan_source(source, file):
         if isinstance(node, ast.Call):
             if symbol(node.func) in RETIRED:
                 add("S1", node, owner, "retired call")
+            if symbol(node.func) == "ResourceRef":
+                kinds = ([node.args[0]] if node.args else []) + [k.value for k in node.keywords if k.arg == "kind"]
+                if any(isinstance(item, ast.Constant) and isinstance(item.value, str) and item.value in RESOURCE_KINDS
+                       for kind in kinds for item in ast.walk(kind)):
+                    add("S7", node, owner, "built-in resource references must use ResourceKind")
             if isinstance(node.func, ast.Attribute) and node.func.attr in ("get", "setdefault"):
                 if len(node.args) >= 2 and symbol(node.args[0]) == "requires_retry":
                     add("S1", node, owner, "checkpoint retry evidence must not be inferred")
@@ -211,12 +233,27 @@ def scan_source(source, file):
             for keyword in node.keywords:
                 if keyword.arg in RETIRED:
                     add("S1", keyword, owner, "retired callback argument")
+                if (keyword.arg == "kind" and symbol(node.func) in ("EngineEvent", "Step", "step")
+                        and isinstance(keyword.value, ast.Constant) and keyword.value.value in STEP_KINDS):
+                    add("S7", keyword, owner, "built-in execution Step kinds must use StepKind")
                 if domain_name(keyword.arg or "") and literal(keyword.value):
                     add("S3", keyword, owner, f"inline domain argument: {keyword.arg}")
+                if (keyword.arg in OWNED_KINDS and isinstance(keyword.value, ast.Constant)
+                        and keyword.value.value in OWNED_KINDS[keyword.arg]):
+                    add("S7", keyword, owner, f"kind argument must reference its Owner: {keyword.arg}")
         if isinstance(node, ast.Dict):
             for key, value in zip(node.keys, node.values):
                 if domain_name(symbol(key)) and literal(value):
                     add("S3", value, owner, f"inline domain field: {symbol(key)}")
+                kinds = OWNED_KINDS.get(symbol(key), set())
+                if symbol(key) == "operation":
+                    kinds = kinds | CHECKPOINT_OPERATIONS
+                if isinstance(value, ast.Constant) and value.value in kinds:
+                    add("S7", value, owner, "kind field must reference its Owner: " + symbol(key))
+                if symbol(key) == "conversation_storage" and any(
+                        isinstance(item, ast.Constant) and isinstance(item.value, str)
+                        and item.value in OWNED_KINDS["conversation_storage"] for item in ast.walk(value)):
+                    add("S7", value, owner, "storage choices must derive from ConversationStorage")
         if isinstance(node, (ast.Assign, ast.AnnAssign)):
             if (file == "llm/components/tools/registry.py" and owner == "ToolContract"
                     and isinstance(node, ast.AnnAssign) and node.value is not None):
@@ -225,12 +262,39 @@ def scan_source(source, file):
             for target in targets:
                 if domain_name(symbol(target)) and literal(node.value):
                     add("S3", node, owner, f"inline domain assignment: {symbol(target)}")
+                if symbol(target) in OWNED_DEFAULTS and node.value is not None and literal(node.value):
+                    add("S7", node, owner, "journal default must reference OutputJournal.DEFAULT_INDEX_STRIDE")
         if isinstance(node, ast.Compare) and node not in guarded_versions and not key_set_comparison(node):
             if any(symbol(part) in FORMAT_FIELDS for part in ast.walk(node)):
                 add("S4", node, owner, "verify exact version type and declaration reference")
             if (any(domain_name(symbol(part)) for part in ast.walk(node))
                     and any(literal(part) for part in node.comparators)):
                 add("S3", node, owner, "inline domain comparison")
+            names = {symbol(item) for item in ast.walk(node)}
+            for name in OWNED_KINDS.keys() & names:
+                kinds = OWNED_KINDS[name] | (CHECKPOINT_OPERATIONS if name == "operation" else set())
+                if any(isinstance(item, ast.Constant) and isinstance(item.value, str)
+                       and item.value in kinds for item in ast.walk(node)):
+                    add("S7", node, owner, f"kind comparison must reference its Owner: {name}")
+            if any(isinstance(item, ast.Constant) and item.value == "engine_record" for item in ast.walk(node)):
+                add("S7", node, owner, "nested record discriminator must use CheckpointEnvelope")
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            if isinstance(node.right, ast.Constant) and node.right.value in OWNED_PATHS:
+                if file != "llm/core/paths.py" or owner != OWNED_PATHS[node.right.value]:
+                    add("S7", node, owner, "stored path must use the exact Paths owner property")
+        if isinstance(node, ast.Subscript) or (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr in ("get", "setdefault", "pop") and node.args):
+            key = node.slice if isinstance(node, ast.Subscript) else node.args[0]
+            receiver = node.value if isinstance(node, ast.Subscript) else node.func.value
+            if symbol(key) in ("resume", "restart") and any(
+                    isinstance(item, ast.Attribute) and item.attr == "metadata" for item in ast.walk(receiver)):
+                add("S7", node, owner, "Run continuation metadata must use ResumeRecord or RestartRecord")
+            if symbol(key) == "completions" and not (file == "llm/core/results.py"
+                    and owner.startswith("CompletionRecords.")):
+                add("S7", node, owner, "completion container must use CompletionRecords")
+            if (file == "llm/services/api.py" and owner == "ProjectHandle._describe_config"
+                    and isinstance(key, ast.Constant)):
+                add("S7", node, owner, "Project description must delegate to ProjectConfiguration")
         if isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value in RETIRED:
             # Only code keys, never docstrings; old names in documentation are historical evidence.
             add("S1", node, owner, "retired field or dynamic API lookup")

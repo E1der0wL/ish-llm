@@ -1,6 +1,9 @@
 """Read-only projection through llm services; no scheduling or localized strings."""
 
+from llm.core.models import StepKind
+
 from llm.core.models import RunStatus, MessageStatus
+from llm.core.results import CompletionRecords
 from llm.services.runtime.requests import RequestAdmission
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -56,14 +59,12 @@ class SnapshotReader:
                 run = await (await session.run.aload(run_id)).aget_data()
         except FileNotFoundError:
             return "", None  # Retention can remove old execution history.
-        from ..execution.thinking import reasoning_text
-        completions = run.metadata.get("completions", [])
+        completions = CompletionRecords.results(run.metadata)
         reasoning = "\n\n".join(text for item in completions
-                                if (text := reasoning_text(item.get("reasoning_content", ""))))
-        self.trace_history[run_id] = tuple(TraceItem("thought:" + item.get("id", f"{run_id}:{index}"),
-            "reasoning", text, started_at=item.get("started_at") or run.started_at or "")
-            for index, item in enumerate(completions)
-            if (text := reasoning_text(item.get("reasoning_content", ""))))
+                                if (text := item.reasoning_content))
+        self.trace_history[run_id] = tuple(TraceItem("thought:" + item.id,
+            TraceItem.REASONING, text, started_at=item.started_at)
+            for item in completions if (text := item.reasoning_content))
         if len(self.trace_history) > 1024:
             self.trace_history.pop(next(iter(self.trace_history)))
         elapsed = None
@@ -108,7 +109,7 @@ class SnapshotReader:
                 tools = ()
                 if active:
                     if latest is not None and latest.id == message.run_id:
-                        tools = tuple(step for step in display_steps(latest_steps) if step.kind == "tool")
+                        tools = tuple(step for step in display_steps(latest_steps) if step.kind == StepKind.TOOL)
                         if str(latest.status) == RunStatus.PAUSED:
                             self.tool_history[message.run_id] = tools
                     elif message.run_id in self.tool_history:
@@ -116,7 +117,7 @@ class SnapshotReader:
                     elif session is not None:
                         try:
                             steps = await (await session.run.aload(message.run_id)).steps.alist()
-                            tools = tuple(step for step in display_steps(steps) if step.kind == "tool")
+                            tools = tuple(step for step in display_steps(steps) if step.kind == StepKind.TOOL)
                             if str(message.status) == MessageStatus.PAUSED:
                                 self.tool_history[message.run_id] = tools
                         except FileNotFoundError:

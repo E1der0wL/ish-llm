@@ -2,34 +2,14 @@
 
 Build conversation context for Runs and clones, independent of storage."""
 
+from llm.core.continuations import ResumeRecord
+
 from copy import deepcopy
-from llm.core.policies import ContextMode
+from llm.core.policies import ContextMode, ContextPolicy
 
 from llm.core.models import Message, MessageRole, MessageStatus
 from llm.core.steering import InstructionStatus, is_instruction, RunInstruction
-from dataclasses import dataclass
 from typing import Optional
-@dataclass(frozen=True, slots=True)
-class ContextPolicy:
-    """문맥 선택 프리셋. budget은 토큰 추정 대신 정확한 문자 수 상한을 사용한다."""
-
-    mode: Optional[str] = None
-    max_turns: Optional[int] = None
-    max_chars: Optional[int] = None
-
-    def __post_init__(self):
-        if self.mode not in (None, *(mode.value for mode in ContextMode)):
-            raise ValueError("Unknown context policy")
-        if self.max_turns is not None and (type(self.max_turns) is not int or self.max_turns < 1):
-            raise ValueError("max_turns must be positive")
-        if self.max_chars is not None and (type(self.max_chars) is not int or self.max_chars < 1):
-            raise ValueError("max_chars must be positive")
-        if self.mode in (ContextMode.RECENT.value, ContextMode.RECENT_COMPLETED.value) and self.max_turns is None:
-            raise ValueError("Recent context requires explicit max_turns")
-        if self.mode == ContextMode.BUDGET.value and self.max_chars is None:
-            raise ValueError("budget policy requires max_chars")
-
-
 # 저장된 대화에서 모델 입력에 필요한 대화를 선택한다.
 class ConversationContextBuilder:
     def __init__(self, policy: Optional[ContextPolicy] = None):
@@ -84,7 +64,7 @@ class ConversationContextBuilder:
         # 형제 재개 분기의 지시는 섞지 않으며 원본 Message/Run 연결은 수정하지 않는다.
         continuations = dict(inputs)
         for run_id in reversed(inputs):
-            parent = messages[inputs[run_id]].metadata.get("resume", {}).get("run_id")
+            parent = ResumeRecord.source_id(messages[inputs[run_id]].metadata)
             if parent in continuations:
                 continuations[parent] = max(continuations[parent], continuations[run_id])
         return [message for _, message in sorted(enumerate(messages), key=lambda item: (

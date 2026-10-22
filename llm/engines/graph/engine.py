@@ -4,11 +4,20 @@
 상태 채널에는 JSON만 전달하고 런타임 객체를 저장 형식에 노출하지 않는다.
 """
 
+from llm.components.workflows.graph import ControlNodeType, ConditionOperator, LoopLimit
+
+from .checkpoints import GRAPH_CHECKPOINT_FORMAT, GRAPH_CHECKPOINT_NAME
+
+from llm.core.checkpoints import CheckpointOperation
+
+from llm.core.continuations import ResumeRecord
+
+from llm.core.results import OutputVisibility
+
 import asyncio
 import inspect
 import importlib
 import json
-import math
 import operator
 from copy import copy, deepcopy
 from llm.core.configuration import resolve_engine_config
@@ -24,7 +33,7 @@ from asyncio import timeout
 from llm.components.base import Component
 from llm.components.workflows.graph import validate_graph, validate_handler_options
 from llm.components.workflows.bindings import bind, read_pointer, validate_value
-from llm.core.checkpoints import CheckpointStatus
+from llm.core.checkpoints import CheckpointEnvelope, CheckpointStatus
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
 from llm.core.steering import SteeringMode, SteeringRoute
@@ -50,7 +59,7 @@ def matches(condition: dict, state: dict) -> bool:
     except KeyError:
         return False
     op = condition["op"]
-    if op == "exists":
+    if op == ConditionOperator.EXISTS:
         return True
     other = condition["value"]
     # JSON에서 boolean과 number는 구분한다(Python의 True == 1과 다름).
@@ -62,15 +71,15 @@ def matches(condition: dict, state: dict) -> bool:
         if isinstance(left, list) and isinstance(right, list):
             return len(left) == len(right) and all(equal(a, b) for a, b in zip(left, right))
         return left == right
-    if op in ("eq", "ne"):
+    if op in (ConditionOperator.EQ, ConditionOperator.NE):
         result = equal(value, other)
-        return result if op == "eq" else not result
-    if op == "in":
+        return result if op == ConditionOperator.EQ else not result
+    if op == ConditionOperator.IN:
         return any(equal(value, item) for item in other)
     if not ((type(value) in (int, float) and type(other) in (int, float))
             or (isinstance(value, str) and isinstance(other, str))):
         raise GraphExecutionError("Ordered comparison requires two numbers or two strings")
-    return {"lt": operator.lt, "le": operator.le, "gt": operator.gt, "ge": operator.ge}[op](value, other)
+    return {ConditionOperator.LT: operator.lt, ConditionOperator.LE: operator.le, ConditionOperator.GT: operator.gt, ConditionOperator.GE: operator.ge}[op](value, other)
 
 
 # 실행 판단은 JSON만 읽는다. 이벤트·체크포인트 쓰기와 처리기 호출은 아래 런타임이 담당한다.
@@ -86,7 +95,7 @@ def _loop_continues(definition: dict, state: dict, count: int) -> bool:
     proceed = condition is None or matches(condition, state)
     if proceed and count < definition["max_iterations"]:
         return True
-    if proceed and condition is not None and definition["on_limit"] == "fail":
+    if proceed and condition is not None and definition["on_limit"] == LoopLimit.FAIL:
         raise GraphExecutionError("Loop iteration limit reached")
     return False
 
@@ -208,7 +217,7 @@ class _WorkflowRuntime:
     async def _record(self, key, value, *, completed=None):
         interaction = InteractionRequest.from_dict(value["interaction"]) if "interaction" in value else None
         event = EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata={
-            "name": "graph", "operation": "record", "key": key, "value": value})
+            "name": GRAPH_CHECKPOINT_NAME, "operation": CheckpointOperation.RECORD, "key": key, "value": value})
         await self.emit(replace(completed, checkpoint=event) if completed is not None else event)
         self.records[key] = deepcopy(value)
 
@@ -241,7 +250,7 @@ class _WorkflowRuntime:
             await emit(BaseEngine.step_failed_event(step_id, error))
             raise
         await emit(BaseEngine.step_completed_event(context, step_id,
-                                                   EngineOutput(data=output, visibility="internal")))
+                                                   EngineOutput(data=output, visibility=OutputVisibility.INTERNAL)))
         return output
 
     def _compile(self, document: dict, entry: Optional[str] = None,
@@ -261,7 +270,7 @@ class _WorkflowRuntime:
                 continue
             node = document["nodes"][name]
             region[name] = node
-            pending.extend([node["join"]] if node["type"] == "parallel"
+            pending.extend([node["join"]] if node["type"] == ControlNodeType.PARALLEL
                            else [edge["target"] for edge in outgoing[name]])
         identifiers = {name: f"node_{index}" for index, name in enumerate(region)}
         # 사용자 ID가 __start__/__end__ 또는 콜론을 포함해도 내부 예약 이름과 충돌하지 않는다.
@@ -271,17 +280,17 @@ class _WorkflowRuntime:
         builder = StateGraph(_Frame)
         for name, node in region.items():
             child = None
-            if node["type"] == "parallel":
+            if node["type"] == ControlNodeType.PARALLEL:
                 child = self._parallel(document, name, outgoing[name])
-            elif node["type"] == "loop":
+            elif node["type"] == ControlNodeType.LOOP:
                 child = self._loop(node)
             builder.add_node(identifiers[name], self._node(name, node, child), retry_policy=None)
-            if node["type"] == "end":
+            if node["type"] == ControlNodeType.END:
                 builder.add_edge(identifiers[name], END)
-            elif node["type"] == "branch":
+            elif node["type"] == ControlNodeType.BRANCH:
                 builder.add_conditional_edges(identifiers[name], self._port,
                     {edge["port"]: target(edge["target"]) for edge in outgoing[name]})
-            elif node["type"] == "parallel":
+            elif node["type"] == ControlNodeType.PARALLEL:
                 builder.add_edge(identifiers[name], target(node["join"]))
             else:
                 builder.add_edge(identifiers[name], target(outgoing[name][0]["target"]))
@@ -409,17 +418,17 @@ class _WorkflowRuntime:
         path, step_id = info["path"], info["step_id"]
         key = json.dumps(scope, ensure_ascii=False, separators=(",", ":"))
         detail, port = {}, ""
-        if kind == "branch":
+        if kind == ControlNodeType.BRANCH:
             port = _branch_port(definition, state)
             detail["port"] = port
-        elif kind == "parallel":
+        elif kind == ControlNodeType.PARALLEL:
             result = await child.ainvoke({"data": state, "path": path, "branches": {}, "scope": scope}, self.invoke_options)
             state["branches"] = result["branches"]
-        elif kind == "loop":
+        elif kind == ControlNodeType.LOOP:
             result = await child.ainvoke({"data": state, "path": path, "count": 0, "scope": scope}, self.invoke_options)
             state = result["data"]
             detail["iterations"] = result["count"]
-        elif kind not in ("end", "join"):
+        elif kind not in (ControlNodeType.END, ControlNodeType.JOIN):
             inputs = bind(definition["inputs"], state) if "inputs" in definition else deepcopy(state)
             validate_value(definition, "input", inputs)
 
@@ -432,7 +441,7 @@ class _WorkflowRuntime:
                         "node_checkpoint_key": key, "node_path": path, **event.metadata})
                 await self.emit(event)
                 receipt = event.checkpoint or event
-                if receipt.type == EngineEventType.CHECKPOINT and receipt.metadata.get("operation") == "record":
+                if receipt.type == EngineEventType.CHECKPOINT and receipt.metadata.get("operation") == CheckpointOperation.RECORD:
                     self.records[receipt.metadata["key"]] = deepcopy(receipt.metadata["value"])
 
             async def invoke_graph(engine, child_context, child_inputs, emit):
@@ -454,10 +463,10 @@ class _WorkflowRuntime:
                             (InteractionOption.EFFECT_APPROVE, InteractionOption.EFFECT_DENY) for option in request.options)):
                     raise ValueError("Node pause supports pre-effect approval decisions without additional input")
                 await self._record(key, {**info, "status": CheckpointStatus.WAITING, "approval_required": True,
-                    "prompt": request.title, "interaction": request.bind("graph", key, decision_key="approved").to_dict()})
+                    "prompt": request.title, "interaction": request.bind(GRAPH_CHECKPOINT_NAME, key, decision_key="approved").to_dict()})
                 raise _GraphPause(key)
 
-            if kind == "workflow":
+            if kind == ControlNodeType.WORKFLOW:
                 result = await invoke_graph(nested, context, inputs, node_emit)
             else:
                 # 조율 노드는 슬롯을 잡지 않는다. 실제 작업만 조상 순서로 획득한다.
@@ -504,7 +513,7 @@ class _WorkflowRuntime:
             saved = self.records.get(key)
             info = {"path": path, "node_id": name, "node_type": kind, "step_id": step_id,
                     "source_run_id": context.run.id, "input_state": deepcopy(state),
-                    "container": kind == "workflow" or (resumable and
+                    "container": kind == ControlNodeType.WORKFLOW or (resumable and
                         getattr(self.handlers.get(kind), "resumable_container", False) is True)}
             handler = self.handlers.get(kind)
             if getattr(handler, "selection_binding", False) is True:
@@ -514,13 +523,13 @@ class _WorkflowRuntime:
                     raise GraphExecutionError("Selected handler configuration changed; start a new request")
                 info["handler_selection"] = selection
             plan = _plan_node(definition, state, saved=saved, resuming=self.resuming,
-                              decisions=context.run.metadata.get("resume", {}).get("decisions", {}), key=key)
+                              decisions=context.run.metadata.get(ResumeRecord.KEY, {}).get(ResumeRecord.DECISIONS, {}), key=key)
             if plan.action == "reuse":
                 await self.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id,
                     kind="graph_node", name=name, metadata={**info, "checkpoint_key": key,
                         "reused_from_run": saved["source_run_id"], "reused_step_id": saved["step_id"]}))
                 await self.emit(BaseEngine.step_completed_event(context, step_id,
-                    EngineOutput(data=saved["output"], visibility="internal"), metadata={"reused": True}))
+                    EngineOutput(data=saved["output"], visibility=OutputVisibility.INTERNAL), metadata={"reused": True}))
                 return {"data": deepcopy(saved["output"]), "path": frame["path"],
                         "port": saved["port"], "scope": frame["scope"]}
             if plan.action == "pause":
@@ -529,7 +538,7 @@ class _WorkflowRuntime:
                             "run_id": context.run.id, "node_id": name, "path": path},
                     action={"definition": deepcopy(definition)}, category="workflow.continue")
                 request = replace(request, kind=InteractionRequest.KIND_CONFIRMATION, input_schema=definition.get("resume_schema"))
-                request = request.bind("graph", key, decision_key="approved", input_key="state")
+                request = request.bind(GRAPH_CHECKPOINT_NAME, key, decision_key="approved", input_key="state")
                 await self._record(key, {**info, "status": CheckpointStatus.WAITING, "resume_schema": definition.get("resume_schema"),
                                         "interaction": request.to_dict()})
                 raise _GraphPause(key)
@@ -546,7 +555,7 @@ class _WorkflowRuntime:
                     async for event in events:
                         await self.emit(event)
             await self._record(key, {**info, "status": CheckpointStatus.STARTED,
-                "requires_retry": kind not in {"branch", "parallel", "join", "loop", "end"} and not info["container"]})
+                "requires_retry": kind not in ControlNodeType.structural() and not info["container"]})
             await self.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="graph_node",
                 name=name, metadata={"node_id": name, "path": path, "node_type": kind,
                                      "definition": definition, "checkpoint_key": key}))
@@ -563,7 +572,7 @@ class _WorkflowRuntime:
                 raise
             await self._record(key, {**info, "status": CheckpointStatus.COMPLETED, "output": deepcopy(state), "port": port},
                 completed=BaseEngine.step_completed_event(context, step_id,
-                    EngineOutput(data=state, visibility="internal"), metadata=detail))
+                    EngineOutput(data=state, visibility=OutputVisibility.INTERNAL), metadata=detail))
             return {"data": state, "path": frame["path"], "port": port, "scope": frame["scope"]}
         return execute
 
@@ -605,7 +614,7 @@ class GraphEngine:
             raise ValueError("GraphEngine revision must be nonempty text")
         self.revision = revision
         self.workflow, self.handlers = None, dict(handlers)
-        controls = {"branch", "parallel", "join", "loop", "end", "workflow"}
+        controls = frozenset(ControlNodeType)
         if any(not isinstance(name, str) or not name or name in controls or not callable(handler)
                for name, handler in self.handlers.items()):
             raise ValueError("Invalid handler or reserved control node type")
@@ -614,35 +623,37 @@ class GraphEngine:
                                    for name in required_capabilities(handler))))
         self._configure({})
 
+    DEFAULT_BUFFER_SIZE = 32
+
     def _configure(self, values):
+        from llm.core.schema import validate_declared_fields
+        validate_declared_fields({name: values[name] for name in self._option_names if name in values},
+                                 self._option_schema())
         for key in self._option_names:
             setattr(self, key, values.get(key))
         # 큐는 출력 유실/실행 제한 없이 backpressure만 제공한다.
-        self.buffer_size = values.get("buffer_size", 32)
-        if any(value is not None and (type(value) is not int or value < 1)
-               for value in (self.max_steps, self.max_parallelism, self.buffer_size)):
-            raise ValueError("Graph limits must be positive integers")
-        self._deadline(self.timeout_seconds)
-        self._deadline(self.cleanup_timeout)
-        if self.cleanup_timeout is None and "cleanup_timeout" in values:
-            raise ValueError("cleanup_timeout must be finite")
-        if self.max_nested_depth is not None and (type(self.max_nested_depth) is not int or self.max_nested_depth < 0):
-            raise ValueError("max_nested_depth must be a nonnegative integer or None")
+        self.buffer_size = values.get("buffer_size", self.DEFAULT_BUFFER_SIZE)
 
     parameter_layout = ParameterLayout(config=("buffer_size", "cleanup_timeout"),
         policy=("max_steps", "max_parallelism", TIMEOUT_PARAMETER, "max_nested_depth"))
 
     _option_names = ("max_steps", "max_parallelism", TIMEOUT_PARAMETER, "buffer_size", "max_nested_depth", "cleanup_timeout")
 
-    def describe_config(self):
-        from llm.core.schema import object_schema, field
-        properties = {key: field(["integer", "null"], minimum=1) for key in self._option_names}
+    @classmethod
+    def _option_schema(cls):
+        from llm.core.schema import field
+        properties = {key: field(["integer", "null"], minimum=1) for key in cls._option_names}
         properties["buffer_size"]["type"] = "integer"
         properties["max_nested_depth"].update(minimum=0)
         for key in (GraphEngine.TIMEOUT_PARAMETER, "cleanup_timeout"):
             properties[key] = field(["number", "null"] if key == GraphEngine.TIMEOUT_PARAMETER else "number", exclusiveMinimum=0)
         for key in ("max_steps", "max_parallelism", GraphEngine.TIMEOUT_PARAMETER, "max_nested_depth"):
             properties[key]["x-narrowing"] = "maximum"
+        return properties
+
+    def describe_config(self):
+        from llm.core.schema import object_schema
+        properties = self._option_schema()
         return self.parameter_layout.schema(object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
             **({"x-parameter-key": self.parameter_key} if self.parameter_key else {})}))
 
@@ -693,8 +704,7 @@ class GraphEngine:
                 "max_parallelism": self.max_parallelism, "timeout_seconds": self.timeout_seconds,
                 "project_config": self._execution_config(context), "session_config": context.session.config,
                 "components": list(context.project.components),
-                "tools": [tool.to_dict() for tool in context.tools.definitions()], "tool_contracts": context.tools.contracts(),
-                "tool_policy": context.tool_scope.binding() if context.tool_scope else None}  # persisted binding key
+                **context.tools.execution_binding(context.tool_scope.binding() if context.tool_scope else None)}
 
     def _environment(self):
         return {"workflow": self.workflow, "revision": self.revision, "parameter_key": self.parameter_key,
@@ -732,7 +742,7 @@ class GraphEngine:
                         raise ValueError("Selected handler configuration changed; start a new request")
                     validate = getattr(handler, "validate_selection", None)
                     if callable(validate):
-                        validate(definition, child_context, owner=key, records=records, checkpoint_name="graph")
+                        validate(definition, child_context, owner=key, records=records, checkpoint_name=GRAPH_CHECKPOINT_NAME)
                     nested = engine._nested_engine(definition, child_context.capabilities)
                     if nested is not None:
                         _, children = nested._prepare(child_context)
@@ -748,17 +758,16 @@ class GraphEngine:
         _, prepared = self._prepare(context)
         self._validate_selections(context, prepared, (context.checkpoint or {}).get("records", {}))
 
-    @staticmethod
-    def _deadline(value) -> None:
-        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
-                                  or not math.isfinite(value) or value <= 0):
-            raise ValueError("Timeout must be positive and finite, or None")
+    @classmethod
+    def _deadline(cls, value) -> None:
+        from llm.core.schema import validate_declared_fields
+        validate_declared_fields({cls.TIMEOUT_PARAMETER: value}, cls._option_schema())
 
     @staticmethod
     def _nodes(graph):
         for node in graph["nodes"].values():
             yield node
-            if node["type"] == "loop":
+            if node["type"] == ControlNodeType.LOOP:
                 yield from GraphEngine._nodes(node["body"])
 
     def _definition(self, capabilities):
@@ -773,7 +782,7 @@ class GraphEngine:
         return graph
 
     def _nested_engine(self, node, capabilities, *, selected=True):
-        if node["type"] == "workflow":
+        if node["type"] == ControlNodeType.WORKFLOW:
             child = copy(self)
             child.workflow = node["workflow"]
             return child
@@ -804,7 +813,7 @@ class GraphEngine:
         graph = self._definition(capabilities)
         yield self, graph, context, selected
         for node in self._nodes(graph):
-            if node["type"] not in ("branch", "parallel", "join", "end", "loop", "workflow"):
+            if node["type"] not in frozenset(ControlNodeType):
                 handler = self.handlers.get(node["type"])
                 if handler is None:
                     raise GraphExecutionError(f"Unregistered node type: {node['type']}")
@@ -827,7 +836,7 @@ class GraphEngine:
         for engine, document, child_context, _ in prepared:
             for node in self._nodes(document):
                 engine._deadline(node.get("timeout_seconds"))
-                if node["type"] not in ("branch", "parallel", "join", "end", "loop", "workflow"):
+                if node["type"] not in frozenset(ControlNodeType):
                     handler = engine.handlers.get(node["type"])
                     if handler is None:
                         raise GraphExecutionError(f"Unregistered node type: {node['type']}")
@@ -875,9 +884,9 @@ class GraphEngine:
                     child_context = prepare(node, current) if prepare is not None else current
                     region(nested, nested._definition(child_context.capabilities), child_context,
                            [*prefix, name, "workflow", nested.workflow])
-                if kind == "loop":
+                if kind == ControlNodeType.LOOP:
                     region(engine, node["body"], current, [*prefix, name])
-                if kind == "parallel":
+                if kind == ControlNodeType.PARALLEL:
                     for start in outgoing[name]:
                         region(engine, document, current, [*prefix, name, "branch", start], start, node["join"])
                     pending.append(node["join"])
@@ -887,7 +896,7 @@ class GraphEngine:
         return routes
 
     # 공개 API
-    checkpoint_name = "graph"
+    checkpoint_name = GRAPH_CHECKPOINT_NAME
     steering_mode = SteeringMode.FORWARD
     agent_mode = AgentMode.WORKFLOW
 
@@ -955,7 +964,7 @@ class GraphEngine:
             raise ValueError("Resume decisions must be an object")
         for key, decision in decisions.items():
             saved = records.get(key, {})
-            if saved.get("node_type") == "engine_record":
+            if CheckpointEnvelope.is_record(saved):
                 from llm.core.checkpoints import unwrap_record
                 unwrap_record(saved)
                 if saved.get("status") != CheckpointStatus.WAITING or "interaction" not in saved:
@@ -967,7 +976,7 @@ class GraphEngine:
             if "approved" in decision and type(decision["approved"]) is not bool:
                 raise ValueError("approved must be boolean")
             if "state" in decision:
-                if saved.get("node_type") == "engine_record":
+                if CheckpointEnvelope.is_record(saved):
                     raise ValueError("An Engine approval cannot edit its parent input state")
                 schema = saved.get("resume_schema")
                 if not isinstance(schema, dict) or schema.get("additionalProperties") is not False:
@@ -976,13 +985,13 @@ class GraphEngine:
             if "interaction" in saved:
                 InteractionRequest.from_dict(saved["interaction"]).select_decision(decision, confirm_empty=True)
         for key, saved in records.items():
-            if saved.get("node_type") == "engine_record":
+            if CheckpointEnvelope.is_record(saved):
                 if saved.get("status") == CheckpointStatus.WAITING and key not in decisions:
                     raise ValueError(f"Child interaction decision required: {key}")
                 continue
             if saved.get("approval_required") and "approved" not in decisions.get(key, {}):
                 raise ValueError(f"Tool approval decision required: {key}")
-        if header.get("format") != "workflow-nodes-v1" or header["binding"]["workflow_id"] != self.workflow:
+        if header.get("format") != GRAPH_CHECKPOINT_FORMAT or header["binding"]["workflow_id"] != self.workflow:
             raise ValueError("Checkpoint does not belong to this Workflow")
         if header["binding"]["revision"] != self.revision:
             raise ValueError("GraphEngine revision changed; start a new request")
@@ -991,7 +1000,7 @@ class GraphEngine:
             self._validate_selections(context, prepared, records)
             if self._binding(context, graph, prepared) != header["binding"]:
                 raise ValueError("Workflow, Agent, Tool or execution configuration changed; start a new request")
-        controls = {"branch", "parallel", "join", "loop", "end"}
+        controls = ControlNodeType.structural()
         uncertain = {key for key, value in records.items()
                      if value["status"] == CheckpointStatus.STARTED and value["node_type"] not in controls
                      and not value.get("container", False)}
@@ -1013,8 +1022,8 @@ class GraphEngine:
         binding = self._binding(context, graph, prepared)
         if context.checkpoint is not None:
             self._validate_selections(context, prepared, context.checkpoint["records"])
-            self.validate_resume(context.checkpoint, retry_nodes=context.run.metadata["resume"]["retry_nodes"],
-                                 decisions=context.run.metadata["resume"].get("decisions"))
+            self.validate_resume(context.checkpoint, retry_nodes=context.run.metadata[ResumeRecord.KEY][ResumeRecord.RETRY_NODES],
+                                 decisions=context.run.metadata[ResumeRecord.KEY].get(ResumeRecord.DECISIONS))
             header = deepcopy(context.checkpoint["header"])
             if binding != header["binding"]:
                 raise GraphExecutionError("Workflow, Agent, Tool or execution configuration changed; start a new request")
@@ -1024,7 +1033,7 @@ class GraphEngine:
             if "inputs" in graph:
                 state.update(bind(graph["inputs"], {"prompt": message.content, "message_id": message.id}))
             validate_value(graph, "input", state)
-            header = {"format": "workflow-nodes-v1", "binding": binding, "initial_state": state,
+            header = {"format": GRAPH_CHECKPOINT_FORMAT, "binding": binding, "initial_state": state,
                       "input_message_id": message.id, "message_ids": [item.id for item in context.messages]}
         Component.serialize(header)
         # 첫 LangGraph import도 UI 루프 밖에서 수행한다. 플러그인 import는 가볍게 유지한다.
@@ -1041,8 +1050,8 @@ class GraphEngine:
 
         async def produce():
             if context.checkpoint is None:
-                await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": "graph",
-                    "operation": "initialize", "header": header, "records": {}}))
+                await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": GRAPH_CHECKPOINT_NAME,
+                    "operation": CheckpointOperation.INITIALIZE, "header": header, "records": {}}))
             async with aclosing(BaseEngine.declare_instruction_routes(context, routes)) as events:
                 async for event in events:
                     await emit(event)
@@ -1062,13 +1071,13 @@ class GraphEngine:
                 raise
             except _GraphPause as pause:
                 await emit(EngineEvent(EngineEventType.PAUSED,
-                    metadata={"checkpoint": "graph", "node_key": str(pause)}))
+                    metadata={"checkpoint": GRAPH_CHECKPOINT_NAME, "node_key": str(pause)}))
                 return
             except Exception as error:
                 await emit(BaseEngine.step_failed_event(root_id, error))
                 raise
             await emit(BaseEngine.step_completed_event(context, root_id,
-                EngineOutput(data=output, visibility="internal"),
+                EngineOutput(data=output, visibility=OutputVisibility.INTERNAL),
                 metadata={"visited_nodes": runtime.visited, "runtime": "langgraph"}))
             await emit(BaseEngine.output_event(context, EngineOutput(data=output)))
 

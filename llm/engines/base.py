@@ -2,6 +2,14 @@
 
 Engine contract, Step event lifecycle, and adapter-owned model streaming."""
 
+from llm.core.models import ResourceKind, StepKind
+
+from llm.core.checkpoints import CheckpointOperation
+
+from llm.core.models import StepErrorCode
+
+from llm.core.results import OutputOperation, OutputVisibility
+
 from llm.providers.codes import ProviderErrorCode
 import asyncio
 import inspect
@@ -57,7 +65,7 @@ class EngineEvent:
     type: Union[EngineEventType, str]
     delta: Optional[EngineDelta] = None
     step_id: Optional[str] = None
-    kind: str = "llm"
+    kind: str = StepKind.LLM.value
     name: str = ""
     metadata: dict = field(default_factory=dict)
     error: Optional[str] = None
@@ -77,7 +85,7 @@ class EngineEvent:
         if self.checkpoint is not None and (self.type != EngineEventType.STEP_COMPLETED
                 or not isinstance(self.checkpoint, EngineEvent)
                 or self.checkpoint.type != EngineEventType.CHECKPOINT
-                or self.checkpoint.metadata.get("operation") != "record"
+                or self.checkpoint.metadata.get("operation") != CheckpointOperation.RECORD
                 or self.checkpoint.checkpoint is not None):
             raise ValueError("A Step completion can attach one checkpoint record")
         # Step 상태 표시를 공통 계약으로 제공한다. 실제 상태 전이는 서비스가 수행한다.
@@ -88,10 +96,11 @@ class EngineEvent:
         if self.failure_code is not None and (self.type != EngineEventType.STEP_FAILED
                 or not isinstance(self.failure_code, str) or not self.failure_code.strip()):
             raise ValueError("failure_code requires a nonempty code on STEP_FAILED")
-        phases = {"step_started": "started", "step_updated": "running", "step_completed": "completed",
-                  "step_failed": "failed", "step_interrupted": "interrupted", "step_cancelled": "cancelled"}
+        phases = {EngineEventType.STEP_STARTED: "started", EngineEventType.STEP_UPDATED: "running",
+                  EngineEventType.STEP_COMPLETED: "completed", EngineEventType.STEP_FAILED: "failed",
+                  EngineEventType.STEP_INTERRUPTED: "interrupted", EngineEventType.STEP_CANCELLED: "cancelled"}
         if self.step_id is not None and self.type in phases:
-            source = ResourceRef("step", self.step_id, step_id=self.step_id)
+            source = ResourceRef(ResourceKind.STEP, self.step_id, step_id=self.step_id)
             if self.progress is None:
                 phase = self.metadata.get("phase")
                 object.__setattr__(self, "progress", OperationProgress(source,
@@ -99,7 +108,7 @@ class EngineEvent:
             if self.type == EngineEventType.STEP_FAILED and self.diagnostic is None:
                 code = self.metadata.get("error_code")
                 object.__setattr__(self, "diagnostic", Diagnostic(
-                    code if isinstance(code, str) and code.strip() else "step_failed",
+                    code if isinstance(code, str) and code.strip() else StepErrorCode.FAILED,
                     self.error or "Step failed", source=source))
 
 
@@ -158,7 +167,7 @@ class EngineContext:
     completion_policy: Any = None
     # 중첩 엔진의 최종 결과는 이 Step에 귀속한다. None은 최상위 Run이다.
     output_step_id: Optional[str] = None
-    output_visibility: str = "user"
+    output_visibility: str = OutputVisibility.USER
     steering: Optional[SteeringInbox] = None
     # Service-owned, Run-local capability lookup; not persisted and never expands Tool authority.
     capability_resolver: Optional[Callable] = None
@@ -329,12 +338,14 @@ class BaseEngine:
         return context.execute_tool(tool, arguments, checkpoint_key=checkpoint_key, result=result,
                                     executor=executor, metadata=metadata, decision=decision)
 
+    DEFAULT_BUFFER_SIZE = 8
+
     def __init__(self, name: str = "Step", *, kind: str = "custom",
                  action: Optional[Callable[[EngineContext],
                      Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]]] = None,
                  metadata: Optional[dict] = None,
                  error_message: str = "Step execution failed",
-                 buffer_size: int = 8,
+                 buffer_size: int = DEFAULT_BUFFER_SIZE,
                  completion_adapter: Optional[CompletionAdapter] = None) -> None:
         if not isinstance(name, str) or not name.strip() or not isinstance(kind, str) or not kind.strip():
             raise ValueError("Step requires a name and kind")
@@ -381,10 +392,10 @@ class BaseEngine:
         """호출별 소유권을 적용한다. 내부 출력은 외부 표시 범위로 승격하지 않는다."""
         if not isinstance(value, (EngineDelta, EngineOutput)):
             raise TypeError("Expected EngineDelta or EngineOutput")
-        if context.output_visibility not in ("user", "internal"):
+        if context.output_visibility not in (OutputVisibility.USER, OutputVisibility.INTERNAL):
             raise ValueError("Invalid context output visibility")
         owner = context.output_step_id if step_id is None else step_id
-        visibility = "internal" if "internal" in (context.output_visibility, value.visibility) else "user"
+        visibility = OutputVisibility.INTERNAL if OutputVisibility.INTERNAL in (context.output_visibility, value.visibility) else OutputVisibility.USER
         return replace(value, output_id=owner or context.run.id, step_id=owner,
                        visibility=visibility, sequence=0)
 
@@ -410,11 +421,11 @@ class BaseEngine:
     @staticmethod
     def step_failed_event(step_id: str, error: Exception, *, message: Optional[str] = None,
                           diagnostic: Optional[Diagnostic] = None, metadata: Optional[dict] = None,
-                          code: str = "step_failed") -> EngineEvent:
+                          code: str = StepErrorCode.FAILED) -> EngineEvent:
         """실패 의미를 전달한다. 명시 진단/기존 진단은 유지하고 누락 source만 Step에 연결한다."""
         if not isinstance(step_id, str) or not step_id.strip():
             raise ValueError("A failed Step requires an ID")
-        source = ResourceRef("step", step_id, step_id=step_id)
+        source = ResourceRef(ResourceKind.STEP, step_id, step_id=step_id)
         if diagnostic is None:
             diagnostic = Diagnostic.from_exception(error, code=code, source=source)
         elif isinstance(diagnostic, Diagnostic) and diagnostic.source is None:
@@ -455,7 +466,7 @@ class BaseEngine:
         """
         from llm.providers.retry import retry_delay
         from llm.providers.requests import resolve_provider_options, ProviderError
-        from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
+        from llm.policies.retry import RetryBackoff, RetryPolicy, RetryFailure, select_retry, change_arguments
         if not isinstance(request, ModelRequest):
             raise TypeError("Completion requires ModelRequest")
         if response is not None and not isinstance(response, list):
@@ -468,7 +479,7 @@ class BaseEngine:
         adapter = self.completion_adapter
         attempts = adapter.effective_attempts(request, RetryPolicy(policy.get("max_attempts")).attempts)
         retry = RetryPolicy(attempts, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
-                            RetryPolicy.end(policy.get("wall_timeout")), "exponential")
+                            RetryPolicy.end(policy.get("wall_timeout")), RetryBackoff.EXPONENTIAL)
         request = copy_model(request)
         call_id = new_id()
 
@@ -681,7 +692,7 @@ class BaseEngine:
                     while True:
                         remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
                         if remaining is not None and remaining <= 0:
-                            raise ExecutionLimitError("step_timeout", "Step execution deadline exceeded")
+                            raise ExecutionLimitError(StepErrorCode.TIMEOUT, "Step execution deadline exceeded")
                         try:
                             # yield 중에는 서비스가 이벤트를 저장한다. 그 Task를 타이머로
                             # 취소하지 않고 다음 Engine 진행 시 절대 기한을 검사한다.
@@ -718,7 +729,7 @@ class BaseEngine:
                         if visibility is not None and visibility != event.delta.visibility:
                             raise ValueError("Step output visibility cannot change during streaming")
                         visibility = event.delta.visibility
-                        if event.delta.operation == "replace":
+                        if event.delta.operation == OutputOperation.REPLACE:
                             parts.clear()
                         parts.append(event.delta.text)
                         yield event
@@ -746,7 +757,7 @@ class BaseEngine:
             raise
         except Exception as error:
             # 소유한 기한만 분류한다. action이 직접 던진 TimeoutError를 wrapper timeout으로 오인하지 않는다.
-            failure = (ExecutionLimitError("step_timeout", "Step execution deadline exceeded")
+            failure = (ExecutionLimitError(StepErrorCode.TIMEOUT, "Step execution deadline exceeded")
                        if isinstance(error, TimeoutError) and guard is not None and guard.expired() else error)
             yield self.step_failed_event(step_id, failure, message=f"{self.error_message}: {failure}")
             if failure is not error:

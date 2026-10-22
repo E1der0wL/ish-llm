@@ -1,5 +1,9 @@
 """Bounded, tool-free auxiliary calls observed inside the owning Run."""
 
+from llm.core.models import StepKind
+
+from llm.core.results import OutputVisibility
+
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelRole
 
 from contextlib import aclosing
@@ -46,9 +50,9 @@ async def model_events(engine, frame, request, instruction, payload, result, *, 
         if response[0].message.calls:
             raise InvalidRecoveryResponse("Recovery model cannot request Tools")
         result.update(parse_object(response[0].message.text))
-        yield EngineOutput(data=deepcopy(result), visibility="internal")
+        yield EngineOutput(data=deepcopy(result), visibility=OutputVisibility.INTERNAL)
 
-    async with aclosing(model.step(frame.context, complete, name=name or "Hub " + kind, kind="llm",
+    async with aclosing(model.step(frame.context, complete, name=name or "Hub " + kind, kind=StepKind.LLM,
             metadata=metadata if metadata is not None else {"hub_recovery": kind},
             error_message="Hub recovery helper failed")) as events:
         async for event in events:

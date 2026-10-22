@@ -17,6 +17,10 @@ class ProjectPaths:
     root: Path
 
     @property
+    def record(self) -> Path:
+        return self.root / "project.json"
+
+    @property
     def agents(self) -> Path:
         return self.root / ProjectPaths.AGENTS
 
@@ -40,6 +44,10 @@ class ProjectPaths:
 @dataclass(frozen=True, slots=True)
 class SessionPaths:
     root: Path
+
+    @property
+    def record(self) -> Path:
+        return self.root / "session.json"
 
     @property
     def conversation(self) -> Path:
@@ -67,6 +75,19 @@ class RunPaths:
     root: Path
 
     @property
+    def record(self) -> Path:
+        return self.root / "run.json"
+
+    @property
+    def outputs(self) -> Path:
+        return self.output_path(self.state)
+
+    @staticmethod
+    def output_path(state: Path) -> Path:
+        """Resolve the journal from the existing structural state-path contract."""
+        return state / "outputs.jsonl"
+
+    @property
     def steps(self) -> Path:
         return self.root / "steps"
 
@@ -82,6 +103,10 @@ class RunPaths:
 @dataclass(frozen=True, slots=True)
 class StepPaths:
     root: Path
+
+    @property
+    def record(self) -> Path:
+        return self.root / "step.json"
 
     @property
     def state(self) -> Path:

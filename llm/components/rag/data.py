@@ -2,6 +2,7 @@
 
 from .status import RAGJobStatus
 from copy import deepcopy
+from .search import SearchMethod, validate_search_options
 from llm.core.configuration import require_config
 from uuid import uuid4
 
@@ -146,14 +147,9 @@ class RAGData(ComponentData):
         options = {"method": method, "expand": expand, "limit": limit, "rerank": rerank}
         options = {key: (component.search_options.get(key, False) if key == "rerank" else require_config(component.search_options, key, scope="rag.search")) if value is None else value for key, value in options.items()}
         method, expand, limit, rerank = (options[key] for key in ("method", "expand", "limit", "rerank"))
-        if type(rerank) is not bool:
-            raise ValueError("rerank must be boolean")
-        if method not in ("bm25", "vector", "hybrid") or expand not in ("chunk", "section", "document"):
-            raise ValueError("Invalid search method or expansion")
-        if type(limit) is not int or limit < 1:
-            raise ValueError("limit must be a positive integer")
+        validate_search_options(options)
         vector = None
-        if snapshot["documents"] and method != "bm25":
+        if snapshot["documents"] and method != SearchMethod.BM25:
             await self._async_call(self.require_model_observation, component.embedding)
             if component._identity() != snapshot["profile"]["model"]:
                 raise ValueError("Query embedding model differs from indexed model")
@@ -352,16 +348,12 @@ class RAGData(ComponentData):
     async def asearch(self, query: str, *, method=None, expand=None, limit=None, rerank=None,
                       max_hops=None, relation_limit=None) -> dict:
         """문서와 해당 문단에 근거한 관계·출처를 한 세대에서 반환한다."""
-        for value in (max_hops, relation_limit):
-            if value is not None and (type(value) is not int or value < 1):
-                raise ValueError("Invalid graph search limit")
+        validate_search_options({key: value for key, value in
+            {"max_hops": max_hops, "relation_limit": relation_limit}.items() if value is not None})
         snapshot, hits = await self._retrieve(query, method=method, expand=expand, limit=limit, rerank=rerank)
         max_hops = require_config(snapshot["search_options"], "max_hops", scope="rag.search") if max_hops is None else max_hops
         relation_limit = require_config(snapshot["search_options"], "relation_limit", scope="rag.search") if relation_limit is None else relation_limit
-        if type(max_hops) is not int or max_hops < 1:
-            raise ValueError("max_hops must be a positive integer")
-        if type(relation_limit) is not int or relation_limit < 1:
-            raise ValueError("relation_limit must be a positive integer")
+        validate_search_options({"max_hops": max_hops, "relation_limit": relation_limit})
         return await self._async_call(self._combined, snapshot, query, hits,
                                      {"max_hops": max_hops, "relation_limit": relation_limit})
 
@@ -373,10 +365,7 @@ class RAGData(ComponentData):
         project, component = self._current()
         max_hops = require_config(component.search_options, "max_hops", scope="rag.search") if max_hops is None else max_hops
         limit = require_config(component.search_options, "relation_limit", scope="rag.search") if limit is None else limit
-        if type(max_hops) is not int or max_hops < 1:
-            raise ValueError("max_hops must be a positive integer")
-        if type(limit) is not int or limit < 1:
-            raise ValueError("limit must be a positive integer")
+        validate_search_options({"max_hops": max_hops, "relation_limit": limit})
         return component.graph_search(project, seed=seed, max_hops=max_hops, limit=limit)
 
     agraph_search = async_method(graph_search)

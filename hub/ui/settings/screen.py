@@ -1,5 +1,7 @@
 """Settings navigation: two panels with fields and actions."""
 
+from llm.services.schema import ProjectConfiguration
+
 from dataclasses import asdict, replace
 
 from prompt_toolkit.application.current import get_app
@@ -318,7 +320,7 @@ class SettingsScreen:
         if self.drafts.current_project_id and self.drafts.current_project_id not in self.drafts.pages and not self.busy:
             def loaded(record):
                 if record is not None:
-                    self.drafts.pages[record["project"]["id"]] = ProjectPage(self, record)
+                    self.drafts.pages[ProjectConfiguration.view(record).project_id] = ProjectPage(self, record)
                     self._sidebar()
             self.call("load_project", self.drafts.current_project_id, completed=loaded)
 
@@ -379,7 +381,7 @@ class SettingsScreen:
 
     def loaded_project(self, record):
         if record is not None:
-            identifier = record["project"]["id"]
+            identifier = ProjectConfiguration.view(record).project_id
             query = getattr(self.drafts.pages.get(identifier), "query", "")
             section = getattr(self.drafts.pages.get(identifier), "section", self.selected)
             page = self.drafts.pages[identifier] = ProjectPage(self, record)
@@ -395,9 +397,9 @@ class SettingsScreen:
     def saved_project(self, record):
         if record is None:
             return
-        self.drafts.select_project(record["project"]["id"])
+        self.drafts.select_project(ProjectConfiguration.view(record).project_id)
         self.loaded_project(record)
-        identifier, title = record["project"]["id"], record["values"]["title"]
+        identifier, title = ProjectConfiguration.view(record).project_id, ProjectConfiguration.view(record).values.title
         self.projects = [item for item in self.projects if item["id"] != identifier] + [{"id": identifier, "title": title}]
         self._sidebar()
         self.status = self.t("settings_saved")

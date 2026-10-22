@@ -396,6 +396,7 @@ class RAGComponent(DefinitionComponent):
 
     def describe_config(self):
         from llm.core.schema import object_schema, open_schema, field
+        from .search import LexicalCache
         from .embedding import EmbeddingModel
         from .extraction import TripleExtractor
         from .rerank import RerankModel
@@ -411,7 +412,7 @@ class RAGComponent(DefinitionComponent):
             "query_cache_max_bytes": field("integer", "Query vector cache capacity; absent or zero disables caching", minimum=0),
             "snapshot_cache_max_bytes": field("integer", "Corpus projection cache capacity; absent or zero disables caching", minimum=0),
             "extraction_batch_size": field("integer", minimum=1),
-            "search_cache_chars": field("integer", minimum=0),
+            "search_cache_chars": LexicalCache.capacity_schema(),
             "index_batch_size": field("integer", minimum=1), "search": search_schema(),
             "graph": object_schema({"buffer_pool_size": field("integer", minimum=1),
                                     "max_num_threads": field("integer", minimum=1)}),

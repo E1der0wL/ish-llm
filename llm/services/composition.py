@@ -7,7 +7,8 @@ from llm.services.runtime.output import OutputBuffer
 from typing import Callable, Optional, Union
 from llm.core.models import Session
 from llm.services.history.context import ConversationContextBuilder
-from llm.services.history.conversation import Conversation, conversation_store
+from llm.services.history.conversation import Conversation, ProjectConversations, conversation_store
+from llm.services.infrastructure.journal import OutputJournal
 from llm.services.runtime.events import EventHandlers
 from llm.services.infrastructure.logging import DomainLogger
 from llm.services.infrastructure.backups import DirectoryBackups
@@ -33,12 +34,12 @@ class BackendServices:
     event_handlers: EventHandlers = field(default_factory=EventHandlers)
     logger: DomainLogger = field(default_factory=DomainLogger)
     tool_runtime: ToolRuntime = field(default_factory=ToolRuntime)
-    conversation_cache_size: int = 32
+    conversation_cache_size: int = ProjectConversations.DEFAULT_FILE_CACHE_SIZE
     provider_limits: ProviderLimits = field(default_factory=ProviderLimits)
     provider_calls: Optional[ProviderCalls] = None
     provider_diagnostics: Optional[ProviderDiagnostics] = None
     output_buffer: OutputBuffer = field(default_factory=OutputBuffer)
-    output_index_stride: int = 128
+    output_index_stride: int = OutputJournal.DEFAULT_INDEX_STRIDE
     backups: Optional[DirectoryBackups] = None
     observability_sink: Optional[Callable] = None
     transfer_authorize: Optional[Callable] = None

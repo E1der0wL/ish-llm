@@ -1,5 +1,9 @@
 """Step의 시작, 완료, 실패, 중단 상태와 저장을 담당한다. 실제 LLM/Tool 작업은 실행하지 않으며 Engine 이벤트를 저장 상태로 변환한다."""
 
+from llm.core.models import StepErrorCode
+
+from llm.core.models import ResourceKind
+
 from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
 
 from llm.services.query import FileCatalog, Query, select
@@ -47,7 +51,7 @@ class StepRepository:
         for directory in run.paths.steps.glob("*"):
             reject_links(directory)
             if directory.is_dir() and not directory.name.startswith("."):
-                yield self.paths(run, directory.name).root / "step.json"
+                yield self.paths(run, directory.name).record
 
     def create(self, step: Step) -> None:
         if step.paths.root.exists():
@@ -55,7 +59,7 @@ class StepRepository:
         self._write(step)
 
     def save(self, step: Step) -> None:
-        prior = Step.from_record(read_domain_record(step.paths.root / "step.json"), step.paths)
+        prior = Step.from_record(read_domain_record(step.paths.record), step.paths)
         if prior.id != step.id or prior.run_id != step.run_id:
             raise ValueError("Step ownership mismatch")
         if prior.status != step.status:
@@ -65,12 +69,12 @@ class StepRepository:
     def _write(self, step: Step) -> None:
         data = record(step)
         Step.from_record(data, step.paths)
-        atomic_domain_json(step.paths.root / "step.json", data)
+        atomic_domain_json(step.paths.record, data)
         log_event(step.paths.logs, "step.saved", entity_id=step.id, status=step.status)
 
     def load(self, run: Run, step_id: str) -> Step:
         paths = self.paths(run, step_id)
-        data = read_domain_record(paths.root / "step.json")
+        data = read_domain_record(paths.record)
         if data["id"] != step_id or data["run_id"] != run.id:
             raise ValueError("Step ownership mismatch")
         log_event(paths.logs, "step.loaded", entity_id=step_id)
@@ -100,11 +104,11 @@ class StepManager:
         step.error = error
         from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
         from dataclasses import replace
-        ref = ResourceRef("step", step.id, step_id=step.id, run_id=step.run_id)
+        ref = ResourceRef(ResourceKind.STEP, step.id, step_id=step.id, run_id=step.run_id)
         progress = step.progress or OperationProgress(ref, status.value)
         step.metadata["progress"] = replace(progress, phase=status.value).to_dict()
         if error is not None and "diagnostic" not in step.metadata:
-            step.metadata["diagnostic"] = Diagnostic("step_failed", error, source=ref).to_dict()
+            step.metadata["diagnostic"] = Diagnostic(StepErrorCode.FAILED, error, source=ref).to_dict()
         self.save(step)
         log_event(step.paths.logs, f"step.{status.value}", entity_id=step.id, status=status)
 
@@ -172,12 +176,12 @@ class StepEventRecorder:
             if value is None:
                 continue
             ref = value.source
-            if ref is not None and (ref.kind == "step" and ref.id != event.step_id
+            if ref is not None and (ref.kind == ResourceKind.STEP and ref.id != event.step_id
                     or ref.step_id not in (None, event.step_id) or ref.run_id not in (None, run.id)
                     or ref.session_id not in (None, run.session_id)):
                 raise ValueError("Step observation ownership mismatch")
             bound = replace(ref, step_id=event.step_id, run_id=run.id, session_id=run.session_id) if ref else ResourceRef(
-                "step", event.step_id, step_id=event.step_id, run_id=run.id, session_id=run.session_id)
+                ResourceKind.STEP, event.step_id, step_id=event.step_id, run_id=run.id, session_id=run.session_id)
             metadata[name] = replace(value, source=bound).to_dict()
         event = replace(event, metadata=metadata)
         if event.type == EngineEventType.TEXT_DELTA:

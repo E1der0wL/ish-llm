@@ -1,5 +1,6 @@
 """Repair failed model input within a live Loop, never replay a Run or Tool."""
 
+from llm.providers.streaming import CompletionErrorCode
 from llm.providers.codes import ProviderErrorCode
 import asyncio
 from contextlib import aclosing, contextmanager, suppress
@@ -42,6 +43,12 @@ class RecoveryState:
     RETRYING: ClassVar[str] = "retrying"
     ANALYSIS_FAILED: ClassVar[str] = "analysis_failed"
     NO_CORRECTION: ClassVar[str] = "no_correction"
+
+    SUMMARY_INCOMPLETE: ClassVar[str] = 'summary_incomplete'
+    NOT_REDUCED: ClassVar[str] = 'not_reduced'
+    INVALID_ANALYSIS: ClassVar[str] = 'invalid_analysis'
+    EXHAUSTED: ClassVar[str] = 'exhausted'
+    REJECTED: ClassVar[str] = 'rejected'
 
     frame: object
     attempts: int = 0
@@ -99,10 +106,10 @@ class ProviderRecovery:
             await self._relay(model_events(engine, state.frame, request.parameters, ANALYZE.format(language=self.language),
                 payload, result, kind="error analysis", maximum=4000), state.frame)
         except InvalidRecoveryResponse as error:
-            raise RecoveryUnavailable("invalid_analysis") from error
+            raise RecoveryUnavailable(RecoveryState.INVALID_ANALYSIS) from error
         if (set(result) != {"action", "explanation"} or result["action"] not in ("compact", "stop")
                 or not isinstance(result["explanation"], str) or not 0 < len(result["explanation"]) <= 800):
-            raise RecoveryUnavailable("invalid_analysis")
+            raise RecoveryUnavailable(RecoveryState.INVALID_ANALYSIS)
         return result
 
     async def _compact(self, engine, state, request, items):
@@ -112,7 +119,7 @@ class ProviderRecovery:
             if item.key in summaries:
                 continue
             if remaining <= 0:
-                raise RecoveryUnavailable("summary_incomplete")
+                raise RecoveryUnavailable(RecoveryState.SUMMARY_INCOMPLETE)
             result = SummaryResult()
 
             def payload(fragment, offset, total, previous):
@@ -134,7 +141,7 @@ class ProviderRecovery:
                 invoke=invoke, result=result, progress=progress), state.frame)
             remaining -= result.calls
             if not result.complete:
-                raise RecoveryUnavailable("summary_incomplete")
+                raise RecoveryUnavailable(RecoveryState.SUMMARY_INCOMPLETE)
             summaries[item.key] = result.text
         state.summaries = summaries
         return CompletionRepair({item.index:
@@ -155,11 +162,11 @@ class ProviderRecovery:
             choice = await self._choice(state.frame.engine, state, failure.request, diagnosis, items)
             state.explanation = choice["explanation"]
             if choice["action"] != "compact" or not items:
-                raise RecoveryUnavailable("no_correction")
+                raise RecoveryUnavailable(RecoveryState.NO_CORRECTION)
             self._show(state, RetrySummary.COMPACTING)
             proposal = await self._compact(state.frame.engine, state, failure.request, items)
             if sum(len(value) for value in proposal.replacements.values()) >= sum(len(item.source) for item in items):
-                raise RecoveryUnavailable("not_reduced")
+                raise RecoveryUnavailable(RecoveryState.NOT_REDUCED)
             state.outcome = RecoveryState.RETRYING
             self._show(state, RetrySummary.RETRYING)
             return proposal
@@ -198,7 +205,7 @@ class ProviderRecovery:
             # Explanations may still be useful for invalid parameters/unknown
             # responses. This terminal path cannot submit a corrected request.
             if (not received and not state.outcome and self.settings.recovery_model_analysis
-                    and issue.code in (ProviderErrorCode.INVALID_REQUEST.value, ProviderErrorCode.FAILED.value, "completion_invalid_response")
+                    and issue.code in (ProviderErrorCode.INVALID_REQUEST.value, ProviderErrorCode.FAILED.value, CompletionErrorCode.INVALID_RESPONSE)
                     and issue.classification.reason != "context"):
                 state.deadline = monotonic() + self.settings.recovery_timeout_seconds
                 try:
@@ -213,7 +220,7 @@ class ProviderRecovery:
             if state.outcome:
                 observed = self.monitor.states.get((state.frame.context.run.id, RetrySummary.RECOVERY))
                 rejected = observed is not None and observed.summary.phase == RetrySummary.REJECTED
-                outcome = "rejected" if rejected else "exhausted" if state.outcome == RecoveryState.RETRYING else state.outcome
+                outcome = RecoveryState.REJECTED if rejected else RecoveryState.EXHAUSTED if state.outcome == RecoveryState.RETRYING else state.outcome
                 annotation = {"explanation": state.explanation, "outcome": outcome, "attempt": state.attempts}
                 # Retain the original exception/code/cause. The annotation is
                 # presentation data, never a replacement diagnostic classification.

@@ -22,7 +22,7 @@
 새 발생은 기존 파일/심볼에 추가되어도 승계하지 않는다. 파일·디렉터리·rule 전체 허용이나
 자동 baseline/hash 갱신 기능은 없다. 변경으로 무효화된 개별 근거만 다시 검토한다.
 
-현재 분류 대상은 S2–S5다. S1 구 API와 S6 Provider 경계는 이 목록으로
+현재 분류 대상은 S2–S5다. S1 구 API, S6 Provider 경계와 S7 Owner 재선언은 이 목록으로
 승인할 수 없다. 숫자·문자열을 다른 위치로 숨기거나 실제 owner 중복을 예외로 만들지 않는다.
 
 시험 ID는 **검증 범위를 가리키는 근거**이며 시험 통과 증거가 아니다. 이 검사기는 시험을
@@ -31,8 +31,8 @@
 분류 파일이 바뀌면 이 검사기의 성공·실패 사례도 검증한다.
 
 ```bash
-# 현재 CI 필수 규칙: P1의 S1–S5와 A의 S6를 모두 유지한다.
-python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --output artifacts/architecture.json
+# 현재 CI 필수 규칙: 기존 S1–S6에 O6의 S7을 추가한다.
+python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7 --output artifacts/architecture.json
 # P1 종료: S1–S5의 모든 후보를 해결하거나 개별 근거로 분류해야 한다.
 python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5
 # A 종료: S6도 실제로 해결한 뒤 전체 엄격 검사
@@ -42,6 +42,12 @@ python -m tests.llm.check_architecture --strict
 기본 분류 파일은 검사 root 아래에서 찾는다. 없는 임시 fixture root에는 승인 항목이 없다.
 명시한 `--reviews` 파일이 없으면 실패한다. CI는 저장소의 동일 분류 파일과 검사기를 사용하며
 부분 테스트로 전체 필수 Job을 대체하지 않는다.
+
+S7은 인덱스 기본값, 대화 저장 종류, 출력 visibility/operation, 도메인 record/output 경로,
+필수 Completion 컨테이너 및 Project Facade의 직접 설명 해석을 제한된 AST 형태로 검출한다.
+경로 선언은 파일 전체가 아니라 정확한 Paths 속성만 허용한다. 새 양성·음성 시험으로
+Owner 참조와 외부 재선언·같은 파일의 다른 심볼을 구분한다. 동적 alias·외부 확장 데이터의
+의미는 정적 검사만으로 증명하지 않으며 실제 소비자와 신뢰 경계 감사가 별도로 필요하다.
 
 
 ## A-c 호출 경계 전환 재검토

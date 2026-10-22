@@ -1,5 +1,21 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
+from llm.core.models import StepErrorCode
+
+from llm.core.contracts import ActivityEventType, ProjectActivityEvent
+
+from llm.core.plans import PlanBlockerCode
+
+from llm.core.models import ResourceKind
+
+from llm.core.checkpoints import CheckpointOperation
+
+from llm.core.continuations import RestartRecord, ResumeRecord
+
+from llm.core.checkpoints import CheckpointErrorCode
+from llm.core.results import OutputOperation, OutputVisibility
+from llm.core.models import RunErrorCode, RunTransition
+
 from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
 
 from llm.services.query import FileCatalog, Query, select, select_ordered
@@ -7,7 +23,6 @@ from llm.services.infrastructure.journal import OutputJournal
 from llm.providers.calls import ProviderCalls
 from llm.services.runtime.output import OutputBuffer, OutputProjection, RunOutputState, consume_events
 from typing import Optional, Union
-from types import SimpleNamespace
 import asyncio
 import json
 import time
@@ -19,7 +34,7 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass, replace
 
 from llm.core.models import (
-    Message, MessageRole, MessageStatus, Project, Run, RunStatus, StepStatus,
+    ConversationStorage, Message, MessageRole, MessageStatus, Project, Run, RunStatus, StepStatus,
     Session, SessionStatus, new_id, now, validate_run_transition,
 )
 from llm.core.paths import RunPaths
@@ -51,7 +66,7 @@ from llm.errors import CodedError, stable_error_code
 from llm.core.plans import ResumePlan, ResumeState
 from llm.core.plans import CheckpointPlan
 from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError, CheckpointStatus
-from llm.core.results import CompletionResult, EngineOutput, EngineDelta
+from llm.core.results import CompletionRecords, CompletionResult, EngineOutput, EngineDelta
 from enum import StrEnum
 from asyncio import timeout
 from llm.policies import ExecutionLimitError
@@ -70,33 +85,21 @@ from llm.services.infrastructure.observability import ObservationKind, Observati
 class RunRepository:
     """Run metadata and paths beneath the owning Session's runs root."""
 
-    def __init__(self, *, output_index_stride: int = 128, catalog_size: int = FileCatalog.DEFAULT_MAX_ENTRIES):
+    def __init__(self, *, output_index_stride: int = OutputJournal.DEFAULT_INDEX_STRIDE, catalog_size: int = FileCatalog.DEFAULT_MAX_ENTRIES):
         self._interaction_reads = ContextVar("run_interaction_reads", default=None)
         self.output_journal = OutputJournal(index_stride=output_index_stride)
         self.catalog = FileCatalog(catalog_size)
-        self.result_catalog = FileCatalog(catalog_size, projection=lambda r: SimpleNamespace(
-            id=r["id"], session_id=r["session_id"], status=RunStatus(r["status"]),
-            started_at=r["started_at"], ended_at=r["ended_at"]))
+        self.result_catalog = FileCatalog(catalog_size, projection=Run.index_record)
         self.usage_catalog = FileCatalog(catalog_size, projection=self._usage_record)
 
     def _usage_record(self, data):
         run = Run.from_record(data, None)
-        return run.session_id, [{key: entry[key] for key in (
-            "started_at", "usage", "usage_complete", "reserved_tokens")}
-            for entry in self.completion_records(run.metadata)]
+        return run.session_id, CompletionRecords.usage(run.metadata)
 
     @staticmethod
     def completion_records(metadata):
         """A missing receipt container is not evidence of zero model usage."""
-        if not isinstance(metadata, dict) or not isinstance(metadata.get("completions"), list):
-            raise ValueError("Run requires a stored completions container")
-        identifiers = set()
-        for entry in metadata["completions"]:
-            result = CompletionResult.from_record(entry)
-            if result.id in identifiers:
-                raise ValueError("Duplicate Run completion record")
-            identifiers.add(result.id)
-        return metadata["completions"]
+        return CompletionRecords.read(metadata)
 
     @contextmanager
     def _interaction_scope(self, session, run, resolve=None):
@@ -141,7 +144,7 @@ class RunRepository:
         deleted = CheckpointRepository().deletion(run)
         if deleted is not None:
             return [InteractionRequest.from_dict(raw) for raw in deleted["interactions"]]
-        names = run.metadata.get("checkpoints", []) or ([run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else [])
+        names = run.metadata.get("checkpoints", []) or ([run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]] if ResumeRecord.KEY in run.metadata else [])
         requests = []
         for name in names:
             values = interactions.requests({**resolve(run, name), "name": name}, run)
@@ -161,7 +164,7 @@ class RunRepository:
         """
         from graphlib import TopologicalSorter
         runs = {run.id: run for run in records}
-        parents = {run.id: run.metadata["resume"]["run_id"] for run in runs.values() if "resume" in run.metadata}
+        parents = {run.id: run.metadata[ResumeRecord.KEY][ResumeRecord.SOURCE_RUN] for run in runs.values() if ResumeRecord.KEY in run.metadata}
         if any(parent not in runs or runs[parent].engine != runs[identifier].engine
                for identifier, parent in parents.items()):
             raise ValueError("Invalid resume lineage")
@@ -176,7 +179,7 @@ class RunRepository:
             if self.resume_abandoned(run):
                 continue
             names = run.metadata.get("checkpoints", ()) or (
-                [run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else ())
+                [run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]] if ResumeRecord.KEY in run.metadata else ())
             protected, checkpoints = set(), []
             for name in names:
                 checkpoint = resolve(run, name)
@@ -199,19 +202,19 @@ class RunRepository:
                 checkpoint = load_checkpoint(selected, name)
                 break
             except FileNotFoundError:
-                descriptor = selected.metadata.get("resume")
+                descriptor = selected.metadata.get(ResumeRecord.KEY)
                 if not descriptor or name in selected.metadata.get("checkpoints", ()):
                     raise
-                if descriptor["checkpoint"] != name:
+                if descriptor[ResumeRecord.CHECKPOINT] != name:
                     raise ValueError("Resume checkpoint name mismatch")
-                parent = load_run(descriptor["run_id"])
+                parent = load_run(descriptor[ResumeRecord.SOURCE_RUN])
                 if parent.engine != run.engine or parent.status not in (
                         RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
                     raise ValueError("Invalid resume checkpoint parent")
                 chain.append((selected, descriptor))
                 selected = parent
         for attempt, descriptor in reversed(chain):
-            if checkpoint_digest(checkpoint) != descriptor["digest"]:
+            if checkpoint_digest(checkpoint) != descriptor[ResumeRecord.DIGEST]:
                 raise ValueError("Resume checkpoint changed before initialization")
             checkpoint = {**checkpoint, "run_id": attempt.id, "engine": attempt.engine}
         return checkpoint
@@ -237,7 +240,7 @@ class RunRepository:
         for directory in session.paths.runs.glob("*"):
             reject_links(directory)
             if directory.is_dir() and not directory.name.startswith("."):
-                paths[directory.name] = self.paths(session, directory.name).root / "run.json"
+                paths[directory.name] = self.paths(session, directory.name).record
         required = set(session.active_run_ids)
         # File conversations retain independent witnesses even if an entire Run tree is lost.
         # Memory conversations need not have this file; a missing optional file is not created.
@@ -320,51 +323,38 @@ class RunRepository:
     def create(self, run: Run) -> None:
         if run.paths.root.exists():
             raise FileExistsError("Run storage already exists")
-        run.metadata.setdefault("completions", [])
+        CompletionRecords.initialize(run.metadata)
         self._write(run, creating=True)
 
     def save(self, run: Run) -> None:
-        path = run.paths.root / "run.json"
+        path = run.paths.record
         if not path.exists():
             raise ValueError("Existing Run directory requires its stored record")
         prior = Run.from_record(read_domain_record(path), run.paths)
         if prior.id != run.id or prior.session_id != run.session_id:
             raise ValueError("Run ownership mismatch")
-        if (prior.agent_id != run.agent_id or prior.engine != run.engine
-                or RunAgentResolver.metadata(prior.metadata["agent_binding"], prior.metadata.get("request_context", UNSET))
-                != RunAgentResolver.metadata(run.metadata["agent_binding"], run.metadata.get("request_context", UNSET))
-                or ("agent_execution" in prior.metadata
-                    and prior.metadata["agent_execution"] != run.metadata.get("agent_execution"))):
-            raise ValueError("Run Agent evidence is immutable")
+        AgentBinding.validate_run_update(prior, run)
         if prior.status != run.status:
             validate_run_transition(prior.status, run.status)
-        previous = {entry["id"]: entry for entry in self.completion_records(prior.metadata)}
-        current = {entry["id"]: entry for entry in self.completion_records(run.metadata)}
-        if not previous.keys() <= current.keys():
-            raise ValueError("Run update cannot remove stored completion receipts")
-        for identifier, entry in previous.items():
-            CompletionResult.validate_update(entry, current[identifier])
+        CompletionRecords.validate_update(prior.metadata, run.metadata)
         self._write(run, creating=False)
 
     def _write(self, run: Run, *, creating: bool) -> None:
-        path = run.paths.root / "run.json"
-        self.completion_records(run.metadata)
-        if run.status not in (RunStatus.PENDING, RunStatus.RUNNING) and "completions" in run.metadata:
-            run.metadata["completions"] = [asdict(CompletionResult.for_run(data, run))
-                                           for data in run.metadata["completions"]]
+        path = run.paths.record
+        CompletionRecords.finalize(run)
         data = record(run)
         Run.from_record(data, run.paths)
         CheckpointRepository().names(run)
         if not creating:
-            self.output_journal.validate(run.paths.state / "outputs.jsonl")
+            self.output_journal.validate(RunPaths.output_path(run.paths.state))
         atomic_domain_json(path, data)
         if creating:
-            self.output_journal.initialize(run.paths.state / "outputs.jsonl")
+            self.output_journal.initialize(RunPaths.output_path(run.paths.state))
         log_event(run.paths.logs, "run.saved", entity_id=run.id, status=run.status)
 
     def load(self, session: Session, run_id: str) -> Run:
         paths = self.paths(session, run_id)
-        data = read_domain_record(paths.root / "run.json")
+        data = read_domain_record(paths.record)
         if data["id"] != run_id or data["session_id"] != session.id:
             raise ValueError("Run ownership mismatch")
         log_event(paths.logs, "run.loaded", entity_id=run_id)
@@ -373,11 +363,11 @@ class RunRepository:
         self.resume_abandoned(run)
         CheckpointRepository().deletion(run)
         CheckpointRepository().names(run)
-        self.output_journal.validate(run.paths.state / "outputs.jsonl")
+        self.output_journal.validate(RunPaths.output_path(run.paths.state))
         return run
 
     def record_output(self, run: Run, value: Union[EngineDelta, EngineOutput]) -> None:
-        self.output_journal.append(run.paths.state / "outputs.jsonl", [value])
+        self.output_journal.append(RunPaths.output_path(run.paths.state), [value])
 
     def record_outputs(self, run: Run, values) -> None:
         """묶음 쓰기 확장점. 단일 쓰기를 재정의한 사용자 저장소의 계약도 유지한다."""
@@ -385,17 +375,17 @@ class RunRepository:
             for value in values:
                 self.record_output(run, value)
         else:
-            self.output_journal.append(run.paths.state / "outputs.jsonl", values)
+            self.output_journal.append(RunPaths.output_path(run.paths.state), values)
 
     def output_events(self, run: Run, *, after: int = 0, limit: Optional[int] = None):
-        return self.output_journal.read(run.paths.state / "outputs.jsonl", after=after, limit=limit)
+        return self.output_journal.read(RunPaths.output_path(run.paths.state), after=after, limit=limit)
 
     def reconcile_output(self, run, store):
         """저널이 Conversation보다 앞선 부분 저장을 복구한다. 실행 효과나 Run 성공 상태는 재현하지 않는다."""
         values = self.outputs(run)
         if not values:
             return False
-        visible = [v for v in values if v.visibility == "user"]
+        visible = [v for v in values if v.visibility == OutputVisibility.USER]
         final = next((v for v in visible if v.final and v.step_id is None and (v.text or v.data is None)), None)
         text = final.text if final is not None else "".join(v.text for v in visible)
         message = store.get(run.assistant_message_id)
@@ -412,7 +402,7 @@ class RunRepository:
         # 사용자 저장소/저널의 기존 읽기 확장점을 우회하지 않는다.
         if (type(self).output_events is RunRepository.output_events
                 and type(self.output_journal).read is OutputJournal.read):
-            with closing(self.output_journal.iter_events(run.paths.state / "outputs.jsonl")) as events:
+            with closing(self.output_journal.iter_events(RunPaths.output_path(run.paths.state))) as events:
                 for value in events:
                     projection.add(value)
         else:
@@ -423,7 +413,7 @@ class RunRepository:
     def record_checkpoint(self, run: Run, event: EngineEvent) -> None:
         interactions = InteractionRepository()
         name = event.metadata["name"]
-        initialize = event.metadata["operation"] == "initialize"
+        initialize = event.metadata["operation"] == CheckpointOperation.INITIALIZE
         records = (event.metadata.get("records", {}) if initialize else
                    {event.metadata["key"]: event.metadata["value"]})
         requests = interactions.requests({"name": name, "records": records}, run)
@@ -433,7 +423,7 @@ class RunRepository:
         known = {request.id for request in previous}
         for request in requests:
             interactions.publish(run, request,
-                                 existing=request.id in known or initialize and "resume" in run.metadata)
+                                 existing=request.id in known or initialize and ResumeRecord.KEY in run.metadata)
         CheckpointRepository().record(run, event)
         # File, manifest and Run revision commit before the Engine receives ACK.
         # Only a failed initial copy may resolve the verified source checkpoint.
@@ -441,9 +431,9 @@ class RunRepository:
 
     def inherit_interactions(self, session, run, checkpoint):
         """Preserve control evidence even if the later checkpoint copy fails."""
-        source = self.load(session, run.metadata["resume"]["run_id"])
+        source = self.load(session, run.metadata[ResumeRecord.KEY][ResumeRecord.SOURCE_RUN])
         InteractionRepository().inherit(source, run,
-            {**checkpoint, "name": run.metadata["resume"]["checkpoint"]})
+            {**checkpoint, "name": run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]})
 
     def instructions(self, session, run, store):
         """본문은 선택한 ConversationStore에서 읽는다. 복제 저장소를 만들지 않는다."""
@@ -503,9 +493,9 @@ class RunRepository:
         return saved
 
     def resume_link(self, session, run, store, *, messages=None, records=None):
-        message = next((m for m in (store.list() if messages is None else messages) if m.metadata.get("resume", {}).get("run_id") == run.id
+        message = next((m for m in (store.list() if messages is None else messages) if ResumeRecord.source_id(m.metadata) == run.id
                         and m.status != MessageStatus.CANCELLED), None)
-        resumed = next((r for r in (self.list(session) if records is None else records) if r.metadata.get("resume", {}).get("run_id") == run.id), None)
+        resumed = next((r for r in (self.list(session) if records is None else records) if ResumeRecord.source_id(r.metadata) == run.id), None)
         return message, resumed
 
     def resume_abandoned(self, run: Run) -> bool:
@@ -535,11 +525,11 @@ class RunRepository:
     def checkpoint_plan(self, session, run, store, *, attached=False):
         """Run 전체가 정리 단위다. 중첩 실행/승인 레코드를 개별 삭제하지 않는다."""
         from llm.services.infrastructure.storage import tree_snapshot, revision_token
-        source = ResourceRef("run", run.id, project_id=session.project_id, session_id=session.id, run_id=run.id)
+        source = ResourceRef(ResourceKind.RUN, run.id, project_id=session.project_id, session_id=session.id, run_id=run.id)
         abandoned = self.resume_abandoned(run)
         deleted = CheckpointRepository().deletion(run)
         names = run.metadata.get("checkpoints", []) or (
-            [run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata and deleted is None else [])
+            [run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]] if ResumeRecord.KEY in run.metadata and deleted is None else [])
         # 손상된 계보/참조는 삭제 허가로 바뀌지 않는다.
         runs = self.list(session)
         resolve = self._checkpoint_reader(session, runs)
@@ -551,7 +541,7 @@ class RunRepository:
         if attached or session.active_run_ids or session.status == SessionStatus.RUNNING:
             block("runtime_attached", "Shut down Session runtime before checkpoint maintenance")
         if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
-            block("active_run", "Run is still active; recover stale Runs before maintenance")
+            block(PlanBlockerCode.ACTIVE_RUN, "Run is still active; recover stale Runs before maintenance")
         if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) for m in messages):
             block("pending_message", "Finish or cancel pending requests before checkpoint maintenance")
         descendants = {run.id}
@@ -559,7 +549,7 @@ class RunRepository:
         while changed:
             changed = False
             for other in runs:
-                if other.id not in descendants and other.metadata.get("resume", {}).get("run_id") in descendants:
+                if other.id not in descendants and ResumeRecord.source_id(other.metadata) in descendants:
                     descendants.add(other.id)
                     changed = True
         for other in runs:
@@ -569,7 +559,7 @@ class RunRepository:
             if (not retired and not other.metadata.get("checkpoints")
                     or other.status not in (RunStatus.COMPLETED, RunStatus.CANCELLED) and not self.resume_abandoned(other)):
                 block("resume_reference", f"Run {other.id} still requires its resume lineage")
-        if any(m.metadata.get("resume", {}).get("run_id") == run.id
+        if any(ResumeRecord.source_id(m.metadata) == run.id
                and m.status != MessageStatus.CANCELLED and not RequestAdmission.run_ids(m) for m in messages):
             block("resume_reserved", "A resume request still references this Run")
         if deleted is not None or not names:
@@ -583,10 +573,10 @@ class RunRepository:
         interaction_files = tree_snapshot(run.paths.state / "interactions")
         abandon = list(common)
         if abandoned or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
-            abandon.append(Diagnostic("not_resumable", "Only an un-abandoned inactive resumable Run can be abandoned", source=source))
+            abandon.append(Diagnostic(PlanBlockerCode.NOT_RESUMABLE, "Only an un-abandoned inactive resumable Run can be abandoned", source=source))
         delete = list(common)
         if not abandoned and run.status not in (RunStatus.COMPLETED, RunStatus.CANCELLED):
-            delete.append(Diagnostic("resume_required", "Abandon resume before deleting checkpoints", source=source))
+            delete.append(Diagnostic(PlanBlockerCode.RESUME_REQUIRED, "Abandon resume before deleting checkpoints", source=source))
         revision = revision_token({"run": record(run), "session": record(session),
             "runs": [record(r) for r in runs], "messages": [record(m) for m in messages],
             "payloads": payloads, "files": files, "interaction_files": interaction_files,
@@ -635,7 +625,7 @@ class RunRepository:
         from llm.core.checkpoints import select_checkpoint
         # EngineContext retains a Run-start snapshot. The storage owner reads
         # the current revision witness, including when called from a handler.
-        current = Run.from_record(read_domain_record(run.paths.root / "run.json"), run.paths)
+        current = Run.from_record(read_domain_record(run.paths.record), run.paths)
         if (current.id, current.session_id, current.engine) != (run.id, run.session_id, run.engine):
             raise ValueError("Checkpoint Run ownership mismatch")
         return CheckpointRepository().load(current, select_checkpoint(current.metadata.get("checkpoints", []), name))
@@ -643,10 +633,10 @@ class RunRepository:
     def resolve_checkpoint(self, session: Session, run: Run, name: str | None = None) -> dict:
         from llm.core.checkpoints import select_checkpoint
         names = run.metadata.get("checkpoints", [])
-        if name is None and not names and "resume" in run.metadata:
+        if name is None and not names and ResumeRecord.KEY in run.metadata:
             # An explicit durable reference exists even if its initial copy failed.
             # _resolve_checkpoint still verifies lineage, digest and initialization.
-            name = run.metadata["resume"]["checkpoint"]
+            name = run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]
         name = select_checkpoint(names, name)
         current = self._interaction_reads.get()
         if current is not None and current[0][0] == session.paths.root:
@@ -694,33 +684,6 @@ class RunRepository:
         return [self.load(owners[row.session_id], row.id) for row in selected]
 
 
-class RunErrorCode(StrEnum):
-    AGENT_REQUIRED = "agent_required"
-    ENGINE_REQUIRED = "engine_required"
-    ENGINE_NOT_REGISTERED = "engine_not_registered"
-    COMPONENT_NOT_REGISTERED = "component_not_registered"
-    CAPABILITY_FAILED = "capability_failed"
-    ENGINE_FAILED = "engine_failed"
-    PROVIDER_CAPACITY = "provider_capacity"
-    INTERRUPTED = "interrupted"
-    PROCESS_RESTART = "process_restart"
-    RESUME_REJECTED = "resume_rejected"
-    QUEUE_FULL = "queue_full"
-    POLICY_UNAVAILABLE = "policy_unavailable"
-    REQUEST_CANCELLED = "request_cancelled"
-    STEERING_UNAVAILABLE = "steering_unavailable"
-    RUN_TIMEOUT = "run_timeout"
-    TOOL_DENIED = "tool_denied"
-    TOOL_CONTRACT = "tool_contract"
-    TOOL_TIMEOUT = "tool_timeout"
-    TOOL_BUDGET_EXCEEDED = "tool_budget_exceeded"
-    CONTEXT_BUDGET_EXCEEDED = "context_budget_exceeded"
-    OPERATION_CONFLICT = "operation_conflict"
-    OPERATION_UNCERTAIN = "operation_uncertain"
-    SANDBOX_UNAVAILABLE = "sandbox_unavailable"
-    PROCESS_FAILED = "process_failed"
-
-
 class RunRequestError(CodedError, ValueError):
     """An actionable request rejection before queue admission."""
 
@@ -761,7 +724,7 @@ class _RunOutcome:
     error_code: Optional[str] = None
 
     def __post_init__(self) -> None:
-        validate_run_transition(RunStatus.RUNNING, self.status, reason="finish")
+        validate_run_transition(RunStatus.RUNNING, self.status, reason=RunTransition.FINISH)
         if any(value is not None and not isinstance(value, str) for value in (self.error, self.error_code)):
             raise TypeError("Run outcome error and error_code must be text or None")
         if self.status in (RunStatus.COMPLETED, RunStatus.PAUSED) and (
@@ -956,7 +919,7 @@ class RunManager:
             session_id=runtime.session.id, message_id=message_id, bindings=bindings)
         values = {"admission": admission}
         if request_context is not UNSET:
-            values["request_context"] = deepcopy(request_context)
+            values[AgentBinding.CONTEXT_FIELD] = deepcopy(request_context)
         if metadata is not None:
             if values.keys() & metadata.keys():
                 raise ValueError("Request provenance cannot replace admission evidence")
@@ -968,7 +931,7 @@ class RunManager:
         """Require complete history both before ACK and before frozen dispatch."""
         messages, records = self._store(session).list(), self.repository.list(session)
         RequestAdmission.history(messages, records, project_id=project.id,
-            session_id=session.id, persistent=project.conversation_storage == "file")
+            session_id=session.id, persistent=project.conversation_storage == ConversationStorage.FILE)
         self.sessions.transfers.validate_session(project, session, messages)
         return messages, records
 
@@ -997,14 +960,14 @@ class RunManager:
         if not any(candidate.id == run.id for candidate in selected):
             raise ValueError("Run is absent from its original request admission")
         admission = RequestAdmission.read(original, project_id=project.id, session_id=session.id)
-        if self.agents.metadata(binding, run.metadata.get("request_context", UNSET)) != self.agents.metadata(
-                admission["bindings"][run.agent_id], original.metadata.get("request_context", UNSET)):
+        if AgentBinding.metadata(binding, AgentBinding.request_context(run.metadata)) != AgentBinding.metadata(
+                admission["bindings"][run.agent_id], AgentBinding.request_context(original.metadata)):
             raise ValueError("Run Agent binding or request context differs from its admitted input")
         return binding
 
     def _source_strategy(self, project, session, run, agent_id=None, *, records=None):
         binding = self._source_agent(project, session, run, agent_id, records=records)
-        return self.agents.strategy(binding, request_context=run.metadata.get("request_context", UNSET))
+        return self.agents.strategy(binding, request_context=AgentBinding.request_context(run.metadata))
 
     async def _runtime(self) -> SessionRuntime:
         # Caller holds _control. OS ownership is retained before recovery; the
@@ -1136,7 +1099,7 @@ class RunManager:
         self._check_queue(runtime.session)
         if expected_revision is not None:
             if expected_revision != self._resume_plan(run_id, agent_id).revision:
-                raise CheckpointError("checkpoint_conflict", "review a fresh resume plan")
+                raise CheckpointError(CheckpointErrorCode.CONFLICT, "review a fresh resume plan")
         source = source or self.repository.load(runtime.session, run_id)
         self.repository.require_resume(source)
         project = self.sessions.require_project(runtime.project)
@@ -1146,7 +1109,7 @@ class RunManager:
         if source.agent_id != agent_id or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume requires a paused/interrupted/failed Run and its original Engine")
-        strategy = self.agents.strategy(binding, request_context=source.metadata.get("request_context", UNSET))
+        strategy = self.agents.strategy(binding, request_context=AgentBinding.request_context(source.metadata))
         name = getattr(strategy, "checkpoint_name", None)
         if not name or not callable(getattr(strategy, "validate_resume", None)):
             raise ValueError("Engine does not support checkpoint resume")
@@ -1160,13 +1123,11 @@ class RunManager:
         store = self._store(runtime.session)
         if any(self.repository.resume_link(runtime.session, source, store) if link is None else link):
             raise ValueError("This Run already has a resume request; resume its latest attempt instead")
-        descriptor = {"run_id": source.id, "checkpoint": name,
-                      "digest": checkpoint_digest(checkpoint), "retry_nodes": list(retry_nodes), "decisions": deepcopy(decisions)}
-        if partial_output:
-            descriptor["partial_output"] = True
+        descriptor = ResumeRecord.create(source.id, name, checkpoint_digest(checkpoint),
+                                         retry_nodes, decisions, partial_output=partial_output)
         project = self.sessions.require_project(runtime.project)
         candidate = deepcopy(source)
-        candidate.metadata["resume"] = descriptor
+        candidate.metadata[ResumeRecord.KEY] = descriptor
         candidate.metadata["policies"] = deepcopy(project.config.policies)
         strategy.validate_resume(checkpoint, retry_nodes=retry_nodes,
                                  context=self._context(runtime, candidate, project=project, engine=strategy), **({"decisions": decisions} if decisions else {}))
@@ -1175,15 +1136,15 @@ class RunManager:
         for response in receipts:
             self.repository.respond(runtime.session, source, response)
         return self._admit(runtime, store.get(source.input_message_id).content, {agent_id: binding},
-                           source.metadata.get("request_context", UNSET), metadata={"resume": descriptor, **transport})
+                           AgentBinding.request_context(source.metadata), metadata={ResumeRecord.KEY: descriptor, **transport})
 
     def _resume_plan(self, run_id, agent_id) -> ResumePlan:
         project, session = self._prepare()
         try:
             source = self.repository.load(session, run_id)
         except (ValueError, KeyError) as error:
-            raise CheckpointError("checkpoint_corrupt", "Run lifecycle proof is invalid") from error
-        ref = ResourceRef("run", run_id, project_id=project.id, session_id=session.id, run_id=run_id)
+            raise CheckpointError(CheckpointErrorCode.CORRUPT, "Run lifecycle proof is invalid") from error
+        ref = ResourceRef(ResourceKind.RUN, run_id, project_id=project.id, session_id=session.id, run_id=run_id)
         reused, retries, blockers, views, can_resume = [], [], [], [], False
         state, checkpoint, strategy = ResumeState.UNKNOWN, None, None
         store = self._store(session)
@@ -1211,7 +1172,7 @@ class RunManager:
                 retries = [v.request.binding["key"] for v in views if v.request.binding.get("target") == InteractionRepository.RETRY_NODES_TARGET]
                 if any(v.status in (InteractionView.PENDING, InteractionView.DENIED, InteractionView.EXPIRED,
                                     InteractionView.CANCELLED, InteractionView.SUBMITTED, InteractionView.UNAVAILABLE) for v in views):
-                    blockers.append(Diagnostic("interaction_required", "Resolve pending interactions before execution", source=ref))
+                    blockers.append(Diagnostic(PlanBlockerCode.INTERACTION_REQUIRED, "Resolve pending interactions before execution", source=ref))
                 else:
                     state = ResumeState.INCOMPATIBLE
                     self._resume_request(SessionRuntime(project, session), run_id, agent_id, (), {}, preview=True, source=source, link=link, records=runs)
@@ -1220,33 +1181,33 @@ class RunManager:
             state = ResumeState.CORRUPT
             blockers.append(Diagnostic.from_exception(error, code=error.code, source=ref))
         except FileNotFoundError as error:
-            state = (ResumeState.MISSING if source.metadata.get("checkpoints") or "resume" in source.metadata else
+            state = (ResumeState.MISSING if source.metadata.get("checkpoints") or ResumeRecord.KEY in source.metadata else
                      ResumeState.NOT_CREATED if source.metadata.get("execution_started") is False else ResumeState.UNKNOWN)
             blockers.append(Diagnostic.from_exception(error, code="checkpoint_" + state, source=ref))
         except (ValueError, KeyError, RuntimeError, AttributeError) as error:
-            blockers.append(Diagnostic.from_exception(error, code="resume_rejected", source=ref))
+            blockers.append(Diagnostic.from_exception(error, code=RunErrorCode.RESUME_REJECTED, source=ref))
         restart_blockers = []
         if strategy is None:
-            restart_blockers.append(Diagnostic("engine_unavailable", "Original Engine configuration is unavailable", source=ref))
+            restart_blockers.append(Diagnostic(PlanBlockerCode.ENGINE_UNAVAILABLE, "Original Engine configuration is unavailable", source=ref))
         # Only a service-persisted pre-dispatch state proves an invocation never
         # started. Missing Steps/checkpoints, including custom Engines, prove nothing.
-        if (source.metadata.get("execution_started") is not False or source.metadata.get("resume")
+        if (source.metadata.get("execution_started") is not False or source.metadata.get(ResumeRecord.KEY)
                 or source.metadata.get("checkpoints") or source.metadata.get("checkpoint_deletion")
                 or self.repository.resume_abandoned(source) or source.agent_id != agent_id
                 or source.status not in (RunStatus.FAILED, RunStatus.INTERRUPTED)
                 or self.steps.list(source)):
-            restart_blockers.append(Diagnostic("restart_unproven", "No durable proof of a pre-execution stop", source=ref))
-        if any(r.metadata.get("restart", {}).get("run_id") == run_id or
-               r.metadata.get("resume", {}).get("run_id") == run_id for r in runs) or any(
-               any(m.metadata.get(key, {}).get("run_id") == run_id for key in ("resume", "restart"))
+            restart_blockers.append(Diagnostic(PlanBlockerCode.RESTART_UNPROVEN, "No durable proof of a pre-execution stop", source=ref))
+        if any(RestartRecord.source_id(r.metadata) == run_id or
+               ResumeRecord.source_id(r.metadata) == run_id for r in runs) or any(
+               any(owner.source_id(m.metadata) == run_id for owner in (ResumeRecord, RestartRecord))
                and m.status != MessageStatus.CANCELLED for m in messages):
-            restart_blockers.append(Diagnostic("restart_reserved", "A later request already uses this Run", source=ref))
+            restart_blockers.append(Diagnostic(PlanBlockerCode.RESTART_RESERVED, "A later request already uses this Run", source=ref))
         original = next((m for m in messages if m.id == source.input_message_id), None)
         if original is None or original.metadata.get("conversation_deleted"):
-            restart_blockers.append(Diagnostic("input_unavailable", "Original input is unavailable", source=ref))
+            restart_blockers.append(Diagnostic(PlanBlockerCode.INPUT_UNAVAILABLE, "Original input is unavailable", source=ref))
         if any(self.repository.load(session, identifier).agent_id == source.agent_id
                for identifier in session.active_run_ids) or self.pending_work.active:
-            restart_blockers.append(Diagnostic("active_run", "Session still has active work", source=ref))
+            restart_blockers.append(Diagnostic(PlanBlockerCode.ACTIVE_RUN, "Session still has active work", source=ref))
         revision = revision_token({"run": record(source), "checkpoint": checkpoint, "views": [v.to_dict() for v in views],
             "project": project.config.to_dict(), "session": record(session), "messages": [record(m) for m in messages],
             "runs": [record(r) for r in runs]})
@@ -1270,9 +1231,9 @@ class RunManager:
     def _restart_request(self, runtime, run_id, agent_id, expected_revision):
         plan = self._resume_plan(run_id, agent_id)
         if not expected_revision or expected_revision != plan.revision:
-            raise CheckpointError("checkpoint_conflict", "review a fresh resume plan")
+            raise CheckpointError(CheckpointErrorCode.CONFLICT, "review a fresh resume plan")
         if not plan.can_restart:
-            raise CheckpointError("checkpoint_protected", "Restart has not been admitted", blockers=plan.restart_blockers)
+            raise CheckpointError(CheckpointErrorCode.PROTECTED, "Restart has not been admitted", blockers=plan.restart_blockers)
         source = self.repository.load(runtime.session, run_id)
         project = self.sessions.require_project(runtime.project)
         binding = self._source_agent(project, runtime.session, source, agent_id)
@@ -1282,22 +1243,21 @@ class RunManager:
         original = store.get(source.input_message_id)
         transport = self.sessions.transfers.continuation(project, runtime.session, source)
         return self._admit(runtime, original.content, {agent_id: binding},
-            source.metadata.get("request_context", UNSET), metadata={**transport, "restart": {
-                "run_id": run_id, "digest": revision_token({"run": record(source), "input": record(original)})}})
+            AgentBinding.request_context(source.metadata), metadata={**transport, RestartRecord.KEY: RestartRecord.create(
+                run_id, revision_token({"run": record(source), "input": record(original)}))})
 
     def _restart_source(self, session, run):
-        descriptor = run.metadata["restart"]
-        source = self.repository.load(session, descriptor["run_id"])
+        descriptor = run.metadata[RestartRecord.KEY]
+        source = self.repository.load(session, descriptor[RestartRecord.SOURCE_RUN])
         original = self._store(session).get(source.input_message_id)
         if (source.metadata.get("execution_started") is not False or source.engine != run.engine
-                or source.agent_id != run.agent_id or source.metadata["agent_binding"] != run.metadata["agent_binding"]
-                or self.agents.metadata(source.metadata["agent_binding"], source.metadata.get("request_context", UNSET))
-                   != self.agents.metadata(run.metadata["agent_binding"], run.metadata.get("request_context", UNSET))
+                or source.agent_id != run.agent_id or source.metadata[AgentBinding.METADATA_FIELD] != run.metadata[AgentBinding.METADATA_FIELD]
+                or not AgentBinding.same_request(source.metadata, run.metadata)
                 or source.status not in (RunStatus.FAILED, RunStatus.INTERRUPTED)
                 or self.steps.list(source) or self.repository.resume_abandoned(source)
                 or original.metadata.get("conversation_deleted")
-                or revision_token({"run": record(source), "input": record(original)}) != descriptor["digest"]):
-            raise CheckpointError("checkpoint_conflict", "Restart source changed after admission")
+                or revision_token({"run": record(source), "input": record(original)}) != descriptor[RestartRecord.DIGEST]):
+            raise CheckpointError(CheckpointErrorCode.CONFLICT, "Restart source changed after admission")
 
     def _request_runs(self, message_id: str) -> list[Run]:
         project, session = self._prepare()
@@ -1355,28 +1315,28 @@ class RunManager:
         run = Run(run_id, session.id, message.id, new_id(), binding["engine"],
                   self.repository.paths(session, run_id), agent_id=binding["agent_id"])
         run.metadata["policies"] = deepcopy(runtime.project.config.policies)
-        run.metadata.update(self.agents.metadata(binding, message.metadata.get("request_context", UNSET)))
+        run.metadata.update(AgentBinding.metadata(binding, AgentBinding.request_context(message.metadata)))
         # Service dispatch fact, not an effects guarantee after execution.
         # Records without this field remain unknown; never backfill them.
         run.metadata["execution_started"] = False
         if "transfer" in message.metadata:
             from llm.services.runtime.transfers import TransferReceipt
             run.metadata["transfer"] = TransferReceipt.read(message.metadata["transfer"])
-        if "restart" in message.metadata:
-            run.metadata["restart"] = deepcopy(message.metadata["restart"])
-        if "resume" in message.metadata:
-            run.metadata["resume"] = deepcopy(message.metadata["resume"])
-            source = self.repository.load(session, run.metadata["resume"]["run_id"])
-            if (source.metadata["agent_binding"] != binding
-                    or "agent_execution" not in source.metadata):
+        if RestartRecord.KEY in message.metadata:
+            run.metadata[RestartRecord.KEY] = deepcopy(message.metadata[RestartRecord.KEY])
+        if ResumeRecord.KEY in message.metadata:
+            run.metadata[ResumeRecord.KEY] = deepcopy(message.metadata[ResumeRecord.KEY])
+            source = self.repository.load(session, run.metadata[ResumeRecord.KEY][ResumeRecord.SOURCE_RUN])
+            if (source.metadata[AgentBinding.METADATA_FIELD] != binding
+                    or AgentBinding.EXECUTION_FIELD not in source.metadata):
                 raise ValueError("Original Agent execution evidence is missing or inconsistent")
             # Preserve the already-admitted evidence in the creation transaction,
             # even if later checkpoint copying or capability preparation fails.
             # Existing records are never repaired from another Run or current config.
-            run.metadata["agent_execution"] = deepcopy(source.metadata["agent_execution"])
+            run.metadata[AgentBinding.EXECUTION_FIELD] = deepcopy(source.metadata[AgentBinding.EXECUTION_FIELD])
         strategy = self.engines.get(run.engine) if run.engine in self.engines.names() else None
         if steering_mode(strategy) != SteeringMode.UNSUPPORTED:
-            run.metadata["steering"] = ({"accepting": False} if "resume" in run.metadata
+            run.metadata["steering"] = ({"accepting": False} if ResumeRecord.KEY in run.metadata
                                         else initial_channel(run, steering_mode(strategy), message.id))
         self.repository.create(run)
         return run
@@ -1416,7 +1376,7 @@ class RunManager:
         watch(runtime.session)
         session, store = runtime.session, self._store(runtime.session)
         current = self.repository.load(session, run.id)
-        validate_run_transition(current.status, RunStatus.RUNNING, reason="start")
+        validate_run_transition(current.status, RunStatus.RUNNING, reason=RunTransition.START)
         if current.agent_id != run.agent_id or current.metadata != run.metadata:
             raise ValueError("Pending Run changed before execution")
         store.set_status(run.assistant_message_id, MessageStatus.STREAMING)
@@ -1425,9 +1385,9 @@ class RunManager:
         self.sessions._save_runtime(session)
         run.status, run.started_at = RunStatus.RUNNING, now()
         self.repository.save(run)
-        log_event(run.paths.logs, "run.started", entity_id=run.id,
+        log_event(run.paths.logs, ActivityEventType.RUN_STARTED, entity_id=run.id,
                   related_id=session.id, status=run.status)
-        activity_event(runtime.project, run, "run.started", time=run.started_at, status=run.status)
+        activity_event(runtime.project, run, ActivityEventType.RUN_STARTED, time=run.started_at, status=run.status)
         return run
 
     def _validate_checkpoint_input(self, store, checkpoint, input_message_id, *, messages=None):
@@ -1440,18 +1400,17 @@ class RunManager:
             raise ValueError("Original conversation is unavailable; memory-mode resume requires the original backend") from error
 
     def _resume_checkpoint(self, session, run):
-        descriptor = run.metadata["resume"]
-        source = self.repository.load(session, descriptor["run_id"])
+        descriptor = run.metadata[ResumeRecord.KEY]
+        source = self.repository.load(session, descriptor[ResumeRecord.SOURCE_RUN])
         self.repository.require_resume(source)
         if (source.engine != run.engine or source.agent_id != run.agent_id
-                or source.metadata["agent_binding"] != run.metadata["agent_binding"]
-                or self.agents.metadata(source.metadata["agent_binding"], source.metadata.get("request_context", UNSET))
-                   != self.agents.metadata(run.metadata["agent_binding"], run.metadata.get("request_context", UNSET))
+                or source.metadata[AgentBinding.METADATA_FIELD] != run.metadata[AgentBinding.METADATA_FIELD]
+                or not AgentBinding.same_request(source.metadata, run.metadata)
                 or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED)):
             raise ValueError("Resume source is no longer eligible")
-        checkpoint = self.repository.resolve_checkpoint(session, source, descriptor["checkpoint"])
-        if checkpoint_digest(checkpoint) != descriptor["digest"]:
+        checkpoint = self.repository.resolve_checkpoint(session, source, descriptor[ResumeRecord.CHECKPOINT])
+        if checkpoint_digest(checkpoint) != descriptor[ResumeRecord.DIGEST]:
             raise ValueError("Resume checkpoint changed after admission")
         if any(request.expired for request in self.repository.interaction_requests(session, source)):
             raise ValueError("Interaction expired while resume was queued")
@@ -1462,10 +1421,10 @@ class RunManager:
     def _partial_outputs(self, session, run):
         """Provide unfinished source observations; only Engines interpret Step metadata."""
         from llm.core.results import ResumeOutput
-        descriptor = run.metadata.get("resume", {})
-        if not descriptor.get("partial_output"):
+        descriptor = run.metadata.get(ResumeRecord.KEY, {})
+        if not descriptor.get(ResumeRecord.PARTIAL_OUTPUT):
             return ()
-        source = self.repository.load(session, descriptor["run_id"])
+        source = self.repository.load(session, descriptor[ResumeRecord.SOURCE_RUN])
         steps = {step.id: step for step in self.steps.list(source)
                  if step.status != StepStatus.COMPLETED}
         return tuple(ResumeOutput(source.id, output, steps.get(output.step_id))
@@ -1477,9 +1436,9 @@ class RunManager:
                                                    else self.policy_resolver.resolve(run.metadata["policies"]))
         checkpoint = None
         store = self._store(runtime.session)
-        if "restart" in run.metadata:
+        if RestartRecord.KEY in run.metadata:
             self._restart_source(runtime.session, run)
-        if "resume" in run.metadata:
+        if ResumeRecord.KEY in run.metadata:
             checkpoint = self._resume_checkpoint(runtime.session, run)
             header = checkpoint["header"]
             try:
@@ -1556,18 +1515,18 @@ class RunManager:
                              token_counters=dict(getattr(self.policy_resolver, "token_counters", {})), steering=inbox,
                              capability_resolver=resolve_selected)
         context = engine.prepare_context(context)
-        if "resume" in run.metadata:
-            source = self.repository.load(runtime.session, run.metadata["resume"]["run_id"])
-            if "agent_execution" not in source.metadata:
+        if ResumeRecord.KEY in run.metadata:
+            source = self.repository.load(runtime.session, run.metadata[ResumeRecord.KEY][ResumeRecord.SOURCE_RUN])
+            if AgentBinding.EXECUTION_FIELD not in source.metadata:
                 raise ValueError("Original Agent execution evidence is missing")
-            if source.metadata["agent_execution"] != engine.runtime_binding:
+            if source.metadata[AgentBinding.EXECUTION_FIELD] != engine.runtime_binding:
                 raise ValueError("Agent execution configuration changed since the original Run")
         return context
 
     def _bind_execution(self, run, engine):
-        if "agent_execution" in run.metadata and run.metadata["agent_execution"] != engine.runtime_binding:
+        if AgentBinding.EXECUTION_FIELD in run.metadata and run.metadata[AgentBinding.EXECUTION_FIELD] != engine.runtime_binding:
             raise ValueError("Agent execution binding is immutable")
-        run.metadata["agent_execution"] = deepcopy(engine.runtime_binding)
+        run.metadata[AgentBinding.EXECUTION_FIELD] = deepcopy(engine.runtime_binding)
         self.repository.save(run)
 
     def _dispatch(self, run):
@@ -1606,13 +1565,13 @@ class RunManager:
             raise RunRequestError(RunErrorCode.ENGINE_NOT_REGISTERED, "Requested Engine is not registered") from error
         store = self._store(runtime.session)
         try:
-            if "resume" in run.metadata:
+            if ResumeRecord.KEY in run.metadata:
                 checkpoint = await self._io.run(self._resume_checkpoint, runtime.session, run)
                 await self._io.run(self.repository.inherit_interactions, runtime.session, run, checkpoint)
                 # 실행 설정 검증이 실패해도 재개 시도의 원본 체크포인트는 남긴다.
                 await self._io.run(self.repository.record_checkpoint, run,
                     EngineEvent(EngineEventType.CHECKPOINT, metadata={
-                        "name": run.metadata["resume"]["checkpoint"], "operation": "initialize",
+                        "name": run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT], "operation": CheckpointOperation.INITIALIZE,
                         "header": checkpoint["header"], "records": checkpoint["records"]}))
             context = await self._io.run(self._context, runtime, run, policies, engine=engine)
             await self._io.run(self._bind_execution, run, engine)
@@ -1633,7 +1592,7 @@ class RunManager:
                 if paused:
                     raise ValueError("Engine emitted events after pause")
                 event, change = outputs.accept(event, active_steps, has_result="output" in run.metadata)
-                if event.type == EngineEventType.CHECKPOINT and event.metadata.get("operation") == "record":
+                if event.type == EngineEventType.CHECKPOINT and event.metadata.get("operation") == CheckpointOperation.RECORD:
                     # Run 전체 예산은 서비스 스코프가 소유한다. Engine payload를 해석하지 않고
                     # 같은 durable 저장 경계에 스냅샷을 붙여 명시적 재개가 예산을 초기화하지 않게 한다.
                     event = replace(event, metadata={**event.metadata,
@@ -1748,8 +1707,8 @@ class RunManager:
                 if event.checkpoint is not None:
                     self.repository.record_checkpoint(run, event.checkpoint)
                 if event.type == EngineEventType.STEP_FAILED:
-                    activity_event(project, run, "step.failed", time=now(), status=StepStatus.FAILED.value,
-                                   step_id=event.step_id, code=event.failure_code or "step_failed")
+                    activity_event(project, run, ActivityEventType.STEP_FAILED, time=now(), status=StepStatus.FAILED.value,
+                                   step_id=event.step_id, code=event.failure_code or StepErrorCode.FAILED)
 
     def _record_deltas(self, run: Run, store: Conversation, outputs, deltas) -> None:
         """출력 저널과 대화 델타를 같은 트랜잭션에 저장한다. 알림은 호출자가 보낸다."""
@@ -1759,7 +1718,7 @@ class RunManager:
             self.repository.record_outputs(run, outputs)
         if len(deltas) == 1:
             text, operation = deltas[0]
-            if operation == "append":
+            if operation == OutputOperation.APPEND:
                 store.delta(run.assistant_message_id, text)
             else:
                 store.delta(run.assistant_message_id, text, operation=operation)
@@ -1771,23 +1730,17 @@ class RunManager:
         watch(run)
         # 최종 텍스트만 다음 대화에 전달한다. 구조화 Graph 결과를 문자열로 바꾸지 않는다.
         # 같은 본문은 재저장하지 않아 일반적인 단일 응답의 중복 쓰기를 피한다.
-        if (value.visibility == "user" and (value.text or value.data is None)
+        if (value.visibility == OutputVisibility.USER and (value.text or value.data is None)
                 and store.get(run.assistant_message_id).content != value.text):
-            store.delta(run.assistant_message_id, value.text, operation="replace")
+            store.delta(run.assistant_message_id, value.text, operation=OutputOperation.REPLACE)
         run.metadata["output"] = value.to_dict()
         self.repository.save(run)
 
     def _record_completion(self, run: Run, event: EngineEvent) -> None:
         if event.completion is None:
             raise ValueError("Completion event requires a result")
-        result = asdict(event.completion)
-        child(run.paths.state, result["id"])
-        entries = run.metadata.setdefault("completions", [])
-        for index, previous in enumerate(entries):
-            if previous["id"] == result["id"]:
-                entries[index] = result
-                break
-        else:
+        child(run.paths.state, event.completion.id)
+        if not CompletionRecords.contains(run.metadata, event.completion.id):
             policy = run.metadata["policies"].get("usage", {})
             project_entries = []
             auxiliary = []
@@ -1805,16 +1758,16 @@ class RunManager:
                 reader = getattr(self.repository, "completion_history", None)
                 project_entries = [entry for session in self.sessions.list(project, include_deleted=True)
                                    for entry in (reader(session) if reader else [e for r in self.repository.list(session)
-                                       for e in r.metadata.get("completions", [])])]
-            check_admission(run, result, event.completion.reserved_tokens, [*project_entries, *auxiliary],
+                                       for e in CompletionRecords.read(r.metadata)])]
+            check_admission(run, asdict(event.completion), event.completion.reserved_tokens, [*project_entries, *auxiliary],
                             [e for e in auxiliary if e.get("run_id") == run.id])
-            entries.append(result)
+        CompletionRecords.upsert(run.metadata, event.completion)
         self.repository.save(run)
 
     def _finish(self, runtime: SessionRuntime, run: Run, status: RunStatus,
                 error: Optional[str] = None, error_code: Optional[str] = None) -> list[RunInstruction]:
         # 변경 전 검증한다. 중복 종료로 시각/오류/Step을 덮거나 다음 Run의 Session을 해제하지 않는다.
-        validate_run_transition(run.status, status, reason="finish")
+        validate_run_transition(run.status, status, reason=RunTransition.FINISH)
         _RunOutcome(status, error, error_code)
         if run.session_id != runtime.session.id or run.id not in runtime.session.active_run_ids:
             raise ValueError("Run finalization requires the Session's current Run")
@@ -1838,12 +1791,12 @@ class RunManager:
         run.error_code = error_code
         run.ended_at = now()
         self.repository.save(run)
-        log_event(run.paths.logs, f"run.{status.value}", entity_id=run.id,
+        log_event(run.paths.logs, ProjectActivityEvent.run_event(status), entity_id=run.id,
                   status=status)
         runtime.session.active_run_ids.remove(run.id)
         runtime.session.status = SessionStatus.RUNNING if runtime.session.active_run_ids else SessionStatus.IDLE
         self.sessions._save_runtime(runtime.session)
-        activity_event(runtime.project, run, f"run.{status.value}", time=run.ended_at,
+        activity_event(runtime.project, run, ProjectActivityEvent.run_event(status), time=run.ended_at,
                        status=run.status, code=run.error_code)
         return changed
 
@@ -1869,7 +1822,7 @@ class RunManager:
                 outcome = _RunOutcome(RunStatus.FAILED, str(failure),
                                       stable_error_code(failure) or RunErrorCode.ENGINE_FAILED)
                 issue = Diagnostic.from_exception(failure, code=outcome.error_code,
-                    boundary="engine", source=ResourceRef("run", run.id, project_id=runtime.project.id,
+                    boundary="engine", source=ResourceRef(ResourceKind.RUN, run.id, project_id=runtime.project.id,
                                        session_id=runtime.session.id, run_id=run.id))
                 if issue.code != outcome.error_code:
                     issue = replace(issue, code=outcome.error_code,
@@ -2121,7 +2074,7 @@ class RunManager:
                             return False
                         if run.metadata.get("execution_started") is not False or self.steps.list(run) or run.id in session.active_run_ids:
                             raise ValueError("Pending cancellation requires proven unstarted execution")
-                        validate_run_transition(run.status, RunStatus.CANCELLED, reason="pending_cancel")
+                        validate_run_transition(run.status, RunStatus.CANCELLED, reason=RunTransition.PENDING_CANCEL)
                         run.status, run.ended_at, run.error_code = RunStatus.CANCELLED, now(), RunErrorCode.REQUEST_CANCELLED
                         if "steering" in run.metadata:
                             close_targets(run, RunErrorCode.REQUEST_CANCELLED)

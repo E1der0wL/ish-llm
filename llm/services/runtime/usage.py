@@ -1,5 +1,6 @@
 """호출 전 예약을 통한 누적 사용량 제한. 원본은 Run의 Completion 기록이며 프로젝트 합계 파일은 만들지 않는다."""
 
+from llm.core.policies import UsageErrorCode
 import asyncio
 from copy import deepcopy
 from types import SimpleNamespace
@@ -9,6 +10,7 @@ from datetime import datetime, timezone, timedelta
 
 from llm.policies import ExecutionLimitError
 from llm.core.models import now, new_id, Run, RunStatus, SessionStatus
+from llm.core.results import CompletionRecords
 from llm.components.usage import ModelUsageRecord, ModelUsageStatus
 from llm.providers.observations import ModelCall
 
@@ -53,16 +55,16 @@ def check_admission(run, result, reservation, project_entries, component_entries
     def check(entries, calls_key, tokens_key):
         maximum = policy.get(calls_key)
         if maximum is not None and len(entries) >= maximum:
-            raise ExecutionLimitError("usage_limit", f"{calls_key} exhausted")
+            raise ExecutionLimitError(UsageErrorCode.LIMIT, f"{calls_key} exhausted")
         maximum = policy.get(tokens_key)
         if maximum is not None:
             values = [amount(e) for e in entries]
             if reservation is None or any(v is None for v in values):
                 raise ExecutionLimitError("usage_unknown", "Unaccounted calls prevent quota admission")
             if sum(values) + reservation > maximum:
-                raise ExecutionLimitError("usage_limit", f"{tokens_key} exhausted")
+                raise ExecutionLimitError(UsageErrorCode.LIMIT, f"{tokens_key} exhausted")
     if has_limit(policy):
-        check([*run.metadata.get("completions", []), *component_entries], "max_calls", "max_tokens")
+        check([*CompletionRecords.read(run.metadata), *component_entries], "max_calls", "max_tokens")
     if has_limit(policy, project=True):
         check(period_entries(project_entries, policy), "project_max_calls", "project_max_tokens")
 
@@ -160,7 +162,7 @@ class ComponentUsage:
         if project_limited:
             reader = getattr(repository, "completion_history", None)
             entries = [entry for session in self.sessions.list(project, include_deleted=True)
-                       for entry in (reader(session) if reader else [e for r in repository.list(session) for e in r.metadata.get("completions", [])])]
+                       for entry in (reader(session) if reader else [e for r in repository.list(session) for e in CompletionRecords.read(r.metadata)])]
         if run is None:
             policies = deepcopy(policies)
             policies.get("usage", {}).update(max_calls=None, max_tokens=None)

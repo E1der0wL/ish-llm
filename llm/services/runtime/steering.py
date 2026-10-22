@@ -1,5 +1,9 @@
 """추가 지시의 메시지/체크포인트 연결. 호출자는 저장 잠금과 트랜잭션을 소유한다."""
 
+from llm.core.checkpoints import CheckpointOperation
+
+from llm.core.continuations import ResumeRecord
+
 from copy import deepcopy
 
 from llm.core.models import Message, MessageRole, MessageStatus, now, new_id
@@ -74,7 +78,7 @@ def instruction_targets(run) -> list[SteeringTarget]:
     if "steering" not in run.metadata:
         return []
     # 원본 검증 전인 재개 시도는 아직 채널이 없다. 실패한 시도도 이 상태를 보존한다.
-    if "resume" in run.metadata and channel == {"accepting": False}:
+    if ResumeRecord.KEY in run.metadata and channel == {"accepting": False}:
         return []
     if not isinstance(channel, dict) or not isinstance(channel.get("targets"), dict):
         raise InstructionDataError("run targets")
@@ -305,7 +309,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         ToolExecutionScope.validate_usage([tool_usage])
         record[ToolExecutionScope.CHECKPOINT_FIELD] = deepcopy(tool_usage)
         repository.record_checkpoint(run, EngineEvent(EngineEventType.CHECKPOINT, metadata={
-            "name": name, "operation": "record", "key": key, "value": record}))
+            "name": name, "operation": CheckpointOperation.RECORD, "key": key, "value": record}))
         return tuple(messages), []
     if operation == "apply":
         record = dict(instruction_records(checkpoint))[key]

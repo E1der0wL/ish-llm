@@ -8,6 +8,8 @@ from .model import OutputBlock
 
 
 class OutputParser:
+    MAX_BLOCK_CHARS = 65536
+
     def __init__(self):
         self._parser = MarkdownIt("commonmark").enable("table")
         self.parsed_bytes = 0
@@ -23,13 +25,13 @@ class OutputParser:
                 continue
             left, right = (offsets[index] for index in token.map)
             if left > cursor:
-                yield OutputBlock("markdown", text[cursor:left], start + cursor)
-            kind = "table" if token.type == "table_open" else "code"
+                yield OutputBlock(OutputBlock.MARKDOWN, text[cursor:left], start + cursor)
+            kind = OutputBlock.TABLE if token.type == "table_open" else OutputBlock.CODE
             raw = text[left:right]
             yield OutputBlock(kind, raw, start + left, (("language", token.info.strip()),), raw)
             cursor = right
         if cursor < len(text):
-            yield OutputBlock("markdown", text[cursor:], start + cursor)
+            yield OutputBlock(OutputBlock.MARKDOWN, text[cursor:], start + cursor)
 
     def parse(self, text: str, *, final: bool = True) -> tuple[OutputBlock, ...]:
         self.parsed_bytes += len(text.encode("utf-8"))
@@ -50,19 +52,19 @@ class OutputParser:
                     fence = token
                 elif token[0] == fence[0] and len(token) >= len(fence) and not line[marker.end():].strip():
                     fence = None
-            tag = None if fence or marker else re.match(r"^ {0,3}<(hub-[a-z][a-z0-9-]*)(?=[\s/>])", line)
+            tag = None if fence or marker else re.match(r"^ {0,3}<(" + OutputBlock.TAG_PATTERN + r")(?=[\s/>])", line)
             if tag:
                 flush()
                 raw = line
                 # Only whole, standalone elements are interpreted. A finite
                 # input bound also keeps unfinished streamed tags inexpensive.
                 while (not re.search(r"(?:/>|</" + re.escape(tag[1]) + r">)\s*$", raw)
-                       and index + 1 < len(lines) and len(raw) < 65536):
+                       and index + 1 < len(lines) and len(raw) < self.MAX_BLOCK_CHARS):
                     index += 1
                     raw += lines[index]
-                kind, content, attrs = "literal", raw, ()
+                kind, content, attrs = OutputBlock.LITERAL, raw, ()
                 try:
-                    if len(raw) > 65536 or "<!" in raw:
+                    if len(raw) > self.MAX_BLOCK_CHARS or "<!" in raw:
                         raise ValueError("Unsupported XML declaration")
                     element = ElementTree.fromstring(raw.strip())
                     if element.tag != tag[1] or len(element):
@@ -70,7 +72,7 @@ class OutputParser:
                     kind, content, attrs = element.tag, element.text or "", tuple(element.attrib.items())
                 except (ElementTree.ParseError, ValueError):
                     if not final and index == len(lines) - 1 and not raw.rstrip().endswith(">"):
-                        kind, content = "pending", ""
+                        kind, content = OutputBlock.PENDING, ""
                 blocks.append(OutputBlock(kind, content, offset, attrs, raw))
                 offset += len(raw)
                 start = offset

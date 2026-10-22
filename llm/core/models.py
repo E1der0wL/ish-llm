@@ -8,9 +8,11 @@ from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from enum import StrEnum
 from uuid import uuid4
+from types import SimpleNamespace
 
 from .paths import ProjectPaths, RunPaths, StepPaths, SessionPaths
 from .policies import normalize_policies, describe_policies
+from llm.providers.codes import ProviderErrorCode
 
 if TYPE_CHECKING:
     from .results import EngineOutput
@@ -18,6 +20,13 @@ if TYPE_CHECKING:
 
 # Session 기반 경로·식별자를 사용하는 영속 도메인 형식. 이전 Task 형식은 자동 변환하지 않는다.
 DOMAIN_STORAGE_VERSION = 1
+
+
+def validate_domain_version(data):
+    """One exact current-format guard for domain Readers and Writers."""
+    if (not isinstance(data, dict) or type(data.get("storage_version")) is not int
+            or data["storage_version"] != DOMAIN_STORAGE_VERSION):
+        raise ValueError("Unsupported domain storage_version")
 
 # ---------------------------------------------------------------------------
 # 공통 ID와 UTC 시각 생성
@@ -40,6 +49,8 @@ def _stored_fields(model, data):
         raise ValueError(f"{model.__name__} record requires all current fields; "
                          f"missing={sorted(expected - data.keys())}, "
                          f"unexpected={sorted(data.keys() - expected)}")
+    if "storage_version" in expected:
+        validate_domain_version(data)
     for item in declarations:
         value = data[item.name]
         if item.type in (str, dict, bool) and not isinstance(value, item.type):
@@ -55,6 +66,43 @@ def _stored_fields(model, data):
 # ---------------------------------------------------------------------------
 # 영속 역할과 수명 주기 상태
 # ---------------------------------------------------------------------------
+
+class ConversationStorage(StrEnum):
+    """Project-owned storage selection; None preserves an injected factory."""
+
+    FILE = "file"
+    MEMORY = "memory"
+
+    @classmethod
+    def validate(cls, value, *, nullable=True):
+        if value is None and nullable:
+            return
+        if not isinstance(value, str) or value not in tuple(cls):
+            raise ValueError("Conversation storage must be 'file' or 'memory'")
+
+    @classmethod
+    def schema(cls):
+        return {"type": ["string", "null"], "enum": [member.value for member in cls] + [None],
+                "description": "null은 주입 저장소 전용. Session이 존재하면 변경할 수 없다."}
+
+
+class ResourceKind(StrEnum):
+    """Built-in domain reference kinds; Component reference kinds remain open."""
+
+    PROJECT = "project"
+    SESSION = "session"
+    RUN = "run"
+    STEP = "step"
+    MESSAGE = "message"
+
+
+class StepKind(StrEnum):
+    """Shared execution Step meanings; custom Engine kinds remain strings."""
+
+    LLM = "llm"
+    TOOL = "tool"
+    SHELL = "shell"
+
 
 class SessionStatus(StrEnum):
     IDLE = "idle"
@@ -89,6 +137,40 @@ class RunStatus(StrEnum):
     PAUSED = "paused"
 
 
+class RunErrorCode(StrEnum):
+    AGENT_REQUIRED = "agent_required"
+    ENGINE_REQUIRED = "engine_required"
+    ENGINE_NOT_REGISTERED = "engine_not_registered"
+    COMPONENT_NOT_REGISTERED = "component_not_registered"
+    CAPABILITY_FAILED = "capability_failed"
+    ENGINE_FAILED = "engine_failed"
+    PROVIDER_CAPACITY = ProviderErrorCode.CAPACITY.value
+    INTERRUPTED = "interrupted"
+    PROCESS_RESTART = "process_restart"
+    RESUME_REJECTED = "resume_rejected"
+    QUEUE_FULL = "queue_full"
+    POLICY_UNAVAILABLE = "policy_unavailable"
+    REQUEST_CANCELLED = "request_cancelled"
+    STEERING_UNAVAILABLE = "steering_unavailable"
+    RUN_TIMEOUT = "run_timeout"
+    TOOL_DENIED = "tool_denied"
+    TOOL_CONTRACT = "tool_contract"
+    TOOL_TIMEOUT = "tool_timeout"
+    TOOL_BUDGET_EXCEEDED = "tool_budget_exceeded"
+    CONTEXT_BUDGET_EXCEEDED = "context_budget_exceeded"
+    OPERATION_CONFLICT = "operation_conflict"
+    OPERATION_UNCERTAIN = "operation_uncertain"
+    SANDBOX_UNAVAILABLE = "sandbox_unavailable"
+    PROCESS_FAILED = "process_failed"
+
+
+class RunTransition(StrEnum):
+    START = "start"
+    PENDING_CANCEL = "pending_cancel"
+    FINISH = "finish"
+    RECOVERY = "recovery"
+
+
 def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: str | None = None) -> None:
     """Run 상태 변경의 순수 검증. 저장·시각 생성·다른 도메인 변경은 하지 않는다.
 
@@ -98,11 +180,11 @@ def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: st
     """
     current, target = RunStatus(current), RunStatus(target)
     transitions = {
-        "start": {(RunStatus.PENDING, RunStatus.RUNNING)},
-        "pending_cancel": {(RunStatus.PENDING, RunStatus.CANCELLED)},
-        "finish": {(RunStatus.RUNNING, status) for status in (
+        RunTransition.START: {(RunStatus.PENDING, RunStatus.RUNNING)},
+        RunTransition.PENDING_CANCEL: {(RunStatus.PENDING, RunStatus.CANCELLED)},
+        RunTransition.FINISH: {(RunStatus.RUNNING, status) for status in (
             RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.PAUSED)},
-        "recovery": {(status, RunStatus.INTERRUPTED) for status in (RunStatus.PENDING, RunStatus.RUNNING)},
+        RunTransition.RECOVERY: {(status, RunStatus.INTERRUPTED) for status in (RunStatus.PENDING, RunStatus.RUNNING)},
     }
     if reason is not None and reason not in transitions:
         raise ValueError(f"Unknown Run transition reason: {reason}")
@@ -119,6 +201,11 @@ class StepStatus(StrEnum):
     INTERRUPTED = "interrupted"
     CANCELLED = "cancelled"
     FAILED = "failed"
+
+
+class StepErrorCode(StrEnum):
+    FAILED = "step_failed"
+    TIMEOUT = "step_timeout"
 
 
 def validate_step_transition(current: StepStatus, target: StepStatus) -> None:
@@ -329,8 +416,7 @@ class Project:
 
     def validate_conversation_storage(self) -> None:
         """저장 방식은 설정 데이터와 구분되는 프로젝트 수명 주기 속성이다."""
-        if self.conversation_storage not in (None, "file", "memory"):
-            raise ValueError("Project conversation_storage must be 'file' or 'memory'")
+        ConversationStorage.validate(self.conversation_storage)
 
 
 # ---------------------------------------------------------------------------
@@ -422,11 +508,18 @@ class Run:
     error_code: Optional[str] = None
     storage_version: int = DOMAIN_STORAGE_VERSION
 
+    @staticmethod
+    def index_record(data):
+        """Read-only ordering projection; selected rows still use the complete Reader."""
+        return SimpleNamespace(id=data["id"], session_id=data["session_id"],
+                               status=RunStatus(data["status"]),
+                               started_at=data["started_at"], ended_at=data["ended_at"])
+
     @classmethod
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
         from llm.core.agents import AgentBinding
-        binding = AgentBinding.read(data["metadata"].get("agent_binding"))
+        binding = AgentBinding.from_metadata(data["metadata"])
         if data["agent_id"] != binding["agent_id"] or data["engine"] != binding["engine"]:
             raise ValueError("Run Agent identity must match its original binding")
         status = RunStatus(data["status"])
@@ -482,8 +575,8 @@ class Step:
         value = self.metadata.get("diagnostic")
         if value is not None:
             return Diagnostic.from_dict(value)
-        return Diagnostic("step_failed", self.error,
-            source=ResourceRef("step", self.id, step_id=self.id, run_id=self.run_id)) if self.error else None
+        return Diagnostic(StepErrorCode.FAILED, self.error,
+            source=ResourceRef(ResourceKind.STEP, self.id, step_id=self.id, run_id=self.run_id)) if self.error else None
 
     @property
     def output(self) -> Optional["EngineOutput"]:

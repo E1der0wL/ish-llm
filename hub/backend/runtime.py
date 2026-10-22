@@ -1,5 +1,7 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
 
+from llm.core.continuations import ResumeRecord
+
 from llm.core.models import MessageStatus, RunStatus
 from llm.core.configuration import UNSET
 import asyncio
@@ -221,7 +223,7 @@ class HubRuntime:
             try:
                 from .execution.turns import TurnIndex, edit_source
                 records = await source.aconversation()
-                revised = any(edit_source(m) or m.metadata.get("resume") for m in records)
+                revised = any(edit_source(m) or m.metadata.get(ResumeRecord.KEY) for m in records)
                 index = TurnIndex(records)
                 boundary = (next(i for i, turn in enumerate(index.turns) if turn.id == through_message_id)
                             if revised and through_message_id else None)

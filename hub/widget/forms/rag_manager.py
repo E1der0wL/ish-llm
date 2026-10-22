@@ -1,5 +1,6 @@
 """RAG document editing plus resumable registration jobs in one shared popup."""
 
+from llm.core.checkpoints import CheckpointErrorCode
 from llm.llm import RAGJobStatus
 import asyncio
 from pathlib import Path
@@ -136,7 +137,7 @@ class RAGManager(RecordManager):
         if item is None or item.get("retryable") is False:
             self.status = self.view.t("rag_retry_unavailable")
             if item and item.get("resume_blockers"):
-                error = ErrorInfo(code="checkpoint_protected", operation="rag.resume",
+                error = ErrorInfo(code=CheckpointErrorCode.PROTECTED, operation="rag.resume",
                                   details={"blockers": item["resume_blockers"]})
                 self.view.operation_diagnostics.record(self.view.project_id, error)
                 self.status = operation_notice(error, self.view.t)

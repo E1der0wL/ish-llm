@@ -1,5 +1,7 @@
 """Session 대화의 공통 API와 파일/메모리 저장소. 기본 JSONL은 fsync로 복구하고 메모리는 명시적으로 선택한다."""
 
+from llm.core.results import OutputOperation
+
 from abc import ABC, abstractmethod
 from typing import Callable, Optional, Union
 import json
@@ -11,7 +13,7 @@ from collections import Counter, OrderedDict
 from pathlib import Path
 from io import StringIO
 
-from llm.core.models import Message, MessageRole, MessageStatus, Session, new_id
+from llm.core.models import ConversationStorage, Message, MessageRole, MessageStatus, Session, new_id
 from llm.core.paths import SessionPaths
 from llm.services.infrastructure.logging import log_event
 from llm.services.infrastructure.storage import record, sync_directory, append_bytes, prepare_replace, temporary_file
@@ -74,11 +76,11 @@ class Conversation(ABC):
             if kind == "message.delta":
                 if not isinstance(event["text"], str):
                     raise TypeError("Message delta text must be a string")
-                operation = event.get("operation", "append")
+                operation = event.get("operation", OutputOperation.APPEND)
                 buffer = self._text_buffers.get(message.id)
-                if buffer is None or operation == "replace":
+                if buffer is None or operation == OutputOperation.REPLACE:
                     buffer = StringIO()
-                    if operation != "replace":
+                    if operation != OutputOperation.REPLACE:
                         buffer.write(message.content)
                     self._text_buffers[message.id] = buffer
                     message.content = ""
@@ -129,9 +131,9 @@ class Conversation(ABC):
         return message
 
     @_serialized
-    def delta(self, message_id: str, text: str, *, operation: str = "append") -> None:
+    def delta(self, message_id: str, text: str, *, operation: str = OutputOperation.APPEND.value) -> None:
         self._refresh()
-        if operation not in ("append", "replace"):
+        if operation not in tuple(OutputOperation):
             raise ValueError("Message delta operation must be append or replace")
         if self._messages[message_id].status != MessageStatus.STREAMING:
             raise ValueError("Deltas require a streaming message")
@@ -147,7 +149,7 @@ class Conversation(ABC):
         if not isinstance(text, str):
             raise TypeError("Reconciled message content must be text")
         self._append({"type": "message.delta", "id": message_id, "text": text,
-                      "operation": "replace", "reason": "output_reconciliation"})
+                      "operation": OutputOperation.REPLACE, "reason": "output_reconciliation"})
 
     @_serialized
     def deltas(self, message_id: str, values) -> None:
@@ -157,12 +159,12 @@ class Conversation(ABC):
             raise ValueError("Deltas require a streaming message")
         events = []
         for text, operation in values:
-            if not isinstance(text, str) or operation not in ("append", "replace"):
+            if not isinstance(text, str) or operation not in tuple(OutputOperation):
                 raise ValueError("Invalid message delta")
             events.append({"type": "message.delta", "id": message_id, "text": text, "operation": operation})
         if type(self).delta is not Conversation.delta or "delta" in self.__dict__:
             for event in events:
-                if event["operation"] == "append":
+                if event["operation"] == OutputOperation.APPEND:
                     self.delta(message_id, event["text"])
                 else:
                     self.delta(message_id, event["text"], operation=event["operation"])
@@ -397,16 +399,17 @@ class ProjectConversations:
     임의의 파일/메모리 구현으로 대체하지 않으며, 수명도 호출자가 관리한다.
     """
 
+    DEFAULT_FILE_CACHE_SIZE = 32
+
     def __init__(self, selection: Callable[[Session], Optional[str]], *,
                  default: Union[str, Callable[[Session], Conversation]] = conversation_store,
-                 file_cache_size: int = 32) -> None:
+                 file_cache_size: int = DEFAULT_FILE_CACHE_SIZE) -> None:
         if type(file_cache_size) is not int or file_cache_size < 0:
             raise ValueError("file_cache_size must be nonnegative")
         if default is conversation_store:
-            default = "file"
+            default = ConversationStorage.FILE.value
         if isinstance(default, str):
-            if default not in ("file", "memory"):
-                raise ValueError("Conversation storage must be 'file', 'memory', or a factory")
+            ConversationStorage.validate(default, nullable=False)
             self.default_storage: Optional[str] = default
             self._custom = None
         elif callable(default):
@@ -434,17 +437,16 @@ class ProjectConversations:
 
     def resolve(self, storage: Optional[str]) -> Optional[str]:
         """저장소를 열기 전에 선택과 주입된 팩토리의 충돌을 검증한다."""
-        if storage not in (None, "file", "memory"):
-            raise ValueError("Project conversation_storage must be 'file' or 'memory'")
+        ConversationStorage.validate(storage)
         if storage is not None and self._custom is not None:
             raise ValueError("Project conversation_storage conflicts with the custom conversation factory")
         return storage if storage is not None else self.default_storage
 
     def __call__(self, session: Session) -> Conversation:
         storage = self.resolve(self._selection(session))
-        if storage == "memory":
+        if storage == ConversationStorage.MEMORY:
             return self._memory(session)
-        if storage == "file":
+        if storage == ConversationStorage.FILE:
             return self._file(session)
         return self._custom(session)
 

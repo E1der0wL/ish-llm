@@ -1,5 +1,7 @@
 """닫힌 Workflow 구조를 검증·저장한다. 실행과 handler별 설정 검증은 GraphEngine의 책임이다."""
 
+from llm.components.workflows.graph import ControlNodeType
+
 from pathlib import Path
 from dataclasses import dataclass
 from llm.core.models import Project
@@ -41,9 +43,9 @@ class WorkflowComponent(DefinitionComponent):
         def selected(graph):
             for node in graph["nodes"].values():
                 kind = node["type"]
-                if kind == "loop":
+                if kind == ControlNodeType.LOOP:
                     yield from selected(node["body"])
-                elif kind not in ("branch", "parallel", "join", "end", "workflow"):
+                elif kind not in (ControlNodeType.BRANCH, ControlNodeType.PARALLEL, ControlNodeType.JOIN, ControlNodeType.END, ControlNodeType.WORKFLOW):
                     if kind not in handlers:
                         raise ValueError("Agent may be referenced; Workflow handler owner is unavailable")
                     for handler in handlers[kind]:

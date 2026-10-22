@@ -1,5 +1,7 @@
 """Bounded, read-only projection of llm's existing provider diagnostic files."""
 
+from llm.core.contracts import ActivityEventType
+
 from collections import deque
 import json
 from pathlib import Path
@@ -64,11 +66,11 @@ def associate_provider_logs(activity, provider):
     result = [dict(row) for row in activity]
     targets = {}
     for row in result:
-        if row["event"] not in ("step.failed", "run.failed"):
+        if row["event"] not in (ActivityEventType.STEP_FAILED, ActivityEventType.RUN_FAILED):
             continue
         source = row["source"]
         key = source.get("session_id"), source.get("run_id")
-        if all(key) and (key not in targets or row["event"] == "run.failed"):
+        if all(key) and (key not in targets or row["event"] == ActivityEventType.RUN_FAILED):
             targets[key] = row
     remaining = []
     for row in provider:

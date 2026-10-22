@@ -1,5 +1,7 @@
 """External JSON editing of drafts; persistence stays with SettingsDrafts."""
 
+from llm.services.schema import ProjectConfiguration
+
 from copy import deepcopy
 import json
 import subprocess
@@ -57,7 +59,7 @@ class SettingsJsonEditor:
             path = ("config", "parameters", "engines", TITLE_ENGINE)
             if at_path(values, path) is not MISSING:
                 raise ValueError(self.screen.t("settings_host_locked"))
-            schema = page.record["schema"]
+            schema = ProjectConfiguration.view(page.record).schema
         else:
             schema = page.form.schema
         try:
@@ -77,9 +79,7 @@ class SettingsJsonEditor:
                 if not same_json(at_path(before, path), at_path(values, path)):
                     raise ValueError(f"{'.'.join(path)}: {self.screen.t('settings_host_locked')}")
         if isinstance(page, ProjectPage):
-            record = deepcopy(page.record)
-            record["values"] = values
-            record["project"]["config"] = deepcopy(values["config"])
+            record = ProjectConfiguration.with_values(page.record, values)
             candidate = ProjectPage(self.screen, record, suggest_defaults=False)
             candidate.record = page.record
             candidate.set_section(page.section if page.section in (

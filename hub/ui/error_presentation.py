@@ -1,26 +1,40 @@
 """Localized error views. Presentation never classifies or decides recovery."""
 
+from llm.core.contracts import ErrorReason
+from ..backend.execution.provider_recovery import RecoveryState
+
+from llm.components.memory import MemoryConflictError
+
+from llm.core.plans import PlanBlockerCode
+
+from hub.errors.operations import OperationCode
+
+from llm.core.checkpoints import CheckpointErrorCode
+from llm.providers.streaming import CompletionErrorCode
+from llm.core.models import RunErrorCode
+from llm.core.models import StepErrorCode
 from ..errors.adapters import from_exception
 from ..errors.contracts import ErrorInfo
 from llm.core.model_protocol import StopReason
+from llm.core.tool_codes import ToolErrorCode
 
 
 _GUIDANCE = {reason: "failure_" + reason for reason in (
-    "unknown", "rate_limit", "unavailable", "authentication", "permission", "timeout", "connection",
-    "request", "context", "budget", "file_missing", "empty", "completion_invalid", "completion_length",
-    "completion_filtered", "completion_incomplete", "completion_output_limit", "completion_tool_limit",
-    "completion_argument_limit", "step_timeout", "request_size", "dependency", "command", "tool_failed",
-    "validation", "disconnected", "tool_arguments", "tool_contract", "lifecycle", "sandbox",
-    "operation_conflict", "operation_uncertain",
+    ErrorReason.UNKNOWN, ErrorReason.RATE_LIMIT, ErrorReason.UNAVAILABLE, ErrorReason.AUTHENTICATION, ErrorReason.PERMISSION, ErrorReason.TIMEOUT, ErrorReason.CONNECTION,
+    ErrorReason.REQUEST, ErrorReason.CONTEXT, ErrorReason.BUDGET, ErrorReason.FILE_MISSING, ErrorReason.EMPTY, ErrorReason.COMPLETION_INVALID, ErrorReason.COMPLETION_LENGTH,
+    ErrorReason.COMPLETION_FILTERED, ErrorReason.COMPLETION_INCOMPLETE, ErrorReason.COMPLETION_OUTPUT_LIMIT, ErrorReason.COMPLETION_TOOL_LIMIT,
+    ErrorReason.COMPLETION_ARGUMENT_LIMIT, ErrorReason.STEP_TIMEOUT, ErrorReason.REQUEST_SIZE, ErrorReason.DEPENDENCY, ErrorReason.COMMAND, ErrorReason.TOOL_FAILED,
+    ErrorReason.VALIDATION, ErrorReason.DISCONNECTED, ErrorReason.TOOL_ARGUMENTS, ErrorReason.TOOL_CONTRACT, ErrorReason.LIFECYCLE, ErrorReason.SANDBOX,
+    ErrorReason.OPERATION_CONFLICT, ErrorReason.OPERATION_UNCERTAIN,
 )}
 _GUIDANCE.update({
-    "authorization": "failure_permission", "approval": "failure_permission", "response": "failure_empty",
-    "parameter": "failure_request", "incomplete": "failure_completion_incomplete", "output": "failure_completion_output_limit",
-    "tools": "failure_completion_tool_limit", "arguments": "failure_completion_argument_limit", "usage": "failure_budget",
-    "revision": "failure_checkpoint_conflict", "checkpoint": "failure_checkpoint_protected",
+    ErrorReason.AUTHORIZATION: "failure_permission", ErrorReason.APPROVAL: "failure_permission", ErrorReason.RESPONSE: "failure_empty",
+    ErrorReason.PARAMETER: "failure_request", ErrorReason.INCOMPLETE: "failure_completion_incomplete", ErrorReason.OUTPUT: "failure_completion_output_limit",
+    ErrorReason.TOOLS: "failure_completion_tool_limit", ErrorReason.ARGUMENTS: "failure_completion_argument_limit", ErrorReason.USAGE: "failure_budget",
+    ErrorReason.REVISION: "failure_checkpoint_conflict", ErrorReason.CHECKPOINT: "failure_checkpoint_protected",
 })
-_OUTCOMES = frozenset(("no_correction", "summary_incomplete", "not_reduced", "invalid_analysis",
-                       "analysis_failed", "exhausted", "rejected"))
+_OUTCOMES = frozenset((RecoveryState.NO_CORRECTION, RecoveryState.SUMMARY_INCOMPLETE, RecoveryState.NOT_REDUCED, RecoveryState.INVALID_ANALYSIS,
+                       RecoveryState.ANALYSIS_FAILED, RecoveryState.EXHAUSTED, RecoveryState.REJECTED))
 
 
 def plain(text: str, maximum: int = 2000) -> str:
@@ -36,25 +50,25 @@ def error_text(error: ErrorInfo | Exception | str) -> str:
 
 
 _OPERATION_GUIDANCE = {
-    "hub_operation_busy": "operation_busy",
-    "hub_operation_changed": "operation_changed",
-    "hub_not_resumable": "operation_not_resumable",
-    "hub_existing_rag_job": "operation_existing_rag_job",
-    "hub_edit_unavailable": "history_edit_unavailable",
-    "checkpoint_conflict": "operation_changed",
-    "memory_conflict": "operation_changed",
-    "interaction_required": "operation_interaction",
-    "active_run": "operation_busy", "active_worker": "operation_busy",
-    "checkpoint_configuration": "operation_configuration",
-    "checkpoint_corrupt": "operation_checkpoint_unavailable",
-    "checkpoint_missing": "operation_checkpoint_unavailable",
-    "checkpoint_deleted": "operation_checkpoint_unavailable",
-    "input_unavailable": "operation_checkpoint_unavailable",
-    "engine_unavailable": "operation_engine",
-    "restart_reserved": "operation_already_resumed",
-    "restart_unproven": "operation_restart_unproven",
-    "not_resumable": "operation_not_resumable",
-    "resume_required": "operation_abandon_required",
+    OperationCode.BUSY: "operation_busy",
+    OperationCode.CHANGED: "operation_changed",
+    OperationCode.NOT_RESUMABLE: "operation_not_resumable",
+    OperationCode.EXISTING_RAG_JOB: "operation_existing_rag_job",
+    OperationCode.EDIT_UNAVAILABLE: "history_edit_unavailable",
+    CheckpointErrorCode.CONFLICT: "operation_changed",
+    MemoryConflictError.code: "operation_changed",
+    PlanBlockerCode.INTERACTION_REQUIRED: "operation_interaction",
+    PlanBlockerCode.ACTIVE_RUN: "operation_busy", PlanBlockerCode.ACTIVE_WORKER: "operation_busy",
+    CheckpointErrorCode.CONFIGURATION: "operation_configuration",
+    CheckpointErrorCode.CORRUPT: "operation_checkpoint_unavailable",
+    CheckpointErrorCode.MISSING: "operation_checkpoint_unavailable",
+    CheckpointErrorCode.DELETED: "operation_checkpoint_unavailable",
+    PlanBlockerCode.INPUT_UNAVAILABLE: "operation_checkpoint_unavailable",
+    PlanBlockerCode.ENGINE_UNAVAILABLE: "operation_engine",
+    PlanBlockerCode.RESTART_RESERVED: "operation_already_resumed",
+    PlanBlockerCode.RESTART_UNPROVEN: "operation_restart_unproven",
+    PlanBlockerCode.NOT_RESUMABLE: "operation_not_resumable",
+    PlanBlockerCode.RESUME_REQUIRED: "operation_abandon_required",
 }
 
 
@@ -70,26 +84,26 @@ def operation_notice(error, t):
     keys = [_OPERATION_GUIDANCE[c] for c in codes if c in _OPERATION_GUIDANCE]
     if keys:
         return "\n".join(t(key) for key in dict.fromkeys(keys))
-    if value.code == "checkpoint_protected":
+    if value.code == CheckpointErrorCode.PROTECTED:
         return t("operation_not_resumable")
-    if value.reason == "validation":
+    if value.reason == ErrorReason.VALIDATION:
         return error_text(value)
-    if value.reason in _GUIDANCE and value.reason != "unknown":
+    if value.reason in _GUIDANCE and value.reason != ErrorReason.UNKNOWN:
         return t(_GUIDANCE[value.reason])
     return t("operation_failed")
 
 
 _CODE_GUIDANCE = {
-    "completion_invalid_response": "failure_completion_invalid", "tool_invocation_invalid": "failure_tool_arguments",
-    "tool_contract": "failure_tool_contract", "sandbox_unavailable": "failure_sandbox",
-    "operation_uncertain": "failure_operation_uncertain", "operation_conflict": "failure_operation_conflict",
-    "tool_failed": "failure_tool_failed", "step_timeout": "failure_step_timeout",
+    CompletionErrorCode.INVALID_RESPONSE: "failure_completion_invalid", ToolErrorCode.INVOCATION_INVALID: "failure_tool_arguments",
+    RunErrorCode.TOOL_CONTRACT: "failure_tool_contract", RunErrorCode.SANDBOX_UNAVAILABLE: "failure_sandbox",
+    RunErrorCode.OPERATION_UNCERTAIN: "failure_operation_uncertain", RunErrorCode.OPERATION_CONFLICT: "failure_operation_conflict",
+    ToolErrorCode.FAILED: "failure_tool_failed", StepErrorCode.TIMEOUT: "failure_step_timeout",
 }
 
 
 def failure_text(error: ErrorInfo, t) -> str:
     key = _GUIDANCE.get(error.reason, "failure_unknown")
-    if error.code == "completion_incomplete":
+    if error.code == CompletionErrorCode.INCOMPLETE:
         key = {StopReason.OUTPUT_LIMIT: "failure_completion_length", StopReason.BLOCKED: "failure_completion_filtered"}.get(error.termination, key)
     elif error.code in _CODE_GUIDANCE:
         key = _CODE_GUIDANCE[error.code]

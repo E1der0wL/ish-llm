@@ -1,5 +1,7 @@
 """Settings operations on the backend loop, through public LLM APIs only."""
 
+from llm.services.schema import ProjectConfigForm, ProjectConfiguration
+
 from copy import deepcopy
 from dataclasses import asdict, replace
 
@@ -18,16 +20,6 @@ class SettingsService:
 
     def _schema(self):
         schema = self.runtime.backend.describe_project_config()
-        config = schema["properties"]["config"]["properties"]
-        # Provider arguments are open JSON in llm. Describe this common option
-        # for Hub's form without modifying the backend schema or inventing a default.
-        for engine in config["parameters"]["properties"]["engines"]["properties"].values():
-            completion = engine.get("properties", {}).get("config", {}).get("properties", {}).get("completion", {}).get("properties")
-            if completion is not None:
-                completion.setdefault("reasoning_effort", {
-                    "type": ["string", "null"], "minLength": 1,
-                    "description": self.runtime.t("settings_reasoning_effort"),
-                })
         schema["properties"]["conversation_storage"]["description"] = self.runtime.t("settings_storage_description")
         from ..interactions.approval import RISK_SCHEME
         schema["x-hub-risk-scheme"] = RISK_SCHEME
@@ -40,11 +32,13 @@ class SettingsService:
         from llm.core.models import ProjectConfig
         ProjectConfig.validate_json(values)
         Draft202012Validator(self._schema()).validate(values)
-        if not values.get("title", "").strip():
+        form = ProjectConfigForm.from_dict(values)
+        if not form.title.strip():
             raise ValueError(self.runtime.t("settings_title_required"))
         from ..execution.engine_selection import selected_engines
-        if not selected_engines(ProjectConfig.from_dict(values["config"]), self.runtime.backend.engines.names()):
+        if not selected_engines(ProjectConfig.from_dict(form.config), self.runtime.backend.engines.names()):
             raise ValueError(self.runtime.t("settings_engine_required"))
+        return form
 
     async def _project(self, identifier):
         return await self.runtime.backend.projects.aload(identifier)
@@ -97,20 +91,19 @@ class SettingsService:
         project = await self._project(identifier)
         result = await project.adescribe_config()
         # Keep the full registered catalog available for activation controls.
-        result["schema"] = self._schema()
-        return result
+        return ProjectConfiguration.with_schema(result, self._schema())
 
     async def save_project(self, identifier, values, version, previous_components=None):
-        self._validate(values)
+        form = self._validate(values)
         project = await self._project(identifier)
         current = await project.aget_data()
         previous = list(current.components) if previous_components is None else previous_components
         if list(current.components) != previous:
             raise ValueError(self.runtime.t("settings_components_changed"))
-        candidate = deepcopy(values["config"])
-        await project.asave(title=values["title"], config=candidate,
-                            conversation_storage=values["conversation_storage"], expected_version=version,
-                            components=values["components"], expected_components=previous)
+        candidate = deepcopy(form.config)
+        await project.asave(title=form.title, config=candidate,
+                            conversation_storage=form.conversation_storage, expected_version=version,
+                            components=form.components, expected_components=previous)
         return await self.load_project(identifier)
 
     async def rename_project(self, identifier, title):
@@ -123,9 +116,9 @@ class SettingsService:
     async def create_project(self, values):
         from .defaults import creation_values, create_project
         values = creation_values(self.runtime.backend, values)
-        self._validate(values)
-        project = await create_project(self.runtime.backend, values["title"], config=values["config"],
-            components=values["components"], conversation_storage=values["conversation_storage"],
+        form = self._validate(values)
+        project = await create_project(self.runtime.backend, form.title, config=form.config,
+            components=form.components, conversation_storage=form.conversation_storage,
             agent_id=self.runtime.config.agent_id, agent_definition=self.runtime.config.agent_definition)
         return await self.load_project(project.id)
 
@@ -204,7 +197,7 @@ class SettingsService:
                 if operation == "create_project":
                     from .defaults import creation_values
                     values = creation_values(self.runtime.backend, values)
-                self._validate(values)
+                form = self._validate(values)
             else:
                 raise ValueError("Unsupported settings save operation")
         results = []

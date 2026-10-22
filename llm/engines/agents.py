@@ -1,5 +1,12 @@
 """Agent 업무 정의를 등록 엔진에 연결한다. 모든 실행은 부모 Run 안에서 관찰된다."""
 
+from llm.core.checkpoints import CheckpointOperation
+
+from llm.core.continuations import ResumeRecord
+
+from llm.core.models import RunErrorCode
+from llm.core.results import OutputVisibility
+
 import asyncio
 import json
 from contextlib import AsyncExitStack, aclosing, nullcontext
@@ -50,8 +57,8 @@ class AgentExecution:
     @staticmethod
     def referenced_agents(record):
         """Read only execution-owned selections, never arbitrary application metadata."""
-        from llm.core.checkpoints import unwrap_record
-        while record.get("node_type") == "engine_record":
+        from llm.core.checkpoints import CheckpointEnvelope, unwrap_record
+        while CheckpointEnvelope.is_record(record):
             record, _ = unwrap_record(record)
         selections = []
         if "agent_binding" in record:
@@ -121,7 +128,7 @@ class AgentExecution:
         parent = context.tool_scope
         if parent is not None and parent.allowed_tools is not None:
             if not set([*names, *aliases]).issubset(parent.allowed_tools):
-                raise ExecutionLimitError("tool_denied", "Child Tool selection widens its parent")
+                raise ExecutionLimitError(RunErrorCode.TOOL_DENIED, "Child Tool selection widens its parent")
         return tools, {"skills": skills, "skill_revisions": {name: revision_token(value) for name, value in skills.items()},
                        "prompt": prompt, "prompt_revision": revision_token(prompt) if prompt is not None else None,
                        "mcp": mcp, "rag": bool(resources.get("rag"))}
@@ -240,7 +247,7 @@ class AgentExecution:
     @classmethod
     def _checkpoint_usage(cls, records, owner, name):
         """선택한 Agent의 실행 기록만 해석하고 필수 사용량을 검증한다."""
-        from llm.core.checkpoints import unwrap_record
+        from llm.core.checkpoints import CheckpointEnvelope, unwrap_record
         from llm.core.steering import validate_instruction_record
 
         values = []
@@ -293,7 +300,7 @@ class AgentExecution:
         inputs = node.inputs if node.inputs is not None else node.state
         step_id = new_id()
         context = replace(node.context, state={"agent": deepcopy(binding)},
-                          output_step_id=step_id, output_visibility="internal")
+                          output_step_id=step_id, output_visibility=OutputVisibility.INTERNAL)
         if context.steering is not None:
             context = replace(context, steering=context.steering.child(target_id=step_id,
                 scope=node.checkpoint_key, engine=binding["engine"], mode=steering_mode(engine),
@@ -319,7 +326,7 @@ class AgentExecution:
             await node.emit(BaseEngine.step_failed_event(step_id, error))
             raise
         await node.emit(BaseEngine.step_completed_event(context, step_id,
-            EngineOutput(data=output, visibility="internal")))
+            EngineOutput(data=output, visibility=OutputVisibility.INTERNAL)))
         return {"text": "", "data": output}
 
     async def __call__(self, node):
@@ -361,8 +368,8 @@ class AgentExecution:
                     for name in discover({**node.context.capabilities, "tools": tools}):
                         if name in node.context.capabilities and name != "tools":
                             capabilities[name] = node.context.capabilities[name]
-                visibility = ("user" if node.definition.get("emit_text", False)
-                              and node.context.output_visibility == "user" else "internal")
+                visibility = (OutputVisibility.USER if node.definition.get("emit_text", False)
+                              and node.context.output_visibility == OutputVisibility.USER else OutputVisibility.INTERNAL)
                 context = replace(node.context, messages=(message,), tools=tools,
                                   state={"agent": deepcopy(binding)}, capabilities=capabilities,
                                   checkpoint=None, tool_scope=scope,
@@ -437,8 +444,8 @@ class AgentExecution:
                     raise ValueError("Agent requires at least one successfully completed Tool")
                 if engine_output is None:
                     raise ValueError("Agent engine must emit an EngineOutput")
-                if engine_output is not None and engine_output.visibility == "internal":
-                    visibility = "internal"
+                if engine_output is not None and engine_output.visibility == OutputVisibility.INTERNAL:
+                    visibility = OutputVisibility.INTERNAL
                 result = {"text": engine_output.text if engine_output is not None else ""}
                 if engine_output.data is not None:
                     result["data"] = engine_output.data
@@ -509,8 +516,7 @@ class AgentInvocation:
             "agent_id": self.binding["agent_id"], "revision": self.binding["revision"],
             "engine": self.binding["engine"], "mode": self.mode.value,
             "configuration": configuration, "resources": deepcopy(self.resources),
-            "tools": [tool.to_dict() for tool in context.tools.definitions()],
-            "tool_contracts": context.tools.contracts(), "tool_policy": context.tool_scope.binding(),
+            **context.tools.execution_binding(context.tool_scope.binding()),
             "execution": revision_token({"value": execution(context)}) if callable(execution) else None,
         }
         Component.serialize(self.runtime_binding)
@@ -536,9 +542,9 @@ class AgentInvocation:
             if self.resources is not None:
                 await self.selection.connect_resources(self.resources, context, context.tools, stack)
             if self.profile.get("resources", {}).get("mcp") and context.checkpoint is not None:
-                descriptor = context.run.metadata["resume"]
+                descriptor = context.run.metadata[ResumeRecord.KEY]
                 self.engine.validate_resume(context.checkpoint, context=context,
-                    retry_nodes=descriptor["retry_nodes"], decisions=descriptor["decisions"])
+                    retry_nodes=descriptor[ResumeRecord.RETRY_NODES], decisions=descriptor[ResumeRecord.DECISIONS])
             stream = self.engine.execute(context)
             async with aclosing(stream) if callable(getattr(stream, "aclose", None)) else nullcontext(stream):
                 async for event in stream:
@@ -619,7 +625,7 @@ class AgentDelegation:
             value = {"node_type": "agent_container", "status": CheckpointStatus.STARTED, "container": True,
                 "requires_retry": False, "agent_binding": binding, AgentExecution.USAGE_FIELD: {owner: usage}}
             await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": checkpoint_name,
-                "operation": "record", "key": owner, "value": value}))
+                "operation": CheckpointOperation.RECORD, "key": owner, "value": value}))
 
         async def invoke_graph(engine, child, inputs, forward):
             bridge = EngineCheckpointScope(owner, engine.checkpoint_name, records, parent_name=checkpoint_name)

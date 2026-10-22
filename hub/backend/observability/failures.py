@@ -1,5 +1,12 @@
 """Read the owning failed Step into Hub's error contract; no recovery or UI."""
 
+from llm.core.contracts import DiagnosticCode
+
+from llm.core.models import StepErrorCode
+
+from llm.core.models import StepKind
+
+from llm.core.models import RunErrorCode
 from llm.core.models import RunStatus, StepStatus
 from collections import OrderedDict
 
@@ -10,7 +17,7 @@ from ...errors.contracts import ErrorOrigin
 
 def _step_evidence(steps, code, project_id, session_id, run_id):
     """Read the owning failed Step; never select an earlier recovered failure."""
-    generic = ("", "engine_failed", "step_failed", "execution_failed")
+    generic = ("", RunErrorCode.ENGINE_FAILED, StepErrorCode.FAILED, DiagnosticCode.EXECUTION_FAILED)
     matching = [step for step in steps if code not in generic and str(step.status) == StepStatus.FAILED
                 and step.diagnostic is not None and step.diagnostic.code == code]
     # A Graph parent may fail after a child completed or a sibling was cancelled.
@@ -31,7 +38,7 @@ def _step_evidence(steps, code, project_id, session_id, run_id):
         return None
     code = diagnostic.code if diagnostic.code not in generic else code
     origin = (ErrorOrigin.PROVIDER if code.startswith("provider_") else
-              ErrorOrigin.TOOL if final.kind in ("tool", "shell") else ErrorOrigin.BACKEND)
+              ErrorOrigin.TOOL if final.kind in (StepKind.TOOL, StepKind.SHELL) else ErrorOrigin.BACKEND)
     return from_diagnostic(diagnostic, origin=origin,
         source={"project_id": project_id, "session_id": session_id, "run_id": run_id, "step_id": final.id})
 
@@ -62,7 +69,7 @@ class FailureDiagnostics:
                 diagnosis = _step_evidence(steps, code, project_id, session_id, rid)
                 if diagnosis is None:
                     result = await handle.aresult()
-                    diagnosis = from_diagnostic(result.diagnostic or Diagnostic(code or "execution_failed", run.error or ""),
+                    diagnosis = from_diagnostic(result.diagnostic or Diagnostic(code or DiagnosticCode.EXECUTION_FAILED, run.error or ""),
                         origin=ErrorOrigin.PROVIDER if code.startswith("provider_") else ErrorOrigin.BACKEND,
                         source={"project_id": project_id, "session_id": session_id, "run_id": rid})
                 self.cache[project_id, session_id, rid] = diagnosis

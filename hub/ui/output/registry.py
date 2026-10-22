@@ -31,10 +31,10 @@ class OutputRenderer(Protocol):
 
 class RendererRegistry:
     def __init__(self):
-        self._renderers: dict[str, OutputRenderer] = {name: MarkdownRenderer() for name in ("markdown", "code", "table")}
+        self._renderers: dict[str, OutputRenderer] = {name: MarkdownRenderer() for name in (OutputBlock.MARKDOWN, OutputBlock.CODE, OutputBlock.TABLE)}
         from .structured import StructuredRenderer
         self._renderers.update({name: StructuredRenderer() for name in
-                               ("hub-code", "hub-diff", "hub-table", "hub-card", "hub-chart")})
+                               (OutputBlock.HUB_CODE, OutputBlock.HUB_DIFF, OutputBlock.HUB_TABLE, OutputBlock.HUB_CARD, OutputBlock.HUB_CHART)})
         self._version = 0
         self._interactions = {}
         self.on_close = None
@@ -53,7 +53,7 @@ class RendererRegistry:
         return self._version, tuple(getattr(renderer, "revision", 0) for renderer in self._renderers.values())
 
     def register(self, tag: str, renderer: OutputRenderer, *, interaction=None) -> None:
-        if not re.fullmatch(r"hub-[a-z][a-z0-9-]*", tag):
+        if not re.fullmatch(OutputBlock.TAG_PATTERN, tag):
             raise ValueError("Output tags must use the hub- prefix")
         if tag in self._renderers:
             raise ValueError(f"Renderer already registered: {tag}")
@@ -69,8 +69,8 @@ class RendererRegistry:
         from ...widget.output.code_viewer import CodeViewer
         factory = self._interactions.get(item.block.kind)
         if factory is None:
-            factory = (TableInspector if item.block.kind in ("table", "hub-table") else
-                       CodeViewer if item.block.kind in ("code", "hub-code") else OutputInspector)
+            factory = (TableInspector if item.block.kind in (OutputBlock.TABLE, OutputBlock.HUB_TABLE) else
+                       CodeViewer if item.block.kind in (OutputBlock.CODE, OutputBlock.HUB_CODE) else OutputInspector)
         try:
             return factory(item, context)
         except Exception as error:
@@ -78,12 +78,12 @@ class RendererRegistry:
             return OutputInspector(item, context, error=str(error))
 
     def is_object(self, block):
-        return block.kind != "markdown" and block.kind in self._renderers
+        return block.kind != OutputBlock.MARKDOWN and block.kind in self._renderers
 
     def render(self, block: OutputBlock, context: RenderContext) -> FragmentLines:
         renderer = self._renderers.get(block.kind)
         if renderer is None:
-            text = context.language("output_pending") if block.kind == "pending" else block.raw or block.text
+            text = context.language("output_pending") if block.kind == OutputBlock.PENDING else block.raw or block.text
             return literal_lines(text, context.width, "class:hub.muted")
         try:
             return renderer.render(block, context)

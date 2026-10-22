@@ -3,7 +3,7 @@
 from copy import deepcopy
 from dataclasses import asdict
 
-from llm.core.models import ProjectConfig
+from llm.core.models import ConversationStorage, ProjectConfig
 
 from .general import GeneralSettings
 from .preferences import PreferencesStore
@@ -40,8 +40,7 @@ class PresetStore(WorkspaceJSONStore):
         if (any(not isinstance(name, str) or not name for name in components)
                 or len(set(components)) != len(components)):
             raise ValueError("Preset components must be distinct names")
-        if project["conversation_storage"] not in ("file", "memory"):
-            raise ValueError("Invalid conversation storage")
+        ConversationStorage.validate(project["conversation_storage"], nullable=False)
         parameters = project["config"].get("parameters", {})
         if not isinstance(parameters, dict) or not isinstance(parameters.get("engines", {}), dict):
             raise ValueError("Project parameters and engines must be JSON objects")

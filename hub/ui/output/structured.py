@@ -1,5 +1,7 @@
 """Small terminal-native renderers. Payloads describe UI, never executable code."""
 
+from hub.ui.output.model import OutputBlock
+
 import json
 import math
 
@@ -15,16 +17,16 @@ from .table import TableData
 class StructuredRenderer:
     def render(self, block, context):
         attrs, theme = dict(block.attributes), context.theme
-        if block.kind in ("hub-code", "hub-diff"):
-            visual = Syntax(block.text.strip("\n"), "diff" if block.kind == "hub-diff" else attrs.get("language", "text"),
+        if block.kind in (OutputBlock.HUB_CODE, OutputBlock.HUB_DIFF):
+            visual = Syntax(block.text.strip("\n"), "diff" if block.kind == OutputBlock.HUB_DIFF else attrs.get("language", "text"),
                             theme=HubSyntaxTheme(theme), word_wrap=True)
-        elif block.kind == "hub-card":
+        elif block.kind == OutputBlock.HUB_CARD:
             visual = Panel(HubMarkdown(block.text, theme), title=Text(attrs.get("title", "")), border_style=theme.accent)
         else:
             data = json.loads(block.text)
             visual = Table(title=Text(attrs.get("title", "")), expand=True, border_style=theme.muted,
                            header_style=theme.accent)
-            if block.kind == "hub-table":
+            if block.kind == OutputBlock.HUB_TABLE:
                 table = TableData.from_block(block)
                 for column in table.columns:
                     visual.add_column(Text(column))

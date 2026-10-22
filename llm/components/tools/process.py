@@ -17,6 +17,7 @@ from llm.errors import CodedError
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 from .registry import Tool, ToolContract, ToolRegistry
+from llm.core.tool_codes import ToolErrorCode
 
 # IPC/capture의 유한 메모리 계약이다. 출력은 자르지 않고 한도 초과 시 실패한다.
 PROTOCOL_BYTES = 8 * 1024 * 1024
@@ -30,7 +31,7 @@ class WorkerError(CodedError, RuntimeError):
 
 
 class InspectionError(CodedError, ValueError):
-    code = "tool_failed"
+    code = ToolErrorCode.FAILED
 
 
 class RemoteToolError(CodedError, RuntimeError):

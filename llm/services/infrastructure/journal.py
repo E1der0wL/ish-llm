@@ -14,8 +14,9 @@ from llm.services.infrastructure.storage import atomic_json, atomic_bytes, read_
 class OutputJournal:
     SCHEMA_VERSION = 1
     VERSION = 1
+    DEFAULT_INDEX_STRIDE = 128
 
-    def __init__(self, *, index_stride: int = 128):
+    def __init__(self, *, index_stride: int = DEFAULT_INDEX_STRIDE):
         if type(index_stride) is not int or index_stride < 0:
             raise ValueError("index_stride must be a nonnegative integer (0 disables indexing)")
         self.index_stride = index_stride

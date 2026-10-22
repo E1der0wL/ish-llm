@@ -12,7 +12,7 @@ from .observations import observed_call
 from .runtime import diagnostic, diagnostic_failure, diagnostic_context, request_details
 from .retry import effective_attempts, retry_delay
 from llm.errors import CodedError, exception_chain, stable_error_code
-from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
+from llm.policies.retry import RetryBackoff, RetryPolicy, RetryFailure, select_retry, change_arguments
 
 
 def provider_schema():
@@ -118,7 +118,7 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
     end = RetryPolicy.end(options.get("wall_timeout"), deadline)
     attempts = effective_attempts(request, RetryPolicy(options.get("max_attempts")).attempts,
                                   sdk_defaults=sdk_defaults)
-    policy = RetryPolicy(attempts, options.get("delay_seconds"), options.get("max_delay_seconds"), end, "exponential")
+    policy = RetryPolicy(attempts, options.get("delay_seconds"), options.get("max_delay_seconds"), end, RetryBackoff.EXPONENTIAL)
     request = copy_model(request)
     call_id = call_id or uuid4().hex
     for attempt in range(attempts):

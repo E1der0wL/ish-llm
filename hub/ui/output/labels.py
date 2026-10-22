@@ -1,5 +1,7 @@
 """Compact, cell-aware labels for output objects and conversation anchors."""
 
+from hub.ui.output.model import OutputBlock
+
 import json
 import re
 
@@ -34,12 +36,12 @@ def block_title(block) -> str:
     if explicit and explicit.strip():
         return explicit
     text = block.text.strip()
-    if block.kind == "code":
+    if block.kind == OutputBlock.CODE:
         text = re.sub(r"^\s*(?:`{3,}|~{3,})[^\n]*\n", "", text)
         text = re.sub(r"\n\s*(?:`{3,}|~{3,})\s*$", "", text)
-    elif block.kind == "table":
+    elif block.kind == OutputBlock.TABLE:
         text = text.partition("\n")[0].strip("| ").replace("|", "·")
-    elif block.kind in ("hub-table", "hub-chart", "hub-card"):
+    elif block.kind in (OutputBlock.HUB_TABLE, OutputBlock.HUB_CHART, OutputBlock.HUB_CARD):
         try:
             data = json.loads(text)
             if isinstance(data, dict):

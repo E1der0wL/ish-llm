@@ -9,8 +9,8 @@ from contextlib import ExitStack
 from llm.services.infrastructure.backups import DirectoryBackups
 from pathlib import Path
 
-from llm.core.models import Project, ProjectConfig, new_id
-from llm.core.configuration import resolve_component_config
+from llm.core.models import ConversationStorage, Project, ProjectConfig, new_id
+from llm.core.results import CompletionRecords
 from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.storage import child, record, remove_owned_tree
 from llm.services.lifecycle.sessions import SessionManager
@@ -18,6 +18,7 @@ from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.access import ProjectAccess
 from llm.services.lifecycle.agents import AgentRepository, AgentManager
 from llm.services.results import RunResultQuery
+from llm.services.schema import ProjectConfiguration
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import WorkspaceOwnership, workspace_locked
 from llm.components.registry import ComponentRegistry
@@ -35,7 +36,7 @@ class ProjectRepository:
         return ProjectPaths(child(self.root, project_id))
 
     def read_backup(self, root):
-        data = read_domain_record(root / "project.json")
+        data = read_domain_record(ProjectPaths(root).record)
         child(root.parent, data["id"])
         project = Project.from_record(data, ProjectPaths(root))
         self.agents.read_backup(project)
@@ -65,13 +66,13 @@ class ProjectRepository:
                 raise ValueError("Project Component identities must be a sequence")
             data[key] = list(data[key])
         Project.from_record(data, project.paths)
-        atomic_domain_json(project.paths.root / "project.json", data)
+        atomic_domain_json(project.paths.record, data)
         log_event(project.paths.logs, "project.saved", entity_id=project.id)
 
     @workspace_locked
     def load(self, project_id: str) -> Project:
         paths = self.paths(project_id)
-        data = read_domain_record(paths.root / "project.json")
+        data = read_domain_record(paths.record)
         if data["id"] != project_id:
             raise ValueError("Project ID mismatch")
         log_event(paths.logs, "project.loaded", entity_id=project_id)
@@ -156,7 +157,7 @@ class ProjectManager:
 
     def _validate_archive(self, root):
         project = self.repository.read_backup(root)
-        if project.conversation_storage != "file":
+        if project.conversation_storage != ConversationStorage.FILE:
             raise ValueError("Portable backup requires file conversation storage")
         self.components.validate(project.components)
         self._validate_config(project)
@@ -210,7 +211,7 @@ class ProjectManager:
         records = [{**entry, "source": "run", "session_id": session.id, "run_id": run.id}
                    for session in self.sessions.list(current, include_deleted=True)
                    for run in self.sessions.run_repository.list(session)
-                   for entry in run.metadata.get("completions", [])]
+                   for entry in CompletionRecords.read(run.metadata)]
         records.extend({**entry, "source": "component"} for entry in component_usage(self.components, current))
         policy = current.config.policies.get("usage", {})
         records = period_entries(records, policy)
@@ -285,16 +286,8 @@ class ProjectManager:
         for name in dict.fromkeys((*current.components, *current.config.parameters.get("components", {}))):
             if name not in configurations:
                 configurations[name] = self.components.get(name).get_config(deepcopy(current))
-        return {"project": {"id": current.id, "title": current.title,
-                            "conversation_storage": current.conversation_storage,
-                            "config": current.config.to_dict()},
-                "policy_schema": ProjectConfig.describe_policies(),
-                "config_version": version,
-                "component_versions": versions,
-                "components": {name: {"directory": self.components.get(name).directory,
-                    "configuration": deepcopy(configurations[name]),
-                    "effective": resolve_component_config(self.components.get(name), deepcopy(current))}
-                    for name in current.components}}
+        return ProjectConfiguration.snapshot(current, registry=self.components,
+            configurations=configurations, version=version, component_versions=versions)
 
     @workspace_locked
     def configure_policies(self, project: Project, changes: dict, *, expected_version=None) -> dict:

@@ -95,7 +95,7 @@ class BuiltinTools:
             "file_restore": ("Restore a trash item to an unused relative path.", schema({"path": path, "trash_id": string(pattern="^[0-9a-f]{32}$")}, ["path", "trash_id"])),
         }
         for name, (description, parameters) in specs.items():
-            parameters["properties"]["max_file_bytes"] = {"type": "integer", "minimum": 1}
+            parameters["properties"].update(FileTools.argument_schema())
             if test_workspaces is not None:
                 parameters["properties"]["workspace_id"] = string(pattern="^[0-9a-f]{32}$",
                     description="Operate on this Project's test workspace instead of the source tree.")

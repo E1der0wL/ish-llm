@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 from uuid import uuid4
 
-from ...components import component_spec
+from ...components import component_spec, ManagerKind, ImportKind
 
 
 class RecordManagement:
@@ -18,20 +18,20 @@ class RecordManagement:
     @classmethod
     async def for_project(cls, project, name, *, root=None, rag_jobs=None):
         spec = component_spec(name)
-        if spec.manager == "tools":
+        if spec.manager == ManagerKind.TOOLS:
             raise ValueError("Unsupported component manager")
-        data = project.agents if spec.manager == "agent" else await project.components.aget(name)
+        data = project.agents if spec.manager == ManagerKind.AGENT else await project.components.aget(name)
         if not isinstance(data, spec.data_type()):
             raise ValueError("Unsupported component data contract")
         record = await project.aget_data()
         root = record.paths.root if root is None else root
-        if spec.manager == "document":
+        if spec.manager == ManagerKind.DOCUMENT:
             from .rag_management import RAGManagement
             return RAGManagement(data, name, root, project.id, rag_jobs, project=project)
-        if spec.manager == "memory":
+        if spec.manager == ManagerKind.MEMORY:
             from .memory_management import MemoryManagement
             return MemoryManagement(data, name, root, project)
-        manager = {"record": cls, "agent": AgentManagement}[spec.manager]
+        manager = {ManagerKind.RECORD: cls, ManagerKind.AGENT: AgentManagement}[spec.manager]
         return manager(data, name, root)
 
     def source_path(self, argument):
@@ -55,9 +55,9 @@ class RecordManagement:
             raise ValueError("Import file exceeds 8 MiB of text")
         stem = source.parent.name if source.name.lower() == "skill.md" else source.stem
         identifier = self.import_identifier(source)
-        if self.spec.import_kind == "text":
+        if self.spec.import_kind == ImportKind.TEXT:
             values = {"title": source.name, "content": text, "metadata": {"source": str(source)}}
-        elif self.spec.import_kind == "skill" and source.suffix.lower() in (".md", ".txt"):
+        elif self.spec.import_kind == ImportKind.SKILL and source.suffix.lower() in (".md", ".txt"):
             values = {"title": stem, "instructions": text}
         else:
             values = json.loads(text)

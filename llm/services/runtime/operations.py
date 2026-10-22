@@ -1,5 +1,6 @@
 """Session 소유 외부 작업 원장. 예약을 저장한 뒤 실행하고 불확실한 작업은 재시도하지 않는다."""
 
+from llm.core.models import RunErrorCode
 from copy import deepcopy
 from dataclasses import asdict, dataclass, fields
 from datetime import datetime
@@ -226,7 +227,7 @@ class OperationRepository:
         if token in manifest["records"]:
             value = self.load(session, call.operation_key)
             if value["request_digest"] != digest:
-                raise ExecutionLimitError("operation_conflict", "Operation key was used for a different Tool or arguments")
+                raise ExecutionLimitError(RunErrorCode.OPERATION_CONFLICT, "Operation key was used for a different Tool or arguments")
             if value["status"] == OperationStatus.NOT_APPLIED:
                 value["attempts"].append({"run_id": value["run_id"], "step_id": value["step_id"],
                     "status": OperationStatus.NOT_APPLIED, "evidence": value["evidence"],
@@ -236,7 +237,7 @@ class OperationRepository:
                 self._save(session, value)
                 return {"reused": False}
             if value["status"] != OperationStatus.COMPLETED:
-                raise ExecutionLimitError("operation_uncertain", "Operation may have executed; reconcile its external result before reuse")
+                raise ExecutionLimitError(RunErrorCode.OPERATION_UNCERTAIN, "Operation may have executed; reconcile its external result before reuse")
             return {"reused": True, "result": deepcopy(value["result"])}
         self._save(session, {"schema_version": OperationRecord.SCHEMA_VERSION, "project_id": session.project_id, "session_id": session.id,
                           "key": call.operation_key, "idempotency_key": call.idempotency_key,

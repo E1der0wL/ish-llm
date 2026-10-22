@@ -1,37 +1,17 @@
 """실행 한도와 실패 계약. Engine 종류나 저장 구현에 의존하지 않는다."""
 
+from llm.core.models import RunErrorCode
 import math
 from collections.abc import Mapping
-from typing import Optional
 
 from llm.policies import errors
-from dataclasses import dataclass
+from llm.core.policies import RunPolicy, ContextPolicy
 
 
 def positive_seconds(value, name):
     if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
                               or not math.isfinite(value) or value <= 0):
         raise ValueError(f"{name} must be positive and finite")
-
-
-@dataclass(frozen=True, slots=True)
-class RunPolicy:
-    """Session 대기열과 Run 전체 시간 한도. None은 기존 무제한 동작을 유지한다.
-
-    실행 시간은 문맥 준비부터 Engine 종료까지이며, 대기열 시간은 포함하지 않는다.
-    취소에 협조하지 않는 외부 코드/스레드를 강제로 종료하는 OS 제한은 아니다.
-    """
-
-    max_queued: Optional[int] = None
-    timeout_seconds: Optional[float] = None
-    max_capability_rounds: Optional[int] = None
-
-    def __post_init__(self):
-        if self.max_queued is not None and (type(self.max_queued) is not int or self.max_queued < 1):
-            raise ValueError("max_queued must be a positive integer")
-        positive_seconds(self.timeout_seconds, "Run timeout")
-        if self.max_capability_rounds is not None and (type(self.max_capability_rounds) is not int or self.max_capability_rounds < 1):
-            raise ValueError("max_capability_rounds must be a positive integer")
 
 
 class ProjectPolicyResolver:
@@ -49,9 +29,8 @@ class ProjectPolicyResolver:
 
     def resolve(self, policies: dict):
         from llm.core.policies import normalize_policies
-        from llm.services.history.context import ContextPolicy
         values = normalize_policies(policies)
         usage = values.get("usage", {})
         if (usage.get("max_tokens") is not None or usage.get("project_max_tokens") is not None) and usage.get("counter") not in self.token_counters:
-            raise errors.ExecutionLimitError("policy_unavailable", "Usage quota requires a registered token counter")
+            raise errors.ExecutionLimitError(RunErrorCode.POLICY_UNAVAILABLE, "Usage quota requires a registered token counter")
         return (ContextPolicy(**values["context"]) if values.get("context") else None), RunPolicy(**values.get("run", {}))

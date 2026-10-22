@@ -13,6 +13,8 @@ def completion_schema():
         "api_key": {"type": ["string", "null"], "description": "공급자 인증 인자"},
         "api_base": {"type": ["string", "null"], "description": "공급자 API 주소"},
         "temperature": {"type": ["number", "null"], "description": "공급자가 지원하는 생성 온도"},
+        "reasoning_effort": {"type": ["string", "null"], "minLength": 1,
+                             "description": "공급자가 지원하는 추론 노력 수준"},
         "max_tokens": {"type": ["integer", "null"], "minimum": 1, "description": "최대 출력 토큰"},
         "max_completion_tokens": {"type": ["integer", "null"], "minimum": 1},
         "top_p": {"type": ["number", "null"]}, "seed": {"type": ["integer", "null"]},

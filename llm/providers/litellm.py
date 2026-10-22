@@ -2,6 +2,8 @@
 
 Adapt synchronous LiteLLM streaming without blocking the application's loop."""
 
+from llm.providers.streaming import CompletionErrorCode
+
 from .codes import ProviderErrorCode
 from .retry import SDK_RETRY_FIELDS, sdk_transport_request
 import asyncio
@@ -444,7 +446,7 @@ class LiteLLMCompletionDecoder:
                 raise CompletionError("Expected reasoning text delta")
             self.size += len(reasoning)
             if self.max_output_chars is not None and self.size > self.max_output_chars:
-                raise CompletionError("Completion output limit exceeded", code="completion_output_limit")
+                raise CompletionError("Completion output limit exceeded", code=CompletionErrorCode.OUTPUT_LIMIT)
             if reasoning:
                 yield CompletionUpdate(reasoning=reasoning)
         if content is not None:
@@ -452,7 +454,7 @@ class LiteLLMCompletionDecoder:
                 raise CompletionError("Expected text delta")
             self.size += len(content)
             if self.max_output_chars is not None and self.size > self.max_output_chars:
-                raise CompletionError("Completion output limit exceeded", code="completion_output_limit")
+                raise CompletionError("Completion output limit exceeded", code=CompletionErrorCode.OUTPUT_LIMIT)
             if content:
                 self.content_parts.append(content)
         for fragment in fragments:
@@ -460,7 +462,7 @@ class LiteLLMCompletionDecoder:
             if type(index) is not int or index < 0:
                 raise CompletionError("Invalid tool call index")
             if self.max_tool_calls is not None and index >= self.max_tool_calls:
-                raise CompletionError("Too many tool calls", code="completion_tool_limit")
+                raise CompletionError("Too many tool calls", code=CompletionErrorCode.TOOL_LIMIT)
             if get(fragment, "type") not in (None, "function"):
                 raise CompletionError("Unsupported tool call type")
             call = self.calls.setdefault(index, {"id": "", "type": "function",
@@ -482,7 +484,7 @@ class LiteLLMCompletionDecoder:
             # Opaque SDK IDs may carry thought signatures; never rewrite them.
             if (self.max_argument_chars is not None and
                     (len(call["function"]["arguments"]) > self.max_argument_chars or len(call["id"]) > self.max_argument_chars)):
-                raise CompletionError("Tool call size limit exceeded", code="completion_argument_limit")
+                raise CompletionError("Tool call size limit exceeded", code=CompletionErrorCode.ARGUMENT_LIMIT)
             if len(call["function"]["name"]) > 64:
                 raise CompletionError("Tool call name exceeds protocol limit")
         reason = get(choice, "finish_reason")
@@ -498,7 +500,7 @@ class LiteLLMCompletionDecoder:
 
     def finish(self):
         if self.finish_reason not in ("stop", "tool_calls"):
-            raise CompletionError("Completion did not finish normally", code="completion_incomplete")
+            raise CompletionError("Completion did not finish normally", code=CompletionErrorCode.INCOMPLETE)
         if bool(self.calls) != (self.finish_reason == "tool_calls"):
             raise CompletionError("Tool calls do not match finish reason")
         ids = [call["id"] for call in self.calls.values()]

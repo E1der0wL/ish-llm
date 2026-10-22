@@ -1,15 +1,24 @@
 """Normalized streaming observations; adapters own SDK chunks and final messages."""
 
 from typing import Protocol, Iterator, AsyncIterator
+from enum import StrEnum
 
 from llm.errors import CodedError
 from llm.core import model_protocol
 
 
+class CompletionErrorCode(StrEnum):
+    INVALID_RESPONSE = "completion_invalid_response"
+    INCOMPLETE = "completion_incomplete"
+    OUTPUT_LIMIT = "completion_output_limit"
+    TOOL_LIMIT = "completion_tool_limit"
+    ARGUMENT_LIMIT = "completion_argument_limit"
+
+
 class CompletionError(CodedError, ValueError):
     """Invalid/incomplete response or an explicit completion limit; never retry-safe."""
 
-    def __init__(self, message, *, code="completion_invalid_response"):
+    def __init__(self, message, *, code=CompletionErrorCode.INVALID_RESPONSE):
         self.code = code
         super().__init__(message)
 

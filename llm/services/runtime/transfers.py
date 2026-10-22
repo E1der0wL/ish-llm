@@ -4,13 +4,15 @@ The host owns this facade and its optional authorizer. Identifiers grant no mode
 capability. Neither transport nor recovery retries execution.
 """
 
+from llm.core.continuations import RestartRecord, ResumeRecord
+
 from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
 import inspect
 from pathlib import Path
 
-from llm.core.models import MessageRole, MessageStatus, ProjectConfig, RunStatus, SessionStatus
+from llm.core.models import ConversationStorage, MessageRole, MessageStatus, ProjectConfig, RunStatus, SessionStatus
 from llm.errors import CodedError
 from llm.services.infrastructure.storage import (
     atomic_json, async_method, child, drain_on_cancel, read_json, reject_links, revision_token,
@@ -187,12 +189,12 @@ class TransferRecords:
     def lineage(message, messages, runs):
         """Follow saved Resume/restart evidence; no guessed parent or hidden depth."""
         visited, descendants = set(), []
-        while "resume" in message.metadata or "restart" in message.metadata:
+        while ResumeRecord.KEY in message.metadata or RestartRecord.KEY in message.metadata:
             if message.id in visited:
                 raise ValueError("Transfer continuation cycle")
             visited.add(message.id)
             descendants.append(message)
-            link = message.metadata["resume"] if "resume" in message.metadata else message.metadata["restart"]
+            link = message.metadata[ResumeRecord.KEY] if ResumeRecord.KEY in message.metadata else message.metadata[RestartRecord.KEY]
             message = messages[runs[link["run_id"]].input_message_id]
         origin = message.metadata.get("transfer")
         if origin is not None:
@@ -309,7 +311,7 @@ class TransferAdmission:
         records, session = self.exchange.records, self.exchange.session
         project, source = session.project.data, session.data
         target = records.sessions.load(project, self.target_id)
-        if project.conversation_storage != "file" or any(not isinstance(records.sessions.conversations(s), ConversationStore) for s in (source, target)):
+        if project.conversation_storage != ConversationStorage.FILE or any(not isinstance(records.sessions.conversations(s), ConversationStore) for s in (source, target)):
             raise ValueError("Session transfer requires portable file conversation storage")
         values = records.validate_project(project)
         identity = {"project_id": project.id, "session_id": source.id, "run_id": self.source_run_id,

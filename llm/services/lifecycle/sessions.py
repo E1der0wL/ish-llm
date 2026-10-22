@@ -1,5 +1,11 @@
 """Session의 영속 상태와 수명 주기를 관리한다. SessionRuntime은 실행 전용이며 RunManager가 소유한다. 제목/메타데이터 수정은 실행 설정 변경과 분리한다."""
 
+from llm.core.contracts import ActivityEventType
+
+from llm.core.plans import PlanBlockerCode
+
+from llm.core.models import ResourceKind
+
 from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
 from llm.services.infrastructure.storage import make_directory
 from llm.services.infrastructure.transactions import after_commit, current_transaction
@@ -12,7 +18,7 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from collections.abc import Callable
 
-from llm.core.models import MessageStatus, Project, ProjectConfig, Run, Session, SessionStatus, new_id
+from llm.core.models import ConversationStorage, MessageStatus, Project, ProjectConfig, Run, Session, SessionStatus, new_id
 from llm.core.configuration import UNSET
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.core.contracts import Diagnostic, ResourceRef
@@ -64,7 +70,7 @@ class SessionRepository:
     """Session metadata and paths beneath the owning Project's sessions root."""
 
     def _load(self, paths: SessionPaths, session_id: str, project_id: str) -> Session:
-        data = read_domain_record(paths.root / "session.json")
+        data = read_domain_record(paths.record)
         if data["id"] != session_id or data["project_id"] != project_id:
             raise ValueError("Session ownership mismatch")
         ProjectConfig.validate_session(data["config"])
@@ -83,7 +89,7 @@ class SessionRepository:
         for folder in project.paths.sessions.iterdir():
             if not folder.is_dir():
                 continue
-            data = read_domain_record(folder / "session.json")
+            data = read_domain_record(SessionPaths(folder).record)
             if child(project.paths.sessions, data["id"]) != folder or data["project_id"] != project.id:
                 raise ValueError("Backup Session ownership mismatch")
             session = Session.from_record(data, SessionPaths(folder))
@@ -134,7 +140,7 @@ class SessionRepository:
         operations = OperationRepository()
         data = record(session)
         Session.from_record(data, session.paths)
-        atomic_domain_json(session.paths.root / "session.json", data)
+        atomic_domain_json(session.paths.record, data)
         if creating:
             operations.initialize(session)
             from llm.services.runtime.transfers import TransferLedger
@@ -179,7 +185,7 @@ class SessionManager:
                  project_access: Optional[ProjectAccess] = None,
                  conversations: Union[str, Callable[[Session], Conversation]] = conversation_store,
                  context_builder: Optional[ConversationContextBuilder] = None,
-                 conversation_cache_size: int = 32,
+                 conversation_cache_size: int = ProjectConversations.DEFAULT_FILE_CACHE_SIZE,
                  runs=None) -> None:
         self.repository = repository if repository is not None else SessionRepository()
         self._attached: set[tuple[str, str]] = set()
@@ -245,12 +251,12 @@ class SessionManager:
             if not matched:
                 continue
             runs.append(run)
-            blockers.append(Diagnostic("resume_required", "An unfinished Run requires this conversation turn",
-                source=ResourceRef("run", run.id, project_id=session.project_id, session_id=session.id, run_id=run.id),
+            blockers.append(Diagnostic(PlanBlockerCode.RESUME_REQUIRED, "An unfinished Run requires this conversation turn",
+                source=ResourceRef(ResourceKind.RUN, run.id, project_id=session.project_id, session_id=session.id, run_id=run.id),
                 details={"status": str(run.status), "engine": run.engine, "message_ids": matched}))
             snapshots.append({"run": record(run), "checkpoint": digest,
                 "interactions": [v.to_dict() for v in self.run_repository.interaction_views(session, run, store)]})
-        source = ResourceRef("message", request_id, project_id=session.project_id, session_id=session.id)
+        source = ResourceRef(ResourceKind.MESSAGE, request_id, project_id=session.project_id, session_id=session.id)
         revision = revision_token({"source": source.to_dict(), "messages": [record(m) for m in group],
                                    "dependencies": snapshots})
         return store, group, TurnDeletionPlan(source, [m.id for m in group], blockers, revision), runs
@@ -423,7 +429,7 @@ class SessionManager:
         runs = self.run_repository.read_backup(current)
         from llm.services.runtime.requests import RequestAdmission
         RequestAdmission.history(messages, runs, project_id=current.project_id,
-            session_id=current.id, persistent=self._owner(current, allow_deleted=True).conversation_storage == "file")
+            session_id=current.id, persistent=self._owner(current, allow_deleted=True).conversation_storage == ConversationStorage.FILE)
         for run in runs:
             self.step_repository.read_backup(run)
         return current, messages, runs
@@ -534,7 +540,7 @@ class SessionManager:
         plan = self.run_repository.checkpoint_plan(current, run, self.conversations(current))
         require_checkpoint_plan(plan, expected_revision, action="abandon")
         self.run_repository.abandon_resume(run)
-        activity_event(self._owner(current), run, "run.resume_abandoned",
+        activity_event(self._owner(current), run, ActivityEventType.RUN_RESUME_ABANDONED,
             time=run.metadata["resume_abandonment"]["abandoned_at"], status=run.status)
 
     @workspace_locked
@@ -564,7 +570,7 @@ class SessionManager:
             raise ValueError("Confirm exactly the Run IDs reported by delete_turn_plan")
         for run in runs:
             self.run_repository.abandon_resume(run, request_id)
-            activity_event(self._owner(current), run, "run.resume_abandoned",
+            activity_event(self._owner(current), run, ActivityEventType.RUN_RESUME_ABANDONED,
                 time=run.metadata["resume_abandonment"]["abandoned_at"], status=run.status)
         for message in group:
             store.update_metadata(message.id, {"conversation_deleted": True})

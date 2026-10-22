@@ -1,5 +1,6 @@
 """공유 공급자 호출 제한. 동기 스트림과 비동기 모델 호출의 실제 수명을 추적한다."""
 
+from llm.providers.codes import ProviderErrorCode
 import asyncio
 import math
 import threading
@@ -36,7 +37,7 @@ class ProviderLimits:
 class ProviderCapacityError(CodedError, RuntimeError):
     """실행/대기 한도 또는 대기 시간이 소진되어 공급자 호출을 시작하지 못했다."""
 
-    code = "provider_capacity"
+    code = ProviderErrorCode.CAPACITY
 
 
 class ProviderCalls:

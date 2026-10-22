@@ -1,5 +1,7 @@
 """Project navigation and CRUD for the conversation sidebar."""
 
+from llm.services.schema import ProjectConfiguration
+
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.widgets import Label
@@ -90,7 +92,8 @@ class ChatProjects:
         def saved(record):
             if record is None:
                 return
-            target, title = record["project"]["id"], record["values"]["title"]
+            view = ProjectConfiguration.view(record)
+            target, title = view.project_id, view.values.title
             self.items = [row for row in self.items if row["id"] != target] + [{"id": target, "title": title}]
             if target == getattr(self.view, "project_id", ""):
                 self.view.project_title = title

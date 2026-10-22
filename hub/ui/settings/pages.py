@@ -1,5 +1,7 @@
 """Draft settings pages with field and action regions."""
 
+from llm.services.schema import ProjectConfiguration
+
 from copy import deepcopy
 from dataclasses import replace
 from enum import StrEnum
@@ -96,11 +98,12 @@ class Page:
 class ProjectPage(Page):
     def __init__(self, screen, record, *, suggest_defaults=True):
         self.screen, self.record = screen, record
-        self.identifier = record["project"]["id"]
-        self.components = list(record["values"]["components"])
-        values = deepcopy(record["values"])
-        values["config"] = deepcopy(record.get("project", {}).get("config", values["config"]))
-        schema = deepcopy(record["schema"])
+        view = ProjectConfiguration.view(record)
+        self.identifier = view.project_id
+        self.components = list(view.values.components)
+        values = view.values.to_dict()
+        values["config"] = view.stored_config
+        schema = view.schema
         config = schema["properties"]["config"]["properties"]
         parameters = config.pop("parameters")["properties"]
         self.component_schemas = parameters.pop("components")["properties"]
@@ -113,16 +116,16 @@ class ProjectPage(Page):
         self.form = SchemaForm(schema, values, screen.t)
         self.component_forms, self.engine_forms = {}, {}
         for key in dict.fromkeys(self.engine_keys.values()):
-            effective = {name: view for name, view in record.get("effective_engines", {}).items()
+            effective = {name: view for name, view in view.effective_engines.items()
                          if self.engine_keys.get(name) == key}
             form = SchemaForm(engine_schemas.get(key, {}), values, screen.t,
                               prefix=("config", "parameters", "engines", key), effective=effective)
             self.engine_forms[key] = form
         for name in self.components:
-            view = record.get("components", {}).get(name, {}).get("effective")
+            effective = view.components.get(name, {}).get("effective")
             form = SchemaForm(self.component_schemas.get(name, False), values, screen.t,
                               prefix=("config", "parameters", "components", name),
-                              effective={name: view} if view is not None else None)
+                              effective={name: effective} if effective is not None else None)
             self.component_forms[name] = form
         # Older projects receive editable suggestions, persisted only on Save.
         # Host-fixed fields and explicit nulls retain their ownership/meaning.
@@ -178,7 +181,7 @@ class ProjectPage(Page):
         body = []
         if section.startswith("component:"):
             name = section.split(":", 1)[1]
-            required = self.record["schema"].get("x-components", {}).get(name, {}).get("required_components", [])
+            required = ProjectConfiguration.view(self.record).schema.get("x-components", {}).get(name, {}).get("required_components", [])
             missing = [item for item in required if item not in self.components]
             if required:
                 body.append(Label(self.screen.t("settings_dependencies", names=", ".join(required))))
@@ -200,7 +203,8 @@ class ProjectPage(Page):
 
     def save_request(self):
         values = self.values()
-        return "save_project", (self.identifier, values, self.record["config_version"], self.record["values"]["components"])
+        view = ProjectConfiguration.view(self.record)
+        return "save_project", (self.identifier, values, view.config_version, view.values.components)
 
     def accept_saved(self, record):
         self.screen.saved_project(record)

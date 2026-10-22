@@ -1,6 +1,8 @@
 """BM25·벡터 순위 결합과 출처/부모 문맥 확장. 저장이나 모델 호출은 하지 않는다."""
 
 import re
+from enum import StrEnum
+from jsonschema import Draft202012Validator
 from collections import OrderedDict
 from threading import RLock
 from heapq import nlargest
@@ -8,18 +10,55 @@ from heapq import nlargest
 from .indexing import collection
 
 
+class SearchMethod(StrEnum):
+    HYBRID = "hybrid"
+    BM25 = "bm25"
+    VECTOR = "vector"
+
+
+class SearchExpansion(StrEnum):
+    CHUNK = "chunk"
+    SECTION = "section"
+    DOCUMENT = "document"
+
+
+class RelationRanking(StrEnum):
+    SOURCE = "source"
+    SUPPORT_COUNT = "support_count"
+
+
 def search_schema():
     from llm.core.schema import object_schema, field
     return object_schema({
-        "method": field("string", enum=["hybrid", "bm25", "vector"]),
-        "expand": field("string", enum=["chunk", "section", "document"]),
+        "method": field("string", enum=[mode.value for mode in SearchMethod]),
+        "expand": field("string", enum=[mode.value for mode in SearchExpansion]),
         "limit": field("integer", minimum=1),
         "rerank": field("boolean"),
         "max_hops": field("integer", minimum=1),
         "relation_limit": field("integer", minimum=1),
-        "relation_ranking": field("string", enum=["source", "support_count"]),
+        "relation_ranking": field("string", enum=[mode.value for mode in RelationRanking]),
         "candidate_count": field("integer", minimum=1),
         "rrf_constant": field("integer", minimum=1)})
+
+
+def validate_search_options(values):
+    """Validate explicit options against the same declaration used by configuration."""
+    schema = search_schema()
+    error = next(Draft202012Validator(schema).iter_errors(values), None)
+    if error is not None:
+        raise ValueError("Invalid RAG search options: " + error.message)
+    for key, spec in schema["properties"].items():
+        if key in values and spec["type"] == "integer" and type(values[key]) is not int:
+            raise ValueError(f"{key} must be an integer")
+
+
+def retrieval_schema():
+    """Public document retrieval arguments, excluding index-only tuning."""
+    from llm.core.schema import object_schema
+    specs = search_schema()["properties"]
+    return object_schema({"query": {"type": "string", "minLength": 1},
+        **{name: specs[name] for name in ("method", "expand", "limit", "rerank", "max_hops", "relation_limit")}},
+        additionalProperties=False, required=["query"])
 
 
 def tokens(text: str) -> list:
@@ -30,9 +69,13 @@ def tokens(text: str) -> list:
 class LexicalCache:
     """컴포넌트가 소유하는 제한된 BM25 캐시. 불변 세대 경로를 키로 쓰고 원문 글자 수로 제한한다."""
 
+    @staticmethod
+    def capacity_schema():
+        return {"type": "integer", "minimum": 0}
+
     def __init__(self, max_chars):
-        if type(max_chars) is not int or max_chars < 0:
-            raise ValueError("search_cache_chars must be nonnegative")
+        from llm.core.schema import validate_declared_fields
+        validate_declared_fields({"max_chars": max_chars}, {"max_chars": self.capacity_schema()})
         self.max_chars, self.used = max_chars, 0
         self.entries, self.lock = OrderedDict(), RLock()
 
@@ -64,11 +107,11 @@ def search(path, documents: dict, query: str, vector, *, method: str, expand: st
     if not chunks:
         return []
     order, rankings = list(chunks), []
-    if method in ("hybrid", "vector"):
+    if method in (SearchMethod.HYBRID, SearchMethod.VECTOR):
         with collection(path / "chroma") as index:
             rankings.append(index.query(query_embeddings=[vector], n_results=min(len(order), max(candidate_count, limit)),
                                         include=["distances"])["ids"][0])
-    if method in ("hybrid", "bm25"):
+    if method in (SearchMethod.HYBRID, SearchMethod.BM25):
         # 공백/기호뿐인 문단도 빈 토큰 배열로 BM25를 깨뜨리지 않는다.
         index = (lexical_cache or LexicalCache(0)).get(path, chunks, max_chars=cache_chars)
         scores = index.get_scores(tokens(query))
@@ -84,8 +127,8 @@ def search(path, documents: dict, query: str, vector, *, method: str, expand: st
     for identifier in nlargest(limit, scores, key=scores.get):
         chunk = chunks[identifier]
         doc = documents[chunk["document_id"]]
-        context = (doc["content"] if expand == "document" else
-                   doc["sections"][chunk["section_id"]]["text"] if expand == "section" else chunk["text"])
+        context = (doc["content"] if expand == SearchExpansion.DOCUMENT else
+                   doc["sections"][chunk["section_id"]]["text"] if expand == SearchExpansion.SECTION else chunk["text"])
         hits.append({**chunk, "title": doc["title"], "metadata": doc["metadata"],
                      "generation": doc["generation"], "revision": doc["revision"], "context": context, "score": scores[identifier]})
     return hits

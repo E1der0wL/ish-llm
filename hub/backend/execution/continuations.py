@@ -1,5 +1,7 @@
 """Fold checkpoint attempts into one display turn without changing stored history."""
 
+from llm.core.continuations import ResumeRecord
+
 from dataclasses import replace
 from collections.abc import Sequence
 from llm.core.models import MessageStatus, Message
@@ -9,13 +11,13 @@ from .trace import merge_trace
 
 
 def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessage]) -> tuple[ChatMessage, ...]:
-    parents = {run_id: m.metadata["resume"]["run_id"] for m in records
-               if str(m.role) == "user" and m.metadata.get("resume")
+    parents = {run_id: m.metadata[ResumeRecord.KEY][ResumeRecord.SOURCE_RUN] for m in records
+               if str(m.role) == "user" and m.metadata.get(ResumeRecord.KEY)
                for run_id in RequestAdmission.run_ids(m)}
     assistants = {m.run_id: m.id for m in records if str(m.role) == "assistant" and m.run_id}
     sources, hidden = {}, set()
     for record in records:
-        parent = (record.metadata.get("resume", {}).get("run_id") if str(record.role) == "user"
+        parent = (ResumeRecord.source_id(record.metadata) if str(record.role) == "user"
                   else parents.get(record.run_id))
         if parent not in assistants:
             continue
@@ -25,7 +27,7 @@ def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessag
             parent = parents[parent]
         if parent in seen:
             continue
-        if str(record.role) == "user" and record.metadata.get("resume"):
+        if str(record.role) == "user" and record.metadata.get(ResumeRecord.KEY):
             hidden.add(record.id)
         elif str(record.role) == "assistant":
             sources[record.id] = assistants[parent]

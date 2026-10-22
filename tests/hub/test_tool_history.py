@@ -58,7 +58,7 @@ class ToolHistoryTests(unittest.TestCase):
         self.assertEqual(len({s.id for s in display_steps(branches)}), 2)
 
     def test_resume_has_its_own_activity_before_new_work(self):
-        phase = ThinkingPhases().activity(NS(id="r", status="running", metadata={"resume": {"run_id": "old"}}))
+        phase = ThinkingPhases().activity(NS(id="r", status="running", metadata={"completions": [], "resume": {"run_id": "old"}}))
         self.assertEqual(phase, "resuming")
         snapshot = HubSnapshot("p", "Project", "model", "file", (SessionSummary("s", "Session", "running"),), "s",
             (ChatMessage("assistant", "Previous answer", status="streaming", phase=phase),),

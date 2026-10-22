@@ -141,6 +141,15 @@ class ToolRegistry:
                 contracts[name]["execution_binding"] = deepcopy(binding)
         return contracts
 
+    def execution_binding(self, policy):
+        """Shared Tool identity inside each Engine's own execution binding.
+
+        The caller supplies the current scope policy; this observation grants no
+        approval and does not replace checks immediately before execution.
+        """
+        return {"tools": [tool.to_dict() for tool in self.definitions()],
+                "tool_contracts": self.contracts(), "tool_policy": deepcopy(policy)}
+
     def validate_selections(self, context):
         """Validate only durably selected invocation bindings, including nested scopes."""
         for record in (context.checkpoint or {}).get("records", {}).values():
