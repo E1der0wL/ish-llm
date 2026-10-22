@@ -1,14 +1,12 @@
 """파일을 소유하는 Component의 패키지 저장. 실행·승인·보관 정책은 소유하지 않는다."""
 
 from copy import deepcopy
-import hashlib
 import io
 import os
 from pathlib import Path, PurePosixPath
 import stat
 
 from llm.core.models import new_id
-from llm.core.schema import object_schema, open_schema
 from llm.services.infrastructure.storage import (
     make_directory, prepare_replace, temporary_file, sync_directory,
     remove_named_tree, unlink_file, check_revision,
@@ -19,13 +17,10 @@ from llm.services.lifecycle.components import ComponentData
 from .base import validate_name
 from .usage import ModelUsageRecord
 from .definitions import DefinitionComponent
+from .file_evidence import FileEvidence
 
 
-FILE_MANIFEST = open_schema("component-owned file manifest", category="data", readOnly=True)
-FILE_MANIFEST["additionalProperties"] = object_schema({
-    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-    "bytes": {"type": "integer", "minimum": 0},
-}, required=["sha256", "bytes"])
+FILE_MANIFEST = FileEvidence.manifest_schema()
 
 
 def file_path(value):
@@ -88,14 +83,7 @@ class FileComponent(DefinitionComponent):
 
     @staticmethod
     def _digest(stream, output=None):
-        digest, size = hashlib.sha256(), 0
-        # I/O buffer size only; no content/retention limit.
-        while block := stream.read(1024 * 1024):
-            digest.update(block)
-            size += len(block)
-            if output is not None:
-                output.write(block)
-        return {"sha256": digest.hexdigest(), "bytes": size}
+        return FileEvidence.measure(stream, output).to_dict()
 
     def _verify(self, project, identifier, value):
         package = self._package(project, identifier)

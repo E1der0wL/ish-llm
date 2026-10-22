@@ -143,22 +143,22 @@ class Component:
         return True
 
     def _model_usage_records(self, project):
-        from llm.components.usage import ModelUsageRecord
+        from llm.components.usage import ModelUsageRecord, ModelUsageManifest
         from llm.services.infrastructure.storage import read_json, revision_token
         if not self._has_storage(project):
             raise ValueError("Component model usage storage is not initialized")
         root = self._usage_root(project)
-        manifest = read_json(self._checked(root / ModelUsageRecord.MANIFEST))
-        ModelUsageRecord.validate_manifest(manifest, project_id=project.id, component=self.name)
+        manifest = ModelUsageManifest.from_dict(
+            read_json(self._checked(root / ModelUsageRecord.MANIFEST)), project_id=project.id, component=self.name)
         actual = {self._checked(path).name for path in root.iterdir()}
-        if actual != {ModelUsageRecord.MANIFEST, *(identifier + ".json" for identifier in manifest["records"])}:
+        if actual != {ModelUsageRecord.MANIFEST, *(identifier + ".json" for identifier in manifest.records)}:
             raise ValueError("Component model usage files are missing or undeclared")
         records = {}
-        for identifier in sorted(manifest["records"]):
+        for identifier in sorted(manifest.records):
             value = read_json(self._checked(root / (identifier + ".json")))
             record = ModelUsageRecord.from_dict(value)
             if (record.id != identifier or record.component != self.name or record.project_id != project.id
-                    or revision_token(value) != manifest["records"][identifier]):
+                    or revision_token(value) != manifest.records[identifier]):
                 raise ValueError("Component model usage owner or revision mismatch")
             records[identifier] = record
         return manifest, records
@@ -186,9 +186,9 @@ class Component:
             raise ValueError("New Component model usage requires a reservation")
         root = self._usage_root(project)
         value = record.to_dict()
-        manifest["records"][record.id] = revision_token(value)
+        manifest = manifest.with_record(record.id, revision_token(value))
         atomic_json(root / (record.id + ".json"), value)
-        atomic_json(root / ModelUsageRecord.MANIFEST, manifest)
+        atomic_json(root / ModelUsageRecord.MANIFEST, manifest.to_dict())
 
     def _record_files(self, project):
         root = self._checked(self.root(project) / "records")
@@ -236,7 +236,7 @@ class Component:
         return value
 
     def _initialize_storage(self, project, *, records=True, record_catalog=True):
-        from llm.components.usage import ModelUsageRecord
+        from llm.components.usage import ModelUsageRecord, ModelUsageManifest
         from llm.services.infrastructure.storage import make_directory
         self.get_config(project)
         root = self.root(project)
@@ -248,9 +248,8 @@ class Component:
         if root.exists():
             raise ValueError("Cannot initialize undeclared Component storage")
         make_directory(root / "records" if records else root)
-        atomic_json(self._usage_root(project) / ModelUsageRecord.MANIFEST, {
-            "schema_version": ModelUsageRecord.SCHEMA_VERSION, "project_id": project.id,
-            "component": self.name, "records": {}})
+        atomic_json(self._usage_root(project) / ModelUsageRecord.MANIFEST,
+                    ModelUsageManifest.empty(project_id=project.id, component=self.name).to_dict())
         if record_catalog:
             atomic_json(root / self.RECORDS_MANIFEST, {
                 "schema_version": self.SCHEMA_VERSION, "project_id": project.id,

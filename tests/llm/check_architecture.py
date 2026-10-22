@@ -242,6 +242,8 @@ def scan_source(source, file):
                         and keyword.value.value in OWNED_KINDS[keyword.arg]):
                     add("S7", keyword, owner, f"kind argument must reference its Owner: {keyword.arg}")
         if isinstance(node, ast.Dict):
+            if file == "llm/components/skills/tools.py" and any(key is not None for key in node.keys):
+                add("S7", node, owner, "Skill handlers must serialize their response Owner")
             for key, value in zip(node.keys, node.values):
                 if domain_name(symbol(key)) and literal(value):
                     add("S3", value, owner, f"inline domain field: {symbol(key)}")
@@ -286,6 +288,16 @@ def scan_source(source, file):
                 and node.func.attr in ("get", "setdefault", "pop") and node.args):
             key = node.slice if isinstance(node, ast.Subscript) else node.args[0]
             receiver = node.value if isinstance(node, ast.Subscript) else node.func.value
+            if (file == "llm/components/skills/tools.py" and (
+                    symbol(receiver) not in ("records", "snapshots") or isinstance(key, ast.Constant)
+                    or isinstance(key, ast.Attribute) and key.attr.isupper())):
+                add("S7", node, owner, "Skill handlers must consume typed requests and snapshots")
+            if (file == "llm/components/base.py" and owner in (
+                    "Component._model_usage_records", "Component.save_model_usage")
+                    and symbol(key) == "records"):
+                add("S7", node, owner, "Component usage inventory must use ModelUsageManifest")
+            if file == "llm/components/skills/storage.py" and symbol(key) in ("sha256", "bytes", "mode", "FILE_MODE"):
+                add("S7", node, owner, "Skill file integrity must use SkillFileEvidence")
             if symbol(key) in ("resume", "restart") and any(
                     isinstance(item, ast.Attribute) and item.attr == "metadata" for item in ast.walk(receiver)):
                 add("S7", node, owner, "Run continuation metadata must use ResumeRecord or RestartRecord")

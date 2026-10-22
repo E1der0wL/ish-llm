@@ -1,7 +1,9 @@
 """Skill 파일과 참조·lineage를 검증한다. 각 소유자의 정의가 참조의 원본이다."""
 
 from llm.components.files import FileData
-from .records import SkillRecord as Record
+from .records import SkillRecord as Record, SkillFileEvidence
+from .views import SkillFileView, SkillReferenceView
+from llm.components.file_evidence import FileEvidence
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import async_method, check_revision
 
@@ -80,14 +82,15 @@ class SkillData(FileData):
             target = self._target(ref)
             if ref[Record.COMPONENT] == Record.TOOLS:
                 # 내용 조회/참조 검증은 Tool 준비·활성화·실행·승인을 하지 않는다.
-                return {"reference": ref}
+                return SkillReferenceView(ref).to_dict()
             content = target.read_file(ref[Record.IDENTIFIER], ref[Record.PATH], expected_revision=ref[Record.REVISION])
-            return {"reference": ref, "text": content.decode("utf-8"),
-                    **target.list_files(ref[Record.IDENTIFIER])[ref[Record.PATH]]}
+            return SkillReferenceView(ref).with_content(content, FileEvidence.from_dict(
+                target.list_files(ref[Record.IDENTIFIER])[ref[Record.PATH]]))
         if Record.PATH not in ref:
-            return {"reference": ref}
+            return SkillReferenceView(ref).to_dict()
         content = self.read_file(identifier, ref[Record.PATH], expected_revision=expected_revision)
-        return {Record.PATH: ref[Record.PATH], "text": content.decode("utf-8"), **value[Record.FILES][ref[Record.PATH]]}
+        return SkillFileView.describe(ref[Record.PATH], content,
+                                      SkillFileEvidence.from_dict(value[Record.FILES][ref[Record.PATH]]))
 
     @workspace_locked
     def impact(self, identifier):

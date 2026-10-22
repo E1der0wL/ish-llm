@@ -1,12 +1,19 @@
 """Skill snapshot and Project-local relations. Never a second Skill definition."""
 
 from copy import deepcopy
+from dataclasses import dataclass, field
 
 from jsonschema import Draft202012Validator
 
 from llm.core.skills import SkillDocument, SkillName
 from llm.core.schema import object_schema, metadata_schema
-from llm.components.files import FILE_MANIFEST, file_path
+from llm.components.files import file_path
+from llm.components.file_evidence import FileEvidence
+
+
+@dataclass(frozen=True)
+class SkillFileEvidence(FileEvidence):
+    mode: int = field(metadata={"type": "integer", "minimum": 0, "maximum": 0o777})
 
 
 class SkillRecord:
@@ -24,12 +31,9 @@ class SkillRecord:
     URI = "uri"
     DATA = "data"
     TOOLS = "tools"
-    FILE_MODE = "mode"
     DIGEST_SCHEMA = {"type": "string", "pattern": "^[a-f0-9]{64}$"}
     TARGET_SCHEMA = {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}
-    FILE_SCHEMA = deepcopy(FILE_MANIFEST)
-    FILE_SCHEMA["additionalProperties"]["properties"][FILE_MODE] = {"type": "integer", "minimum": 0, "maximum": 0o777}
-    FILE_SCHEMA["additionalProperties"]["required"].append(FILE_MODE)
+    FILE_SCHEMA = SkillFileEvidence.manifest_schema()
     RESOURCE_SCHEMA = {"type": "array", "items": {"oneOf": [object_schema({
         URI: {"type": "string", "minLength": 1}, "description": {"type": "string"},
         "metadata": metadata_schema()}, required=[URI]), object_schema({
@@ -90,3 +94,39 @@ class SkillRecord:
         description = fields.pop(SkillDocument.DESCRIPTION)
         return {**deepcopy(value), cls.MARKDOWN: SkillDocument.compose(
             name=name, description=description, body=document.body, **fields).text}
+
+
+@dataclass(frozen=True, init=False)
+class SkillSnapshot:
+    """Validated detached runtime view. The standard Markdown remains the only definition."""
+
+    id: str
+    revision: str
+    _value: dict
+    _document: SkillDocument
+
+    def __init__(self, identifier, value):
+        from llm.services.infrastructure.storage import revision_token
+        value = deepcopy(value)
+        object.__setattr__(self, "_document", SkillRecord.validate(identifier, value))
+        object.__setattr__(self, "_value", value)
+        object.__setattr__(self, "id", identifier)
+        object.__setattr__(self, "revision", revision_token(value))
+
+    @property
+    def name(self):
+        return self._document.name
+
+    @property
+    def description(self):
+        return self._document.frontmatter[SkillDocument.DESCRIPTION]
+
+    def to_dict(self):
+        return deepcopy(self._value)
+
+    def file(self, path):
+        path = SkillRecord.resource_path(path)
+        files = self._value.get(SkillRecord.FILES, {})
+        if path not in files:
+            raise ValueError("Skill file is unavailable in this Run")
+        return SkillFileEvidence.from_dict(files[path])

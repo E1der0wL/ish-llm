@@ -220,6 +220,23 @@ class OwnerBoundaryCheckTests(unittest.TestCase):
         self.assertIn("S6", {item['rule'] for item in scan_source(source, "hub/backend/thinking.py")})
         self.assertNotIn("S6", {item['rule'] for item in scan_source(source, "llm/providers/streaming.py")})
 
+    def test_typed_skill_consumers_reject_inline_structures_and_partial_readers(self):
+        for source in ("def listing(): return {'skills': page}",
+                       "def read(): return arguments['identifier']",
+                       "def read(): return arguments.get('expected_revision')",
+                       "def read(): return arguments[IDENTIFIER]",
+                       "def read(): return arguments[Fields.IDENTIFIER]"):
+            with self.subTest(source=source):
+                self.assertTrue(self.findings(source, "llm/components/skills/tools.py"))
+        for source in ("def listing(): return SkillPage.select(snapshots, request).to_dict()",
+                       "def read(): return snapshots[request.identifier]"):
+            self.assertEqual(self.findings(source, "llm/components/skills/tools.py"), [])
+        source = "class Component:\n    def save_model_usage(self): manifest['records'][record.id] = revision"
+        self.assertTrue(self.findings(source, "llm/components/base.py"))
+        for source in ("value = info['sha256']", "value = info[Record.FILE_MODE]", "value = info.get('bytes')"):
+            self.assertTrue(self.findings(source, "llm/components/skills/storage.py"))
+        self.assertEqual(self.findings("value = info.matches(raw)", "llm/components/skills/storage.py"), [])
+
     def test_continuation_metadata_is_distinct_from_application_commands(self):
         for source in ("value = run.metadata['resume']", "source = message.metadata.get('restart')"):
             self.assertTrue(self.findings(source))

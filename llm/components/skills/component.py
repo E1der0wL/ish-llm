@@ -93,9 +93,10 @@ class SkillComponent(DefinitionComponent):
             data.validate_references(identifier)
         if capability == "tools":
             from .tools import skill_tools
+            from .views import SkillResourceRequest
             registry = self.resolve(project, capability)
             registry.register(skill_tools(self.list(project), read_resource=data.aread_resource,
-                read_file=data.aread_file).get("skill_read_resource"))
+                read_file=data.aread_file).get(SkillResourceRequest.NAME))
             return registry
         return self.resolve(project, capability)
 

@@ -10,12 +10,12 @@ import stat
 
 from llm.core.skills import SkillDocument, SkillName
 from llm.components.files import FileComponent, file_path
-from llm.components.usage import ModelUsageRecord
+from llm.components.usage import ModelUsageRecord, ModelUsageManifest
 from llm.services.infrastructure.storage import (
     atomic_bytes, atomic_json, read_json, make_directory, prepare_create, prepare_replace,
     remove_named_tree, temporary_file, sync_directory, unlink_file,
 )
-from .records import SkillRecord as Record
+from .records import SkillRecord as Record, SkillFileEvidence
 
 
 class SkillStorage:
@@ -60,11 +60,8 @@ class SkillStorage:
 
     @staticmethod
     def _info(stream):
-        info = FileComponent._digest(stream)
         mode = stat.S_IMODE(os.fstat(stream.fileno()).st_mode)
-        if mode & ~0o777:
-            raise ValueError("Skill files cannot carry special permission bits")
-        return {**info, Record.FILE_MODE: mode}
+        return SkillFileEvidence.measure(stream, mode=mode)
 
     def _tree(self, package):
         self.checked(package)
@@ -92,9 +89,8 @@ class SkillStorage:
             raise ValueError("Cannot initialize undeclared or legacy Skill storage")
         make_directory(self.records)
         atomic_json(self.catalog, {**self._identity(), self.RECORDS: {}})
-        atomic_json(self.usage_root() / ModelUsageRecord.MANIFEST, {
-            "schema_version": ModelUsageRecord.SCHEMA_VERSION, "project_id": self.project.id,
-            "component": self.component.name, "records": {}})
+        atomic_json(self.usage_root() / ModelUsageRecord.MANIFEST,
+                    ModelUsageManifest.empty(project_id=self.project.id, component=self.component.name).to_dict())
 
     def _catalog_records(self):
         value = read_json(self.catalog)
@@ -131,11 +127,7 @@ class SkillStorage:
                 raise ValueError("Invalid Skill directory inventory")
             for path in entry[self.DIRECTORIES]:
                 file_path(path)
-            for key in (self.DOCUMENT,):
-                # The document uses the same digest/size/mode evidence as resource files.
-                from jsonschema import Draft202012Validator
-                if not Draft202012Validator(Record.FILE_SCHEMA["additionalProperties"]).is_valid(entry[key]):
-                    raise ValueError("Invalid Skill document integrity evidence")
+            SkillFileEvidence.from_dict(entry[self.DOCUMENT])
             if not isinstance(entry[Record.FILES], dict) or not isinstance(entry[Record.RESOURCES], list):
                 raise ValueError("Skill requires stored file and reference containers")
             entries[name] = entry
@@ -145,12 +137,13 @@ class SkillStorage:
         package = self.package(name)
         files, directories = self._tree(package)
         document_info = files.pop(SkillDocument.FILENAME)
-        if (files != entry[Record.FILES] or document_info != entry[self.DOCUMENT]
+        if ({name: info.to_dict() for name, info in files.items()} != entry[Record.FILES]
+                or document_info != SkillFileEvidence.from_dict(entry[self.DOCUMENT])
                 or directories != entry[self.DIRECTORIES]):
             raise ValueError("Skill package file integrity mismatch")
         with FileComponent._stream(self.checked(package / SkillDocument.FILENAME)) as stream:
             raw = stream.read()
-        if hashlib.sha256(raw).hexdigest() != document_info["sha256"]:
+        if not document_info.matches(raw):
             raise ValueError("Skill document changed during read")
         value = {Record.MARKDOWN: raw.decode("utf-8")}
         if entry[Record.FILES]:
@@ -179,13 +172,13 @@ class SkillStorage:
         files, directories = self._tree(self.package(identifier))
         raw = value[Record.MARKDOWN].encode("utf-8")
         document = files[SkillDocument.FILENAME]
-        if document["bytes"] != len(raw) or document["sha256"] != hashlib.sha256(raw).hexdigest():
+        if not document.matches(raw):
             raise ValueError("Skill document changed before operational commit")
-        entry = {**self._identity(), self.ID: identifier, self.DOCUMENT: files.pop(SkillDocument.FILENAME),
-                 self.DIRECTORIES: directories, Record.FILES: files,
+        entry = {**self._identity(), self.ID: identifier, self.DOCUMENT: files.pop(SkillDocument.FILENAME).to_dict(),
+                 self.DIRECTORIES: directories, Record.FILES: {name: info.to_dict() for name, info in files.items()},
                  Record.RESOURCES: deepcopy(value.get(Record.RESOURCES, [])),
                  Record.LINEAGE: deepcopy(value.get(Record.LINEAGE)), Record.SOURCE: deepcopy(value.get(Record.SOURCE))}
-        if files != value.get(Record.FILES, {}):
+        if entry[Record.FILES] != value.get(Record.FILES, {}):
             raise ValueError("Skill files must be managed by file APIs")
         path = self.record_path(identifier)
         atomic_json(path, entry)
@@ -199,7 +192,7 @@ class SkillStorage:
         fd, temporary = temporary_file(destination)
         try:
             with os.fdopen(fd, "wb") as output:
-                info = FileComponent._digest(stream, output)
+                info = SkillFileEvidence.measure(stream, output, mode=mode)
                 os.fchmod(output.fileno(), mode)
                 output.flush()
                 os.fsync(output.fileno())
@@ -207,7 +200,7 @@ class SkillStorage:
             sync_directory(destination.parent)
         finally:
             Path(temporary).unlink(missing_ok=True)
-        return {**info, Record.FILE_MODE: mode}
+        return info
 
     def create(self, value, identifier=None):
         document = Record.validate(identifier, value)
@@ -250,9 +243,10 @@ class SkillStorage:
         value = records[identifier]
         destination = self.checked(self.package(identifier) / path)
         if mode is None:
-            mode = value.get(Record.FILES, {}).get(path, {}).get(Record.FILE_MODE, 0o600)
+            evidence = value.get(Record.FILES, {}).get(path)
+            mode = 0o600 if evidence is None else SkillFileEvidence.from_dict(evidence).mode
         info = self._copy_stream(stream, destination, mode=mode)
-        value.setdefault(Record.FILES, {})[path] = info
+        value.setdefault(Record.FILES, {})[path] = info.to_dict()
         self._commit(identifier, value, catalog)
 
     def read_file(self, identifier, path, *, offset=0, length=None):
@@ -297,12 +291,12 @@ class SkillStorage:
                 # Explicit fork authoring has already written the new document.
                 continue
             with FileComponent._stream(self.checked(source / path)) as stream:
-                actual = self._copy_stream(stream, destination, mode=expected[Record.FILE_MODE])
+                actual = self._copy_stream(stream, destination, mode=expected.mode)
             if actual != expected:
                 raise ValueError("Skill source changed during import")
         if self._tree(source) != (files, directories):
             raise ValueError("Skill source changed during import")
-        candidate[Record.FILES] = {name: info for name, info in files.items() if name != SkillDocument.FILENAME}
+        candidate[Record.FILES] = {name: info.to_dict() for name, info in files.items() if name != SkillDocument.FILENAME}
         self._commit(identifier, candidate, catalog)
         return identifier
 
@@ -324,7 +318,7 @@ class SkillStorage:
                 make_directory(self.checked(destination / directory))
             for path, expected in files.items():
                 with FileComponent._stream(self.checked(source / path)) as stream:
-                    actual = self._copy_stream(stream, self.checked(destination / path), mode=expected[Record.FILE_MODE])
+                    actual = self._copy_stream(stream, self.checked(destination / path), mode=expected.mode)
                 if actual != expected:
                     raise ValueError("Skill source changed during export")
             if self._tree(destination) != (files, directories):

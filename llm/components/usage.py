@@ -1,10 +1,11 @@
 """Component-owned model call receipts, independent of Run completion storage."""
 
 from copy import deepcopy
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, fields, replace
 from datetime import datetime
 from enum import StrEnum
 import re
+from types import MappingProxyType
 
 from llm.core.models import ProjectConfig
 
@@ -46,20 +47,6 @@ class ModelUsageRecord:
 
     def to_dict(self):
         return asdict(self)
-
-    @classmethod
-    def validate_manifest(cls, value, *, project_id, component):
-        from llm.components.base import validate_name
-        if (not isinstance(value, dict) or value.keys() != {"schema_version", "project_id", "component", "records"}
-                or type(value["schema_version"]) is not int or value["schema_version"] != cls.SCHEMA_VERSION
-                or value["project_id"] != project_id or value["component"] != component
-                or not isinstance(value["records"], dict)):
-            raise ValueError("Invalid Component model usage manifest")
-        for identifier, revision in value["records"].items():
-            validate_name(identifier)
-            if (identifier + ".json" == cls.MANIFEST or not isinstance(revision, str)
-                    or not re.fullmatch(r"[a-f0-9]{64}", revision)):
-                raise ValueError("Invalid Component model usage revision")
 
     @staticmethod
     def timestamp(value):
@@ -124,3 +111,49 @@ class ModelUsageRecord:
                      "session_id", "run_id", "started_at", "reserved_tokens"):
             if getattr(self, name) != getattr(previous, name):
                 raise ValueError("Model usage reservation identity changed")
+
+
+@dataclass(frozen=True)
+class ModelUsageManifest:
+    """Required receipt inventory; only explicit initialization may create an empty one."""
+
+    schema_version: int
+    project_id: str
+    component: str
+    records: dict
+
+    def __post_init__(self):
+        from llm.components.base import validate_name
+        if type(self.schema_version) is not int or self.schema_version != ModelUsageRecord.SCHEMA_VERSION:
+            raise ValueError("Invalid Component model usage manifest version")
+        validate_name(self.project_id)
+        validate_name(self.component)
+        if not isinstance(self.records, (dict, MappingProxyType)):
+            raise ValueError("Invalid Component model usage manifest records")
+        for identifier, revision in self.records.items():
+            validate_name(identifier)
+            if (identifier + ".json" == ModelUsageRecord.MANIFEST or not isinstance(revision, str)
+                    or not re.fullmatch(r"[a-f0-9]{64}", revision)):
+                raise ValueError("Invalid Component model usage revision")
+        object.__setattr__(self, "records", MappingProxyType(dict(self.records)))
+
+    @classmethod
+    def empty(cls, *, project_id, component):
+        return cls(ModelUsageRecord.SCHEMA_VERSION, project_id, component, {})
+
+    @classmethod
+    def from_dict(cls, value, *, project_id, component):
+        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
+            raise ValueError("Invalid Component model usage manifest fields")
+        result = cls(**value)
+        if result.project_id != project_id or result.component != component:
+            raise ValueError("Component model usage manifest owner mismatch")
+        return result
+
+    def with_record(self, identifier, revision):
+        return replace(self, records={**self.records, identifier: revision})
+
+    def to_dict(self):
+        # Fields are the declaration; the mapping is dynamic receipt IDs, not another schema.
+        return {item.name: dict(value) if isinstance(value, MappingProxyType) else value
+                for item in fields(self) for value in (getattr(self, item.name),)}

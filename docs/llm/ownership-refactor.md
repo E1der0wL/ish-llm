@@ -18,6 +18,31 @@ H1–H5 → P1 → A–F의 기존 기능·안전성 검증 기록은 보존한�
 
 ## 확인된 항목과 조사 후보
 
+### 고정 구조 데이터 후속 보강 TC1–TC3
+
+기준 `38e18566c8ea60143601bff161f27c37775c4d6b`. O0–O7와 Agent Skills 전환의 기능·안전성
+통과는 보존하지만, 새로 명시한 [고정 구조 데이터 계약](contract-ownership.md)의 전체 적용
+완료로 승계하지 않는다. 이번 변경·검증은 [TC 검증 기록](typed-contracts-verification.md)을 따른다.
+
+| 단계 | Owner·실제 소비 경로 | 범위·완료 기준 |
+|---|---|---|
+| TC1 | `ModelUsageManifest` → 모든 Component 초기화/읽기/갱신, Skills `_state/usage` | 동일 저장 JSON, 누락·버전·identity·digest 거부, 변경 API와 중첩 사본 보호. 영수증·예산 의미와 쓰기 순서 보존 |
+| TC2 | `FileEvidence`/`SkillFileEvidence` → Data 파일 digest·Skills 저장/import/export; `SkillSnapshot`/`views` → Skill Tool·resource 조회 | 필드 선언에서 Schema/직렬화 파생, 원문·파일 모드·revision 보존. Tool handler의 고정 dict 조립/조회 제거, 독립 wire·잘못된 입력·사본 시험과 S7 음성 시험 |
+| TC3 | TC1–TC2 통합·전체 소비자 | 공통 사용량/파일 저장 영향이므로 Level 3 필수. 전체 LLM/Hub·R3·정적·문서·실제 환경 및 정확한 SHA 원격 CI |
+
+추가 전환 대상은 별도로 남긴다. 이는 허용 예외나 구현 완료 목록이 아니다.
+
+- `Component`의 일반 정의 inventory와 `SkillStorage`의 운영 catalog/entry: 현재 저장 Owner 내부
+  Reader/Writer이며 소비자에 노출하지 않지만, 선언·생성·검증을 명시적 타입으로 더 묶을 수 있다.
+- `SkillData._target/impact/dependencies`, `SkillComponent.references`, `ProjectReferences`:
+  Component snapshot/삭제 참조의 공개 dict를 직접 해석·조립한다. 참조 프로토콜 Owner와
+  전체 Component·Agent 삭제 소비자를 함께 전환해야 하며 Skills 전용 상수로 대체하지 않는다.
+- 다른 Component Tool·서비스/Hub의 고정 응답과 설정 snapshot: 기존 O0–O7 후보·Owner 근거를
+  재사용하여 실제 변경 경로별로 타입/Reader/Projection 연결을 검증한다. 이번 TC 범위 밖이다.
+
+TC3 통과도 저장소 전체 dict 전환 완료가 아니다. 위 대상은 필드/상태의 같은 철자만으로
+공통화하지 않으며 각 계약의 전체 소비 경로와 Level 1–3 증거를 갖춰 후속 완료한다.
+
 아래는 이번 질문에서 출발한 초기 목록이며 전체 발생 목록이 아니다. 문자열 접근 자체만으로
 모두 위반이라고 분류하지 않는다. 확정된 중복과 소유·호출 관계를 더 확인할 항목을 구분한다.
 
