@@ -71,6 +71,9 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view._dialog is None and not view.projects.busy)
                 self.assertEqual(len(view.projects.items), count + 1, view.notice)
                 self.assertIsNone(view._dialog)
+                created = next(item for item in view.projects.items if item['title'] == 'Named project')
+                # Activation completion and the UI snapshot are separate deliveries.
+                await until(lambda: view.project_id == created['id'])
                 self.assertEqual(view.project_title, 'Named project')
             finally:
                 app.exit()

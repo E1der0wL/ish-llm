@@ -56,8 +56,30 @@ GitHub API는 Forbidden이지만 공개 GitHub 웹 페이지의 정확한 SHA와
 현재 A-c 전체 Hub 실행에서는 같은 시험도 통과했으나 과거 CI 실패를 무시하지 않는다.
 프로젝트 활성화 callback과 UI snapshot은 별도 전달이며 busy 해제만으로 화면 반영 완료를
 증명하지 못한다. 동일한 기존 timeout 내에서 새 프로젝트 ID의 snapshot까지 기다리도록 시험을
-보강하고 제목/목록/팝업 assertion을 유지한 채 영향받는 Hub 전체를 다시 검증한다. A의 원격
+보강하고 제목/목록/팝업 assertion을 유지했다. 새 Push의 CI에서 Hub 전체를 다시 검증한다. A의 원격
 CI 통과는 새 Push의 정확한 SHA와 실제 필수 Job 결과를 확인한 뒤에만 선언한다.
+
+A-c 구현은 `5a5bf257dde9f675c100232fc797eb5e29f67046`으로 로컬 커밋했다. 뒤이은 CI 시험
+보강은 `tests/hub/test_settings_usability.py`에 새 프로젝트 ID snapshot 대기만 추가했다.
+기존 15초 timeout, 생성 개수·빈 이름 거부·팝업 종료·정확한 제목 assertion은 모두 유지한다.
+
+`a3-ci-focus`에서 settings_usability/creation_contracts/settings 3모듈의 19개를 실행해
+발견/실행/통과 19/19/19, Failure/Error/Skip/expected failure/unexpected success/누락/중복/
+예상 밖 실행 모두 0, 실제 exit 0, 46.649801초를 확인했다. 명령은
+`python -m tests.llm.run_regression --suite hub --modules tests.hub.test_settings_usability
+ tests.hub.test_creation_contracts tests.hub.test_settings --output <실행 디렉터리>/hub.json`이다.
+정확한 실행 명령/exit는 `a3-ci-focus/hub-execution.json`에 보존했다.
+
+source `683918b4640ce15c5e889baf5370ecb870bf6a1b6dd0b6c50de90509ef357d95`,
+input `5d2293f76f607f0a6280fe3bae1a7fe80c6c860ae8f97be646f111287ec90f3e`는
+실행 전후 정확히 같다. 기준 HEAD는 A-c 커밋에 UI 시험 보강을 더한 상태다.
+
+제품 runtime·모든 다른 시험·Fixture·의존성·host·환경이 전체 게이트와 같음을 확인했다.
+제품 파일 차이는 위에서 compile bytes 동일성을 입증한 EOF 정리뿐이다. LLM discovery 2137과
+Hub 577도 유지된다. 로컬 전체 결과는 영향 없는 범위에 한해 재사용하고 변경된 UI 시험은 위
+집중 결과로 별도 보완한다. 이 분할 검증을 새 단일 전체 실행으로 표현하지 않는다. 단순 시험
+동기화 수정 때문에 같은 제품의 로컬 전체를 반복하지 않으며, Push의 정확한 SHA에서 CI의
+전체 LLM/Hub 및 필수 Job을 실행·확인한다. 새 원격 결과 전에는 CI 통과로 기록하지 않는다.
 
 아래는 앞선 검증과 계약 확정 전 실패·중단의 역사 기록이며 새 통과로 소급 변경하지 않는다.
 
