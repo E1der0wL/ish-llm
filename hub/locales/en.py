@@ -226,7 +226,7 @@ MESSAGES = {
     'mcp_title': 'MCP servers',
     'rag_title': 'RAG documents',
     'workflows_title': 'Workflows',
-    'skills_import_hint': 'Markdown or Skill JSON file path → Enter to import',
+    'skills_import_hint': 'Standard Skill directory or SKILL.md path → Enter to import',
     'mcp_import_hint': 'MCP server JSON file path → Enter to validate and import',
     'rag_import_hint': 'Text/Markdown/PNG/JPEG path → Enter to import (images: choose OCR or model analysis)',
     'workflows_import_hint': 'Workflow JSON file path → Enter to validate and import',

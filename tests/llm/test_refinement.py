@@ -1,5 +1,7 @@
 """제안/승인/단일 대상 CAS/되돌리기 및 실제 Run·Tool 실행 통합."""
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import json
@@ -49,7 +51,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         await self.create_agent("loop", "test/model")
         self.run = (await (await self.session.run.submit("baseline", recipients=["loop"])).wait())[0]
         self.evidence = [{"session_id": self.session.id, "run_id": self.run.id}]
-        await self.project.components.skills.acreate({"instructions": "Before"}, identifier="guide")
+        await self.project.components.skills.acreate({"markdown": skill_markdown("guide", "Before")}, identifier="guide")
         await self.project.components.prompts.acreate({"messages": [{"role": "system", "content": "Before"}]}, identifier="guide")
         await self.project.agents.acreate({"purpose": "Before", "engine": "loop"}, identifier="guide")
         await self.project.components.memory.acreate({"content": "Before"}, identifier="guide")
@@ -78,7 +80,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         current = await self.refine.atarget_snapshot(target)
         data = {"target": target, "operation": "update", "expected_version": current["version"],
                 "reason": "Observed missing checks", "evidence": self.evidence,
-                "patch": changes or {"instructions": "After: inspect validation errors"}}
+                "patch": changes or {"markdown": skill_markdown('guide', "After: inspect validation errors")}}
         return await self.refine.acreate(data), data, current
 
     async def approve(self, identifier):
@@ -86,7 +88,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         return await self.refine.aapprove(identifier, expected_version=view["version"])
 
     async def test_skill_prompt_agent_apply_rollback_and_no_implicit_mutation(self):
-        for component, changes in (("skills", {"instructions": "After"}),
+        for component, changes in (("skills", {"markdown": skill_markdown('guide', "After")}),
             ("prompts", {"messages": [{"role": "system", "content": "After"}]}),
             ("agents", {"purpose": "After", "description": "Check evidence"})):
             with self.subTest(component=component):
@@ -104,22 +106,39 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(reverted["data"]["status"], "rolled_back")
                 self.assertEqual(await self.refine.atarget_snapshot(data["target"]), original)
 
+    async def test_unicode_skill_name_apply_and_rollback_preserve_evidence(self):
+        skills = self.project.components.skills
+        await skills.acreate({'markdown': skill_markdown('코드-검토', 'Before')})
+        target = {'component': 'skills', 'identifier': '코드-검토'}
+        original = await self.refine.atarget_snapshot(target)
+        identifier = await self.refine.acreate({
+            'target': target, 'operation': 'update', 'expected_version': original['version'],
+            'reason': 'Review validation', 'evidence': self.evidence,
+            'patch': {'markdown': skill_markdown('코드-검토', 'After')}})
+        approved = await self.approve(identifier)
+        applied = await self.refine.aapply(identifier, expected_version=approved['version'])
+        self.assertEqual(applied['data']['applied_target']['identifier'], '코드-검토')
+        self.assertEqual(await skills.aread_markdown('코드-검토'), skill_markdown('코드-검토', 'After'))
+        reverted = await self.refine.arollback(identifier, expected_version=applied['version'])
+        self.assertEqual(reverted['data']['status'], 'rolled_back')
+        self.assertEqual(await self.refine.atarget_snapshot(target), original)
+
     async def test_stale_apply_and_stale_rollback_never_overwrite(self):
         identifier, data, original = await self.proposal()
         approved = await self.approve(identifier)
         skills = self.project.components.skills
-        await skills.aupdate("guide", {"instructions": "User change"}, expected_version=original["version"])
+        await skills.aupdate("guide", {"markdown": skill_markdown("guide", "User change")}, expected_version=original["version"])
         with self.assertRaises(ValueError):
             await self.refine.aapply(identifier, expected_version=approved["version"])
         self.assertNotEqual((await self.refine.aload(identifier))["status"], "applied")
         identifier, _, _ = await self.proposal()
         approved = await self.approve(identifier)
         applied = await self.refine.aapply(identifier, expected_version=approved["version"])
-        await skills.aupdate("guide", {"instructions": "Latest user change"},
+        await skills.aupdate("guide", {"markdown": skill_markdown("guide", "Latest user change")},
                             expected_version=applied["data"]["applied_target"]["version"])
         with self.assertRaises(ValueError):
             await self.refine.arollback(identifier, expected_version=applied["version"])
-        self.assertEqual((await skills.aload("guide"))["instructions"], "Latest user change")
+        self.assertEqual((await skills.aload("guide"))["markdown"], skill_markdown("guide", "Latest user change"))
 
     async def test_memory_creates_review_candidate_without_overwriting_confirmed(self):
         identifier, data, original = await self.proposal("memory", {"content": "After"})
@@ -269,7 +288,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         target = {"component": "skills", "identifier": "guide"}
         snapshot = await self.refine.atarget_snapshot(target)
         arguments = {"target": target, "operation": "update", "expected_version": snapshot["version"],
-            "reason": "Resolve identifiers with skill_list before reading", "patch": {"instructions": "List skills, then read an existing identifier."},
+            "reason": "Resolve identifiers with skill_list before reading", "patch": {"markdown": skill_markdown('guide', "List skills, then read an existing identifier.")},
             "evidence": [{"session_id": self.session.id, "run_id": third.id, "step_id": failed_steps[0].id}]}
         proposer = ScriptedCompletion([chunk(calls=[call(json.dumps(arguments), name="refinement_propose")], finish="tool_calls")],
                                      [chunk("Proposal ready for review", finish="stop")])

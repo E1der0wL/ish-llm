@@ -226,7 +226,7 @@ MESSAGES = {
     'mcp_title': 'MCP 서버 관리',
     'rag_title': 'RAG 문서 관리',
     'workflows_title': 'Workflow 관리',
-    'skills_import_hint': 'Markdown 또는 Skill JSON 파일 경로 → Enter: 가져오기',
+    'skills_import_hint': '표준 Skill 디렉터리 또는 SKILL.md 경로 → Enter: 가져오기',
     'mcp_import_hint': 'MCP 서버 JSON 파일 경로 → Enter: 검증 후 가져오기',
     'rag_import_hint': '텍스트·Markdown·PNG·JPEG 경로 → Enter: 등록 (이미지는 OCR/모델 분석 선택)',
     'workflows_import_hint': 'Workflow JSON 파일 경로 → Enter: 검증 후 가져오기',

@@ -1,5 +1,7 @@
 """Explicit-only configuration is a public contract, independent of test presets."""
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 from llm.providers.operations import LiteLLMOperations
 
@@ -301,7 +303,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                     prompt_view = await project.agents.aprompt("worker")
                     self.assertEqual({k: v for k, v in prompt_view.items() if k == "system_prompt"},
                                      {k: v for k, v in overrides.items() if k == "system_prompt"})
-                    await project.components.skills.acreate({"instructions": "Check facts."}, identifier="review")
+                    await project.components.skills.acreate({"markdown": skill_markdown("review", "Check facts.")}, identifier="review")
                     flow = (WorkflowGraph(entry="work", inputs={"request": "/prompt"}, outputs={"answer": "/answer"})
                         .node("work", "agent", agent="worker", inputs={"request": "/request"}, outputs={"answer": "/text"})
                         .node("end", "end").connect("work", "end"))

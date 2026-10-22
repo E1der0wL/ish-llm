@@ -59,7 +59,7 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                 messages = provider.requests[-1]["messages"]
                 guide = next(body for identifier, _, _, body in SKILLS if identifier == "hub-code-change")
                 tool_results = [json.loads(message["content"]) for message in messages if message["role"] == "tool"]
-                self.assertTrue(any(value.get("definition", {}).get("instructions") == guide for value in tool_results))
+                self.assertTrue(any(value.get("definition", {}).get("markdown") == guide for value in tool_results))
                 self.assertTrue(any(value.get("text") == content for value in tool_results))
                 # Chat-only examples can complete without manufacturing a file operation.
                 response = (await (await session.run.submit("파일은 바꾸지 말고 사용 예시만 보여줘.",
@@ -109,6 +109,8 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 skills = await runtime.project.components.aget("skills")
                 definition = await skills.aload("hub-code-change")
+                from llm.components.skills import SkillRecord
+                definition = SkillRecord.renamed(definition, "coding-tested")
                 installed = await skills.acreate(definition, identifier="coding-tested")
                 self.assertEqual(installed, "coding-tested")
                 with self.assertRaises((FileExistsError, ValueError)):

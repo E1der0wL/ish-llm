@@ -1,4 +1,6 @@
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 from llm.providers.operations import LiteLLMOperations
 from tests.llm.support.runtime_tools import RuntimeTools
@@ -332,14 +334,14 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(answer("ok"))
         await self.setup_graph(agent_graph(pause_before=True), model, extra_components=(SkillComponent(),))
         skills = await self.project.components.aget("skills")
-        await skills.acreate({"instructions": "Check invariants."}, identifier="review")
+        await skills.acreate({"markdown": skill_markdown("review", "Check invariants.")}, identifier="review")
         paused = await self.run_graph()
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
-        await skills.asave("review", {"instructions": "Changed guidance."})
+        await skills.asave("review", {"markdown": skill_markdown("review", "Changed guidance.")})
         with self.assertRaisesRegex(Exception, "changed"):
             await self.session.run.resume(paused.id, agent_id="flow-agent")
         self.assertEqual(model.requests, [])
-        await skills.asave("review", {"instructions": "Check invariants."})
+        await skills.asave("review", {"markdown": skill_markdown("review", "Check invariants.")})
         run = (await (await self.session.run.resume(paused.id, agent_id="flow-agent")).wait())[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertIn("Skill review:\nCheck invariants.", model.requests[0]["messages"][0]["content"])

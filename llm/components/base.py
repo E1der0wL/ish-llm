@@ -147,7 +147,7 @@ class Component:
         from llm.services.infrastructure.storage import read_json, revision_token
         if not self._has_storage(project):
             raise ValueError("Component model usage storage is not initialized")
-        root = self._checked(self.root(project) / ModelUsageRecord.DIRECTORY)
+        root = self._usage_root(project)
         manifest = read_json(self._checked(root / ModelUsageRecord.MANIFEST))
         ModelUsageRecord.validate_manifest(manifest, project_id=project.id, component=self.name)
         actual = {self._checked(path).name for path in root.iterdir()}
@@ -169,6 +169,10 @@ class Component:
             return []
         return [record.to_dict() for record in self._model_usage_records(project)[1].values()]
 
+    def _usage_root(self, project):
+        from llm.components.usage import ModelUsageRecord
+        return self._checked(self.root(project) / ModelUsageRecord.DIRECTORY)
+
     def save_model_usage(self, project, entry):
         from llm.components.usage import ModelUsageRecord, ModelUsageStatus
         from llm.services.infrastructure.storage import revision_token
@@ -180,7 +184,7 @@ class Component:
             record.validate_update(records[record.id])
         elif record.status != ModelUsageStatus.STARTED:
             raise ValueError("New Component model usage requires a reservation")
-        root = self._checked(self.root(project) / ModelUsageRecord.DIRECTORY)
+        root = self._usage_root(project)
         value = record.to_dict()
         manifest["records"][record.id] = revision_token(value)
         atomic_json(root / (record.id + ".json"), value)
@@ -244,7 +248,7 @@ class Component:
         if root.exists():
             raise ValueError("Cannot initialize undeclared Component storage")
         make_directory(root / "records" if records else root)
-        atomic_json(root / ModelUsageRecord.DIRECTORY / ModelUsageRecord.MANIFEST, {
+        atomic_json(self._usage_root(project) / ModelUsageRecord.MANIFEST, {
             "schema_version": ModelUsageRecord.SCHEMA_VERSION, "project_id": project.id,
             "component": self.name, "records": {}})
         if record_catalog:

@@ -111,8 +111,9 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
   tools/packages.manifest.json    # Tool owner의 패키지 목록·파일 해시
   tools/search/search.py           # Tool 전용 Python 패키지
   tools/search/requirements.txt    # 존재가 선언된 경우 필수인 의존성 파일
-  skills/review/skill.json         # 지침·참조·파일 manifest
-  skills/review/files/example.md
+  skills/review/SKILL.md           # 유일한 표준 정의 원본
+  skills/review/references/example.md
+  skills/_state/records/review.json # 참조·계보·파일 무결성 증거
   data/manual/data.json            # 자료 설명·파일 manifest
   data/manual/files/reference.md
   rag/...                          # 문서·색인 세대·작업 체크포인트
@@ -135,7 +136,7 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 공통 JSON 저장은 `records.manifest.json`으로 전체 기록의 존재와 원본 바이트를 검증합니다.
 기록·목록·디렉터리 소실이나 미선언 자료를 빈 상태로 읽거나 다시 만들지 않습니다.
 생성·수정·삭제는 기록과 목록을 같은 transaction으로 확정하며 `validate_record`의 의미
-검증도 유지합니다. FileComponent는 자신의 Skill/Data 패키지 정의 경로를 제공하고 첨부
+검증도 유지합니다. SkillStorage는 표준 디렉터리와 _state를, FileComponent는 Data 패키지 정의 경로를 소유하고 첨부
 파일 검증을 추가합니다. Memory 캐시도 원본 검증을 거칩니다. Tool Python 패키지와 외부
 저장소는 별도 owner 계약을 따릅니다. 원본 해시 검증의 대용량 비용은 아직 측정하지 않았습니다.
 

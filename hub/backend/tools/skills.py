@@ -2,7 +2,7 @@
 
 import asyncio
 from dataclasses import replace
-from llm.components.skills import SkillComponent
+from llm.components.skills import SkillComponent, SkillRecord, SkillName
 from llm.components.tools import ToolRegistry
 
 
@@ -11,7 +11,7 @@ class HubSkillComponent(SkillComponent):
         registry = super().resolve_runtime(project, capability, data_factory=data_factory)
         if capability == "tools":
             from .resources import authoring_tools
-            for tool in authoring_tools(data_factory(self.name), self.name, self.schema, discover=False):
+            for tool in authoring_tools(data_factory(self.name), self.name, self.schema, discover=False, source_field=SkillRecord.SOURCE, identifier_schema=SkillName.SCHEMA):
                 registry.register(tool)
         return registry
 

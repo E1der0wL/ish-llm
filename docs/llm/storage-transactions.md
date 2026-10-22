@@ -34,7 +34,8 @@
 | Project 생성 | project.json, Session/Component 디렉토리 초기화; 기본 Project 선택은 Application 소유 |
 | Project 설정·Component 선택 | 설정·선택, initialized_components 이력과 신규 Component 저장소/사용량 manifest 초기화 |
 | Component 모델 호출 | 호출 전 예약과 호출 후 종료 각각의 영수증·파일 리비전 manifest |
-| Component JSON 기록 | 생성·수정·명시 삭제의 원본과 records.manifest.json; Skill/Data 패키지 정의 포함 |
+| Component JSON 기록 | 생성·수정·명시 삭제의 원본과 records.manifest.json; Data 패키지 정의 포함 |
+| Skill 표준 디렉터리 | SKILL.md·자료 파일·디렉터리와 _state의 필수 목록·개별 운영 기록; 정의 JSON 복제 없음 |
 | RAG Job | 신규 입력·lease·Job·목록, 상태 갱신의 Job·목록, 승인된 삭제의 Job 트리·목록 |
 | Python Tool 패키지 | 생성·수정·명시 삭제의 소스·선언된 requirements·packages.manifest.json |
 | Component 영구 제거 | 안전성 검증 후 Project 선택/설정/저장소 이력 제거와 Component 디렉토리 격리 |

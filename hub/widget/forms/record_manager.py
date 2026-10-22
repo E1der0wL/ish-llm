@@ -30,7 +30,7 @@ class RecordManager(ComponentManager):
         # Reopening never silently overwrites a concurrent component change.
         text, version = self.drafts.get(name, (record["text"], record["version"]))
         try:
-            edited = await self.edit_text(text, self.view.general, suffix=".json")
+            edited = await self.edit_text(text, self.view.general, suffix=component_spec(self.name).editor_suffix)
         except (OSError, ValueError, subprocess.CalledProcessError) as error:
             self.status = self.view.t("error", error=error)
             return

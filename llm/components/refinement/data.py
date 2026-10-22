@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from .lifecycle import RefinementStatus
+from llm.components.skills.records import SkillRecord
 from datetime import datetime, timezone
 
 from llm.services.lifecycle.components import ComponentData
@@ -10,7 +11,7 @@ from llm.services.infrastructure.storage import async_method, revision_token, ch
 
 
 # Refine은 작업 지침을 개선한다. Agent 권한/엔진/실행 정책을 수정하는 경로가 아니다.
-EDITABLE = {"skills": {"instructions", "description", "title", "tags", "resources"},
+EDITABLE = {"skills": SkillRecord.EDITABLE,
             "prompts": {"messages", "description"},
             "agents": {"purpose", "description"},
             "memory": {"content", "kind", "tags"}}
@@ -113,7 +114,9 @@ class RefinementData(ComponentData):
             raise ValueError("Refinement patch contains unsupported or authority-changing fields")
         result = {**deepcopy(current), **deepcopy(patch)}
         if proposal["operation"] == "fork":
-            result["lineage"] = {"parent": proposal["parent"]["identifier"], "parent_revision": proposal["parent"]["version"]}
+            result = SkillRecord.renamed(result, target["identifier"])
+            result[SkillRecord.LINEAGE] = {SkillRecord.PARENT: proposal["parent"]["identifier"],
+                                          SkillRecord.PARENT_REVISION: proposal["parent"]["version"]}
         if result == current:
             raise ValueError("Refinement patch does not change the target")
         if target["component"] == "memory":

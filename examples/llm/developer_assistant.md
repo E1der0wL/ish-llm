@@ -20,7 +20,7 @@ python -m examples.llm.developer_assistant \
 ```
 
 workdir은 존재해야 하고 workspace는 그 밖에 둔다. --install-guides는 code-change와
-computer-diagnosis 예제 지침을 생성한다. 이미 있는 ID를 덮어쓰지 않으며 기본 실행에서
+computer-diagnosis의 표준 SKILL.md 예제 지침을 생성한다. 이미 있는 ID를 덮어쓰지 않으며 기본 실행에서
 지침을 자동 설치하지 않는다. 이후 --project-id로 저장된 설정과 Skill을 재사용한다.
 기존 Project에는 config의 project_config를 다시 적용하지 않는다. 호스트 카탈로그는 다시
 연결하므로 기존 enabled 이름에 해당하는 기능을 계속 제공해야 한다. 각 실행은 새 Session이며,
@@ -38,8 +38,8 @@ Loop completion
   → 최종 응답
 ```
 
-skill_list에 인자가 없으면 전체 요약 목록을 읽는다. 설명·태그를 작업 언어로 작성하면
-모델이 선택하기 쉽다. query는 의미 검색이 아니라 ID/제목/설명/태그의 단어 검색이다.
+skill_list에 인자가 없으면 전체 요약 목록을 읽는다. SKILL.md의 description을 작업 언어로 작성하면
+모델이 선택하기 쉽다. query는 의미 검색이 아니라 name/description의 단어 검색이다.
 일치하지 않으면 query를 바꾸거나 전체 요약을 조회한다. 긴 본문은 선택한 Skill만 읽는다.
 Graph Agent에서는 tools 허용 목록에 skill_list/skill_read를 넣어야 한다. 특정 지침의 고정
 주입은 기존 resources.skills로 유지한다. 지침은 실행 정책이나 승인을 변경하지 않는다.

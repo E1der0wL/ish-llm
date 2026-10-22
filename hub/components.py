@@ -32,6 +32,10 @@ class ComponentSpec:
     def operation(self) -> str:
         return "manage_tools" if self.manager == ManagerKind.TOOLS else "manage_records"
 
+    @property
+    def editor_suffix(self) -> str:
+        return ".md" if self.import_kind == ImportKind.SKILL else ".json"
+
     def data_type(self) -> type:
         """Resolve a fixed catalog entry only inside the backend thread."""
         if self.data_contract is None:

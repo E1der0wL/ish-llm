@@ -1,5 +1,7 @@
 """Explicit file roots select actual effects and imports before any default root."""
 
+from tests.llm.support.skills import skill_markdown
+
 import asyncio
 from functools import partial
 import json
@@ -87,16 +89,18 @@ class FileRootPresenceTests(unittest.IsolatedAsyncioTestCase):
         try:
             await runtime.start()
             record = await runtime.project.aget_data()
-            selected, wrong = self.work / 'guide.md', record.paths.root / 'guide.md'
-            selected.write_text('Selected source instructions')
-            wrong.write_text('Wrong source instructions')
+            selected, wrong = self.work / 'guide/SKILL.md', record.paths.root / 'guide/SKILL.md'
+            selected.parent.mkdir()
+            wrong.parent.mkdir()
+            selected.write_text(skill_markdown('guide', 'Selected source instructions'))
+            wrong.write_text(skill_markdown('guide', 'Wrong source instructions'))
             snapshot = await runtime.snapshot()
-            await runtime.manage_records(runtime.project.id, 'skills', 'import', 'guide.md')
+            await runtime.manage_records(runtime.project.id, 'skills', 'import', 'guide/SKILL.md')
             imported = await runtime.manage_records(runtime.project.id, 'skills', 'read', 'guide')
-            self.assertEqual((snapshot.file_root, json.loads(imported['text'])['instructions']),
-                             (str(self.work), 'Selected source instructions'))
-            self.assertEqual(selected.read_text(), 'Selected source instructions')
-            self.assertEqual(wrong.read_text(), 'Wrong source instructions')
+            self.assertEqual((snapshot.file_root, imported['text']),
+                             (str(self.work), skill_markdown('guide', 'Selected source instructions')))
+            self.assertEqual(selected.read_text(), skill_markdown('guide', 'Selected source instructions'))
+            self.assertEqual(wrong.read_text(), skill_markdown('guide', 'Wrong source instructions'))
         finally:
             await runtime.close()
 

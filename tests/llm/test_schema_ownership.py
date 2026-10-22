@@ -1,5 +1,7 @@
 """닫힌 backend 계약과 선택 구현체/metadata 소유 경계를 검증한다."""
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.operations import LiteLLMOperations
 
 from copy import deepcopy
@@ -30,15 +32,21 @@ from llm.llm import LargeLanguageModel
 class DefinitionOwnershipTests(unittest.TestCase):
     def test_closed_definitions_and_explicit_application_metadata(self):
         samples = [("agents", AgentDefinition.validate, {"purpose": "review", "engine": "loop"}),
-                   (SkillComponent.name, SkillComponent().validate_record, {"instructions": "Check evidence"}),
+                   (SkillComponent.name, SkillComponent().validate_record, {"markdown": skill_markdown('test', "Check evidence")}),
                    (PromptComponent.name, PromptComponent().validate_record, {"messages": [{"role": "system", "content": "Review"}]}),
                    (GoalComponent.name, GoalComponent().validate_record, {"title": "work", "objective": "verify", "scope": {"type": "project"}, "status": "active"}),
                    (MCPComponent.name, MCPComponent().validate_record, {"transport": "stdio", "command": "server"})]
         for name, validate, value in samples:
             with self.subTest(component=name):
                 validate("test", value)
-                validate("test", {**value, "metadata": {
-                    "ui": {}, "application": {"anything": True}, "tools": ["admin"], "engine": "other"}})
+                if name == "skills":
+                    validate("test", {"markdown": skill_markdown("test", "Check evidence").replace(
+                        "\n---\n", "\nmetadata: {ui: custom, tools: admin, engine: other}\n---\n")})
+                    with self.assertRaises(ValueError):
+                        validate("test", {**value, "metadata": {"tools": ["admin"]}})
+                else:
+                    validate("test", {**value, "metadata": {
+                        "ui": {}, "application": {"anything": True}, "tools": ["admin"], "engine": "other"}})
                 for key in ("foo", "ui", "system_promt"):
                     with self.assertRaisesRegex(ValueError, key):
                         validate("test", {**value, key: {}})
@@ -69,11 +77,11 @@ class DefinitionOwnershipTests(unittest.TestCase):
 
     def test_skill_resources_are_references_not_authority(self):
         component = SkillComponent()
-        component.validate_record("x", {"instructions": "read", "resources": [
+        component.validate_record("x", {"markdown": skill_markdown("x", "read"), "resources": [
             {"uri": "manual.md", "description": "reference", "metadata": {"tool": "not authority"}}]})
         for resource in ({"tools": ["admin"]}, {"uri": "manual.md", "engine": "other"}):
             with self.assertRaises(ValueError):
-                component.validate_record("x", {"instructions": "read", "resources": [resource]})
+                component.validate_record("x", {"markdown": skill_markdown("x", "read"), "resources": [resource]})
 
     def test_workflow_controls_are_closed_and_metadata_explicit(self):
         value = WorkflowGraph(entry="end", metadata={"ui": {}}).node("end", "end").to_dict()
@@ -82,7 +90,7 @@ class DefinitionOwnershipTests(unittest.TestCase):
                 WorkflowComponent().validate_record("flow", changed)
         proposal = {"target": {"component": "skills", "identifier": "review"}, "operation": "create",
                     "expected_version": None, "reason": "review", "evidence": [{"session_id": "s", "run_id": "r"}],
-                    "patch": {"instructions": "review"}, "status": "proposed", "before": {},
+                    "patch": {"markdown": skill_markdown('x', "review")}, "status": "proposed", "before": {},
                     "source": {"kind": "api"}, "history": [{"status": "proposed",
                     "at": "2026-10-21T00:00:00+00:00", "source": {"kind": "api"}}],
                     "evaluations": []}

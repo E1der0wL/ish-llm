@@ -31,7 +31,8 @@ class RecordManagement:
         if spec.manager == ManagerKind.MEMORY:
             from .memory_management import MemoryManagement
             return MemoryManagement(data, name, root, project)
-        manager = {ManagerKind.RECORD: cls, ManagerKind.AGENT: AgentManagement}[spec.manager]
+        manager = (SkillManagement if spec.import_kind == ImportKind.SKILL else
+                   {ManagerKind.RECORD: cls, ManagerKind.AGENT: AgentManagement}[spec.manager])
         return manager(data, name, root)
 
     def source_path(self, argument):
@@ -42,7 +43,7 @@ class RecordManagement:
 
     @staticmethod
     def import_identifier(source):
-        stem = source.parent.name if source.name.lower() == "skill.md" else source.stem
+        stem = source.stem
         return re.sub(r"[^A-Za-z0-9_-]", "_", stem)[:64].strip("_") or uuid4().hex
 
     def _read_import(self, argument):
@@ -53,12 +54,9 @@ class RecordManagement:
             text = stream.read(8 * 1024 * 1024 + 1)
         if len(text) > 8 * 1024 * 1024:
             raise ValueError("Import file exceeds 8 MiB of text")
-        stem = source.parent.name if source.name.lower() == "skill.md" else source.stem
         identifier = self.import_identifier(source)
         if self.spec.import_kind == ImportKind.TEXT:
             values = {"title": source.name, "content": text, "metadata": {"source": str(source)}}
-        elif self.spec.import_kind == ImportKind.SKILL and source.suffix.lower() in (".md", ".txt"):
-            values = {"title": stem, "instructions": text}
         else:
             values = json.loads(text)
             if not isinstance(values, dict):
@@ -123,6 +121,41 @@ class RecordManagement:
         else:
             raise ValueError("Unknown component management operation")
         return await self.list()
+
+
+class SkillManagement(RecordManagement):
+    """Native directory import and Markdown editing through the Skill owner."""
+
+    async def list(self):
+        from llm.components.skills import SkillRecord
+        entries = []
+        for identifier in await self.data.alist():
+            snapshot = await self.snapshot(identifier)
+            document = SkillRecord.document(snapshot["data"])
+            entries.append({"name": identifier, "label": document.name,
+                            "description": document.summary()[document.DESCRIPTION],
+                            "modified": "", "version": snapshot["version"]})
+        return entries
+
+    async def read(self, identifier):
+        from llm.components.skills import SkillRecord
+        snapshot = await self.snapshot(identifier)
+        return {"text": SkillRecord.document(snapshot["data"]).text, "version": snapshot["version"]}
+
+    async def execute(self, action, argument="", expected_version=None):
+        if action == "import":
+            from llm.core.skills import SkillDocument
+            source = self.source_path(argument)
+            if source.name == SkillDocument.FILENAME and source.is_file():
+                source = source.parent
+            await self.data.aimport_directory(source)
+            return await self.list()
+        if action == "save":
+            if expected_version is None:
+                raise ValueError("Reload the item before saving")
+            await self.data.awrite_markdown(argument["name"], argument["text"], expected_revision=expected_version)
+            return await self.list()
+        return await super().execute(action, argument, expected_version)
 
 
 class AgentManagement(RecordManagement):

@@ -1,3 +1,9 @@
+---
+name: hub-create-workflow
+description: "Define and validate graph execution workflows."
+metadata:
+  hub-template-version: "7"
+---
 # Create a Workflow
 
 Use when the user asks for a reusable graph execution flow.

@@ -1,5 +1,7 @@
 """중첩 Workflow/Graph Agent의 저장, 재개, 실행 한도와 LangGraph 스케줄링 통합 검사."""
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
@@ -469,7 +471,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         await self.agents.acreate({"purpose": "Coordinate", "engine": "graph_worker", "engine_options": {"workflow": "child"}}, identifier="coordinator")
         await self.agents.acreate({"purpose": "Write", "engine": "loop", "completion": {"model": "test/model"},
             "resources": {"skills": ["rules"]}}, identifier="writer")
-        await (await self.project.components.aget("skills")).acreate({"instructions": "Follow these rules"}, identifier="rules")
+        await (await self.project.components.aget("skills")).acreate({"markdown": skill_markdown("rules", "Follow these rules")}, identifier="rules")
         run = await self.request()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((await self.output(run))["answer"], "answer")

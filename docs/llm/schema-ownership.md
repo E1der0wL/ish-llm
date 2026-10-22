@@ -24,7 +24,7 @@ Agent 공통 필드는 독립 AgentDefinition/Repository가 소유한다. 선택
 | Agent | purpose, description, engine, system_prompt, completion, engine_options, tools, resources, policy, input_schema, output_schema, output_format, metadata |
 | Graph-backed Agent | purpose, description, engine, engine_options, metadata만 허용. GraphEngine.for_agent가 선택 후 검증 |
 | Graph engine_options | workflow + config(buffer_size, cleanup_timeout) + policy(max_steps, max_parallelism, timeout_seconds, max_nested_depth). ParameterLayout schema 사용 |
-| Skill | instructions, description, title, tags, resources, lineage, metadata. resources 원소는 uri/description/metadata; lineage는 parent/parent_revision |
+| Skill | SkillDocument의 표준 frontmatter/본문; SkillRecord의 markdown Projection·resources/lineage/source와 관리 files. 정의 원본은 SKILL.md, 운영 정보는 _state |
 | Prompt | messages, description, metadata. message는 role/content |
 | MCP | transport, command, args, env, url, headers, metadata. transport protocol은 MCPComponent, 연결 구현은 주입 connector |
 | Goal | title, objective, scope, status, success_criteria, progress, next_actions, run_refs, metadata |
@@ -117,8 +117,8 @@ TripleExtractor가 소유한다. SDK request의 response_format 해석은 추출
 ## 수동 변경 예시
 
 ```python
-# 이전: {"instructions": "review", "ui": {"color": "blue"}}
-skill = {"instructions": "review", "metadata": {"ui": {"color": "blue"}}}
+# 표준 metadata는 문자열 값이다. 구 구조를 자동 변환하지 않는다.
+skill = {"markdown": "---\nname: review\ndescription: Review code\nmetadata: {app-color: blue}\n---\nReview evidence."}
 
 # 이전: ProjectConfig(theme="dark")
 config = {"data": {"theme": "dark"}}

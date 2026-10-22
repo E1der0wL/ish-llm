@@ -31,16 +31,16 @@ async def create_definitions(backend):
         "Research", components=["tools", "skills", "mcp", "rag", "workflows", "memory"])
     skills = await project.components.aget("skills")
     await skills.acreate({
-        "instructions": "정확성, 오류 처리, 테스트를 차례로 확인하세요.",
+        "markdown": "---\nname: code-review\ndescription: 코드의 정확성과 오류 처리를 검토한다.\n---\n정확성, 오류 처리, 테스트를 차례로 확인하세요.",
         "resources": [{"uri": "docs/llm/architecture.md", "description": "reference"}],
-    }, identifier="code_review")
+    }, identifier="code-review")
     agents = project.agents
     await agents.acreate({
         "purpose": "코드 검토와 개선안 작성",
         "engine": "loop",
         "system_prompt": "근거와 함께 개선안을 제안하세요.",
         "completion": {"model": "gemini/gemini-2.5-flash", "temperature": 0.2},
-        "resources": {"skills": ["code_review"]},
+        "resources": {"skills": ["code-review"]},
         "metadata": {"team": "backend"},
     }, identifier="reviewer")
     return project
@@ -86,8 +86,10 @@ async def edit_definitions(project):
     all_agents = await agents.alist()  # {id: dict}
 
     skills = await project.components.aget("skills")
-    await skills.aupdate("code_review", {"description": "코드 검토 규칙"})
-    await skills.acreate({"instructions": "임시 지침"}, identifier="temporary")
+    skill = await skills.asnapshot("code-review")
+    markdown = skill["data"]["markdown"].replace("코드의 정확성과 오류 처리를 검토한다.", "코드 검토 규칙")
+    await skills.awrite_markdown("code-review", markdown, expected_revision=skill["version"])
+    await skills.acreate({"markdown": "---\nname: temporary\ndescription: 임시 검토 지침\n---\n임시 지침"}, identifier="temporary")
     await skills.adelete("temporary")
 
     mcp = await project.components.aget("mcp")
@@ -106,15 +108,13 @@ async def edit_definitions(project):
     return all_agents
 ```
 
-Skill은 instructions가 필수다. 허용 필드는 instructions/description/title/tags/resources/lineage/metadata와
-파일 API가 관리하는 files manifest다. Skill별 디렉터리에 정의와 참고 파일을 저장한다.
-resources는 URI, 로컬 파일 path, revision을 고정한 Data 파일 또는 Project Tool 참조를 받는다.
-`skill_read_resource`는 명시한 UTF-8 파일을 조회하고 URI/Tool은 참조 정보만 반환한다.
-Tool을 자동으로 준비·활성화·실행하거나 권한을 추가하지 않는다.
-lineage는 FORK 당시 parent/parent_revision의 불변 출처 기록이다. 부모 수정만으로 자식 사용을
-차단하지 않지만, 다른 Skill의 lineage 또는 Agent가 참조하면 부모 삭제를 거부한다.
-지침의 원본은 skill.json이며 SKILL.md 자동 탐색/가져오기는 제공하지 않는다.
-[Skill API](../../llm/components/skills/README.md)와 [revision 규칙](revisions.md)을 참고한다.
+Skill의 정의는 표준 SKILL.md이며 공개 CRUD는 `markdown` 원문을 받는다. name/description은
+frontmatter의 필수 필드다. 자료는 표준 디렉터리 안에 그대로 두고 파일 manifest·resources·lineage는
+Skills 내부 `_state`에서 관리한다. Tool/Data 고정 참조·부모 삭제 보호·CAS는 유지한다.
+`skill_read_resource`는 상대 path 또는 명시적 resource index로 UTF-8 자료를 조회한다.
+Tool/URI는 실행·접근 권한을 만들지 않으며 allowed-tools도 기존 승인·정책을 우회하지 않는다.
+표준 디렉터리 import/export와 원문 편집은 [Skill API](../../llm/components/skills/README.md),
+[단일 정의·운영 기록 계약](agent-skills.md), [revision 규칙](revisions.md)을 따른다.
 
 Data는 title/description/metadata와 관리되는 files manifest를 저장한다. 원본 파일은
 data/<id>/files 아래에 저장하며 파일 API의 변경에는 expected_revision이 필수다.
@@ -292,8 +292,8 @@ Loop는 모델이 agent_run을 선택할 수 있게 하지만 Agent나 Workflow�
 <Project>/
   project.json
   tools/<tool-id>/<tool-id>.py       # Project Python Tool 패키지
-  skills/<id>/skill.json
-  skills/<id>/files/<relative-path>
+  skills/<name>/SKILL.md
+  skills/<name>/<relative-path>
   data/<id>/data.json
   data/<id>/files/<relative-path>
   mcp/records/<id>.json

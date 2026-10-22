@@ -1,5 +1,7 @@
 """새 정의 컴포넌트의 저장·검증·복제·Run capability 연결을 검증한다."""
 
+from tests.llm.support.skills import skill_markdown
+
 import asyncio
 from pathlib import Path
 import tempfile
@@ -44,7 +46,7 @@ def definitions():
     return {
         "agents": {"engine": "loop", "purpose": "코드 검토", "completion": {"model": "test/model", "future": True},
                    "system_prompt": "Review code", "resources": {"skills": ["review"]}},
-        "skills": {"instructions": "정확성을 확인한다.", "resources": [{"uri": "docs/design.md"}]},
+        "skills": {"markdown": skill_markdown('example', "정확성을 확인한다."), "resources": [{"uri": "docs/design.md"}]},
         "mcp": {"transport": "stdio", "command": "never-run-this", "args": ["--server"], "env": {"X": "1"}},
         "rag": {"metadata": {"sources": [{"id": "doc", "text": "Alice works on ish"}],
                      "entities": [{"id": "alice", "source_ids": ["doc"]}, {"id": "ish"}],
@@ -126,7 +128,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             "agent": AgentNode(engines=self.app.engines), "retrieval": retrieval}))
         for name, definition in definitions().items():
             data = self.domain(name)
-            record = {**definition, "metadata": {"custom": {"label": "한글", "values": [1, None]}}}
+            record = ({**definition, "markdown": skill_markdown("example", "Original", "한글")} if name == "skills" else
+                      {**definition, "metadata": {"custom": {"label": "한글", "values": [1, None]}}})
             if name == "agents":
                 self.assertFalse(hasattr(data, "configure"))
             else:
@@ -135,9 +138,12 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             data.create(record, identifier="example")
             loaded = data.load("example")
             self.assertEqual(loaded, record)
-            loaded["metadata"]["custom"]["values"].append("detached")
+            if name == "skills":
+                loaded["markdown"] = skill_markdown("example", "detached")
+            else:
+                loaded["metadata"]["custom"]["values"].append("detached")
             self.assertEqual(data.load("example"), record)
-            data.update("example", {"metadata": {"extra": True}}, **self.revision(name, data, "example"))
+            data.update("example", {"markdown": skill_markdown("example", "Updated")} if name == "skills" else {"metadata": {"extra": True}}, **self.revision(name, data, "example"))
         clone = self.project.clone()
         for name in definitions():
             data, copied = self.domain(name), self.domain(name, clone)
@@ -153,8 +159,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             handle = self.domain(name)
             identifier = await handle.acreate(value)
             self.assertEqual(await handle.aload(identifier), value)
-            await handle.aupdate(identifier, {"metadata": {"future": 2}}, **self.revision(name, handle, identifier))
-            replacement = {**value, "metadata": {"replacement": True}}
+            await handle.aupdate(identifier, {"markdown": skill_markdown(identifier, "Updated")} if name == "skills" else {"metadata": {"future": 2}}, **self.revision(name, handle, identifier))
+            replacement = ({**value, "markdown": skill_markdown(identifier, "Replaced")} if name == "skills" else {**value, "metadata": {"replacement": True}})
             await handle.asave(identifier, replacement, **self.revision(name, handle, identifier))
             self.assertEqual(await handle.alist(), {identifier: replacement})
             await handle.adelete(identifier, **self.revision(name, handle, identifier))
@@ -176,6 +182,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         for name, values in invalid.items():
             handle = self.domain(name)
             original = definitions()[name]
+            if name == "skills":
+                original = {**original, "markdown": skill_markdown("valid", "정확성을 확인한다.")}
             handle.create(original, identifier="valid")
             for value in values:
                 with self.subTest(component=name, value=value):
@@ -204,6 +212,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
     async def test_removal_invalidates_existing_handle_and_preserves_unselected_data(self):
         for name, value in definitions().items():
             handle = self.domain(name)
+            if name == "skills":
+                value = {**value, "markdown": skill_markdown("kept", "정확성을 확인한다.")}
             handle.create(value, identifier="kept")
             if name == "agents":
                 self.assertNotIn("agents", self.project.data.components)
@@ -216,7 +226,7 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             self.project.components.remove(name)
             with self.assertRaises(ValueError):
                 handle.load("kept")
-            relative = "kept/skill.json" if name == "skills" else "records/kept.json"
+            relative = "kept/SKILL.md" if name == "skills" else "records/kept.json"
             self.assertTrue((self.project.paths.root / name / relative).exists())
 
     async def test_workflow_handle_validates_and_restores_builder(self):

@@ -11,6 +11,7 @@ import asyncio
 import json
 from contextlib import AsyncExitStack, aclosing, nullcontext
 from copy import deepcopy
+from llm.components.skills.records import SkillRecord
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -150,7 +151,7 @@ class AgentExecution:
             engine = engine.with_instructions(context,
                 before=tuple(f"{m['role']}: {m['content']}" for m in resources["prompt"]["messages"])
                        if resources["prompt"] else (),
-                after=tuple(f"Skill {name}:\n{skill['instructions']}" for name, skill in resources["skills"].items()))
+                after=tuple(f"Skill {name}:\n{SkillRecord.instructions(skill)}" for name, skill in resources["skills"].items()))
         return engine
 
     def additional_capabilities(self, definition, capabilities):

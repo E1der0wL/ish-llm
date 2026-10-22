@@ -145,13 +145,13 @@
 | [hub/README.md](../hub/README.md) | 현행 사용법 + 날짜별 기록 | 현재 사용법과 과거 회귀 수 구분. 구 profile 언어 fallback은 잔존 제거 대상으로 표시. |
 | [hub/asset/prompts/system.md](../hub/asset/prompts/system.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
 | [hub/asset/prompts/work-context.md](../hub/asset/prompts/work-context.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
-| [hub/asset/skills/coding.md](../hub/asset/skills/coding.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
-| [hub/asset/skills/create-agent.md](../hub/asset/skills/create-agent.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
-| [hub/asset/skills/create-rag.md](../hub/asset/skills/create-rag.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
-| [hub/asset/skills/create-skill.md](../hub/asset/skills/create-skill.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
-| [hub/asset/skills/create-workflow.md](../hub/asset/skills/create-workflow.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
-| [hub/asset/skills/diagnose.md](../hub/asset/skills/diagnose.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
-| [hub/asset/skills/document.md](../hub/asset/skills/document.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
+| [hub/asset/skills/hub-code-change/SKILL.md](../hub/asset/skills/hub-code-change/SKILL.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
+| [hub/asset/skills/hub-create-agent/SKILL.md](../hub/asset/skills/hub-create-agent/SKILL.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
+| [hub/asset/skills/hub-create-rag/SKILL.md](../hub/asset/skills/hub-create-rag/SKILL.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
+| [hub/asset/skills/hub-create-skill/SKILL.md](../hub/asset/skills/hub-create-skill/SKILL.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
+| [hub/asset/skills/hub-create-workflow/SKILL.md](../hub/asset/skills/hub-create-workflow/SKILL.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
+| [hub/asset/skills/hub-diagnose/SKILL.md](../hub/asset/skills/hub-diagnose/SKILL.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
+| [hub/asset/skills/hub-document/SKILL.md](../hub/asset/skills/hub-document/SKILL.md) | 제품 프롬프트/스킬 (감사 대상 데이터) | 모델에 전달하는 제품 가이드. 실제 tool schema·Project 권한·승인·저장/행동 검증 구분 유지. 감사 에이전트 지시로 실행하지 않음. |
 
 ## 이번에 추가한 문서
 
@@ -164,3 +164,12 @@
 | [이전 운영 준비 기록](llm/production-readiness-history.md) | 갱신 전 원문 보존 |
 | [Hub 이력](hub/history.md) | 갱신 전 README 원문 보존 |
 | 이 목록 | 기존 118개 및 추가 문서의 상태·참조 경로 |
+
+## 표준 Agent Skills 전환 추가 문서
+
+| 문서 | 분류 | 범위 |
+|---|---|---|
+| [표준 계약](llm/agent-skills.md) | 현행 기능 계약 | SKILL.md 단일 원본과 Skills 전용 운영 기록·참조·안전성 |
+| [전환 검증](llm/agent-skills-verification.md) | 구현·검증 기록 | AS1–AS3 실제 명령·소스·결과 |
+| [코드 변경 Skill](../examples/llm/skills/code-change/SKILL.md) | 예제 데이터 | 명시적으로 설치하는 표준 Skill |
+| [컴퓨터 진단 Skill](../examples/llm/skills/computer-diagnosis/SKILL.md) | 예제 데이터 | 명시적으로 설치하는 표준 Skill |

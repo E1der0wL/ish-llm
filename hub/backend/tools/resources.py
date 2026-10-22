@@ -30,7 +30,7 @@ def tool(name, description, properties, required, handler, *, write=False):
             operation_key_required=False, retry_fields=()))
 
 
-def authoring_tools(data, name, definition_schema, *, discover=True, schema_extensions=None):
+def authoring_tools(data, name, definition_schema, *, discover=True, schema_extensions=None, source_field="metadata", identifier_schema=None):
     """One schema/create contract shared by Skill, Workflow and Agent authoring."""
     prefix = component_spec(name).tool_prefix
 
@@ -41,7 +41,7 @@ def authoring_tools(data, name, definition_schema, *, discover=True, schema_exte
     async def create(args):
         call = owner(data)
         definition = deepcopy(args["definition"])
-        definition.setdefault("metadata", {})["hub_source"] = {
+        definition.setdefault(source_field, {})["hub_source"] = {
             "session_id": call.session_id, "run_id": call.run_id, "step_id": call.step_id}
         identifier = await data.acreate(definition, identifier=args["identifier"])
         return {"created": identifier, "component": name, "applies_to": "subsequent_runs"}
@@ -55,12 +55,12 @@ def authoring_tools(data, name, definition_schema, *, discover=True, schema_exte
         owner(data)
         return await data.asnapshot(args["identifier"])
 
-    tools = [tool(prefix + "_schema", "Read the exact JSON definition schema before creating a " + prefix + ".",
+    tools = [tool(prefix + "_schema", "Read the exact creation input schema before creating a " + prefix + ".",
                   {}, [], schema),
              tool(prefix + "_create", "Create a new project " + prefix + ". Read " + prefix +
                   "_schema first. Existing IDs are never overwritten. Saved execution definitions become available "
                   "to subsequent Runs; creation does not execute or grant new authority.",
-                  {"identifier": IDENTIFIER, "definition": {"type": "object"}},
+                  {"identifier": identifier_schema or IDENTIFIER, "definition": {"type": "object"}},
                   ["identifier", "definition"], create, write=True)]
     if discover:
         tools += [tool(prefix + "_list", "List saved " + name + " in this Project.", {}, [], listing),

@@ -26,7 +26,7 @@ proposal_id = await refine.acreate({
     "expected_version": current["version"],
     "reason": "검증 오류를 확인하기 전에 완료로 처리했다.",
     "evidence": [{"session_id": session.id, "run_id": prior_run.id}],
-    "patch": {"instructions": "검증 결과를 확인하고 실패한 검사는 먼저 수정한다."},
+    "patch": {"markdown": "---\nname: review-guide\ndescription: 검증 순서 지침\n---\n검증 결과를 확인하고 실패한 검사는 먼저 수정한다."},
 })
 # 여기까지 target은 바뀌지 않습니다.
 view = await refine.asnapshot(proposal_id)
@@ -133,7 +133,7 @@ proposal_id = await refine.acreate({
     "operation": "fork", "target": {"component": "skills", "identifier": "review-python"},
     "expected_version": None,
     "parent": {"identifier": "review-guide", "version": parent["version"]},
-    "patch": {"instructions": "Python 작업에서는 기존 테스트와 변경 동작을 함께 검사하세요."},
+    "patch": {"markdown": "---\nname: review-python\ndescription: Python 작업 검증\n---\nPython 작업에서는 기존 테스트와 변경 동작을 함께 검사하세요."},
     "reason": "실행 근거에서 별도 Python 지침이 필요함을 확인했다.",
     "evidence": [{"session_id": session.id, "run_id": prior_run.id}],
 })

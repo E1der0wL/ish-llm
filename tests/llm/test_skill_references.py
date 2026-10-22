@@ -1,5 +1,7 @@
 """Skill에서 Data/Tool을 참조하되 권한은 늘리지 않는지 검증한다."""
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 from pathlib import Path
@@ -43,7 +45,7 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
             {"component": "data", "identifier": "manual", "path": "reference.md", "revision": (await self.data.asnapshot("manual"))["version"]},
             {"component": "tools", "identifier": "helper", "revision": (await self.tools.asnapshot("helper"))["version"]},
         ]
-        await self.skills.acreate({"instructions": "Use evidence", "resources": self.refs}, identifier="guide")
+        await self.skills.acreate({"markdown": skill_markdown("guide", "Use evidence"), "resources": self.refs}, identifier="guide")
 
     async def test_read_validates_refs_without_activating_or_importing_tool(self):
         version = (await self.skills.asnapshot("guide"))["version"]

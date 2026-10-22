@@ -1,40 +1,58 @@
 # Skills — 재사용할 지침과 참고 자료
 
-특정 작업의 instructions, 참고 파일, Tool·Data 참조를 Skill별 디렉터리에 저장합니다. Skill 자체는 실행기가 아닙니다. Application 데이터는 `metadata`에 두며 실행 권한을 만들지 않습니다. 정의는 알려진 필드만 받습니다.
+표준 Agent Skills 디렉터리를 직접 저장합니다. SKILL.md의 YAML frontmatter와 Markdown 본문이
+개별 Skill의 유일한 정의 원본입니다. Skill 자체는 실행기가 아닙니다.
+표준 metadata는 문자열 키·값이며, Project별 출처·관계는 별도 운영 기록입니다.
+[표준 전환 계약](../../../docs/llm/agent-skills.md)을 따릅니다.
 
 ## 파일 안내
 
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | SkillComponent 공개 import입니다. |
-| [component.py](component.py) | 정의 schema와 skills/tools capability를 선언합니다. |
+| [component.py](component.py) | Skills 저장 Owner와 skills/tools capability를 연결합니다. |
+| [records.py](records.py) | 운영 관계와 메모리 Projection schema를 소유합니다. |
+| [storage.py](storage.py) | 표준 디렉터리와 필수 운영 증거를 원자적으로 저장합니다. |
+| [SkillDocument](../../core/skills.py) | 표준 frontmatter·이름·본문 검증과 원문 보존입니다. |
 | [data.py](data.py) | 파일 API, 버전 참조 검증·조회, fork와 삭제 보호입니다. |
 | [tools.py](tools.py) | Run 스냅샷의 목록·본문·참고 자료를 조회하는 읽기 전용 Tool입니다. |
 
-공통 패키지 저장과 파일 트랜잭션은 [files.py](../files.py)가 담당합니다.
+파일 스트림·경로 검증은 [files.py](../files.py), 원자성은 기존 workspace transaction을 재사용합니다.
 
 ## 사용 예
 
 ```python
 skills = await project.components.aget("skills")
 await skills.acreate({
-    "instructions": "변경 전후 동작을 비교하고 근거를 함께 제시하세요.",
-    "description": "코드 검토 지침",
-    "title": "코드 검토", "tags": ["code", "review", "검토"],
+    "markdown": "---\nname: review-guide\ndescription: 코드 검토 지침\n---\n변경 전후 동작을 비교하고 근거를 함께 제시하세요.",
 }, identifier="review-guide")
+snapshot = await skills.asnapshot("review-guide")
+await skills.awrite_markdown("review-guide", snapshot["data"]["markdown"],
+                            expected_revision=snapshot["version"])
 ```
 
-저장 위치는 `<project>/skills/<id>/skill.json`이며 참고 파일은 같은 디렉터리의 `files/` 아래에 있습니다.
-`skill.json`의 instructions가 지침의 유일한 원본입니다. Agent의 `resources.skills`에 ID를 나열해 연결합니다.
-소비하는 Engine/Agent가 지침을 적용하며, 저장만으로 모든 모델 호출에 자동 주입되지 않습니다.
+저장 위치는 `<project>/skills/<name>/SKILL.md`이며 참고 파일은 같은 디렉터리에 있습니다.
+`_state/records/<name>.json`에는 정의 digest·자료 목록·명시적 참조·계보·출처를 보관합니다.
+정의 본문이나 frontmatter를 JSON 원본으로 중복 저장하지 않습니다. 필수 목록·기록·사용량
+영수증이 소실되면 빈 값으로 복구하지 않고 거부합니다. 사용량은 `_state/usage/`에 있습니다.
+Agent의 `resources.skills`에 ID를 나열해 연결합니다. 선택한 본문만 적용하며 자동 권한 부여는 없습니다.
+
+`import_directory/aimport_directory`는 표준 디렉터리의 원문·파일·권한·빈 디렉터리를 보존합니다.
+`export_directory/aexport_directory`는 현재 snapshot의 `expected_revision`과 존재하지 않는
+같은 이름의 대상 경로를 받습니다. 운영 기록은 내보내는 표준 패키지에 섞지 않습니다.
+Project backup은 운영 기록도 보존합니다. `read_markdown/aread_markdown`과
+`write_markdown/awrite_markdown`으로 원문을 편집합니다. 쓰기는 `expected_revision`이 필수입니다.
+원본 변경·이름 불일치·링크·특수 파일·구 skill.json 구조를 거부하며 자동 변환하지 않습니다.
 
 파일 API는 `write_file/awrite_file`, `import_file/aimport_file`, `read_file/aread_file`,
 `list_files/alist_files`, `delete_file/adelete_file`입니다. 변경에는 snapshot의 version을
-`expected_revision`으로 전달합니다. 파일 목록·해시·크기는 관리되는 `files` 필드에 기록되고
+`expected_revision`으로 전달합니다. 파일 목록·해시·크기·권한은 운영 기록의 `files` 필드에 기록되고
 정의와 함께 하나의 revision을 구성합니다. manifest는 직접 편집하지 않습니다.
+SKILL.md는 generic file API로 변경하거나 삭제할 수 없습니다.
 `resources: [{"path": "references/manual.md"}]`는 등록된 로컬 파일을 참조합니다.
 `skill_read_resource(identifier, index)`는 선택한 자료를 필요한 시점에 읽으며 Run의 revision이
 바뀌면 거부합니다. 외부 URI는 자동 열기/다운로드하지 않습니다. scripts 파일도 자동 실행하지 않습니다.
+표준 allowed-tools를 보존하지만 실행 allowlist·승인을 대체하지 않습니다.
 복제·백업에는 파일이 포함되며 Skill 삭제는 자체 파일만 삭제합니다. 참조 중인 로컬 파일을
 삭제하려면 먼저 resources에서 참조를 제거해야 합니다. 옛 records 디렉터리는 자동 변환하지 않습니다.
 [Revision 계약](../../../docs/llm/revisions.md)을 참고하세요.
@@ -83,13 +101,14 @@ FORK는 `lineage={"parent": id, "parent_revision": hash}`를
 Project에서 `skills`를 선택하면 tools capability에 읽기 전용 Tool 세 개가 연결됩니다.
 별도의 ToolComponent나 enable_search 같은 메서드는 필요하지 않습니다.
 
-- `skill_list({query?, after?, limit?})`: ID 순서의 제목·설명·태그·revision을 반환합니다.
+- `skill_list({query?, after?, limit?})`: ID 순서의 name·description·revision을 반환합니다.
   인자 없이 호출하면 전체 요약입니다. 본문은 포함하지 않습니다. query의 공백으로 나뉜
-  모든 단어가 ID/제목/설명/태그에 있어야 일치하며, 대소문자는 구분하지 않습니다.
+  모든 단어가 name/description에 있어야 일치하며, 대소문자는 구분하지 않습니다.
   다음 페이지가 있으면 next_after가 나오고 같은 query와 함께 after로 전달합니다.
 - `skill_read({identifier, expected_revision?})`: `{id, revision, definition}`을 반환합니다.
-  definition에는 instructions, resources, 파일 manifest 등 허용된 정의 필드가 들어갑니다.
-- `skill_read_resource({identifier, index})`: resources 배열의 한 항목을 조회합니다.
+  definition에는 markdown 원문과 resources·파일 목록 등 운영 정보의 Projection이 들어갑니다.
+- `skill_read_resource({identifier, index})` 또는 `{identifier, path}`: 명시적 resources 한 항목이나
+  Run snapshot에 등록된 상대 경로 파일을 조회합니다. index와 path는 함께 받을 수 없습니다.
   파일은 `{text, sha256, bytes, ...}`로 반환하고 Tool/URI는 참조 정보만 반환합니다.
   Run 시작 시 Skill revision과 대상의 pinned revision을 함께 검사합니다.
 

@@ -1,5 +1,7 @@
 """Skill 패키지의 자료·revision·수명 관리. 실제 Linux 파일과 기존 서비스를 사용한다."""
 
+from tests.llm.support.skills import skill_markdown
+
 from pathlib import Path
 import tempfile
 import unittest
@@ -21,7 +23,7 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate(components=['skills'])
         self.skills = self.project.components.skills
-        await self.skills.acreate({"instructions": "Check the reference."}, identifier="guide")
+        await self.skills.acreate({"markdown": skill_markdown("guide", "Check the reference.")}, identifier="guide")
 
     async def put(self, path="references/manual.md", content="Original reference"):
         version = (await self.skills.asnapshot("guide"))["version"]
@@ -30,12 +32,12 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
     async def test_layout_revision_and_stale_edit(self):
         before = await self.skills.asnapshot("guide")
         after = await self.put()
-        self.assertTrue((self.project.paths.root / "skills/guide/skill.json").is_file())
+        self.assertTrue((self.project.paths.root / "skills/guide/SKILL.md").is_file())
         self.assertFalse((self.project.paths.root / "skills/records").exists())
         self.assertNotEqual(before["version"], after["version"])
         self.assertEqual(after["version"], revision_token(after["data"]))
         with self.assertRaisesRegex(ValueError, "edit_conflict"):
-            await self.skills.aupdate("guide", {"instructions": "stale"}, expected_version=before["version"])
+            await self.skills.aupdate("guide", {"markdown": skill_markdown("guide", "stale")}, expected_version=before["version"])
         with self.assertRaisesRegex(ValueError, "edit_conflict"):
             await self.skills.awrite_file("guide", "other", "stale", expected_revision=before["version"])
         with self.assertRaisesRegex(ValueError, "manifests"):
@@ -66,7 +68,7 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_fork_copies_files_and_preserves_lineage_protection(self):
         before = await self.put()
-        await self.skills.afork("guide", {**before["data"], "instructions": "Fork"}, identifier="child", expected_revision=before["version"])
+        await self.skills.afork("guide", {**before["data"], "markdown": skill_markdown("child", "Fork")}, identifier="child", expected_revision=before["version"])
         self.assertEqual(await self.skills.aread_file("child", "references/manual.md"), b"Original reference")
         with self.assertRaisesRegex(ValueError, "referenced"):
             await self.skills.adelete("guide")
@@ -83,7 +85,7 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(path=path), self.assertRaises(ValueError):
                 await self.put(path)
         await self.put()
-        file = self.project.paths.root / "skills/guide/files/references/manual.md"
+        file = self.project.paths.root / "skills/guide/references/manual.md"
         file.write_text("tampered")
         with self.assertRaisesRegex(ValueError, "integrity"):
             await self.skills.aload("guide")
@@ -93,12 +95,12 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
             await self.skills.aload("guide")
         file.unlink()
         (self.project.paths.root / "skills/records").mkdir()
-        with self.assertRaisesRegex(ValueError, "Legacy"):
+        with self.assertRaisesRegex(ValueError, "legacy"):
             await self.skills.alist()
 
     async def test_write_manifest_failure_rolls_back_bytes_and_revision(self):
         original = await self.put()
-        with patch.object(self.component, "_write", side_effect=OSError("manifest failure")):
+        with patch("llm.components.skills.storage.SkillStorage._commit", side_effect=OSError("manifest failure")):
             with self.assertRaises(OSError):
                 await self.put(content="changed")
         self.assertEqual(await self.skills.asnapshot("guide"), original)

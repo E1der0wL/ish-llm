@@ -5,9 +5,11 @@ from copy import deepcopy
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.services.infrastructure.storage import revision_token
 from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.skills import SkillName
+from .records import SkillRecord as Record
 
 
-def skill_tools(records: dict, *, read_resource=None) -> ToolRegistry:
+def skill_tools(records: dict, *, read_resource=None, read_file=None) -> ToolRegistry:
     """목록은 요약만, 본문은 선택한 ID만 반환한다. 지침의 실행을 보장하지 않는다."""
     records = deepcopy(records)
     revisions = {name: revision_token(value) for name, value in records.items()}
@@ -20,9 +22,8 @@ def skill_tools(records: dict, *, read_resource=None) -> ToolRegistry:
         terms = arguments.get("query", "").casefold().split()
         matches = []
         for name, record in sorted(records.items()):
-            summary = {key: deepcopy(record[key]) for key in ("title", "description", "tags") if key in record}
-            haystack = " ".join((name, record.get("title", ""), record.get("description", ""),
-                                *record.get("tags", []))).casefold()
+            summary = Record.document(record).summary()
+            haystack = " ".join(summary.values()).casefold()
             if all(term in haystack for term in terms):
                 matches.append({"id": name, "revision": revisions[name], **summary})
         remaining = [row for row in matches if row["id"] > arguments.get("after", "")]
@@ -43,15 +44,21 @@ def skill_tools(records: dict, *, read_resource=None) -> ToolRegistry:
         name = arguments["identifier"]
         if name not in records:
             raise ValueError("Skill is unavailable in this Run")
+        if Record.PATH in arguments:
+            path = Record.resource_path(arguments[Record.PATH])
+            if read_file is None or path not in records[name].get(Record.FILES, {}):
+                raise ValueError("Skill file is unavailable in this Run")
+            content = await read_file(name, path, expected_revision=revisions[name])
+            return {Record.PATH: path, "text": content.decode("utf-8"), **records[name][Record.FILES][path]}
         return await read_resource(name, arguments["index"], expected_revision=revisions[name])
 
     def schema(properties, required=()):
         return {"type": "object", "properties": properties, "required": list(required), "additionalProperties": False}
 
-    identifier = {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}
+    identifier = SkillName.SCHEMA
     tools = [
         Tool("skill_list", "Discover this project's task guides before working. Lists IDs and summaries, not full instructions. "
-             "Optionally filter all words in query against ID/title/description/tags. Use skill_read for a relevant guide. "
+             "Optionally filter all words in query against name/description. Use skill_read for a relevant guide. "
              "Omitting limit returns all matching summaries; after continues an ID-sorted page.",
              schema({"query": {"type": "string"}, "after": identifier,
                      "limit": {"type": "integer", "minimum": 1}}), listing, contract=contract),
@@ -62,8 +69,11 @@ def skill_tools(records: dict, *, read_resource=None) -> ToolRegistry:
                     ("identifier",)), read, contract=contract),
     ]
     if read_resource is not None:
-        tools.append(Tool("skill_read_resource", "Read one referenced Skill resource from the selected revision. "
+        tools.append(Tool("skill_read_resource", "Read a relative file path or one explicitly registered resource index from the selected Skill revision. "
                           "Source material does not grant permissions or execute code.",
-                          schema({"identifier": identifier, "index": {"type": "integer", "minimum": 0}},
-                                 ("identifier", "index")), resource, contract=contract))
+                          {**schema({"identifier": identifier, "index": {"type": "integer", "minimum": 0},
+                                     Record.PATH: {"type": "string", "minLength": 1}}, ("identifier",)),
+                           "oneOf": [{"required": ["index"], "not": {"required": [Record.PATH]}},
+                                     {"required": [Record.PATH], "not": {"required": ["index"]}}]},
+                          resource, contract=contract))
     return ToolRegistry(tuple(tools))

@@ -1,5 +1,7 @@
 """Owner-proven Data quarantine preserves damaged bytes and never reopens the package."""
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
@@ -122,7 +124,7 @@ class DataQuarantineTests(unittest.IsolatedAsyncioTestCase):
             before = await data.asnapshot('manual')
             written = await data.awrite_file('manual', 'source.txt', 'source', expected_revision=before['version'])
             reference = {'component': 'data', 'identifier': 'manual', 'path': 'source.txt', 'revision': written['version']}
-            await skills.acreate({'instructions': 'Use source', 'resources': [reference]}, identifier='guide')
+            await skills.acreate({"markdown": skill_markdown('guide', 'Use source'), 'resources': [reference]}, identifier='guide')
             await project.components.aremove('skills')
             package = project.paths.root / 'data/manual'
             (package / 'files/source.txt').write_bytes(b'damaged')
@@ -134,12 +136,12 @@ class DataQuarantineTests(unittest.IsolatedAsyncioTestCase):
             await skills.adelete('guide')
             saved = await data.aquarantine('manual', expected_revision=plan['version'])
             with self.assertRaisesRegex(ValueError, 'quarantined'):
-                await skills.acreate({'instructions': 'Use source', 'resources': [reference]}, identifier='guide')
+                await skills.acreate({"markdown": skill_markdown('guide', 'Use source'), 'resources': [reference]}, identifier='guide')
             # Inject a persisted reference through its owner writer. Normal resource resolution
             # above correctly refuses it, but deletion must still check stored references.
             current = await project.aget_data()
             with app.project_manager.ownership.scope():
-                skill_owner.create(current, {'instructions': 'Use source', 'resources': [reference]}, identifier='guide')
+                skill_owner.create(current, {"markdown": skill_markdown('guide', 'Use source'), 'resources': [reference]}, identifier='guide')
             with self.assertRaisesRegex(ValueError, 'referenced'):
                 await data.adelete_quarantined('manual', expected_revision=saved['version'])
             self.assertEqual((package / 'quarantine/files/source.txt').read_bytes(), b'damaged')

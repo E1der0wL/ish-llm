@@ -36,8 +36,8 @@ async with LargeLanguageModel(workspace, engines={"graph": graph_engine, "loop":
     project = await backend.projects.acreate(
         "Review", components=["workflows", "tools", "skills"])
     skills = await project.components.aget("skills")
-    await skills.acreate({"instructions": "정확성, 오류 처리, 테스트 누락을 검토하세요."},
-                         identifier="review_rules")
+    await skills.acreate({"markdown": "---\nname: review-rules\ndescription: 코드 검토 지침\n---\n정확성, 오류 처리, 테스트 누락을 검토하세요."},
+                         identifier="review-rules")
     agents = project.agents
     await agents.acreate({
         "purpose": "코드 검토",
@@ -45,7 +45,7 @@ async with LargeLanguageModel(workspace, engines={"graph": graph_engine, "loop":
         "completion": {"model": model, "temperature": 0.2},
         "system_prompt": "문제점과 근거를 간결하게 설명하세요.",
         "engine_options": {'policy': {'max_iterations': 4}},
-        "resources": {"skills": ["review_rules"]},
+        "resources": {"skills": ["review-rules"]},
         "tools": [],
         "policy": {"timeout_seconds": 120},
         "input_schema": {"type": "object", "required": ["request"]},
@@ -83,7 +83,7 @@ Component 설정만 ProjectConfig.parameters["components"]에 저장한다.
 | completion | Loop 모델 인자. model 필수, messages/tools는 엔진이 관리 |
 | engine_options | 선택 엔진의 설정. Loop 반복/응답/Tool 시간 등 |
 | tools | 일반 Tool 허용 목록. Project에서 사용 가능한 Tool만 선택 |
-| resources.skills | 저장된 Skill ID 배열. instructions를 system prompt에 추가 |
+| resources.skills | 저장된 Skill ID 배열. SKILL.md 본문을 system prompt에 추가 |
 | resources.rag | true이면 Project corpus 검색 Tool rag_search를 추가 |
 | resources.mcp | `{서버 ID: {공개 Tool 별칭: 원격 Tool 이름}}` |
 | policy.max_tool_calls | Agent 호출 하나의 전체 Tool 시도 횟수 상한 |

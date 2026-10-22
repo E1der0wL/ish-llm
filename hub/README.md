@@ -382,7 +382,9 @@ Enter → 방향키 → Enter로 선택을 마친 뒤 저장하면 즉시 적용
 /agents help
 ```
 
-관리 창에서 경로를 가져오고 항목을 편집·삭제합니다. 하단 설정 버튼은 해당 컴포넌트로
+관리 창에서 경로를 가져오고 항목을 편집·삭제합니다.
+Skill은 표준 디렉터리 또는 그 안의 SKILL.md를 가져오고 Markdown 원문을 편집합니다.
+자료 파일을 함께 보존하며 저장 시 이름·디렉터리 일치와 revision을 검증합니다. 하단 설정 버튼은 해당 컴포넌트로
 프로젝트 설정 페이지를 엽니다. list/get/create/update/delete/settings/install 명령은 제거했습니다.
 Prompt·Agent·Workflow는 하단 **생성 / 편집 / 삭제** 버튼과 인라인 JSON 편집 팝업을 제공합니다.
 Workflow JSON을 바꾸면 옆의 흐름도도 갱신됩니다. 저장 시 공개 백엔드 API가 정의와 버전을 검증합니다.
@@ -822,8 +824,8 @@ project_config.parameters.engines에 명시하세요. 자동 제목은 내부 `_
 ### 기본 시스템 프롬프트와 스킬
 
 새 프로젝트에는 `asset/guides.py`에 등록된 기본 시스템 프롬프트와 일곱 가지 Skill을 복사합니다.
-프롬프트 본문은 `asset/prompts/system.md`, Skill 본문은 `asset/skills/`에서 관리합니다.
-기본 프롬프트와 Skill의 제목·설명·본문은 모두 영어이며, 답변은 사용자의 언어를 따릅니다.
+프롬프트 본문은 `asset/prompts/system.md`, Skill 정의는 `asset/skills/<name>/SKILL.md`에서 관리합니다.
+기본 프롬프트와 Skill의 이름·설명·본문은 모두 영어이며, 답변은 사용자의 언어를 따릅니다.
 초기 실행과 홈 패널의 프로젝트 생성 모두 동일한 템플릿을 사용합니다.
 모델 이름이나 API 키는 기본값으로 채우지 않습니다. 기존 프로젝트는 자동 변경하지 않습니다.
 

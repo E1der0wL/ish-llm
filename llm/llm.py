@@ -18,6 +18,7 @@ PLUGIN_META = {
         "jsonschema>=4.23,<5",
         "pydantic>=2,<3",
         "packaging>=23",
+        "PyYAML>=6,<7|yaml",
         "langgraph>=1.2.12,<2",
         "chromadb",
         "kuzu",
@@ -472,13 +473,13 @@ class LargeLanguageModel:
 
         await project.components.aselect(["tools", "skills", "workflows"])
         skills = await project.components.aget("skills")  # 동기: project.components.skills
-        identifier = await skills.acreate({"instructions": "변경된 코드를 검토한다."})
+        markdown = "---\\nname: review\\ndescription: 코드 검토 지침\\n---\\n변경된 코드를 검토한다."
+        identifier = await skills.acreate({"markdown": markdown})
         data = await skills.aload(identifier)
         records = await skills.alist()                # {식별자: 데이터} 사전
-        data["description"] = "리뷰 지침"
-        await skills.asave(identifier, data)          # 전체 데이터 교체
-        updated = await skills.aupdate(identifier, {"description": "새 리뷰 지침"})
-        await skills.aconfigure({"config": {"ui": {"label": "검토"}}})
+        snapshot = await skills.asnapshot(identifier)
+        await skills.awrite_markdown(identifier, markdown + " 테스트 결과도 확인한다.",
+                                     expected_revision=snapshot["version"])
         configuration = await skills.aget_config()
         await skills.adelete(identifier)              # 정의 파일 삭제
         await project.components.aremove("skills")   # 선택 해제; 데이터는 유지

@@ -1,3 +1,9 @@
+---
+name: hub-create-rag
+description: "Read source material and register searchable RAG documents."
+metadata:
+  hub-template-version: "7"
+---
 # Create a RAG document
 
 Use when the user wants material registered for later retrieval.

@@ -1,5 +1,7 @@
 """Real component imports, versioned edits/deletes and shared popup routing."""
 
+from tests.llm.support.skills import skill_markdown
+
 import asyncio
 import importlib.util
 import json
@@ -128,7 +130,9 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
     async def test_skill_workflow_agent_mcp_import_edit_conflict_delete_and_reopen(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / "guide.md").write_text("# Coding guide\nRun relevant tests.", encoding="utf-8")
+            source = root / "guide" / "SKILL.md"
+            source.parent.mkdir()
+            source.write_text(skill_markdown("guide", "Run relevant tests."), encoding="utf-8")
             (root / "flow.json").write_text(json.dumps(WORKFLOW), encoding="utf-8")
             (root / "reviewer.json").write_text(json.dumps({"purpose": "Review text", "engine": "loop"}), encoding="utf-8")
             (root / "server.json").write_text(json.dumps({"transport": "stdio", "command": "not-executed-server"}), encoding="utf-8")
@@ -137,7 +141,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             await runtime.start()
             project_id = runtime.project.id
             try:
-                for name, filename, identifier in (("skills", "guide.md", "guide"), ("workflows", "flow.json", "flow"),
+                for name, filename, identifier in (("skills", "guide/SKILL.md", "guide"), ("workflows", "flow.json", "flow"),
                                                    ("agents", "reviewer.json", "reviewer"), ("mcp", "server.json", "server")):
                     async def manage(action, value="", version=None):
                         return await runtime.manage_records(project_id, name, action, value, version)
@@ -146,9 +150,13 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                     with self.assertRaises(FileExistsError):
                         await manage("import", filename)
                     record = await manage("read", identifier)
-                    values = json.loads(record["text"])
-                    values.setdefault("metadata", {})["description"] = "Edited through manager"
-                    await manage("save", {"name": identifier, "text": json.dumps(values)}, record["version"])
+                    if name == "skills":
+                        text = skill_markdown("guide", "Edited through manager")
+                    else:
+                        values = json.loads(record["text"])
+                        values.setdefault("metadata", {})["description"] = "Edited through manager"
+                        text = json.dumps(values)
+                    await manage("save", {"name": identifier, "text": text}, record["version"])
                     with self.assertRaises(ValueError):
                         await manage("delete", identifier, record["version"])
                     latest = await manage("read", identifier)
@@ -166,7 +174,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn("Edited through manager", record["text"])
                     entries = await runtime.manage_records(project_id, name, "delete", identifier, record["version"])
                     self.assertNotIn(identifier, [item["name"] for item in entries])
-                self.assertTrue((root / "guide.md").exists())
+                self.assertEqual(source.read_text(), skill_markdown("guide", "Run relevant tests."))
                 self.assertTrue((root / "flow.json").exists())
                 self.assertTrue((root / "server.json").exists())
                 await runtime.project.components.aselect(["tools"])
@@ -178,8 +186,9 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
     async def test_commands_open_shared_manager_import_edit_and_delete(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             root = Path(directory)
-            source = root / "guide.md"
-            source.write_text("Original instructions", encoding="utf-8")
+            source = root / "guide" / "SKILL.md"
+            source.parent.mkdir()
+            source.write_text(skill_markdown("guide", "Original instructions"), encoding="utf-8")
             app, controller = create_application(HubConfig(root / "workspace", file_root=root, auto_title=False),
                                                   input=pipe, output=SizedOutput())
             view = controller.view
@@ -197,18 +206,18 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIs(app.layout.current_control, popup.path.control)
                     self.assertEqual(view.composer.text, "")
                     if name == "skills":
-                        popup.path.text = "guide.md"
+                        popup.path.text = "guide/SKILL.md"
                         popup.path.buffer.cancel_completion()
                         pipe.send_text("\r")
                         await eventually(lambda: not popup.busy and popup.selected == "guide")
                         self.assertEqual(popup.path.text, "")
                         pipe.send_text("\t\t")  # InputField action, then component list.
                         await eventually(lambda: app.layout.current_control is popup.list)
-                        edited = json.dumps({"instructions": "Revised instructions", "title": "Revised"})
+                        edited = skill_markdown("guide", "Revised instructions", "Revised")
                         with patch("hub.ui.host.edit_text", new_callable=AsyncMock, return_value=edited) as editor:
                             pipe.send_text("\r")
                             await eventually(lambda: editor.await_count == 1 and not popup.busy and
-                                             any(item.get("label") == "Revised" for item in popup.entries))
+                                             any(item.get("description") == "Revised" for item in popup.entries))
                         self.assertFalse(popup.drafts)
                         pipe.send_text("d")
                         await eventually(lambda: view._dialog is not popup)
@@ -222,7 +231,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                                          all(item["name"] != "guide" for item in popup.entries))
                     pipe.send_text("\x1b")
                     await eventually(lambda: view._dialog is None)
-                self.assertEqual(source.read_text(), "Original instructions")
+                self.assertEqual(source.read_text(), skill_markdown("guide", "Original instructions"))
             finally:
                 app.exit()
                 await task

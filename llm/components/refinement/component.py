@@ -5,16 +5,17 @@ from datetime import datetime
 from llm.components.definitions import DefinitionComponent
 from llm.core.schema import object_schema, implementation_schema, field, open_schema, metadata_schema
 from .data import RefinementData
+from llm.core.skills import SkillName
 from .lifecycle import RefinementStatus, TRANSITIONS
 
 
 IDENTIFIER = field("string", pattern="^[A-Za-z0-9_-]{1,64}$")
 TARGET = object_schema({"component": field("string", enum=["skills", "prompts", "agents", "memory"]),
-    "identifier": IDENTIFIER, "session_id": IDENTIFIER}, required=["component", "identifier"], additionalProperties=False)
+    "identifier": {"type": "string", "minLength": 1}, "session_id": IDENTIFIER}, required=["component", "identifier"], additionalProperties=False)
 EVIDENCE = object_schema({"session_id": IDENTIFIER, "run_id": IDENTIFIER, "step_id": IDENTIFIER,
     "tool_call_id": field("string", minLength=1), "error_code": field("string", minLength=1),
     "note": field("string", minLength=1)}, required=["session_id", "run_id"], additionalProperties=False)
-PARENT = object_schema({"identifier": IDENTIFIER, "version": field("string", pattern="^[a-f0-9]{64}$")},
+PARENT = object_schema({"identifier": SkillName.SCHEMA, "version": field("string", pattern="^[a-f0-9]{64}$")},
     required=["identifier", "version"], additionalProperties=False)
 EVALUATION = object_schema({
     "evaluator": field("string", minLength=1), "baseline_version": field(["string", "null"]),
@@ -49,7 +50,7 @@ class RefinementComponent(DefinitionComponent):
         "before": open_schema("selected target record snapshot", category="implementation"),
         "metadata": metadata_schema(), "source": SOURCE, "history": {"type": "array", "items": HISTORY, "minItems": 1},
         "evaluations": {"type": "array", "items": STORED_EVALUATION},
-        "applied_target": object_schema({"identifier": IDENTIFIER, "version": field("string", pattern="^[a-f0-9]{64}$")}, required=["identifier", "version"]),
+        "applied_target": object_schema({"identifier": TARGET["properties"]["identifier"], "version": field("string", pattern="^[a-f0-9]{64}$")}, required=["identifier", "version"]),
         "skill_versions": object_schema(additionalProperties=field("string", pattern="^[a-f0-9]{64}$")),
     }, required=["target", "operation", "expected_version", "reason", "evidence", "patch", "status", "before", "source", "history", "evaluations"])
 

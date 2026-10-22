@@ -13,36 +13,11 @@ from llm.llm import LargeLanguageModel, print_event
 
 
 def starter_skills():
-    """호스트/UI가 선택하여 설치할 예제 지침. 라이브러리의 숨은 시스템 프롬프트가 아니다."""
-    return {
-        "code-change": {
-            "title": "코드 수정과 검증", "description": "소스 탐색, 작은 변경, 실제 검증과 결과 보고",
-            "tags": ["code", "programming", "코드", "수정", "테스트"],
-            "instructions": (
-                "1. 사용자 요청과 저장소 지침을 확인하고 file_list/file_search로 관련 소스를 찾는다.\n"
-                "2. file_read로 호출 관계와 현재 코드를 읽고, 관찰된 사실과 수정 가설을 구분한다.\n"
-                "3. 가능하면 수정 전 재현/검증 명령을 실행하여 실제 실패를 확인한다.\n"
-                "4. 현재 SHA-256으로 필요한 부분만 file_patch한다. 충돌이면 다시 읽고 판단한다.\n"
-                "5. 등록된 test_run/check_run 또는 허용된 명령으로 같은 조건을 다시 검사한다.\n"
-                "6. 종료 코드와 출력, diff를 확인하여 변경·검증·남은 불확실성을 보고한다.\n"
-                "검증에 실패했다면 실패 원인을 확인하고 수정 단계로 돌아간다. 실행하지 않은 검사는 통과했다고 말하지 않는다."
-            ),
-        },
-        "computer-diagnosis": {
-            "title": "컴퓨터·프로그램 문제 분석", "description": "재현 조건, 프로세스 상태와 로그를 비교해 원인을 확인",
-            "tags": ["debug", "diagnosis", "process", "오류", "분석", "터미널"],
-            "instructions": (
-                "1. 기대 동작과 실제 현상, 발생 조건을 구분한다. 먼저 읽기 전용 관찰을 한다.\n"
-                "2. system_inspect/process_list/process_inspect로 환경과 PID의 실제 상태를 확인한다.\n"
-                "3. file_read의 tail_lines와 file_search로 관련 로그 및 입력/출력 경로의 소스를 읽는다.\n"
-                "4. process_start로 허용된 최소 재현을 실행하고 process_output의 next offset으로 이어 읽는다.\n"
-                "5. 가설마다 반증할 관찰을 정한다. 시각·PID·입력 분기 기록이 없으면 과거 흐름을 확정하지 않는다.\n"
-                "6. 근거를 확보한 뒤 필요한 변경과 검증을 수행하고, 사실/가설/추가 관찰 필요를 구분해 보고한다.\n"
-                "기존 ish 터미널과 이 Toolkit이 실행한 프로세스는 다르다. pipe 입력은 PTY가 아니다. "
-                "process_write는 개행을 자동 추가하지 않으며 결과가 불확실한 입력을 임의 재전송하지 않는다."
-            ),
-        },
-    }
+    """Explicit, editable standard Skill packages for this example."""
+    from llm.core.skills import SkillDocument
+    from llm.components.skills import SkillRecord
+    return {path.name: {SkillRecord.MARKDOWN: (path / SkillDocument.FILENAME).read_text(encoding="utf-8")}
+            for path in sorted(Path(__file__).with_name("skills").iterdir()) if path.is_dir()}
 
 
 async def install_guides(project):

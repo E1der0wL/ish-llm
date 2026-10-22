@@ -1,5 +1,8 @@
 """Default installation and fixed registrations through the public backend API."""
 
+from tests.llm.support.skills import skill_markdown
+from llm.core.skills import SkillDocument
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
@@ -37,15 +40,16 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(set(await skills.alist()), {item[0] for item in SKILLS})
                 for identifier, title, description, instructions in SKILLS:
                     guide = await skills.aload(identifier)
-                    self.assertEqual(guide["title"], title)
-                    self.assertEqual(guide["description"], description)
-                    self.assertEqual(guide["instructions"], instructions)
-                    self.assertEqual(guide["metadata"]["hub_template_version"], TEMPLATE_VERSION)
+                    document = SkillDocument.parse(guide["markdown"])
+                    self.assertEqual(document.name, identifier)
+                    self.assertEqual(document.frontmatter["description"], description)
+                    self.assertEqual(guide["markdown"], instructions)
+                    self.assertEqual(document.frontmatter["metadata"]["hub-template-version"], str(TEMPLATE_VERSION))
                 record = await runtime.settings_service.load_project(project_id)
                 values = deepcopy(record["values"])
                 values["config"]["parameters"]["engines"]["loop"]["config"]["system_prompt"] = "My project prompt"
                 await runtime.settings_service.save_project(project_id, values, record["config_version"])
-                await skills.aupdate("hub-code-change", {"instructions": "My project rules"})
+                await skills.aupdate("hub-code-change", {"markdown": skill_markdown("hub-code-change", "My project rules")})
                 await skills.adelete("hub-document")
                 created = await runtime.settings_service.create_project({"title": "Custom", "config": {
                     "parameters": {"engines": {"loop": {'config': {'system_prompt': None}}}}}})
@@ -60,7 +64,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 config = (await reopened.project.aget_data()).config
                 self.assertEqual(config.parameters["engines"]["loop"]["config"]["system_prompt"], "My project prompt")
                 skills = await reopened.project.components.aget("skills")
-                self.assertEqual((await skills.aload("hub-code-change"))["instructions"], "My project rules")
+                self.assertEqual((await skills.aload("hub-code-change"))["markdown"], skill_markdown("hub-code-change", "My project rules"))
                 self.assertNotIn("hub-document", await skills.alist())
             finally:
                 await reopened.close()

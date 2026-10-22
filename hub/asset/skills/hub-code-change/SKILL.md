@@ -1,3 +1,9 @@
+---
+name: hub-code-change
+description: "Inspect existing behavior and boundaries, then verify the necessary changes."
+metadata:
+  hub-template-version: "7"
+---
 # Coding: inspect, implement, verify, deliver
 
 Use for implementing or modifying code, including adding regression tests.

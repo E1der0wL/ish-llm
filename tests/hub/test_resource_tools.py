@@ -1,5 +1,7 @@
 """Real Loop/Tool execution, durable approvals, component persistence and recall."""
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 from llm.providers.operations import LiteLLMOperations
 
@@ -45,7 +47,7 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_skill_workflow_agent_creation_is_validated_and_approval_bound(self):
         definitions = {
-            "skill": {"title": "Review", "instructions": "Inspect the change and verify tests."},
+            "skill": {"markdown": skill_markdown('created-skill', "Inspect the change and verify tests.")},
             "workflow": {"schema_version": 1, "entry": "finish", "nodes": {"finish": {"type": "end"}}, "edges": []},
             "agent": {"purpose": "Review supplied text", "engine": "loop", "tools": []},
         }
@@ -93,23 +95,23 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(complete["data"]["status"], "completed")
 
     async def test_refinement_proposal_changes_target_only_after_approval(self):
-        await self.invoke("skill_create", identifier="guide", definition={"instructions": "Before"})
+        await self.invoke("skill_create", identifier="guide", definition={"markdown": skill_markdown('guide', "Before")})
         target = await self.invoke("refinement_target", target={"component": "skills", "identifier": "guide"})
         runs = await self.session.run.alist()
         evidence_id = runs[-1].id
         proposed = await self.invoke("refinement_propose", target={"component": "skills", "identifier": "guide"},
             operation="update", expected_version=target["version"], reason="Add a missing verification step",
-            evidence=[{"session_id": self.session.id, "run_id": evidence_id}], patch={"instructions": "After: verify readback"})
+            evidence=[{"session_id": self.session.id, "run_id": evidence_id}], patch={"markdown": skill_markdown('guide', "After: verify readback")})
         skills = await self.runtime.project.components.aget("skills")
-        self.assertEqual((await skills.aload("guide"))["instructions"], "Before")
+        self.assertEqual((await skills.aload("guide"))["markdown"], skill_markdown("guide", "Before"))
         identifier, = await self.runtime.project.components.refinement.alist()
         paused = await self.invoke("refinement_apply", approve=False, identifier=identifier, expected_version=proposed["version"])
-        self.assertEqual((await skills.aload("guide"))["instructions"], "Before")
+        self.assertEqual((await skills.aload("guide"))["markdown"], skill_markdown("guide", "Before"))
         request, = await paused.ainteractions()
         await paused.arespond(request.respond("approve"))
         resumed = (await (await self.session.run.resume(paused.id, agent_id="assistant")).wait())[0]
         self.assertEqual(str(resumed.data.status), "completed", resumed.data.error)
-        self.assertEqual((await skills.aload("guide"))["instructions"], "After: verify readback")
+        self.assertEqual((await skills.aload("guide"))["markdown"], skill_markdown("guide", "After: verify readback"))
 
     async def test_rag_authoring_prepares_index_and_can_be_retrieved(self):
         result = await self.invoke("rag_add_document", identifier="note", title="Hub note", content="Violet is the project color.")

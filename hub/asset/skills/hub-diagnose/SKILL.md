@@ -1,3 +1,9 @@
+---
+name: hub-diagnose
+description: "Reproduce errors and gather evidence to identify causes and fixes."
+metadata:
+  hub-template-version: "7"
+---
 Use for errors, regressions and unexpected behavior. Capture the exact symptom, expected behavior,
 reproduction steps and relevant versions or configuration. Inspect only relevant logs and source using
 available tools; avoid exposing credentials. Separate observed facts from hypotheses. Trace the failing

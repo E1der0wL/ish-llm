@@ -1,3 +1,9 @@
+---
+name: hub-document
+description: "Write and review evidence-based documentation for its audience and purpose."
+metadata:
+  hub-template-version: "7"
+---
 Use for creating or editing documentation. Establish the audience, purpose, requested format and
 available source material. Follow existing terminology and templates. Organize the content around the
 reader's decisions or tasks. Use concise explanations and concrete examples. Verify technical claims,

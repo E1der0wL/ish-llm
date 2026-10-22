@@ -13,6 +13,7 @@ dependencies = [
     "jsonschema>=4.23,<5",
     "pydantic>=2,<3",
     "packaging>=23",
+    "PyYAML>=6,<7",
     "langgraph>=1.2.12,<2",
 ]
 
@@ -29,6 +30,7 @@ extras = ["rag", "vision", "mcp"]
 [tool.ish-llm.plugin.imports]
 rank-bm25 = "rank_bm25"
 pillow = "PIL"
+pyyaml = "yaml"
 
 [tool.setuptools.packages.find]
 include = ["llm", "llm.*"]

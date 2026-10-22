@@ -1,5 +1,7 @@
 """제품 선택과 backend 계약, Skill 진화의 권한·버전 경계를 검증한다."""
 
+from tests.llm.support.skills import skill_markdown
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import json
@@ -23,7 +25,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
 
     async def new_skill(self, operation="create", identifier="child"):
         value = {"operation": operation, "target": {"component": "skills", "identifier": identifier},
-                 "expected_version": None, "patch": {"instructions": "Check before publishing"},
+                 "expected_version": None, "patch": {"markdown": skill_markdown(identifier, "Check before publishing")},
                  "reason": "Observed failure", "evidence": self.evidence}
         if operation == "fork":
             parent = await self.project.components.skills.asnapshot("guide")
@@ -45,7 +47,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         approved = await self.approve(identifier)
         applied = await self.refine.aapply(identifier, expected_version=approved["version"])
         child = await skills.asnapshot("child")
-        await skills.acreate({"instructions": "Grandchild", "lineage": {
+        await skills.acreate({"markdown": skill_markdown("grandchild", "Grandchild"), "lineage": {
             "parent": "child", "parent_revision": child["version"]}}, identifier="grandchild")
         refs = await skills.adependencies("child")
         self.assertEqual(refs["agents"], [])
@@ -112,7 +114,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
     async def test_fork_rejects_changed_parent_and_does_not_sync(self):
         identifier, data = await self.new_skill("fork")
         approved = await self.approve(identifier)
-        await self.project.components.skills.aupdate("guide", {"instructions": "Changed"}, expected_version=data["parent"]["version"])
+        await self.project.components.skills.aupdate("guide", {"markdown": skill_markdown("guide", "Changed")}, expected_version=data["parent"]["version"])
         with self.assertRaisesRegex(ValueError, "conflict"):
             await self.refine.aapply(identifier, expected_version=approved["version"])
         identifier, data = await self.new_skill("fork")
@@ -120,7 +122,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         await self.refine.aapply(identifier, expected_version=approved["version"])
         child = await self.project.components.skills.aload("child")
         self.assertEqual(child["lineage"], {"parent": "guide", "parent_revision": data["parent"]["version"]})
-        await self.project.components.skills.aupdate("guide", {"instructions": "Changed again"}, expected_version=data["parent"]["version"])
+        await self.project.components.skills.aupdate("guide", {"markdown": skill_markdown("guide", "Changed again")}, expected_version=data["parent"]["version"])
         self.assertEqual(await self.project.components.skills.aload("child"), child)
         self.assertEqual(await self.project.components.skills.aimpact("child"), [])
 
@@ -185,7 +187,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         identifier = await self.refine.acreate(data)
         approved = await self.approve(identifier)
         skill = await self.project.components.skills.asnapshot("guide")
-        await self.project.components.skills.aupdate("guide", {"instructions": "Updated"}, expected_version=skill["version"])
+        await self.project.components.skills.aupdate("guide", {"markdown": skill_markdown("guide", "Updated")}, expected_version=skill["version"])
         with self.assertRaisesRegex(ValueError, "Skill changed"):
             await self.refine.aapply(identifier, expected_version=approved["version"])
         self.assertEqual(await self.project.agents.asnapshot("guide"), original)
@@ -223,7 +225,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         parent = await self.project.components.skills.asnapshot("guide")
         proposal = {"operation": "fork", "target": {"component": "skills", "identifier": "child"},
             "expected_version": None, "parent": {"identifier": "guide", "version": parent["version"]},
-            "patch": {"instructions": "Check allowed Tools before working"}, "reason": "Observed failure", "evidence": self.evidence}
+            "patch": {"markdown": skill_markdown('guide', "Check allowed Tools before working")}, "reason": "Observed failure", "evidence": self.evidence}
         refiner = ScriptedCompletion([chunk(calls=[call(json.dumps(proposal), name="refinement_propose")], finish="tool_calls")], answer("Review proposal"))
         self.app.engines.register("refiner", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=refiner)))
         await self.create_agent("refiner", "test/refiner")
@@ -284,7 +286,7 @@ class AgentCompositionTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(answer("done"))
         await self.setup_graph(agent_graph(), model, extra_components=[PromptComponent(), SkillComponent()])
         await self.project.components.prompts.acreate({"messages": [{"role": "system", "content": "Reference prompt"}]}, identifier="base")
-        await self.project.components.skills.acreate({"instructions": "Skill instruction", "metadata": {"tools": ["forbidden"], "engine": "other"}}, identifier="guide")
+        await self.project.components.skills.acreate({"markdown": skill_markdown("guide", "Skill instruction").replace("\n---\n", "\nallowed-tools: forbidden\nmetadata: {tools: forbidden, engine: other}\n---\n")}, identifier="guide")
         run = await self.run_graph()
         self.assertEqual(str(run.data.status), "completed", run.data.error)
         prompt = model.requests[0]["messages"][0]["content"]

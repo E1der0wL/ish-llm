@@ -28,7 +28,7 @@ async def main(text: str):
     return text
 '''}, identifier="echo")
     tool = await tools.asnapshot("echo")
-    await skills.acreate({"instructions": "Read the reference and validate the result."}, identifier="guide")
+    await skills.acreate({"markdown": "---\nname: guide\ndescription: Read and validate reference material.\n---\nRead the reference and validate the result."}, identifier="guide")
     guide = await skills.asnapshot("guide")
     guide = await skills.awrite_file("guide", "examples/input.txt", "sample input",
                                      expected_revision=guide["version"])

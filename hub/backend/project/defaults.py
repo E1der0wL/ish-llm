@@ -7,7 +7,7 @@ from llm.core.models import ConversationStorage, ProjectConfig
 from llm.components.rag.prompts import ExtractionFailurePolicy
 from llm.components.rag.search import SearchMethod, SearchExpansion, RelationRanking
 
-from ...asset.guides import SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
+from ...asset.guides import STARTER_SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
 from .agents import DEFAULT_AGENT
 
 
@@ -84,9 +84,8 @@ async def create_project(backend, title, *, config, components, conversation_sto
         await initialize(backend, project, identifier=agent_id, definition=agent_definition)
         if "skills" in components:
             skills = await project.components.aget("skills")
-            for identifier, title, description, instructions in SKILLS:
-                await skills.acreate({"title": title, "description": description, "instructions": instructions,
-                                      "metadata": {"hub_template_version": TEMPLATE_VERSION}}, identifier=identifier)
+            for skill in STARTER_SKILLS:
+                await skills.aimport_directory(skill.directory)
     except BaseException:
         # Do not leave a partially seeded project as the next startup selection.
         await asyncio.shield(project.adelete())

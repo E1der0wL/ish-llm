@@ -66,20 +66,22 @@ generation이 없는 기존 Memory/RAG 저장 기록은 거부한다. 자동 발
 필요한 원문은 변경 전 API로 내보내고 새 CRUD로 재등록한다.
 저장/schema version 숫자는 변경하지 않는다.
 
-Skill 정의의 원본은 `skill.json`이다. `SKILL.md`를 두 번째 수정 가능한 원본으로 만들지
-않는다. 이전 `skills/records/*.json`은 자동 변환하지 않는다. 필요한 자료를 기존 형식으로
-내보낸 뒤 새 공개 CRUD로 명시적으로 재등록해야 한다.
+Skill 정의의 원본은 `skills/<name>/SKILL.md`다. 운영 관계·계보·파일 무결성은 Skills 내부
+`_state`에서 관리하며 파싱된 정의 JSON을 저장하지 않는다. 원문과 자료 파일·운영 관계를
+snapshot에 고정하며 같은 내용의 메모리 Projection은 별도 편집 원본이 아니다.
+기존 skill.json과 records 형식은 자동 변환하거나 읽지 않는다. 원본을 보존하고 이전 버전에서
+내보낸 뒤 표준 패키지를 작성해 명시적으로 재등록한다. [현행 계약](agent-skills.md)을 따른다.
 
 ## 참조와 수명 관리
 
-Skill.resources의 Data/Tool 참조는 대상 component/identifier/revision을 저장한다.
+Skill 운영 기록 resources의 Data/Tool 참조는 대상 component/identifier/revision을 저장한다.
 Data 참조에는 path도 필요하다. 생성·수정과 Run capability 해석, 실제 자료 조회 시 검증한다.
 대상 업데이트는 부모를 변경하지 않으며 stale 참조는 명시적으로 고쳐야 한다.
 URI는 단순 설명이므로 원격 revision 검증이나 삭제 보호를 제공하지 않는다.
 
 Agent.resources.skills는 ID 기반 현재값 참조다. Run 시작 시 현재 Skill 정의와 파일 manifest를
 읽어 실행 snapshot에 고정한다. Agent 정의에 Skill revision을 자동 삽입하지 않는다.
-Skill.lineage의 parent_revision은 FORK 당시 부모의 출처 기록이다. 부모가 변경돼도 자식이
+Skill 운영 기록 lineage의 parent_revision은 FORK 당시 부모의 출처 기록이다. 부모가 변경돼도 자식이
 실행 불가능해지는 고정 참조가 아니며, 부모 ID의 삭제 보호는 별도로 유지한다.
 
 삭제 보호는 ProjectReferences·AgentManager가 각 Component/Engine/handler owner의 참조를
