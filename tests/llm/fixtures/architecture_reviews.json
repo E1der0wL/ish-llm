@@ -2233,8 +2233,8 @@
         "docs/llm/completion-processing.md"
       ],
       "sources": {
-        "docs/llm/completion-processing.md": "4aa15af0a8ccc4f86781e8d446dc97dd04b856ac7f0c73ce40ad02ad9231a092",
-        "llm/components/processing.py": "fd295952ae44db96834105bbe6247c79ef4a40f18b2a4df1604ea538b38293fb",
+        "docs/llm/completion-processing.md": "ceb382f8c4f3fa917bd650a5cf44745a6b610c7eddd51d20ecba4c596c275096",
+        "llm/components/processing.py": "b3052545af9aaa5a2dccf7805fc3b0d4dedc8bb2b1221865e7065f766932a4ed",
         "llm/engines/base.py": "87bf1523d0446897ecfaa240bbfb6f57e821d074e01f72bc73eca65952defeee",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_completion_processing.py": "afa7c076e4ec39cc1c1287b70dbbc6e1b0624f0f9af6c7a573714bdb0311c2de",
@@ -2336,7 +2336,7 @@
       ],
       "sources": {
         "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
-        "docs/llm/data-lifecycle.md": "3487c9ac2f174b0008d606718eb91ad8df324d6ba9b30ddbb709716ba79af4ed",
+        "docs/llm/data-lifecycle.md": "119931c5eebdcc61f3008fce6945134b054a14eef292cf8ef9fca4371fd4410f",
         "llm/core/configuration.py": "e039df2315e73ff3bfa080eb23c80d11a5a21bc853d37b8db7c73114f7ec5f80",
         "llm/services/infrastructure/logging.py": "7bd4c0af2d289ad56927338c06feba91bdb12029c93baf0ee0ec2ba980509214",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
@@ -2387,7 +2387,7 @@
         "docs/llm/tool-constraints.md": "204943fa586671ba4cfd964f340b187e641b9fdc3fdb625f73386bf0c08b85d0",
         "llm/core/checkpoints.py": "56b4514020bc8c2e480198a4f9c8aa2815ff6956885cead333d89927b4307161",
         "llm/core/interactions.py": "b2958e5e1c99d02ca4618700bf4f7e67101e0056c96b27afc52583967823c827",
-        "llm/engines/loop/engine.py": "385ca109684fd4a736d0f0b1b3c108bc1c8d28369bcb64a02cf1e0e9294ea8e2",
+        "llm/engines/loop/engine.py": "9ac87b49d31ca744d52980e5cbbe7df8c5fb95d180eaf70feede01d0f52431bd",
         "llm/services/runtime/runs.py": "8b1e34d18cf4eef703f8a4107d88104bf59f26b5e62c07588a895981962db5ff",
         "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
@@ -2617,7 +2617,7 @@
         "docs/llm/data-lifecycle.md"
       ],
       "sources": {
-        "docs/llm/data-lifecycle.md": "3487c9ac2f174b0008d606718eb91ad8df324d6ba9b30ddbb709716ba79af4ed",
+        "docs/llm/data-lifecycle.md": "119931c5eebdcc61f3008fce6945134b054a14eef292cf8ef9fca4371fd4410f",
         "docs/llm/project-policies.md": "99b90a2386f5e291001a37e8f4dbd6599e81fa558d69da1cffc516b146b8cfa6",
         "llm/core/models.py": "fbd7bc6e47496748ceb745dfecab11fd28a0c37b41fd7dc6d880fca4651fa766",
         "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
@@ -2648,7 +2648,7 @@
         "docs/llm/data-lifecycle.md"
       ],
       "sources": {
-        "docs/llm/data-lifecycle.md": "3487c9ac2f174b0008d606718eb91ad8df324d6ba9b30ddbb709716ba79af4ed",
+        "docs/llm/data-lifecycle.md": "119931c5eebdcc61f3008fce6945134b054a14eef292cf8ef9fca4371fd4410f",
         "docs/llm/project-policies.md": "99b90a2386f5e291001a37e8f4dbd6599e81fa558d69da1cffc516b146b8cfa6",
         "llm/components/usage.py": "f4e76f1d7f4c108b04a270d966c3b407994d8530d7bb6f7b8ec7e6535354812b",
         "llm/core/models.py": "fbd7bc6e47496748ceb745dfecab11fd28a0c37b41fd7dc6d880fca4651fa766",
@@ -2756,7 +2756,7 @@
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_naming_contract.py": "a980fabada980e47892f062df66907249e747d07a1e0c1b2c1722f0a09ed48b1",
+        "tests/llm/test_naming_contract.py": "a6e7b2b2a56375a9d4a512dfc9c6f99fd2fcba94eae29891fb0559320ae1e7e9",
         "tests/llm/test_schema_ownership.py": "5599769fd69b2c641167ea5a60446acb4852d78cf72859b67cb8caf2105fcbe8",
         "tests/llm/test_settings_contract.py": "ee1bfacf5637caafe873487ebe47c7160ea68f09e8a2987e2774b18d31e8010d",
         "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
@@ -2867,7 +2867,7 @@
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_naming_contract.py": "a980fabada980e47892f062df66907249e747d07a1e0c1b2c1722f0a09ed48b1",
+        "tests/llm/test_naming_contract.py": "a6e7b2b2a56375a9d4a512dfc9c6f99fd2fcba94eae29891fb0559320ae1e7e9",
         "tests/llm/test_settings_contract.py": "ee1bfacf5637caafe873487ebe47c7160ea68f09e8a2987e2774b18d31e8010d",
         "tests/llm/test_vision.py": "30174f9cefa34e7ecee3a3fab21c889ad3f8aa0d70a37e1c295eac9bb241ce97",
         "llm/core/paths.py": "5aa0e3c9f6675326100a62f0e7099e1a16b339c456b64ad8436e2f9c7132f7e6"
@@ -2903,7 +2903,7 @@
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_naming_contract.py": "a980fabada980e47892f062df66907249e747d07a1e0c1b2c1722f0a09ed48b1",
+        "tests/llm/test_naming_contract.py": "a6e7b2b2a56375a9d4a512dfc9c6f99fd2fcba94eae29891fb0559320ae1e7e9",
         "tests/llm/test_settings_contract.py": "ee1bfacf5637caafe873487ebe47c7160ea68f09e8a2987e2774b18d31e8010d",
         "tests/llm/test_vision.py": "30174f9cefa34e7ecee3a3fab21c889ad3f8aa0d70a37e1c295eac9bb241ce97",
         "llm/core/paths.py": "5aa0e3c9f6675326100a62f0e7099e1a16b339c456b64ad8436e2f9c7132f7e6"
@@ -2940,7 +2940,7 @@
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_configuration_validation.py": "3b366926be156749d65b7adce3198dd500a91a85ebd58cb48ef1d201179ebc97",
-        "tests/llm/test_naming_contract.py": "a980fabada980e47892f062df66907249e747d07a1e0c1b2c1722f0a09ed48b1",
+        "tests/llm/test_naming_contract.py": "a6e7b2b2a56375a9d4a512dfc9c6f99fd2fcba94eae29891fb0559320ae1e7e9",
         "tests/llm/test_settings_contract.py": "ee1bfacf5637caafe873487ebe47c7160ea68f09e8a2987e2774b18d31e8010d",
         "llm/core/paths.py": "5aa0e3c9f6675326100a62f0e7099e1a16b339c456b64ad8436e2f9c7132f7e6",
         "llm/providers/codes.py": "78388b21fe8d23dfefcdb3cb8fe306f8ab318e3ffdb47f090cc8c44faae68a6a",
@@ -2979,7 +2979,7 @@
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_configuration_validation.py": "3b366926be156749d65b7adce3198dd500a91a85ebd58cb48ef1d201179ebc97",
-        "tests/llm/test_naming_contract.py": "a980fabada980e47892f062df66907249e747d07a1e0c1b2c1722f0a09ed48b1",
+        "tests/llm/test_naming_contract.py": "a6e7b2b2a56375a9d4a512dfc9c6f99fd2fcba94eae29891fb0559320ae1e7e9",
         "tests/llm/test_settings_contract.py": "ee1bfacf5637caafe873487ebe47c7160ea68f09e8a2987e2774b18d31e8010d",
         "llm/core/paths.py": "5aa0e3c9f6675326100a62f0e7099e1a16b339c456b64ad8436e2f9c7132f7e6",
         "llm/providers/codes.py": "78388b21fe8d23dfefcdb3cb8fe306f8ab318e3ffdb47f090cc8c44faae68a6a",
@@ -3014,7 +3014,7 @@
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "llm/engines/base.py": "87bf1523d0446897ecfaa240bbfb6f57e821d074e01f72bc73eca65952defeee",
-        "llm/engines/loop/engine.py": "385ca109684fd4a736d0f0b1b3c108bc1c8d28369bcb64a02cf1e0e9294ea8e2",
+        "llm/engines/loop/engine.py": "9ac87b49d31ca744d52980e5cbbe7df8c5fb95d180eaf70feede01d0f52431bd",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_builtin_tools.py": "ce8e6c1bb72d307bbaf64b1d85095b2ccf34f92040f16cfebf0477e22a5609e0",
@@ -3034,14 +3034,15 @@
       ]
     },
     {
-      "id": "55f64bd7b7ebb6794dae7e837e5f96adbe30d73b47a6bcb89ba72da1b46531bc:1",
+      "id": "f7adc94d532c258cd683a3b45b8da80450a0819c583ffcdf97e2779b7d827392:1",
       "rule": "S3",
       "owner": "LoopEngine",
-      "reason": "LoopEngine.parameter_layout is the actual single owner declaration of policy field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "reason": "LoopEngine.parameter_layout is the actual single owner declaration of policy field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions. F adds final_review to this same owner declaration. Missing/Null disables review; an explicit object requires every bound. No default acceptance or retry is introduced. Current ReviewPolicy owns shared Reader/schema constraints.",
       "contracts": [
         "docs/llm/naming-conventions.md",
         "docs/llm/settings-consistency.md",
-        "llm/CONFIGURATION.md"
+        "llm/CONFIGURATION.md",
+        "docs/llm/completion-review.md"
       ],
       "sources": {
         "docs/llm/naming-conventions.md": "a64d4a6a12f897476e465820f1ba010eddd477660a67521c83dace8bd18bbd6e",
@@ -3053,7 +3054,7 @@
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "llm/engines/base.py": "87bf1523d0446897ecfaa240bbfb6f57e821d074e01f72bc73eca65952defeee",
-        "llm/engines/loop/engine.py": "385ca109684fd4a736d0f0b1b3c108bc1c8d28369bcb64a02cf1e0e9294ea8e2",
+        "llm/engines/loop/engine.py": "9ac87b49d31ca744d52980e5cbbe7df8c5fb95d180eaf70feede01d0f52431bd",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_builtin_tools.py": "ce8e6c1bb72d307bbaf64b1d85095b2ccf34f92040f16cfebf0477e22a5609e0",
@@ -3061,7 +3062,11 @@
         "llm/core/paths.py": "5aa0e3c9f6675326100a62f0e7099e1a16b339c456b64ad8436e2f9c7132f7e6",
         "llm/providers/codes.py": "78388b21fe8d23dfefcdb3cb8fe306f8ab318e3ffdb47f090cc8c44faae68a6a",
         "llm/providers/__init__.py": "89eebb9b222acd71e7334a56f1254ed98fac37ba69babd8524751361aea8f86f",
-        "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d"
+        "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d",
+        "llm/components/review.py": "9b35354ab09812ad6d005ab5227c7d510ddcc07d09574a7543b7646612479025",
+        "llm/engines/loop/review.py": "dbe2b458b9d7be7727a3d19e3eb992e78363c092b6f8fb9dbdaf9c1babb7ed8e",
+        "tests/llm/test_completion_review.py": "963e062915603b72baab83d6078348f342a7c4330fc644b911c0d0ebf7cc3d34",
+        "docs/llm/completion-review.md": "99084663050c88fb8e8685a12f68fc51464c3886d77c9612fb1e80e0c8ef2522"
       },
       "tests": [
         "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
@@ -3069,7 +3074,9 @@
         "tests.llm.test_settings_contract.SettingsContractTests.test_project_session_agent_sources_and_limits_are_identical",
         "tests.llm.test_settings_contract.SettingsContractTests.test_layout_roundtrip_preserves_explicit_null_and_sdk_options",
         "tests.llm.test_settings_contract.SettingsContractTests.test_internal_policy_names_cannot_enter_through_open_config",
-        "tests.llm.test_builtin_tools.BuiltinTests.test_loop_executes_file_tool_and_persists_arguments_result"
+        "tests.llm.test_builtin_tools.BuiltinTests.test_loop_executes_file_tool_and_persists_arguments_result",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_parent_review_budgets_cannot_be_disabled_or_widened",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_absent_policy_does_not_activate_registered_reviewers"
       ]
     },
     {
@@ -3092,7 +3099,7 @@
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "llm/engines/base.py": "87bf1523d0446897ecfaa240bbfb6f57e821d074e01f72bc73eca65952defeee",
-        "llm/engines/loop/engine.py": "385ca109684fd4a736d0f0b1b3c108bc1c8d28369bcb64a02cf1e0e9294ea8e2",
+        "llm/engines/loop/engine.py": "9ac87b49d31ca744d52980e5cbbe7df8c5fb95d180eaf70feede01d0f52431bd",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_builtin_tools.py": "ce8e6c1bb72d307bbaf64b1d85095b2ccf34f92040f16cfebf0477e22a5609e0",
@@ -3121,7 +3128,7 @@
         "llm/components/rag/README.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
         "llm/components/rag/component.py": "abbd8661ed10a4f2dc6b9b6aad835352003cfb7d1a2c951d5ab50b0e94dfbc24",
         "llm/components/rag/data.py": "5f4fc21a9f4bcd4e7b312ffe0bf3ab796e51440bfb486d496f31ecaab61eb57a",
@@ -3151,7 +3158,7 @@
         "llm/components/rag/README.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
         "llm/components/rag/component.py": "abbd8661ed10a4f2dc6b9b6aad835352003cfb7d1a2c951d5ab50b0e94dfbc24",
         "llm/components/rag/data.py": "5f4fc21a9f4bcd4e7b312ffe0bf3ab796e51440bfb486d496f31ecaab61eb57a",
@@ -3181,7 +3188,7 @@
         "llm/components/rag/README.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
         "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
         "llm/components/rag/component.py": "abbd8661ed10a4f2dc6b9b6aad835352003cfb7d1a2c951d5ab50b0e94dfbc24",
@@ -3209,7 +3216,7 @@
         "llm/components/tools/builtin/README.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/tools/builtin/README.md": "a7670e8e25f506efc23ca40865714ebbd7faaac775f894be9898a85a03af44be",
         "llm/components/tools/builtin/files.py": "485ff95cffcd6dbbf65d6a93ed8a47575549fb8b4e6ae684b3f67f674d39bf94",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
@@ -3233,7 +3240,7 @@
         "docs/llm/engine-output.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/engine-output.md": "156593bad6476a9c0c9d50f52bf91b0f9f7a083133e86cf90ebf20c97b4980dc",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "llm/engines/README.md": "34bbaa9d9105cec08db8528457dc9f1f05363389b9fb56daa91328688249a1d1",
@@ -3260,7 +3267,7 @@
         "llm/engines/graph/README.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "llm/engines/graph/README.md": "87981f25dad3f53fcbe97772ff519c8a8aeddc9e897e9c191e83261048794828",
         "llm/engines/graph/engine.py": "0900f6f99acf8b4acadd81c128d979b9b8880f70e78b58629a1075487858575a",
@@ -3282,10 +3289,10 @@
         "llm/engines/loop/README.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "llm/engines/loop/README.md": "ab83c579cd8468abfbdac9feb98539a48939971bcac6057ee3dbd116d9996c9d",
-        "llm/engines/loop/engine.py": "385ca109684fd4a736d0f0b1b3c108bc1c8d28369bcb64a02cf1e0e9294ea8e2",
+        "llm/engines/loop/engine.py": "9ac87b49d31ca744d52980e5cbbe7df8c5fb95d180eaf70feede01d0f52431bd",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_loop.py": "336da55153d1f5fadc46329f4a6f084a95dedc6741c6c4efe4c118ab107e820d",
@@ -3308,7 +3315,7 @@
         "docs/llm/project-policies.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/project-policies.md": "99b90a2386f5e291001a37e8f4dbd6599e81fa558d69da1cffc516b146b8cfa6",
         "llm/core/models.py": "fbd7bc6e47496748ceb745dfecab11fd28a0c37b41fd7dc6d880fca4651fa766",
         "llm/core/policies.py": "e659e33686b581582eb4d32b06f1d69f456aa843e6b0c6ccf1889596dab9236a",
@@ -3334,7 +3341,7 @@
         "llm/components/mcp/README.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/mcp/README.md": "e1abeac83f95d4c5cb25dfcac9eb6e33fb87a9418c5fbe0597fd70ce2dacd58c",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "llm/providers/mcp.py": "0c7844a0165ffb13504ce17236a5b5adb29b59c9ca8f298b1fff0ade3c66d09d",
@@ -3357,7 +3364,7 @@
         "docs/llm/configuration-audit.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
@@ -3379,7 +3386,7 @@
         "llm/CONFIGURATION.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
         "llm/core/models.py": "fbd7bc6e47496748ceb745dfecab11fd28a0c37b41fd7dc6d880fca4651fa766",
         "llm/core/policies.py": "e659e33686b581582eb4d32b06f1d69f456aa843e6b0c6ccf1889596dab9236a",
@@ -3405,7 +3412,7 @@
         "llm/CONFIGURATION.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
         "llm/core/models.py": "fbd7bc6e47496748ceb745dfecab11fd28a0c37b41fd7dc6d880fca4651fa766",
         "llm/core/policies.py": "e659e33686b581582eb4d32b06f1d69f456aa843e6b0c6ccf1889596dab9236a",
@@ -3432,7 +3439,7 @@
         "docs/llm/engine-output.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/engine-output.md": "156593bad6476a9c0c9d50f52bf91b0f9f7a083133e86cf90ebf20c97b4980dc",
         "docs/llm/project-authority.md": "1c1439e10039ed057722a64af784307ed653d0e93984a0dd723f0bb388c12490",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
@@ -3457,7 +3464,7 @@
         "docs/llm/project-authority.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/project-authority.md": "1c1439e10039ed057722a64af784307ed653d0e93984a0dd723f0bb388c12490",
         "docs/llm/project-policies.md": "99b90a2386f5e291001a37e8f4dbd6599e81fa558d69da1cffc516b146b8cfa6",
         "llm/core/models.py": "fbd7bc6e47496748ceb745dfecab11fd28a0c37b41fd7dc6d880fca4651fa766",
@@ -3466,7 +3473,7 @@
         "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_naming_contract.py": "a980fabada980e47892f062df66907249e747d07a1e0c1b2c1722f0a09ed48b1",
+        "tests/llm/test_naming_contract.py": "a6e7b2b2a56375a9d4a512dfc9c6f99fd2fcba94eae29891fb0559320ae1e7e9",
         "tests/llm/test_runtime_reliability.py": "e063b79968a0ac5a72e25e04e7fdd402adc1392868768912dbf82b861043ed9c"
       },
       "tests": [
@@ -3486,7 +3493,7 @@
         "docs/llm/project-authority.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/project-authority.md": "1c1439e10039ed057722a64af784307ed653d0e93984a0dd723f0bb388c12490",
         "docs/llm/project-policies.md": "99b90a2386f5e291001a37e8f4dbd6599e81fa558d69da1cffc516b146b8cfa6",
         "llm/core/models.py": "fbd7bc6e47496748ceb745dfecab11fd28a0c37b41fd7dc6d880fca4651fa766",
@@ -3495,7 +3502,7 @@
         "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_naming_contract.py": "a980fabada980e47892f062df66907249e747d07a1e0c1b2c1722f0a09ed48b1",
+        "tests/llm/test_naming_contract.py": "a6e7b2b2a56375a9d4a512dfc9c6f99fd2fcba94eae29891fb0559320ae1e7e9",
         "tests/llm/test_runtime_reliability.py": "e063b79968a0ac5a72e25e04e7fdd402adc1392868768912dbf82b861043ed9c"
       },
       "tests": [
@@ -3515,7 +3522,7 @@
         "docs/llm/project-authority.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
         "docs/llm/project-authority.md": "1c1439e10039ed057722a64af784307ed653d0e93984a0dd723f0bb388c12490",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
@@ -3541,7 +3548,7 @@
         "docs/llm/project-authority.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
         "docs/llm/project-authority.md": "1c1439e10039ed057722a64af784307ed653d0e93984a0dd723f0bb388c12490",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
@@ -3566,7 +3573,7 @@
         "docs/llm/retry.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
         "llm/core/checkpoints.py": "56b4514020bc8c2e480198a4f9c8aa2815ff6956885cead333d89927b4307161",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
@@ -3591,7 +3598,7 @@
         "docs/llm/project-authority.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/project-authority.md": "1c1439e10039ed057722a64af784307ed653d0e93984a0dd723f0bb388c12490",
         "hub/backend/interactions/approval.py": "323e06f90717c9cce8a7fc77585b3a8ba9589edabb1e170bbfd9924d52656f83",
         "tests/hub/test_tool_advice.py": "bcccdb6e1c7b77eeb313bf2b0c6797f420f6af6f75f66b118c6c512703b217f4",
@@ -3610,7 +3617,7 @@
         "docs/llm/clean-refactor.md"
       ],
       "sources": {
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/widget/_x11_selection.py": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
@@ -3633,7 +3640,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
         "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
         "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d",
@@ -3663,7 +3670,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
         "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
         "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d",
@@ -3695,7 +3702,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
         "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
         "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d",
@@ -3725,7 +3732,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
         "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
         "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d",
@@ -3756,7 +3763,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
         "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
         "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d",
@@ -3787,7 +3794,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
         "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
         "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d",
@@ -3819,7 +3826,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/shared-contracts.md": "dcfb7cfa1ef535bb35ee2fc8e6f3a30d48ca15d5f45c8c6683ee6166bcf893d1",
         "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
         "llm/core/diagnostics.py": "37205e236f2bad2d7470c121b116e1f8ae3ed2dbc0defc496c8b8de30c56c71c",
@@ -3850,7 +3857,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/providers/observations.py": "f0fec35635f9d3b001f79e090ce1c79c8b9cfeddac403e418abe61bf03675e08",
         "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
@@ -3876,7 +3883,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/engine-output.md": "156593bad6476a9c0c9d50f52bf91b0f9f7a083133e86cf90ebf20c97b4980dc",
         "docs/llm/project-authority.md": "1c1439e10039ed057722a64af784307ed653d0e93984a0dd723f0bb388c12490",
         "docs/llm/runtime-reliability.md": "fe56068abea66eb30d0546689d3d1b9a2f090e3ae29aa0c55a9c9c688bcb4bed",
@@ -3905,7 +3912,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/engine-output.md": "156593bad6476a9c0c9d50f52bf91b0f9f7a083133e86cf90ebf20c97b4980dc",
         "docs/llm/project-authority.md": "1c1439e10039ed057722a64af784307ed653d0e93984a0dd723f0bb388c12490",
         "docs/llm/runtime-reliability.md": "fe56068abea66eb30d0546689d3d1b9a2f090e3ae29aa0c55a9c9c688bcb4bed",
@@ -3931,7 +3938,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/widget/_x11_selection.py": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
         "hub/widget/clipboard.py": "dd35a9c53a2fa46e127f641748fbcbb1b4133f0a13a6d6cb1386107b4ecd4934",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
@@ -3954,7 +3961,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/widget/_x11_selection.py": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
         "hub/widget/clipboard.py": "dd35a9c53a2fa46e127f641748fbcbb1b4133f0a13a6d6cb1386107b4ecd4934",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
@@ -3977,7 +3984,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/widget/_x11_selection.py": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
         "hub/widget/clipboard.py": "dd35a9c53a2fa46e127f641748fbcbb1b4133f0a13a6d6cb1386107b4ecd4934",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
@@ -4001,7 +4008,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/tools/resources.py": "6f1694ed812913de6940a1de8c2632e4380d097d0f08605e0c3b9d395a379989",
         "llm/components/goals/README.md": "b16f4b786043bb0e3c687e2752609dee905de9b8f328f5f28bb3b2d3bd5ce58a",
         "llm/components/goals/component.py": "8a5ccb0724d4c2539c24dbc75d36ed34586db1648d10a3dbf1f5a0bd90b28b24",
@@ -4028,7 +4035,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/refinement/README.md": "263c49cf34f81f0b922197b75d5bd10f97ebab19126baf95c429c9cc29342eb3",
         "llm/components/refinement/component.py": "538d6702531c6b9cb64a69c5f3c7f9d98f7ae5876beb1a8040e41dfee37bcf48",
         "llm/components/refinement/data.py": "2c45acce1edaa5d06beb161947e441b2989e7415700467d7a3dd5c4f7b4bd577",
@@ -4054,7 +4061,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/refinement/README.md": "263c49cf34f81f0b922197b75d5bd10f97ebab19126baf95c429c9cc29342eb3",
         "llm/components/refinement/component.py": "538d6702531c6b9cb64a69c5f3c7f9d98f7ae5876beb1a8040e41dfee37bcf48",
         "llm/components/refinement/data.py": "2c45acce1edaa5d06beb161947e441b2989e7415700467d7a3dd5c4f7b4bd577",
@@ -4079,7 +4086,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/refinement/README.md": "263c49cf34f81f0b922197b75d5bd10f97ebab19126baf95c429c9cc29342eb3",
         "llm/components/refinement/component.py": "538d6702531c6b9cb64a69c5f3c7f9d98f7ae5876beb1a8040e41dfee37bcf48",
         "llm/components/refinement/data.py": "2c45acce1edaa5d06beb161947e441b2989e7415700467d7a3dd5c4f7b4bd577",
@@ -4106,7 +4113,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/refinement/README.md": "263c49cf34f81f0b922197b75d5bd10f97ebab19126baf95c429c9cc29342eb3",
         "llm/components/refinement/component.py": "538d6702531c6b9cb64a69c5f3c7f9d98f7ae5876beb1a8040e41dfee37bcf48",
         "llm/components/refinement/data.py": "2c45acce1edaa5d06beb161947e441b2989e7415700467d7a3dd5c4f7b4bd577",
@@ -4135,7 +4142,7 @@
       "sources": {
         "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/shared-contracts.md": "dcfb7cfa1ef535bb35ee2fc8e6f3a30d48ca15d5f45c8c6683ee6166bcf893d1",
         "hub/errors/contracts.py": "db97d73a82c293277aa80a2ae7414e0a6f280056a647ae213609dd06607d99b8",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -4168,7 +4175,7 @@
       "sources": {
         "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/shared-contracts.md": "dcfb7cfa1ef535bb35ee2fc8e6f3a30d48ca15d5f45c8c6683ee6166bcf893d1",
         "hub/errors/contracts.py": "db97d73a82c293277aa80a2ae7414e0a6f280056a647ae213609dd06607d99b8",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -4199,7 +4206,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/observability/logging.py": "e8e594a1d6c3cbb06c1b38dc39fb2f63ad773dd98461c9426781153ba05a59ac",
         "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
         "llm/services/infrastructure/logging.py": "7bd4c0af2d289ad56927338c06feba91bdb12029c93baf0ee0ec2ba980509214",
@@ -4223,7 +4230,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/observability/logging.py": "e8e594a1d6c3cbb06c1b38dc39fb2f63ad773dd98461c9426781153ba05a59ac",
         "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
         "llm/services/infrastructure/logging.py": "7bd4c0af2d289ad56927338c06feba91bdb12029c93baf0ee0ec2ba980509214",
@@ -4249,7 +4256,7 @@
       "sources": {
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
         "hub/backend/tools/retry.py": "e28ccc66f235a44ea09ec1f949b52140d6bad081d24f73c6f81bc852389ffb87",
         "llm/policies/retry.py": "e2a2e7f4a3bebc97bf50e0a2ccebeca4138efd67df919dc3d3df6e099cfc9839",
@@ -4278,7 +4285,7 @@
         "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/tools/retry.py": "e28ccc66f235a44ea09ec1f949b52140d6bad081d24f73c6f81bc852389ffb87",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "llm/policies/retry.py": "e2a2e7f4a3bebc97bf50e0a2ccebeca4138efd67df919dc3d3df6e099cfc9839",
@@ -4307,7 +4314,7 @@
         "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/tools/retry.py": "e28ccc66f235a44ea09ec1f949b52140d6bad081d24f73c6f81bc852389ffb87",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "llm/policies/retry.py": "e2a2e7f4a3bebc97bf50e0a2ccebeca4138efd67df919dc3d3df6e099cfc9839",
@@ -4336,7 +4343,7 @@
         "docs/hub/backend-contract-handoff.md": "fb6f350342d8887d9006fc370e911b6c61ef078cc8984677b283cbc0fb20c605",
         "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/execution/continuations.py": "8f5e1784861de05b48b6b11bbafad9514c1cc9c72d67ecbdff26317dbc0e8de5",
         "hub/backend/execution/thinking.py": "a3cd3504de6db9dc24a9de6decb44deb621aae2944692c388e35605289d28142",
         "hub/backend/observability/snapshot.py": "47dc8101d57a0a27fe5163149cfb05c86c7563c55da28404584c615210639e4a",
@@ -4367,7 +4374,7 @@
         "docs/hub/backend-contract-handoff.md": "fb6f350342d8887d9006fc370e911b6c61ef078cc8984677b283cbc0fb20c605",
         "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/execution/continuations.py": "8f5e1784861de05b48b6b11bbafad9514c1cc9c72d67ecbdff26317dbc0e8de5",
         "hub/backend/execution/thinking.py": "a3cd3504de6db9dc24a9de6decb44deb621aae2944692c388e35605289d28142",
         "hub/backend/observability/snapshot.py": "47dc8101d57a0a27fe5163149cfb05c86c7563c55da28404584c615210639e4a",
@@ -4398,7 +4405,7 @@
         "docs/hub/backend-contract-handoff.md": "fb6f350342d8887d9006fc370e911b6c61ef078cc8984677b283cbc0fb20c605",
         "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/execution/continuations.py": "8f5e1784861de05b48b6b11bbafad9514c1cc9c72d67ecbdff26317dbc0e8de5",
         "hub/backend/execution/thinking.py": "a3cd3504de6db9dc24a9de6decb44deb621aae2944692c388e35605289d28142",
         "hub/backend/observability/snapshot.py": "47dc8101d57a0a27fe5163149cfb05c86c7563c55da28404584c615210639e4a",
@@ -4427,7 +4434,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
         "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
         "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
@@ -4456,7 +4463,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
         "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
         "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
@@ -4485,7 +4492,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
         "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
         "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
@@ -4514,7 +4521,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
         "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
         "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
@@ -4543,7 +4550,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
         "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
         "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
@@ -4572,7 +4579,7 @@
       "sources": {
         "docs/hub/backend-contract-handoff.md": "fb6f350342d8887d9006fc370e911b6c61ef078cc8984677b283cbc0fb20c605",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/backend/observability/notifications.py": "f3cb9baed5e36bea7597c3a1841a33cc01910932e1e9185351a429cf91fdcc74",
         "hub/widget/feedback/notifications.py": "2831d1c961a93a60f448c6c96b5772f8140d0197ea7819cbcce440a1d3cc93c1",
         "tests/hub/test_notifications.py": "8a03661c0136913242d5f5693c6eee181393c4bac13a9d792ffb9e07a105de56",
@@ -4594,7 +4601,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
         "hub/ui/input/bindings.py": "29c947df2175fdc470b2027ebb77dbc627424d61320a8b483a74680fae1d2d5a",
         "hub/widget/forms/path_input.py": "b6de879dce02c3c332d82a8487336695c4be8279218fcbe18174a761a38426a1",
@@ -4620,7 +4627,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
         "docs/llm/builtin-tools.md": "26feabbb4d8fac63e5613922e77434301cdf7f88e491b1aef00393f92f7afa87",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/components/tools/builtin/catalog.py": "615c1d2cc1772c2243491d4aeb1f9f50214a5a148145945c4195d50c5f697e23",
         "llm/components/tools/builtin/files.py": "485ff95cffcd6dbbf65d6a93ed8a47575549fb8b4e6ae684b3f67f674d39bf94",
         "llm/components/tools/registry.py": "61961140d0721eb94510b16c83650572c1a584098ea423c40ec0893060af3f46",
@@ -4647,7 +4654,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/runtime-reliability.md": "fe56068abea66eb30d0546689d3d1b9a2f090e3ae29aa0c55a9c9c688bcb4bed",
         "llm/components/tools/README.md": "43e90380e8a99b6a2656fce5a441e42c03c4b3fdba900186246f9cbf7c784d94",
         "llm/components/tools/_worker.py": "d16fb015374a5c105ce0dffea87c6c254e9175b5e452399ff2f40a759ff978fc",
@@ -4672,7 +4679,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "llm/llm.py": "ec45f67daa92a8286e9df5582b1de07d42919285791705dd4c9dd6ad521cb606",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_plugin.py": "843d69ca4f4cad1841b10105ee95c26ac465189058c2dc29f2f039772c528b75"
@@ -4695,7 +4702,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/runtime-reliability.md": "fe56068abea66eb30d0546689d3d1b9a2f090e3ae29aa0c55a9c9c688bcb4bed",
         "llm/providers/README.md": "a78166c3f96657d9146f433336712bdf08dec1b698346c92814180450da66d2d",
         "llm/providers/litellm.py": "ab4a4e3efb07b5e2c32037b24c3a33d45dc57b58aed9d1d03b47e3e89c882c32",
@@ -4722,7 +4729,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/config/store.py": "a2edcbc9469a8f951ad3fecb25f57c6349b0e1973a8d99251e33eef83d939bbc",
         "hub/config/view_state.py": "00fcdf0f3631eb76f01feb1c4d26655d6d49750d960c96c40100c0c309a541dd",
         "tests/hub/test_question_tools.py": "794f33165822755de4cd16976bd7da5bc74fb2c0fa500a5d430dd2735279ae3a",
@@ -4743,7 +4750,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/hub.py": "14147cb25c588c2b1cd3d73f26a7db0675c3184cc92bcae4c146a03128c1f3c5",
         "tests/hub/test_plugin.py": "af083dfe1c117e37e6cfee882b148959123bfc1f7b9a387947cfe02db275d323",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
@@ -4766,7 +4773,7 @@
       "sources": {
         "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/shared-contracts.md": "dcfb7cfa1ef535bb35ee2fc8e6f3a30d48ca15d5f45c8c6683ee6166bcf893d1",
         "hub/errors/adapters.py": "d26e4b3803c954275fbb0a577e1fd03da97f39f6c435efe93057ecad6389632f",
         "hub/errors/contracts.py": "db97d73a82c293277aa80a2ae7414e0a6f280056a647ae213609dd06607d99b8",
@@ -4795,7 +4802,7 @@
       "sources": {
         "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/shared-contracts.md": "dcfb7cfa1ef535bb35ee2fc8e6f3a30d48ca15d5f45c8c6683ee6166bcf893d1",
         "hub/errors/adapters.py": "d26e4b3803c954275fbb0a577e1fd03da97f39f6c435efe93057ecad6389632f",
         "hub/errors/contracts.py": "db97d73a82c293277aa80a2ae7414e0a6f280056a647ae213609dd06607d99b8",
@@ -4822,7 +4829,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
         "hub/ui/host.py": "b129e849b3246c7317d5fd6be1036ab176134cc45c026e3e3be2b4de4f141a1e",
         "hub/ui/settings/navigation.py": "dfea7f751905d439560dc3ab324df9db49abef2dee31dc3cd58efa4be50675ef",
@@ -4847,7 +4854,7 @@
       "sources": {
         "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/ui/output/images.py": "d61b04b8069bd7fd005c0d2337ce1e4f77bb6b8e7fe8cc7f4039c3bc7939deb5",
         "hub/ui/output/registry.py": "862ee3e25accbfc060725c8998eaf6a5f439e1dbd273b0c92176305e61c1edcc",
         "tests/hub/test_output.py": "329b711cd68df2df272ced461a6163b4178235a9a1e19fc2a294256207a06535",
@@ -4869,7 +4876,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/runtime-reliability.md": "fe56068abea66eb30d0546689d3d1b9a2f090e3ae29aa0c55a9c9c688bcb4bed",
         "hub/backend/worker.py": "80ab4b67b90f8cd26fa4fedca14030920f95c51523f9ed37256c9dc3a53b4ece",
         "hub/ui/restart.py": "e396484e65a1cc796afba93967e163a4a77dfd6fee25e7927f319d415ab7ad48",
@@ -4892,7 +4899,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/ui/input/bindings.py": "29c947df2175fdc470b2027ebb77dbc627424d61320a8b483a74680fae1d2d5a",
         "hub/ui/view.py": "4b625ef15efe6cf2740dd319a6ad5ad24619304e5cdbd44145896a2f47d9299c",
         "tests/hub/test_popup_completion.py": "a62db6aee465a0a8ea3887d90a8405972c703c811c7ce987f98982766728c30c",
@@ -4913,7 +4920,7 @@
       ],
       "sources": {
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "hub/ui/input/bindings.py": "29c947df2175fdc470b2027ebb77dbc627424d61320a8b483a74680fae1d2d5a",
         "hub/ui/view.py": "4b625ef15efe6cf2740dd319a6ad5ad24619304e5cdbd44145896a2f47d9299c",
         "tests/hub/test_escape_navigation.py": "5475e1965d78146fffa6b18d5d092500511974489b6eb2aa04f9367a43e5949b",
@@ -4935,7 +4942,7 @@
       ],
       "sources": {
         "docs/llm/model-protocol.md": "10381958c7d63296e6414f11649b0afc21d8d735b52944a968c4d52f6fd9aa2f",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
         "llm/core/model_protocol.py": "8e889e8cf15e1e3bc6992925d6ae270c7786059eb7986829b01f86a07ae63072",
         "tests/llm/test_model_protocol.py": "02dd53b1becade0ccd541ac526f6d0edc55370bd756693a9bb3208d0e13c3bdd",
@@ -4960,7 +4967,7 @@
       ],
       "sources": {
         "docs/llm/model-protocol.md": "10381958c7d63296e6414f11649b0afc21d8d735b52944a968c4d52f6fd9aa2f",
-        "docs/llm/clean-refactor.md": "fb353414e9ea3e6200e12cd769ee4b5e37329e929055758c1e2e2f1a59d58bcb",
+        "docs/llm/clean-refactor.md": "743b674d5c4de9d0e6846899fa35abf01ef0753d8ad7ec675c073e80474e6643",
         "docs/llm/architecture-reviews.md": "f7318fd0dda35dfb72919db5212b0b5a851fc391d31954d35ff328adf91525b6",
         "llm/core/model_protocol.py": "8e889e8cf15e1e3bc6992925d6ae270c7786059eb7986829b01f86a07ae63072",
         "tests/llm/test_model_protocol.py": "02dd53b1becade0ccd541ac526f6d0edc55370bd756693a9bb3208d0e13c3bdd",
@@ -5065,6 +5072,66 @@
       "tests": [
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
         "tests.hub.test_component_managers.RecordManagerTests.test_skill_workflow_agent_mcp_import_edit_conflict_delete_and_reopen"
+      ]
+    },
+    {
+      "id": "6dc37972aad027164550ca8a3ccf22887ab2d1a6e634ffe4e5021267ebc9b9b8:1",
+      "rule": "S3",
+      "owner": "ReviewPolicy",
+      "reason": "This is the sole owner declaration of the minimum VALID supplied integer for max_continuations. Reader validation and generated schema both consume this mapping. It is not a runtime default: missing/null final_review disables the feature, while an explicit object missing any field is rejected. Bool, partial policy, parent widening and attempt/continuation exhaustion are tested.",
+      "contracts": [
+        "docs/llm/completion-review.md"
+      ],
+      "sources": {
+        "llm/components/review.py": "9b35354ab09812ad6d005ab5227c7d510ddcc07d09574a7543b7646612479025",
+        "docs/llm/completion-review.md": "99084663050c88fb8e8685a12f68fc51464c3886d77c9612fb1e80e0c8ef2522",
+        "tests/llm/test_completion_review.py": "963e062915603b72baab83d6078348f342a7c4330fc644b911c0d0ebf7cc3d34"
+      },
+      "tests": [
+        "tests.llm.test_completion_review.ReviewContractTests.test_explicit_policy_requires_every_budget_and_rejects_bool_versions",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_parent_review_budgets_cannot_be_disabled_or_widened",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_attempt_budget_and_reviewer_revision_cannot_be_reset_by_resume",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_continuation_budget_and_run_call_budget_are_not_reset"
+      ]
+    },
+    {
+      "id": "298d67085dc79f29e8f28c8cece6eef9d39d65b9c2c5f38f840ddd2a90d6ae64:1",
+      "rule": "S3",
+      "owner": "ReviewPolicy",
+      "reason": "This is the sole owner declaration of the minimum VALID supplied integer for max_attempts. Reader validation and generated schema both consume this mapping. It is not a runtime default: missing/null final_review disables the feature, while an explicit object missing any field is rejected. Bool, partial policy, parent widening and attempt/continuation exhaustion are tested.",
+      "contracts": [
+        "docs/llm/completion-review.md"
+      ],
+      "sources": {
+        "llm/components/review.py": "9b35354ab09812ad6d005ab5227c7d510ddcc07d09574a7543b7646612479025",
+        "docs/llm/completion-review.md": "99084663050c88fb8e8685a12f68fc51464c3886d77c9612fb1e80e0c8ef2522",
+        "tests/llm/test_completion_review.py": "963e062915603b72baab83d6078348f342a7c4330fc644b911c0d0ebf7cc3d34"
+      },
+      "tests": [
+        "tests.llm.test_completion_review.ReviewContractTests.test_explicit_policy_requires_every_budget_and_rejects_bool_versions",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_parent_review_budgets_cannot_be_disabled_or_widened",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_attempt_budget_and_reviewer_revision_cannot_be_reset_by_resume",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_continuation_budget_and_run_call_budget_are_not_reset"
+      ]
+    },
+    {
+      "id": "118f0540ffd0f222d076954aac1ec9329a0ccbc746def96f0af2d35b517ac93b:1",
+      "rule": "S3",
+      "owner": "ReviewPolicy",
+      "reason": "This is the sole owner declaration of the minimum VALID supplied integer for max_feedback_chars. Reader validation and generated schema both consume this mapping. It is not a runtime default: missing/null final_review disables the feature, while an explicit object missing any field is rejected. Bool, partial policy, parent widening and attempt/continuation exhaustion are tested.",
+      "contracts": [
+        "docs/llm/completion-review.md"
+      ],
+      "sources": {
+        "llm/components/review.py": "9b35354ab09812ad6d005ab5227c7d510ddcc07d09574a7543b7646612479025",
+        "docs/llm/completion-review.md": "99084663050c88fb8e8685a12f68fc51464c3886d77c9612fb1e80e0c8ef2522",
+        "tests/llm/test_completion_review.py": "963e062915603b72baab83d6078348f342a7c4330fc644b911c0d0ebf7cc3d34"
+      },
+      "tests": [
+        "tests.llm.test_completion_review.ReviewContractTests.test_explicit_policy_requires_every_budget_and_rejects_bool_versions",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_parent_review_budgets_cannot_be_disabled_or_widened",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_attempt_budget_and_reviewer_revision_cannot_be_reset_by_resume",
+        "tests.llm.test_completion_review.CompletionReviewTests.test_continuation_budget_and_run_call_budget_are_not_reset"
       ]
     }
   ]

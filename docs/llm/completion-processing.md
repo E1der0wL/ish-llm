@@ -1,6 +1,7 @@
 # 컴포넌트의 공통 모델 처리기
 
-현재 prepare/after_completion/finish 계약이다. after_completion은 관찰이며 [F의 최종 후보 검토](clean-refactor.md)는 별도 미구현 목표다.
+현재 prepare/after_completion/finish와 명시적인 [최종 후보 검토](completion-review.md) 계약이다.
+after_completion의 관찰 의미는 그대로 유지한다.
 
 `llm/components/processing.py`는 모델 호출 전후에 컴포넌트가 참여하는 실행 계약이다.
 Memory 저장 방식이나 Skill/MCP 정책을 알지 않는다. 현재 실제 제공자는 Memory이며,
@@ -17,7 +18,8 @@ CompletionPipeline 진입
   → 모델 호출과 기존 LLM Step 기록
   → after_completion(CompletionObservation)
   → Tool 요청이면 기존 ToolExecutor 실행 후 다음 반복
-  → 최종 응답이면 finish(CompletionObservation)
+  → 최종 후보이면 활성 정책의 review_final(CompletionReviewObservation)
+  → accept 또는 검토 비활성이면 finish(CompletionObservation)
   → 출력 이벤트
 CompletionPipeline 종료
   → 성공·예외·취소·소비자 조기 종료 모두 세션 역순 aclose(error)
@@ -25,8 +27,8 @@ CompletionPipeline 종료
 
 `session()`은 한 Engine 호출의 임시 상태를 만든다. 공유 Processor 객체나 Engine 인스턴스에
 Run별 가변 상태를 저장하지 않는다. 생성자는 외부 자원을 획득하지 않고, 비동기 자원 획득은
-`prepare`에서 한다. 훅은 선택적 구현이며 `CompletionSession`의 기본 메서드는 아무 작업도
-하지 않는다. 이름 중복·잘못된 priority/close_timeout은 등록 해석 단계에서 거부한다.
+`prepare`에서 한다. prepare/after_completion/finish는 선택적 구현이며 기본 메서드는 아무 작업도 하지 않는다.
+명시 활성화한 review_final에는 구현과 전체 정책·Reviewer revision이 필요하며 기본 accept가 없다. 이름 중복·잘못된 priority/close_timeout은 등록 해석 단계에서 거부한다.
 프로젝트 컴포넌트 선택 순서를 바꿔도 실행 순서는 바뀌지 않는다.
 
 `prepare`는 매 반복 호출된다. 실행당 한 번 준비할 일은 세션에 준비 여부를 저장한다.
@@ -45,7 +47,8 @@ Run별 가변 상태를 저장하지 않는다. 생성자는 외부 자원을 �
 각 Processor의 `close_timeout`은 명시적인 협력적 비동기 기한(양수) 또는 None(추가 기한 없음)이다.
 builtin Memory/Goal의 aclose는 자원을 닫지 않는 no-op으로 None을 사용한다. 취소를 무시하거나 동기 함수를
 무한 실행하는 플러그인을 강제 종료하는 OS 격리 기능은 아니다. 전체 실행 기한은 기존
-RunPolicy를 공유하고, 개별 훅의 작업 기한/Step은 구현체가 BaseEngine.step 등으로 정한다.
+RunPolicy를 공유하고, 개별 이벤트 훅의 작업 기한/Step은 구현체가 BaseEngine.step 등으로 정한다.
+명시 review_final에는 final_review.hook_timeout이 별도로 적용된다.
 
 ## 입력 출처와 수정 범위
 

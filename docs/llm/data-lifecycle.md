@@ -132,6 +132,11 @@ E는 새 Session의 필수 transfer 원장과 양쪽 Receipt/admission/Run 증�
 새 데이터군과 기존 Session/Run 수명 변경은 [전송 계약](session-transfers.md)과
 [전송 검증](session-transfer-verification.md)에 별도 기록한다. 기존 38개 감사 결과는 변경하지 않는다.
 
+F는 기존 Loop/Graph Checkpoint 안의 후보 관찰·검토 attempt 예약·verdict 필수 증거를 보강한다.
+공급자 호출 credential을 기록하지 않으며 후보/정책/Reviewer revision의 소실·변경을 기본 accept로
+복원하지 않는다. 변경 자료의 검증은 [최종 검토 계약](completion-review.md)과
+[검증 기록](completion-review-verification.md)에 추가하고 기존 38개 감사 결과는 유지한다.
+
 트랜잭션의 삭제용 임시 rename은 지속적인 손상 격리가 아니다. 이미 안전성 검증과 삭제
 확정을 마친 작업의 GC·중단 복구는 기존 결정의 기술적 완료다. 인프라는 새로운 대상을
 선정하지 않는다. 손상된 삭제 의도는 임의 정리하지 않는다. 확정 전 실패의 rollback과

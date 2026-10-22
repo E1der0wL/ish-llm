@@ -27,7 +27,10 @@ from llm.core.checkpoints import CheckpointStatus
 from llm.providers.parameters import merge_params
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
-from llm.policies import CompletionPolicy
+from llm.policies import CompletionPolicy, ExecutionLimitError
+from llm.components.review import CompletionReviewObservation, ReviewAction, ReviewPolicy
+from llm.components.processing import review_identities
+from llm.engines.loop.review import LoopReview
 from llm.providers.requests import provider_schema, resolve_provider_options
 
 
@@ -72,6 +75,9 @@ class LoopEngine(BaseEngine):
                                      "binding": getattr(self.completion_adapter, "execution_binding", None)},
                          "tool_contracts": context.tools.contracts(),
                          "tool_policy": context.tool_scope.binding() if context.tool_scope else None})
+        policy = self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)["values"].get("policy", {}).get("final_review")
+        if ReviewPolicy.read(policy) is not None:
+            values["final_reviewers"] = review_identities(context.capabilities.get("completion_processors", ()))
         return hashlib.sha256(json.dumps(values, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
 
     def bind_execution(self, context):
@@ -82,6 +88,7 @@ class LoopEngine(BaseEngine):
         """완료 Tool은 재사용하고 효과가 불확실한 Tool만 명시적 재실행 승인을 받는다."""
         if checkpoint["header"].get("format") != self.CHECKPOINT_FORMAT:
             raise ValueError("Checkpoint does not belong to LoopEngine")
+        LoopReview.require_resume(checkpoint)
         uncertain = set()
         for key, value in checkpoint["records"].items():
             if key.startswith("iteration:"):
@@ -121,7 +128,7 @@ class LoopEngine(BaseEngine):
     parameter_layout = ParameterLayout(
         config=("completion", "system_prompt", "buffer_size"),
         policy=("max_iterations", "request_timeout", "tool_timeout", "max_tool_calls",
-                "max_argument_chars", "max_output_chars", "provider"),
+                "max_argument_chars", "max_output_chars", "provider", "final_review"),
         paths={"input_policy": "policy.completion"})
 
     _option_names = ("max_iterations", "request_timeout", "tool_timeout", "buffer_size",
@@ -150,6 +157,7 @@ class LoopEngine(BaseEngine):
         buffer_size = values.get("buffer_size", 8)
         self.input_policy = deepcopy(values.get("input_policy"))
         self.provider = deepcopy(values.get("provider"))
+        self.final_review = ReviewPolicy.read(values.get("final_review"))
         super().__init__("Loop", completion_adapter=self.completion_adapter, buffer_size=buffer_size)
         self.max_tool_calls, self.max_argument_chars, self.max_output_chars = max_tool_calls, max_argument_chars, max_output_chars
         if max_iterations is not None and (type(max_iterations) is not int or max_iterations < 1):
@@ -172,6 +180,7 @@ class LoopEngine(BaseEngine):
         properties["completion"] = self.completion_adapter.describe_config()
         properties["input_policy"] = CompletionPolicy.describe_config()
         properties["provider"] = {**provider_schema(), "type": ["object", "null"]}
+        properties["final_review"] = ReviewPolicy.schema()
         for key in self._option_names:
             if key != "buffer_size":
                 properties[key]["x-narrowing"] = "maximum"
@@ -191,6 +200,7 @@ class LoopEngine(BaseEngine):
         CompletionPolicy.validate_config(view["values"].get("policy", {}).get("completion"))
         provider = view["values"].get("policy", {}).get("provider")
         resolve_provider_options({} if provider is None else provider)
+        ReviewPolicy.read(view["values"].get("policy", {}).get("final_review"))
         view["runtime"] = []
         return view
 
@@ -280,24 +290,43 @@ class LoopEngine(BaseEngine):
                 decisions=context.run.metadata.get("resume", {}).get("decisions"))
             if context.checkpoint["header"]["binding"] != self._resume_binding:
                 raise ValueError("Loop configuration or Tool definitions changed; start a new request")
+        reviewers = review_identities(context.capabilities.get("completion_processors", ())) if self.final_review is not None else []
+        review = LoopReview(reviewers, self.final_review, context.checkpoint) if reviewers else None
+        if review is None and context.checkpoint is not None and "review" in context.checkpoint["header"]:
+            raise ValueError("Final review cannot be disabled during Resume")
         if (context.output_step_id is None or context.checkpoint_scope is not None) and context.checkpoint is None:
             yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": "loop", "operation": "initialize",
                 "header": {"format": self.CHECKPOINT_FORMAT, "binding": self._resume_binding,
                            "message_ids": [m.id for m in context.messages],
-                           "input_message_id": context.run.input_message_id}})
+                           "input_message_id": context.run.input_message_id,
+                           **({"review": review.contract} if review is not None else {})}})
         async with aclosing(self.open_instructions(context)) as events:
             async for event in events:
                 yield event
         # 도메인별 정책/저장은 처리기가 소유한다. 각 호출의 세션은 다른 Run/Agent와 공유하지 않는다.
-        async with CompletionPipeline(context.capabilities.get("completion_processors", ()), context,
-                validate_parameters=self.completion_adapter.validate_processing) as processors:
-            async with aclosing(self._iterate(context, params, messages, processors)) as events:
+        processor_context = replace(context, output_visibility="internal") if review is not None else context
+        async with CompletionPipeline(context.capabilities.get("completion_processors", ()), processor_context,
+                validate_parameters=self.completion_adapter.validate_processing, review_policy=self.final_review) as processors:
+            if processors.reviewers != reviewers:
+                raise ValueError("Reviewer registration changed before execution")
+            async with aclosing(self._iterate(context, params, messages, processors, review)) as events:
                 async for event in events:
                     yield event
 
-    async def _iterate(self, context, params, messages, processors):
+    @staticmethod
+    def _candidate_event(event, review):
+        if review is None:
+            return event
+        if event.type == EngineEventType.OUTPUT and event.output is not None and event.output.step_id is None:
+            raise ValueError("Processors cannot publish a reviewed final candidate")
+        return replace(event,
+            delta=replace(event.delta, visibility="internal") if event.delta is not None else None,
+            output=replace(event.output, visibility="internal") if event.output is not None else None)
+
+    async def _iterate(self, context, params, messages, processors, review=None):
         """반복마다 입력 사본을 만들고 관찰 훅을 Tool 효과보다 먼저 처리한다."""
         seen_call_ids: set[str] = set()
+        continuations = 0
         durable = context.output_step_id is None or context.checkpoint_scope is not None
         records = deepcopy(context.checkpoint["records"]) if durable and context.checkpoint else {}
         inbox = context.steering
@@ -338,7 +367,7 @@ class LoopEngine(BaseEngine):
                         "completed work, or permission to repeat effects]\n" + reference)
                 async with aclosing(processors.prepare(request, messages)) as events:
                     async for event in events:
-                        yield event
+                        yield self._candidate_event(event, review)
             prepared_request = request.to_model()
 
             async def complete(_context):
@@ -399,7 +428,8 @@ class LoopEngine(BaseEngine):
 
             if not saved:
                 async with aclosing(self.step(
-                    context, complete, name="LLM completion", kind="llm",
+                    replace(context, output_visibility="internal") if review is not None else context,
+                    complete, name="LLM completion", kind="llm",
                     timeout_seconds=self.request_timeout, metadata={"iteration": iteration,
                         "checkpoint_name": "loop", "checkpoint_scope": context.checkpoint_scope},
                     error_message="LLM iteration failed",
@@ -418,10 +448,41 @@ class LoopEngine(BaseEngine):
             if not saved:
                 async with aclosing(processors.after_completion(observation)) as events:
                     async for event in events:
-                        yield event
+                        yield self._candidate_event(event, review)
+                saved = {"status": CheckpointStatus.RESPONDED, "response": response.to_dict()}
+                if review is not None and not calls:
+                    saved["review_observation"] = CompletionReviewObservation(iteration,
+                        tuple(prepared_request.messages), response, tuple(m.message for m in messages), prepared_request.tools).to_dict()
+                records[f"iteration:{iteration}"] = deepcopy(saved)
                 if durable:
-                    yield self._record(f"iteration:{iteration}", {"status": CheckpointStatus.RESPONDED, "response": response.to_dict()})
+                    yield self._record(f"iteration:{iteration}", saved)
             if not calls:
+                if review is not None:
+                    candidate = CompletionReviewObservation.from_dict(saved["review_observation"])
+                    decision_key, attempt_key = f"review:{iteration}", f"review_attempt:{iteration}"
+                    decision = records.get(decision_key)
+                    if decision is None:
+                        attempt = review.reserve(candidate, records)
+                        if durable:
+                            yield self._record(attempt_key, attempt)
+                        records[attempt_key] = attempt
+                        decisions = await processors.review_final(candidate)
+                        decision = review.decision(attempt, decisions)
+                        if durable:
+                            yield self._record(decision_key, decision)
+                        records[decision_key] = decision
+                    if decision["action"] == ReviewAction.BLOCK:
+                        raise ExecutionLimitError("completion_review_blocked", "Final candidate was blocked")
+                    if decision["action"] == ReviewAction.CONTINUE:
+                        continuations += 1
+                        if continuations > review.policy["max_continuations"]:
+                            raise ExecutionLimitError("completion_review_limit", "Explicit review continuation budget exhausted")
+                        messages.append(CompletionMessage(response.message))
+                        messages.append(CompletionMessage(ModelMessage(ModelRole.USER, review.feedback(decision)), continuation=True))
+                        continue
+                    observation = CompletionObservation(iteration,
+                        replace(prepared_request, messages=list(candidate.messages), tools=candidate.tools),
+                        response, list(candidate.original_messages))
                 if inbox is not None:
                     next_key = f"steering:{iteration + 1}"
                     if next_key not in records:
@@ -441,7 +502,7 @@ class LoopEngine(BaseEngine):
                         continue
                 async with aclosing(processors.finish(observation)) as events:
                     async for event in events:
-                        yield event
+                        yield self._candidate_event(event, review)
                 yield self.output_event(context, EngineOutput(text=response.message.text))
                 return
             messages.append(CompletionMessage(response.message))

@@ -60,7 +60,7 @@ class NamingContractTests(unittest.TestCase):
             (RefinementComponent(), '', 'apply_tools proposal_operations require_evaluation'),
             (WorkflowComponent(), '', ''),
             (LoopEngine(), 'buffer_size completion system_prompt',
-             'completion max_argument_chars max_iterations max_output_chars max_tool_calls provider request_timeout tool_timeout'),
+             'completion final_review max_argument_chars max_iterations max_output_chars max_tool_calls provider request_timeout tool_timeout'),
             (GraphEngine(handlers={}), 'buffer_size cleanup_timeout',
              'max_nested_depth max_parallelism max_steps timeout_seconds'),
         )

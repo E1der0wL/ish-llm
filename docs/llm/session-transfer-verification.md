@@ -95,3 +95,10 @@ source `2cf0cecbeca62a7a9828afbbc90d32d4906630b9ca02e1fb3446766949d39ff7`, input
 동일 입력의 `e-integration-aux-2`에서 R3 Mutation, S1–S6, 문서, 실제 host LLM/Hub,
 offline Provider 검증도 모두 exit 0이다. E의 로컬 상위 게이트를 완료했으며 F를 이어간다.
 검증 후 제품·시험·의존성은 변경하지 않고 결과 문서만 갱신했다. 원격 CI는 이 로컬 결과와 구분한다.
+
+## 정확한 SHA의 원격 CI
+
+`1cc4b17aa20a14233600839fcdc359cab718a8db`의 [GitHub Actions 39769888504](https://github.com/E1der0wL/ish-llm/actions/runs/39769888504)는 20261022T114905Z에 실제 SUCCESS를 확인했다.
+llm 전체 발견/실행/Pass 2235/2235/2235, 932.126913초; 모든 비정상 집계 0.
+hub 전체 발견/실행/Pass 584/584/584, 1291.140404초; 모든 비정상 집계 0.
+원본 summary annotation과 정확한 commit 연결을 확인했으며 로컬 결과에서 추정하지 않았다.

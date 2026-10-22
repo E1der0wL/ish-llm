@@ -2,6 +2,9 @@
 
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ModelRole, ToolDefinition, ToolMode, copy_model
 
+from llm.components.review import CompletionReview, ReviewPolicy, reviewer_identity
+from llm.policies import ExecutionLimitError
+
 import math
 import inspect
 from typing import AsyncIterator, Optional, Protocol, TYPE_CHECKING
@@ -116,6 +119,9 @@ class CompletionSession:
         if False:
             yield
 
+    async def review_final(self, observation):
+        raise NotImplementedError("Declared final reviewers must implement review_final")
+
     async def finish(self, observation: CompletionObservation) -> AsyncIterator["EngineEvent"]:
         if False:
             yield
@@ -154,14 +160,24 @@ def ordered_processors(processors):
     return tuple(sorted(values, key=lambda item: (item.priority, item.name)))
 
 
+def review_identities(processors):
+    values = [reviewer_identity(processor) for processor in ordered_processors(processors)
+              if hasattr(processor, "review_revision")]
+    if not values:
+        raise ValueError("Active final_review requires declared reviewers")
+    return values
+
+
 class CompletionPipeline:
     """한 엔진 호출에 귀속되는 처리기 수명·순서·입력 계약. 상태를 엔진 인스턴스에 두지 않는다."""
 
-    def __init__(self, processors, context, *, validate_parameters=None):
+    def __init__(self, processors, context, *, validate_parameters=None, review_policy=None):
         self.processors = ordered_processors(processors)
         self.context = context
         self.sessions = []
         self.validate_parameters = validate_parameters
+        self.review_policy = ReviewPolicy.read(review_policy)
+        self.reviewers = review_identities(self.processors) if self.review_policy is not None else []
 
     async def __aenter__(self):
         try:
@@ -174,6 +190,10 @@ class CompletionPipeline:
                 if any(not callable(getattr(session, name, None))
                        for name in ("prepare", "after_completion", "finish")):
                     raise TypeError("Invalid completion session hooks")
+                if self.review_policy is not None and hasattr(processor, "review_revision"):
+                    hook = getattr(session, "review_final", None)
+                    if not callable(hook) or getattr(hook, "__func__", None) is CompletionSession.review_final:
+                        raise TypeError("Declared reviewer requires an implemented review_final hook")
         except BaseException as error:
             await self.__aexit__(type(error), error, error.__traceback__)
             raise
@@ -341,6 +361,32 @@ class CompletionPipeline:
             async with aclosing(session.after_completion(observation.snapshot())) as events:
                 async for event in events:
                     yield event
+
+    async def review_final(self, observation):
+        if self.review_policy is None:
+            return []
+        decisions, feedback_size = [], 0
+        for processor, session in self.sessions:
+            if not hasattr(processor, "review_revision"):
+                continue
+            identity = reviewer_identity(processor)
+            if identity != self.reviewers[len(decisions)]:
+                raise ValueError("Reviewer identity changed during execution")
+            guard = timeout(self.review_policy["hook_timeout"])
+            try:
+                async with guard:
+                    verdict = await session.review_final(observation.snapshot())
+            except TimeoutError as error:
+                if guard.expired():
+                    raise ExecutionLimitError("completion_review_timeout", "Final review hook timed out") from error
+                raise
+            if not isinstance(verdict, CompletionReview):
+                raise TypeError("Final review hook must return CompletionReview")
+            feedback_size += len(verdict.feedback)
+            if feedback_size > self.review_policy["max_feedback_chars"]:
+                raise ValueError("Final review feedback bound exceeded")
+            decisions.append({**identity, "action": str(verdict.action), "feedback": verdict.feedback})
+        return decisions
 
     async def finish(self, observation: CompletionObservation):
         for _, session in self.sessions:
