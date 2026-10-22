@@ -1,5 +1,12 @@
 # 개발 문서
 
+2026-10-22 현재 기능·안전성 게이트는 [클린 리팩터링 현황](llm/clean-refactor.md)과 연결된
+H1–H5·P1·A–F 검증 기록에서 확인한다. 별도로 [계약 소유권과 책임 경계](llm/contract-ownership.md)를
+보강했으며, 확인된 중복 선언과 추가 조사·구현·검증은 [후속 작업 O0–O7](llm/ownership-refactor.md)에
+미완료로 기록한다. 기존 기능 회귀·정적 후보 분류는 Owner 전수 정리의 완료 증거가 아니다.
+
+## 이전 진행 요약 — 2026-10-21 당시 기록
+
 문서 기준은 main `94229cb865374d99f20ec48c5e48269488041a4e`다. 2026-10-20에
 `docs/` 전체와 `llm/`, `hub/` 내부 문서를 재검토했다. P0 검증 도구·테스트·CI와
 [최신 SDK/MCP 전환](llm/p0-sdk-transition.md)의 로컬·원격 검증을 완료했다.
@@ -19,13 +26,15 @@ P1-b와 P1-c 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 만�
 
 1. [현행 아키텍처](llm/architecture.md): 현재 제품의 도메인·실행·저장 소유권.
 2. [명시적 설정](../llm/CONFIGURATION.md), [설정 소유권](llm/project-authority.md),
-   [Schema 소유권](llm/schema-ownership.md), [명명 규칙](llm/naming-conventions.md).
+   [Schema 소유권](llm/schema-ownership.md), [명명 규칙](llm/naming-conventions.md),
+   [계약 선언·의미 해석·책임 경계](llm/contract-ownership.md).
 3. [안전성 계약](llm/shared-contracts.md), [체크포인트](llm/checkpoints.md),
    [트랜잭션](llm/storage-transactions.md), [영속 데이터 수명주기](llm/data-lifecycle.md),
    [승인](llm/interactions.md), [실행 격리](llm/process-isolation.md).
 4. [현행 공개 API](llm/backend-api.md), [LLM 사용법](../llm/README.md),
    [Hub 설계](hub/README.md), [Hub 사용법](../hub/README.md).
 5. [클린 리팩터링 목표와 단계](llm/clean-refactor.md): 승인된 설계 방향과 단계별 구현 상태.
+   [Owner 후속 작업](llm/ownership-refactor.md)은 기존 기능 게이트와 구분해 추적한다.
 6. [P0 검사와 실행 기록](llm/p0-verification.md): 로컬 결과와 원격 CI 검증을 구분한다.
 7. [전체 문서 목록](document-map.md), [문서·코드 불일치와 검증 상태](llm/documentation-review.md).
 

@@ -2,7 +2,8 @@
 
 이 문서는 `refactor/llm-clean`의 현재 구현과 보존할 계약을 설명한다. 독립 Agent와
 root 실행 전환의 검증 상태는 [B/C 기록](agent-refactor-verification.md)을 따른다. 다중 수신자·
-병렬 Dispatcher·Session 전송·최종 검토는 [클린 리팩터링 설계](clean-refactor.md)의 후속 D–F 목표다. 문서 정리 전 본문은
+병렬 Dispatcher·Session 전송·최종 검토의 구현·검증은 [클린 리팩터링](clean-refactor.md)의 D–F 기록을 따른다.
+별도로 확인된 선언·의미 해석·책임 경계의 미완료는 [Owner 후속 정리](ownership-refactor.md)에서 추적한다. 문서 정리 전 본문은
 [과거 기록](architecture-history.md)에 보존했다. 확인된 구현 차이는 [검토표](documentation-review.md)에 있다.
 
 ## 도메인과 책임
@@ -33,6 +34,11 @@ Engine은 실행 전략이며 영속 소유 계층의 중간 객체가 아니다
 | 외부 연결 | `providers/` | 실제 SDK/MCP Adapter, admission·retry·stream·usage·진단 |
 | 제품 선택·UI | `hub/` | 생성 preset, 환경 캡처, 사용자 선택, 정규 API 소비와 화면 투영 |
 
+세부 판정 기준은 [계약 선언과 의미 해석의 단일 소유](contract-ownership.md)다. 서비스의 공개
+작업 조율과 도메인 규칙의 직접 구현을 구분하고, Manager의 private 저장 형식 해석·Hub의 정책
+재계산·SDK wire 유출·실행 경로별 binding/승인 복제를 점검한다. Owner는 여러 협력 객체로
+구현할 수 있으며, 책임 분리 후에도 잠금·CAS·원자 확정·실행 직전 재검증·자원 수명을 보존한다.
+
 ## 설정·선언·이름
 
 정규 계약은 [CONFIGURATION](../../llm/CONFIGURATION.md), [Project authority](project-authority.md),
@@ -47,7 +53,8 @@ Engine은 실행 전략이며 영속 소유 계층의 중간 객체가 아니다
 - Missing은 부재/상속, Null은 nullable 필드의 명시값, False/0/빈 배열도 값이다.
   필수 설정은 기능 실행 전에 검증한다. Schema/ParameterLayout은 실행 기본값 생성기가 아니다.
 - 의미가 있는 값은 구현체별 단일 선언에서 Schema·validator·Reader/Writer·소비자로 연결한다.
-  전역 상수 파일이나 고정 helper를 위한 불필요한 registry는 만들지 않는다.
+  한 번 사용하는 계약 값·필드 집합·공개 Projection도 포함한다. 의미 해석·검증·전이 구현은
+  Owner가 제공하고 각 신뢰 경계가 호출한다. 전역 상수 파일이나 고정 helper용 registry는 만들지 않는다.
 - SDK native default, 프로토콜 불변식, CRUD 초기 형식, cache/backpressure sizing,
   Application 생성 preset과 숨은 실행 정책을 구별한다. 각 값의 의미와 소유자는 명시한다.
 

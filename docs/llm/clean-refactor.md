@@ -46,6 +46,11 @@ D는 `4953efa`의 원격 CI 39761311210까지 통과했다. E Session 전송도 
 [현재 계약](completion-review.md)과 [검증 기록](completion-review-verification.md)에 남겼다.
 H1–H5 → P1 → A–F의 로컬 상위 게이트는 완료했으며 원격 CI는 정확한 SHA별 실제 결과로 확인한다.
 
+2026-10-22 보강: 위 기능·안전성 게이트의 기록은 유지한다. 의미 있는 리터럴의 단일 소유와
+중복 해석·검증·책임 경계의 정리는 미완료 항목이 확인되어 별도로 추적한다. 단 한 번 사용되는
+계약 값도 포함하는 [정규 소유권 계약](contract-ownership.md)과 [후속 작업 O0–O7](ownership-refactor.md)을
+적용한다. 기존 정적 후보 분류나 전체 회귀 통과를 이 범위의 전수 정리 완료로 해석하지 않는다.
+
 ## 필수 원칙
 
 사용자 필수 설계 원칙·구현체별 단일 선언 → 현재 Naming 의미·명시적 설정 → A–F 기능/안전성 →
@@ -60,6 +65,9 @@ H1–H5 → P1 → A–F의 로컬 상위 게이트는 완료했으며 원격 CI
   선택을 요구하지 않으며 Backend는 Hub의 프리셋 이름·선택 규칙을 알지 못한다.
 - 버전·상태·이벤트·오류 코드·정책·경로·한도는 해당 구현체가 단일 선언으로 소유한다.
   Schema·검증기·Reader/Writer·소비자는 그 선언을 사용한다. 기존 값도 전수 목록에서 정리한다.
+- [계약 소유권](contract-ownership.md)의 필드·metadata·공개 Projection·허용값·제약·단위 등도
+  사용 횟수와 무관하게 적용한다. 의미 해석·검증·전이는 Owner의 구현을 공유하며 저장·실행·
+  재개 경계의 최신 상태 재검증은 유지한다. 조율과 직접 구현, 원본과 관찰 Projection을 구분한다.
 - 전역 상수 파일에 몰거나 고정 helper를 위해 새 추상 계층을 만들지 않는다. 실제 Provider
   Adapter는 유지한다. 외부 SDK 불변식과 현재 sync/async API를 구형 호환 경로로 오판하지 않는다.
 - 기존 Hub·CLI·예제·테스트는 정규 API로 직접 이관한다. wrapper로 옛 실행 경로를 남기지 않는다.
@@ -119,7 +127,8 @@ Agent의 의미 차이는 유지하며, Graph 조율에 불필요한 모델·Too
 
 정적 감사는 literal/default/branch/Schema/call/storage 목록과 실제 호출 관계를 결합한다.
 일치하는 문자열 개수만으로 위반/완료를 판정하지 않는다. 변경 owner의 미분류 후보는 남기지 않으며,
-기술 sizing·외부 프로토콜·앱 선택·표현 값의 예외는 개별 근거를 갖춘다.
+기술 sizing·외부 프로토콜·앱 선택도 실제 선언 Owner를 갖춘다. Owner의 적법한 선언과 비계약
+표현의 근거를 구분하고, 다른 계층의 계약 재선언을 기술 값이라는 이유로 면제하지 않는다.
 검토한 발생의 owner·계약·시험과 소스 동일성은 [개별 정적 분류](architecture-reviews.md)로 추적하고,
 근거 변경 시 다시 실패한다. 미해결 목록이나 원본 finding을 숨기지 않는다.
 
@@ -133,7 +142,7 @@ Agent의 의미 차이는 유지하며, Graph 조율에 불필요한 모델·Too
 |---|---|
 | S1 현재 경로 하나 | 제거 inventory의 API/import/구 저장 필드/변환 Reader와 모든 실제 소비자를 추적. wrapper/alias/옛 형식 분기 잔존 시 실패 |
 | S2 Presence와 필수값 | 타입 검증 전 `or {}`/`or default`, 정책 `get`/`setdefault`/생성자 기본값을 분류. M/N/V·False/0/빈 컬렉션을 잃거나 Backend 조회/실행 중 숨은 정책을 생성하면 실패. Hub owner의 새 Project 생성 프리셋은 저장·사용자 값 우선·검증 경계로 판정 |
-| S3 단일 선언 | 버전·상태·이벤트·오류·필드·경로·한도의 owner 선언과 Schema/validator/Reader/Writer/소비 참조를 대조. 별도 허용 목록·literal 재선언은 제거 |
+| S3 단일 선언 | [소유권 계약](contract-ownership.md)의 대상과 owner 선언·Schema/validator/Reader/Writer/Projection/실제 소비 참조를 대조. 1회 사용도 포함하고 별도 허용 목록·literal·의미 해석 재선언은 제거. 자동 검출 범위와 미검출 조사는 별도 기록 |
 | S4 형식·Schema | version은 정확한 타입+지원 값, 조건부 필수 필드·nullable·closed object 검사. open boundary에는 실제 child/SDK/metadata owner 필요 |
 | S5 네이밍·책임 | config/policy/runtime/settings, id/key/revision/version의 의미와 저장·실행 owner 대조. 과거 digest 동결을 현재 계약 시험으로 대체 |
 | S6 Provider 경계 | SDK import/wire 필드 해석은 Adapter에 한정. Engine/Processor/worker/Hub의 공통 모델 사용을 호출 경로로 확인; opaque 운반과 해석 구분 |

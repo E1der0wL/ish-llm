@@ -1,5 +1,8 @@
 # main 문서·코드 대조와 갱신 기록
 
+최신 문서 보강은 [2026-10-22 Owner 규칙과 후속 작업](#2026-10-22-owner-규칙과-후속-작업)을 따른다.
+아래의 날짜별 감사·검증 기록은 당시 범위를 보존한다.
+
 이 문서는 문서 최신화 시점의 기록이다. 이후 host 수정·P0 검증 도구·회귀 결과는
 [P0 실행 기록](p0-verification.md)에 별도로 남긴다.
 2026-10-21 `docs/` 전체 재검토와 H2-a 문서 갱신은 아래 후속 기록 및
@@ -418,3 +421,63 @@ H2 전체·원격 CI 완료로 표시하지 않는다.
 두 선택 실행과 전체 회귀 유예, 교착 fixture의 불완전 실행과 수정 후 결과, 별도 기록 이력
 네 실패를 [수명주기 검증](lifecycle-verification.md)에 구분했다. 기존 감사와 이전 결과는
 유지하며 H2 전체·원격 CI 완료로 표시하지 않는다.
+
+## 2026-10-22 Owner 규칙과 후속 작업
+
+기준은 `refactor/llm-clean`의 `488acbe9ffa12a89410cbf74179cdc890e3357a5`다. 이번 변경은
+설계 계약과 작업 목록의 문서화이며 제품·시험 코드·Fixture·CI·저장 형식은 변경하지 않는다.
+문서화와 제품 구현의 완료를 구분하며 기존 기능·안전성 회귀와 실패 이력은 보존한다.
+
+- [정규 계약](contract-ownership.md): 1회 사용도 포함하는 의미 있는 리터럴·필드 집합·제약·
+  공개 Projection, 정규 Owner의 의미 해석·검증·전이, 책임 경계, 확장·독립 시험의 판정 기준.
+- [작업 목록](ownership-refactor.md): OW-01/02 확인된 중복, OW-03/04 구조 조사, OW-05 검출
+  한계, OW-06 경계 조사, OW-07 기존 정적 근거 재검토와 O0–O7의 순서·검증·완료 조건.
+- 진입 문서·아키텍처·클린 리팩터링·문서 목록을 연결하고 Level 1–3 보고에 Owner/소비 연결을
+  추가했다. README의 이전 진행 요약은 당시 기록으로 구분하고 원문을 보존했다.
+
+기존 38개 데이터군과 전체 docs 감사는 반복하지 않았다. 이번에 필요한 현재 계약과 앞선
+Project/Run/OutputJournal/Schema 조사 결과를 재사용했다. 이 목록은 전체 위반 전수 목록이 아니다.
+
+기존 정적 분류 중 clean-refactor.md의 hash를 고정한 70건은 이번 계약 보강으로 근거가 바뀐다.
+기존 ID·사유·source/test 고정값은 보존한다. 해당 발생의 과거 boolean/기술 값/외부 규격/UI 표현
+사유를 확인했으나 그것만으로 강화된 Owner/소비 연결을 증명하지 못하므로 hash를 갱신하거나
+면제하지 않았다. OW-07에서 각 발생을 재검토하고, 필요한 구현과 검증을 통과한 항목만 갱신한다.
+
+검증 환경은 작업 저장소 `/workspace/ish-llm`, `.venv-linux312/bin/python`의 Python 3.12.14다.
+`TERM=xterm-256color`, `LITELLM_LOCAL_MODEL_COST_MAP=True`, `LITELLM_MODE=PRODUCTION`에서 실행했다.
+실제 명령은 다음과 같다. 로그·JSON·명령별 exit code는 같은 ownership-docs 디렉터리에 보존한다.
+
+```sh
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/ownership-docs/docs.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --strict --output /workspace/llm-clean-resume/ownership-docs/architecture.json
+.venv-linux312/bin/python -m tests.llm.run_regression --suite all --modules tests.llm.test_documentation_checks tests.llm.test_architecture_reviews --output /workspace/llm-clean-resume/ownership-docs/focused.json
+git diff --check
+```
+
+| 검사 | 실제 결과 |
+|---|---|
+| 문서 링크·앵커·Python 예제 문법 | exit 0. 142문서, 183 Python fence, 1057 상대 링크, 36 anchor, 오류 0. 예제 실행 검증은 아님 |
+| 문서/정적 검토 도구의 집중 시험 | exit 0. 전체 발견 가능 ID 2845 중 두 모듈의 13개 선택·발견·실행·통과. Failure/Error/Skip/expected failure/unexpected success/누락/예상 외/중복 모두 0 |
+| 현재 제품의 엄격 정적 감사 | **exit 1**. `Changed review evidence requires re-review: docs/llm/clean-refactor.md`. 직접 영향은 기존 검토 70건이며 미해결로 보존 |
+| 공백·패치 검사 | exit 0 |
+
+정적 검사는 근거 오류 하나에도 검토 목록 전체를 수락하지 않는다. 따라서 이 실행의
+`reviewed=0`, `new=159`, `required_outstanding=159`, `review_errors=1`은 기존 159개 후보가
+미승인으로 집계된 결과다. 새 제품 위반 159건을 발견했다는 뜻이 아니다. 기존 Fixture와 검사
+강도는 유지했으며 OW-07의 재검토 없이 현재 정적 게이트나 원격 CI 통과를 선언할 수 없다.
+
+집중 시험은 이 결과 기록 추가 전 문서에서 실행했다. 당시 문서 hash와 비 Markdown 추적 파일의
+전후 동일성은 `inputs-before.json` 및 `scope-proof.json`에 보존한다. HEAD·제품·시험·Fixture·
+의존성·CI 파일은 그대로다. 결과 기록 뒤 같은 문서 검사 명령의 출력 경로를 `docs-final.json`으로
+지정해 다시 수행했으며 동일한 범위·오류 0·exit 0을 확인했다.
+
+전체 LLM/Hub·R3·실환경 검증은 이번 문서 갱신에서 실행하지 않았다. 제품·실행 계약의 구현과
+시험 코드가 바뀌지 않았고 이번 작업은 제품 상위 게이트가 아니기 때문이다. 앞선 기능 회귀를
+이번 변경의 전체 실행으로 재사용하거나 합산하지 않는다. 새 규칙의 구현·O0 전체 감사·O7·
+원격 CI는 미완료이며, 이번 문서 변경을 commit/Push하지 않았다. 공유 계약의 후속 구현은
+계획에 지정한 집중·안전성·전체 게이트를 통과해야 한다.
+
+위 결과 보고 이후 사용자가 다른 작업자와 검토할 수 있도록 Push를 요청했다. 이 요청에 따라
+문서 변경을 `refactor/llm-clean`에 검토용으로 commit/Push한다. 이는 제품 단계 완료나 전체
+게이트 통과를 뜻하지 않는다. OW-07과 현재 정적 실패를 보존하고 CI 검사를 생략하거나
+완화하지 않는다. 원격 CI는 해당 Push의 정확한 SHA에 대한 실제 결과로 별도 확인한다.
