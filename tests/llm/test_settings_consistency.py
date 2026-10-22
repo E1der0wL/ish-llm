@@ -15,7 +15,7 @@ from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
 from llm.engines.graph.agent import AgentNode
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.rag import RAGComponent, EmbeddingModel
 from llm.components.rag.component import RAGConflictError
 from llm.llm import LargeLanguageModel
@@ -72,12 +72,13 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         await (await project.components.aget("workflows")).acreate(
             WorkflowGraph(entry="a").node("a", "work").node("end", "end").connect("a", "end").to_dict(), identifier="flow")
         first = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {"policy": {"max_steps": 1}}}}})
-        failed = await (await first.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+        await first.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
+        failed = await (await first.run.submit("go", agent_id="graph")).wait()
         self.assertEqual((await failed.aget_data()).status, "failed")
         second = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 3}}}}})
         view = await second.adescribe_config()
         self.assertEqual(view["effective_engines"]["graph"]["sources"]["/policy/max_steps"], "session")
-        done = await (await second.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+        done = await (await second.run.submit("go", agent_id="graph")).wait()
         self.assertEqual((await done.aget_data()).status, "completed")
         self.assertEqual(effects, ["a", "a"])
         self.assertIsNone(app.engines.get("graph").max_steps)
@@ -94,15 +95,16 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
     async def test_agent_actual_completion_matches_project_session_agent_host_order(self):
         provider = ScriptedCompletion([chunk("ok", finish="stop")])
         worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
-        app = self.backend(engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"writer": worker})})},
-                           components=[WorkflowComponent(), AgentComponent()])
-        project = await app.projects.acreate(components=["workflows", "agents"], config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 7}, 'config': {'completion': {'model': 'project', 'temperature': 0.9}}}}}})
-        await (await project.components.aget("agents")).acreate({"engine": "writer", "purpose": "write",
+        app = self.backend(engines={"writer": worker, "graph": GraphEngine(handlers={"agent": AgentNode(engines={"writer": worker})})},
+                           components=[WorkflowComponent()])
+        project = await app.projects.acreate(components=['workflows'], config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 7}, 'config': {'completion': {'model': 'project', 'temperature': 0.9}}}}}})
+        await (project.agents).acreate({"engine": "writer", "purpose": "write",
             "completion": {"model": "agent", "temperature": 0.3}}, identifier="writer")
         await (await project.components.aget("workflows")).acreate(WorkflowGraph(entry="a").node("a", "agent", agent="writer")
             .node("end", "end").connect("a", "end").to_dict(), identifier="flow")
         session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'temperature': 0.5}}}}}})
-        run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+        await session.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
+        run = await (await session.run.submit("go", agent_id="graph")).wait()
         self.assertEqual((await run.aget_data()).status, "completed")
         self.assertEqual(provider.requests[0]["temperature"], 0.3)
         self.assertEqual(provider.requests[0]["model"], "agent")

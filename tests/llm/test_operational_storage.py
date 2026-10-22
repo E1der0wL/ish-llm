@@ -44,11 +44,12 @@ class ProviderCapacityTests(unittest.IsolatedAsyncioTestCase):
                     services=BackendServices(provider_calls=pool)) as app:
                 project = await app.projects.acreate()
                 first, second = await project.sessions.acreate(), await project.sessions.acreate()
-                original = await first.run.submit("first", engine="test")
+                await first.project.agents.acreate({"engine": "test"}, identifier="test")
+                original = await first.run.submit("first", agent_id="test")
                 self.assertTrue(await asyncio.to_thread(entered.wait, 2))
                 await first.run.interrupt()
                 self.assertEqual((await original.wait()).data.status, RunStatus.INTERRUPTED)
-                blocked = await (await second.run.submit("second", engine="test")).wait(timeout=5)
+                blocked = await (await second.run.submit("second", agent_id="test")).wait(timeout=5)
                 self.assertEqual(blocked.data.error_code, "provider_capacity")
                 self.assertEqual(pool.stats["active"], 1)
                 release.set()
@@ -56,7 +57,7 @@ class ProviderCapacityTests(unittest.IsolatedAsyncioTestCase):
                     if not pool.stats["active"]:
                         break
                     await asyncio.sleep(0.01)
-                completed = await (await second.run.submit("third", engine="test")).wait(timeout=5)
+                completed = await (await second.run.submit("third", agent_id="test")).wait(timeout=5)
                 self.assertEqual(completed.data.status, RunStatus.COMPLETED)
 
     async def test_cancel_retains_slot_until_blocked_call_and_close_finish(self):
@@ -178,7 +179,8 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                     services=BackendServices(output_buffer=OutputBuffer(batch_size=2))) as app:
                 app.events.subscribe(observe, channel="engine")
                 session = await (await app.projects.acreate()).sessions.acreate()
-                request = await session.run.submit("go", engine="test")
+                await session.project.agents.acreate({"engine": "test"}, identifier="test")
+                request = await session.run.submit("go", agent_id="test")
                 await asyncio.wait_for(entered.wait(), 3)
                 await asyncio.wait_for(session.run.interrupt(), 3)
                 run = await request.wait(timeout=3)
@@ -232,7 +234,8 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                 project = await app.projects.acreate(components=["workflows"])
                 await project.components.workflows.acreate(graph, identifier="flow")
                 session = await project.sessions.acreate()
-                paused = await (await session.run.submit("work", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=10)
+                await session.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
+                paused = await (await session.run.submit("work", agent_id="graph")).wait(timeout=10)
                 self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
                 await session.run.shutdown()
                 backup = await project.abackup(root / "backup")
@@ -240,7 +243,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                     services=BackendServices(output_buffer=OutputBuffer(batch_size=16))) as app:
                 restored = await app.projects.arestore_backup(backup)
                 session = await restored.sessions.aload(session.id)
-                resumed = await (await session.run.resume(paused.id, engine="graph")).wait(timeout=10)
+                resumed = await (await session.run.resume(paused.id, agent_id="graph")).wait(timeout=10)
                 self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
                 self.assertEqual(calls, ["a", "b"])
 
@@ -302,6 +305,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                     services=BackendServices(output_buffer=OutputBuffer(batch_size=8))) as backend:
                 project = await backend.projects.acreate()
                 session = await project.sessions.acreate()
+                await session.project.agents.acreate({"engine": "test"}, identifier="test")
                 errors = []
                 def observe(run, event):
                     if event.delta is not None:
@@ -313,7 +317,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                 backend.events.subscribe(observe, channel="engine")
                 with patch.object(backend.run_repository.output_journal, "append",
                                   wraps=backend.run_repository.output_journal.append) as append:
-                    run = await (await session.run.submit("go", engine="test")).wait(timeout=10)
+                    run = await (await session.run.submit("go", agent_id="test")).wait(timeout=10)
                 self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
                 self.assertEqual((await run.aresponse()).content, "final")
                 self.assertEqual(errors, [])
@@ -331,8 +335,9 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                     services=BackendServices(output_buffer=OutputBuffer(batch_size=8))) as backend:
                 session = await (await backend.projects.acreate(config={"policies": {
                     "run": {"timeout_seconds": .1}}})).sessions.acreate()
-                first = await session.run.submit("slow", engine="test")
-                second = await session.run.submit("fast", engine="test")
+                await session.project.agents.acreate({"engine": "test"}, identifier="test")
+                first = await session.run.submit("slow", agent_id="test")
+                second = await session.run.submit("fast", agent_id="test")
                 self.assertEqual((await (await first.wait(timeout=5)).aresult()).status, RunStatus.FAILED)
                 self.assertEqual((await (await second.wait(timeout=5)).aresult()).status, RunStatus.COMPLETED)
 
@@ -361,9 +366,10 @@ class BackupTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate()
         self.session = await self.project.sessions.acreate()
+        await self.session.project.agents.acreate({"engine": "test"}, identifier="test")
 
     async def test_run_history_restore_and_no_overwrite(self):
-        run = await (await self.session.run.submit("go", engine="test")).wait(timeout=10)
+        run = await (await self.session.run.submit("go", agent_id="test")).wait(timeout=10)
         with self.assertRaisesRegex(ValueError, "attached"):
             await self.project.abackup(self.root / "blocked")
         await self.session.run.shutdown()

@@ -31,9 +31,10 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.provider = ScriptedCompletion(*[[chunk("done", finish="stop")] for _ in range(10)])
         self.app = LargeLanguageModel(Path(self.temp.name), components=[GoalComponent()],
-            engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.provider)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})})
+            engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.provider))})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("goals", components=["goals"])
+        await self.project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}}, identifier="loop")
         self.session = await self.project.sessions.acreate("session")
         self.goals = self.project.components.goals
 
@@ -42,7 +43,7 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
         second = await self.goals.acreate(goal({"type": "session", "id": self.session.id}))
         other = await self.project.sessions.acreate("other")
         self.assertNotIn(second, await self.goals.alist(session_id=other.id))
-        request = await self.session.run.submit("work", engine="loop")
+        request = await self.session.run.submit("work", agent_id="loop")
         await request.wait()
         result = await request.aresult()
         before = deepcopy(result)
@@ -82,12 +83,12 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_opt_in_reference_is_not_system_prompt(self):
         await self.goals.acreate(goal())
-        handle = await self.session.run.submit("current", engine="loop")
+        handle = await self.session.run.submit("current", agent_id="loop")
         await handle.wait()
         self.assertEqual((await handle.aresult()).status, RunStatus.COMPLETED, (await handle.aresult()).error)
         self.assertEqual(self.provider.requests[-1]["messages"][-1]["content"], "current")
         await self.goals.aconfigure({"config": {"priority": 10}, "policy": {"inject": True}})
-        handle = await self.session.run.submit("next", engine="loop")
+        handle = await self.session.run.submit("next", agent_id="loop")
         await handle.wait()
         self.assertEqual((await handle.aresult()).status, RunStatus.COMPLETED)
         messages = self.provider.requests[-1]["messages"]
@@ -110,8 +111,9 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_unselected_component_keeps_plain_execution(self):
         project = await self.app.projects.acreate("plain", components=[])
+        await project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}}, identifier="loop")
         session = await project.sessions.acreate("plain")
-        handle = await session.run.submit("plain", engine="loop")
+        handle = await session.run.submit("plain", agent_id="loop")
         await handle.wait()
         self.assertEqual((await handle.aresult()).status, RunStatus.COMPLETED)
         self.assertNotIn("tools", self.provider.requests[-1])

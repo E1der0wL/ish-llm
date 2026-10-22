@@ -9,7 +9,7 @@ from pathlib import Path
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.errors import CodedError, exception_chain, stable_error_code
 from llm.core.models import RunStatus, StepStatus, new_id
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.components.tools import Tool
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
@@ -101,15 +101,24 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def execute(self, engine, *, components=(), definitions=None, config=None, engine_options=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        backend = LargeLanguageModel(temporary.name, engines={"test": engine}, components=list(components))
+        engines = {"test": engine}
+        for handler in getattr(engine, "handlers", {}).values():
+            if isinstance(handler, AgentNode):
+                for name in handler.engines.names():
+                    engines.setdefault(name, handler.engines.get(name))
+        backend = LargeLanguageModel(temporary.name, engines=engines, components=list(components))
         self.addAsyncCleanup(backend.shutdown)
         project = await backend.projects.acreate(config=config or {}, components=[c.name for c in components])
         for component, records in (definitions or {}).items():
-            data = await project.components.aget(component)
+            data = project.agents if component == "agents" else await project.components.aget(component)
             for name, value in records.items():
                 await data.acreate(value, identifier=name)
+        definition = {"engine": "test"}
+        if engine_options is not None:
+            definition["engine_options"] = engine_options
+        await project.agents.acreate(definition, identifier="test")
         session = await project.sessions.acreate()
-        handle = await (await session.run.submit("request", engine="test", engine_options=engine_options or {})).wait(timeout=15)
+        handle = await (await session.run.submit("request", agent_id="test")).wait(timeout=15)
         result = await handle.aresult()
         steps = await handle.steps.alist()
         # Run 공개 투영과 디스크가 같은 결과를 보존한다.
@@ -144,7 +153,7 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
         outer = WorkflowGraph(entry="agent").node("agent", "agent", agent="worker").node("end", "end").connect("agent", "end").to_dict()
         for child in (AgentEngine(action=fail), GraphEngine(handlers={"fail": node_fail})):
             result, steps = await self.execute(GraphEngine(handlers={"agent": AgentNode(engines={"child": child})}),
-                engine_options={"workflow": "outer"}, components=[WorkflowComponent(), AgentComponent()], definitions={
+                engine_options={"workflow": "outer"}, components=[WorkflowComponent()], definitions={
                     "workflows": {"outer": outer, "inner": inner}, "agents": {"worker": {"engine": "child", "purpose": "Test failures",
                     "engine_options": {"workflow": "inner"} if isinstance(child, GraphEngine) else {}}}})
             self.assertEqual(result.error_code, "provider_timeout")
@@ -181,7 +190,7 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(steps[0].diagnostic.code, "step_failed")
 
     async def test_step_persistence_does_not_reclassify_explicit_diagnostic(self):
-        class Engine:
+        class Engine(BaseEngine):
             async def execute(self, context):
                 step_id = new_id()
                 yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id)

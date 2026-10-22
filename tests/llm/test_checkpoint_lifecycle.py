@@ -112,7 +112,7 @@ class RunCheckpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await saved.ainteraction_responses(), [response])
         self.assertTrue(all(v.status == "unavailable" for v in await saved.ainteraction_views()))
         for call in (saved.acheckpoint, lambda: saved.arespond(response),
-                     lambda: session.run.resume(saved.id, engine="graph")):
+                     lambda: session.run.resume(saved.id, agent_id="graph")):
             with self.assertRaises(ValueError):
                 await call()
         self.assertFalse(self.effects)
@@ -203,15 +203,16 @@ class RunCheckpointTests(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}) as app:
                 project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
                     "loop": {"config": {"completion": {"model": "test/model"}}}}}})
+                await project.agents.acreate({"engine": "loop"}, identifier="loop")
                 session = await project.sessions.acreate()
-                run = await (await session.run.submit("fail", engine="loop")).wait()
+                run = await (await session.run.submit("fail", agent_id="loop")).wait()
                 await session.run.shutdown()
                 self.assertEqual(run.data.status, RunStatus.FAILED)
                 before = await session.aconversation()
                 await run.aabandon_resume(expected_revision=(await run.acheckpoint_plan()).revision)
                 await run.adelete_checkpoints(expected_revision=(await run.acheckpoint_plan()).revision)
                 with self.assertRaises(ValueError):
-                    await session.run.resume(run.id, engine="loop")
+                    await session.run.resume(run.id, agent_id="loop")
                 self.assertEqual(await session.aconversation(), before)
                 self.assertEqual(len(provider.requests), 1)
 

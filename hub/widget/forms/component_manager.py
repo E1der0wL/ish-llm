@@ -19,8 +19,9 @@ class ComponentManager(Dialog):
     """Backend callbacks own data; this widget owns selection and pending UI work."""
 
     def __init__(self, view, request, *, name, directories=False, toggle=False, extra_buttons=(), detail_lines=1,
-                 button_width=12):
+                 button_width=12, component_settings=True):
         self.view, self.request, self.name = view, request, name
+        self.component_settings = component_settings
         self.entries, self.selected, self.busy, self.status = [], "", False, ""
         self.path = InputField(input=PathInput(lambda: view.file_root, directories=directories),
                                button_text=view.t("component_import"), on_action=lambda: self.import_path(self.path.buffer))
@@ -40,7 +41,8 @@ class ComponentManager(Dialog):
                    wrap_lines=True, right_margins=[ScrollbarMargin(display_arrows=True)]),
             Label(self.hint)]),
             buttons=[Button(view.t("settings_reload"), handler=self.reload, width=button_width),
-                     Button(view.t("settings_title"), handler=self.open_settings, width=button_width),
+                     *([Button(view.t("settings_title"), handler=self.open_settings, width=button_width)]
+                       if component_settings else []),
                      *extra_buttons,
                      Button(view.t("search_close"), handler=view.close_dialog, width=button_width)],
             width=lambda: Dimension(preferred=100, max=max(1, view._columns() - 4)))
@@ -49,6 +51,8 @@ class ComponentManager(Dialog):
         return self.status or self.view.t("tools_hint" if self.name == "tools" else "manager_hint")
 
     def open_settings(self):
+        if not self.component_settings:
+            raise ValueError("This domain has no Component configuration")
         self.view.close_dialog()
         self.view.settings.open_component(self.name)
 

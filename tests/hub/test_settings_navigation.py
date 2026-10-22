@@ -21,7 +21,7 @@ from tests.hub.test_settings import settings_backend
 class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
     async def test_sidebar_selects_on_navigation_and_last_selection_wins(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                 input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, screen = controller.view, controller.view.settings
@@ -73,7 +73,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_selection_and_configuration_publish_together(self):
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, "loop", "test/model", auto_title=False), settings_backend)
+            runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False), settings_backend)
             await runtime.start()
             if not runtime.sessions:
                 await runtime.new_session()
@@ -105,7 +105,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_keyboard_regions_editing_dirty_cancel_and_width(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                 input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, screen = controller.view, controller.view.settings

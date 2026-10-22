@@ -36,7 +36,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await runtime.start()
                 sid = await runtime.new_session()
-                request = await runtime.sessions[sid].run.submit("Try", engine="loop")
+                request = await runtime.sessions[sid].run.submit("Try", agent_id="assistant")
                 monitor = runtime.backend.services.observability_sink
                 await eventually(lambda: bool(monitor.states))
                 snapshot = await runtime.snapshot()
@@ -172,12 +172,12 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
         runtime = HubRuntime(HubConfig(auto_title=False))
         runtime.project = NS(id="p")
         run = NS(arespond=AsyncMock(), ainteractions=AsyncMock(return_value=[]),
-                 aget_data=AsyncMock(return_value=NS(engine="loop")))
+                 aget_data=AsyncMock(return_value=NS(agent_id="assistant", engine="loop")))
         session = NS(run=NS(aload=AsyncMock(return_value=run), resume=AsyncMock(), resume_plan=AsyncMock()))
         runtime.sessions = {"s": session}
         self.assertTrue(await runtime.answer_question("p", "s", "r", request.to_dict(), "approve", None))
         session.run.resume_plan.assert_not_awaited()
-        session.run.resume.assert_awaited_once_with("r", engine="loop", partial_output=True)
+        session.run.resume.assert_awaited_once_with("r", agent_id="assistant", partial_output=True)
         review.assert_awaited_once_with(session, "r")
 
     async def test_approval_admission_does_not_wait_for_ui_operation_lock(self):
@@ -205,7 +205,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
         acknowledged = Mock()
         entered, release = asyncio.Event(), asyncio.Event()
         run = NS(arespond=AsyncMock(), ainteractions=AsyncMock(return_value=[]),
-                 aget_data=AsyncMock(return_value=NS(engine="loop")))
+                 aget_data=AsyncMock(return_value=NS(agent_id="assistant", engine="loop")))
         async def resume(*args, **kwargs):
             run.arespond.assert_awaited_once()
             acknowledged.assert_called_once_with()

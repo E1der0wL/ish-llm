@@ -20,7 +20,7 @@ class RecordManagement:
         spec = component_spec(name)
         if spec.manager == "tools":
             raise ValueError("Unsupported component manager")
-        data = await project.components.aget(name)
+        data = project.agents if spec.manager == "agent" else await project.components.aget(name)
         if not isinstance(data, spec.data_type()):
             raise ValueError("Unsupported component data contract")
         record = await project.aget_data()
@@ -132,6 +132,9 @@ class AgentManagement(RecordManagement):
 
     async def save(self, identifier, values, version):
         await self.data.arevise(identifier, values, expected_revision=version)
+
+    async def delete(self, identifier, version):
+        await self.data.adelete(identifier, expected_revision=version)
 
 
 class DocumentManagement(RecordManagement):

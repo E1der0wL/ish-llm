@@ -22,7 +22,7 @@ def create_backend(config: "HubConfig"):
     from llm.engines.graph.agent import AgentNode
     from llm.engines.graph.tool import ToolNode
     from llm.components.tools import ToolComponent
-    from .tools.resources import HubAgentComponent, HubWorkflowComponent, HubRAGComponent, HubGoalComponent
+    from .tools.resources import HubWorkflowComponent, HubRAGComponent, HubGoalComponent
     from llm.components.refinement import RefinementComponent
     from llm.components.memory import MemoryComponent
     from llm.components.prompts import PromptComponent
@@ -43,7 +43,7 @@ def create_backend(config: "HubConfig"):
     diagnostics = ProviderDiagnostics(error_details=True,
         request_summary=general.provider_request_summary, max_detail_chars=general.provider_max_detail_chars)
     factories = {"loop": HubLoopEngine, **(config.engine_factories if config.engine_factories is not None else {})}
-    if config.engine not in factories and config.engine != GRAPH_ENGINE_NAME:
+    if config.initial_engine not in factories and config.initial_engine != GRAPH_ENGINE_NAME:
         raise ValueError("Register the selected engine in HubConfig.engine_factories")
     engines = {name: factory() for name, factory in factories.items()}
     engines.setdefault(GRAPH_ENGINE_NAME, GraphEngine(handlers={
@@ -59,7 +59,6 @@ def create_backend(config: "HubConfig"):
                 engine.recover_completion = recovery.recover
     components = {component.name: component for component in
                   (ToolComponent(), HubSkillComponent(), MCPComponent(), HubRAGComponent(), VisionComponent(),
-                   HubAgentComponent(engines=engines),
                    HubWorkflowComponent(handlers=getattr(engines[GRAPH_ENGINE_NAME], "handlers", {})), MemoryComponent(),
                    HubGoalComponent(), RefinementComponent(), PromptComponent(),
                    HubBuiltinTools(config.file_root, test_root=Path(config.workspace).expanduser() / ".hub" / "test-workspaces"))}

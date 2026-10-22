@@ -10,7 +10,7 @@ TURN_OPTION = "_hub_turn"
 
 
 def edit_source(message):
-    value = message.metadata.get("engine_options", {}).get(TURN_OPTION, {})
+    value = message.metadata.get("request_context", {}).get(TURN_OPTION, {})
     return value.get("source", "") if isinstance(value, dict) else ""
 
 

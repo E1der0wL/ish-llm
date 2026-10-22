@@ -1,5 +1,9 @@
 # 실행 안정성과 UI 연결
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 Loop 재개·영속 승인·조건부 재시도·누적 사용량·보관·편집 충돌·RAG 색인 작업은
 [장시간 실행·복구 API](long-running.md)를 함께 참고한다.
 
@@ -117,7 +121,7 @@ ToolCall 인자는 복사본이므로 승인 함수가 바꾸어도 실행 인�
 ## UI 상태, 취소, 느린 구독자
 
 ```python
-request = await session.run.submit("작업", engine="loop")
+request = await session.run.submit("작업", agent_id="loop")
 status = await session.run.astatus(queued_limit=20)
 # session_id, status, active_run_id, engine, started_at,
 # queued_count, queued_request_ids

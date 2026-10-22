@@ -7,6 +7,7 @@ from llm.core.models import ProjectConfig
 from llm.components.rag.prompts import ExtractionFailurePolicy
 
 from ...asset.guides import SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
+from .agents import DEFAULT_AGENT
 
 
 CONVERSATION_STORAGE = "file"
@@ -38,7 +39,8 @@ def rag_defaults():
                    "extraction": {"failure_policy": ExtractionFailurePolicy.DISABLED.value}}}
 
 
-async def create_project(backend, title, *, config, components, conversation_storage):
+async def create_project(backend, title, *, config, components, conversation_storage,
+                         agent_id=DEFAULT_AGENT, agent_definition=None):
     project_config = ProjectConfig.from_dict(deepcopy(config))
     # Application creation presets; explicit user policies always win.
     presets = {
@@ -77,6 +79,8 @@ async def create_project(backend, title, *, config, components, conversation_sto
     project = await backend.projects.acreate(title, config=project_config, components=components,
                                              conversation_storage=conversation_storage)
     try:
+        from .agents import initialize
+        await initialize(backend, project, identifier=agent_id, definition=agent_definition)
         if "skills" in components:
             skills = await project.components.aget("skills")
             for identifier, title, description, instructions in SKILLS:

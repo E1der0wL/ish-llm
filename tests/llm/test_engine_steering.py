@@ -14,7 +14,7 @@ import unittest
 from unittest.mock import patch
 
 from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, SteeringMode
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.engines.graph import GraphEngine
@@ -40,7 +40,7 @@ def parallel_graph():
 
 
 class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
-    async def setup_graph(self, models, graph=None, *, options=None, graphs=None, profiles=None, handlers=None):
+    async def setup_graph(self, models, graph=None, *, options=None, graphs=None, profiles=None, handlers=None, stored_only=()):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         self.root = Path(folder.name)
@@ -48,23 +48,44 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.handler = AgentNode(engines=engines)
         self.engine = GraphEngine(handlers=handlers or {"agent": self.handler})
         self.events = []
-        self.app = LargeLanguageModel(self.root, engines={"graph": self.engine},
-            components=[WorkflowComponent(), AgentComponent()])
+        selected, visited = {"graph": self.engine}, set()
+        def register_handlers(engine):
+            if id(engine) in visited:
+                return
+            visited.add(id(engine))
+            for handler in getattr(engine, "handlers", {}).values():
+                if isinstance(handler, AgentNode):
+                    for name in handler.engines.names():
+                        child = handler.engines.get(name)
+                        selected.setdefault(name, child)
+                        register_handlers(child)
+        register_handlers(self.engine)
+        for name, worker in engines.items():
+            selected.setdefault(name, worker)
+        self.registered_engines = selected
+        self.app = LargeLanguageModel(self.root, engines=selected,
+            components=[WorkflowComponent()])
         self.app.events.subscribe(lambda r, e: self.events.append(e), channel="engine")
         self.addAsyncCleanup(self.app.shutdown)
         for model in models.values():
             self.addAsyncCleanup(self.release_model, model)
-        self.project = await self.app.projects.acreate("steering", components=["workflows", "agents"], config={
+        self.project = await self.app.projects.acreate("steering", components=['workflows'], config={
             "parameters": {"engines": {name: LoopEngine.parameter_layout.pack(value) for name, value in (options or {}).items()}}})
         workflows = await self.project.components.aget("workflows")
         for name, definition in {"flow": graph or agent_graph(), **(graphs or {})}.items():
             await workflows.acreate(definition, identifier=name)
-        agents = await self.project.components.aget("agents")
+        agents = self.project.agents
         for name, profile in (profiles or {name: {"purpose": "write", "engine": name,
                 "completion": {"model": "test/model"}} for name in models}).items():
-            await agents.acreate(profile, identifier=name)
+            if name in stored_only:
+                with self.assertRaises((ValueError, TypeError, AssertionError)):
+                    await agents.acreate(profile, identifier=name)
+                self.app.project_manager.repository.agents.create(self.project.data, profile, identifier=name)
+            else:
+                await agents.acreate(profile, identifier=name)
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
         self.session = await self.project.sessions.acreate()
-        self.request = await self.session.run.submit("original", engine="graph", engine_options={"workflow": "flow"})
+        self.request = await self.session.run.submit("original", agent_id="graph")
 
     async def release_model(self, model):
         model.release.set()
@@ -186,10 +207,10 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(failed.data.status, "failed")
         ids = self.project.id, self.session.id
         await self.app.shutdown()
-        reopened = LargeLanguageModel(self.root, engines={"graph": self.engine}, components=[WorkflowComponent(), AgentComponent()])
+        reopened = LargeLanguageModel(self.root, engines=self.registered_engines, components=[WorkflowComponent()])
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
-        resumed = await (await session.run.resume(failed.id, engine="graph")).wait(timeout=15)
+        resumed = await (await session.run.resume(failed.id, agent_id="graph")).wait(timeout=15)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(len(model.requests), 3)
         self.assertEqual([m["content"] for m in model.requests[-1]["messages"]].count("remember"), 1)
@@ -269,10 +290,11 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         # 같은 저장 Session을 일반 Loop로 열어도 노드 전용 지시는 사용자 공통 문맥이 아니다.
         ids = self.project.id, self.session.id
         await self.app.shutdown()
-        reopened = LargeLanguageModel(self.root, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})})
+        reopened = LargeLanguageModel(self.root, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
-        next_run = await (await session.run.submit("next", engine="loop")).wait(timeout=15)
+        await session.project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}}, identifier="loop")
+        next_run = await (await session.run.submit("next", agent_id="loop")).wait(timeout=15)
         self.assertEqual(next_run.data.status, "completed", next_run.data.error)
         self.assertFalse(any(m.get("content") == "private to node" for m in model.requests[-1]["messages"]))
 
@@ -339,18 +361,20 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         component = RuntimeTools(ToolRegistry([Tool("act", "act", {"type": "object"}, act, contract=TEST_CONTRACT)]))
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
-        self.app = LargeLanguageModel(folder.name, components=[WorkflowComponent(), AgentComponent(), component],
+        worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
+        self.app = LargeLanguageModel(folder.name, components=[WorkflowComponent(), component],
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)),
-            engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})})})
+            engines={"loop": worker, "graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": worker})})})
         self.addAsyncCleanup(self.app.shutdown)
         self.addAsyncCleanup(self.release_model, model)
-        self.project = await self.app.projects.acreate("approval", components=["workflows", "agents", "tools"])
+        self.project = await self.app.projects.acreate("approval", components=['workflows', 'tools'])
         await (await self.project.components.aget("tools")).aenable("act")
-        await (await self.project.components.aget("agents")).acreate({"purpose": "act", "engine": "loop",
+        await (self.project.agents).acreate({"purpose": "act", "engine": "loop",
             "completion": {"model": "test"}, "tools": ["act"]}, identifier="writer")
         await (await self.project.components.aget("workflows")).acreate(agent_graph(), identifier="flow")
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
         self.session = await self.project.sessions.acreate()
-        self.request = await self.session.run.submit("original", engine="graph", engine_options={"workflow": "flow"})
+        self.request = await self.session.run.submit("original", agent_id="graph")
         target, = await self.entered(model)
         await self.session.run.steer(self.run.id, "then act", targets=[target.id])
         model.release.set()
@@ -361,7 +385,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
             await self.session.run.steer(paused.id, "too late", targets=[target.id])
         interaction, = await paused.ainteractions()
         await paused.arespond(interaction.respond("approve"))
-        resumed = await (await self.session.run.resume(paused.id, engine="graph")).wait(timeout=15)
+        resumed = await (await self.session.run.resume(paused.id, agent_id="graph")).wait(timeout=15)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [1])
         self.assertEqual(len(model.requests), 3)
@@ -388,13 +412,14 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory:
             async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as app:
                 project = await app.projects.acreate("test", components=[], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
+                await project.agents.acreate({"engine": "loop"}, identifier="loop")
                 session = await project.sessions.acreate()
                 accepted = []
                 async def on_run(event):
                     if event.type == "started":
                         accepted.append(await session.run.steer(event.run.id, "at start"))
                 subscription = app.events.subscribe(on_run, channel="run")
-                run = await (await session.run.submit("original", engine="loop")).wait(timeout=10)
+                run = await (await session.run.submit("original", agent_id="loop")).wait(timeout=10)
                 await subscription.aclose()
                 self.assertEqual(run.data.status, "completed", run.data.error)
                 self.assertEqual(len(accepted), 1)
@@ -404,12 +429,16 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
         class Broken(BaseEngine):
             steering_mode = SteeringMode.CONSUME
             checkpoint_name = "broken"
+            def validate_resume(self, checkpoint, **options):
+                if not isinstance(checkpoint["header"], dict):
+                    raise ValueError("Invalid Host checkpoint header")
             async def run(self, context):
                 yield EngineOutput(text="not a valid consumer")
         with tempfile.TemporaryDirectory() as directory:
             async with LargeLanguageModel(directory, components=[], engines={"broken": Broken()}) as app:
                 session = await (await app.projects.acreate("test", components=[])).sessions.acreate()
-                run = await (await session.run.submit("original", engine="broken")).wait(timeout=10)
+                await session.project.agents.acreate({"engine": "broken"}, identifier="broken")
+                run = await (await session.run.submit("original", agent_id="broken")).wait(timeout=10)
                 self.assertEqual(run.data.status, "failed")
                 self.assertIn("did not open", run.data.error)
 
@@ -430,6 +459,9 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
         class Consumer(BaseEngine):
             steering_mode = SteeringMode.CONSUME
             checkpoint_name = "custom"
+            def validate_resume(self, checkpoint, **options):
+                if not isinstance(checkpoint["header"], dict):
+                    raise ValueError("Invalid Host checkpoint header")
 
             async def execute(self, context):
                 yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": "custom", "operation": "initialize",
@@ -455,7 +487,8 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory:
             async with LargeLanguageModel(directory, engines={"custom": Consumer()}, components=[]) as app:
                 session = await (await app.projects.acreate("test", components=[])).sessions.acreate()
-                request = await session.run.submit("original", engine="custom")
+                await session.project.agents.acreate({"engine": "custom"}, identifier="custom")
+                request = await session.run.submit("original", agent_id="custom")
                 await asyncio.wait_for(entered.wait(), 10)
                 run = await request.aget_run()
                 await session.run.steer(run.id, "new input")

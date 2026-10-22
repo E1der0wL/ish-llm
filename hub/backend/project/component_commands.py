@@ -7,7 +7,7 @@ MANAGED_COMPONENTS = tuple(spec.name for spec in COMPONENTS)
 
 
 def component_commands(names: tuple[str, ...]) -> dict[str, str]:
-    return {name: name for name in MANAGED_COMPONENTS if name in names}
+    return {name: name for name in MANAGED_COMPONENTS if name == "agents" or name in names}
 
 
 def parse_arguments(argument: str, language) -> str:

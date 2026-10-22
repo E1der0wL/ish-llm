@@ -1,5 +1,9 @@
 # 프로젝트 장기 기억
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 `MemoryComponent`는 프로젝트에서 반복해서 참고할 선호, 사실, 업무 지침 등을 저장한다.
 일반 컴포넌트와 같이 선택한 프로젝트에만 `memory/`를 만들고, 데이터는 닫힌 content 계약으로
 관리한다. API 호출만으로 Run을 만들거나 LLM을 호출하지 않는다.
@@ -70,7 +74,7 @@ Memory를 선택하면 `tools` capability를 사용하는 Loop와 Graph에 아�
 
 ```python
 session = await project.sessions.acreate()
-request = await session.run.submit("내 응답 언어 선호를 기억에서 찾아줘.", engine="loop")
+request = await session.run.submit("내 응답 언어 선호를 기억에서 찾아줘.", agent_id="loop")
 run = await request.wait()
 ```
 

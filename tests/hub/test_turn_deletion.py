@@ -41,7 +41,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(await runtime.turns(sid))
                 self.assertEqual(len(await session.aconversation(include_deleted=True)), 2)
                 with self.assertRaisesRegex(ValueError, "abandoned"):
-                    await session.run.resume(row["run_id"], engine="loop")
+                    await session.run.resume(row["run_id"], agent_id="assistant")
                 self.assertEqual(len(provider.requests), 1)
             finally:
                 await runtime.close()

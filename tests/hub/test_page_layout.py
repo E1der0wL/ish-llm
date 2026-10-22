@@ -26,7 +26,7 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
     async def test_focus_status_and_save_return(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             output = SizedOutput()
-            app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                 input=pipe, output=output,
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, screen = controller.view, controller.view.settings

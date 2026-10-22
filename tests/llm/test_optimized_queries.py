@@ -1,5 +1,7 @@
 """중복 I/O·전체 결과 변환을 줄여도 수명/커서/세대 검사를 유지하는지 검증한다."""
 
+from llm.core.agents import AgentBinding
+
 from llm.core.model_protocol import RankedDocument, RerankResult
 
 from llm.providers.operations import LiteLLMOperations
@@ -59,10 +61,11 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
         self.app = LargeLanguageModel(Path(temp.name), engines={"test": FakeStreamingEngine(chunks=("answer",))}, components=[])
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("Reads")
+        await self.project.agents.acreate({"engine": "test"}, identifier="test")
         self.session = await self.project.sessions.acreate("Requests")
 
     async def test_request_result_loads_run_once_and_never_caches_state(self):
-        request = await self.session.run.submit("hello", engine="test")
+        request = await self.session.run.submit("hello", agent_id="test")
         run = await request.wait()
         await self.session.run.shutdown()
         repository = self.app.run_repository
@@ -77,7 +80,7 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await request.aresult()).error, "updated observation")
 
     async def test_response_loads_parent_session_once(self):
-        run = await (await self.session.run.submit("hello", engine="test")).wait()
+        run = await (await self.session.run.submit("hello", agent_id="test")).wait()
         await self.session.run.shutdown()
         repository = self.app.project_manager.sessions.repository
         with patch.object(repository, "load", wraps=repository.load) as load:
@@ -87,7 +90,7 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
     async def test_result_page_converts_only_selected_runs(self):
         runs = []
         for text in ("one", "two", "three"):
-            runs.append(await (await self.session.run.submit(text, engine="test")).wait())
+            runs.append(await (await self.session.run.submit(text, agent_id="test")).wait())
         await self.session.run.shutdown()
         with patch.object(ExecutionResult, "from_run", wraps=ExecutionResult.from_run) as convert:
             page = await self.project.results.alist(query=Query(after=runs[0].id, limit=1))
@@ -112,7 +115,7 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
             for index in range(12):
                 session = sessions[index % 2]
                 identifier = new_id()
-                run = Run(identifier, session.id, new_id(), new_id(), "test", repository.paths(session, identifier))
+                run = Run(identifier, session.id, new_id(), new_id(), "test", repository.paths(session, identifier), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(session.project_id, "fixture", {"engine": 'test'})})
                 run.status = RunStatus.COMPLETED if index % 3 else RunStatus.FAILED
                 run.started_at = run.ended_at = f"2026-10-16T00:00:{index:02d}+00:00"
                 repository.create(run)

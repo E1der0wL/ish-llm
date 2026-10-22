@@ -14,8 +14,9 @@ from unittest.mock import patch
 from tests.llm.support.runtime_tools import RuntimeTools
 from llm.components.tools import Tool, ToolComponent, ToolRegistry
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.core.models import MessageRole, MessageStatus, RunStatus, StepStatus
+from llm.core.agents import AgentBinding
 from llm.engines.base import BaseEngine
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
@@ -54,7 +55,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
         self.tools = RuntimeTools(ToolRegistry([Tool("act", "act", {"type": "object"}, action, contract=TEST_CONTRACT)]))
 
-    async def backend(self, *, engines=None, components=(), services=None, name="workspace", policies=None):
+    async def backend(self, *, engines=None, components=(), services=None, name="workspace", policies=None, agent_definitions=None):
         app = LargeLanguageModel(self.root / name, engines=engines or {"echo": Echo()},
                                  components=components, services=services)
         self.addAsyncCleanup(app.shutdown)
@@ -62,15 +63,19 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
                                             config={"policies": policies or {}})
         if self.tools in components:
             await (await project.components.aget("tools")).aenable("act")
+        definitions = agent_definitions if agent_definitions is not None else {
+            name: {"engine": name} for name in (engines or {"echo": None})}
+        for identifier, definition in definitions.items():
+            await project.agents.acreate(definition, identifier=identifier)
         return app, project, await project.sessions.acreate("test")
 
-    async def execute(self, session, engine="echo", text="hello", **options):
-        request = await session.run.submit(text, engine=engine, **options)
+    async def execute(self, session, agent_id="echo", text="hello", **options):
+        request = await session.run.submit(text, agent_id=agent_id, **options)
         return await request.wait(timeout=15)
 
     def loop(self, *responses):
         completion = ScriptedCompletion(*responses)
-        return LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}), completion
+        return LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)), completion
 
     async def test_queue_limit_cancel_and_status_do_not_interrupt_active_run(self):
         entered, release = asyncio.Event(), asyncio.Event()
@@ -83,11 +88,11 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
         app, _, session = await self.backend(engines={"slow": Slow(), "echo": Echo()},
                                          policies={"run": {"max_queued": 1}})
-        first = await session.run.submit("first", engine="slow")
+        first = await session.run.submit("first", agent_id="slow")
         await asyncio.wait_for(entered.wait(), 5)
-        second = await session.run.submit("second", engine="echo")
+        second = await session.run.submit("second", agent_id="echo")
         with self.assertRaises(RunRequestError) as raised:
-            await session.run.submit("overflow", engine="echo")
+            await session.run.submit("overflow", agent_id="echo")
         self.assertEqual(raised.exception.code, "queue_full")
         with patch.object(app.run_repository, "list", side_effect=AssertionError("history scan")):
             status = await session.run.astatus(queued_limit=1)
@@ -101,7 +106,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(raised.exception.code, "request_cancelled")
         self.assertFalse(await first.cancel())
         self.assertFalse(await second.cancel())
-        third = await session.run.submit("third", engine="echo")
+        third = await session.run.submit("third", agent_id="echo")
         release.set()
         self.assertEqual((await first.wait()).data.status, RunStatus.COMPLETED)
         self.assertEqual((await (await third.wait()).aresponse()).content, "third")
@@ -112,7 +117,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         app, project, session = await self.backend()
         store = app.project_manager.sessions.conversations(session.data)
         with app.project_manager.ownership.scope():
-            message = store.create(MessageRole.USER, "cancel", MessageStatus.QUEUED, metadata={"engine": "echo"})
+            message = store.create(MessageRole.USER, "cancel", MessageStatus.QUEUED, metadata={"agent_binding": AgentBinding.create(project.id, "echo", {"engine": "echo"})})
         request = await session.run.arequest(message.id)
         self.assertTrue(await request.cancel())
         await app.shutdown()
@@ -135,9 +140,9 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
         _, _, session = await self.backend(engines={"stuck": Stuck(), "echo": Echo()},
             policies={"run": {"timeout_seconds": 1}})
-        first = await session.run.submit("first", engine="stuck")
+        first = await session.run.submit("first", agent_id="stuck")
         await asyncio.wait_for(entered.wait(), 5)
-        second = await session.run.submit("second", engine="echo")
+        second = await session.run.submit("second", agent_id="echo")
         failed = await first.wait(timeout=10)
         self.assertEqual(failed.result.error_code, "run_timeout")
         self.assertEqual(failed.response.content, "partial")
@@ -147,7 +152,20 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
     async def test_loop_tool_denial_is_persisted_without_effects(self):
         loop, completion = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
+            agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"]}},
             policies={"tools": {"allowed_tools": []}})
+        blocked = await self.execute(session, "loop")
+        self.assertEqual(blocked.result.error_code, "tool_denied")
+        self.assertEqual(completion.requests, [])
+        self.assertEqual(self.effects, [])
+        # Root Agent selection cannot exceed the Project ceiling. Also retain
+        # the original per-invocation denial/receipt assertions below.
+        async def deny(invocation):
+            return False
+        _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
+            name="runtime-denial", policies={"tools": {"allowed_tools": ["act"]}},
+            agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"]}},
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=deny)))
         run = await self.execute(session, "loop")
         self.assertEqual(run.result.error_code, "tool_denied")
         step = next(item for item in run.steps.list() if item.kind == "tool")
@@ -178,8 +196,9 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         loop, _ = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")],
                             [chunk("answer"), chunk(finish="stop")])
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
+            agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"]}},
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize, runner=runner)))
-        request = await session.run.submit("hello", engine="loop")
+        request = await session.run.submit("hello", agent_id="loop")
         await asyncio.wait_for(entered.wait(), 5)
         active = await request.aget_run()
         steps = await active.steps.alist()
@@ -195,8 +214,9 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
 
         completion = ScriptedCompletion([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
-        loop = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'tool_timeout': .1, 'completion': {"model": "test/model"}})})
+        loop = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
+            agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"], "engine_options": {"policy": {"tool_timeout": .1}}}},
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         run = await self.execute(session, "loop")
         self.assertEqual(run.result.error_code, "tool_timeout")
@@ -208,6 +228,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(batch_size=batch_size):
                 loop, _ = self.loop([chunk('prelude'), chunk(calls=[call("{}", name="act")], finish="tool_calls")])
                 app, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
+            agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"]}},
                     name=f'batch-{batch_size}', policies={'output': {'batch_size': batch_size}})
                 save = app.step_manager.repository.save
                 seen = []
@@ -233,8 +254,9 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
         loop, _ = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
+            agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"]}},
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
-        request = await session.run.submit("hello", engine="loop")
+        request = await session.run.submit("hello", agent_id="loop")
         await asyncio.wait_for(entered.wait(), 5)
         self.assertTrue(await session.run.interrupt())
         run = await request.wait(timeout=5)
@@ -268,24 +290,27 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         for name in ("a", "b"):
             graph["nodes"][name] = {"type": "tool", "tool": "act", "arguments": {}}
         _, project, session = await self.backend(components=[self.tools, WorkflowComponent()],
-            engines={"graph": GraphEngine(handlers={"tool": ToolNode()})},
+            engines={"graph": GraphEngine(handlers={"tool": ToolNode()})}, agent_definitions={},
             policies={"tools": {"max_calls": 1}})
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
-        run = await self.execute(session, "graph", engine_options={"workflow": "flow"})
+        await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
+        run = await self.execute(session, "graph")
         self.assertEqual(run.result.error_code, "tool_budget_exceeded")
         self.assertLessEqual(len(self.effects), 1)
         self.assertEqual(run.data.status, RunStatus.FAILED)
 
     async def test_graph_agent_inherits_backend_tool_policy(self):
         completion = ScriptedCompletion([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
-        _, project, session = await self.backend(components=[self.tools, WorkflowComponent(), AgentComponent()],
-            engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})})},
+        worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))
+        _, project, session = await self.backend(components=[self.tools, WorkflowComponent()],
+            engines={"loop": worker, "graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": worker})})}, agent_definitions={},
             policies={"tools": {"allowed_tools": []}})
-        await (await project.components.aget("agents")).acreate({"engine": "loop", "purpose": "test", "completion": {"model": "test/model"},
+        await (project.agents).acreate({"engine": "loop", "purpose": "test", "completion": {"model": "test/model"},
             "tools": ["act"], "engine_options": {'policy': {'max_iterations': 2}}}, identifier="worker")
         graph = WorkflowGraph(entry="a").node("a", "agent", agent="worker").node("end", "end").connect("a", "end").to_dict()
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
-        run = await self.execute(session, "graph", engine_options={"workflow": "flow"})
+        await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
+        run = await self.execute(session, "graph")
         self.assertEqual(run.result.error_code, "tool_denied")
         self.assertEqual(self.effects, [])
 
@@ -293,6 +318,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         loop, completion = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         counter = lambda request: 100 if any(item.role == "tool" for item in request.messages) else 1
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
+            agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"]}},
             services=BackendServices(token_counters={"test": counter}))
         await configure_engine(session.project, "loop", input_policy={"max_tokens": 10, "counter": "test"})
         run = await self.execute(session, "loop")
@@ -309,6 +335,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             return 1
         loop, _ = self.loop([chunk("answer"), chunk(finish="stop")])
         _, _, session = await self.backend(engines={"loop": loop},
+            agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}}},
             services=BackendServices(token_counters={"test": count}))
         await configure_engine(session.project, "loop", input_policy={"max_tokens": 10, "counter": "test"})
         run = await self.execute(session, "loop")

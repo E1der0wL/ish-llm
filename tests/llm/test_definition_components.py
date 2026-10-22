@@ -79,7 +79,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(seen, ["제품 설명서"])
         for field in ("system_promt", "ui"):
             with self.subTest(field=field), self.assertRaises(ValueError):
-                await project.components.agents.aupdate("reviewer", {field: "invalid"})
+                await project.agents.aupdate("reviewer", {field: "invalid"},
+                    expected_revision=(await project.agents.asnapshot("reviewer"))["revision"])
         self.assertEqual(await project.components.rag.alist_documents(), [])
 
     def test_workflow_constructor_requires_explicit_metadata_container(self):
@@ -97,49 +98,66 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        self.app = LargeLanguageModel(self.root, engines={})
+        self.app = LargeLanguageModel(self.root)
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = self.app.projects.create("definitions", components=list(definitions()))
+        self.project = self.app.projects.create("definitions", components=[name for name in definitions() if name != "agents"])
+
+    def domain(self, name, project=None):
+        project = project or self.project
+        return project.agents if name == "agents" else project.components[name]
+
+    def revision(self, name, handle, identifier):
+        return {"expected_revision": handle.snapshot(identifier)["revision"]} if name == "agents" else {}
 
     async def test_default_availability_creates_only_selected_directories(self):
         empty = self.app.projects.create("empty")
-        for name in (*definitions(), "tools"):
+        for name in (*[key for key in definitions() if key != "agents"], "tools"):
             self.assertFalse((empty.paths.root / name).exists())
-        empty.components.select(["agents", "skills"])
-        self.assertTrue((empty.paths.root / "agents" / "records").is_dir())
+        empty.components.select(['skills'])
+        self.assertTrue((empty.paths.agents / "records").is_dir())
         self.assertFalse((empty.paths.root / "workflows").exists())
 
     async def test_all_components_crud_roundtrip_unknown_keys_and_clone(self):
+        from llm.engines.graph import GraphEngine
+        from llm.engines.graph.agent import AgentNode
+        async def retrieval(node):
+            raise AssertionError("CRUD reference discovery must not execute a handler")
+        self.app.engines.register("graph", GraphEngine(handlers={
+            "agent": AgentNode(engines=self.app.engines), "retrieval": retrieval}))
         for name, definition in definitions().items():
-            data = self.project.components[name]
+            data = self.domain(name)
             record = {**definition, "metadata": {"custom": {"label": "한글", "values": [1, None]}}}
-            with self.assertRaises(ValueError):
-                data.configure({'config': {'future_setting': {'v': 1}}})
+            if name == "agents":
+                self.assertFalse(hasattr(data, "configure"))
+            else:
+                with self.assertRaises(ValueError):
+                    data.configure({'config': {'future_setting': {'v': 1}}})
             data.create(record, identifier="example")
             loaded = data.load("example")
             self.assertEqual(loaded, record)
             loaded["metadata"]["custom"]["values"].append("detached")
             self.assertEqual(data.load("example"), record)
-            data.update("example", {"metadata": {"extra": True}})
+            data.update("example", {"metadata": {"extra": True}}, **self.revision(name, data, "example"))
         clone = self.project.clone()
         for name in definitions():
-            data, copied = self.project.components[name], clone.components[name]
+            data, copied = self.domain(name), self.domain(name, clone)
             self.assertEqual(data.list(), copied.list())
-            self.assertEqual(data.get_config(), copied.get_config())
-            data.delete("example")
+            if name != "agents":
+                self.assertEqual(data.get_config(), copied.get_config())
+            data.delete("example", **self.revision(name, data, "example"))
             self.assertEqual(data.list(), {})
             self.assertIn("example", copied.list())
 
     async def test_async_crud_uses_lifecycle_and_shutdown_guard(self):
         for name, value in definitions().items():
-            handle = await self.project.components.aget(name)
+            handle = self.domain(name)
             identifier = await handle.acreate(value)
             self.assertEqual(await handle.aload(identifier), value)
-            await handle.aupdate(identifier, {"metadata": {"future": 2}})
+            await handle.aupdate(identifier, {"metadata": {"future": 2}}, **self.revision(name, handle, identifier))
             replacement = {**value, "metadata": {"replacement": True}}
-            await handle.asave(identifier, replacement)
+            await handle.asave(identifier, replacement, **self.revision(name, handle, identifier))
             self.assertEqual(await handle.alist(), {identifier: replacement})
-            await handle.adelete(identifier)
+            await handle.adelete(identifier, **self.revision(name, handle, identifier))
         handle = await self.project.components.aget("skills")
         await self.app.shutdown()
         with self.assertRaises(RuntimeError):
@@ -156,13 +174,13 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             "workflows": [{"schema_version": 2}, {"schema_version": 1, "nodes": {}, "edges": []}],
         }
         for name, values in invalid.items():
-            handle = self.project.components[name]
+            handle = self.domain(name)
             original = definitions()[name]
             handle.create(original, identifier="valid")
             for value in values:
                 with self.subTest(component=name, value=value):
                     with self.assertRaises(ValueError):
-                        handle.save("valid", value)
+                        handle.save("valid", value, **self.revision(name, handle, "valid"))
                     self.assertEqual(handle.load("valid"), original)
 
     async def test_mcp_transports_are_data_not_connections(self):
@@ -185,8 +203,16 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_removal_invalidates_existing_handle_and_preserves_unselected_data(self):
         for name, value in definitions().items():
-            handle = self.project.components[name]
+            handle = self.domain(name)
             handle.create(value, identifier="kept")
+            if name == "agents":
+                self.assertNotIn("agents", self.project.data.components)
+                self.assertEqual(handle.load("kept"), value)
+                with self.assertRaisesRegex(ValueError, "referenced"):
+                    self.project.components.remove("skills")
+                self.assertEqual(handle.load("kept"), value)
+                handle.update("kept", {"resources": {"skills": []}}, **self.revision(name, handle, "kept"))
+                continue
             self.project.components.remove(name)
             with self.assertRaises(ValueError):
                 handle.load("kept")
@@ -208,21 +234,25 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
     async def test_definitions_reach_engine_as_detached_requested_snapshots(self):
         class Inspect(BaseEngine):
             required_capabilities = ("agents", "skills", "mcp", "rag", "workflows")
+            def for_agent(self, definition):
+                super().for_agent(definition)
+                return self
             async def run(engine, context):
                 engine.context = context
                 yield context.capabilities["agents"][0]["records"]["example"]["purpose"]
         engine = Inspect()
         self.app.engines.register("inspect", engine)
+        await self.project.agents.acreate({"engine": "inspect"}, identifier="inspect")
         for name, definition in definitions().items():
-            self.project.components[name].create(definition, identifier="example")
+            self.domain(name).create(definition, identifier="example")
         session = await self.project.sessions.acreate("read definitions")
-        request = await session.run.submit("read", engine="inspect")
+        request = await session.run.submit("read", agent_id="inspect")
         run = await asyncio.wait_for(request.wait(), 10)
         self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         self.assertEqual((await run.aresponse()).content, "코드 검토")
         self.assertEqual(set(engine.context.capabilities), set(definitions()))
         engine.context.capabilities["agents"][0]["records"]["example"]["purpose"] = "runtime"
-        self.assertEqual(self.project.components.agents.load("example")["purpose"], "코드 검토")
+        self.assertEqual(self.project.agents.load("example")["purpose"], "코드 검토")
         self.assertEqual(len(await run.steps.alist()), 1)
 
     async def test_unrequested_corrupt_graph_does_not_block_agent_engine(self):
@@ -231,9 +261,10 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             async def run(self, context):
                 yield "ok"
         self.app.engines.register("read", Read())
+        await self.project.agents.acreate({"engine": "read"}, identifier="read")
         atomic_json(self.project.paths.root / "workflows" / "records" / "invalid.json", {"nodes": []})
         session = self.project.sessions.create()
-        run = await (await session.run.submit("read", engine="read")).wait()
+        run = await (await session.run.submit("read", agent_id="read")).wait()
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
 
     async def test_requested_invalid_graph_fails_before_engine_execution(self):
@@ -243,9 +274,10 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
                 raise AssertionError("invalid graph must not enter engine")
                 yield "unreachable"
         self.app.engines.register("read", Read())
+        await self.project.agents.acreate({"engine": "read"}, identifier="read")
         atomic_json(self.project.paths.root / "workflows" / "records" / "invalid.json", {"nodes": []})
         session = self.project.sessions.create()
-        run = await (await session.run.submit("read", engine="read")).wait()
+        run = await (await session.run.submit("read", agent_id="read")).wait()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(run.result.error_code, "capability_failed")
         self.assertEqual(run.steps.list(), [])

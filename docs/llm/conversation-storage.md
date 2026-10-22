@@ -42,20 +42,21 @@ async def main():
         project = await backend.projects.acreate("메모리 대화", conversation_storage="memory",
             config={"parameters": {"engines": {"loop": {"config": {
                 "completion": {"model": model_name}}}}}})
+        await project.agents.acreate({"engine": "loop"}, identifier="loop")
         session = await project.sessions.acreate("대화 세션")
-        request = await session.run.submit("내 이름은 민수야.", engine="loop")
+        request = await session.run.submit("내 이름은 민수야.", agent_id="loop")
         run = await request.wait()
         print((await run.aresponse()).content)
 
         # 같은 Session의 다음 Run은 앞선 메시지를 문맥 정책에 따라 받는다.
-        request = await session.run.submit("내 이름이 뭐라고 했지?", engine="loop")
+        request = await session.run.submit("내 이름이 뭐라고 했지?", agent_id="loop")
         run = await request.wait()
         print((await run.aresponse()).content)
         history = await session.aconversation()
 ```
 
 모델 인증은 기존 SDK 환경변수 설정을 사용한다. `conversation_storage`는 저장 위치만
-바꾸며 모델이나 Engine을 선택하지 않는다. 모든 요청에 `engine=`을 지정해야 한다.
+바꾸며 모델이나 Engine을 선택하지 않는다. 모든 요청에 저장된 `agent_id`를 지정해야 한다.
 `project.sessions.load()`로 다시 얻은 핸들과 Run/응답 조회도 같은 저장소를 사용한다.
 
 ## 수명과 저장 범위

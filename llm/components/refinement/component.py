@@ -98,6 +98,11 @@ class RefinementComponent(DefinitionComponent):
                 *(ref for evaluation in record.get("evaluations", []) for ref in evaluation.get("evidence", [])),
                 *(evaluation.get("source", {}) for evaluation in record.get("evaluations", []))] if "run_id" in ref})}
 
+    def references(self, project):
+        """Agent proposals retain their target identity until the proposal is removed."""
+        return [{"component": "agents", "identifier": value["target"]["identifier"], "source": identifier}
+                for identifier, value in self.list(project).items() if value["target"]["component"] == "agents"]
+
     def resolve(self, project, capability):
         raise ValueError("Refinement capabilities require a lifecycle-bound component data factory")
 

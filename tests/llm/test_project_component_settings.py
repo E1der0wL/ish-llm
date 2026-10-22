@@ -110,7 +110,8 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         await data.aenable("echo")
         self.assertEqual((await project.aget_data()).config.parameters.setdefault("components", {})["tools"]['config']['enabled'], ["echo"])
         session = await project.sessions.acreate()
-        run = await (await session.run.submit("hello", engine="loop")).wait()
+        await session.project.agents.acreate({'engine': 'loop', 'tools': ['echo']}, identifier="loop")
+        run = await (await session.run.submit("hello", agent_id="loop")).wait()
         self.assertEqual((await run.aget_data()).status, "completed")
         self.assertEqual(provider.requests[0]["tools"][0]["function"]["name"], "echo")
         await data.adisable("echo")
@@ -206,7 +207,8 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         with patch("llm.services.runtime.runs.consume_events", side_effect=consume):
             for item in (project, other):
                 session = await item.sessions.acreate()
-                run = await (await session.run.submit("go", engine="loop")).wait()
+                await session.project.agents.acreate({'engine': 'loop'}, identifier="loop")
+                run = await (await session.run.submit("go", agent_id="loop")).wait()
                 self.assertEqual((await run.aget_data()).status, "completed")
         self.assertEqual(seen, [OutputBuffer(batch_size=4, max_delay=.04, max_chars=50), host])
         self.assertEqual(app.services.output_buffer, host)

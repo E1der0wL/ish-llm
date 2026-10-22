@@ -1,6 +1,6 @@
 # 클린 리팩터링 설계와 구현 게이트
 
-**현재 상태와 증거: [A Provider 검증](provider-refactor-verification.md), [P1 실행 기록](p1-verification.md), [수명주기 검증](lifecycle-verification.md).** 기준은 main
+**현재 상태와 증거: [B/C Agent 검증](agent-refactor-verification.md), [A Provider 검증](provider-refactor-verification.md), [P1 실행 기록](p1-verification.md), [수명주기 검증](lifecycle-verification.md).** 기준은 main
 `94229cb865374d99f20ec48c5e48269488041a4e`이며 `refactor/llm-clean`에서 시작한다.
 기존 `refactor/llm-backend`의 코드/커밋을 cherry-pick·merge하지 않는다. main과 기존 Draft PR #1은
 변경하지 않는다. [현행 구조](architecture.md)와 이 목표 구조를 구분한다.
@@ -32,6 +32,11 @@ Level 1–3을 따른다. 차용한 설계/테스트와 채택하지 않은 구�
 
 A Provider의 현재 로컬 Level 3는 전체 LLM 2137/Hub 577 및 S1–S6 통과다.
 원격 CI 상태와 남은 확인은 [A 검증 기록](provider-refactor-verification.md)을 따른다.
+
+B/C 독립 Agent와 root/nested 실행·Hub 소비자 전환은 통합 로컬 Level 3를 통과했다.
+전체 LLM 2170/Hub 581, R3 Mutation·S1–S6·문서·실환경 검증 결과와 첫 실패/수정 기록은
+[B/C 검증 기록](agent-refactor-verification.md)을 따른다. 이 결과는 D1/D2 이후 단계 완료를 뜻하지
+않으며, B/C 원격 CI는 Push한 정확한 SHA의 실제 결과 확인 전까지 미확인이다.
 
 ## 필수 원칙
 

@@ -27,7 +27,7 @@ class NamingTests(unittest.IsolatedAsyncioTestCase):
             return LargeLanguageModel(config.workspace, engines={
                 "review": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=answer)), TITLE_ENGINE: TitleEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=title))})
         with tempfile.TemporaryDirectory() as root:
-            runtime = HubRuntime(HubConfig(root, engine="review"), factory)
+            runtime = HubRuntime(HubConfig(root, agent_definition={"engine": "review"}), factory)
             try:
                 await runtime.start()
                 identifier = await runtime.new_session()

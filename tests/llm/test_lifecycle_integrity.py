@@ -1,5 +1,7 @@
 """Stored absence never restores authority, quota, identity or lost messages."""
 
+from llm.core.agents import AgentBinding
+
 import json
 from copy import deepcopy
 from pathlib import Path
@@ -193,7 +195,7 @@ class DomainRecordTests(unittest.TestCase):
     def test_every_serialized_field_is_required_on_domain_read(self):
         runs = RunRepository()
         run_id = new_id()
-        run = Run(run_id, self.session.id, new_id(), new_id(), 'loop', runs.paths(self.session, run_id))
+        run = Run(run_id, self.session.id, new_id(), new_id(), 'loop', runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'loop'})})
         runs.create(run)
         steps = StepRepository()
         step_id = new_id()
@@ -221,6 +223,7 @@ class DomainRecordTests(unittest.TestCase):
 
 
 class RefinementIntegrityTests(unittest.IsolatedAsyncioTestCase):
+    create_agent = test_refinement.RefinementTests.create_agent
     asyncSetUp = test_refinement.RefinementTests.asyncSetUp
     proposal = test_refinement.RefinementTests.proposal
     approve = test_refinement.RefinementTests.approve

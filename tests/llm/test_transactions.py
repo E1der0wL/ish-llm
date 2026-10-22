@@ -1,3 +1,4 @@
+from llm.core.agents import AgentBinding
 """복합 저장의 실제 실패·프로세스 종료·재복구와 도메인 경계를 검증한다."""
 
 import json
@@ -253,7 +254,7 @@ class DomainTransactionTests(unittest.TestCase):
         self.store = self.manager._store(self.session)
         with self.projects.ownership.scope():
             self.message = self.store.create(MessageRole.USER, "request", MessageStatus.QUEUED,
-                                             metadata={"engine": "explicit"})
+                                             metadata={"agent_binding": AgentBinding.create(self.project.id, "fixture", {"engine": "explicit"})})
 
     def begin(self):
         if not self.projects.ownership.session_attached((self.session.project_id, self.session.id)):
@@ -369,6 +370,7 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
         self.app.events.subscribe(lambda run, event: self.events.append(event), channel="engine")
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate()
+        await self.project.agents.acreate({"engine": "test"}, identifier="test")
         self.session = await self.project.sessions.acreate()
 
     async def test_delta_failure_rolls_back_journal_and_does_not_notify(self):
@@ -377,7 +379,7 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
             original(store, *args, **kwargs)
             raise OSError("conversation fsync failed")
         with patch.object(ConversationStore, "delta", fail):
-            run = await (await self.session.run.submit("request", engine="test")).wait(timeout=10)
+            run = await (await self.session.run.submit("request", agent_id="test")).wait(timeout=10)
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual((await run.aresponse()).content, "")
         self.assertEqual(await run.aoutput_events(), [])
@@ -390,7 +392,7 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
                 raise OSError("step completion failed")
             return original(step)
         with patch.object(self.app.step_manager, "save", fail):
-            run = await (await self.session.run.submit("request", engine="test")).wait(timeout=10)
+            run = await (await self.session.run.submit("request", agent_id="test")).wait(timeout=10)
         self.assertEqual(run.data.status, RunStatus.FAILED)
         outputs = await run.aoutput_events()
         self.assertEqual([o.sequence for o in outputs], [1])
@@ -409,7 +411,7 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(OSError):
                 await manager.start()
         self.assertEqual(self.app.project_manager.ownership.attached_sessions, ())
-        run = await (await self.session.run.submit("retry start", engine="test")).wait(timeout=10)
+        run = await (await self.session.run.submit("retry start", agent_id="test")).wait(timeout=10)
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
 
     async def test_uncertain_commit_error_releases_runtime_claim_without_undoing_disk(self):
@@ -424,5 +426,5 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(OSError):
                 await manager.start()
         self.assertEqual(self.app.project_manager.ownership.attached_sessions, ())
-        run = await (await self.session.run.submit("retry start", engine="test")).wait(timeout=10)
+        run = await (await self.session.run.submit("retry start", agent_id="test")).wait(timeout=10)
         self.assertEqual(run.data.status, RunStatus.COMPLETED)

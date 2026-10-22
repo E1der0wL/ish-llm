@@ -29,8 +29,9 @@ async def run(workspace):
                  .node("done", "end").connect("review", "done").to_dict())
         await project.components.workflows.acreate(graph, identifier="review")
         session = await project.sessions.acreate()
-        handle = await session.run.submit("Review", engine="graph",
-                                         engine_options={"workflow": "review"})
+        await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "review"}},
+                                     identifier="coordinator")
+        handle = await session.run.submit("Review", agent_id="coordinator")
         return await handle.wait()
 ```
 

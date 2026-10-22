@@ -13,7 +13,7 @@ if hub_plugin is not None:
         prompt,
         config=hub_plugin.HubConfig(
             workspace=Path.home() / ".ish/hub-workspace",
-            engine="loop",
+
             model="openai/YOUR_MODEL",
             language="ko",  # ko / en
             # user_profile=hub_plugin.UserProfile(display_name="My name"),  # Defaults to the OS account.

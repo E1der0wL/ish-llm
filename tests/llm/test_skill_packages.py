@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from llm.llm import LargeLanguageModel
 from llm.components.skills import SkillComponent
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.services.infrastructure.storage import revision_token
 
 
@@ -17,9 +17,9 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.component = SkillComponent()
-        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, AgentComponent()])
+        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component])
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate(components=["skills", "agents"])
+        self.project = await self.app.projects.acreate(components=['skills'])
         self.skills = self.project.components.skills
         await self.skills.acreate({"instructions": "Check the reference."}, identifier="guide")
 
@@ -59,7 +59,7 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
         clone = await self.project.aclone()
         self.assertEqual(await clone.components.skills.aread_file("guide", "examples/sample.bin", offset=1, length=2), b"\xffa")
         await self.project.abackup(self.root / "backup")
-        async with LargeLanguageModel(self.root / "restored", components=[SkillComponent(), AgentComponent()]) as other:
+        async with LargeLanguageModel(self.root / "restored", components=[SkillComponent()]) as other:
             restored = await other.projects.arestore_backup(self.root / "backup")
             self.assertEqual(await restored.components.skills.asnapshot("guide"), await self.skills.asnapshot("guide"))
             self.assertEqual(await restored.components.skills.aread_file("guide", "examples/sample.bin"), b"\x00\xffabc")
@@ -71,10 +71,10 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "referenced"):
             await self.skills.adelete("guide")
         await self.skills.adelete("child")
-        await self.project.components.agents.acreate({"purpose": "Use guide", "engine": "loop", "resources": {"skills": ["guide"]}}, identifier="reviewer")
+        await self.project.agents.acreate({"purpose": "Use guide", "engine": "loop", "resources": {"skills": ["guide"]}}, identifier="reviewer")
         with self.assertRaisesRegex(ValueError, "referenced"):
             await self.skills.adelete("guide")
-        await self.project.components.agents.adelete("reviewer")
+        await self.project.agents.adelete("reviewer", expected_revision=(await self.project.agents.asnapshot("reviewer"))["revision"])
         await self.skills.adelete("guide")
         self.assertFalse((self.project.paths.root / "skills/guide").exists())
 

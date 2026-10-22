@@ -14,7 +14,7 @@ from time import perf_counter
 from uuid import uuid4
 
 from contextlib import aclosing
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.rag import RAGComponent
 from llm.components.prompts import PromptComponent
 from llm.components.rag.prompts import default_prompt
@@ -217,13 +217,13 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
         extraction = config.parameters.setdefault("components", {}).setdefault("rag", {}).setdefault("config", {}).setdefault("extraction", {})
         prompt_id = extraction.get("prompt_id") or "rag-triples"
         extraction["prompt_id"] = prompt_id
-        components = [rag_component or RAGComponent(), AgentComponent(), WorkflowComponent(), PromptComponent()]
+        components = [rag_component or RAGComponent(), WorkflowComponent(), PromptComponent()]
         engines = {"loop": loop, "graph": graph}
         async with LargeLanguageModel(workspace, components=components, engines=engines) as backend:
             backend.events.subscribe(observe, channel="engine")
             project = await phase("create_project", backend.projects.acreate(
                 "Graph and RAG integration test", config=config,
-                components=["rag", "agents", "workflows", "prompts"], conversation_storage="file"))
+                components=['rag', 'workflows', 'prompts'], conversation_storage="file"))
             report.update(project_id=project.id, project=str(project.paths.root))
             if display:
                 print(f"Project: {project.paths.root}", flush=True)
@@ -273,7 +273,7 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
                 report["search"]["standalone_rerank"] = ranked
                 check_ranked("standalone_rerank", ranked, document)
 
-            agents = await project.components.aget("agents")
+            agents = project.agents
             workflows = await project.components.aget("workflows")
             await agents.acreate({"engine": "loop", "purpose": "Answer using the project documentation",
                 "completion": dict(config.parameters["engines"]["loop"]["config"]["completion"]), "tools": [],
@@ -286,9 +286,10 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
             definition = make_workflow(max_attempts)
             await workflows.acreate(definition, identifier="rag-workflow")
             check("workflow_roundtrip", await workflows.aload("rag-workflow") == definition)
+            await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "rag-workflow"}}, identifier="rag-workflow-agent")
             session = await project.sessions.acreate("RAG-backed Graph request")
             report["session_id"] = session.id
-            request = await session.run.submit(query, engine="graph", engine_options={"workflow": "rag-workflow"})
+            request = await session.run.submit(query, agent_id="rag-workflow-agent")
             handle = await phase("graph_execution", request.wait())
             report["run_id"] = handle.id
             result, steps = await handle.aresult(), await handle.steps.alist()

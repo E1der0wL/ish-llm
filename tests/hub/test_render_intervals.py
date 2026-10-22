@@ -30,7 +30,7 @@ class FailedEngine(ControlledEngine):
 class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
     async def test_failed_runs_replace_waiting_and_preserve_partial_output(self):
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, "loop", "test/model", auto_title=False),
+            runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False),
                 lambda config: LargeLanguageModel(config.workspace, components=[], engines={"loop": FailedEngine(None)}))
             view = LiveHubView()
             try:

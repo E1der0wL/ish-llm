@@ -20,10 +20,11 @@ from llm.engines.loop import LoopEngine
 
 engines = {"assistant": LoopEngine()}
 # LargeLanguageModel(..., engines=engines)에 전달한 뒤:
-# request = await session.run.submit("문서를 설명해줘", engine="assistant")
+# await project.agents.acreate({"engine": "assistant"}, identifier="assistant")
+# request = await session.run.submit("문서를 설명해줘", agent_id="assistant")
 ```
 
-등록 이름에 맞춰 `ProjectConfig.parameters["engines"]["assistant"]`에 설정합니다. `parameter_key`을 명시하면 별도 설정 키를 사용할 수 있습니다. 요청마다 Engine 이름을 지정합니다.
+등록 이름에 맞춰 `ProjectConfig.parameters["engines"]["assistant"]`에 설정합니다. `parameter_key`을 명시하면 별도 설정 키를 사용할 수 있습니다. 요청마다 저장 Agent ID를 지정합니다.
 
 ## 한 반복의 흐름
 

@@ -84,7 +84,7 @@ WSL에서 **ish를 실행하기 전** 환경변수로 지정합니다.
 export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ```
 
-ish를 실행하고 Ctrl+Q로 Hub를 연 다음 `/engine loop`로 엔진을 지정합니다. 입력창에서
+ish를 실행하고 Ctrl+Q로 Hub를 연 다음 `/agent assistant`로 저장된 Agent를 지정합니다. 입력창에서
 설정 보조 버튼에서 엔진 · loop를 선택해 프로젝트의 `config.parameters.engines.loop.config.completion` 설정을 엽니다.
 
 | 항목 | 시험 설정 |
@@ -217,7 +217,7 @@ if hub_plugin is not None:
         prompt,
         config=hub_plugin.HubConfig(
             workspace=Path.home() / ".ish/hub-workspace",
-            engine="loop",
+            agent_id="assistant",
             model="openai/YOUR_MODEL",
             language="ko",  # "en"도 지원
             # api_base="https://YOUR_SERVER/v1",
@@ -307,8 +307,9 @@ Hub가 열린 동안 들어온 셸 출력은 원래 셸 화면에 남습니다.
 ## 엔진 등록과 언어팩
 
 `.ishrc.py`에서 엔진 인스턴스를 만드는 함수를 등록합니다. 생성은 백엔드 스레드에서
-수행되며 `/engine 이름`으로 다음 요청의 엔진을 지정합니다. 이미 예약된 요청의 엔진은
-바뀌지 않습니다. `engine`은 처음 선택할 엔진이며, `loop`와 `graph`는 기본 등록합니다.
+수행되며 `/agent ID`로 다음 요청의 저장 Agent를 지정합니다. 이미 접수된 요청의 binding은
+바뀌지 않습니다. `agent_id`는 기본 선택 ID이며 `agent_definition`은 새 Project에 저장할
+명시적 정의입니다. 생략하면 Hub의 생성 프리셋을 저장합니다. 기존 Project에는 재주입하지 않습니다.
 
 ```python
 from llm.engines.loop import LoopEngine
@@ -316,7 +317,7 @@ from llm.engines.loop import LoopEngine
 config = hub_plugin.HubConfig(
     workspace=Path.home() / ".ish/hub-gemini",
     model="gemini/gemini-2.5-flash",
-    engine="loop",
+    agent_id="assistant",
     language="ko",
     file_root=Path.cwd(),
     engine_factories={
@@ -430,15 +431,12 @@ Ctrl+Q로 셸 프롬프트에 돌아가 있어도 알림이 표시되며 입력 
 실행·예약 요청·자동 이름 생성이 진행 중이면 삭제를 막습니다. 마지막 세션을 삭제하면
 안내 화면을 표시하며, 다음 세션은 사용자가 직접 생성합니다.
 
-### 요청별 Graph Workflow 선택
+### 저장된 Agent로 Graph Workflow 선택
 
-엔진 선택 팝업과 Ctrl+E 키는 제거했습니다. `/engine <엔진명>` 직접 지정은 유지합니다.
-Graph 전용 페이지는 추후 구현하며, 현재는 공개 API의 요청별 `engine_options`로 Workflow를 지정합니다.
+`/agent ID`는 Project의 실제 Agent를 선택하고 `/agents`는 정의 관리 화면을 엽니다.
+Engine 등록은 실행 전략을 제공하며, 등록만으로 Agent가 생성되지는 않습니다.
 
 ```python
-from llm.components.agents import AgentComponent
-from llm.components.tools import ToolComponent
-from llm.components.workflows import WorkflowComponent
 from llm.engines.graph import GraphEngine
 from llm.engines.graph.agent import AgentNode
 from llm.engines.graph.tool import ToolNode
@@ -450,29 +448,25 @@ def make_graph():
         "tool": ToolNode(),
     })
 
-# 기존 HubConfig에 아래 항목을 추가합니다.
-# engine_factories={"graph": make_graph},
-# component_factories=(ToolComponent, WorkflowComponent, AgentComponent),
+# HubConfig(engine_factories={"graph": make_graph}, ...)로 등록한 뒤
+# 해당 Project에 Workflow와 참조 Agent/Tool 정의를 먼저 저장한다.
+await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": workflow_id}},
+                             identifier="coordinator")
 ```
 
-새 프로젝트에는 모든 내장 컴포넌트가 등록됩니다. 기존 프로젝트의 선택은 보존되며,
-추가 활성화가 필요하면 llm의 공개 `Project.components.aselect()` API로 선택을 변경합니다.
-Workflow와 참조 Agent/Tool 정의는 llm 공개 API로 미리 등록해야 합니다.
-[Workflow 등록](../llm/components/workflows/README.md)과
-[Agent/Graph 예제](../docs/llm/graph-engine.md)를 참고하세요. 홈에는 Workflow 선택창이 없으며,
-등록된 Workflow 편집은 `/workflows config` 관리 창에서 할 수 있습니다.
+Workflow는 [공개 정의 API](../llm/components/workflows/README.md)로 저장합니다.
+Agent는 Component 선택과 독립된 Project 도메인입니다. 등록한 Workflow는
+`/workflows config`에서 편집합니다. 필요한 Component 선택은 `project.components.aselect()`로 변경합니다.
 
-Hub 확장 코드에서 `view.set_execution("graph", {"workflow": workflow_id})`로 지정한 옵션은
-전송 시 `session.run.submit(text, engine=name, engine_options=options)`에 전달합니다.
-선택값은 프로젝트·세션·엔진별로 Hub 실행 중 기억하고, 재시작 후에는 다시 지정합니다.
-이미 접수된 요청의 옵션은 llm 저장소에 남으므로 이후 UI 선택 변경에 영향을
-받지 않습니다. 예약 요청은 해당 ID의 정의를 실행 시작 시 읽으므로 정의 내용까지 접수 시점에
-고정되는 것은 아닙니다. `/engine graph`는 엔진만 전환하므로 Workflow 옵션이 없으면 요청
-접수가 거절되며 입력은 복구됩니다. 실행 카탈로그·요청 옵션 API는 Graph 전용 페이지에서도 재사용합니다.
+Hub 확장에서는 `view.choose_agent("coordinator")`로 선택합니다. 전송은
+`session.run.submit(text, agent_id=..., request_context=...)`를 사용합니다.
+셸 환경은 request_context에 별도로 보존하며 저장 Agent 정의에 합치지 않습니다.
+선택은 Project·Session별로 유지하고 접수된 요청은 Agent 정의·revision·Engine binding을 고정합니다.
+실행·재개 전 필수 증거를 검증하며 선택된 정의가 달라지면 실행을 거부합니다.
 
-입력창 명령은 `/help`, `/engine`, `/new`, `/clone`, `/stop`, `/details`입니다.
+입력창 명령은 `/help`, `/agent`, `/agents`, `/new`, `/clone`, `/stop`, `/details`입니다.
 `/new 이름`, `/clone 이름`은 이름이 채워진 확인 창을 엽니다. `/`는 명령,
-`/engine `은 엔진, `@src/`는 지정한 루트 아래 경로 후보를 자동으로 표시합니다.
+`/agent `는 저장 Agent, `@src/`는 지정한 루트 아래 경로 후보를 표시합니다.
 방향키 ↑↓로 완성 후보를 선택하고 Tab으로 확정합니다. 후보를 고르기 전 Tab을 누르면
 첫 후보를 확정합니다. Ctrl+Space는 미확정 후보를 취소하고 원래 입력에 줄바꿈을 넣습니다.
 ESC로 좌측 패널에 이동하면
@@ -903,7 +897,7 @@ RAG 관리 창의 가져오기·수정은 같은 진행 표시를 사용합니�
 - `widget/header.py`, `widget/forms/session_form.py`: 공통 상단 바와 세션 생성/복제 폼.
 - `ui/layout/`: 대화·설정 화면에서 공유하는 페이지 배치.
 - `ui/output/`: Markdown/XML 파싱과 출력 렌더러 레지스트리.
-- `backend/execution/engine_selection.py`: 등록된 공개 Hub 엔진 목록.
+- `backend/execution/engine_selection.py`: 저장 Agent의 선택과 Engine 설정 조회.
 - `backend/project/settings.py`: 공개 llm API를 통한 설정 검증·저장·프로젝트 관리.
 - `config/preferences.py`: workspace 공통 프로필·모양 설정 저장.
 - `__init__.py`: 플러그인 패키지.

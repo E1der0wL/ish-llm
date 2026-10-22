@@ -1,5 +1,9 @@
 # Project 설정과 UI 연결
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 Project는 서비스가 집행하는 `policies`와 구현체에 전달하는 `parameters`를 저장한다.
 전달 인자는 대상별 JSON 딕셔너리이며, 해당 구현체가 스키마와 의미를 소유한다.
 Project는 SDK 옵션을 해석하거나 이름이 같은 인자를 여러 대상에 배포하지 않는다.
@@ -18,7 +22,7 @@ project = await backend.projects.acreate(
 session = await project.sessions.acreate("대화", config={
     "parameters": {"engines": {"loop": {'policy': {'request_timeout': 60}}}},
 })
-request = await session.run.submit("안녕하세요", engine="loop")
+request = await session.run.submit("안녕하세요", agent_id="loop")
 ```
 
 숫자와 모델은 예제의 명시적 선택이다. Session은 Project의 300초 제한을 60초로 좁힌다.
@@ -72,7 +76,7 @@ Session override까지 보고 싶으면 `session.adescribe_config()`을 사용�
 ## 애플리케이션의 생성·선택 정책
 
 llm은 기본 Project/Session, 최근 선택, UI 기본 엔진, 초기 설정 템플릿을 관리하지 않는다.
-일반 create/load/list/clone/delete와 명시적 `submit(engine=...)`만 사용한다.
+일반 create/load/list/clone/delete와 명시적 `submit(agent_id=...)`만 사용한다.
 Hub는 자기 `.hub/` 상태와 시작 잠금을 소유하고 공개 llm API로 첫 Project를 만든다.
 다른 플러그인은 Hub에 의존하지 않고 자신의 정책을 구현할 수 있다. title/id/components/
 conversation_storage는 그대로 Project의 수명 속성이며 parameters로 옮기지 않는다.

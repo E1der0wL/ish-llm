@@ -113,7 +113,12 @@ Application의 자동화도 Backend에 명시적인 대상과 작업을 요청�
 | revision_token/check_revision, tree_snapshot, generation/revision | 계획 이후 변경·ABA·stale 적용 검출 | 적용 시 최신 원본과 참조를 다시 확인; 동시 삭제 우회 금지 |
 | Checkpoint/TurnDeletion/Job 계획 | 명시 대상·blockers·계보·lease 검증 | 정상 삭제와 손상 격리의 허용 조건을 혼합하지 않음 |
 | DirectoryBackups, Repository.read_backup, Component.validate_backup | 체크섬·staging·owner 검증·새 대상 공개 | checksum 성공을 의미 무결성으로 보고하지 않음. 중앙에서 하위 형식 해석 금지 |
-| Component.references/history_references | 소비 owner가 실제 참조를 제공 | 비활성 Component·상위 삭제도 확인. 모르는 참조를 임의로 없다고 판단하지 않음 |
+| ProjectReferences·AgentManager 및 Component/Engine/handler의 참조 계약 | 소비 owner가 실제 참조를 제공 | 모든 저장 Agent·비활성 Component·상위 삭제도 확인. 미등록 참조 owner는 fail-fast하며 참조 없음으로 추정하지 않음 |
+
+B/C 전환에서는 독립 Agent 기록·필수 목록과 User/Run의 불변 AgentBinding을 추가했다.
+Workflow handler·Skill·Refinement의 저장 참조도 공개 Agent 도메인과 revision/CAS를 따른다.
+변경된 자료군의 검증은 [B/C Agent 검증](agent-refactor-verification.md)에 기록하며, 아래 과거
+38개 데이터군 감사와 H1–H5 실행 결과를 새 구현의 증거로 덮어쓰지 않는다.
 
 트랜잭션의 삭제용 임시 rename은 지속적인 손상 격리가 아니다. 이미 안전성 검증과 삭제
 확정을 마친 작업의 GC·중단 복구는 기존 결정의 기술적 완료다. 인프라는 새로운 대상을

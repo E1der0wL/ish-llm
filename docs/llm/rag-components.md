@@ -1,5 +1,9 @@
 # 통합 RAG 컴포넌트
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 문서 분할, 임베딩, 트리플 추출, BM25/Chroma/Kuzu 색인과 검색은 모두
 `llm/components/rag`가 담당한다. 공개 컴포넌트와 Project 디렉토리는 `rag` 하나다.
 문서 등록 시 임베딩과 관계를 함께 준비하고, 검색 시 문서와 관련 관계·출처를 함께 반환한다.
@@ -114,7 +118,7 @@ Project가 `rag`를 선택하면 `rag_search` Tool 하나가 자동 제공된다
 
 ```python
 session = await project.sessions.acreate("설명서 질문")
-run = await (await session.run.submit("설명서를 검색해서 백업 정책을 설명해 줘", engine="loop")).wait()
+run = await (await session.run.submit("설명서를 검색해서 백업 정책을 설명해 줘", agent_id="loop")).wait()
 steps = await run.steps.alist()
 response = await run.aresponse()
 ```

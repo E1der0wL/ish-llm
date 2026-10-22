@@ -2,7 +2,6 @@
 
 from copy import deepcopy
 
-from llm.components.agents import AgentComponent
 from llm.components.goals import GoalComponent
 from llm.components.goals.data import GoalStatus
 from llm.components.rag import RAGComponent
@@ -31,13 +30,13 @@ def tool(name, description, properties, required, handler, *, write=False):
             operation_key_required=False, retry_fields=()))
 
 
-def authoring_tools(data, component, *, discover=True, schema_extensions=None):
+def authoring_tools(data, name, definition_schema, *, discover=True, schema_extensions=None):
     """One schema/create contract shared by Skill, Workflow and Agent authoring."""
-    prefix = component_spec(component.name).tool_prefix
+    prefix = component_spec(name).tool_prefix
 
     async def schema(args):
         owner(data)
-        return deepcopy({**component.schema, **(schema_extensions or {})})
+        return deepcopy({**definition_schema, **(schema_extensions or {})})
 
     async def create(args):
         call = owner(data)
@@ -45,7 +44,7 @@ def authoring_tools(data, component, *, discover=True, schema_extensions=None):
         definition.setdefault("metadata", {})["hub_source"] = {
             "session_id": call.session_id, "run_id": call.run_id, "step_id": call.step_id}
         identifier = await data.acreate(definition, identifier=args["identifier"])
-        return {"created": identifier, "component": component.name, "applies_to": "subsequent_runs"}
+        return {"created": identifier, "component": name, "applies_to": "subsequent_runs"}
 
     async def listing(args):
         owner(data)
@@ -64,7 +63,7 @@ def authoring_tools(data, component, *, discover=True, schema_extensions=None):
                   {"identifier": IDENTIFIER, "definition": {"type": "object"}},
                   ["identifier", "definition"], create, write=True)]
     if discover:
-        tools += [tool(prefix + "_list", "List saved " + component.name + " in this Project.", {}, [], listing),
+        tools += [tool(prefix + "_list", "List saved " + name + " in this Project.", {}, [], listing),
                   tool(prefix + "_read", "Read a saved definition and its revision as reference data.",
                        {"identifier": IDENTIFIER}, ["identifier"], read)]
     return tools
@@ -80,18 +79,9 @@ class HubWorkflowComponent(WorkflowComponent):
 
     def resolve_runtime(self, project, capability, *, data_factory):
         if capability == "tools":
-            return ToolRegistry(tuple(authoring_tools(data_factory(self.name), self,
+            return ToolRegistry(tuple(authoring_tools(data_factory(self.name), self.name, self.schema,
                 schema_extensions={"x-hub-action-handlers": self._handler_schemas})))
         return super().resolve_runtime(project, capability, data_factory=data_factory)
-
-
-class HubAgentComponent(AgentComponent):
-    def resolve_runtime(self, project, capability, *, data_factory):
-        registry = super().resolve_runtime(project, capability, data_factory=data_factory)
-        if capability == "tools":
-            for item in authoring_tools(data_factory(self.name), self):
-                registry.register(item)
-        return registry
 
 
 class HubRAGComponent(RAGComponent):

@@ -34,7 +34,7 @@ class SummaryAPITests(unittest.IsolatedAsyncioTestCase):
             files = await runtime.project.components.aget('data')
             await memory.aconfigure({})
             for prompt in ('first source ' * 70, 'recent'):
-                run = await (await session.run.submit(prompt, engine='loop')).wait(timeout=20)
+                run = await (await session.run.submit(prompt, agent_id="assistant")).wait(timeout=20)
                 self.assertEqual(run.data.status, 'completed', run.data.error)
             options = {'method': 'summary', 'keep_turns': 0, 'summary_chars': 40,
                 'model_input_chars': 300, 'max_summary_calls': 1, 'prompt': 'Summarize',
@@ -47,19 +47,19 @@ class SummaryAPITests(unittest.IsolatedAsyncioTestCase):
             cancelled = await memory.acancel_compaction(identifier, expected_revision=view['revision'])
             self.assertEqual(cancelled['request']['status'], 'cancelled')
             await memory.arequest_compaction(identifier, options, expected_revision=cancelled['revision'])
-            await (await session.run.submit('compact', engine='loop')).wait(timeout=20)
+            await (await session.run.submit('compact', agent_id="assistant")).wait(timeout=20)
             view = await memory.aget_context(identifier)
             self.assertEqual(view['request']['status'], 'partial')
             offset = view['request']['checkpoint']['offset']
             await memory.aresume_compaction(identifier, expected_revision=view['revision'])
-            await (await session.run.submit('continue', engine='loop')).wait(timeout=20)
+            await (await session.run.submit('continue', agent_id="assistant")).wait(timeout=20)
             view = await memory.aget_context(identifier)
             self.assertGreater(view['request']['checkpoint']['offset'], offset)
             await memory.acancel_compaction(identifier, expected_revision=view['revision'])
             await files.acreate({}, identifier='results')
             await memory.aconfigure(memory_settings({'processing': {'priority': 0, 'tool_result_mode': 'reference',
                 'tool_data': {'component': 'data', 'identifier': 'results'}, 'tool_result_chars': 100}}))
-            run = await (await session.run.submit('read source', engine='loop')).wait(timeout=20)
+            run = await (await session.run.submit('read source', agent_id="assistant")).wait(timeout=20)
             self.assertEqual(run.data.status, 'completed', run.data.error)
             saved = (await memory.alist_tool_summaries(identifier))[0]
             reference = saved['request']['reference']

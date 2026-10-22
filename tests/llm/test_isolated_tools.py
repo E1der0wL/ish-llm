@@ -19,6 +19,7 @@ from llm.engines.graph import GraphEngine
 from llm.engines.graph.tool import ToolNode
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from contextlib import aclosing
+from llm.engines.base import BaseEngine
 from llm.llm import LargeLanguageModel
 from llm.services.composition import BackendServices
 from llm.services.runtime.tools import ToolCall, ToolExecutor, ToolRuntime
@@ -27,7 +28,7 @@ from llm.policies import ExecutionLimitError
 from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
-class ToolEngine:
+class ToolEngine(BaseEngine):
     required_capabilities = ("tools",)
 
     def __init__(self, arguments=None):
@@ -79,6 +80,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
         self.app = self.open()
         self.project = await self.app.projects.acreate("test", components=["tools"])
         await (await self.project.components.aget("tools")).aenable("external")
+        await self.project.agents.acreate({"engine": "tool", "tools": ["external"]}, identifier="tool")
         self.session = await self.project.sessions.acreate()
 
     def open(self):
@@ -87,7 +89,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
         return app
 
     async def execute(self):
-        return await (await self.session.run.submit("perform", engine="tool")).wait(timeout=10)
+        return await (await self.session.run.submit("perform", agent_id="tool")).wait(timeout=10)
 
     async def test_completed_operation_reused_after_backend_restart(self):
         first = await self.execute()
@@ -147,7 +149,8 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
                  .connect("a", "join").connect("b", "join").connect("join", "end").to_dict())
         await (await self.project.components.aget("workflows")).acreate(graph, identifier="flow")
         self.app.engines.register("parallel", GraphEngine(handlers={"tool": ToolNode()}))
-        run = await (await self.session.run.submit("test", engine="parallel", engine_options={"workflow": "flow"})).wait(timeout=10)
+        await self.project.agents.acreate({"engine": "parallel", "engine_options": {"workflow": "flow"}}, identifier="parallel")
+        run = await (await self.session.run.submit("test", agent_id="parallel")).wait(timeout=10)
         self.assertEqual(run.result.error_code, "operation_uncertain")
         self.assertLessEqual(len(self.calls), 1)
 

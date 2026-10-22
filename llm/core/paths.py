@@ -7,13 +7,18 @@ from typing import ClassVar
 
 @dataclass(frozen=True, slots=True)
 class ProjectPaths:
+    AGENTS: ClassVar[str] = "agents"
     SESSIONS: ClassVar[str] = "sessions"
     STATE: ClassVar[str] = "state"
     LOGS: ClassVar[str] = "logs"
     CACHE: ClassVar[str] = "cache"
-    CORE_DIRECTORIES: ClassVar[frozenset[str]] = frozenset((SESSIONS, STATE, LOGS, CACHE))
+    CORE_DIRECTORIES: ClassVar[frozenset[str]] = frozenset((AGENTS, SESSIONS, STATE, LOGS, CACHE))
 
     root: Path
+
+    @property
+    def agents(self) -> Path:
+        return self.root / ProjectPaths.AGENTS
 
     @property
     def sessions(self) -> Path:

@@ -52,7 +52,7 @@ if result.diagnostic is not None:
     print(result.diagnostic.code, result.diagnostic.message)
 
 try:
-    await session.run.submit("request", engine="missing")
+    await session.run.submit("request", agent_id="missing")
 except Exception as error:
     issue = Diagnostic.from_exception(error)
     print(issue.to_dict())
@@ -110,12 +110,12 @@ await session.adelete_turn(
 `abandon_runs` 생략은 기존 참조 보호를 유지한다. 재개 포기는 이미 발생한 효과를 되돌리지 않는다.
 
 ```python
-plan = await session.run.resume_plan(run.id, engine=run.engine)
+plan = await session.run.resume_plan(run.id, agent_id=run.agent_id)
 for issue in plan.blockers:
     print(issue.code, issue.message, issue.source)
 # 사용자가 필요한 응답을 저장한 뒤 재조회한다. 미리보기 자체는 실행하지 않는다.
 if plan.can_resume:
-    request = await session.run.resume(run.id, engine=run.engine)
+    request = await session.run.resume(run.id, agent_id=run.agent_id)
 
 await session.run.shutdown()
 recovery = await project.arecovery()

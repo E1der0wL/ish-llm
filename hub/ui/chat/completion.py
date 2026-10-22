@@ -1,4 +1,4 @@
-"""Explicit completion of UI commands, engine names and paths beneath a project."""
+"""Explicit completion of UI commands, Agent IDs and paths beneath a project."""
 
 from pathlib import Path
 import re
@@ -10,8 +10,8 @@ from ..input.commands import COMMANDS, find_command
 
 
 class HubCompleter(Completer):
-    def __init__(self, engines, root, language, *, components=lambda: {}) -> None:
-        self.engines, self.root, self.t = engines, root, language
+    def __init__(self, agents, root, language, *, components=lambda: {}) -> None:
+        self.agents, self.root, self.t = agents, root, language
         self.components = components
 
     def get_completions(self, document, complete_event):
@@ -33,10 +33,10 @@ class HubCompleter(Completer):
                     yield Completion(action, -len(prefix), display_meta=self.t("component_action_" + action))
             return
         spec = find_command(command[1:]) if command.startswith("/") else None
-        if separator and spec is not None and spec.arguments == "engines" and "\n" not in before:
-            for name in self.engines():
+        if separator and spec is not None and spec.arguments == "agents" and "\n" not in before:
+            for name in self.agents():
                 if name.startswith(prefix):
-                    yield Completion(name, -len(prefix), display_meta=self.t("engine"))
+                    yield Completion(name, -len(prefix), display_meta=self.t("agent"))
             return
         match = re.search(r'(?:^|\s)@([^\n]*)$', before)
         if not match:

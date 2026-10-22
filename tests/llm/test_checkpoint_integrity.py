@@ -44,7 +44,7 @@ class CheckpointIntegrityTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(app.shutdown)
         try:
             session = await (await app.projects.aload(project_id)).sessions.aload(session_id)
-            await (await session.run.resume(run_id, engine='graph')).wait(timeout=30)
+            await (await session.run.resume(run_id, agent_id='graph')).wait(timeout=30)
         except (ValueError, OSError):
             pass
         self.assertEqual(effect.read_text(), 'first\n')
@@ -71,7 +71,7 @@ class CheckpointIntegrityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, 'failed')
         self.assertEqual((await run.acheckpoint())['records']['["work"]']['status'], 'started')
         with self.assertRaisesRegex(ValueError, 'retry_nodes'):
-            await self.session.run.resume(run.id, engine='graph')
+            await self.session.run.resume(run.id, agent_id='graph')
         self.assertEqual(effect.read_text(), 'work\n')
 
     async def test_process_death_between_record_manifest_and_run_preserves_uncertainty(self):
@@ -104,8 +104,9 @@ class CheckpointIntegrityTests(unittest.IsolatedAsyncioTestCase):
                     project = await app.projects.acreate(components=['workflows'])
                     graph = WorkflowGraph(entry='work').node('work', 'work').node('end', 'end').connect('work', 'end').to_dict()
                     await (await project.components.aget('workflows')).acreate(graph, identifier='flow')
+                    await project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier='graph')
                     session = await project.sessions.acreate()
-                    await (await session.run.submit('effect', engine='graph', engine_options={'workflow': 'flow'})).wait()
+                    await (await session.run.submit('effect', agent_id='graph')).wait()
             asyncio.run(main())
         ''')
         for boundary in ('record', 'manifest'):
@@ -130,7 +131,7 @@ class CheckpointIntegrityTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(run.data.status, 'interrupted')
                     self.assertEqual((await run.acheckpoint())['records']['["work"]']['status'], 'started')
                     with self.assertRaises(ValueError):
-                        await session.run.resume(run.id, engine='graph')
+                        await session.run.resume(run.id, agent_id='graph')
                     self.assertEqual(effect.read_text(), 'effect\n')
 
 

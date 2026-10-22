@@ -37,7 +37,7 @@ class BackupOwnerIntegrityTests(unittest.IsolatedAsyncioTestCase):
         self.app, self.session, self.model = await self.setup_app(act, [
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]], self.runtime)
         self.project = self.session.project
-        self.run = await (await self.session.run.submit('go', engine='loop')).wait()
+        self.run = await (await self.session.run.submit('go', agent_id='loop')).wait()
         self.assertEqual(self.run.data.status, 'paused', self.run.data.error)
         self.request, = await self.run.ainteractions()
         await self.run.arespond(self.request.respond('approve'))
@@ -104,7 +104,7 @@ class BackupOwnerIntegrityTests(unittest.IsolatedAsyncioTestCase):
             run = await session.run.aload(self.run.id)
             responses = await run.ainteraction_responses()
             self.assertEqual(len(responses), 1)
-            resumed = await (await session.run.resume(run.id, engine='loop')).wait()
+            resumed = await (await session.run.resume(run.id, agent_id='loop')).wait()
             self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
             self.assertEqual(self.effect.read_text(), 'approved effect\n')
             self.assertEqual(len(self.model.requests), 2)

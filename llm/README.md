@@ -37,13 +37,14 @@ Backend는 계약·저장·권한 불변식을 집행합니다. 새 구현은
 | Run | 한 사용자 요청을 실제로 실행한 기록 | “이 문서를 요약해줘” |
 | Step | Run 안에서 관찰할 수 있는 실행 단위 | 모델 호출, Tool 호출, Graph 노드 |
 | Engine | Run을 어떻게 실행할지 정의하는 전략 | LoopEngine, GraphEngine |
-| Component | Project에 연결할 기능과 해당 기능의 데이터를 관리 | Tools, RAG, Memory, Agents, Workflows |
+| Agent | Project가 저장한 Engine·업무·리소스 정의 | 검토 담당 |
+| Component | Project에 연결할 기능과 해당 기능의 데이터를 관리 | Tools, RAG, Memory, Workflows |
 
 ```text
 UI / ish 명령
   → LargeLanguageModel
   → Project 선택 → Session 선택
-  → submit(입력, engine="등록 이름")
+  → submit(입력, agent_id="저장 ID")
   → 요청 저장(queued) → Run 생성 → Engine 실행
   → EngineEvent → 서비스가 응답·Step·체크포인트 저장
   → UI 이벤트 / 저장된 결과 조회
@@ -128,9 +129,10 @@ ish 명령용 함수를 직접 만든다면 import 가능한 모듈의 동기 �
 
 ## LargeLanguageModel 사용하기
 
-Graph 실행에서는 `GraphEngine(handlers=...)`을 등록하고 매 요청에 저장된 Workflow ID를
-전달합니다. 예: `await session.run.submit("검토", engine="graph", engine_options={"workflow": "review"})`.
-Workflow 선택은 요청/Run에 저장되고 재개 시 원본 선택을 복원합니다. 정의가 변경됐다면
+Graph 실행에서는 `GraphEngine(handlers=...)`을 등록하고
+`{"engine": "graph", "engine_options": {"workflow": "review"}}`를 실제 Agent로 저장합니다.
+예: `await session.run.submit("검토", agent_id="reviewer")`.
+Agent 선택·정의·revision은 요청/Run에 저장되고 재개 시 원본 binding을 검증합니다. 정의가 변경됐다면
 새 요청으로 시작합니다. 등록·중첩 실행 예제는 [GraphEngine 안내](engines/graph/README.md)를 참고하세요.
 
 `LargeLanguageModel`은 저장소, 서비스, 등록된 Engine/Component를 한 번 구성하고 공개 핸들로 연결하는 Facade입니다. 모델 호출이나 저장 책임을 별도로 복제하지 않습니다.
@@ -173,8 +175,9 @@ async def main():
             components=[],
             conversation_storage="file",
         )
+        await project.agents.acreate({"engine": "loop"}, identifier="loop")
         session = await project.sessions.acreate("첫 대화")
-        request = await session.run.submit("안녕하세요.", engine="loop")
+        request = await session.run.submit("안녕하세요.", agent_id="loop")
         run = await request.wait()
         result = await run.aresult()
 
@@ -210,11 +213,11 @@ Loop 입력 예산은 `parameters.engines[이름].policy.completion`, 모델 호
 ```python
 project = await backend.projects.aload(project_id)
 session = await project.sessions.aload(session_id)
-request = await session.run.submit("앞의 내용을 이어서 설명해줘.", engine="loop")
+request = await session.run.submit("앞의 내용을 이어서 설명해줘.", agent_id="loop")
 run = await request.wait()
 ```
 
-llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `acreate()`는 매번 새 Project를 만들고, `aload(id)`는 지정한 Project만 읽습니다. 첫 실행의 템플릿, 마지막 Project/Session 선택, UI의 엔진 선택은 hub 등 호출 애플리케이션이 담당합니다. llm의 `submit(..., engine="loop")`에는 엔진을 항상 명시합니다.
+llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `acreate()`는 매번 새 Project를 만들고, `aload(id)`는 지정한 Project만 읽습니다. 첫 실행의 템플릿, 마지막 Project/Session 선택, UI의 Agent 선택은 hub 등 호출 애플리케이션이 담당합니다. llm의 `submit(..., agent_id="loop")`에는 실제 저장된 Agent ID를 항상 명시합니다.
 
 ### 자주 쓰는 API
 
@@ -226,7 +229,8 @@ llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `ac
 | Project 수정·복제·삭제 | `project.asave(...)`, `aclone(title=...)`, `adelete()` |
 | Session 생성·조회·목록 | `project.sessions.acreate(...)`, `aload(id)`, `alist()` |
 | Session 수정·복제·삭제 | `session.asave(...)`, `aclone(...)`, `adelete()` |
-| 요청·대기·중단 | `session.run.submit(..., engine=...)`, `wait_idle()`, `interrupt()` |
+| Agent 정의 | `project.agents.acreate(...)`, `asnapshot(id)`, `arevise(id, definition, expected_revision=...)` |
+| 요청·대기·중단 | `session.run.submit(..., agent_id=...)`, `wait_idle()`, `interrupt()` |
 | 실행 중인 Engine에 추가 지시 | `session.run.steer(run_id, text, targets=...)`, `run.ainstructions()`, `run.ainstruction_targets()` |
 | 미시작 Agent 실행에 한 번 예약 | `run.ainstruction_routes()`, `session.run.reserve_instruction(run_id, text, targets=selected_routes)` |
 | Run 조회·결과·Step | `session.run.aload(id)`, `run.aresult()`, `run.steps.alist()` |
@@ -283,7 +287,7 @@ Graph는 `await run.ainstruction_targets()`의 실행 목록을 UI에 표시하�
 
 상시 UI에서는 백엔드를 유지하고 종료 시 `await backend.shutdown()`을 호출합니다. `backend.events.subscribe`의 `engine` 채널은 Engine 진행, `run` 채널은 저장 후 Run 수명 알림입니다. 느린 UI에는 queued 구독을 사용하고, 화면 해제 시 `await subscription.aclose()`로 자원을 정리합니다. 이벤트 누락 가능성이 있는 관찰 구독은 `run.aview()`, `run.aoutput_events()`, `run.steps.alist()`로 저장 상태를 다시 읽어야 합니다. [서비스](services/README.md)와 [이벤트·구독](services/runtime/README.md)을 참고하세요.
 
-승인과 재개는 `run.ainteraction_views()`, `run.arespond(...)`, `session.run.resume(..., engine=...)`로 연결합니다. 승인이 재개 실행 자체를 뜻하지는 않습니다. 명시적 재개는 새 Run을 만들며, 부작용이 불확실한 Tool을 자동 재실행하지 않습니다.
+승인과 재개는 `run.ainteraction_views()`, `run.arespond(...)`, `session.run.resume(..., agent_id=...)`로 연결합니다. 승인이 재개 실행 자체를 뜻하지는 않습니다. 명시적 재개는 새 Run을 만들며, 부작용이 불확실한 Tool을 자동 재실행하지 않습니다.
 
 ## 새 Engine 만들기
 
@@ -299,7 +303,7 @@ class EchoEngine(BaseEngine):
         yield context.messages[-1].content
 ```
 
-`LargeLanguageModel(workspace, engines={"echo": EchoEngine()})`로 등록한 뒤 `submit(..., engine="echo")`로 선택합니다. `BaseEngine`이 Step·출력 이벤트를 구성하고 서비스가 저장합니다.
+`LargeLanguageModel(workspace, engines={"echo": EchoEngine()})`로 등록한 뒤 `project.agents.acreate({"engine": "echo"}, identifier="echo")`로 저장하고 `submit(..., agent_id="echo")`로 선택합니다. `BaseEngine`이 Step·출력 이벤트를 구성하고 서비스가 저장합니다.
 
 확장 계약은 다음과 같습니다.
 

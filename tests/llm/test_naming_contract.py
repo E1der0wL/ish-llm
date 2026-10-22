@@ -28,7 +28,7 @@ from llm.components.rag import RAGComponent
 from llm.components.memory import MemoryComponent
 from llm.components.vision import VisionComponent
 from llm.components.skills import SkillComponent
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.prompts import PromptComponent
 from llm.components.mcp import MCPComponent
 from llm.components.goals import GoalComponent
@@ -54,7 +54,7 @@ class NamingContractTests(unittest.TestCase):
             (MemoryComponent(), 'cache_records min_score processing search_limit search_status search_strategy',
              'max_search_results processing tool_write_status'),
             (VisionComponent(), 'completion ocr', 'limits ocr provider'),
-            (SkillComponent(), '', ''), (AgentComponent(), '', ''), (PromptComponent(), '', ''),
+            (SkillComponent(), '', ''), (PromptComponent(), '', ''),
             (MCPComponent(), 'tools', ''),
             (GoalComponent(), 'identifiers nested_agent_ids priority', 'inject write_tools'),
             (RefinementComponent(), '', 'apply_tools proposal_operations require_evaluation'),
@@ -64,6 +64,9 @@ class NamingContractTests(unittest.TestCase):
             (GraphEngine(handlers={}), 'buffer_size cleanup_timeout',
              'max_nested_depth max_parallelism max_steps timeout_seconds'),
         )
+        self.assertEqual(AgentDefinition.schema['required'], ['engine'])
+        self.assertFalse(AgentDefinition.schema['additionalProperties'])
+        self.assertNotIn('config', AgentDefinition.schema['properties'])
         for implementation, config_fields, policy_fields in cases:
             with self.subTest(implementation=type(implementation).__name__):
                 schema = implementation.describe_config()
@@ -186,6 +189,9 @@ class NamingContractTests(unittest.TestCase):
             if domain is Project:
                 # H2 adds managed storage lifetime without renaming existing fields.
                 expected.insert(expected.index('components') + 1, 'initialized_components')
+            if domain is Run:
+                # B/C adds mandatory Agent identity without renaming existing fields.
+                expected.insert(expected.index('paths') + 1, 'agent_id')
             self.assertEqual([item.name for item in fields(domain)], expected)
         graph = WorkflowGraph(entry='end', metadata={'title': 'Review'}).node('end', 'end').to_dict()
         self.assertEqual(graph, self.before['workflow'])
@@ -214,7 +220,7 @@ class NamingContractTests(unittest.TestCase):
         }
         self.assertEqual(payload, expected)
         self.assertEqual(binding, digest(expected))
-        graph = GraphEngine(handlers={}, parameter_key='graph').for_request({'workflow': 'flow'})
+        graph = GraphEngine(handlers={}, parameter_key='graph').for_agent({"engine": "graph", "engine_options": {"workflow": "flow"}})
         expected = {
             'workflow': deepcopy(self.before['workflow']), 'workflow_id': 'flow', 'revision': '1',
             'handler_bindings': [], 'nested_graphs': [], 'handlers': [],

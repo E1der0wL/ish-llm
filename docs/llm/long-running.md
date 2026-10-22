@@ -1,5 +1,9 @@
 # 장시간 실행·복구·보관 API
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 최신 보강: 독립 RAG 호출의 공통 사용량 예약, Run 단위 보관 정리/중단 복구,
 RAG Job의 Application 보존 선택 및 UI 동적 설정 스키마는 [운영 및 UI 설정](operations-and-ui-settings.md)에 설명한다.
 
@@ -15,11 +19,11 @@ RunManager/Repository가 담당한다. 새 실행 도메인이나 별도 Policy 
 ## Loop 체크포인트와 명시적 재개
 
 ```python
-run = await (await session.run.submit("작업", engine="loop")).wait()
-plan = await session.run.resume_plan(run.id, engine="loop")
+run = await (await session.run.submit("작업", agent_id="loop")).wait()
+plan = await session.run.resume_plan(run.id, agent_id="loop")
 # blockers/효과 원장/체크포인트를 검토한다. 불확실한 Tool을 일괄 재실행하지 않는다.
 if plan.can_resume:
-    request = await session.run.resume(run.id, engine="loop", expected_revision=plan.revision)
+    request = await session.run.resume(run.id, agent_id="loop", expected_revision=plan.revision)
     continued = await request.wait()
 ```
 
@@ -123,11 +127,11 @@ UI는 `ainteractions()`의 요청·선택지·최종 인자를 표시하고 실�
 체크포인트의 내부 키나 Engine별 decisions 모양을 UI에서 조립하지 않는다.
 
 ```python
-plan = await session.run.resume_plan(paused_run.id, engine=paused_run.engine)
+plan = await session.run.resume_plan(paused_run.id, agent_id=paused_run.agent_id)
 # 승인 응답 저장은 실행이 아니다. 검토를 마친 뒤 명시적으로 재개한다.
 if plan.can_resume:
     request = await session.run.resume(
-        paused_run.id, engine=paused_run.engine, expected_revision=plan.revision,
+        paused_run.id, agent_id=paused_run.agent_id, expected_revision=plan.revision,
     )
     continued = await request.wait()
 ```
@@ -148,7 +152,7 @@ if plan.can_resume:
 node = {"type": "review", "pause_before": True,
         "resume_schema": {"type": "object", "properties": {"draft": {"type": "string"}},
                           "additionalProperties": False}}
-await session.run.resume(paused.id, engine="graph", decisions={
+await session.run.resume(paused.id, agent_id="graph", decisions={
     '["review"]': {"approved": True, "state": {"draft": "사용자가 수정한 내용"}},
 })
 ```

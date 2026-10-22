@@ -118,7 +118,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
             release.set()
         await app.events.flush()
         self.assertEqual([values[0]['status'] for values in seen], ['cancelled', 'answered'])
-        resumed = await (await session.run.resume(run.id, engine='loop')).wait()
+        resumed = await (await session.run.resume(run.id, agent_id='loop')).wait()
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         view, = await run.ainteraction_views()
         self.assertEqual((view.status, view.execution_status), ('submitted', 'completed'))
@@ -128,13 +128,13 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
     async def test_cancel_renew_preview_and_ui_execution_state(self):
         app, session, run = await self.paused()
         request, = await run.ainteractions()
-        plan = await session.run.resume_plan(run.id, engine="loop")
+        plan = await session.run.resume_plan(run.id, agent_id="loop")
         self.assertFalse(plan.can_resume)
         await run.acancel_interaction(request)
         view, = await run.ainteraction_views()
         self.assertEqual(view.status, "cancelled")
         with self.assertRaises(Exception):
-            await session.run.resume(run.id, engine="loop")
+            await session.run.resume(run.id, agent_id="loop")
         renewed = await run.arenew_interaction(request)
         self.assertNotEqual(renewed.id, request.id)
         self.assertEqual(renewed.action, request.action)
@@ -142,10 +142,10 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
             await run.arespond(request.respond("approve"))
         await run.arespond(renewed.respond("approve"))
         before = len(await session.aconversation())
-        plan = await session.run.resume_plan(run.id, engine="loop")
+        plan = await session.run.resume_plan(run.id, agent_id="loop")
         self.assertTrue(plan.can_resume, plan)
         self.assertEqual(len(await session.aconversation()), before)
-        resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         view, = await run.ainteraction_views()
         self.assertEqual((view.status, view.execution_status), ("submitted", "completed"))
@@ -165,7 +165,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
         app.events.subscribe(observe, channel="engine")
         await run.arespond(renewed.respond("approve"))
         await asyncio.wait_for(notified.wait(), 3)
-        resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
 
     async def test_auto_approval_requires_host_ceiling_and_explicit_resume(self):
@@ -181,14 +181,14 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
                 ToolRuntime(authorize=authorize, classify=lambda call: ToolClassification("file.read", "test", 10)))
             await session.project.aconfigure_policies({"approval": {"enabled": host_allows, "risk_scheme": "test", "rules": [
                 {"id": "read-only", "category": "file.read", "max_risk": 10}]}})
-            run = await (await session.run.submit("read", engine="loop")).wait()
+            run = await (await session.run.submit("read", agent_id="loop")).wait()
             self.assertEqual(run.data.status, "paused", run.data.error)
             responses = await run.ainteraction_responses()
             self.assertEqual(len(responses), int(host_allows))
             self.assertEqual(effects, [])
             if host_allows:
                 self.assertEqual((responses[0].actor, responses[0].policy_id), ("policy", "read-only"))
-                resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+                resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
                 self.assertEqual(resumed.data.status, "completed", resumed.data.error)
                 self.assertEqual(effects, [1])
 
@@ -198,7 +198,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(session.data.status, "idle")
         request, = await run.ainteractions()
         await run.arespond(request.respond("approve"))
-        resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
 
 
@@ -225,9 +225,9 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             return {}
         graph = WorkflowGraph(entry="work").node("work", "work").node("end", "end").connect("work", "end").to_dict()
         await self.setup_graph(graph, work, cleanup_timeout=0.05)
-        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
+        first = await self.session.run.submit("first", agent_id="graph")
         await asyncio.wait_for(started.wait(), 5)
-        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
+        second = await self.session.run.submit("second", agent_id="graph")
         try:
             await asyncio.wait_for(self.session.run.interrupt(), 3)
             interrupted = await first.wait(timeout=3)
@@ -251,7 +251,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             return {}
         graph = WorkflowGraph(entry="work").node("work", "work").node("end", "end").connect("work", "end").to_dict()
         await self.setup_graph(graph, work, cleanup_timeout=0.05)
-        await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
+        await self.session.run.submit("first", agent_id="graph")
         await asyncio.wait_for(started.wait(), 5)
         from llm.llm import LargeLanguageModel
         other = LargeLanguageModel(self.root, engines={"graph": self.engine})
@@ -264,7 +264,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             release.set()
         await asyncio.sleep(0.05)
         session = (await other.projects.aload(self.project.id)).sessions.load(self.session.id)
-        completed = await (await session.run.submit("after cleanup", engine="graph", engine_options={"workflow": "flow"})).wait()
+        completed = await (await session.run.submit("after cleanup", agent_id="graph")).wait()
         self.assertEqual(completed.data.status, "completed", completed.data.error)
 
     async def test_selected_config_binding_allows_ui_but_rejects_model_change(self):
@@ -279,10 +279,10 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         config = self.project.data.config.to_dict()
         config.setdefault("data", {})["ui_color"] = "blue"
         await self.project.asave(config=config)
-        self.assertTrue((await self.session.run.resume_plan(run.id, engine="graph")).can_resume)
+        self.assertTrue((await self.session.run.resume_plan(run.id, agent_id="graph")).can_resume)
         config["parameters"]["engines"] = {"loop": {"config": {"completion": {"model": "changed/model"}}}}
         await self.project.asave(config=config)
-        plan = await self.session.run.resume_plan(run.id, engine="graph")
+        plan = await self.session.run.resume_plan(run.id, agent_id="graph")
         self.assertFalse(plan.can_resume)
         self.assertIn("configuration changed", str(plan.blockers))
 
@@ -299,7 +299,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         request, = await failed.ainteractions()
         self.assertEqual(request.category, "execution.retry_uncertain")
         await failed.arespond(request.respond("approve"))
-        resumed = await (await self.session.run.resume(failed.id, engine="graph")).wait()
+        resumed = await (await self.session.run.resume(failed.id, agent_id="graph")).wait()
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(len(calls), 2)
 

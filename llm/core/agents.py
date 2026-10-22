@@ -4,10 +4,16 @@ from copy import deepcopy
 import hashlib
 import json
 import re
+from enum import StrEnum
 
 from jsonschema import Draft202012Validator
 from llm.core.models import ProjectConfig
 from llm.core.schema import open_schema, metadata_schema, validate_local_refs
+
+
+class AgentMode(StrEnum):
+    BEHAVIORAL = "behavioral"
+    WORKFLOW = "workflow"
 
 
 class AgentDefinition:
@@ -46,6 +52,14 @@ class AgentDefinition:
         },
     }
 
+
+    @staticmethod
+    def validate_mode(definition, mode):
+        if AgentMode(mode) == AgentMode.WORKFLOW:
+            unsupported = set(definition) - {"purpose", "description", "engine", "engine_options", "metadata"}
+            if unsupported:
+                raise ValueError("Graph Agent only orchestrates Workflows; unsupported fields: "
+                                 + ", ".join(sorted(unsupported)))
 
     @staticmethod
     def identifier(value):
@@ -134,3 +148,28 @@ class AgentCatalog:
             AgentDefinition.identifier(identifier)
             if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
                 raise ValueError("Invalid Agent record digest")
+
+
+class AgentBinding:
+    """Immutable admitted identity; missing evidence is never filled from a current definition."""
+
+    SCHEMA_VERSION = 1
+
+    @classmethod
+    def create(cls, project_id, identifier, definition):
+        record = AgentRecord.create(project_id, identifier, definition)
+        return {"schema_version": cls.SCHEMA_VERSION, "project_id": record["project_id"],
+                "agent_id": record["id"], "definition": record["definition"],
+                "revision": record["revision"], "engine": definition["engine"]}
+
+    @classmethod
+    def read(cls, value):
+        if not isinstance(value, dict) or value.keys() != {
+                "schema_version", "project_id", "agent_id", "definition", "revision", "engine"}:
+            raise ValueError("Agent execution binding requires all current evidence")
+        if type(value["schema_version"]) is not int or value["schema_version"] != cls.SCHEMA_VERSION:
+            raise ValueError("Unsupported Agent binding schema_version")
+        expected = cls.create(value["project_id"], value["agent_id"], value["definition"])
+        if value != expected:
+            raise ValueError("Agent binding identity, revision or Engine mismatch")
+        return deepcopy(value)

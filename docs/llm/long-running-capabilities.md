@@ -1,5 +1,9 @@
 # 장기 실행 API: 연결, 문서 진행, 명시적 압축과 재개
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 Project → Session → Run → Step과 기존 소유권을 유지합니다. 애플리케이션은 연결 선택,
 압축 시점·방식·목표, 재개 옵션을 결정합니다. Backend는 검증·저장·실행·취소를 담당합니다.
 분할 요약은 하나의 명시적 요청으로 관리합니다. Memory가 파생 요청과 체크포인트를,
@@ -187,7 +191,7 @@ Tool 실행 단계의 기존 출력 한도·허용 인자·승인 제한도 그�
 ## 중단 전 부분 출력을 전달하는 재개
 
 ```python
-handle = await session.run.resume(interrupted_run.id, engine="loop", partial_output=True)
+handle = await session.run.resume(interrupted_run.id, agent_id="loop", partial_output=True)
 resumed = await handle.wait()
 ```
 

@@ -1,5 +1,9 @@
 # 승인, Graph·Agent, Memory·장기 문맥 보강
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 ## 승인과 UI
 
 요청은 Run 체크포인트, 답변·취소·갱신 연결은 Run의 `state/interactions`가 소유한다.
@@ -13,9 +17,9 @@ for view in views:
 
 pending = await run.ainteractions(pending_only=True)
 await run.arespond(pending[0].respond("approve"))
-plan = await session.run.resume_plan(run.id, engine=run.engine)
+plan = await session.run.resume_plan(run.id, agent_id=run.agent_id)
 if plan.can_resume:
-    resumed = await session.run.resume(run.id, engine=run.engine)
+    resumed = await session.run.resume(run.id, agent_id=run.agent_id)
     result = await resumed.wait()
 ```
 

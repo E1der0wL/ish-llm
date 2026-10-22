@@ -27,7 +27,11 @@ class SettingsJsonTests(unittest.IsolatedAsyncioTestCase):
         self.screen = self.view.settings
         self.task = asyncio.create_task(self.app.run_async(pre_run=lambda: self.view.show(self.app)))
         await until(lambda: self.view.connected and not self.view.projects.busy)
-        self.view.engine = 'graph'
+        await asyncio.wrap_future(self.controller.worker.call('manage_records', self.view.project_id,
+            'agents', 'create', {'name': 'settings-graph', 'text': json.dumps({
+                'engine': 'graph', 'engine_options': {'workflow': 'settings-only'}})}))
+        await until(lambda: 'settings-graph' in self.view.agents)
+        self.view.choose_agent('settings-graph')
         await auxiliary(self.app, self.pipe, self.view, 'settings')
         await until(lambda: not self.screen.busy and self.screen.page is not None and self.view.settings_open)
 

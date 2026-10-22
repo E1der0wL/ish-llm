@@ -58,9 +58,11 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         self.graph = await self.project.components.aget("rag")
 
     async def run_loop(self, project, completion, *, name="loop"):
-        self.app.engines.register(name, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register(name, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
+        await project.agents.acreate({"engine": name, "completion": {"model": "test/model"}, "tools": ["rag_search", "rag_list_documents",
+                *((await project.components.tools.aenabled()) if "tools" in project.data.components else [])]}, identifier=name)
         session = await project.sessions.acreate("Question")
-        return await (await session.run.submit("설명서에서 검색해 주세요.", engine=name)).wait(timeout=20)
+        return await (await session.run.submit("설명서에서 검색해 주세요.", agent_id=name)).wait(timeout=20)
 
     async def test_rag_definition_result_transcript_and_persisted_steps(self):
         await self.rag.aadd_document(identifier="manual", title="운영 설명서",
@@ -133,10 +135,13 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         project = await self.app.projects.acreate("Selection", components=[])
         session = await project.sessions.acreate()
         model = ScriptedCompletion(*([chunk("done"), chunk(finish="stop")] for _ in range(4)))
-        self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
+        await project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": []}, identifier="loop")
         for names in ([], ["rag"], ["rag"], []):
             await project.components.aselect(names)
-            run = await (await session.run.submit("hello", engine="loop")).wait(timeout=20)
+            before = await project.agents.asnapshot("loop")
+            await project.agents.aupdate("loop", {"tools": ["rag_search", "rag_list_documents"] if names else []}, expected_revision=before["revision"])
+            run = await (await session.run.submit("hello", agent_id="loop")).wait(timeout=20)
             self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         self.assertEqual([[item["function"]["name"] for item in req.get("tools", [])]
                           for req in model.requests],
@@ -213,12 +218,13 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         completion = completion_for("rag_search", {"query": "backup", "method": "bm25"})
         async with LargeLanguageModel(Path(self.temp.name),
                                       components=[self.rag_component],
-                                      engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})}) as app:
+                                      engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))}) as app:
             project = await app.projects.aload(project_id)
             rag = await project.components.aget("rag")
             self.assertTrue(await rag.asearch("backup", method="bm25"))
+            await project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": ["rag_search", "rag_list_documents"]}, identifier="loop")
             session = await project.sessions.acreate()
-            run = await (await session.run.submit("search", engine="loop")).wait(timeout=20)
+            run = await (await session.run.submit("search", agent_id="loop")).wait(timeout=20)
             self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
             self.assertTrue(json.loads(completion.requests[1]["messages"][-1]["content"])["documents"])
 
@@ -234,10 +240,11 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
                 cancelled.set()
 
         completion = completion_for("rag_search", {"query": "backup"})
-        self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
+        await self.project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": ["rag_search", "rag_list_documents"]}, identifier="loop")
         session = await self.project.sessions.acreate()
         with patch.object(self.embedding.adapter, "call", blocked):
-            request = await session.run.submit("search", engine="loop")
+            request = await session.run.submit("search", agent_id="loop")
             await asyncio.wait_for(entered.wait(), 10)
             await session.run.interrupt()
             run = await request.wait(timeout=10)

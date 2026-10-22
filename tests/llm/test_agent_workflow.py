@@ -14,7 +14,7 @@ import unittest
 from contextlib import asynccontextmanager
 
 from examples.llm.code_workflow import CodeChecks, coding_workflow, report
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.skills import SkillComponent
 from llm.components.mcp import MCPComponent
 from llm.components.rag import RAGComponent, EmbeddingModel
@@ -66,21 +66,36 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
                         "completion": {"model": "test/writer", "temperature": 0.2},
                         "tools": ["echo"], "engine_options": {'policy': {'max_iterations': 3}}}
 
-    async def setup_graph(self, graph, completion, *, handlers=None, extra_components=()):
-        components = [AgentComponent(), WorkflowComponent(), RuntimeTools(self.catalog), *extra_components]
+    async def setup_graph(self, graph, completion, *, handlers=None, extra_components=(), engines=None,
+                          stored_invalid=False):
+        components = [WorkflowComponent(), RuntimeTools(self.catalog), *extra_components]
+        worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))
+        selected = {"loop": worker} if engines is None else engines
         self.backend = LargeLanguageModel(self.root, components=components, engines={
-            "graph": GraphEngine(handlers=handlers or {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})})})
+            **selected,
+            "graph": GraphEngine(handlers=handlers or {"agent": AgentNode(engines={"loop": worker})})})
         self.addAsyncCleanup(self.backend.shutdown)
         self.project = await self.backend.projects.acreate("Workflow", components=[c.name for c in components], config=rag_project() if any(c.name == "rag" for c in components) else {})
-        self.agents = await self.project.components.aget("agents")
-        await self.agents.acreate(self.profile, identifier="writer")
+        self.agents = self.project.agents
+        if stored_invalid:
+            from jsonschema.exceptions import ValidationError
+            with self.assertRaises((ValueError, TypeError, ValidationError)):
+                await self.agents.acreate(self.profile, identifier="writer")
+            self.assertEqual(await self.agents.alist(), {})
+            # Current storage fixture for a changed/unavailable Engine environment.
+            # The public writer rejects it; runtime must still validate before effects.
+            self.backend.project_manager.repository.agents.create(
+                self.project.data, self.profile, identifier="writer")
+        else:
+            await self.agents.acreate(self.profile, identifier="writer")
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph, identifier="flow")
         await (await self.project.components.aget("tools")).aenable("echo", "forbidden")
+        await self.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="flow-agent")
         self.session = await self.project.sessions.acreate("Request")
 
     async def run_graph(self, prompt="Please write"):
-        return await (await self.session.run.submit(prompt, engine="graph", engine_options={"workflow": "flow"})).wait(timeout=40)
+        return await (await self.session.run.submit(prompt, agent_id="flow-agent")).wait(timeout=40)
 
     async def output(self, run):
         return next(s for s in await run.steps.alist() if s.kind == "graph").output.data
@@ -130,8 +145,8 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call('{"value":"x"}', name="echo")]), chunk(finish="tool_calls")],
                                    answer("next"))
         await self.setup_graph(agent_graph(), model)
-        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
-        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
+        first = await self.session.run.submit("first", agent_id="flow-agent")
+        second = await self.session.run.submit("second", agent_id="flow-agent")
         self.assertEqual((await first.wait()).data.status, RunStatus.FAILED)
         completed = await second.wait()
         self.assertEqual(completed.data.status, RunStatus.COMPLETED)
@@ -146,7 +161,8 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         graph = (WorkflowGraph(entry="write").node("write", "write").node("agent", "agent", agent="writer")
                  .node("end", "end").connect("write", "agent").connect("agent", "end").to_dict())
         model = ScriptedCompletion()
-        await self.setup_graph(graph, model, handlers={"write": write, "agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})})
+        await self.setup_graph(graph, model, stored_invalid=True,
+            handlers={"write": write, "agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})})
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(self.calls, ["write"])
@@ -174,8 +190,9 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
                  .node("effect", "tool", tool="echo", arguments={"value": "earlier independent node"})
                  .node("agent", "agent", agent="writer").node("end", "end")
                  .connect("effect", "agent").connect("agent", "end").to_dict())
-        await self.setup_graph(graph, None, handlers={"tool": ToolNode(),
-            "agent": AgentNode(engines={"custom": Incomplete()})},
+        incomplete = Incomplete()
+        await self.setup_graph(graph, None, stored_invalid=True, engines={"custom": incomplete},
+            handlers={"tool": ToolNode(), "agent": AgentNode(engines={"custom": incomplete})},
             extra_components=(MCPComponent(connector=connector),))
         await (await self.project.components.aget("mcp")).acreate(
             {"transport": "streamable_http", "url": "https://example.invalid/mcp"}, identifier="docs")
@@ -243,9 +260,9 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call('{}', name="echo")]), chunk(finish="tool_calls")],
                                    answer("next"))
         await self.setup_graph(agent_graph(), model)
-        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
+        first = await self.session.run.submit("first", agent_id="flow-agent")
         await asyncio.wait_for(entered.wait(), 10)
-        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
+        second = await self.session.run.submit("second", agent_id="flow-agent")
         await self.session.run.interrupt()
         interrupted = await first.wait(timeout=10)
         self.assertEqual(interrupted.data.status, RunStatus.INTERRUPTED)
@@ -320,10 +337,10 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
         await skills.asave("review", {"instructions": "Changed guidance."})
         with self.assertRaisesRegex(Exception, "changed"):
-            await self.session.run.resume(paused.id, engine="graph")
+            await self.session.run.resume(paused.id, agent_id="flow-agent")
         self.assertEqual(model.requests, [])
         await skills.asave("review", {"instructions": "Check invariants."})
-        run = await (await self.session.run.resume(paused.id, engine="graph")).wait()
+        run = await (await self.session.run.resume(paused.id, agent_id="flow-agent")).wait()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertIn("Skill review:\nCheck invariants.", model.requests[0]["messages"][0]["content"])
 
@@ -336,7 +353,8 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.profile.pop("input_schema")
         self.profile.update(output_format="json", output_schema={"type": "object", "properties": {
             "data": {"type": "object", "properties": {"ok": {"const": True}}}}})
-        await self.agents.asave("writer", self.profile)
+        await self.agents.asave("writer", self.profile,
+            expected_revision=(await self.agents.asnapshot("writer"))["revision"])
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertTrue(any(s.kind == "agent" and s.status == StepStatus.FAILED for s in await run.steps.alist()))
@@ -373,7 +391,9 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
                     yield "custom result"
                 return BaseEngine("Work", action=work)
         self.profile = {"engine": "work", "purpose": "Deterministic work", "engine_options": {'config': {'mode': 'safe'}}}
-        await self.setup_graph(agent_graph(), None, handlers={"agent": AgentNode(engines={"work": WorkEngine()})})
+        worker = WorkEngine()
+        await self.setup_graph(agent_graph(), None, engines={"work": worker},
+                               handlers={"agent": AgentNode(engines={"work": worker})})
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(await self.output(run), {"answer": "custom result"})
@@ -449,7 +469,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         await self.setup_graph(agent_graph(), model, extra_components=(MCPComponent(connector=connector),))
         await (await self.project.components.aget("mcp")).acreate(
             {"transport": "stdio", "command": "host-owned"}, identifier="local")
-        request = await self.session.run.submit("wait", engine="graph", engine_options={"workflow": "flow"})
+        request = await self.session.run.submit("wait", agent_id="flow-agent")
         await asyncio.wait_for(entered.wait(), 10)
         await self.session.run.interrupt()
         run = await request.wait()
@@ -459,14 +479,22 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
     async def test_unknown_and_non_agent_engine_rejected_before_agent_steps(self):
         self.profile["engine"] = "missing"
         model = ScriptedCompletion()
-        await self.setup_graph(agent_graph(), model)
+        await self.setup_graph(agent_graph(), model, stored_invalid=True)
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(await run.steps.alist(), [])
         self.profile["engine"] = "plain"
-        await self.agents.asave("writer", self.profile)
+        revision = (await self.agents.asnapshot("writer"))["revision"]
+        with self.assertRaises(ValueError):
+            await self.agents.asave("writer", self.profile, expected_revision=revision)
+        self.backend.project_manager.repository.agents.save(
+            self.project.data, "writer", self.profile, expected_revision=revision)
         handler = self.backend.engines.get("graph").handlers["agent"]
-        handler.engines.register("plain", BaseEngine())
+        class NonAgentEngine:
+            async def execute(self, context):
+                if False:
+                    yield
+        handler.engines.register("plain", NonAgentEngine())
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertTrue(all(s.kind == "graph" for s in await run.steps.alist()))
@@ -479,7 +507,8 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.run_graph()).data.status, RunStatus.FAILED)
         self.assertEqual(model.requests, [])
         self.profile["resources"] = {}
-        await self.agents.asave("writer", self.profile)
+        await self.agents.asave("writer", self.profile,
+            expected_revision=(await self.agents.asnapshot("writer"))["revision"])
         # MCP 연결기가 없어도 참조하지 않은 컴포넌트는 실행에 영향을 주지 않는다.
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)

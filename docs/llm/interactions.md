@@ -1,5 +1,9 @@
 # 공통 사용자 요청과 승인
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 Project policies.tools.argument_constraints의 effective 값도 Tool 승인 action과 Engine checkpoint binding에
 포함한다. fixed 인자는 승인 전에 실제 호출 인자로 확정한다. constraint가 변경되면 같은 인자가
 계속 유효해도 이전 durable 승인을 재사용하지 못한다. 기존 InteractionRequest/Response,
@@ -54,7 +58,7 @@ response = request.respond("approve")  # 거절: "deny"
 await paused_run.arespond(response)
 
 # 응답 저장만으로 Tool이나 Workflow를 실행하지 않는다.
-new_request = await session.run.resume(paused_run.id, engine=paused_run.engine)
+new_request = await session.run.resume(paused_run.id, agent_id=paused_run.agent_id)
 new_run = await new_request.wait()
 ```
 

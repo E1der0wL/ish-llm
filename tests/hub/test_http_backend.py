@@ -37,8 +37,7 @@ class HTTPBackendTests(unittest.IsolatedAsyncioTestCase):
         thread.start()
         try:
             with tempfile.TemporaryDirectory() as directory, patch.dict("os.environ", {"OPENAI_API_KEY": "local-test-key"}):
-                runtime = HubRuntime(HubConfig(directory, "loop", "openai/test",
-                                              f"http://127.0.0.1:{server.server_port}/v1", auto_title=False))
+                runtime = HubRuntime(HubConfig(directory, model="openai/test", api_base=f"http://127.0.0.1:{server.server_port}/v1", auto_title=False))
                 try:
                     await runtime.start()
                     if not runtime.sessions:

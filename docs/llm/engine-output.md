@@ -1,5 +1,9 @@
 # 공통 Engine 출력
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 `llm.core.results`의 `EngineDelta`, `EngineOutput`은 실행 결과를 표현하는 데이터
 클래스다. 새로운 도메인이나 Manager는 추가하지 않는다. 기존
 Project → Session → Run → Step 경계를 유지한다.
@@ -77,7 +81,7 @@ outputs로 명시하거나 custom Engine의 명시적 Run output으로 확정한
 ## UI 조회 및 스트리밍
 
 ```python
-request = await session.run.submit("요청", engine="loop")
+request = await session.run.submit("요청", agent_id="loop")
 run = await request.wait()
 result = await run.aresult()
 if result.output is not None:

@@ -88,7 +88,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_startup_restore_flags_explicit_selection_and_missing_ids(self):
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, "loop", "test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False)
             runtime = HubRuntime(config, settings_backend)
             await runtime.start()
             if not runtime.sessions:
@@ -136,7 +136,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_categorized_form_pack_add_delete_save_and_reload(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, "loop", "test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False)
             app, controller = create_application(config, input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, screen = controller.view, controller.view.settings

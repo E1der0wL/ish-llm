@@ -72,12 +72,13 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temporary.cleanup)
         self.sessions = SessionManager()
         self.components = ComponentRegistry()
-        self.projects = ProjectManager(ProjectRepository(Path(self.temporary.name)), self.sessions, components=self.components)
+        self.registry = EngineRegistry()
+        self.registry.register("fake", FakeStreamingEngine())
+        self.projects = ProjectManager(ProjectRepository(Path(self.temporary.name)), self.sessions, components=self.components, engines=self.registry)
         self.project = self.projects.create("Loop project", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'openai/test-model'}}}}}))
         self.session = self.sessions.create(self.project, "Loop session")
         self.store = ConversationStore(self.session.paths.conversation)
-        self.registry = EngineRegistry()
-        self.registry.register("fake", FakeStreamingEngine())
+        self.projects.agents.create(self.project, {"engine": "fake"}, identifier="fake")
         self.events = []
         self.observer_errors = []
         self.addCleanup(lambda: self.assertEqual(self.observer_errors, []))
@@ -122,10 +123,12 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         self.projects.save(self.project)
         engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion_fn))
         self.registry.register("loop", engine)
+        selected = self.projects.component(self.project, "tools").get_config()["config"].get("enabled", []) if "tools" in self.project.components else []
+        self.projects.agents.create(self.project, {"engine": "loop", "tools": selected}, identifier="loop")
         return engine
 
     async def submit(self, text: str = "request") -> None:
-        await self.manager.submit(text, engine="loop")
+        await self.manager.submit(text, agent_id="loop")
         await asyncio.wait_for(self.manager.wait_idle(), timeout=15)
 
     def run_status(self) -> RunStatus:
@@ -176,12 +179,12 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         self.engine(completion_fn, request_timeout=60,
                     completion_kwargs={"max_tokens": 100, "api_key": "secret-test-value"})
         with patch.dict(os.environ, {"ISH_TEST_API_KEY": "secret-test-value"}):
-            await self.manager.submit("question", engine="loop")
+            await self.manager.submit("question", agent_id="loop")
             await self.until(lambda: any(event.type == EngineEventType.TEXT_DELTA for event in self.events))
             self.assertEqual(self.output(), "첫")
             self.assertEqual(self.run_status(), RunStatus.RUNNING)
             self.assertNotEqual(thread_ids[0], threading.get_ident())
-            queued = await self.manager.submit("later", engine="fake")
+            queued = await self.manager.submit("later", agent_id="fake")
             self.assertEqual(self.store.get(queued.id).status, MessageStatus.QUEUED)
             self.assertEqual(requests[0]["messages"], [{"role": "user", "content": "question"}])
             self.assertTrue(requests[0]["stream"])
@@ -361,8 +364,8 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
     async def test_provider_failure_reports_diagnostics_and_queue_continues(self) -> None:
         completion_fn = ScriptedCompletion([chunk("partial"), RuntimeError("Authorization: private-key")])
         self.engine(completion_fn)
-        await self.manager.submit("fail", engine="loop")
-        await self.manager.submit("next", engine="fake")
+        await self.manager.submit("fail", agent_id="loop")
+        await self.manager.submit("next", agent_id="fake")
         await self.manager.wait_idle()
         first, second = self.manager.repository.list(self.session)
         self.assertEqual(first.status, RunStatus.FAILED)
@@ -397,9 +400,9 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 closed.set()
         self.engine(completion_fn)
-        await self.manager.submit("first", engine="loop")
+        await self.manager.submit("first", agent_id="loop")
         await self.until(lambda: any(event.type == EngineEventType.TEXT_DELTA for event in self.events))
-        await self.manager.submit("next", engine="fake")
+        await self.manager.submit("next", agent_id="fake")
         self.assertTrue(await asyncio.wait_for(self.manager.interrupt(), 1))
         await self.manager.wait_idle()
         first, second = self.manager.repository.list(self.session)
@@ -427,7 +430,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
             release.wait(10)
             return LateStream()
         self.engine(completion_fn)
-        await self.manager.submit("first", engine="loop")
+        await self.manager.submit("first", agent_id="loop")
         await self.until(entered.is_set)
         await asyncio.wait_for(self.manager.interrupt(), 1)
         self.assertEqual(self.run_status(), RunStatus.INTERRUPTED)
@@ -464,9 +467,9 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         tool = Tool("add", "blocking", self.tool.parameters, blocking, contract=TEST_CONTRACT)
         completion_fn = ScriptedCompletion([chunk(calls=[call()], finish="tool_calls")])
         self.engine(completion_fn, tools=ToolRegistry((tool,)))
-        await self.manager.submit("first", engine="loop")
+        await self.manager.submit("first", agent_id="loop")
         await asyncio.wait_for(entered.wait(), 10)
-        await self.manager.submit("next", engine="fake")
+        await self.manager.submit("next", agent_id="fake")
         await self.manager.interrupt()
         await self.manager.wait_idle()
         first, second = self.manager.repository.list(self.session)
@@ -528,8 +531,8 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         other = self.sessions.create(self.project, "other")
         other_manager = RunManager(self.sessions, self.registry, session=other, capabilities=self.components)
         self.addAsyncCleanup(other_manager.shutdown)
-        await self.manager.submit("first", engine="loop")
-        await other_manager.submit("second", engine="loop")
+        await self.manager.submit("first", agent_id="loop")
+        await other_manager.submit("second", agent_id="loop")
         await self.until(lambda: len(entered) == 2)
         self.assertEqual(len(set(entered)), 2)
         release.set()

@@ -29,7 +29,7 @@ class LiveHubView(HubView):
         self.project_title = self.t("connecting")
         self.project_id = ""
         self.model = ""
-        self.engine = ""
+        self.agent_id = ""
         self.connected = False
         self.notice = self.t("connecting_notice")
         self._submitted_messages = {}
@@ -119,8 +119,10 @@ class LiveHubView(HubView):
             self.composer.buffer.cancel_completion()
             self.component_commands = commands
         self.engines = snapshot.engines
-        if self.engine not in self.engines:
-            self.engine = next(iter(self.engines), "")
+        self.agents = tuple(agent.id for agent in snapshot.agents)
+        self.agent_engines = {agent.id: agent.engine for agent in snapshot.agents}
+        if self.agent_id not in self.agents:
+            self.agent_id = next(iter(self.agents), "")
         if snapshot.file_root:
             self.file_root = snapshot.file_root
             self.output.set_file_root(snapshot.file_root)
@@ -175,7 +177,8 @@ class LiveController:
         self._save_timer = None
         self._last_notification = 0
         self._diagnosing = set()
-        self.view.engine = config.engine
+        self.view._default_agent_id = config.agent_id
+        self.view.agent_id = config.agent_id
         self.view.on_open = self.open
         self.view.on_submit = self.submit
         self.view.on_answer = self.answer_question
@@ -481,7 +484,7 @@ class LiveController:
             return
         view = self.view
         identity = (view.project_id, session_id)
-        engine, options = view.engine, dict(view.engine_options)
+        agent_id, options = view.agent_id, {}
         if self.environment_provider is not None:
             from ..config.environment import ENVIRONMENT_OPTION
             try:
@@ -489,6 +492,9 @@ class LiveController:
             except ValueError as error:
                 self._error(error)
                 return
+        if not options:
+            from llm.core.configuration import UNSET
+            options = UNSET
         from .input.submission import SubmittedDraft
         draft = SubmittedDraft(identity[0], session_id, text)
         draft.consume(view)
@@ -508,7 +514,7 @@ class LiveController:
                 draft.restore(view)
                 return
             def follow_up():
-                self._send("submit_input", session_id, text, text, engine, options, False, draft=draft)
+                self._send("submit_input", session_id, text, text, agent_id, options, False, draft=draft)
             from ..widget.controls import RadioList
             choices = RadioList([("steer", view.t("send_steering")), ("follow_up", view.t("send_follow_up"))],
                                 default="follow_up", select_on_focus=True)
@@ -524,7 +530,7 @@ class LiveController:
                 view.dialogs.close(accepted=True)
                 accept()
             choices.control.hub_shortcuts.add(["enter"], "", "confirm", confirm)
-        self._call("submit_input", session_id, text, engine, options, completed=ready)
+        self._call("submit_input", session_id, text, agent_id, options, completed=ready)
 
     def steer(self, session_id: str, text: str, *, expected_run_id=None, draft=None):
         if not text.strip() or session_id in self._submitting:

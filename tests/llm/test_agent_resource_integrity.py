@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.mcp import MCPComponent
 from llm.components.prompts import PromptComponent
 from llm.llm import LargeLanguageModel
@@ -21,7 +21,7 @@ class AgentResourceDeletionTests(unittest.IsolatedAsyncioTestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
-        self.parts = [AgentComponent(), PromptComponent(), MCPComponent()]
+        self.parts = [PromptComponent(), MCPComponent()]
         self.app = LargeLanguageModel(self.root, components=self.parts)
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate(components=[part.name for part in self.parts])
@@ -29,12 +29,12 @@ class AgentResourceDeletionTests(unittest.IsolatedAsyncioTestCase):
         self.mcp = self.project.components.mcp
         await self.prompts.acreate({'messages': [{'role': 'system', 'content': 'Original instructions'}]}, identifier='instructions')
         await self.mcp.acreate({'transport': 'streamable_http', 'url': 'https://example.invalid/mcp'}, identifier='remote')
-        await self.project.components.agents.acreate({'purpose': 'Read original resources', 'engine': 'loop',
+        await self.project.agents.acreate({'purpose': 'Read original resources', 'engine': 'loop',
             'resources': {'prompt': 'instructions', 'mcp': {'remote': {'read_remote': 'read'}}}}, identifier='reader')
 
     async def _assert_protected(self, name, identifier, *, parent=False, disabled=False, expected_error=ValueError):
         if disabled:
-            await self.project.components.aremove('agents')
+            self.assertNotIn('agents', self.project.data.components)
             await self.app.shutdown()
             self.app = LargeLanguageModel(self.root, components=self.parts)
             self.addAsyncCleanup(self.app.shutdown)
@@ -80,13 +80,15 @@ class AgentResourceDeletionTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(source_bytes(self.project.paths.root), before)
 
     async def test_each_persisted_consumer_must_release_before_explicit_deletion(self):
-        agents = self.project.components.agents
+        agents = self.project.agents
         original = await agents.aload('reader')
         await agents.acreate(original, identifier='second')
-        await agents.aupdate('reader', {'resources': {}})
+        await agents.aupdate('reader', {'resources': {}},
+                             expected_revision=(await agents.asnapshot('reader'))['revision'])
         await self._assert_protected('prompts', 'instructions')
         await self._assert_protected('mcp', 'remote', parent=True)
-        await agents.aupdate('second', {'resources': {}})
+        await agents.aupdate('second', {'resources': {}},
+                             expected_revision=(await agents.asnapshot('second'))['revision'])
         for target, identifier in ((self.prompts, 'instructions'), (self.mcp, 'remote')):
             review = await target.asnapshot(identifier)
             await target.adelete(identifier, expected_version=review['version'])
@@ -94,7 +96,7 @@ class AgentResourceDeletionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(set(await agents.alist()), {'reader', 'second'})
 
     async def test_missing_disabled_agent_inventory_is_not_an_empty_reference_set(self):
-        await self.project.components.aremove('agents')
+        self.assertNotIn('agents', self.project.data.components)
         (self.project.paths.root / 'agents' / 'records.manifest.json').unlink()
         await self._assert_protected('prompts', 'instructions', expected_error=FileNotFoundError)
         await self._assert_protected('mcp', 'remote', parent=True, expected_error=FileNotFoundError)
@@ -106,12 +108,13 @@ class AgentResourceDeletionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_clone_and_disabled_backup_restore_keep_their_copied_agent_references(self):
         clone = await self.project.aclone()
-        await self.project.components.aremove('agents')
+        self.assertNotIn('agents', self.project.data.components)
         archive = await self.project.abackup(self.root / 'archive')
         async with LargeLanguageModel(self.root / 'destination', components=self.parts) as app:
             restored = await app.projects.arestore_backup(archive)
-            for project, selected in ((clone, True), (restored, False)):
-                self.assertEqual('agents' in (await project.aget_data()).components, selected)
+            for project in (clone, restored):
+                self.assertNotIn('agents', (await project.aget_data()).components)
+                self.assertIn('reader', await project.agents.alist())
                 self.assertTrue((project.paths.root / 'agents' / 'records' / 'reader.json').is_file())
                 before = source_bytes(project.paths.root)
                 with self.assertRaisesRegex(ValueError, 'referenced'):
@@ -123,16 +126,17 @@ class AgentResourceDeletionTests(unittest.IsolatedAsyncioTestCase):
     async def test_rag_resource_protects_the_component_without_selecting_document_ids(self):
         from llm.components.rag import RAGComponent
         from tests.llm.configuration_fixtures import rag_project
-        async with LargeLanguageModel(self.root / 'rag-case', components=[AgentComponent(), RAGComponent()]) as app:
-            project = await app.projects.acreate(components=['agents', 'rag'], config=rag_project())
-            await project.components.agents.acreate({'purpose': 'Search corpus', 'engine': 'loop',
+        async with LargeLanguageModel(self.root / 'rag-case', components=[RAGComponent()]) as app:
+            project = await app.projects.acreate(components=['rag'], config=rag_project())
+            await project.agents.acreate({'purpose': 'Search corpus', 'engine': 'loop',
                 'resources': {'rag': True}}, identifier='searcher')
             before = source_bytes(project.paths.root)
             for permanent in (False, True):
                 with self.assertRaisesRegex(ValueError, 'referenced'):
                     await project.components.aremove('rag', permanent=permanent)
                 self.assertEqual(source_bytes(project.paths.root), before)
-            await project.components.agents.aupdate('searcher', {'resources': {'rag': False}})
+            await project.agents.aupdate('searcher', {'resources': {'rag': False}},
+                expected_revision=(await project.agents.asnapshot('searcher'))['revision'])
             await project.components.aremove('rag', permanent=True)
             self.assertFalse((project.paths.root / 'rag').exists())
 

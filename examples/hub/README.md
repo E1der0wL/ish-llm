@@ -1,6 +1,6 @@
 # hub 예제
 
-실제 대화는 저장소 루트에서 `python -m hub --engine loop --model openai/YOUR_MODEL`로
+실제 대화는 저장소 루트에서 `python -m hub --agent assistant --model openai/YOUR_MODEL`로
 실행합니다. 인증/서버 설정은 [Hub 사용법](../../hub/README.md)을 참고하세요.
 `ishrc.live.example.py`는 실제 ish 백엔드 연결 예제입니다.
 

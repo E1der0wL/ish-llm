@@ -1,4 +1,4 @@
-"""요청별 엔진 선택값의 저장·격리·복구 및 Graph 재개 계약."""
+"""명시적 Agent별 실행 정의의 저장·격리·복구 및 Graph 재개 계약."""
 
 import asyncio
 import tempfile
@@ -30,9 +30,9 @@ class RequestBindingTests(unittest.TestCase):
         for options in ({}, {"workflow": None}, {"workflow": " "}, {"workflow": 1},
                         {"workflow": "a", "timeout_seconds": 10}, None):
             with self.subTest(options=options), self.assertRaises((TypeError, ValueError)):
-                registry.resolve_request("graph", options)
-        first = registry.resolve_request("graph", {"workflow": "a"})
-        second = registry.resolve_request("graph", {"workflow": "b"})
+                registry.resolve_agent({"engine": "graph", "engine_options": options})
+        first = registry.resolve_agent({"engine": "graph", "engine_options": {"workflow": "a"}})
+        second = registry.resolve_agent({"engine": "graph", "engine_options": {"workflow": "b"}})
         self.assertEqual((first.workflow, second.workflow, engine.workflow), ("a", "b", None))
         with self.assertRaises(TypeError):
             GraphEngine("a", handlers={})
@@ -41,7 +41,8 @@ class RequestBindingTests(unittest.TestCase):
 
     def test_custom_engine_hook_and_unhandled_options(self):
         class Custom(BaseEngine):
-            def for_request(self, options):
+            def for_agent(self, definition):
+                options = definition.get("engine_options", {})
                 options["label"].append("bound")
                 worker = copy(self)
                 worker.label = options["label"]
@@ -50,25 +51,27 @@ class RequestBindingTests(unittest.TestCase):
         registry.register("custom", Custom())
         registry.register("plain", BaseEngine())
         source = {"label": ["user"]}
-        worker = registry.resolve_request("custom", source)
+        worker = registry.resolve_agent({"engine": "custom", "engine_options": source})
         self.assertEqual(source, {"label": ["user"]})
         self.assertEqual(worker.label, ["user", "bound"])
-        self.assertIs(registry.resolve_request("plain", {}), registry.get("plain"))
-        with self.assertRaisesRegex(ValueError, "does not support"):
-            registry.resolve_request("plain", {"workflow": "a"})
+        self.assertIsNot(registry.resolve_agent({"engine": "plain"}), registry.get("plain"))
+        with self.assertRaisesRegex(ValueError, "must implement"):
+            registry.resolve_agent({"engine": "plain", "engine_options": {"workflow": "a"}})
 
     def test_async_factory_is_rejected_without_leaking_coroutine(self):
         class Invalid(BaseEngine):
-            async def for_request(self, options):
+            async def for_agent(self, definition):
+                options = definition.get("engine_options", {})
                 return self
         registry = EngineRegistry()
         registry.register("invalid", Invalid())
         with self.assertRaisesRegex(TypeError, "synchronous"):
-            registry.resolve_request("invalid", {})
+            registry.resolve_agent({"engine": "invalid"})
 
     def test_factory_cannot_change_checkpoint_or_instruction_contract(self):
         class Invalid(BaseEngine):
-            def for_request(self, options):
+            def for_agent(self, definition):
+                options = definition.get("engine_options", {})
                 worker = copy(self)
                 setattr(worker, options["key"], options["value"])
                 return worker
@@ -76,7 +79,7 @@ class RequestBindingTests(unittest.TestCase):
         registry.register("invalid", Invalid())
         for key, value in (("checkpoint_name", "other"), ("steering_mode", SteeringMode.CONSUME)):
             with self.subTest(key=key), self.assertRaisesRegex(ValueError, "preserve"):
-                registry.resolve_request("invalid", {"key": key, "value": value})
+                registry.resolve_agent({"engine": "invalid", "engine_options": {"key": key, "value": value}})
 
 
 class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
@@ -97,6 +100,8 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph("a"), identifier="a")
         await self.workflows.acreate(graph("b"), identifier="b")
+        for identifier in ("a", "b"):
+            await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": identifier}}, identifier=identifier)
         self.session = await self.project.sessions.acreate()
 
     async def reopen(self):
@@ -108,12 +113,14 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_invalid_options_rejected_before_queue_and_missing_id_before_effects(self):
         await self.setup_backend()
-        for kwargs in ({}, {"engine_options": None}, {"engine_options": {}},
-                       {"engine_options": {"workflow": ""}}, {"engine_options": {"workflow": object()}}):
-            with self.subTest(kwargs=kwargs), self.assertRaises((ValueError, TypeError)):
-                await self.session.run.submit("go", engine="graph", **kwargs)
+        for options in (None, {}, {"workflow": ""}, {"workflow": object()}):
+            with self.subTest(options=options), self.assertRaises((ValueError, TypeError)):
+                await self.project.agents.acreate({"engine": "graph", "engine_options": options}, identifier="invalid")
+        with self.assertRaises(TypeError):
+            await self.session.run.submit("go", engine="graph")
         self.assertEqual(await self.session.run.alist(), [])
-        run = await (await self.session.run.submit("go", engine="graph", engine_options={"workflow": "missing"})).wait(timeout=10)
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "missing"}}, identifier="missing")
+        run = await (await self.session.run.submit("go", agent_id="missing")).wait(timeout=10)
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(await run.steps.alist(), [])
         self.assertEqual(self.effects, [])
@@ -129,13 +136,15 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
         await self.setup_backend(work)
         other = await self.project.sessions.acreate()
         options = {"workflow": "a"}
-        first = await self.session.run.submit("one", engine="graph", engine_options=options)
+        await self.project.agents.acreate({"engine": "graph", "engine_options": options}, identifier="first")
+        first = await self.session.run.submit("one", agent_id="first")
         options["workflow"] = "b"
-        second = await other.run.submit("two", engine="graph", engine_options=options)
+        await self.project.agents.acreate({"engine": "graph", "engine_options": options}, identifier="second")
+        second = await other.run.submit("two", agent_id="second")
         runs = await asyncio.gather(first.wait(timeout=10), second.wait(timeout=10))
         for run, expected in zip(runs, ("a", "b")):
             self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
-            self.assertEqual(run.data.metadata["engine_options"], {"workflow": expected})
+            self.assertEqual(run.data.metadata["agent_binding"]["definition"]["engine_options"], {"workflow": expected})
             self.assertEqual((await run.acheckpoint())["header"]["binding"]["workflow_id"], expected)
         self.assertIsNone(self.engine.workflow)
 
@@ -148,10 +157,10 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             return {}
         await self.setup_backend(work)
-        await self.session.run.submit("one", engine="graph", engine_options={"workflow": "a"})
+        await self.session.run.submit("one", agent_id="a")
         await asyncio.wait_for(entered.wait(), 5)
-        queued = await self.session.run.submit("two", engine="graph", engine_options={"workflow": "b"})
-        self.assertEqual((await queued.aget_data()).metadata["engine_options"], {"workflow": "b"})
+        queued = await self.session.run.submit("two", agent_id="b")
+        self.assertEqual((await queued.aget_data()).metadata["agent_binding"]["definition"]["engine_options"], {"workflow": "b"})
         session = await self.reopen()
         await session.run.start()
         run = await session.run.request(queued.id).wait(timeout=10)
@@ -161,20 +170,20 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
     async def test_resume_restores_selection_and_rejects_changed_definition(self):
         await self.setup_backend()
         await self.workflows.asave("a", graph("a", pause=True))
-        paused = await (await self.session.run.submit("go", engine="graph", engine_options={"workflow": "a"})).wait(timeout=10)
+        paused = await (await self.session.run.submit("go", agent_id="a")).wait(timeout=10)
         self.assertEqual(paused.data.status, RunStatus.PAUSED)
         session = await self.reopen()
-        with self.assertRaises(TypeError):
-            await session.run.resume(paused.id, engine="graph", engine_options={"workflow": "b"})
-        resumed = await (await session.run.resume(paused.id, engine="graph")).wait(timeout=10)
+        with self.assertRaisesRegex(RunRequestError, "original Agent"):
+            await session.run.resume(paused.id, agent_id="b")
+        resumed = await (await session.run.resume(paused.id, agent_id="a")).wait(timeout=10)
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
-        self.assertEqual(resumed.data.metadata["engine_options"], {"workflow": "a"})
+        self.assertEqual(resumed.data.metadata["agent_binding"]["definition"]["engine_options"], {"workflow": "a"})
         self.assertEqual(self.effects, ["a"])
-        next_pause = await (await session.run.submit("again", engine="graph", engine_options={"workflow": "a"})).wait(timeout=10)
+        next_pause = await (await session.run.submit("again", agent_id="a")).wait(timeout=10)
         workflows = await session.project.components.aget("workflows")
         await workflows.asave("a", graph("changed", pause=True))
         with self.assertRaisesRegex(RunRequestError, "changed"):
-            await session.run.resume(next_pause.id, engine="graph")
+            await session.run.resume(next_pause.id, agent_id="a")
         self.assertEqual(self.effects, ["a"])
 
     async def test_queued_request_reads_definition_at_run_start(self):
@@ -186,9 +195,9 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
             self.effects.append(node.state["tag"])
             return {}
         await self.setup_backend(work)
-        first = await self.session.run.submit("one", engine="graph", engine_options={"workflow": "a"})
+        first = await self.session.run.submit("one", agent_id="a")
         await asyncio.wait_for(entered.wait(), 5)
-        second = await self.session.run.submit("two", engine="graph", engine_options={"workflow": "b"})
+        second = await self.session.run.submit("two", agent_id="b")
         await self.workflows.asave("b", graph("updated"))
         release.set()
         await first.wait(timeout=10)

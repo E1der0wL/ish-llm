@@ -69,9 +69,14 @@ async def run_request(args):
                            config=ProjectConfig(config["project_config"])))
             if args.install_guides:
                 await install_guides(project)
+            if not args.project_id:
+                selection = await (await project.components.aget("computer")).aget_config()
+                selected = selection.get("config", {}).get("enabled", [])
+                await project.agents.acreate({"engine": "loop",
+                    "tools": [*selected, "skill_list", "skill_read", "skill_read_resource"]}, identifier=args.agent_id)
             session = await project.sessions.acreate("Programming / diagnosis")
             print(f"Project: {project.id}\nSession: {session.id}")
-            run = await (await session.run.submit(args.prompt, engine="loop")).wait()
+            run = await (await session.run.submit(args.prompt, agent_id=args.agent_id)).wait()
             result = await run.aresult()
             print(f"\nRun: {run.id} / {result.status.value}")
             if result.status != RunStatus.COMPLETED:
@@ -87,6 +92,7 @@ def main():
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--project-id", help="기존 설정·Skill을 사용할 Project ID. project_config는 다시 적용하지 않음")
     parser.add_argument("--install-guides", action="store_true", help="아직 없는 예제 Skill을 명시적으로 추가")
+    parser.add_argument("--agent-id", default="developer", help="저장된 실행 Agent ID")
     parser.add_argument("prompt")
     return asyncio.run(run_request(parser.parse_args()))
 

@@ -39,8 +39,9 @@ from hub.ui.output import OutputParser, RendererRegistry, OutputBlock, OutputUIC
 from hub.widget.output_inspector import ExpandedOutputDialog
 assert info.module.HubConfig is HubConfig
 assert callable(ExpandedOutputDialog)
-settings = info.module.HubConfig('/tmp/hub-unused', engine='loop', model='openai/test')
-assert settings.engine == 'loop'
+settings = info.module.HubConfig('/tmp/hub-unused', model='openai/test')
+assert settings.agent_id == 'assistant'
+assert settings.initial_engine == 'loop'
 assert not any(name.startswith(('examples.', 'tests.')) for name in sys.modules)
 '''
             result = subprocess.run([sys.executable, "-c", code, str(scripts)], cwd=directory,

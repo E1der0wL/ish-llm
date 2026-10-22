@@ -1,3 +1,5 @@
+
+from llm.core.agents import AgentBinding
 from asyncio import timeout
 import asyncio
 import json
@@ -61,7 +63,7 @@ class LifecycleTests(unittest.TestCase):
             request = self.store.create(MessageRole.USER, "completed work", MessageStatus.COMMITTED, run_id=identifier)
             assistant = self.store.create(MessageRole.ASSISTANT, "done", MessageStatus.COMPLETED, run_id=identifier)
             run = Run(identifier, self.session.id, request.id, assistant.id, "fake",
-                      repository.paths(self.session, identifier), status=RunStatus.COMPLETED)
+                      repository.paths(self.session, identifier), status=RunStatus.COMPLETED, agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'})})
             run.started_at = run.ended_at = run.created_at
             repository.create(run)
         artifact = run.paths.root / "artifacts" / "nested" / "artifact.txt"
@@ -113,7 +115,7 @@ class LifecycleTests(unittest.TestCase):
         assistant = store.create(MessageRole.ASSISTANT, "", MessageStatus.STREAMING, run_id=identifier)
         repository = self.sessions.run_repository
         run = Run(identifier, self.session.id, request.id, assistant.id, "fake",
-                  repository.paths(self.session, identifier), status=RunStatus.RUNNING)
+                  repository.paths(self.session, identifier), status=RunStatus.RUNNING, agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'})})
         run.started_at = run.created_at
         repository.create(run)
         self.session.status = SessionStatus.RUNNING
@@ -202,17 +204,18 @@ class RuntimeLifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.sessions = SessionManager()
-        self.projects = ProjectManager(ProjectRepository(self.root), self.sessions)
+        self.registry = EngineRegistry()
+        self.registry.register("fake", FakeStreamingEngine(chunks=("private-answer",)))
+        self.projects = ProjectManager(ProjectRepository(self.root), self.sessions, engines=self.registry)
         self.project = self.projects.create("private-project-title",
                                             config=ProjectConfig())
         self.session = self.sessions.create(self.project, "private-session-title")
-        self.registry = EngineRegistry()
-        self.registry.register("fake", FakeStreamingEngine(chunks=("private-answer",)))
+        self.projects.agents.create(self.project, {"engine": "fake"}, identifier="fake")
         self.manager = RunManager(self.sessions, self.registry, session=self.session)
         self.addAsyncCleanup(self.manager.shutdown)
 
     async def test_queued_and_idle_attached_sessions_cannot_be_deleted_or_cloned(self) -> None:
-        await self.manager.submit("private-prompt", engine="fake")
+        await self.manager.submit("private-prompt", agent_id="fake")
         for phase in ("queued", "idle"):
             if phase == "idle":
                 await self.manager.wait_idle()
@@ -247,7 +250,8 @@ class RuntimeLifecycleTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_failed_and_interrupted_runs_have_terminal_domain_logs(self) -> None:
         self.registry.register("broken", FakeStreamingEngine(fail_after=0))
-        await self.manager.submit("private-prompt", engine="broken")
+        self.projects.agents.create(self.project, {"engine": "broken"}, identifier="broken")
+        await self.manager.submit("private-prompt", agent_id="broken")
         await self.manager.wait_idle()
         failed_run, = self.manager.repository.list(self.session)
         failed_step, = self.manager.steps.list(failed_run)
@@ -255,7 +259,8 @@ class RuntimeLifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("step.failed", [row["event"] for row in records(failed_step.paths.logs)])
 
         self.registry.register("blocked", FakeStreamingEngine(gate=asyncio.Event()))
-        await self.manager.submit("private-prompt", engine="blocked")
+        self.projects.agents.create(self.project, {"engine": "blocked"}, identifier="blocked")
+        await self.manager.submit("private-prompt", agent_id="blocked")
         async with timeout(10):
             while not any(message.status == MessageStatus.STREAMING and message.content
                           for message in ConversationStore(self.session.paths.conversation).list()):
@@ -270,7 +275,7 @@ class RuntimeLifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def test_each_domain_records_lifecycle_without_conversation_or_metadata(self) -> None:
         self.session.metadata = {"Authorization": "private-authorization"}
         self.sessions.save(self.session)
-        await self.manager.submit("private-prompt", engine="fake")
+        await self.manager.submit("private-prompt", agent_id="fake")
         await self.manager.wait_idle()
         run, = self.manager.repository.list(self.session)
         step, = self.manager.steps.list(run)

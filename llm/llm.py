@@ -57,7 +57,7 @@ from llm.engines.graph.agent import AgentNode
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from llm.components.tools.component import ToolComponent
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.skills import SkillComponent
 from llm.components.data import DataComponent
 from llm.components.goals import GoalComponent, GoalData
@@ -120,7 +120,7 @@ class LargeLanguageModel:
         # request.options, category, priority, risk, recommended_option_id로 UI를 구성한다.
         response = request.respond("approve")  # 사용자의 실제 선택 후 생성
         await paused_run.arespond(response)    # 원자적 응답 저장, 아직 실행하지 않음
-        resumed = await session.run.resume(paused_run.id, engine=paused_run.engine)
+        resumed = await session.run.resume(paused_run.id, agent_id=paused_run.agent_id)
         result = await resumed.wait()
 
     InteractionRequest/InteractionOption/InteractionResponse는 llm 플러그인의 공개 클래스다.
@@ -165,8 +165,9 @@ class LargeLanguageModel:
                     config=ProjectConfig(parameters={"engines": {"chat": {'config': {'completion': {'model': model}}, 'policy': {'max_iterations': 5}}}}),
                     conversation_storage="file",
                 )
+                await project.agents.acreate({"engine": "chat"}, identifier="chat")
                 session = await project.sessions.acreate("첫 대화")
-                request = await session.run.submit("안녕!", engine="chat")
+                request = await session.run.submit("안녕!", agent_id="chat")
                 run = await request.wait(timeout=60)
                 result = await run.aresult()
                 if result.status == RunStatus.COMPLETED:
@@ -216,7 +217,7 @@ class LargeLanguageModel:
 
         project = await backend.projects.acreate(
             "연구", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': model}}}}}),
-            components=["tools", "skills", "agents", "workflows"],
+            components=["tools", "skills", "workflows"],
             conversation_storage="memory",
         )
         project = await backend.projects.aload(project.id)
@@ -260,7 +261,7 @@ class LargeLanguageModel:
 
     Request / Run — 요청 제출·한 건의 완료 대기·실행 제어::
 
-        request = await session.run.submit("이 코드를 검토해줘.", engine="chat")
+        request = await session.run.submit("이 코드를 검토해줘.", agent_id="chat")
         request = await session.run.arequest(request.id)  # 사용자 Message ID로 요청 조회
         message = await request.aget_data()
         pending_run = await request.aget_run()        # 아직 실행 전이면 None
@@ -345,7 +346,7 @@ class LargeLanguageModel:
     장시간 실행 / 복구 / UI 편집::
 
         checkpoint = await run.acheckpoint("loop")
-        resumed = await session.run.resume(run.id, engine="loop")
+        resumed = await session.run.resume(run.id, agent_id="loop")
         # 불확실한 Tool은 retry_nodes, 승인 대기는 decisions를 명시한다.
         view = await run.aview(after=0, limit=200)
         snapshot = await project.components.workflows.asnapshot("flow")
@@ -385,7 +386,7 @@ class LargeLanguageModel:
         view = await run.aview()                   # RunView: run/outputs/cursor/events
         payload = view.to_dict()                  # UI 전송용 JSON 사전
         restored = RunView.from_dict(payload)
-        plan = await session.run.resume_plan(run.id, engine=run.engine)  # ResumePlan
+        plan = await session.run.resume_plan(run.id, agent_id=run.agent_id)  # ResumePlan
         for issue in plan.blockers:               # Diagnostic
             print(issue.code, issue.message, issue.source)
         recovery = await project.arecovery()      # RecoveryPlan
@@ -412,9 +413,9 @@ class LargeLanguageModel:
         views = await run.ainteraction_views()  # InteractionView: 응답/실행 상태 분리
         request = views[0].request
         await run.arespond(request.respond("approve"))
-        plan = await session.run.resume_plan(run.id, engine=run.engine)
+        plan = await session.run.resume_plan(run.id, agent_id=run.agent_id)
         if plan.can_resume:
-            resumed = await session.run.resume(run.id, engine=run.engine)
+            resumed = await session.run.resume(run.id, agent_id=run.agent_id)
         # 만료/취소 요청은 acancel_interaction/arenew_interaction으로 관리한다.
 
     응답 저장은 실행을 시작하지 않는다. Project policies.approval의 기본값은 비활성이다.
@@ -431,7 +432,7 @@ class LargeLanguageModel:
         # 반복 한도는 Project parameters.engines.review.policy.max_iterations에 저장한다.
         names = backend.engines.names()
         engine = backend.engines.get("review")
-        request = await session.run.submit("검토해줘.", engine="review")
+        request = await session.run.submit("검토해줘.", agent_id="review")
 
     이름은 중복 등록할 수 없다. GraphEngine 등 개발자가 만든 Engine도 같은 방식으로
     등록한다. Engine 실행은 session.run.submit을 거쳐야 Run/Step/대화 기록과 연결된다.
@@ -464,7 +465,7 @@ class LargeLanguageModel:
 
     Component — 선택한 프로젝트 기능의 설정과 데이터 CRUD::
 
-        await project.components.aselect(["tools", "skills", "agents", "workflows"])
+        await project.components.aselect(["tools", "skills", "workflows"])
         skills = await project.components.aget("skills")  # 동기: project.components.skills
         identifier = await skills.acreate({"instructions": "변경된 코드를 검토한다."})
         data = await skills.aload(identifier)
@@ -599,7 +600,7 @@ class LargeLanguageModel:
         await tools.adisable("add")
         await tools.aset_enabled(["add"])
 
-        agents = await project.components.aget("agents")
+        agents = project.agents
         agent_id = await agents.acreate({"engine": "loop", "purpose": "검토", "completion": {"model": model}})
         prompt = await agents.aprompt(agent_id)
         await agents.aupdate_prompt(agent_id, "정확하게 검토한다.", expected_revision=prompt["revision"])
@@ -619,11 +620,12 @@ class LargeLanguageModel:
 
     Graph 체크포인트 / 명시적 재개::
 
-        request = await session.run.submit("작업", engine="graph",
-                                           engine_options={"workflow": workflow_id})
+        await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": workflow_id}},
+                                     identifier="coordinator")
+        request = await session.run.submit("작업", agent_id="coordinator")
         run = await request.wait()  # pause_before 노드에서는 status == RunStatus.PAUSED
         checkpoint = await run.acheckpoint()  # 헤더 + 노드별 started/completed/waiting
-        resumed = await session.run.resume(run.id, engine="graph")
+        resumed = await session.run.resume(run.id, agent_id=run.agent_id)
         next_run = await resumed.wait()
 
     workflow는 저장된 Workflow ID이며 생성자 대신 매 submit에서 명시한다.
@@ -764,10 +766,10 @@ class LargeLanguageModel:
             self.engines.register(name, engine)
         # 제공 가능한 종류와 Project에서 선택한 종류는 다르다. 선택 시에만 디렉토리를 만든다.
         available = [ToolComponent(), SkillComponent(), DataComponent(), MCPComponent(), RAGComponent(),
-                     AgentComponent(engines=self.engines), WorkflowComponent(), MemoryComponent(), PromptComponent(),
+                     WorkflowComponent(), MemoryComponent(), PromptComponent(),
                      VisionComponent(), GoalComponent(), RefinementComponent()] if components is None else components
         self.project_manager, self.run_repository, self.step_manager = self.services.build(
-            self.workspace, available)
+            self.workspace, available, engines=self.engines)
         self.project_manager.usage_counters = dict(getattr(self.policy_resolver, "token_counters", {}))
         self.events = EventSubscriptions()
         from llm.services.infrastructure.observability import Observability, ObservabilityView
@@ -992,7 +994,8 @@ async def run_request(args: argparse.Namespace) -> int:
             await selected_tools.aprepare("add")
             await selected_tools.aenable("add")
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
-        request = await session.run.submit(args.prompt, engine=args.engine)
+        await project.agents.acreate({"engine": args.engine, "tools": ["add"] if args.with_tools else []}, identifier="demo")
+        request = await session.run.submit(args.prompt, agent_id="demo")
         handle = await request.wait()
         run = await handle.aget_data()
         print()

@@ -75,10 +75,11 @@ async def hold_workspace(root, spec):
             engines={"probe": probe_engine(root, gate)}) as app:
         app.events.subscribe(observe, channel="engine")
         project = await app.projects.acreate("Recovery probe", components=[])
+        await project.agents.acreate({"engine": "probe"}, identifier="probe-agent")
         session = await project.sessions.acreate()
-        first = await session.run.submit("blocked", engine="probe")
+        first = await session.run.submit("blocked", agent_id="probe-agent")
         await streamed.wait()
-        queued = await session.run.submit("queued", engine="probe")
+        queued = await session.run.submit("queued", agent_id="probe-agent")
         run = await first.aget_run()
         check(run is not None, "Running request has no Run")
         check((await run.aresponse()).content == "partial", "Partial response was not persisted")
@@ -133,7 +134,7 @@ async def recover(root, spec):
             check([e["prompt"] for e in effects(root)] == ["blocked", "queued"], "Effects repeated or queue order changed")
         else:
             check([e["prompt"] for e in effects(root)] == ["work"], "Failed request effect was repeated")
-            following = await (await session.run.submit("next", engine="probe")).wait()
+            following = await (await session.run.submit("next", agent_id="probe-agent")).wait()
             check((await following.aresult()).status == "completed", "Next request cannot run")
             check([e["prompt"] for e in effects(root)] == ["work", "next"], "Unexpected effect count")
         state = await session.run.astatus()
@@ -153,6 +154,7 @@ async def disk_failure(root, spec):
     app = LargeLanguageModel(root / "workspace", components=[], engines={"probe": probe_engine(root)})
     try:
         project = await app.projects.acreate("Disk failure probe", components=[])
+        await project.agents.acreate({"engine": "probe"}, identifier="probe-agent")
         session = await project.sessions.acreate()
         await session.run.start()
 
@@ -177,7 +179,7 @@ async def disk_failure(root, spec):
         # 전용 자식 프로세스에서만 교체한다. ish 호스트/다른 검사의 저장 함수는 건드리지 않는다.
         os.replace, os.fsync = replace, sync
         try:
-            request = await session.run.submit("work", engine="probe")
+            request = await session.run.submit("work", agent_id="probe-agent")
             try:
                 run = await request.wait()
             except OSError as error:
@@ -282,10 +284,11 @@ async def connection_failure(root, spec):
         await asyncio.to_thread(warmup)
         async with LargeLanguageModel(root / "workspace", components=[], engines={"loop": engine}) as app:
             project = await app.projects.acreate("Connection probe", config=config, components=[])
+            await project.agents.acreate({"engine": "loop"}, identifier="connection-agent")
             session = await project.sessions.acreate()
             for prompt in ("disconnect-before", "disconnect-mid"):
-                failed = await session.run.submit(prompt, engine="loop")
-                next_request = await session.run.submit("continue", engine="loop")
+                failed = await session.run.submit(prompt, agent_id="connection-agent")
+                next_request = await session.run.submit("continue", agent_id="connection-agent")
                 run = await failed.wait()
                 response, data = await run.aresponse(), await run.aget_data()
                 check(data.status == "failed", "Broken connection was treated as success")

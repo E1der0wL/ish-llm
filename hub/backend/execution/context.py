@@ -23,7 +23,7 @@ class HubContextBuilder(ConversationContextBuilder):
         for message in snapshot:
             message.metadata.pop("resume", None)
             message.metadata.pop("restart", None)
-            message.metadata.get("engine_options", {}).pop(TURN_OPTION, None)
+            message.metadata.get("request_context", {}).pop(TURN_OPTION, None)
         return snapshot
 
     def for_run(self, messages: list[Message], input_message_id: str, *,

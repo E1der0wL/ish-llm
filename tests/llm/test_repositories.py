@@ -1,3 +1,5 @@
+
+from llm.core.agents import AgentBinding
 import tempfile
 import unittest
 from copy import deepcopy
@@ -26,7 +28,7 @@ class RepositoryTests(unittest.TestCase):
         self.runs = RunRepository()
         run_id = new_id()
         self.run = Run(run_id, self.session.id, new_id(), new_id(), "fake",
-                       self.runs.paths(self.session, run_id))
+                       self.runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'})})
         self.runs.create(self.run)
         self.steps = StepManager(repository=StepRepository())
         self.step = self.steps.create(self.run, "llm", "Completion")

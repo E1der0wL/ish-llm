@@ -307,6 +307,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_observation_contains_budgeted_request_and_original_history(self):
         await self.build_history()
+        engines = {name: self.app.engines.get(name) for name in self.app.engines.names()}
         await self.app.shutdown()
         observations = []
         class Session(CompletionSession):
@@ -315,7 +316,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 if False:
                     yield
         feature = Feature("observe", Processor("observe", lambda _: Session()))
-        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, feature, memory_tests.PromptComponent()], engines={},
+        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, feature, memory_tests.PromptComponent()], engines=engines,
             services=BackendServices(token_counters={"test": lambda r: len(r.messages)}))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
@@ -374,8 +375,9 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.add_feature("waiting", lambda _: Session())
         await self.project.components.aselect(["waiting"])
         model = ScriptedCompletion(memory_tests.answer())
-        self.app.engines.register("interruptible", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
-        request = await self.session.run.submit("stop", engine="interruptible")
+        self.app.engines.register("interruptible", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
+        await self.project.agents.acreate({"engine": "interruptible", "completion": {"model": "test/main"}}, identifier="interruptible")
+        request = await self.session.run.submit("stop", agent_id="interruptible")
         await asyncio.wait_for(entered.wait(), 5)
         await self.session.run.interrupt()
         run = await request.wait(timeout=10)

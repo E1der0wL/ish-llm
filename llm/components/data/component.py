@@ -46,7 +46,7 @@ class DataData(FileData):
 
     def _quarantine_owner(self, identifier):
         project, component = self._current()
-        self.registry.require_unreferenced(project, self.name, identifier)
+        self.references.require_unreferenced(project, self.name, identifier)
         if self._sessions is None or self._sessions.run_repository is None:
             raise RuntimeError("Data quarantine requires bound execution references")
         for session in self._sessions.list(project, include_deleted=True):

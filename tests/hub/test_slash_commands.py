@@ -31,7 +31,7 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
         suggestions = list(completer.get_completions(Document("/"), CompleteEvent()))
         cases = (
             ("/help", "help_dialog", ()),
-            ("/engine graph", "choose_engine", ("graph",)),
+            ("/agent graph", "choose_agent", ("graph",)),
             ("/new   New session  ", "session_dialog", ("new", "New session")),
             ("/clone Copy", "session_dialog", ("clone", "Copy")),
             ("/stop", "on_interrupt", ("session",)),
@@ -48,7 +48,7 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.composer.text, "")
                 view.on_submit.assert_not_called()
         self.assertEqual([item.text for item in completer.get_completions(
-            Document("/engine gr"), CompleteEvent())], ["graph"])
+            Document("/agent gr"), CompleteEvent())], ["graph"])
 
     def test_only_managed_components_and_two_actions_are_exposed(self):
         commands = component_commands(("tools", "rag", "skills", "workflows", "agents", "memory", "goals", "refinement", "mcp"))
@@ -57,11 +57,16 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
         language = Language("ko")
         completer = HubCompleter(lambda: (), lambda: ".", language, components=lambda: commands)
         suggestions = [item.text for item in completer.get_completions(Document("/"), CompleteEvent())]
-        for alias in ("tool", "skill", "workflow", "agent"):
+        for alias in ("tool", "skill", "workflow"):
             self.assertNotIn("/" + alias, suggestions)
             view = Mock(component_commands=commands)
             self.assertFalse(HubCommands(view).execute(f"/{alias} config"))
             view.on_component.assert_not_called()
+        self.assertIn("/agent", suggestions)
+        view = Mock(component_commands=commands)
+        self.assertTrue(HubCommands(view).execute("/agent config"))
+        view.choose_agent.assert_called_once_with("config")
+        view.on_component.assert_not_called()
         for command in commands:
             self.assertEqual(suggestions.count("/" + command), 1)
             view = Mock(component_commands=commands)

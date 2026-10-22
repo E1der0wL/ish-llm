@@ -63,7 +63,7 @@ class WorkspaceSettingsTests(unittest.IsolatedAsyncioTestCase):
             try:
                 original_project = runtime.project.id
                 original_session = await runtime.new_session(title="Original history")
-                request = await runtime.sessions[original_session].run.submit("hold original request", engine="loop")
+                request = await runtime.sessions[original_session].run.submit("hold original request", agent_id="assistant")
                 async with asyncio.timeout(5):
                     while not (await runtime.sessions[original_session].run.astatus()).active_run_id:
                         await asyncio.sleep(.01)

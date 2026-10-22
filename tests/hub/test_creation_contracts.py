@@ -58,6 +58,21 @@ class CreationContractTests(unittest.IsolatedAsyncioTestCase):
                     await runtime.sessions[sid].run.wait_idle()
                     run = (await runtime.sessions[sid].run.alist())[-1]
                     self.assertEqual(str((await run.aresult()).status), "failed")
+                    self.assertEqual(len(provider.requests), 0)
+                    self.assertFalse(effect.exists())
+                    self.assertFalse(await run.ainteractions())
+                    self.assertEqual((await runtime.settings_service.load_project(identifier))["values"], before["values"])
+                    # The saved Agent still selects now-unavailable Tools. The Application must
+                    # explicitly revise its choice before testing an unadvertised Tool response.
+                    selected = await runtime.project.agents.asnapshot(config.agent_id)
+                    definition = selected["definition"]
+                    definition["tools"] = []
+                    await runtime.project.agents.arevise(config.agent_id, definition,
+                                                         expected_revision=selected["revision"])
+                    await runtime.submit(sid, "Try a disabled Tool")
+                    await runtime.sessions[sid].run.wait_idle()
+                    run = (await runtime.sessions[sid].run.alist())[-1]
+                    self.assertEqual(str((await run.aresult()).status), "failed")
                     self.assertEqual(len(provider.requests), 1)
                     self.assertFalse(provider.requests[0].get("tools"))
                     self.assertFalse(effect.exists())

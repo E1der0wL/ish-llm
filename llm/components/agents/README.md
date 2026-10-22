@@ -1,61 +1,57 @@
-# Agents — 재사용할 업무 정의
+# 독립 Agent 도메인
 
-현재 AgentComponent의 저장·참조 계약이다. 독립 Agent로의 [B/C 전환](../../../docs/llm/clean-refactor.md)은 미구현 목표이며 구 API wrapper를 남기지 않는다.
+Agent는 `project.agents`가 소유한다. 현재 구현은 [정의·필수 저장 envelope](../../core/agents.py),
+[Repository·Manager·Handle](../../services/lifecycle/agents.py),
+[Root 실행 binding](../../services/runtime/agents.py),
+[Agent 실행](../../engines/agents.py), [agent_run Tool](../../engines/agent_tools.py)에 있다.
+AgentComponent와 `project.components.agents` API는 제공하지 않는다.
 
-특정 목적의 업무를 Engine, 모델, 프롬프트, 리소스, 입출력 계약의 조합으로 저장합니다. 닫힌 최상위 계약을 사용하고 Application 확장은 metadata에 둡니다. AgentNode와 agent_run의 실행 상태는 소유 Run/Step에 남습니다.
-
-`AgentComponent(engines=registry)`는 저장 ID로 실행하는 agent_run Tool도 제공합니다.
-기본 LargeLanguageModel은 이 registry를 연결합니다. AgentNode와 agent_run은
-engines/agents.py의 AgentExecution을 공유하며 같은 Run의 승인·Tool 예산·취소·Step을
-사용합니다. [위임과 재개 계약](../../../docs/llm/project-authority.md#저장-agent-위임)을 참고하세요.
-
-## 파일 안내
-
-| 파일 | 역할 |
-| --- | --- |
-| [__init__.py](__init__.py) | AgentComponent와 공개 데이터 핸들을 노출합니다. |
-| [component.py](component.py) | Agent JSON schema, 필수 purpose/engine, 참조·정책 검증과 정의 지문을 계산합니다. |
-| [data.py](data.py) | AgentData가 잠금·버전 검사를 유지하며 프롬프트 변경 등의 전용 API를 제공합니다. |
-| [tools.py](tools.py) | agent_id/input만 받는 agent_run Tool schema와 공통 실행 경계 연결입니다. |
-
-## 정의 저장 예
-
-선택된 `agents` Component 핸들에 저장합니다. `loop`는 AgentNode에 등록된 Engine 이름이어야 합니다.
+## 저장과 명시적 선택
 
 ```python
-agents = await project.components.aget("agents")
+agents = project.agents
 await agents.acreate({
-    "purpose": "주어진 문서의 오류를 검토한다",
     "engine": "loop",
+    "purpose": "주어진 문서의 오류를 검토한다",
     "system_prompt": "근거가 있는 문제만 설명하세요.",
-    "engine_options": {'policy': {'max_iterations': 3}},
+    "engine_options": {"policy": {"max_iterations": 3}},
     "output_format": "text",
 }, identifier="reviewer")
+request = await session.run.submit("문서를 검토하세요.", agent_id="reviewer")
 ```
 
-`completion`은 모델 옵션, `tools`는 허용 Tool 이름, `resources`는 Skill/RAG/MCP 연결입니다. `policy`로 require_tool/max_tool_calls/timeout_seconds를 명시할 수 있습니다. JSON 결과 검증에는 output_format과 output_schema를 사용합니다.
+선택 Engine은 Backend에 명시적으로 등록해야 한다. 저장 시 공통 정의와 선택 Engine의
+`for_agent` 계약을 검증하며 모델·Tool·서버 실행을 시작하지 않는다. engine은 필수이고 purpose는
+선택 메타데이터다. completion, tools, resources, policy의 생략·null·명시 값은 해당 소유자의
+계약을 따른다. Backend는 Engine 이름에서 Agent를 자동 생성하지 않는다.
 
-`resources.prompt="saved-prompt-id"`로 선택한 Prompt를 참조할 수 있습니다.
-저장된 Agent는 resources의 Skill·Prompt·MCP 서버와 RAG corpus 참조를 선언합니다.
-참조 중인 레코드/Component의 영구 삭제는 거부하며, 선택된 Agent가 소비하는 Component의
-선택 해제도 거부합니다. Agent를 비활성화하거나 재시작해도 저장된 참조의 삭제 보호는 유지합니다.
-원본 Agent 정의에서 참조를 명시적으로 해제한 뒤 삭제해야 합니다. 참조 증거가 손상되면
-빈 참조로 취급하지 않습니다. 정상 Project 전체 종료는 내부 참조 양쪽을 함께 제거할 수 있습니다.
-모델 실행 Agent의 조합 순서는 **참조 Prompt → 명시 inline/상속 system_prompt → resources.skills 순서**입니다.
-Prompt messages의 role은 지침 안의 라벨로 보존합니다. purpose는 업무 메타데이터이며
-자동 시스템 프롬프트 대체값이 아닙니다. 설정은 Project → Session → Agent 순서이며 Host 프롬프트 override는 없습니다.
-Graph를 실행하는 조율 Agent는 하위 Agent의 지침을 덮어쓰지 않습니다.
-Graph-backed Agent는 다른 GraphEngine/handler 환경의 선택만 소유합니다. 위 모델 설정은
-behavioral Agent에만 해당합니다. Graph Agent는 purpose/description/engine/engine_options와 비실행
-metadata만 허용하고 completion/system_prompt/tools/resources/policy/input_schema/
-output_schema/output_format은 빈 값도 거부합니다. Component가 Engine 이름을 검사하지 않고
-GraphEngine.for_agent가 리소스 조회 전에 검증합니다. 같은 환경은 workflow 노드로 중첩합니다.
-Agent·Prompt·Skill의 임의 Application 필드는 `metadata` 안에서만 허용하며 Tool/MCP/RAG 권한이나 Engine 설정으로 해석하지 않습니다.
-Run의 capability 사본과 Agent Step binding에 정의와 revision을 기록합니다.
-실행 중 저장소 수정은 다음 Run에만 반영되며, 바뀐 정의로 과거 checkpoint를 재개하지 않습니다.
+## 수정·삭제와 무결성
 
-저장 위치는 `<project>/agents/records/<id>.json`입니다. 레코드를 저장한다고 실행되지는 않습니다. Workflow 노드에서 Agent ID를 참조하고 [AgentNode](../../engines/graph/README.md)가 등록된 Engine을 실행합니다. 중첩 Graph도 같은 소유 Run 안에서 실행됩니다.
+```python
+before = await agents.asnapshot("reviewer")
+await agents.aupdate("reviewer", {"description": "검토 담당"},
+                     expected_revision=before["revision"])
+```
 
-Agent의 Tool 허용 목록은 Run의 ToolRuntime나 승인 검사를 우회하지 않습니다. 정의·리소스 변경은 재개 binding에 영향을 줄 수 있습니다. [Agent 상세 계약](../../../docs/llm/agents.md)을 참고하세요.
+수정·삭제에는 현재 snapshot의 expected_revision이 필수다. Project의 `agents/records`와
+`agents/records.manifest.json`은 필수 저장 증거이며 Project ID·revision·실제 bytes digest와
+목록을 함께 검증한다. 소실·손상을 빈 목록이나 기본값으로 복원하지 않는다.
 
-[상위 안내](../README.md)
+저장 Agent가 참조하는 Skill·Prompt·MCP·RAG·Workflow 등의 삭제와 Component 선택 해제는
+참조 계약을 따른다. 먼저 Agent 정의에서 참조를 명시적으로 해제해야 한다. Root Run·대기 요청·
+Checkpoint가 참조하는 Agent의 삭제도 보호한다. Clone은 정의를 복제하고 새 Project identity를 기록한다.
+
+## 실행과 재개
+
+Run의 agent_id, 선택 Engine, 정의·revision binding은 필수 불변 증거다. 재개는 원본 요청·실행
+binding·Checkpoint와 현재 선택 정의를 검증한다. 필수 증거가 없으면 현재 설정으로 보완하지 않는다.
+
+Behavioral Agent의 지침은 참조 Prompt → 명시/상속 system_prompt → 선택 Skill 순서로 구성한다.
+purpose를 시스템 프롬프트로 대체하지 않는다. 설정은 Project → Session → Agent 순서다.
+Workflow Agent는 선택 Graph 소유자의 실행 계약을 사용한다.
+
+Graph AgentNode와 agent_run은 같은 Run의 자식 Step·승인·효과 원장·누적 예산을 공유한다.
+자식은 부모 권한·한도를 넓힐 수 없고 승인 응답은 실행을 뜻하지 않는다. 실제 재개를 명시해야 한다.
+상세 계약은 [Agent 안내](../../../docs/llm/agents.md),
+[현재 B/C 설계](../../../docs/llm/clean-refactor.md#bc-agent와-단일-실행-binding),
+[데이터 수명](../../../docs/llm/data-lifecycle.md)을 따른다.

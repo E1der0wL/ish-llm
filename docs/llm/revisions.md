@@ -26,7 +26,8 @@ Component 자료에서는 `(Project, Component, identifier)`가 대상의 범위
 | --- | --- | --- |
 | Project/Component 설정 및 일반 정의 | 서비스 snapshot의 `version`, `expected_version` CAS | 이름·저장 계약 유지 |
 | Skill/Data | 정의와 파일 manifest의 JSON hash | 파일 변경도 동일 snapshot에 포함 |
-| Agent/Workflow 정의와 실행 binding | 각 소유자의 정의 hash 및 실행 snapshot | 기존 검증 경로 유지 |
+| 독립 Agent 정의와 실행 binding | AgentDefinition revision과 불변 AgentBinding | 수정·삭제에는 읽은 `expected_revision` CAS 필수; root/nested/Resume에서 동일한 선택 증거 검증 |
+| Workflow 정의와 실행 binding | Component snapshot의 `version`, `expected_version` 및 handler 실행 snapshot | 기존 검증 경로 유지 |
 | Memory/RAG 문서 | 생성 시 고정되는 generation + 변경마다 증가하는 정수 revision | 두 값을 함께 비교하여 같은 ID의 삭제·재생성도 구별 |
 | Memory 파생 요약 | 캐시 generation + 정수 revision | 공개와 삭제 모두 두 값 비교 |
 | ToolContract, ToolRuntime, Engine/handler | 신뢰한 구현체가 선언하는 revision | 코드/실행 계약 변경 시 Host가 갱신; 파일 hash로 대체하지 않음 |
@@ -81,11 +82,12 @@ Agent.resources.skills는 ID 기반 현재값 참조다. Run 시작 시 현재 S
 Skill.lineage의 parent_revision은 FORK 당시 부모의 출처 기록이다. 부모가 변경돼도 자식이
 실행 불가능해지는 고정 참조가 아니며, 부모 ID의 삭제 보호는 별도로 유지한다.
 
-삭제 보호는 각 Component의 references()에서 계산한다. 별도 역참조 DB를 만들지 않는다.
-등록된 Component가 선택 해제된 상태라도 보존된 정의의 참조는 삭제를 차단한다.
-Skill의 impact/dependencies 조회도 선택 해제된 Agent의 참조를 포함하여 삭제 보호와 일치한다.
-Host는 저장소를 소유한 Component 구현 등록을 유지해야 하며 등록되지 않은 임의 플러그인의
-자료 의미를 backend가 추측하지 않는다. 참조된 Data/Tool 삭제, Skill parent/Agent 참조 삭제,
+삭제 보호는 ProjectReferences·AgentManager가 각 Component/Engine/handler owner의 참조를
+모아 계산한다. 별도 역참조 DB를 만들지 않는다. 등록된 Component가 선택 해제된 상태라도
+보존된 정의의 참조는 삭제를 차단한다. 모든 저장 Agent는 Component 선택과 독립적이며,
+Skill의 impact/dependencies 조회도 같은 AgentHandle snapshot/revision으로 참조를 확인한다.
+Host는 보존한 자료의 Component·Engine·handler 참조 owner 등록을 유지해야 한다. 필요한
+owner가 없으면 삭제를 거부하며 backend가 사유 필드의 의미나 참조 부재를 추측하지 않는다. 참조된 Data/Tool 삭제, Skill parent/Agent 참조 삭제,
 Component의 영구 제거에도 같은 경계를 적용한다.
 
 복제와 백업은 정의·파일을 함께 보존한다. 백업은 stale 참조를 새 버전으로 갱신하지 않는다.

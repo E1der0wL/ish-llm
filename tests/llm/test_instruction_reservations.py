@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from llm.llm import SteeringRoute, EngineEventType, LargeLanguageModel
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.engines.graph import GraphEngine
 from llm.engines.graph.agent import AgentNode
@@ -24,7 +24,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
     entered = fixtures.GraphSteeringTests.entered
     completed = fixtures.GraphSteeringTests.completed
 
-    async def gated(self, models, graph=None, *, graphs=None, handlers=None, profiles=None):
+    async def gated(self, models, graph=None, *, graphs=None, handlers=None, profiles=None, stored_only=()):
         self.gate_entered, self.gate_release = asyncio.Event(), asyncio.Event()
         async def gate(node):
             self.gate_entered.set()
@@ -36,7 +36,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         document["entry"] = "gate"
         nodes = handlers or {"agent": AgentNode(engines={
             name: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)) for name, model in models.items()})}
-        await self.setup_graph(models, document, graphs=graphs, profiles=profiles, handlers={**nodes, "gate": gate})
+        await self.setup_graph(models, document, graphs=graphs, profiles=profiles, handlers={**nodes, "gate": gate}, stored_only=stored_only)
         async def release():
             self.gate_release.set()
         self.addAsyncCleanup(release)
@@ -67,6 +67,8 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
                 yield
         routes = await self.gated({"writer": model},
             handlers={"agent": AgentNode(engines={"writer": Factory()})})
+        self.assertEqual(selected, ["writer"])  # Public Writer validation precedes runtime discovery.
+        selected.clear()
         self.assertEqual(selected, [])
         self.assertEqual(routes, [SteeringRoute(("flow",), "work", "writer")])
         await self.reserve(routes)
@@ -89,7 +91,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         graph = fixtures.agent_graph()
         graph["nodes"]["work"]["pause_before"] = True
         routes = await self.gated({"writer": model}, graph,
-            handlers={"agent": AgentNode(engines={"writer": Factory()})})
+            handlers={"agent": AgentNode(engines={"writer": Factory()})}, stored_only=("writer",))
         self.assertEqual(routes, [])
         self.gate_release.set()
         run = await self.request.wait(timeout=15)
@@ -125,7 +127,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         await paused.arespond(interaction.respond("approve"))
         factory.bound_mode = SteeringMode.UNSUPPORTED
         with self.assertRaisesRegex(ValueError, "preserve Engine steering mode"):
-            await self.session.run.resume(paused.id, engine="graph")
+            await self.session.run.resume(paused.id, agent_id="graph")
         self.assertEqual(model.requests, [])
 
     async def test_unselected_factory_is_not_evaluated_during_route_discovery(self):
@@ -144,7 +146,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             .connect("a", "end").connect("b", "end").to_dict())
         graph["initial_state"] = {"pick": "a"}
         routes = await self.gated({"a": model, "b": Model(gate=False)}, graph,
-            handlers={"agent": AgentNode(engines={"a": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)), "b": Unselected()})})
+            handlers={"agent": AgentNode(engines={"a": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)), "b": Unselected()})}, stored_only=("b",))
         self.assertEqual(routes, [SteeringRoute(("flow",), "a", "a")])
         self.gate_release.set()
         await self.completed()
@@ -267,7 +269,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         before, = await failed.ainstructions()
         self.assertEqual((failed.data.status, before.status), ("failed", "partially_applied"))
         self.assertEqual(b.requests, [])
-        resumed = await (await self.session.run.resume(failed.id, engine="graph")).wait(timeout=15)
+        resumed = await (await self.session.run.resume(failed.id, agent_id="graph")).wait(timeout=15)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(len(a.requests), 1)
         self.assertNotIn("one shot", self.contents(b))
@@ -311,7 +313,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((value.status, value.reason), ("unapplied", "paused"))
         interaction, = await paused.ainteractions()
         await paused.arespond(interaction.respond("approve"))
-        resumed = await (await self.session.run.resume(paused.id, engine="graph")).wait(timeout=15)
+        resumed = await (await self.session.run.resume(paused.id, agent_id="graph")).wait(timeout=15)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertNotIn("one shot", self.contents(model))
         self.assertEqual(await resumed.ainstructions(), [])
@@ -332,7 +334,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(any(r.get("payload", {}).get("message_ids") == [instruction.id] for r in before["records"].values()))
         value, = await failed.ainstructions()
         self.assertEqual(value.status, "unapplied")
-        resumed = await (await self.session.run.resume(failed.id, engine="graph")).wait(timeout=15)
+        resumed = await (await self.session.run.resume(failed.id, agent_id="graph")).wait(timeout=15)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertNotIn("one shot", self.contents(model))
         self.assertEqual(await resumed.ainstructions(), [])
@@ -348,10 +350,10 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         before, = await failed.ainstructions()
         ids = self.project.id, self.session.id
         await self.app.shutdown()
-        reopened = LargeLanguageModel(self.root, engines={"graph": self.engine}, components=[WorkflowComponent(), AgentComponent()])
+        reopened = LargeLanguageModel(self.root, engines={"graph": self.engine}, components=[WorkflowComponent()])
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
-        resumed = await (await session.run.resume(failed.id, engine="graph")).wait(timeout=15)
+        resumed = await (await session.run.resume(failed.id, agent_id="graph")).wait(timeout=15)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(self.contents(model, 1).count("one shot"), 1)
         after, = await resumed.ainstructions()
@@ -368,7 +370,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(value.status, "unapplied")
         self.assertTrue(value.reason)
         self.gate_release.set()
-        fresh = await (await self.session.run.submit("restart", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=15)
+        fresh = await (await self.session.run.submit("restart", agent_id="graph")).wait(timeout=15)
         self.assertEqual(fresh.data.status, "completed", fresh.data.error)
         self.assertNotIn("one shot", self.contents(model))
         self.assertEqual(await fresh.ainstructions(), [])

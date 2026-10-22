@@ -102,7 +102,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))}) as app:
                     project = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {'policy': options, 'config': {'completion': {'model': 'test', **completion}}}}}))
                     session = await project.sessions.acreate()
-                    run = await (await session.run.submit("hello", engine="loop")).wait(timeout=5)
+                    await session.project.agents.acreate({'engine': 'loop'}, identifier="loop")
+                    run = await (await session.run.submit("hello", agent_id="loop")).wait(timeout=5)
                     self.assertEqual(run.data.status, "completed", run.data.error)
             self.assertEqual({k: captured[0][k] for k in ("timeout", "temperature", "max_tokens", "num_retries", "max_retries", "stream_options") if k in captured[0]}, completion)
             self.assertIs(captured[0]["stream"], True)
@@ -116,7 +117,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))}) as app:
                 project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'policy': {'request_timeout': .005}, 'config': {'completion': {'model': 'test'}}}}}})
                 session = await project.sessions.acreate()
-                run = await (await session.run.submit("hello", engine="loop")).wait(timeout=5)
+                await session.project.agents.acreate({'engine': 'loop'}, identifier="loop")
+                run = await (await session.run.submit("hello", agent_id="loop")).wait(timeout=5)
                 self.assertEqual(run.data.status, "failed")
 
     async def test_stream_bridge_adds_no_deadline(self):
@@ -229,7 +231,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                     graph = WorkflowGraph(entry="work").node("work", "slow", **node_options).node("end", "end").connect("work", "end")
                     await project.components.workflows.acreate(graph.to_dict(), identifier="flow")
                     session = await project.sessions.acreate()
-                    run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=5)
+                    await session.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
+                    run = await (await session.run.submit("go", agent_id="graph")).wait(timeout=5)
                     self.assertEqual(run.data.status, expected, run.data.error)
 
     async def test_native_library_options_are_omitted_and_explicit_values_pass_through(self):
@@ -273,7 +276,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(host.resolve_config(config, "loop")["values"]["config"]["system_prompt"])
 
     async def test_graph_agent_inherits_partial_completion_and_does_not_invent_prompt(self):
-        from llm.components.agents import AgentComponent
+        from llm.core.agents import AgentDefinition
         from llm.components.skills import SkillComponent
         from llm.components.workflows import WorkflowComponent, WorkflowGraph
         from llm.engines.graph.agent import AgentNode
@@ -284,14 +287,15 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             def call(**params):
                 captured.append(params)
                 return chunks()
-            components = [AgentComponent(), WorkflowComponent(), SkillComponent()]
-            graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))})})
+            components = [WorkflowComponent(), SkillComponent()]
+            worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))
+            graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": worker})})
             with tempfile.TemporaryDirectory() as root:
-                async with LargeLanguageModel(root, components=components, engines={"graph": graph}) as app:
+                async with LargeLanguageModel(root, components=components, engines={"loop": worker, "graph": graph}) as app:
                     project = await app.projects.acreate(components=[c.name for c in components], config={"parameters": {"engines": {"loop": {'config': {'system_prompt': 'project prompt', 'completion': {'model': 'test', 'temperature': 0.8}}}}}})
-                    await project.components.agents.acreate({"engine": "loop", "purpose": "Not a system prompt",
+                    await project.agents.acreate({"engine": "loop", "purpose": "Not a system prompt",
                         "completion": {"temperature": 0}, **overrides}, identifier="worker")
-                    prompt_view = await project.components.agents.aprompt("worker")
+                    prompt_view = await project.agents.aprompt("worker")
                     self.assertEqual({k: v for k, v in prompt_view.items() if k == "system_prompt"},
                                      {k: v for k, v in overrides.items() if k == "system_prompt"})
                     await project.components.skills.acreate({"instructions": "Check facts."}, identifier="review")
@@ -300,10 +304,11 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                         .node("end", "end").connect("work", "end"))
                     await project.components.workflows.acreate(flow.to_dict(), identifier="flow")
                     session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'top_p': 0.7}}}}}})
-                    run = await (await session.run.submit("hello", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=5)
+                    await session.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
+                    run = await (await session.run.submit("hello", agent_id="graph")).wait(timeout=5)
                     self.assertEqual(run.data.status, "completed", run.data.error)
-                    await project.components.agents.aupdate_prompt("worker", None, expected_revision=prompt_view["revision"])
-                    self.assertIsNone((await project.components.agents.aprompt("worker"))["system_prompt"])
+                    await project.agents.aupdate_prompt("worker", None, expected_revision=prompt_view["revision"])
+                    self.assertIsNone((await project.agents.aprompt("worker"))["system_prompt"])
             self.assertEqual({k: captured[0][k] for k in ("model", "temperature", "top_p")},
                              {"model": "test", "temperature": 0, "top_p": .7})
             prompts = [m["content"] for m in captured[0]["messages"] if m["role"] == "system"]
@@ -363,7 +368,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 async with LargeLanguageModel(root, components=[], engines={"inspect": Inspect()}, services=BackendServices(tool_runtime=ToolRuntime())) as app:
                     project = await app.projects.acreate(config={"policies": {"tool_retry": {"max_retries": expected}}})
                     session = await project.sessions.acreate()
-                    run = await (await session.run.submit("go", engine="inspect")).wait(timeout=5)
+                    await session.project.agents.acreate({'engine': 'inspect'}, identifier="inspect")
+                    run = await (await session.run.submit("go", agent_id="inspect")).wait(timeout=5)
                     self.assertEqual(run.data.status, "completed", run.data.error)
             self.assertEqual(observed, [expected])
 

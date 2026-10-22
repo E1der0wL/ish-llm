@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.memory import MemoryComponent
 from llm.components.prompts import PromptComponent
 from llm.components.skills import SkillComponent
@@ -28,12 +28,12 @@ if hub_plugin is not None:
         prompt,
         config=hub_plugin.HubConfig(
             workspace=Path.home() / ".ish/hub-workspace",
-            engine="loop",
+
             model="gemini/gemini-3.6-flash",  # Keep your existing working model.
             language="ko",
             engine_factories={"graph": make_graph},
             component_factories=(  # Additions / overrides; other builtins stay registered.
-                ToolComponent, WorkflowComponent, AgentComponent,
+                ToolComponent, WorkflowComponent,
                 MemoryComponent, PromptComponent, SkillComponent,
             ),
         ),

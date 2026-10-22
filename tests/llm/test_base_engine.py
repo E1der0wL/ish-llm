@@ -27,10 +27,10 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.sessions = SessionManager()
-        self.projects = ProjectManager(ProjectRepository(Path(temporary.name)), self.sessions)
+        self.engines = EngineRegistry()
+        self.projects = ProjectManager(ProjectRepository(Path(temporary.name)), self.sessions, engines=self.engines)
         self.project = self.projects.create("Simple", config=ProjectConfig())
         self.session = self.sessions.create(self.project, "Session")
-        self.engines = EngineRegistry()
         self.manager = RunManager(self.sessions, self.engines, session=self.session)
         self.addAsyncCleanup(self.manager.shutdown)
 
@@ -40,7 +40,7 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
     def context(self):
         run_id = new_id()
         run = Run(run_id, self.session.id, new_id(), new_id(), "simple",
-                  self.manager.repository.paths(self.session, run_id))
+                  self.manager.repository.paths(self.session, run_id), agent_id="simple")
         return EngineContext(self.project, self.session, run, ())
 
     async def test_typed_deltas_append_replace_clear_and_bind_one_step(self):
@@ -140,7 +140,8 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
                 return self.stream_completion(ModelRequest([ModelMessage("user", context.messages[-1].content)], {"model": "openai/test"}))
         provider = ScriptedCompletion([chunk("Hello "), chunk("there", finish="stop")])
         self.engines.register("simple", Chat("Answer", kind="llm", completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
-        await self.manager.submit("hello", engine="simple")
+        self.projects.agents.create(self.project, {"engine": "simple"}, identifier="simple")
+        await self.manager.submit("hello", agent_id="simple")
         await self.idle()
         run, = self.manager.repository.list(self.session)
         step, = self.manager.steps.list(run)
@@ -159,7 +160,8 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
                 yield ""
                 yield context.messages[-1].content
         self.engines.register("simple", Echo("Echo", kind="text"))
-        await self.manager.submit("hello", engine="simple")
+        self.projects.agents.create(self.project, {"engine": "simple"}, identifier="simple")
+        await self.manager.submit("hello", agent_id="simple")
         await self.idle()
         run, = self.manager.repository.list(self.session)
         step, = self.manager.steps.list(run)
@@ -176,7 +178,8 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
             context.state["secret"] = "private-action-value"
             seen.append(context.state)
         self.engines.register("simple", BaseEngine("Prepare", action=prepare))
-        await self.manager.submit("hello", engine="simple")
+        self.projects.agents.create(self.project, {"engine": "simple"}, identifier="simple")
+        await self.manager.submit("hello", agent_id="simple")
         await self.idle()
         run, = self.manager.repository.list(self.session)
         self.assertEqual(run.status, RunStatus.COMPLETED)
@@ -195,8 +198,9 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 closed.append(True)
         self.engines.register("simple", BaseEngine("Respond", action=respond))
-        await self.manager.submit("bad", engine="simple")
-        await self.manager.submit("good", engine="simple")
+        self.projects.agents.create(self.project, {"engine": "simple"}, identifier="simple")
+        await self.manager.submit("bad", agent_id="simple")
+        await self.manager.submit("good", agent_id="simple")
         await self.idle()
         first, second = self.manager.repository.list(self.session)
         self.assertEqual(first.status, RunStatus.FAILED)
@@ -218,9 +222,10 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 closed.set()
         self.engines.register("simple", BaseEngine("Respond", action=respond))
-        await self.manager.submit("first", engine="simple")
+        self.projects.agents.create(self.project, {"engine": "simple"}, identifier="simple")
+        await self.manager.submit("first", agent_id="simple")
         await asyncio.wait_for(entered.wait(), 5)
-        await self.manager.submit("second", engine="simple")
+        await self.manager.submit("second", agent_id="simple")
         self.assertTrue(await self.manager.interrupt())
         await self.idle()
         first, second = self.manager.repository.list(self.session)
@@ -240,7 +245,8 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
             def execute(self, context):
                 return self.step(context, action, name="Wait", timeout_seconds=.02)
         self.engines.register("simple", Operation())
-        await self.manager.submit("request", engine="simple")
+        self.projects.agents.create(self.project, {"engine": "simple"}, identifier="simple")
+        await self.manager.submit("request", agent_id="simple")
         await self.idle()
         run, = self.manager.repository.list(self.session)
         self.assertEqual(run.status, RunStatus.FAILED)
@@ -261,11 +267,12 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
         engine = BaseEngine("Shared", action=action, metadata=metadata)
         metadata["labels"].append("external")
         self.engines.register("simple", engine)
+        self.projects.agents.create(self.project, {"engine": "simple"}, identifier="simple")
         other = self.sessions.create(self.project, "Other")
         other_manager = RunManager(self.sessions, self.engines, session=other)
         self.addAsyncCleanup(other_manager.shutdown)
-        await self.manager.submit("one", engine="simple")
-        await other_manager.submit("two", engine="simple")
+        await self.manager.submit("one", agent_id="simple")
+        await other_manager.submit("two", agent_id="simple")
         await asyncio.wait_for(entered.wait(), 5)
         release.set()
         await asyncio.gather(self.idle(), other_manager.wait_idle())
@@ -309,7 +316,8 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
         for index, action in enumerate((wrong_generator, wrong_coroutine)):
             name = str(index)
             self.engines.register(name, BaseEngine(action=action))
-            await self.manager.submit("request", engine=name)
+            self.projects.agents.create(self.project, {"engine": name}, identifier=name)
+            await self.manager.submit("request", agent_id=name)
             await self.idle()
             run = self.manager.repository.list(self.session)[-1]
             self.assertEqual(run.status, RunStatus.FAILED)

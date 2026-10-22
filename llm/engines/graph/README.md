@@ -32,7 +32,7 @@ ToolNode는 효과 이전 승인을 `GraphNodeContext.pause`로 명시합니다.
 ## 함께 읽을 코드
 
 - [Workflow Component](../../components/workflows/README.md): 노드·간선·입출력 binding의 저장과 구조 검증.
-- [Agent Component](../../components/agents/README.md): 목적, Engine, 모델, 리소스와 정책 정의.
+- [독립 Agent](../../components/agents/README.md): 목적, Engine, 모델, 리소스와 정책 정의.
 - [Graph/RAG 실행 예제](../../../examples/llm/graph_rag.md): ToolNode 검색 → 같은 evidence를 사용한 답변 검증·수정 → publish.
 
 등록 예시는 다음과 같습니다. 실제 Workflow의 action 이름과 handler 키가 일치해야 합니다.
@@ -52,21 +52,20 @@ engines = {
 }
 ```
 
-백엔드에 위 `engines`를 등록한 뒤 요청마다 저장된 Workflow ID를 선택합니다.
+백엔드에 위 `engines`를 등록하고 Workflow를 선택한 Agent를 저장합니다.
 
 ```python
-request = await session.run.submit(
-    "설정 파일을 검토해줘", engine="graph", engine_options={"workflow": "review"},
-)
+await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "review"}},
+                             identifier="coordinator")
+request = await session.run.submit("설정 파일을 검토해줘", agent_id="coordinator")
 run = await request.wait()
 ```
 
-생성자는 Workflow를 받지 않습니다. 요청의 `workflow`는 필수이며 기본값이나
-Project 설정으로 추측하지 않습니다. `engine_options`는 JSON 객체이고 Graph 요청은
-`workflow`만 받습니다. 시간·병렬 제한 등은 Project/Session 설정 경로를 사용하며 child는 부모 제한을 넓힐 수 없습니다.
+생성자는 Workflow를 받지 않습니다. Agent의 `engine_options.workflow`는 필수이며 기본값이나
+Project 설정으로 추측하지 않습니다. `engine_options`는 Graph가 검증하는 JSON 객체입니다. 시간·병렬 제한 등은 Project/Session 설정 경로를 사용하며 child는 부모 제한을 넓힐 수 없습니다.
 요청 선택은 QUEUED 메시지와 Run에 저장되며 등록 Engine은 변경하지 않습니다.
-정의는 Run 시작 시 읽습니다. 대기 중 편집은 다음 실행에 반영되고 시작한 실행은
-자신의 스냅샷을 사용합니다. 존재하지 않는 ID나 잘못된 정의는 실행 전 검증에서 실패합니다.
+정의는 Run 시작 시 읽습니다. 접수된 Agent 정의·revision이 대기 중 바뀌면 실행을 거부합니다. 실행은
+검증한 Workflow 스냅샷을 사용합니다. 존재하지 않는 ID나 잘못된 정의는 실행 전 검증에서 실패합니다.
 resume은 원본 Run의 선택값을 복원하며 다른 Workflow로 변경할 수 없습니다.
 
 Agent의 `engine`은 `AgentNode(engines=...)`에 전달한 맵/EngineRegistry에서 찾습니다. 같은 Engine을 최상위 요청에서도 선택하려면 백엔드에도 등록합니다. Agent용 Engine은 `for_agent(definition)`으로 호출별 실행기를 반환해야 하며, LoopEngine과 GraphEngine이 이 계약을 제공합니다. Workflow 선택과 실행 설정은 [Graph 개발 문서](../../../docs/llm/graph-engine.md)에 있습니다.

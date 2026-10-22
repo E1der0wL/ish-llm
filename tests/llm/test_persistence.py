@@ -1,3 +1,5 @@
+
+from llm.core.agents import AgentBinding
 import json
 import tempfile
 import unittest
@@ -145,7 +147,7 @@ class PersistenceTests(unittest.TestCase):
     def test_step_events_and_recovery(self) -> None:
         runs = RunRepository()
         run_id = new_id()
-        run = Run(run_id, self.session.id, new_id(), new_id(), "fake", runs.paths(self.session, run_id))
+        run = Run(run_id, self.session.id, new_id(), new_id(), "fake", runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'})})
         runs.create(run)
         self.assertEqual(runs.load(self.session, run.id).status, RunStatus.PENDING)
         manager = StepManager()

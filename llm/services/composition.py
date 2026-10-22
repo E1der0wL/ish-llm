@@ -63,7 +63,7 @@ class BackendServices:
                                      retry_safe_tools=list(runtime.retry_safe_tools))
         return {"values": values, "x-owner": "host", "x-scope": "infrastructure"}
 
-    def build(self, workspace, components):
+    def build(self, workspace, components, *, engines=None):
         """RunManager와 Facade가 같은 저장소/문맥/로그 설정을 공유하도록 연결한다."""
         if self.provider_diagnostics is not None and not isinstance(self.provider_diagnostics, ProviderDiagnostics):
             raise TypeError("provider_diagnostics must be ProviderDiagnostics")
@@ -76,4 +76,5 @@ class BackendServices:
         builder = self.context_builder if self.context_builder is not None else ConversationContextBuilder()
         sessions = SessionManager(self.session_repository, conversations=self.conversations, context_builder=builder, runs=runs,
                             conversation_cache_size=self.conversation_cache_size)
-        return ProjectManager(projects, sessions, components=components, backups=self.backups, backup_steps=steps.repository), runs, steps
+        return ProjectManager(projects, sessions, components=components, backups=self.backups,
+                              backup_steps=steps.repository, engines=engines), runs, steps

@@ -47,8 +47,8 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
 
     async def run_request(self, runtime, *, options=None):
         session = await runtime.project.sessions.acreate("repair")
-        return await (await session.run.submit("Read and process the requested data", engine="loop",
-                                                **({"engine_options": options} if options else {}))).wait()
+        return await (await session.run.submit("Read and process the requested data", agent_id="assistant",
+                                                **({"request_context": options} if options else {}))).wait()
 
     async def test_file_repair_uses_captured_root_and_records_completion_in_same_run(self):
         provider = ScriptedCompletion(
@@ -134,7 +134,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             runtime = await self.runtime(root, provider, component_factories=(lambda: ExampleTools(handler),),
                                          tool_retry_chooser=choose)
             session = await runtime.project.sessions.acreate("cancel repair")
-            request = await session.run.submit("go", engine="loop")
+            request = await session.run.submit("go", agent_id="assistant")
             await asyncio.wait_for(entered.wait(), 5)
             await session.run.interrupt()
             result = await asyncio.wait_for(request.wait(), 5)
@@ -216,17 +216,17 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             runtime = await self.runtime(root, provider, component_factories=(lambda: ExampleTools(handler,
                 ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=('format',))),), tool_retry_chooser=choose)
             session = await runtime.project.sessions.acreate("approval")
-            initial = await (await session.run.submit("go", engine="loop")).wait()
+            initial = await (await session.run.submit("go", agent_id="assistant")).wait()
             self.assertEqual(str(initial.data.status), "paused", initial.data.error)
             request, = await initial.ainteractions(pending_only=True)
             await initial.arespond(request.respond("approve"))
-            repair = await (await session.run.resume(initial.id, engine="loop")).wait()
+            repair = await (await session.run.resume(initial.id, agent_id="assistant")).wait()
             self.assertEqual(str(repair.data.status), "paused", repair.data.error)
             request, = await repair.ainteractions(pending_only=True)
             self.assertEqual(request.action["arguments"]["format"], "new")
             self.assertEqual(calls, ["old"])
             await repair.arespond(request.respond("approve"))
-            complete = await (await session.run.resume(repair.id, engine="loop")).wait()
+            complete = await (await session.run.resume(repair.id, agent_id="assistant")).wait()
             self.assertEqual(str(complete.data.status), "completed", complete.data.error)
             self.assertEqual(calls, ["old", "new"])
             self.assertEqual(decisions, [1])
@@ -254,7 +254,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
                 working.mkdir()
                 (working / "data.txt").write_text(name)
                 session = await runtime.project.sessions.acreate(name)
-                pending.append(await session.run.submit(name, engine="loop", engine_options={
+                pending.append(await session.run.submit(name, agent_id="assistant", request_context={
                     ENVIRONMENT_OPTION: snapshot(working, name).to_dict()}))
             results = await asyncio.wait_for(asyncio.gather(*(request.wait() for request in pending)), 10)
             for result, name in zip(results, ("first", "second")):
@@ -273,8 +273,9 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             graph = (WorkflowGraph(entry="read").node("read", "tool", tool="file_read", arguments={"path": "lost/data.txt"})
                      .node("end", "end").connect("read", "end"))
             await (await runtime.project.components.aget("workflows")).acreate(graph.to_dict(), identifier="reader")
+            await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "reader"}}, identifier="graph-reader")
             session = await runtime.project.sessions.acreate("graph")
-            result = await (await session.run.submit("read", engine="graph", engine_options={"workflow": "reader"})).wait()
+            result = await (await session.run.submit("read", agent_id="graph-reader")).wait()
             self.assertEqual(str(result.data.status), "completed", result.data.error)
             self.assertEqual(len(provider.requests), 1)
             self.assertEqual(len(result.data.metadata["completions"]), 1)

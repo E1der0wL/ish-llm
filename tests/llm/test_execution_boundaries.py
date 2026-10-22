@@ -148,7 +148,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                         await release.wait()
                         raise Broken("original failure")
                     effects.append(message.content)
-                class Raw:
+                class Raw(BaseEngine):
                     async def execute(self, context):
                         await work(context)
                         if False:
@@ -156,10 +156,11 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 engine = BaseEngine(action=work) if with_step else Raw()
                 async with LargeLanguageModel(root, engines={"custom": engine}) as app:
                     project = await app.projects.acreate("test", components=[])
+                    await project.agents.acreate({"engine": "custom"}, identifier="custom")
                     session = await project.sessions.acreate()
-                    first = await session.run.submit("first", engine="custom")
+                    first = await session.run.submit("first", agent_id="custom")
                     await asyncio.wait_for(entered.wait(), 5)
-                    second = await session.run.submit("second", engine="custom")
+                    second = await session.run.submit("second", agent_id="custom")
                     release.set()
                     failed = await first.wait(timeout=5)
                     completed = await second.wait(timeout=5)
@@ -177,7 +178,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
         from llm.services.composition import BackendServices
         from llm.services.runtime.events import EventHandlers
         effects = []
-        class Custom:
+        class Custom(BaseEngine):
             async def execute(self, context):
                 effects.append("already executed")
                 yield EngineEvent("custom.proof")
@@ -190,13 +191,14 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                                      services=BackendServices(event_handlers=handlers))
             try:
                 project = await app.projects.acreate("test", components=[])
+                await project.agents.acreate({"engine": "custom"}, identifier="custom")
                 session = await project.sessions.acreate()
-                run = await (await session.run.submit("go", engine="custom")).wait()
+                run = await (await session.run.submit("go", agent_id="custom")).wait()
                 self.assertEqual(run.data.status, "failed")
                 self.assertIn("execution_started", run.data.error)
                 self.assertTrue(run.data.metadata["execution_started"])
                 self.assertEqual(await run.steps.alist(), [])
-                self.assertFalse((await session.run.resume_plan(run.id, engine="custom")).can_restart)
+                self.assertFalse((await session.run.resume_plan(run.id, agent_id="custom")).can_restart)
                 self.assertEqual(effects, ["already executed"])
             finally:
                 await app.shutdown()
@@ -220,8 +222,9 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
             try:
                 project = await app.projects.acreate("test", components=[], config={"policies": {"approval": {
                     "enabled": True, "risk_scheme": "app", "rules": [{"id": "route", "category": "routing", "max_risk": 1}]}}})
+                await project.agents.acreate({"engine": "choice"}, identifier="choice")
                 session = await project.sessions.acreate()
-                run = await (await session.run.submit("go", engine="choice")).wait()
+                run = await (await session.run.submit("go", agent_id="choice")).wait()
                 self.assertEqual(run.data.status, "paused", run.data.error)
                 self.assertEqual(await run.ainteraction_responses(), [])
                 self.assertEqual(len(await run.ainteractions(pending_only=True)), 1)
@@ -240,8 +243,9 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
             app = LargeLanguageModel(root, engines={"custom": BaseEngine(action=fail)})
             try:
                 project = await app.projects.acreate("test", components=[])
+                await project.agents.acreate({"engine": "custom"}, identifier="custom")
                 session = await project.sessions.acreate()
-                run = await (await session.run.submit("go", engine="custom")).wait()
+                run = await (await session.run.submit("go", agent_id="custom")).wait()
                 result = await run.aresult()
                 self.assertEqual(result.error_code, "custom_failure")
                 self.assertEqual(result.diagnostic.details, {"owner_fact": "preserved"})
@@ -260,13 +264,13 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
         def authorize(invocation):
             raise ToolApprovalRequired()
         app.services.tool_runtime = ToolRuntime(authorize=authorize)
-        run = await (await session.run.submit("go", engine="parent")).wait()
+        run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
         adapter.execution_binding = {"revision": "two"}
         with self.assertRaisesRegex(Exception, "changed"):
-            await session.run.resume(run.id, engine="parent")
+            await session.run.resume(run.id, agent_id="parent-agent")
         self.assertEqual(model.requests, [])
 
     async def test_unselected_agent_private_configuration_is_not_validated(self):
@@ -282,11 +286,15 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
             .connect("route", "good", port="good").connect("route", "bad", port="bad")
             .connect("good", "end").connect("bad", "end").to_dict())
         graph["initial_state"] = {"which": "good"}
-        _, _, session = await GraphBoundaryTests.setup_graph(self, graph,
+        app, project, session = await GraphBoundaryTests.setup_graph(self, graph,
             {"agent": AgentNode(engines={"child": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})}, agents=(
-                ("good", {"purpose": "good", "engine": "child", "completion": {"model": "test"}}),
-                ("bad", {"purpose": "bad", "engine": "child", "engine_options": {"config": {"typo": True}}})))
-        run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+                ("good", {"purpose": "good", "engine": "child", "completion": {"model": "test"}}),))
+        invalid = {"purpose": "bad", "engine": "child", "engine_options": {"config": {"typo": True}}}
+        from jsonschema.exceptions import ValidationError
+        with self.assertRaises((ValueError, TypeError, ValidationError)):
+            await project.agents.acreate(invalid, identifier="bad")
+        app.project_manager.repository.agents.create(project.data, invalid, identifier="bad")
+        run = await (await session.run.submit("go", agent_id="graph")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(len(model.requests), 1)
 
@@ -305,12 +313,12 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 raise OSError("completion persistence failure")
             return original(step)
         with patch.object(app.step_manager, "complete", side_effect=fail_once):
-            run = await (await session.run.submit("go", engine="loop")).wait()
+            run = await (await session.run.submit("go", agent_id="loop")).wait()
         self.assertEqual(run.data.status, "failed")
         snapshot = app.run_repository.checkpoint(run.data, "loop")
         self.assertEqual(snapshot["records"]["tool:1:call_1"]["status"], "started")
         with self.assertRaises(Exception):
-            await session.run.resume(run.id, engine="loop")
+            await session.run.resume(run.id, agent_id="loop")
         self.assertEqual(effects, [1])
         self.assertEqual(len(model.requests), 1)
 
@@ -349,7 +357,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 raise OSError("receipt write failed")
             return record(run, event)
         with patch.object(app.run_repository, "record_checkpoint", side_effect=fail):
-            run = await (await session.run.submit("go", engine="loop")).wait()
+            run = await (await session.run.submit("go", agent_id="loop")).wait()
         self.assertEqual(run.data.status, "failed")
         step, = [s for s in await run.steps.alist() if s.kind == "tool"]
         self.assertNotEqual(step.status, "completed")
@@ -373,12 +381,12 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 raise OSError("step completion failed")
             return complete(step)
         with patch.object(app.step_manager, "complete", side_effect=fail):
-            run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+            run = await (await session.run.submit("go", agent_id="graph")).wait()
         self.assertEqual(run.data.status, "failed")
         snapshot = app.run_repository.checkpoint(run.data, "graph")
         self.assertEqual(snapshot["records"]['["work"]']["status"], "started")
         with self.assertRaises(Exception):
-            await session.run.resume(run.id, engine="graph")
+            await session.run.resume(run.id, agent_id="graph")
         self.assertEqual(effects, [1])
 
     async def test_checkpoint_observer_reads_committed_tool_result(self):
@@ -397,6 +405,6 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 step = app.step_manager.load(run, value["step_id"])
                 observed.append((step.status, step.output.data))
         app._manager(session._snapshot).subscriptions.subscribe(observe, channel="engine")
-        run = await (await session.run.submit("go", engine="loop")).wait()
+        run = await (await session.run.submit("go", agent_id="loop")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(observed, [("completed", "completed result")])

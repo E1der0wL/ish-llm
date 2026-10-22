@@ -3,8 +3,10 @@
 from llm.core.model_protocol import ModelMessage
 
 from contextlib import aclosing
+from copy import copy
 from dataclasses import replace
 import asyncio
+import inspect
 
 from llm.components.processing import CompletionMessage, CompletionSession
 from llm.components.tools import ToolRegistry
@@ -44,7 +46,7 @@ def underlying_engine(engine):
 
 
 class EnvironmentEngine:
-    """Request options persist the snapshot, including across approval resumes."""
+    """Keep request-owned shell context separate from the selected Agent."""
 
     def __init__(self, implementation, builtins, environment=None, *, recovery=None, retry_monitor=None,
                  provider_recovery=None):
@@ -56,17 +58,33 @@ class EnvironmentEngine:
         self.provider_recovery = provider_recovery
 
     def __getattr__(self, name):
-        value = getattr(self.implementation, name)
+        value = getattr(object.__getattribute__(self, "implementation"), name)
         if name == "validate_resume":
             def validate(checkpoint, **kwargs):
                 if kwargs.get("context") is not None:
                     kwargs["context"] = self.bind_context(kwargs["context"])
                 return value(checkpoint, **kwargs)
             return validate
+        if name == "bind_execution":
+            return lambda context: value(self.bind_context(context))
+        if name == "with_instructions":
+            def compose(*args, **kwargs):
+                worker = copy(self)
+                worker.implementation = value(*args, **kwargs)
+                return worker
+            return compose
         return value
 
-    def for_request(self, options):
-        options = dict(options)
+    def for_agent(self, definition):
+        from llm.engines.registry import EngineRegistry
+        registry = EngineRegistry()
+        registry.register(definition["engine"], self.implementation)
+        worker = copy(self)
+        worker.implementation = registry.resolve_agent(definition)
+        return worker
+
+    def for_context(self, request_context):
+        options = dict(request_context)
         from .turns import TURN_OPTION
         turn = options.pop(TURN_OPTION, None)
         if turn is not None and (not isinstance(turn, dict) or set(turn) != {"source"}
@@ -74,13 +92,19 @@ class EnvironmentEngine:
             raise ValueError("Invalid Hub turn reference")
         environment = (ShellEnvironment.from_dict(options.pop(ENVIRONMENT_OPTION))
                        if ENVIRONMENT_OPTION in options else None)
-        factory = getattr(self.implementation, "for_request", None)
-        if factory is not None:
+        factory = getattr(self.implementation, "for_context", None)
+        if callable(factory):
             implementation = factory(options)
         elif options:
-            raise ValueError("Engine does not support request options")
+            raise ValueError("Engine does not support these request context fields")
         else:
             implementation = self.implementation
+        if inspect.isawaitable(implementation):
+            if inspect.iscoroutine(implementation):
+                implementation.close()
+            raise TypeError("Engine for_context must be synchronous")
+        if not callable(getattr(implementation, "execute", None)):
+            raise TypeError("for_context must return an Engine")
         return EnvironmentEngine(implementation, self.builtins, environment, recovery=self.recovery,
                                  retry_monitor=self.retry_monitor, provider_recovery=self.provider_recovery)
 

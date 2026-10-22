@@ -53,14 +53,17 @@ class SessionNamer:
         self.tasks = {}
         self.errors = {}
 
-    async def _completion(self, session, record, source_engine):
+    async def _completion(self, session, record, source):
         """Borrow provider settings, without borrowing the conversation's output contract."""
         project = await session.project.aget_data()
+        definition = (source.metadata["agent_binding"]["definition"] if source else
+                      await session.project.agents.aload(record.metadata.get("hub_title_agent", self.runtime.config.agent_id)))
+        selected = self.runtime.backend.engines.resolve_agent(definition)
         params = {}
-        for name in dict.fromkeys((source_engine, "loop")):
+        for name in dict.fromkeys((definition["engine"], "loop")):
             if name not in self.runtime.backend.engines.names():
                 continue
-            implementation = self.runtime.backend.engines.get(name)
+            implementation = selected if name == definition["engine"] else self.runtime.backend.engines.get(name)
             describe = getattr(implementation, "resolve_config", None)
             if describe is not None:
                 values = describe(project.config, name, session_config=record.config).get("values", {})
@@ -99,8 +102,7 @@ class SessionNamer:
             from llm.services.query import Query
             runs = await session.run.alist(query=Query(descending=True, limit=1))
             source = await runs[0].aget_data() if runs else None
-            params = await self._completion(session, record,
-                source.engine if source else record.metadata.get("hub_title_engine", self.runtime.config.engine))
+            params = await self._completion(session, record, source)
             attempt = hashlib.sha256(json.dumps({"version": SessionNamer.ATTEMPT_VERSION, "run": source.id if source else key, "completion": params},
                 sort_keys=True, ensure_ascii=False).encode()).hexdigest()
             if record.metadata.get("hub_title_attempt") == attempt:
@@ -113,7 +115,8 @@ class SessionNamer:
             await job.asave(metadata={"hub_internal": "title", "source_session": session.id})
             text = "\n\n".join(f"{m.role}: {m.content[:4000]}" for m in history[:6]
                                if str(m.role) in ("user", "assistant"))[:12000]
-            request = await job.run.submit(text, engine=TITLE_ENGINE)
+            from .agents import TITLE_AGENT
+            request = await job.run.submit(text, agent_id=TITLE_AGENT)
             handle = await request.wait()
             result = await handle.aresult()
             if str(result.status) != RunStatus.COMPLETED:

@@ -159,12 +159,12 @@ async def main(limit: int = count):
                     executed.append(request["tool_name"])
                 return await original(request)
             with patch.object(process, "invoke_worker", side_effect=observe):
-                paused = await (await session.run.submit("act", engine="loop")).wait()
+                paused = await (await session.run.submit("act", agent_id="loop")).wait()
                 self.assertEqual(paused.data.status, "paused", paused.data.error)
                 self.assertEqual(executed, [])
                 request = (await paused.ainteractions())[0]
                 await paused.arespond(request.respond("approve" if approve else "deny"))
-                resumed = await (await session.run.resume(paused.id, engine="loop")).wait()
+                resumed = await (await session.run.resume(paused.id, agent_id="loop")).wait()
                 self.assertEqual(resumed.data.status, "completed" if approve else "failed", resumed.data.error)
                 self.assertEqual(len(executed), 1 if approve else 0)
 
@@ -188,6 +188,7 @@ async def main(limit: int = count):
                     graph = (WorkflowGraph(entry='act').node('act', 'tool', tool='act', pause_before=True)
                              .node('end', 'end').connect('act', 'end').to_dict())
                     await project.components.workflows.acreate(graph, identifier='flow')
+                    await project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier='graph')
                     session = await project.sessions.acreate()
                     executions = []
                     original = process.invoke_worker
@@ -196,18 +197,18 @@ async def main(limit: int = count):
                             executions.append(request['tool_name'])
                         return await original(request)
                     with patch.object(process, 'invoke_worker', side_effect=observe):
-                        confirmation = await (await session.run.submit('act', engine='graph', engine_options={"workflow": "flow"})).wait()
+                        confirmation = await (await session.run.submit('act', agent_id='graph')).wait()
                         self.assertEqual(confirmation.data.status, 'paused', confirmation.data.error)
                         self.assertEqual(executions, [])
                         # raw resume도 Workflow 확인만 승인한다. Tool 승인은 별도다.
-                        paused = await (await session.run.resume(confirmation.id, engine='graph')).wait()
+                        paused = await (await session.run.resume(confirmation.id, agent_id='graph')).wait()
                         self.assertEqual(paused.data.status, 'paused', paused.data.error)
                         request, = await paused.ainteractions(pending_only=True)
                         self.assertEqual(request.kind, 'approval')
                         self.assertEqual(executions, [])
                         await paused.arespond(request.respond('approve' if approve else 'deny'))
                         self.assertEqual(executions, [])
-                        resumed = await (await session.run.resume(paused.id, engine='graph')).wait()
+                        resumed = await (await session.run.resume(paused.id, agent_id='graph')).wait()
                         self.assertEqual(resumed.data.status, 'completed' if approve else 'failed', resumed.data.error)
                         self.assertEqual(executions, ['act'] if approve else [])
 
@@ -242,7 +243,7 @@ async def main(limit: int = count):
                     config = (await project.aget_data()).config.to_dict()
                     config['parameters']['engines']['loop'].setdefault("policy", {})["tool_timeout"] = 2
                     await project.asave(config=config)
-                request = await session.run.submit('act', engine='loop')
+                request = await session.run.submit('act', agent_id='loop')
                 async with asyncio.timeout(15):
                     while not marker.exists():
                         await asyncio.sleep(.02)
@@ -264,18 +265,18 @@ async def main(limit: int = count):
             raise ToolApprovalRequired()
         text = source('return 1', decorator='@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))')
         project, session, _ = await self.setup_runtime(text, runtime=ToolRuntime(authorize=ask))
-        paused = await (await session.run.submit('act', engine='loop')).wait()
+        paused = await (await session.run.submit('act', agent_id='loop')).wait()
         request, = await paused.ainteractions()
         await paused.arespond(request.respond('approve'))
         await project.components.tools.asave('act', {'source': text.replace('return 1', 'return 2')})
         with self.assertRaisesRegex(Exception, 'changed'):
-            await session.run.resume(paused.id, engine='loop')
+            await session.run.resume(paused.id, agent_id='loop')
 
     async def test_tool_call_provenance_and_operation_key_reach_child(self):
         text = source('call = current_tool_call()\nreturn {"run": call.run_id, "key": call.operation_key, "idempotency": call.idempotency_key}',
                       'from llm.services.runtime.tools import current_tool_call')
         _, session, _ = await self.setup_runtime(text, runtime=ToolRuntime(operation_key=lambda _: 'operation'))
-        run = await (await session.run.submit('act', engine='loop')).wait()
+        run = await (await session.run.submit('act', agent_id='loop')).wait()
         self.assertEqual(run.data.status, 'completed', run.data.error)
         step, = [step for step in await run.steps.alist() if step.kind == 'tool']
         self.assertEqual(step.output.data['run'], run.id)

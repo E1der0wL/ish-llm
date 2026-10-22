@@ -30,7 +30,7 @@ COMPONENTS = (
     ComponentSpec("skills", "skill", "record", "skill", ("llm.components.skills.data", "SkillData")),
     ComponentSpec("mcp", "mcp", "record", "json", ("llm.services.lifecycle.components", "ComponentData")),
     ComponentSpec("rag", "rag", "document", "text", ("llm.components.rag.data", "RAGData")),
-    ComponentSpec("agents", "agent", "agent", "json", ("llm.components.agents.data", "AgentData")),
+    ComponentSpec("agents", "agent", "agent", "json", ("llm.services.lifecycle.agents", "AgentHandle")),
     ComponentSpec("workflows", "workflow", "record", "json", ("llm.components.workflows.data", "WorkflowData")),
     ComponentSpec("prompts", "prompt", "record", "json", ("llm.services.lifecycle.components", "ComponentData")),
     ComponentSpec("memory", "memory", "memory", "json", ("llm.components.memory.data", "MemoryData")),

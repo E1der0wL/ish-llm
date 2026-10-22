@@ -66,10 +66,11 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.app = LargeLanguageModel(self.root, engines={"test": engine})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("outputs", conversation_storage=storage)
+        await self.project.agents.acreate({"engine": "test"}, identifier="test")
         self.session = await self.project.sessions.acreate("session")
 
     async def request(self, **options):
-        return await (await self.session.run.submit("go", engine="test", **options)).wait(timeout=20)
+        return await (await self.session.run.submit("go", agent_id="test", **options)).wait(timeout=20)
 
     async def test_structured_base_output_final_query_and_reopen(self):
         async def work(context):
@@ -118,9 +119,9 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await release.wait()
             yield " finished"
         await self.backend(BaseEngine(action=work))
-        first = await self.session.run.submit("hold", engine="test")
+        first = await self.session.run.submit("hold", agent_id="test")
         await asyncio.wait_for(ready.wait(), 10)
-        queued = await self.session.run.submit("next", engine="test")
+        queued = await self.session.run.submit("next", agent_id="test")
         run = (await self.session.run.alist())[0]
         partial, = await run.aoutputs()
         self.assertEqual((partial.text, partial.final), ("partial", False))
@@ -132,7 +133,7 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await second_run.aresult()).output.text, "partial finished")
 
     async def test_replace_delta_and_truncated_tail(self):
-        class ReplaceEngine:
+        class ReplaceEngine(BaseEngine):
             async def execute(self, context):
                 yield EngineEvent(EngineEventType.TEXT_DELTA, delta=EngineDelta("answer", "old"))
                 yield EngineEvent(EngineEventType.TEXT_DELTA,
@@ -183,7 +184,7 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((recorded.text, recorded.visibility), ("internal", "internal"))
 
     async def test_mistyped_step_output_is_rejected_before_journal_write(self):
-        class BadEngine:
+        class BadEngine(BaseEngine):
             async def execute(self, context):
                 step_id = new_id()
                 yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id)
@@ -195,7 +196,7 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await run.aoutput_events(), [])
 
     async def test_output_identity_cannot_be_changed(self):
-        class BadEngine:
+        class BadEngine(BaseEngine):
             async def execute(self, context):
                 yield EngineEvent(EngineEventType.TEXT_DELTA, delta=EngineDelta("answer", "valid"))
                 yield EngineEvent(EngineEventType.OUTPUT,
@@ -230,7 +231,7 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len([item for item in await run.aoutputs() if item.step_id is None]), 1)
 
     async def test_closed_step_cannot_emit_more_deltas(self):
-        class BadEngine:
+        class BadEngine(BaseEngine):
             async def execute(self, context):
                 step_id = new_id()
                 yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id)
@@ -292,17 +293,18 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
                  .node("join", "join").node("end", "end")
                  .connect("fork", "a").connect("fork", "b")
                  .connect("a", "join").connect("b", "join").connect("join", "end").to_dict())
-        self.app = LargeLanguageModel(self.root, engines={"test": GraphEngine(
+        self.app = LargeLanguageModel(self.root, engines={**engines, "test": GraphEngine(
             handlers={"agent": AgentNode(engines=engines)})})
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("parallel", components=["agents", "workflows", "tools"])
-        agents = await self.project.components.aget("agents")
+        self.project = await self.app.projects.acreate("parallel", components=['workflows', 'tools'])
+        agents = self.project.agents
         for name in engines:
             await agents.acreate({"engine": name, "purpose": name, "completion": {"model": "test/model"},
                                   "tools": []}, identifier=name)
         await (await self.project.components.aget("workflows")).acreate(graph, identifier="flow")
         self.session = await self.project.sessions.acreate("parallel")
-        run = await self.request(engine_options={"workflow": "flow"})
+        await self.project.agents.acreate({"engine": "test", "engine_options": {"workflow": "flow"}}, identifier="test")
+        run = await self.request()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((await run.aresponse()).content, "")
         result = (await run.aresult()).output

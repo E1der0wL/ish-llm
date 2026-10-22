@@ -16,6 +16,7 @@ from llm.services.infrastructure.storage import child, record, remove_owned_tree
 from llm.services.lifecycle.sessions import SessionManager
 from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.access import ProjectAccess
+from llm.services.lifecycle.agents import AgentRepository, AgentManager
 from llm.services.results import RunResultQuery
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import WorkspaceOwnership, workspace_locked
@@ -28,6 +29,7 @@ class ProjectRepository:
     def __init__(self, root: Path) -> None:
         self.root = root
         self.ownership = WorkspaceOwnership(root)
+        self.agents = AgentRepository(self.ownership)
 
     def paths(self, project_id: str) -> ProjectPaths:
         return ProjectPaths(child(self.root, project_id))
@@ -35,12 +37,15 @@ class ProjectRepository:
     def read_backup(self, root):
         data = read_domain_record(root / "project.json")
         child(root.parent, data["id"])
-        return Project.from_record(data, ProjectPaths(root))
+        project = Project.from_record(data, ProjectPaths(root))
+        self.agents.read_backup(project)
+        return project
 
     @workspace_locked
     def create(self, project: Project) -> None:
         if project.paths.root.exists():
             raise FileExistsError("Project storage already exists")
+        self.agents.initialize_new(project)
         self._write(project)
 
     @workspace_locked
@@ -70,7 +75,9 @@ class ProjectRepository:
         if data["id"] != project_id:
             raise ValueError("Project ID mismatch")
         log_event(paths.logs, "project.loaded", entity_id=project_id)
-        return Project.from_record(data, paths)
+        project = Project.from_record(data, paths)
+        self.agents.validate_backup(project)
+        return project
 
     @workspace_locked
     def delete(self, project: Project) -> None:
@@ -94,7 +101,7 @@ class ProjectRepository:
 class ProjectManager:
     def __init__(self, repository: ProjectRepository, sessions: Optional[SessionManager] = None, *,
                  components: Optional[Union[ComponentRegistry, Iterable[ProjectComponent]]] = None,
-                 backups=None, backup_steps=None, config_validator=None) -> None:
+                 backups=None, backup_steps=None, config_validator=None, engines=None) -> None:
         registry = (components if isinstance(components, ComponentRegistry)
                     else ComponentRegistry(tuple(components) if components is not None else ()))
         self.repository = repository
@@ -115,6 +122,14 @@ class ProjectManager:
         from llm.services.lifecycle.steps import StepRepository
         self.backup_steps = backup_steps if backup_steps is not None else StepRepository()
         self.sessions.step_repository = self.backup_steps
+        from llm.engines.registry import EngineRegistry
+        self.agents = AgentManager(self.access, repository.agents,
+            engines=EngineRegistry() if engines is None else engines, components=registry,
+            sessions=self.sessions, steps=self.backup_steps)
+        from llm.services.lifecycle.references import ProjectReferences
+        self.access.agent_references = self.agents.references
+        self.references = ProjectReferences(registry, repository.agents, selected_references=self.access.agent_references)
+        self.sessions.agents = self.agents
 
     def _validate_config(self, project) -> None:
         self.components.validate_config(project)
@@ -298,7 +313,7 @@ class ProjectManager:
             raise ValueError("Use lifecycle or component APIs to change managed Project state")
         previous_components = current.components
         if components is not None:
-            self.components.validate_selection(current, components)
+            self.references.validate_selection(current, components)
             current.components = self.components.validate(components)
         if project.conversation_storage != current.conversation_storage:
             storage = self.sessions.conversations.resolve(project.conversation_storage)
@@ -316,7 +331,7 @@ class ProjectManager:
     @workspace_locked
     def set_components(self, project: Project, names: tuple[str, ...]) -> None:
         current = self.access.require(project)
-        self.components.validate_selection(current, names)
+        self.references.validate_selection(current, names)
         current.components = self.components.validate(names)
         # Initialization is idempotent. Failed initialization does not publish
         # the changed selection; existing component data is never removed.
@@ -340,7 +355,7 @@ class ProjectManager:
         component = self.components.get(name)
         data_class = getattr(component, "data_class", None) or ComponentData
         return data_class(self.access, self.components, current, name).bind_resources(
-            self.sessions, self.backup_steps).bind_model_usage(self.sessions, self.usage_counters)
+            self.sessions, self.backup_steps, agents=self.agents).bind_model_usage(self.sessions, self.usage_counters)
 
     @workspace_locked
     def remove_component(self, project: Project, name: str, *, permanent: bool = False) -> None:
@@ -350,9 +365,9 @@ class ProjectManager:
         current = self.access.require(project)
         component = self.components.get(name)
         # 파괴적 디렉토리 삭제보다 먼저 선택 불변식을 검증한다.
-        self.components.validate_selection(current, tuple(item for item in current.components if item != name))
+        self.references.validate_selection(current, tuple(item for item in current.components if item != name))
         if permanent:
-            self.components.require_unreferenced(current, name)
+            self.references.require_unreferenced(current, name)
         self.components.validate(tuple(item for item in current.components if item != name))
         if permanent:
             from llm.services.runtime.usage import project_usage_policies, protects_project_usage
@@ -433,6 +448,7 @@ class ProjectManager:
                             components=source.components,
                             conversation_storage=source.conversation_storage)
         self.components.clone(source, clone)
+        self.repository.agents.clone(source, clone)
         for session in sessions:
             self.sessions.clone(session, clone)
         log_event(clone.paths.logs, "project.cloned", entity_id=clone.id,

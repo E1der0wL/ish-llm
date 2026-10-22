@@ -18,9 +18,9 @@ class TurnHistory:
         self.runtime = runtime
 
     async def _edit_request(self, session_id, request, run, text):
-        options = dict(run.metadata.get("engine_options", {}))
+        options = dict(run.metadata.get("request_context", {}))
         options[TURN_OPTION] = {"source": request.id}
-        return await self.runtime.submit(session_id, text, run.engine, options)
+        return await self.runtime.submit(session_id, text, run.agent_id, options)
 
     async def index(self, session_id):
         return TurnIndex(await self.runtime.sessions[session_id].aconversation())
@@ -49,7 +49,8 @@ class TurnHistory:
             rows.append({"id": turn.id, "request_id": request.id, "text": turn.active[0][0].content,
                          "time": turn.attempts[0][0].created_at,
                          "status": str(status),
-                         "engine": run.engine if run else request.metadata.get("engine", ""), "elapsed": elapsed,
+                         "agent_id": run.agent_id if run else request.metadata.get("agent_binding", {}).get("agent_id", ""),
+                         "engine": run.engine if run else request.metadata.get("agent_binding", {}).get("engine", ""), "elapsed": elapsed,
                          "response": "\n\n".join(m.content for m in assistants),
                          "run_id": request.run_id or "", "error": str(run.error or "") if run else ""})
         return rows
@@ -80,7 +81,7 @@ class TurnHistory:
         for attempt in range(2):
             # Only admission's explicit revision conflict is safe to re-plan.
             # This neither executes Tools nor changes the selected source Run.
-            plan = await session.run.resume_plan(run.id, engine=run.engine)
+            plan = await session.run.resume_plan(run.id, agent_id=run.agent_id)
             if any(item.code == "interaction_required" for item in plan.blockers) and await reopen_questions(
                     session, handle, unavailable=runtime.t("history_retry_question_unavailable")):
                 runtime.snapshot_reader.invalidate(session_id)
@@ -88,10 +89,10 @@ class TurnHistory:
                 return turn.latest.id
             try:
                 if plan.can_resume:
-                    request = await session.run.resume(run.id, engine=run.engine, partial_output=True,
+                    request = await session.run.resume(run.id, agent_id=run.agent_id, partial_output=True,
                                                        expected_revision=plan.revision)
                 elif plan.can_restart:
-                    request = await session.run.restart(run.id, engine=run.engine, expected_revision=plan.revision)
+                    request = await session.run.restart(run.id, agent_id=run.agent_id, expected_revision=plan.revision)
                 else:
                     details = "\n".join(dict.fromkeys(item.message for item in (*plan.blockers, *plan.restart_blockers)))
                     raise CheckpointError("checkpoint_protected", runtime.t("history_retry_blocked", details=details),

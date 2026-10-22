@@ -44,7 +44,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                     self.assertNotIn("test_workspace_execute",registry.names())
                     self.assertIn("test_workspace_execute",runtime.builtin_tools.toolkit.registry.names())
                     session = await runtime.project.sessions.acreate("No sandbox runtime")
-                    result = await (await session.run.submit("hello",engine="loop")).wait()
+                    result = await (await session.run.submit("hello",agent_id="assistant")).wait()
                     self.assertEqual(str(result.data.status),"completed",result.data.error)
             finally:
                 await runtime.close()
@@ -70,11 +70,11 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                         args["argv"] = ["/bin/sh","-c","printf isolated > result.txt; printf ok"]
                     model.responses.extend([[chunk(calls=[call(json.dumps(args),name=name)],finish="tool_calls")],
                                             [chunk("done",finish="stop")]])
-                    paused = await (await session.run.submit(name,engine="loop")).wait()
+                    paused = await (await session.run.submit(name,agent_id="assistant")).wait()
                     self.assertEqual(paused.data.status,RunStatus.PAUSED,paused.data.error)
                     request, = await paused.ainteractions()
                     await paused.arespond(request.respond("approve"))
-                    done = await (await session.run.resume(paused.id,engine="loop")).wait()
+                    done = await (await session.run.resume(paused.id,agent_id="assistant")).wait()
                     self.assertEqual(done.data.status,RunStatus.COMPLETED,done.data.error)
                     output = next(s for s in await done.steps.alist() if s.kind=="tool").output.data
                     if name == "test_workspace_create":
@@ -217,6 +217,12 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(next(item for item in entries if item["name"] == selected["name"])["enabled"])
                 with self.assertRaisesRegex(ValueError, "changed"):
                     await runtime.manage_tools(runtime.project.id, "toggle", selected["name"], selected["version"])
+                agent = await runtime.project.agents.asnapshot(config.agent_id)
+                self.assertIn("file_read", agent["definition"]["tools"])
+                definition = agent["definition"]
+                definition["tools"].remove("file_read")
+                await runtime.project.agents.arevise(config.agent_id, definition,
+                                                     expected_revision=agent["revision"])
                 sid = await runtime.new_session()
                 await runtime.submit(sid, "Create the file")
                 await runtime.sessions[sid].run.wait_idle()

@@ -17,13 +17,14 @@ from unittest.mock import patch
 
 from llm.components.base import Component, ProjectComponent
 from llm.components.registry import ComponentRegistry
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.tools import Tool, ToolComponent, ToolData, ToolRegistry
 from llm.components.tools.resolver import ComponentToolResolver
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.core.models import ProjectConfig, RunStatus
 from llm.engines.registry import EngineRegistry
 from llm.engines.loop import LoopEngine
+from llm.services.lifecycle.agents import AgentHandle
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import WorkspaceBusyError
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
@@ -46,10 +47,12 @@ class ComponentTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
-        self.registry = ComponentRegistry((Notes(), AgentComponent(), WorkflowComponent()))
+        self.registry = ComponentRegistry((Notes(), WorkflowComponent()))
         self.sessions = SessionManager()
+        engines = EngineRegistry()
+        engines.register("loop", LoopEngine())
         self.projects = ProjectManager(ProjectRepository(self.root / "projects"), self.sessions,
-                                       components=self.registry)
+                                       components=self.registry, engines=engines)
         self.project = self.projects.create("Example", components=("notes",))
         self.data = self.projects.component(self.project, "notes")
 
@@ -57,8 +60,9 @@ class ComponentTests(unittest.TestCase):
         root = self.project.paths.root
         self.assertTrue((root / "knowledge" / "records").is_dir())
         self.assertEqual(self.data.get_config(), {})
-        self.assertFalse((root / "agents").exists())
-        self.projects.set_components(self.project, ("notes", "agents", "workflows"))
+        self.assertTrue((root / "agents" / "records.manifest.json").is_file())
+        self.assertNotIn("agents", self.project.components)
+        self.projects.set_components(self.project, ('notes', 'workflows'))
         for directory in ("knowledge", "agents", "workflows"):
             self.assertTrue((root / directory / "records").is_dir())
             self.assertFalse((root / directory / "component.json").exists())
@@ -149,8 +153,8 @@ class ComponentTests(unittest.TestCase):
             self.projects.remove_component(self.project, "notes", permanent="yes")
 
     def test_clone_copies_definitions_and_config_but_not_arbitrary_artifacts(self):
-        self.projects.set_components(self.project, ("notes", "agents", "workflows"))
-        agents = self.projects.component(self.project, "agents")
+        self.projects.set_components(self.project, ('notes', 'workflows'))
+        agents = AgentHandle(self.projects.agents, self.project)
         graphs = self.projects.component(self.project, "workflows")
         agents.create({"engine": "loop", "purpose": "Review code", "completion": {"model": "openai/test", "temperature": 0.2},
                        "system_prompt": "Review code", "metadata": {"custom": [1]}}, identifier="reviewer")
@@ -166,7 +170,9 @@ class ComponentTests(unittest.TestCase):
             target = self.projects.component(clone, name)
             self.assertEqual(source.get_config(), target.get_config())
             self.assertEqual(source.list(), target.list())
-        self.projects.component(clone, "agents").update("reviewer", {"metadata": {"custom": []}})
+        copied = AgentHandle(self.projects.agents, clone)
+        self.assertEqual(agents.list(), copied.list())
+        copied.update("reviewer", {"metadata": {"custom": []}}, expected_revision=copied.snapshot("reviewer")["revision"])
         self.assertEqual(agents.load("reviewer")["metadata"]["custom"], [1])
         self.assertFalse((clone.paths.root / "knowledge" / "artifact.bin").exists())
 
@@ -256,10 +262,11 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
     async def test_native_tool_definition_reaches_loop_and_uses_registered_handler(self):
         with tempfile.TemporaryDirectory() as temporary:
             tools = ToolComponent()
-            registry = ComponentRegistry((tools, AgentComponent()))
+            registry = ComponentRegistry((tools,))
             sessions = SessionManager()
-            projects = ProjectManager(ProjectRepository(Path(temporary)), sessions, components=registry)
-            project = projects.create("Test", components=("tools", "agents"),
+            engines = EngineRegistry()
+            projects = ProjectManager(ProjectRepository(Path(temporary)), sessions, components=registry, engines=engines)
+            project = projects.create("Test", components=('tools',),
                                       config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'openai/test'}}}}}))
             data = projects.component(project, "tools")
             from llm.core.model_protocol import ToolDefinition
@@ -282,12 +289,12 @@ async def main(a: float):
                 resolved.prepare("add", {'b': 1})
             completion = ScriptedCompletion([chunk(calls=[call('{"a":2}')], finish="tool_calls")],
                                             [chunk("done", finish="stop")])
-            engines = EngineRegistry()
             engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
             session = sessions.create(project, "Test")
+            projects.agents.create(project, {"engine": "loop", "tools": ["add"]}, identifier="loop")
             manager = RunManager(sessions, engines, session=session, capabilities=registry)
             try:
-                await manager.submit("request", engine="loop")
+                await manager.submit("request", agent_id="loop")
                 await manager.wait_idle()
                 self.assertEqual(completion.requests[1]["messages"][-1]["content"], "result")
                 from llm.providers.wire_codec import encode_tool_definition

@@ -9,7 +9,8 @@ import unittest
 from unittest.mock import patch
 
 from llm.core.models import MessageRole, MessageStatus, RunStatus, SessionStatus, validate_run_transition
-from llm.engines.base import EngineEvent, EngineEventType
+from llm.core.agents import AgentBinding
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.engines.registry import EngineRegistry
 from llm.providers.requests import ProviderError
 from llm.services.history.recovery import recover_session
@@ -70,7 +71,7 @@ class RunStorageTests(unittest.TestCase):
     def begin(self):
         with self.projects.ownership.scope():
             message = self.store.create(MessageRole.USER, 'request', MessageStatus.QUEUED,
-                                        metadata={'engine': 'test'})
+                                        metadata={'agent_binding': AgentBinding.create(self.project.id, 'fixture', {'engine': 'test'})})
             return self.manager._begin(self.runtime, message)
 
     def snapshot(self):
@@ -140,7 +141,11 @@ class RunStorageTests(unittest.TestCase):
                 self.assertEqual((completed.paths.root / 'run.json').read_bytes(), original)
 
 
-class ProbeEngine:
+class ProbeEngine(BaseEngine):
+    def for_agent(self, definition):
+        super().for_agent(definition)
+        return self
+
     def __init__(self, mode='completed'):
         self.mode, self.calls = mode, 0
         self.entered, self.release = asyncio.Event(), asyncio.Event()
@@ -162,11 +167,12 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
     async def setup_runtime(self, mode='completed', *, cancel_before_execution=False):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        projects = ProjectManager(ProjectRepository(Path(temporary.name) / 'projects'))
-        project = projects.create('transition')
-        session = projects.sessions.create(project, 'session')
         engine, registry, events = ProbeEngine(mode), EngineRegistry(), []
         registry.register('probe', engine)
+        projects = ProjectManager(ProjectRepository(Path(temporary.name) / 'projects'), engines=registry)
+        project = projects.create('transition')
+        projects.agents.create(project, {'engine': 'probe'}, identifier='probe')
+        session = projects.sessions.create(project, 'session')
         def observe(event):
             persisted = manager.repository.load(session, event.run.id)
             # 알림은 Run 저장 성공 이후에만 전달된다.
@@ -190,7 +196,7 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
         for mode in ('completed', 'failed', 'paused'):
             with self.subTest(mode=mode):
                 manager, session, _, events = await self.setup_runtime(mode)
-                await manager.submit('request', engine='probe')
+                await manager.submit('request', agent_id='probe')
                 await asyncio.wait_for(manager.wait_idle(), 10)
                 run, = manager.repository.list(session)
                 self.assertEqual(run.status, mode)
@@ -200,7 +206,7 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_cancel_before_first_engine_instruction_still_finalizes(self):
         manager, session, engine, events = await self.setup_runtime(cancel_before_execution=True)
-        await manager.submit('request', engine='probe')
+        await manager.submit('request', agent_id='probe')
         await asyncio.wait_for(manager.wait_idle(), 10)
         run, = manager.repository.list(session)
         self.assertEqual(engine.calls, 0)
@@ -211,7 +217,7 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_finish_commit_failure_does_not_publish_terminal_event_or_metric(self):
         manager, session, engine, events = await self.setup_runtime('blocked')
-        await manager.submit('request', engine='probe')
+        await manager.submit('request', agent_id='probe')
         await asyncio.wait_for(engine.entered.wait(), 10)
         with patch.object(manager.sessions, '_save_runtime', side_effect=OSError('disk full')):
             engine.release.set()

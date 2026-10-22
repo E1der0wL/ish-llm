@@ -10,7 +10,7 @@ from pathlib import Path
 from copy import deepcopy
 
 from llm.llm import LargeLanguageModel
-from llm.engines.base import EngineEvent, EngineEventType
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.core.results import EngineDelta, EngineOutput, ResumeOutput
 from llm.core.checkpoints import select_checkpoint, build_envelope, unwrap_record
 from llm.core.configuration import resolve_engine_config
@@ -28,7 +28,7 @@ class ResumeBoundaryTests(unittest.IsolatedAsyncioTestCase):
     async def test_custom_engine_receives_raw_partial_output_and_owning_step(self):
         received = []
 
-        class CustomEngine:
+        class CustomEngine(BaseEngine):
             checkpoint_name = "custom"
 
             def validate_resume(self, checkpoint, **options):
@@ -52,16 +52,17 @@ class ResumeBoundaryTests(unittest.IsolatedAsyncioTestCase):
             app = LargeLanguageModel(root)
             app.engines.register("custom", CustomEngine())
             project = await app.projects.acreate("custom", components=[], conversation_storage="file")
+            await project.agents.acreate({"engine": "custom"}, identifier="custom")
             session = await project.sessions.acreate("custom")
             try:
-                first = await (await session.run.submit("go", engine="custom")).wait()
+                first = await (await session.run.submit("go", agent_id="custom")).wait()
                 self.assertEqual(first.data.status, "failed")
                 self.assertIn("interrupted custom work", first.data.error)
                 checkpoint = await first.acheckpoint()
                 self.assertEqual(checkpoint["engine"], "custom")
                 outputs = await first.aoutputs()
                 self.assertTrue(any(o.text == "unfinished" for o in outputs), outputs)
-                second = await (await session.run.resume(first.id, engine="custom", partial_output=True)).wait()
+                second = await (await session.run.resume(first.id, agent_id="custom", partial_output=True)).wait()
                 self.assertEqual(second.data.status, "completed", second.data.error)
                 self.assertEqual(len(received), 1)
                 item = received[0]

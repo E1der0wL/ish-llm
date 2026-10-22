@@ -27,7 +27,9 @@ class PausedStopTests(unittest.IsolatedAsyncioTestCase):
                 workflows = await runtime.project.components.aget("workflows")
                 await workflows.acreate(WorkflowGraph(entry="work").node("work", "work", pause_before=True)
                     .node("end", "end").connect("work", "end").to_dict(), identifier="pause")
-                await runtime.submit(sid, "Do work", "graph", {"workflow": "pause"})
+                await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "pause"}},
+                                                     identifier="graph")
+                await runtime.submit(sid, "Do work", "graph")
                 await runtime.sessions[sid].run.wait_idle()
                 self.assertEqual((await runtime.snapshot()).run.status, "paused")
                 self.assertTrue(await runtime.interrupt(sid))

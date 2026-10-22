@@ -15,8 +15,9 @@ metadata는 StepManager를 통해 기존 step.json에 반영된다.
 
 ## 실행 백엔드와 설치
 
-`GraphEngine(handlers=...)`은 실행 전략을 등록한다. Workflow는 요청마다
-`await session.run.submit(prompt, engine="graph", engine_options={"workflow": workflow_id})`로 선택한다. LangGraph 타입을
+`GraphEngine(handlers=...)`은 실행 전략을 등록한다.
+`{"engine": "graph", "engine_options": {"workflow": workflow_id}}`를 Agent로 저장하고
+`await session.run.submit(prompt, agent_id="coordinator")`로 선택한다. LangGraph 타입을
 프로젝트 설정이나 UI API에 노출하지 않는다. 공개 엔진과 내부 실행부는 모두 `engines/graph/engine.py`에 있다.
 
 Workflow ID는 필수이며 생성자나 기본 설정에서 가져오지 않는다. 선택은 대기 메시지와
@@ -50,8 +51,8 @@ LangGraph 네이티브 checkpointer/`interrupt()`와 자동 재시도는 사용�
 
 ## 범용 Agent 노드와 입력·출력 계약
 
-`AgentNode`는 저장된 업무 정의가 지정한 엔진으로 실행한다. AgentComponent는
-정의 CRUD만 담당하고 Run/Step을 만들거나 모델을 호출하지 않는다.
+`AgentNode`는 저장된 업무 정의가 지정한 엔진으로 실행한다. 독립 AgentManager/Handle은
+정의 CRUD와 선택 Engine·참조 검증을 담당하고 Run/Step을 만들거나 모델을 호출하지 않는다.
 
 ```python
 from llm.engines.graph.agent import AgentNode
@@ -60,7 +61,7 @@ from llm.engines.graph import GraphEngine
 
 agent = AgentNode(engines={"loop": LoopEngine()})
 engine = GraphEngine(handlers={"agent": agent, "validate": validate_code})
-await project.components.agents.acreate({
+await project.agents.acreate({
     "purpose": "요청과 검증 결과를 보고 코드를 수정한다",
     "engine": "loop",
     "completion": {"model": model, "temperature": 0.2},
@@ -77,7 +78,7 @@ await project.components.agents.acreate({
 }, identifier="coder")
 ```
 
-위 코드는 Project에서 agents/workflows/tools/skills/rag를 선택하고 code_review Skill과
+위 코드는 Project에서 workflows/tools/skills/rag를 선택하고 code_review Skill과
 RAG 문서를 등록한 후 사용하는 예시다. 전체 사용법은 [Agent 업무 정의](agents.md)를 참고한다.
 일반 Tool은 `tools` 허용 목록에 지정하며 생략하면 빈 목록이다. resources.rag=true는
 Project의 `rag_search`를 자동 추가한다. Skill 지침을 프롬프트에 추가하고 MCP는 명시적으로

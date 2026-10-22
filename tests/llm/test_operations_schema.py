@@ -32,9 +32,11 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
     def operation_call(self, app, project, session, arguments):
         """외부 확인 테스트도 실제 소유 Run/Tool Step을 가진 원장을 사용한다."""
         from llm.core.models import Run, RunStatus, new_id
+        from llm.core.agents import AgentBinding
         identifier = new_id()
         run = Run(identifier, session.id, new_id(), new_id(), "custom",
-                  app.run_repository.paths(session.data, identifier))
+                  app.run_repository.paths(session.data, identifier), agent_id="custom",
+                  metadata={"agent_binding": AgentBinding.create(project.id, "custom", {"engine": "custom", "tools": []})})
         run.status = RunStatus.INTERRUPTED
         run.ended_at = run.created_at
         with app.project_manager.ownership.scope():
@@ -55,10 +57,11 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
 
     async def completed(self, app, count=1, components=()):
         project = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"custom": {'config': {'completion': {'model': 'test'}}}}}), components=components)
+        await project.agents.acreate({"engine": "custom", "tools": []}, identifier="custom")
         session = await project.sessions.acreate()
         runs = []
         for _ in range(count):
-            run = await (await session.run.submit("request", engine="custom")).wait()
+            run = await (await session.run.submit("request", agent_id="custom")).wait()
             self.assertEqual(run.data.status, "completed", run.data.error)
             runs.append(run)
         await session.run.shutdown()
@@ -120,8 +123,9 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
             app, model = await self.app(components=[RuntimeTools(ToolRegistry((Tool("act", "Act", {"type": "object"}, effect, contract=contract),)))])
             project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"custom": {'config': {'completion': {'model': 'test'}}}}}})
             await project.components.tools.aenable("act")
+            await project.agents.acreate({"engine": "custom", "tools": ['act']}, identifier="custom")
             session = await project.sessions.acreate()
-            run = await (await session.run.submit("act", engine="custom")).wait()
+            run = await (await session.run.submit("act", agent_id="custom")).wait()
             self.assertEqual(run.data.error_code, "tool_contract")
             self.assertEqual(model.requests, [])
         self.assertEqual(effects, [])
@@ -132,6 +136,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
             return {"status": "completed", "result": None, "evidence": "external receipt 7"}
         app, _ = await self.app(runtime=ToolRuntime(operation_probe=probe))
         project = await app.projects.acreate()
+        await project.agents.acreate({"engine": "custom", "tools": []}, identifier="custom")
         session = await project.sessions.acreate()
         tool_call = self.operation_call(app, project, session, {"id": 1})
         with app.project_manager.ownership.scope():
@@ -151,6 +156,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
             return {"status": "not_applied", "evidence": "late answer"}
         app, _ = await self.app(runtime=ToolRuntime(operation_probe=probe))
         project = await app.projects.acreate()
+        await project.agents.acreate({"engine": "custom", "tools": []}, identifier="custom")
         session = await project.sessions.acreate()
         value = self.operation_call(app, project, session, {})
         with app.project_manager.ownership.scope():
@@ -235,7 +241,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         plan = await retention.preview()
         await retention.apply(plan)
         self.assertEqual([r.id for r in await session.run.alist()], [runs[1].id])
-        run = await (await session.run.submit("new", engine="custom")).wait()
+        run = await (await session.run.submit("new", agent_id="custom")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
 
     async def test_retention_protects_active_usage_and_component_references(self):
@@ -296,8 +302,9 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         receipts = await project.components.rag.amodel_usage()
         self.assertEqual({r["operation"] for r in receipts}, {"aembedding", "acompletion"})
         self.assertTrue(all(r["usage_complete"] for r in receipts))
+        await project.agents.acreate({"engine": "custom", "tools": []}, identifier="custom")
         session = await project.sessions.acreate()
-        run = await (await session.run.submit("answer", engine="custom")).wait()
+        run = await (await session.run.submit("answer", agent_id="custom")).wait()
         self.assertEqual(run.data.error_code, "usage_limit")
         self.assertEqual(model.requests, [])
         usage = await project.amodel_usage()
@@ -311,11 +318,12 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         app, model = await self.app(components=[rag])
         project = await app.projects.acreate(components=["rag"], config=rag_project({
             "parameters": {"engines": {"custom": {"config": {"completion": {"model": "test"}}}}}}))
+        await project.agents.acreate({"engine": "custom", "tools": []}, identifier="custom")
         session = await project.sessions.acreate()
         with patch.object(rag, "model_usage", side_effect=AssertionError("unneeded component history")), \
                 patch.object(app.run_repository, "completion_history", side_effect=AssertionError("unneeded Run history")):
             await project.components.rag.aadd_document(title="Guide", content="# Guide\nLocal scripting reference.")
-            run = await (await session.run.submit("answer", engine="custom")).wait()
+            run = await (await session.run.submit("answer", agent_id="custom")).wait()
             self.assertEqual(run.data.status, "completed", run.data.error)
         usage = await project.amodel_usage()
         self.assertEqual(usage["call_count"], 3)
@@ -323,7 +331,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(run.data.metadata["completions"]), 1)
         # 나중에 상한을 명시해도 제한 없이 호출한 기간의 기록까지 포함한다.
         await project.aconfigure_policies({"usage": {"project_max_calls": 3}})
-        blocked = await (await session.run.submit("blocked", engine="custom")).wait()
+        blocked = await (await session.run.submit("blocked", agent_id="custom")).wait()
         self.assertEqual(blocked.data.error_code, "usage_limit")
         self.assertEqual(len(model.requests), 1)
         self.assertEqual((await project.amodel_usage())["call_count"], 3)
@@ -335,9 +343,10 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=["rag"], config=rag_project({"parameters": {"engines": {"custom": {'config': {'completion': {'model': 'test'}}}}}}))
         await project.components.rag.aadd_document(title="Guide", content="# Guide\nLocal scripting reference.")
         await project.aconfigure_policies({"usage": {"max_calls": 2}})
+        await project.agents.acreate({"engine": "custom", "tools": ['rag_search']}, identifier="custom")
         session = await project.sessions.acreate()
         with patch.object(app.run_repository, "completion_history", side_effect=AssertionError("Run quota must not read Project history")):
-            run = await (await session.run.submit("search", engine="custom")).wait()
+            run = await (await session.run.submit("search", agent_id="custom")).wait()
         self.assertEqual(run.data.error_code, "usage_limit", run.data.error)
         self.assertEqual(len(model.requests), 1)
         owned = [r for r in await project.components.rag.amodel_usage() if r.get("run_id") == run.id]
@@ -449,12 +458,13 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
             responses=[[chunk(calls=[call('{}', name="act")], finish="tool_calls")]], runtime=ToolRuntime(authorize=approve))
         project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"custom": {'config': {'completion': {'model': 'test'}}}}}})
         await project.components.tools.aenable("act")
+        await project.agents.acreate({"engine": "custom", "tools": ['act']}, identifier="custom")
         session = await project.sessions.acreate()
-        run = await (await session.run.submit("act", engine="custom")).wait()
+        run = await (await session.run.submit("act", agent_id="custom")).wait()
         self.assertEqual(run.data.status, "paused")
         checkpoint = await run.acheckpoint("loop")
         decisions = {k: True for k, v in checkpoint["records"].items() if v["status"] == "waiting"}
         await session.run.shutdown()
         app.services = replace(app.services, tool_runtime=ToolRuntime(authorize=approve, revision="2"))
         with self.assertRaisesRegex(Exception, "changed"):
-            await session.run.resume(run.id, engine="custom", decisions=decisions)
+            await session.run.resume(run.id, agent_id="custom", decisions=decisions)

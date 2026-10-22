@@ -178,11 +178,12 @@ class IndependentProviderAcceptanceTests(unittest.IsolatedAsyncioTestCase):
         if usage is not None:
             config['policies'] = {'usage': {**usage, 'counter': 'independent'}}
         project = await app.projects.acreate(components=[c.name for c in components], config=config)
+        await project.agents.acreate({"engine": "loop", "tools": ["write_effect"]}, identifier="loop")
         session = await project.sessions.acreate()
         return app, project, session, adapter, effect
 
     async def run_once(self, session):
-        return await (await session.run.submit('write once, then answer', engine='loop')).wait(timeout=20)
+        return await (await session.run.submit('write once, then answer', agent_id='loop')).wait(timeout=20)
 
     async def test_real_effect_opaque_pair_processor_and_checkpoint(self):
         seen = []
@@ -242,7 +243,7 @@ class IndependentProviderAcceptanceTests(unittest.IsolatedAsyncioTestCase):
             engines={'loop': LoopEngine(completion_adapter=adapter)}, components=[app.project_manager.components.get("tools")])
         self.addAsyncCleanup(reopened.shutdown)
         resumed_session = await (await reopened.projects.aload(project.id)).sessions.aload(session.id)
-        result = await (await resumed_session.run.resume(paused.id, engine='loop')).wait(timeout=20)
+        result = await (await resumed_session.run.resume(paused.id, agent_id='loop')).wait(timeout=20)
         self.assertEqual(result.data.status, 'completed', result.data.error)
         self.assertEqual((effect.read_text(), len(adapter.requests)), ('approved\n', 2))
 
@@ -292,7 +293,7 @@ class IndependentProviderAcceptanceTests(unittest.IsolatedAsyncioTestCase):
                 self.addAsyncCleanup(reopened.shutdown)
                 reopened_session = await (await reopened.projects.aload(project.id)).sessions.aload(session.id)
                 with self.assertRaises((ValueError, TypeError)):
-                    await reopened_session.run.resume(paused.id, engine='loop')
+                    await reopened_session.run.resume(paused.id, agent_id='loop')
                 self.assertEqual((path.read_bytes(), effect.exists(), len(adapter.requests)), (before, False, 1))
 
     def test_falsey_adapter_identity_is_preserved_at_each_streaming_owner(self):

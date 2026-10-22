@@ -3,8 +3,8 @@
 이 계약은 main `94229cb865374d99f20ec48c5e48269488041a4e`에서도 적용한다.
 처음 정리한 기준은 `f25a84de6759b9d723baf402f79ed451de1e84e8`이며 아래 날짜별 검증은 당시 기록이다.
 Backend는 계약·검증·집행을 제공하고 Application은 프리셋·한계값·검색 전략·UX를 선택한다.
-아래 Agent 필드는 현재 AgentComponent 계약이다. 독립 Agent로의 [B/C 전환](clean-refactor.md)에서는
-같은 소유권 원칙으로 현재 형식을 직접 교체하고 구 Reader/별칭을 남기지 않는다.
+Agent 공통 필드는 독립 AgentDefinition/Repository가 소유한다. 선택 Engine은 for_agent로
+자신의 인자를 검증한다. [B/C 전환](clean-refactor.md)은 구 Reader/별칭을 남기지 않는다.
 
 ## 원칙
 
@@ -44,7 +44,7 @@ foo/system_promt/instructions/permissions/resources2/future_option/ui도 거부�
 | --- | --- |
 | definition.metadata, config.data | Application. JSON-safe 검증; Backend는 Tool/Engine/timeout/권한으로 읽지 않음 |
 | completion, model client params | 선택된 provider adapter/SDK. providers/schema.py의 알려진 JSON 필드 + provider 미래 kwargs; 실제 forwarding은 provider/model client |
-| Agent.engine_options | 선택 Engine.for_agent + 해당 describe_config. AgentComponent가 Engine별 schema를 복제하지 않음 |
+| Agent.engine_options | 선택 Engine.for_agent + 해당 describe_config. Agent owner가 Engine별 schema를 복제하지 않음 |
 | RAG embedding/extraction/rerank_params | 주입된 client.describe_config/validate_config/with_config. 기본 클라이언트는 LiteLLM schema를 공개 |
 | document_kwargs/query_kwargs | 선택 Embedding client의 요청 계약. RAG는 객체를 그대로 전달 |
 | custom Workflow action fields | type으로 선택한 handler. describe_config 또는 validate(node, context)에서 검증 |

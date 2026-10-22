@@ -21,9 +21,10 @@ class CapabilityResolver(Protocol):
 
 
 class ComponentToolResolver:
-    def __init__(self, components: ComponentRegistry, *, data_factory=None) -> None:
+    def __init__(self, components: ComponentRegistry, *, data_factory=None, agents=None, engines=None) -> None:
         self.components = components
         self.data_factory = data_factory
+        self.agents, self.engines = agents, engines
 
     def validate(self, project: Project) -> None:
         self.components.validate(project.components)
@@ -39,6 +40,9 @@ class ComponentToolResolver:
             if not isinstance(exported, ToolRegistry):
                 raise TypeError("Tool capability must export a ToolRegistry")
             tools.extend(exported)
+        if self.agents is not None:
+            from llm.engines.agent_tools import agent_tools
+            tools.extend(agent_tools(self.engines))
         return tools
 
     def resolve(self, project: Project, names: tuple[str, ...]) -> dict:
@@ -47,6 +51,10 @@ class ComponentToolResolver:
         for name in names:
             if name == "tools":
                 values[name] = self.resolve_tools(project)
+            elif name == "agents":
+                if self.agents is None:
+                    raise ValueError("Agent domain is not bound")
+                values[name] = ({"records": self.agents.list(project)},)
             else:
                 exports = self.components.resolve(project, name, data_factory=self.data_factory)
                 # 처리기 컬렉션은 제공자가 없어도 유효하다. 개별 도메인 이름을 알지 않는다.

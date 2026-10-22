@@ -32,11 +32,11 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.provider.responses.extend([
             [chunk(calls=[call(json.dumps(arguments), name=name)], finish="tool_calls")],
             [chunk("Verified", finish="stop")]])
-        result = await (await self.session.run.submit(name, engine="loop")).wait()
+        result = await (await self.session.run.submit(name, agent_id="assistant")).wait()
         if str(result.data.status) == "paused" and approve:
             request, = await result.ainteractions()
             await result.arespond(request.respond("approve"))
-            result = await (await self.session.run.resume(result.id, engine="loop")).wait()
+            result = await (await self.session.run.resume(result.id, agent_id="assistant")).wait()
         if str(result.data.status) == "paused":
             return result
         self.assertEqual(str(result.data.status), "completed", result.data.error)
@@ -57,14 +57,16 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result["applies_to"], "subsequent_runs")
             read = await self.invoke(prefix + "_read", identifier="created-" + prefix)
             self.assertIn("hub_source", json.dumps(read))
-        agents = await self.runtime.project.components.aget("agents")
+        agents = self.runtime.project.agents
         before = await agents.aload("created-agent")
         # Invalid definitions and duplicate IDs are rejected by the public API.
         with self.assertRaises(FileExistsError):
             await agents.acreate(definitions["agent"], identifier="created-agent")
         self.assertEqual(await agents.aload("created-agent"), before)
         with self.assertRaises(ValueError):
-            await agents.acreate({"engine": "loop"}, identifier="invalid")
+            await agents.acreate({}, identifier="invalid")
+        await agents.acreate({"engine": "loop"}, identifier="engine-only")
+        self.assertEqual(await agents.aload("engine-only"), {"engine": "loop"})
         paused = await self.invoke("agent_create", approve=False, identifier="pending-agent", definition=definitions["agent"])
         self.assertEqual(str(paused.data.status), "paused")
         self.assertNotIn("pending-agent", await agents.alist())
@@ -73,7 +75,7 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         memory = await self.invoke("memory_create", content="The project color is violet.", kind="fact", scope="project")
         self.assertIn("violet", json.dumps(memory))
         self.provider.responses.append([chunk("Recalled", finish="stop")])
-        result = await (await self.session.run.submit("What is the project color violet?", engine="loop")).wait()
+        result = await (await self.session.run.submit("What is the project color violet?", agent_id="assistant")).wait()
         self.assertEqual(str(result.data.status), "completed", result.data.error)
         steps = await result.steps.alist()
         recalled = [step for step in steps if "memory" in step.kind]
@@ -84,7 +86,7 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         updated = await self.invoke("goal_update_progress", identifier="verify", expected_version=goal["version"],
                                     changes={"progress": ["Guide stored"], "next_actions": ["Readback"]})
         self.provider.responses.append([chunk("Progress checked", finish="stop")])
-        await (await self.session.run.submit("Continue the work", engine="loop")).wait()
+        await (await self.session.run.submit("Continue the work", agent_id="assistant")).wait()
         self.assertIn("Active Goal Reference", json.dumps(self.provider.requests[-1]["messages"]))
         self.assertIn("Readback", json.dumps(self.provider.requests[-1]["messages"]))
         complete = await self.invoke("goal_complete", identifier="verify", expected_version=updated["version"])
@@ -105,7 +107,7 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await skills.aload("guide"))["instructions"], "Before")
         request, = await paused.ainteractions()
         await paused.arespond(request.respond("approve"))
-        resumed = await (await self.session.run.resume(paused.id, engine="loop")).wait()
+        resumed = await (await self.session.run.resume(paused.id, agent_id="assistant")).wait()
         self.assertEqual(str(resumed.data.status), "completed", resumed.data.error)
         self.assertEqual((await skills.aload("guide"))["instructions"], "After: verify readback")
 
@@ -124,17 +126,17 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('"id": "note"', preview[0]["content"])
 
     async def test_saved_agent_executes_in_parent_run(self):
-        agents = await self.runtime.project.components.aget("agents")
+        agents = self.runtime.project.agents
         await agents.acreate({"purpose": "Review supplied text", "engine": "loop", "tools": []}, identifier="reviewer")
         self.provider.responses.extend([
             [chunk(calls=[call(json.dumps({"agent_id": "reviewer", "input": {"task": "Review"}}), name="agent_run")], finish="tool_calls")],
             [chunk("Agent checked the supplied text", finish="stop")],
             [chunk("Review finished", finish="stop")]])
-        result = await (await self.session.run.submit("Review this using reviewer", engine="loop")).wait()
+        result = await (await self.session.run.submit("Review this using reviewer", agent_id="assistant")).wait()
         if str(result.data.status) == "paused":
             request, = await result.ainteractions()
             await result.arespond(request.respond("approve"))
-            result = await (await self.session.run.resume(result.id, engine="loop")).wait()
+            result = await (await self.session.run.resume(result.id, agent_id="assistant")).wait()
         self.assertEqual(str(result.data.status), "completed", result.data.error)
         outputs = [step.output.data for step in await result.steps.alist() if step.kind == "tool" and step.output]
         self.assertIn("Agent checked", json.dumps(outputs))
@@ -148,8 +150,9 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
             "schema_version": 1, "entry": "inventory", "nodes": {
                 "inventory": {"type": "tool", "tool": "skill_list", "arguments": {}, "result_key": "skills"},
                 "finish": {"type": "end"}}, "edges": [{"source": "inventory", "target": "finish"}]})
-        result = await (await self.session.run.submit("List guides", engine="graph",
-            engine_options={"workflow": "inventory"})).wait()
+        await self.invoke("agent_create", identifier="inventory-agent",
+                          definition={"engine": "graph", "engine_options": {"workflow": "inventory"}})
+        result = await (await self.session.run.submit("List guides", agent_id="inventory-agent")).wait()
         self.assertEqual(str(result.data.status), "completed", result.data.error)
         outputs = [step.output.data for step in await result.steps.alist() if step.kind == "tool" and step.output]
         self.assertIn("hub-create-workflow", json.dumps(outputs))

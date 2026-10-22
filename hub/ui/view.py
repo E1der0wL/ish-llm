@@ -24,6 +24,7 @@ from ..asset import icon
 from ..config.general import GeneralSettings
 from ..widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from .layout import TwoPanelPage
+from ..backend.project.agents import DEFAULT_AGENT
 
 
 class HubView:
@@ -42,13 +43,15 @@ class HubView:
         self.on_turns = None
         self.on_delete = self.on_rename = self.on_component = None
         self.component_commands = {}
-        self._execution_options = {}
         self.visible = False
         from ..widget.mouse import MouseController
         self.mouse = MouseController(self)
         self.selected = 0
         self._session_focus = False
-        self.engine = "loop"
+        self._agent_choices = {}
+        self._default_agent_id = DEFAULT_AGENT
+        self.agents = ("assistant",)
+        self.agent_engines = {"assistant": "loop"}
         self.engines = ("loop",)
         self.file_root = Path.cwd()
         self.project_title = "Hub"
@@ -82,7 +85,7 @@ class HubView:
         self.settings = SettingsScreen(self)
         from ..widget.feedback.notifications import SessionToasts
         self.toasts = SessionToasts(self)
-        completer = HubCompleter(lambda: self.engines, lambda: self.file_root, self.t,
+        completer = HubCompleter(lambda: self.agents, lambda: self.file_root, self.t,
                                  components=lambda: self.component_commands)
         from ..widget.forms.followup import FollowupSuggestion
         self.followup = FollowupSuggestion(self)
@@ -289,24 +292,26 @@ class HubView:
     def help_dialog(self):
         self.dialogs.help()
 
-    def choose_engine(self, name=""):
-        if name in self.engines:
-            self.set_execution(name, self.execution_options_for(name))
+    def choose_agent(self, name=""):
+        if name in self.agents:
+            self.agent_id = name
         else:
-            self.notice = self.t("engine_command_usage", engines=", ".join(self.engines))
+            self.notice = self.t("agent_command_usage", agents=", ".join(self.agents))
 
     @property
-    def engine_options(self) -> dict:
-        return self.execution_options_for(self.engine)
+    def agent_id(self):
+        key = (getattr(self, "project_id", ""), self._draft_key(self.selected))
+        return self._agent_choices.get(key, self._default_agent_id)
 
-    def execution_options_for(self, engine: str) -> dict:
-        key = (getattr(self, "project_id", ""), self._draft_key(self.selected), engine)
-        return dict(self._execution_options.get(key, {}))
+    @agent_id.setter
+    def agent_id(self, identifier):
+        key = (getattr(self, "project_id", ""), self._draft_key(self.selected))
+        self._agent_choices[key] = identifier
 
-    def set_execution(self, engine: str, options: dict) -> None:
-        self.engine = engine
-        key = (getattr(self, "project_id", ""), self._draft_key(self.selected), engine)
-        self._execution_options[key] = dict(options)
+    @property
+    def engine(self):
+        """Selected Agent's Engine, for parameter editing only."""
+        return self.agent_engines.get(self.agent_id, "")
 
     def _draft_key(self, index):
         if self.no_sessions:

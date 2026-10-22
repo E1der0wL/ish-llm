@@ -6,10 +6,16 @@ from collections.abc import AsyncIterator
 
 from llm.core.results import EngineDelta, EngineOutput
 from llm.core.models import new_id
-from llm.engines.base import EngineContext, EngineEvent, EngineEventType
+from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 
 
 class FakeStreamingEngine:
+    def for_agent(self, definition):
+        BaseEngine.for_agent(self, definition)
+        # This deterministic fixture has no per-Agent settings. Keep its shared
+        # instrumentation so concurrency/cancellation assertions observe reality.
+        return self
+
     def __init__(self, chunks: tuple[str, ...] = ("Hello", " ", "world"), *,
                  delay: float = 0, gate: Optional[asyncio.Event] = None,
                  fail_after: Optional[int] = None,

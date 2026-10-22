@@ -1,6 +1,6 @@
 # Skill · Data · MCP · RAG · Agent · Workflow · Memory
 
-이 컴포넌트들은 Project에 속하는 정의와 데이터를 소유한다. 정의 CRUD만으로는 모델 호출,
+Agent는 Project의 독립 도메인이며 나머지 Component는 Project에서 선택한 정의와 데이터를 소유한다. 정의 CRUD만으로는 모델 호출,
 서버 연결, 인덱싱, Workflow 실행을 시작하지 않는다. RAG 문서 등록처럼 명시적으로 실행하는
 Component API는 자체 처리를 수행한다. Engine/Tool에서 호출한 작업의 관찰 결과는 기존
 Run → Step 경로를 이용하며 별도 실행 도메인을 만들지 않는다.
@@ -28,13 +28,13 @@ from llm.llm import LargeLanguageModel
 
 async def create_definitions(backend):
     project = await backend.projects.acreate(
-        "Research", components=["tools", "skills", "mcp", "rag", "agents", "workflows", "memory"])
+        "Research", components=["tools", "skills", "mcp", "rag", "workflows", "memory"])
     skills = await project.components.aget("skills")
     await skills.acreate({
         "instructions": "정확성, 오류 처리, 테스트를 차례로 확인하세요.",
         "resources": [{"uri": "docs/llm/architecture.md", "description": "reference"}],
     }, identifier="code_review")
-    agents = await project.components.aget("agents")
+    agents = project.agents
     await agents.acreate({
         "purpose": "코드 검토와 개선안 작성",
         "engine": "loop",
@@ -59,7 +59,6 @@ async def create_definitions(backend):
 | `DataComponent` / `llm.components.data` | data | data / 명시적으로 관리하는 파일 패키지 |
 | `MCPComponent` / `llm.components.mcp` | mcp | mcp, tools / 서버 연결 정의와 명시적으로 선택한 Tool |
 | `RAGComponent` / `llm.components.rag` | rag | rag, tools / metadata 레코드; 실제 문서는 문서 API |
-| `AgentComponent` / `llm.components.agents` | agents | agents, EngineRegistry 연결 시 tools / 업무 정의 |
 | `WorkflowComponent` / `llm.components.workflows` | workflows | workflows / 실행할 그래프 정의 |
 
 Memory의 영속 기억과 대화의 `conversation_storage="memory"`는 별개다.
@@ -70,17 +69,20 @@ LargeLanguageModel과 공개 Component/WorkflowGraph 클래스를 가져올 수 
 
 핸들의 공통 API는 `create/load/list/save/update/delete`, `configure/configuration`이며
 비동기 API에는 `a` 접두사가 붙는다. UI에서는 `await project.components.aget(name)`으로 핸들을
-얻고 비동기 API를 사용한다. 동기 코드는 `project.components.agents.load(...)`도 지원한다.
+얻고 비동기 API를 사용한다. 독립 Agent는 `project.agents`로 조회하며 동기 코드에서 `project.agents.load(...)`를 사용한다.
 `update`는 최상위 키를 병합하므로 중첩 dict는 통째로 교체한다. `save`와 `configure`는 전체 교체다.
-CAS 편집에는 snapshot과 expected_version을 사용한다.
+Component CAS 편집에는 snapshot과 expected_version을 사용한다. Agent의 수정·삭제에는
+snapshot의 revision과 필수 expected_revision을 사용한다. Agent에는 Component configure API가 없다.
 
 ```python
 async def edit_definitions(project):
-    agents = await project.components.aget("agents")
-    agent = await agents.aload("reviewer")
+    agents = project.agents
+    snapshot = await agents.asnapshot("reviewer")
+    agent = snapshot["definition"]
     agent["completion"]["temperature"] = 0.1
-    await agents.asave("reviewer", agent)
-    await agents.aupdate("reviewer", {"description": "검토 담당"})
+    await agents.asave("reviewer", agent, expected_revision=snapshot["revision"])
+    snapshot = await agents.asnapshot("reviewer")
+    await agents.aupdate("reviewer", {"description": "검토 담당"}, expected_revision=snapshot["revision"])
     all_agents = await agents.alist()  # {id: dict}
 
     skills = await project.components.aget("skills")
@@ -139,7 +141,7 @@ Chroma/BM25/Kuzu 색인은 문서 API 책임이며 `asearch`는 같은 generatio
 
 ## Agent 실행 계약
 
-Agent 최상위는 닫힌 계약이며 purpose와 engine이 필수다. 허용 필드는
+Agent 최상위는 닫힌 계약이며 engine이 필수이며 purpose는 선택이다. 허용 필드는
 purpose/description/engine/system_prompt/completion/engine_options/tools/resources/policy/
 input_schema/output_schema/output_format/metadata다. 알 수 없는 키나 오타는 저장 시 실패한다.
 Application 확장은 metadata에 둔다. completion은 선택 Engine의 provider 인자,
@@ -164,9 +166,8 @@ purpose/description/engine/engine_options/metadata만 허용하고 behavioral �
 {"agent_id": "reviewer", "input": {"request": "이 변경을 검토해줘"}}
 ```
 
-기본 backend는 AgentComponent에 EngineRegistry를 연결한다. 사용자 정의 등록 목록에서는
-`AgentComponent(engines=registry)`를 명시해야 agent_run을 제공한다. Component 선택만으로
-Agent가 자동 실행되지는 않는다. 부모 Tool 허용 목록과 인자 제약을 자식이 넓힐 수 없다.
+Backend는 독립 Agent 도메인과 EngineRegistry를 연결하고 Tool resolver에 agent_run을 제공한다.
+Agent 실행에는 저장된 ID를 명시적으로 선택하며 등록·선택만으로 자동 실행하지 않는다. 부모 Tool 허용 목록과 인자 제약을 자식이 넓힐 수 없다.
 중첩 Tool도 ToolContract와 동일 Project 승인 정책을 사용한다. 승인이 필요하면 Run은 PAUSED가
 되며 policy/user 응답을 저장한 뒤 명시적으로 재개한다. 자동 응답도 즉시 효과를 실행하지 않는다.
 
@@ -298,7 +299,8 @@ Loop는 모델이 agent_run을 선택할 수 있게 하지만 Agent나 Workflow�
   mcp/records/<id>.json
   rag/records/<id>.json             # metadata만
   rag/generations/<id>/             # 실제 문서·벡터·그래프 색인
-  agents/records/<id>.json
+  agents/records/<id>.json        # Project ID·정의·revision을 가진 필수 envelope
+  agents/records.manifest.json    # 레코드 목록과 실제 bytes digest
   workflows/records/<id>.json
   memory/                          # 전용 기억·이력 구조
   sessions/                        # Session → Run → Step와 대화

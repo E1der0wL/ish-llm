@@ -278,8 +278,9 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                         "policies": {"tools": {"max_calls": 1}},
                         "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                                        "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
+                    await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
                     session = await project.sessions.acreate()
-                    paused = await (await session.run.submit("go", engine="loop")).wait()
+                    paused = await (await session.run.submit("go", agent_id="loop")).wait()
                     self.assertEqual(paused.data.status, "paused", paused.data.error)
                     self.assertFalse(effects.exists())
                     saved = await paused.acheckpoint()
@@ -300,15 +301,15 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                     session = (await app.projects.aload(project_id)).sessions.load(session_id)
                     decisions = {key: True for key in waiting}
                     if outcome == "corrupt":
-                        plan = await session.run.resume_plan(run_id, engine="loop")
+                        plan = await session.run.resume_plan(run_id, agent_id="loop")
                         self.assertEqual(plan.state, "corrupt")
                         self.assertFalse(plan.can_resume)
                         self.assertEqual([block.code for block in plan.blockers], ["tool_usage_corrupt"])
                         with self.assertRaisesRegex(ValueError, "Tool usage"):
-                            await session.run.resume(run_id, engine="loop", decisions=decisions)
+                            await session.run.resume(run_id, agent_id="loop", decisions=decisions)
                         self.assertEqual([run.id for run in await session.run.alist()], [run_id])
                     else:
-                        resumed = await (await session.run.resume(run_id, engine="loop", decisions=decisions)).wait()
+                        resumed = await (await session.run.resume(run_id, agent_id="loop", decisions=decisions)).wait()
                         if outcome == "approve":
                             self.assertEqual(resumed.data.status, "completed", resumed.data.error)
                             self.assertEqual(effects.read_text(), "effect\n")
@@ -350,17 +351,18 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                         "policies": {"tools": {"max_calls": 1}},
                         "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                                        "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
+                    await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
                     session = await project.sessions.acreate()
-                    failed = await (await session.run.submit("go", engine="loop")).wait()
+                    failed = await (await session.run.submit("go", agent_id="loop")).wait()
                     self.assertEqual(failed.data.status, "failed")
                     self.assertEqual(effects.read_text(), "first\n")
                     project_id, session_id, run_id = project.id, session.id, failed.id
                 async with LargeLanguageModel(root / "workspace", components=[component], engines={"loop": engine}) as app:
                     session = (await app.projects.aload(project_id)).sessions.load(session_id)
-                    plan = await session.run.resume_plan(run_id, engine="loop")
+                    plan = await session.run.resume_plan(run_id, agent_id="loop")
                     self.assertTrue(plan.can_resume, plan.blockers)
                     self.assertEqual(plan.state, "valid")
-                    resumed = await (await session.run.resume(run_id, engine="loop")).wait()
+                    resumed = await (await session.run.resume(run_id, agent_id="loop")).wait()
                     self.assertEqual(effects.read_text(), "first\n")
                     self.assertEqual(len(model.requests), 3)
                     if request_another_tool:
@@ -404,8 +406,9 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                     "policies": {"tools": {"max_calls": 1}},
                     "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                                    "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
+                await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
                 session = await project.sessions.acreate()
-                failed = await (await session.run.submit("go", engine="loop")).wait()
+                failed = await (await session.run.submit("go", agent_id="loop")).wait()
                 self.assertEqual(failed.data.status, "failed", failed.data.error)
                 self.assertEqual(effects.read_text(), "first\n")
                 self.assertEqual(len(model.requests), 2)
@@ -423,14 +426,14 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                 project_id, session_id, run_id = project.id, session.id, failed.id
             async with LargeLanguageModel(root / "workspace", components=[component], engines={"loop": engine}) as app:
                 session = (await app.projects.aload(project_id)).sessions.load(session_id)
-                plan = await session.run.resume_plan(run_id, engine="loop")
+                plan = await session.run.resume_plan(run_id, agent_id="loop")
                 self.assertFalse(plan.can_resume)
                 self.assertEqual(plan.state, "corrupt")
                 self.assertEqual([block.code for block in plan.blockers], ["tool_usage_corrupt"])
                 if remove_envelope:
                     rejected = False
                     try:
-                        await (await session.run.resume(run_id, engine="loop")).wait()
+                        await (await session.run.resume(run_id, agent_id="loop")).wait()
                     except ValueError as error:
                         self.assertRegex(str(error), "Tool usage")
                         rejected = True
@@ -440,7 +443,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                     self.assertTrue(rejected, "Malformed checkpoint must be rejected before admission")
                 else:
                     with self.assertRaisesRegex(ValueError, "Tool usage requires"):
-                        await session.run.resume(run_id, engine="loop")
+                        await session.run.resume(run_id, agent_id="loop")
                 self.assertEqual(effects.read_text(), "first\n")
                 self.assertEqual(len(model.requests), 2)
                 self.assertEqual([run.id for run in await session.run.alist()], [run_id])

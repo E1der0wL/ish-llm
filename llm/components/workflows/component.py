@@ -28,3 +28,27 @@ class WorkflowComponent(DefinitionComponent):
 
     def validate_record(self, identifier: str, data: dict) -> None:
         validate_graph(data)
+
+    def agent_references(self, project, engines):
+        """Read retained actions through their registered, effect-free handler owners."""
+        handlers = {}
+        for name in engines.names():
+            declare = getattr(engines.get(name), "workflow_handlers", None)
+            if declare is not None:
+                for kind, handler in declare().items():
+                    handlers.setdefault(kind, []).append(handler)
+
+        def selected(graph):
+            for node in graph["nodes"].values():
+                kind = node["type"]
+                if kind == "loop":
+                    yield from selected(node["body"])
+                elif kind not in ("branch", "parallel", "join", "end", "workflow"):
+                    if kind not in handlers:
+                        raise ValueError("Agent may be referenced; Workflow handler owner is unavailable")
+                    for handler in handlers[kind]:
+                        reader = getattr(handler, "agent_references", None)
+                        if reader is not None:
+                            yield from reader(node)
+        return [{"identifier": agent, "source": identifier}
+                for identifier, graph in self.list(project).items() for agent in sorted(set(selected(graph)))]

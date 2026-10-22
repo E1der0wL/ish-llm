@@ -245,8 +245,9 @@ class CompletionRecoveryTests(unittest.IsolatedAsyncioTestCase):
             "system_prompt": "keep instructions"}, "policy": {"provider": provider or {}}}},
             "components": {"tools": {"config": {"enabled": ["read"]}}}}}
         project = await backend.projects.acreate(config=config, components=["tools"])
+        await project.agents.acreate({"engine": "loop", "tools": ["read"]}, identifier="loop")
         session = await project.sessions.acreate()
-        handle = await (await session.run.submit("fix A; keep API", engine="loop")).wait(timeout=10)
+        handle = await (await session.run.submit("fix A; keep API", agent_id="loop")).wait(timeout=10)
         return await handle.aresult(), await handle.steps.alist(), model, effects, session
 
     @staticmethod
@@ -350,8 +351,9 @@ class DiagnosticRuntimeContracts(unittest.IsolatedAsyncioTestCase):
                     project = await backend.projects.acreate(components=["tools"], config={"parameters": {
                         "engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                         "components": {"tools": {"config": {"enabled": ["read"]}}}}})
+                    await project.agents.acreate({"engine": "loop", "tools": ["read"]}, identifier="loop")
                     session = await project.sessions.acreate()
-                    run = await (await session.run.submit("read", engine="loop")).wait(timeout=10)
+                    run = await (await session.run.submit("read", agent_id="loop")).wait(timeout=10)
                     result = await run.aresult()
                     step, = [item for item in await run.steps.alist() if item.kind == "tool"]
                     self.assertEqual(result.status, RunStatus.FAILED)
@@ -384,8 +386,9 @@ class DiagnosticRuntimeContracts(unittest.IsolatedAsyncioTestCase):
             backend = LargeLanguageModel(root, engines={"custom": BaseEngine(action=fail)})
             try:
                 project = await backend.projects.acreate(components=[])
+                await project.agents.acreate({"engine": "custom"}, identifier="custom")
                 session = await project.sessions.acreate()
-                run = await (await session.run.submit("run", engine="custom")).wait(timeout=10)
+                run = await (await session.run.submit("run", agent_id="custom")).wait(timeout=10)
                 result = await run.aresult()
                 self.assertEqual(result.error_code, "engine_failed")
                 self.assertEqual(result.diagnostic.details["observed_code"], "custom_failure")
@@ -399,7 +402,7 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
 
     async def test_plan_observes_approval_and_cas_without_granting_it(self):
         run = await self.setup_graph()
-        plan = await self.session.run.resume_plan(run.id, engine="graph")
+        plan = await self.session.run.resume_plan(run.id, agent_id="graph")
         self.assertFalse(plan.can_resume)
         self.assertFalse(plan.can_restart)
         self.assertEqual(plan.state, "valid")
@@ -407,15 +410,15 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
         request, = await run.ainteractions()
         await run.arespond(request.respond(request.options[0].id))
         with self.assertRaises(CheckpointError) as rejected:
-            await self.session.run.resume(run.id, engine="graph", expected_revision=plan.revision)
+            await self.session.run.resume(run.id, agent_id="graph", expected_revision=plan.revision)
         self.assertEqual(rejected.exception.code, "checkpoint_conflict")
         with patch.object(self.app.run_repository, "list", wraps=self.app.run_repository.list) as listed, \
                 patch.object(self.app.run_repository, "checkpoint", wraps=self.app.run_repository.checkpoint) as checkpoints:
-            plan = await self.session.run.resume_plan(run.id, engine="graph")
+            plan = await self.session.run.resume_plan(run.id, agent_id="graph")
             self.assertEqual(listed.call_count, 1)
             self.assertEqual(checkpoints.call_count, 1)
         self.assertTrue(plan.can_resume, plan.blockers)
-        resumed = await (await self.session.run.resume(run.id, engine="graph",
+        resumed = await (await self.session.run.resume(run.id, agent_id="graph",
             expected_revision=plan.revision)).wait(timeout=10)
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(self.effects, ["first", "second"])
@@ -425,12 +428,12 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
         path = run.data.paths.state / "checkpoints" / "graph" / "checkpoint.json"
         content = path.read_bytes()
         path.write_text("{broken", encoding="utf-8")
-        plan = await self.session.run.resume_plan(run.id, engine="graph")
+        plan = await self.session.run.resume_plan(run.id, agent_id="graph")
         self.assertEqual(plan.state, "corrupt")
         self.assertFalse(plan.can_restart)
 
         path.unlink()
-        plan = await self.session.run.resume_plan(run.id, engine="graph")
+        plan = await self.session.run.resume_plan(run.id, agent_id="graph")
         self.assertEqual(plan.state, "missing")
         self.assertFalse(plan.can_resume)
         path.write_bytes(content)
@@ -441,30 +444,31 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(self.root, components=[WorkflowComponent()], engines={"graph": self.engine})
         self.addAsyncCleanup(app.shutdown)
         session = (await app.projects.aload(self.project.id)).sessions.load(self.session.id)
-        plan = await session.run.resume_plan(run.id, engine="graph")
+        plan = await session.run.resume_plan(run.id, agent_id="graph")
         self.assertEqual(plan.state, "deleted")
         self.assertFalse(plan.can_restart)
         path.parent.mkdir(parents=True)
         path.write_bytes(content)
         with self.assertRaises(CheckpointError) as corrupt:
-            await session.run.resume_plan(run.id, engine="graph")
+            await session.run.resume_plan(run.id, agent_id="graph")
         self.assertEqual(corrupt.exception.code, "checkpoint_corrupt")
 
     async def test_custom_engine_without_steps_never_proves_no_effects(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        class CustomEngine:
+        class CustomEngine(BaseEngine):
             async def execute(self, context):
                 raise UntrustedError("original")
                 yield
         app = LargeLanguageModel(temporary.name, engines={"custom": CustomEngine()})
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=[])
+        await project.agents.acreate({"engine": "custom"}, identifier="custom")
         session = await project.sessions.acreate()
-        run = await (await session.run.submit("work", engine="custom")).wait(timeout=10)
+        run = await (await session.run.submit("work", agent_id="custom")).wait(timeout=10)
         self.assertEqual(await run.steps.alist(), [])
         self.assertTrue(run.data.metadata["execution_started"])
-        plan = await session.run.resume_plan(run.id, engine="custom")
+        plan = await session.run.resume_plan(run.id, agent_id="custom")
         self.assertEqual(plan.state, "unsupported")
         self.assertFalse(plan.can_restart)
         result = await run.aresult()
@@ -474,7 +478,7 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
         stored = run.data
         del stored.metadata["execution_started"]
         app.run_repository.save(stored)
-        self.assertFalse((await session.run.resume_plan(run.id, engine="custom")).can_restart)
+        self.assertFalse((await session.run.resume_plan(run.id, agent_id="custom")).can_restart)
         self.assertNotIn("execution_started", run.data.metadata)
 
     async def test_only_predispatch_record_allows_explicit_restart(self):
@@ -485,21 +489,22 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
             "loop": {"config": {"completion": {"model": "test"}}}}}})
+        await project.agents.acreate({"engine": "loop"}, identifier="loop")
         session = await project.sessions.acreate()
         with patch.object(RunManager, "_consume_limited", AsyncMock(side_effect=asyncio.CancelledError())):
-            run = await (await session.run.submit("original", engine="loop")).wait(timeout=10)
-        plan = await session.run.resume_plan(run.id, engine="loop")
+            run = await (await session.run.submit("original", agent_id="loop")).wait(timeout=10)
+        plan = await session.run.resume_plan(run.id, agent_id="loop")
         self.assertEqual(plan.state, "not_created")
         self.assertTrue(plan.can_restart, plan.restart_blockers)
         self.assertEqual(model.requests, [])
-        resumed = await (await session.run.restart(run.id, engine="loop",
+        resumed = await (await session.run.restart(run.id, agent_id="loop",
             expected_revision=plan.revision)).wait(timeout=10)
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(resumed.data.metadata["restart"]["run_id"], run.id)
         self.assertEqual(len(model.requests), 1)
-        self.assertFalse((await session.run.resume_plan(run.id, engine="loop")).can_restart)
+        self.assertFalse((await session.run.resume_plan(run.id, agent_id="loop")).can_restart)
         with self.assertRaises(CheckpointError):
-            await session.run.restart(run.id, engine="loop", expected_revision=plan.revision)
+            await session.run.restart(run.id, agent_id="loop", expected_revision=plan.revision)
 
 
 class JobResumeContracts(unittest.IsolatedAsyncioTestCase):

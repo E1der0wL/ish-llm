@@ -165,17 +165,18 @@ class ActivityStorageTests(unittest.TestCase):
 
 
 class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
-    async def setUpBackend(self, engine, *, components=()):
+    async def setUpBackend(self, engine, *, components=(), definition=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.backend = LargeLanguageModel(temporary.name, engines={"test": engine}, components=list(components))
         self.addAsyncCleanup(self.backend.shutdown)
         self.project = await self.backend.projects.acreate(components=[c.name for c in components])
+        await self.project.agents.acreate(definition or {"engine": "test"}, identifier="test")
         self.session = await self.project.sessions.acreate()
         return temporary.name
 
     async def run_request(self, session=None, **options):
-        return await (await (session or self.session).run.submit("SECRET-PROMPT", engine="test", **options)).wait(timeout=20)
+        return await (await (session or self.session).run.submit("SECRET-PROMPT", agent_id="test", **options)).wait(timeout=20)
 
     async def test_success_many_steps_two_sessions_reopen_and_no_raw_content(self):
         async def action(context):
@@ -234,11 +235,12 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
             raise ProviderError("provider_unavailable")
         async def handler(node):
             await invoke("aembedding", {}, component, {"max_attempts": 2})
-        await self.setUpBackend(GraphEngine(handlers={"component": handler}), components=[WorkflowComponent()])
+        await self.setUpBackend(GraphEngine(handlers={"component": handler}), components=[WorkflowComponent()],
+            definition={"engine": "test", "engine_options": {"workflow": "flow"}})
         workflow = (WorkflowGraph(entry="component").node("component", "component")
                     .node("end", "end").connect("component", "end").to_dict())
         await self.project.components.workflows.acreate(workflow, identifier="flow")
-        handle = await self.run_request(engine_options={"workflow": "flow"})
+        handle = await self.run_request()
         self.assertEqual(len(calls), 2)
         events = await self.project.aactivity()
         self.assertEqual([e.event for e in events].count("step.failed"), 2)
@@ -267,7 +269,7 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
         from llm.services.infrastructure.activity import append_bytes
         async def fail(arguments):
             raise ProviderError("provider_rate_limit")
-        class ToolEngine:
+        class ToolEngine(BaseEngine):
             async def execute(self, context):
                 tool = Tool("lookup", "SECRET-DESCRIPTION", {"type": "object",
                     "properties": {"query": {"type": "string"}}}, fail, contract=TEST_CONTRACT)
@@ -315,10 +317,11 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
         async def work(node):
             return {}
         await self.backend.shutdown()
-        await self.setUpBackend(GraphEngine(handlers={"work": work}), components=[WorkflowComponent()])
+        await self.setUpBackend(GraphEngine(handlers={"work": work}), components=[WorkflowComponent()],
+            definition={"engine": "test", "engine_options": {"workflow": "flow"}})
         graph = WorkflowGraph(entry="work").node("work", "work", pause_before=True).node("end", "end").connect("work", "end")
         await self.project.components.workflows.acreate(graph.to_dict(), identifier="flow")
-        handle = await self.run_request(engine_options={"workflow": "flow"})
+        handle = await self.run_request()
         self.assertEqual((await handle.aresult()).status, RunStatus.PAUSED)
         events = await self.project.aactivity()
         self.assertEqual([e.event for e in events], ["run.paused", "run.started"])

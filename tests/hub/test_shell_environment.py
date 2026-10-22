@@ -63,11 +63,12 @@ class ShellSnapshotTests(unittest.TestCase):
                 controller.environment_provider = provider
                 controller._call = Mock()
                 view.composer.text = "work"
+                selection = (view.agent_id, dict(view.agent_engines))
                 controller.submit("session", "work")
                 self.assertEqual(view.composer.text, "")
                 options = controller._call.call_args.args[4]
                 self.assertEqual(options[ENVIRONMENT_OPTION]["env"]["HUB_SHELL_TEST"], "initial")
-                self.assertNotIn(ENVIRONMENT_OPTION, view.engine_options)
+                self.assertEqual((view.agent_id, view.agent_engines), selection)
                 controller.refresh_shell_root()
                 self.assertEqual(view.file_root, root)
                 controller._submitting.clear()
@@ -170,7 +171,8 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
             first.mkdir(); second.mkdir()
             (first / "name.txt").write_text("first")
             (second / "name.txt").write_text("second")
-            config = HubConfig(Path(root) / "storage", auto_title=False, engine="graph",
+            config = HubConfig(Path(root) / "storage", auto_title=False,
+                agent_definition={"engine": "graph", "engine_options": {"workflow": "reader"}},
                 engine_factories={"graph": lambda: GraphEngine(handlers={"hold": hold, "tool": ToolNode()})})
             runtime = HubRuntime(config)
             try:
@@ -179,12 +181,13 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                     .node("read", "tool", tool="file_read", arguments={"path": "name.txt"})
                     .node("finish", "end").connect("hold", "read").connect("read", "finish"))
                 await (await runtime.project.components.aget("workflows")).acreate(workflow.to_dict(), identifier="reader")
+                await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "reader"}}, identifier="reader-agent")
                 session = await runtime.project.sessions.acreate("Queued environments")
-                one = await session.run.submit("first", engine="graph", engine_options={"workflow": "reader",
+                one = await session.run.submit("first", agent_id="reader-agent", request_context={
                     ENVIRONMENT_OPTION: snapshot(first, "A").to_dict()})
                 await asyncio.wait_for(started.wait(), 10)
-                options = {"workflow": "reader", ENVIRONMENT_OPTION: snapshot(second, "B").to_dict()}
-                two = await session.run.submit("second", engine="graph", engine_options=options)
+                options = {ENVIRONMENT_OPTION: snapshot(second, "B").to_dict()}
+                two = await session.run.submit("second", agent_id="reader-agent", request_context=options)
                 options[ENVIRONMENT_OPTION]["cwd"] = str(first)
                 gate.set()
                 for request, expected in ((one, "first"), (two, "second")):
@@ -276,10 +279,11 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
+                await runtime.project.agents.acreate({"engine": "loop", "tools": ["shell_execute"]}, identifier="shell-agent")
                 session = await runtime.project.sessions.acreate("Environment")
                 project_id, session_id = runtime.project.id, session.id
                 options = {ENVIRONMENT_OPTION: snapshot(work, "captured-secret-value").to_dict()}
-                queued = await session.run.submit("do the work", engine="loop", engine_options=options)
+                queued = await session.run.submit("do the work", agent_id="shell-agent", request_context=options)
                 options[ENVIRONMENT_OPTION]["env"]["HUB_SHELL_TEST"] = "changed"
                 paused = await queued.wait()
                 self.assertEqual(str(paused.data.status), "paused", paused.data.error)
@@ -292,7 +296,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 project = await runtime.backend.projects.aload(project_id)
                 session = await project.sessions.aload(session_id)
-                done = await (await session.run.resume(paused_id, engine="loop")).wait()
+                done = await (await session.run.resume(paused_id, agent_id="shell-agent")).wait()
                 self.assertEqual(str(done.data.status), "completed", done.data.error)
                 output = next(s for s in await done.steps.alist() if s.kind == "tool").output.data
                 self.assertEqual(output["stdout"], f"{work}|captured-secret-value")
@@ -302,18 +306,18 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 await runtime.close()
 
-    async def test_graph_options_and_plain_engine_compatibility(self):
+    async def test_agent_factory_preserves_wrapper_and_separate_context(self):
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, auto_title=False))
             try:
                 await runtime.start()
-                graph = runtime.backend.engines.resolve_request("graph", {
-                    "workflow": "chosen", ENVIRONMENT_OPTION: snapshot(root, "graph").to_dict()})
+                graph = runtime.backend.engines.resolve_agent({"engine": "graph",
+                    "engine_options": {"workflow": "chosen"}}).for_context({ENVIRONMENT_OPTION: snapshot(root, "graph").to_dict()})
                 self.assertIsInstance(graph, EnvironmentEngine)
                 self.assertEqual(graph.implementation.workflow, "chosen")
                 self.assertEqual(graph.environment.cwd, root)
                 with self.assertRaises(ValueError):
-                    runtime.backend.engines.resolve_request("loop", {"invalid": True})
-                self.assertIsNone(runtime.backend.engines.resolve_request("loop", {}).environment)
+                    runtime.backend.engines.resolve_agent({"engine": "loop"}).for_context({"invalid": True})
+                self.assertIsNone(runtime.backend.engines.resolve_agent({"engine": "loop"}).environment)
             finally:
                 await runtime.close()

@@ -399,6 +399,7 @@ class Run:
     assistant_message_id: str
     engine: str
     paths: RunPaths
+    agent_id: str = field(kw_only=True)
     status: RunStatus = RunStatus.PENDING
     created_at: str = field(default_factory=now)
     started_at: Optional[str] = None
@@ -411,6 +412,10 @@ class Run:
     @classmethod
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
+        from llm.core.agents import AgentBinding
+        binding = AgentBinding.read(data["metadata"].get("agent_binding"))
+        if data["agent_id"] != binding["agent_id"] or data["engine"] != binding["engine"]:
+            raise ValueError("Run Agent identity must match its original binding")
         status = RunStatus(data["status"])
         if ((status in cls.STARTED_STATES and data["started_at"] is None)
                 or (status == RunStatus.PENDING and data["started_at"] is not None)

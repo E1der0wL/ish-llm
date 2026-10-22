@@ -180,10 +180,10 @@ async def run_demo(workspace: Path, *, model=None, completion_adapter=None, max_
         elif event.type == EngineEventType.TEXT_DELTA and event.delta.visibility == "user":
             print(event.delta.text, end="", flush=True)
 
-    async with LargeLanguageModel(workspace, engines={"graph": engine}) as backend:
+    async with LargeLanguageModel(workspace, engines={"graph": engine, "loop": agent.engines.get("loop")}) as backend:
         backend.events.subscribe(observe, channel="engine")
-        project = await backend.projects.acreate("Code repair workflow", components=["agents", "workflows"])
-        agents = await project.components.aget("agents")
+        project = await backend.projects.acreate("Code repair workflow", components=['workflows'])
+        agents = project.agents
         workflows = await project.components.aget("workflows")
         await agents.acreate({"engine": "loop", "purpose": "Implement and repair a pure addition function",
                              "system_prompt": "Return only JSON with a code string. Implement add(a, b) using a pure arithmetic expression. No imports, calls, annotations, decorators, defaults or docstrings. Fix the reported validation errors.",
@@ -191,8 +191,9 @@ async def run_demo(workspace: Path, *, model=None, completion_adapter=None, max_
                              "tools": [], "engine_options": {'policy': {'max_iterations': 1}}}, identifier="coder")
         await workflows.acreate(coding_workflow(max_attempts), identifier="code-review")
         project = await backend.projects.aload(project.id)
+        await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "code-review"}}, identifier="code-review-agent")
         session = await project.sessions.acreate("Implement addition")
-        request = await session.run.submit("Implement add(a, b), returning the arithmetic sum of two numbers.", engine="graph", engine_options={"workflow": "code-review"})
+        request = await session.run.submit("Implement add(a, b), returning the arithmetic sum of two numbers.", agent_id="code-review-agent")
         run = await request.wait()
         data, steps = await run.aget_data(), await run.steps.alist()
         root = next((step for step in steps if step.kind == "graph"), None)

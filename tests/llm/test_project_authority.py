@@ -65,7 +65,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                 _, session, _ = await self.setup_app(act, [
                     [chunk(calls=[call("{}", name="act")], finish="tool_calls")]],
                     ToolRuntime(classify=classify), tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))
-                handle = await session.run.submit("go", engine="loop")
+                handle = await session.run.submit("go", agent_id="loop")
                 await asyncio.wait_for(started.wait(), 10)
                 if interrupted:
                     await session.run.interrupt()
@@ -92,9 +92,10 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=["tools"], config={"parameters": {
             "engines": {"loop": {"config": {"completion": {"model": "test/model"}}}}}})
         await project.components.tools.aenable("act")
+        await project.agents.acreate({"engine": "loop", "tools": ["act"]}, identifier="loop")
         second = await project.sessions.acreate()
-        a = await (await first.run.submit("go", engine="loop")).wait()
-        b = await (await second.run.submit("go", engine="loop")).wait()
+        a = await (await first.run.submit("go", agent_id="loop")).wait()
+        b = await (await second.run.submit("go", agent_id="loop")).wait()
         self.assertEqual((a.data.status, b.data.status), ("paused", "paused"))
         self.assertEqual([r.actor for r in await a.ainteraction_responses()], ["policy"])
         self.assertEqual(await b.ainteraction_responses(), [])
@@ -115,7 +116,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                     tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()),
                     policies={"approval": {"enabled": True, "risk_scheme": "app", "rules": [
                         {"id": "execute", "category": "execute", "max_risk": 20}]}} if change == "deny" else {})
-                run = await (await session.run.submit("go", engine="loop")).wait()
+                run = await (await session.run.submit("go", agent_id="loop")).wait()
                 self.assertEqual(run.data.status, "paused", run.data.error)
                 self.assertEqual(effects, [])
                 if change == "deny":
@@ -124,7 +125,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                     request, = await run.ainteractions(pending_only=True)
                     await run.arespond(request.respond("approve"))
                 state["risk" if change == "classification" else "deny"] = 50 if change == "classification" else True
-                resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+                resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
                 self.assertEqual(resumed.data.status, "failed")
                 self.assertEqual(effects, [])
                 if change == "deny":
@@ -149,7 +150,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                         "tools": {"argument_constraints": {"act": {"command": {"mode": "fixed", "value": "x"}}}}},
                     tool_schema={"type": "object", "properties": {"risk": {"type": "integer"}, "command": {"type": "string"}}},
                     tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))
-                run = await (await session.run.submit("go", engine="loop")).wait()
+                run = await (await session.run.submit("go", agent_id="loop")).wait()
                 self.assertEqual(run.data.status, "paused", run.data.error)
                 self.assertEqual(effects, [])
                 self.assertEqual(seen, [{"risk": 0, "command": "x"}])
@@ -160,11 +161,11 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(await run.ainteractions(pending_only=True)), 0 if expected else 1)
                 if expected:
                     self.assertEqual(responses[0].actor, "policy")
-                    resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+                    resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
                     self.assertEqual(resumed.data.status, "completed", resumed.data.error)
                     self.assertEqual(len(effects), 1)
                 else:
                     await run.arespond(request.respond("approve"))
-                    resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+                    resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
                     self.assertEqual(resumed.data.status, "completed", resumed.data.error)
                     self.assertEqual(len(effects), 1)

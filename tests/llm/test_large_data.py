@@ -72,7 +72,17 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         self.serial += 1
         self.app.engines.register(name, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await configure_engine(self.project, name, completion={"model": "test/main"})
-        run = await (await self.session.run.submit(text, engine=name)).wait(timeout=20)
+        from llm.components.tools.resolver import ComponentToolResolver
+        manager = self.app.project_manager
+        def selected_tools():
+            with manager.ownership.scope():
+                project = manager.access.require(self.project.data)
+                return list(ComponentToolResolver(manager.components,
+                    data_factory=manager.component, agents=manager.agents,
+                    engines=self.app.engines).resolve_tools(project).names())
+        await self.project.agents.acreate({"engine": name,
+            "tools": [*(await asyncio.to_thread(selected_tools)), "memory_tool_result"]}, identifier=name)
+        run = await (await self.session.run.submit(text, agent_id=name)).wait(timeout=20)
         return run, model
 
     async def history(self):
@@ -258,7 +268,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         saved = (await self.memory.alist_tool_summaries(self.session.id))[0]
         self.assertEqual(saved["request"]["status"], "applied")
         count = len(self.requests)
-        resumed = await (await self.session.run.resume(run.id, engine=run.data.engine)).wait(timeout=20)
+        resumed = await (await self.session.run.resume(run.id, agent_id=run.data.agent_id)).wait(timeout=20)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual((self.source.calls, len(self.requests)), (1, count))
         identifier, ref = saved["request"]["id"], saved["request"]["reference"]
@@ -320,7 +330,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         self.assertEqual((effects, self.requests), ([], []))
         self.assertEqual([r.actor for r in await paused.ainteraction_responses()], ['policy'])
-        done = await (await self.session.run.resume(paused.id, engine=paused.data.engine)).wait(timeout=20)
+        done = await (await self.session.run.resume(paused.id, agent_id=paused.data.agent_id)).wait(timeout=20)
         self.assertEqual(done.data.status, 'completed', done.data.error)
         self.assertEqual(effects, [True])
         self.assertGreater(len(self.requests), 1)
@@ -339,7 +349,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
             await self.memory.adelete_tool_summary(self.session.id, identifier, expected_revision=saved['revision'])
         count = len(self.requests)
         model.responses.append([ConnectionError('still unavailable')])
-        run = await (await self.session.run.resume(run.id, engine=run.data.engine)).wait(timeout=20)
+        run = await (await self.session.run.resume(run.id, agent_id=run.data.agent_id)).wait(timeout=20)
         self.assertEqual(len(self.requests), count)  # ordinary Run resume does not requeue summary work
         for _ in range(10):
             saved = (await self.memory.alist_tool_summaries(self.session.id))[0]
@@ -347,11 +357,11 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
                 break
             await self.memory.aresume_tool_summary(self.session.id, identifier, expected_revision=saved['revision'])
             model.responses.append([ConnectionError('keep Run resumable')])
-            run = await (await self.session.run.resume(run.id, engine=run.data.engine)).wait(timeout=20)
+            run = await (await self.session.run.resume(run.id, agent_id=run.data.agent_id)).wait(timeout=20)
         saved = (await self.memory.alist_tool_summaries(self.session.id))[0]
         self.assertEqual(saved['request']['status'], 'applied')
         model.responses.append(answer())
-        done = await (await self.session.run.resume(run.id, engine=run.data.engine)).wait(timeout=20)
+        done = await (await self.session.run.resume(run.id, agent_id=run.data.agent_id)).wait(timeout=20)
         self.assertEqual(done.data.status, 'completed', done.data.error)
         self.assertEqual(self.source.calls, 1)
         parts = [value['messages'][0] for value in self.requests]
@@ -388,7 +398,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(view['request']['checkpoint']['completed_chunks'], 1)
         self.assertEqual(view['request']['status'], 'interrupted')
         await self.memory.aresume_compaction(self.session.id, expected_revision=view['revision'])
-        done = await (await self.session.run.resume(run.id, engine=run.data.engine)).wait(timeout=20)
+        done = await (await self.session.run.resume(run.id, agent_id=run.data.agent_id)).wait(timeout=20)
         self.assertEqual(done.data.status, 'completed', done.data.error)
         self.assertEqual(attempts[1], attempts[2])
         self.assertEqual((await self.memory.aget_context(self.session.id))['request']['status'], 'applied')
@@ -432,7 +442,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, 'failed')
         self.assertNotIn('files', (await self.files.asnapshot('results'))['data'])
         self.assertEqual(await self.memory.alist_tool_summaries(self.session.id), [])
-        done = await (await self.session.run.resume(run.id, engine=run.data.engine)).wait(timeout=20)
+        done = await (await self.session.run.resume(run.id, agent_id=run.data.agent_id)).wait(timeout=20)
         self.assertEqual(done.data.status, 'completed', done.data.error)
         self.assertEqual(self.source.calls, 1)
 

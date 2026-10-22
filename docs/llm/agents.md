@@ -1,6 +1,6 @@
 # Agent: 재사용 가능한 업무 정의
 
-현재 AgentComponent 정의·Graph/Loop 위임 계약이다. 독립 Project Agent와 root 실행 단일화는 [B/C 목표](clean-refactor.md)이며 아직 구현되지 않았다.
+현재 독립 Project Agent와 root·Graph/Loop 위임의 공통 계약이다. 구현 및 검증 상태는 [B/C 기록](agent-refactor-verification.md)을 따른다.
 
 Agent는 목적, 사용할 엔진, 모델/프롬프트, 리소스, 허용 Tool, 입출력 계약과 실행 정책을
 저장한다. 최상위는 알려진 필드만 허용하고 Application 확장은 metadata에 둔다.
@@ -24,13 +24,13 @@ from llm.components.workflows import WorkflowGraph
 agent_node = AgentNode(engines={"loop": LoopEngine()})
 graph_engine = GraphEngine(handlers={"agent": agent_node})
 
-async with LargeLanguageModel(workspace, engines={"graph": graph_engine}) as backend:
+async with LargeLanguageModel(workspace, engines={"graph": graph_engine, "loop": LoopEngine()}) as backend:
     project = await backend.projects.acreate(
-        "Review", components=["agents", "workflows", "tools", "skills"])
+        "Review", components=["workflows", "tools", "skills"])
     skills = await project.components.aget("skills")
     await skills.acreate({"instructions": "정확성, 오류 처리, 테스트 누락을 검토하세요."},
                          identifier="review_rules")
-    agents = await project.components.aget("agents")
+    agents = project.agents
     await agents.acreate({
         "purpose": "코드 검토",
         "engine": "loop",
@@ -51,21 +51,26 @@ async with LargeLanguageModel(workspace, engines={"graph": graph_engine}) as bac
         .node("end", "end").connect("review", "end"))
     workflows = await project.components.aget("workflows")
     await workflows.acreate(workflow.to_dict(), identifier="review")
+    await agents.acreate({"engine": "graph", "engine_options": {"workflow": "review"}},
+                         identifier="coordinator")
     session = await project.sessions.acreate("Review request")
-    run = await (await session.run.submit("이 코드를 검토해줘: ...", engine="graph", engine_options={"workflow": "review"})).wait()
+    run = await (await session.run.submit("이 코드를 검토해줘: ...", agent_id="coordinator")).wait()
     response = await run.aresponse()
     steps = await run.steps.alist()
 ```
 
 UI에서는 같은 JSON을 생성/수정하면 된다. 일반 CRUD는 create/load/list/save/update/delete,
 비동기 API는 앞에 a를 붙인다. 저장 경로는 `<project>/agents/records/<id>.json`,
-Workflow는 `<project>/workflows/records/<id>.json`이다. Component 설정은 ProjectConfig.parameters["components"]에 저장한다.
+필수 Agent 목록은 `<project>/agents/records.manifest.json`이다. Workflow는
+`<project>/workflows/records/<id>.json`이다. Agent는 Component 선택과 독립되며
+Component 설정만 ProjectConfig.parameters["components"]에 저장한다.
 
 ## 정책과 리소스
 
 | 필드 | 의미 |
 | --- | --- |
-| purpose, engine | 필수 업무 목적과 AgentNode에 등록된 엔진 이름 |
+| engine | 필수 EngineRegistry 등록 이름. 선택 Engine이 자신의 필수 인자를 검증 |
+| purpose | 선택적인 업무 설명 |
 | completion | Loop 모델 인자. model 필수, messages/tools는 엔진이 관리 |
 | engine_options | 선택 엔진의 설정. Loop 반복/응답/Tool 시간 등 |
 | tools | 일반 Tool 허용 목록. Project에서 사용 가능한 Tool만 선택 |
@@ -99,7 +104,7 @@ Skill.resources의 URI는 참고 정보이며 자동 접근하지 않는다. 등
 
 ## Graph-backed Agent와 behavioral Agent
 
-현재 AgentComponent의 저장 참조 owner는 resources.skills/prompt/mcp와 rag 선택을 제공합니다.
+AgentRepository의 공통 저장 참조 owner는 resources.skills/prompt/mcp와 rag 선택을 제공합니다.
 직접 레코드 삭제와 상위 Component 제거는 같은 참조를 확인하며 비활성 Agent의 저장된 정의도
 보호에 포함합니다. RAG는 Component 전체 참조이며 특정 문서 ID나 세대를 고정하지 않습니다.
 참조 해제는 원본 Agent 정의의 명시적 수정입니다. 이 선언은 모델 호출·MCP 연결·Tool 준비나
@@ -145,8 +150,9 @@ await agents.arevise("reviewer", definition, expected_revision=snapshot["revisio
 ```
 
 동시에 다른 편집이 저장되면 revise는 실패하며 다시 읽어야 한다. snapshot의 revision은
-전체 정의의 SHA256이다. 기존 prompt/update_prompt도 같은 버전을 사용한다. save/update는
-조건 없는 CRUD이므로 UI 동시 편집에는 revise를 권장한다. 실행 중인 Run은 읽어둔 정의를 유지한다.
+전체 정의의 SHA256이다. save/update/delete/revise/update_prompt는 모두 필수
+expected_revision으로 CAS를 검사한다. 접수 시 정의·revision·Engine binding을 고정하며
+시작·재개 시 현재 정의가 달라졌으면 실행을 거부한다. 누락된 증거를 최신 설정으로 복원하지 않는다.
 
 Agent Step에 정의/버전/리소스/입출력을 저장하고 자식 Step은 agent_step_id로 연결한다.
 Graph 체크포인트는 Agent·Skill·MCP 정의와 어댑터 revision을 비교해 변경 후 재개를 거부한다.
@@ -155,7 +161,7 @@ Agent가 별도 Run이나 체크포인트 수명주기를 만들지 않는다.
 
 ## 개발자 엔진 확장
 
-AgentNode(engines={"name": engine})에 등록하는 엔진은 순수 동기
+Project의 EngineRegistry와 필요한 AgentNode(engines={"name": engine})에 등록하는 엔진은 순수 동기
 `for_agent(definition) -> Engine`과 `execute(context)`를 구현한다. for_agent는 선택·재개
 검증에서도 호출되므로 I/O를 수행하거나 공유 엔진을 수정하지 않는다. LoopEngine의 구현은
 서브클래스의 준비/실행 메서드와 주입된 provider를 보존한다. 다른 엔진은 completion이 없어도 된다.
@@ -183,3 +189,13 @@ Workflow에 명시된 참조/순환/역량의 사전 검증은 유지한다.
 
 구형 Agent의 loop/skills/rag/mcp 최상위 필드는 자동 변환하지 않는다. engine을 명시하고
 engine_options와 resources를 사용하는 현재 정의로 저장한다.
+
+
+## 보존된 Workflow의 참조
+
+Agent 삭제는 비활성 Workflow와 반복 본문도 확인한다. GraphEngine의
+`workflow_handlers()`가 등록 action owner를 공개하고, 해당 handler의 순수
+`agent_references(node)`가 선택 ID를 읽는다. AgentNode는 등록 이름과 무관하게 자기
+`agent` 필드를 해석한다. Workflow 저장 Component는 handler의 사유 옵션을 추측하지 않는다.
+등록 owner가 없어 참조 여부를 판단할 수 없으면 삭제를 거부한다. 참조 조회는 factory,
+handler 실행, 모델 호출이나 Tool 효과를 발생시키지 않는다.

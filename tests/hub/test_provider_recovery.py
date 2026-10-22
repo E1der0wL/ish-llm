@@ -278,7 +278,7 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
                         raise bad_request("Conversation roles must alternate user/assistant")
                 yield from answer("Done")
         runtime, session, source = await self.runtime(provider)
-        first = await (await session.run.submit("source " * 1000, engine="loop")).wait(timeout=20)
+        first = await (await session.run.submit("source " * 1000, agent_id="assistant")).wait(timeout=20)
         self.assertEqual(str((await first.aget_data()).status), "completed")
         second = await self.execute(runtime, session)
         self.assertEqual(str((await second.aget_data()).status), "completed")
@@ -339,8 +339,8 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
         runtime, first, source = await self.runtime(provider)
         second_id = await runtime.new_session()
         second = runtime.sessions[second_id]
-        requests = await asyncio.gather(first.run.submit("first", engine="loop"),
-                                        second.run.submit("second", engine="loop"))
+        requests = await asyncio.gather(first.run.submit("first", agent_id="assistant"),
+                                        second.run.submit("second", agent_id="assistant"))
         runs = await asyncio.gather(*(request.wait(timeout=20) for request in requests))
         records = await asyncio.gather(*(run.aget_data() for run in runs))
         self.assertTrue(all(str(record.status) == "completed" for record in records), records)

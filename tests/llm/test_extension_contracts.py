@@ -11,7 +11,7 @@ from dataclasses import replace
 from types import SimpleNamespace
 from copy import deepcopy
 
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.tools import Tool, ToolRegistry
 from llm.components.workflows.bindings import validate_contract
 from llm.core.models import ProjectConfig
@@ -25,7 +25,7 @@ from tests.llm.support.runtime_tools import TEST_CONTRACT
 class SchemaBoundaryTests(unittest.TestCase):
     def check(self, schema):
         ToolRegistry((Tool("sample", "sample", schema, lambda args: None, contract=TEST_CONTRACT),))
-        AgentComponent().validate_record("sample", {
+        AgentDefinition.validate("sample", {
             "purpose": "sample", "engine": "custom", "input_schema": deepcopy(schema)})
         validate_contract({"input_schema": deepcopy(schema)})
 
@@ -44,7 +44,7 @@ class SchemaBoundaryTests(unittest.TestCase):
                     "properties": {"payload": {"$ref": "#/$defs/text"}}})
         for key in ("$ref", "$dynamicRef"):
             for check in (lambda s: ToolRegistry((Tool("sample", "", s, lambda a: None, contract=TEST_CONTRACT),)),
-                          lambda s: AgentComponent().validate_record("sample", {
+                          lambda s: AgentDefinition.validate("sample", {
                               "purpose": "sample", "engine": "custom", "input_schema": s}),
                           lambda s: validate_contract({"input_schema": s})):
                 with self.subTest(key=key), self.assertRaisesRegex(ValueError, "local"):
@@ -165,22 +165,23 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
         leaf = ScriptedCompletion([chunk("leaf done", finish="stop")])
         engines = {"parent": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=parent)), "leaf": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=leaf))}
         engines["graph"] = GraphEngine(handlers={"agent": AgentNode(engines=engines)})
-        async with LargeLanguageModel(directory.name, engines=engines, components=[AgentComponent(engines=engines), WorkflowComponent()]) as app:
-            project = await app.projects.acreate(components=["agents", "workflows"], config={"parameters": {"engines": {
+        async with LargeLanguageModel(directory.name, engines=engines, components=[WorkflowComponent()]) as app:
+            project = await app.projects.acreate(components=['workflows'], config={"parameters": {"engines": {
                 name: {"config": {"completion": {"model": "test"}}} for name in ("parent", "leaf")}}})
             await project.components.workflows.acreate(WorkflowGraph(entry="leaf").node("leaf", "agent", agent="leaf")
                 .node("end", "end").connect("leaf", "end").to_dict(), identifier="flow")
-            agents = project.components.agents
+            agents = project.agents
             await agents.acreate({"purpose": "graph", "engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph-worker")
             await agents.acreate({"purpose": "leaf", "engine": "leaf"}, identifier="leaf")
+            await agents.acreate({"engine": "parent", "tools": ["agent_run"]}, identifier="parent-agent")
             session = await project.sessions.acreate()
-            run = await (await session.run.submit("go", engine="parent")).wait()
+            run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
             self.assertEqual(run.data.status, "failed", run.data.error)
             self.assertEqual(len(leaf.requests), 1)
             snapshot = await agents.asnapshot("leaf")
             await agents.arevise("leaf", {**snapshot["definition"], "purpose": "changed"}, expected_revision=snapshot["revision"])
             with self.assertRaisesRegex(Exception, "changed"):
-                await session.run.resume(run.id, engine="parent")
+                await session.run.resume(run.id, agent_id="parent-agent")
             self.assertEqual(len(leaf.requests), 1)
 
     async def test_delegation_resume_checks_selected_agent_not_catalog(self):
@@ -197,17 +198,24 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
             registry=registry, child_tools=("write",), child_responses=[
                 [chunk(calls=[call("{}", name="write")], finish="tool_calls")],
                 [chunk("done", finish="stop")]])
-        agents = session.project.components.agents
-        await agents.acreate({"purpose": "unused", "engine": "child",
-                             "engine_options": {"invalid_for_child": True},
-                             "resources": {"rag": True}}, identifier="unused")
-        run = await (await session.run.submit("go", engine="parent")).wait()
+        agents = session.project.agents
+        from jsonschema.exceptions import ValidationError
+        invalid = {"purpose": "unused", "engine": "child", "engine_options": {"invalid_for_child": True},
+                   "resources": {"rag": True}}
+        with self.assertRaises((ValueError, TypeError, ValidationError)):
+            await agents.acreate(invalid, identifier="unused")
+        repository = session.project.app.project_manager.repository.agents
+        repository.create(session.project.data, invalid, identifier="unused")
+        run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)
         snapshot = await agents.asnapshot("unused")
-        await agents.arevise("unused", {**snapshot["definition"], "purpose": "changed"}, expected_revision=snapshot["revision"])
+        changed = {**snapshot["definition"], "purpose": "changed"}
+        with self.assertRaises((ValueError, TypeError, ValidationError)):
+            await agents.arevise("unused", changed, expected_revision=snapshot["revision"])
+        repository.save(session.project.data, "unused", changed, expected_revision=snapshot["revision"])
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
-        resumed = await (await session.run.resume(run.id, engine="parent")).wait()
+        resumed = await (await session.run.resume(run.id, agent_id="parent-agent")).wait()
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [{}])
         self.assertEqual((len(parent.requests), len(child.requests)), (2, 2))
@@ -228,16 +236,16 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
                         [chunk("done", finish="stop")]])
                 if not waiting:
                     parent.responses[1] = [ConnectionError("stop after child")]
-                run = await (await session.run.submit("go", engine="parent")).wait()
+                run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
                 self.assertIn(run.data.status, ("paused", "failed"), run.data.error)
                 if waiting:
                     request, = await run.ainteractions(pending_only=True)
                     await run.arespond(request.respond("approve"))
-                agents = session.project.components.agents
+                agents = session.project.agents
                 snapshot = await agents.asnapshot("worker")
                 await agents.arevise("worker", {**snapshot["definition"], "purpose": "changed"}, expected_revision=snapshot["revision"])
                 with self.assertRaisesRegex(Exception, "changed"):
-                    await session.run.resume(run.id, engine="parent")
+                    await session.run.resume(run.id, agent_id="parent-agent")
 
 
     async def test_completed_nested_selection_is_checked_before_resume(self):
@@ -246,16 +254,16 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
         _, session, parent, child = await AgentDelegationTests.setup(self, child_tools=("agent_run",), child_responses=[
             [chunk(calls=[call('{"agent_id":"leaf","input":{}}', name="agent_run")], finish="tool_calls")],
             [chunk("leaf done", finish="stop")], [chunk("worker done", finish="stop")]])
-        agents = session.project.components.agents
+        agents = session.project.agents
         await agents.acreate({"purpose": "leaf", "engine": "child"}, identifier="leaf")
         parent.responses[1] = [ConnectionError("after completed children")]
-        run = await (await session.run.submit("go", engine="parent")).wait()
+        run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
         self.assertEqual(run.data.status, "failed", run.data.error)
         self.assertEqual(len(child.requests), 3)
         before = await agents.asnapshot("leaf")
         await agents.arevise("leaf", {**before["definition"], "purpose": "changed leaf"}, expected_revision=before["revision"])
         with self.assertRaisesRegex(Exception, "changed"):
-            await session.run.resume(run.id, engine="parent")
+            await session.run.resume(run.id, agent_id="parent-agent")
         self.assertEqual(len(child.requests), 3)
 
     async def test_delegation_waiting_before_child_execution_records_selection(self):
@@ -266,16 +274,16 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
             raise ToolApprovalRequired()
         # Host mechanism requests approval before the selected child starts.
         app.services.tool_runtime = ToolRuntime(authorize=authorize)
-        run = await (await session.run.submit("go", engine="parent")).wait()
+        run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)
         self.assertEqual(child.requests, [])
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
-        agents = session.project.components.agents
+        agents = session.project.agents
         before = await agents.asnapshot("worker")
         await agents.arevise("worker", {**before["definition"], "purpose": "changed"}, expected_revision=before["revision"])
         with self.assertRaisesRegex(Exception, "changed"):
-            await session.run.resume(run.id, engine="parent")
+            await session.run.resume(run.id, agent_id="parent-agent")
         self.assertEqual(child.requests, [])
 
 
@@ -288,13 +296,28 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         registry = ToolRegistry(tuple(tools))
-        app = LargeLanguageModel(directory.name, engines={"graph": GraphEngine(handlers=handlers)}, components=[
-            WorkflowComponent(), AgentComponent(), RuntimeTools(registry), *components])
+        from llm.engines.graph.agent import AgentNode
+        engine = GraphEngine(handlers=handlers)
+        engines, visited = {"graph": engine}, set()
+        def register_selected(value):
+            if id(value) in visited:
+                return
+            visited.add(id(value))
+            for handler in getattr(value, "handlers", {}).values():
+                if isinstance(handler, AgentNode):
+                    for name in handler.engines.names():
+                        selected = handler.engines.get(name)
+                        engines.setdefault(name, selected)
+                        register_selected(selected)
+        register_selected(engine)
+        app = LargeLanguageModel(directory.name, engines=engines, components=[
+            WorkflowComponent(), RuntimeTools(registry), *components])
         self.addAsyncCleanup(app.shutdown)
-        project = await app.projects.acreate("test", components=["workflows", "agents", "tools", *[c.name for c in components]])
+        project = await app.projects.acreate("test", components=["workflows", "tools", *[c.name for c in components]])
         await project.components.workflows.acreate(definition, identifier="flow")
+        await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
         for identifier, profile in agents:
-            await project.components.agents.acreate(profile, identifier=identifier)
+            await project.agents.acreate(profile, identifier=identifier)
         await project.components.tools.aenable(*registry.names())
         session = await project.sessions.acreate("test")
         return app, project, session
@@ -321,7 +344,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"custom": Custom()})},
             components=(PromptComponent(),), agents=(("worker", {"purpose": "work", "engine": "custom", "resources": {"prompt": "guide"}}),))
         await project.components.prompts.acreate({"messages": [{"role": "system", "content": "resource guide"}]}, identifier="guide")
-        run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+        run = await (await session.run.submit("go", agent_id="graph")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(seen, [("system: resource guide", "native guide")])
 
@@ -336,12 +359,12 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         graph = WorkflowGraph(entry="write").node("write", "execute", tool="write").node("end", "end").connect("write", "end")
         _, _, session = await self.setup_graph(graph.to_dict(), {"execute": ToolNode()}, (
             Tool("write", "write", {"type": "object"}, write, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),))
-        run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+        run = await (await session.run.submit("go", agent_id="graph")).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)
         self.assertEqual(effects, [])
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
-        resumed = await (await session.run.resume(run.id, engine="graph")).wait()
+        resumed = await (await session.run.resume(run.id, agent_id="graph")).wait()
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [{}])
 
@@ -363,20 +386,20 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             (Tool("write", "write", {"type": "object"}, write, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),),
             agents=(("a", {**profile, "tools": ["write"]}), ("b", profile)))
-        run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+        run = await (await session.run.submit("go", agent_id="graph")).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)
-        agents = project.components.agents
+        agents = project.agents
         before = await agents.asnapshot("a")
         await agents.arevise("a", {**before["definition"], "purpose": "changed"}, expected_revision=before["revision"])
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
         with self.assertRaisesRegex(Exception, "changed"):
-            await session.run.resume(run.id, engine="graph")
+            await session.run.resume(run.id, agent_id="graph")
         changed = await agents.asnapshot("a")
         await agents.arevise("a", before["definition"], expected_revision=changed["revision"])
         future = await agents.asnapshot("b")
         await agents.arevise("b", {**future["definition"], "system_prompt": "new B instructions"}, expected_revision=future["revision"])
-        resumed = await (await session.run.resume(run.id, engine="graph")).wait()
+        resumed = await (await session.run.resume(run.id, agent_id="graph")).wait()
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [1])
         self.assertEqual(model.requests[-1]["messages"][0]["content"], "new B instructions")
@@ -396,7 +419,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         app, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             (Tool("echo", "echo", {"type": "object", "properties": {"value": {"type": "string"}}}, echo, contract=TEST_CONTRACT),),
             agents=(("worker", {"purpose": "echo", "engine": "loop", "completion": {"model": "test"}, "tools": ["echo"]}),))
-        run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+        run = await (await session.run.submit("go", agent_id="graph")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
         steps = [s for s in await run.steps.alist() if s.kind == "tool"]
         self.assertEqual([s.metadata["tool_call_id"] for s in steps], ["call_1", "call_1"])
@@ -419,14 +442,14 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         profile = {"purpose": "test", "engine": "loop", "completion": {"model": "test"}}
         _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             agents=(("a", profile), ("b", profile)))
-        run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
+        run = await (await session.run.submit("go", agent_id="graph")).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)
         self.assertEqual(len(model.requests), 1)
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
-        snapshot = await project.components.agents.asnapshot("a")
-        await project.components.agents.arevise("a", {**snapshot["definition"], "purpose": "changed completed"},
+        snapshot = await project.agents.asnapshot("a")
+        await project.agents.arevise("a", {**snapshot["definition"], "purpose": "changed completed"},
                                                 expected_revision=snapshot["revision"])
         with self.assertRaisesRegex(Exception, "changed"):
-            await session.run.resume(run.id, engine="graph")
+            await session.run.resume(run.id, agent_id="graph")
         self.assertEqual(len(model.requests), 1)

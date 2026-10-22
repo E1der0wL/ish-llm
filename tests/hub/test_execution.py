@@ -1,4 +1,4 @@
-"""Request-scoped workflow selection through the real backend and PTK input."""
+"""Stored Agent selection through the real backend and PTK input."""
 
 import asyncio
 import tempfile
@@ -17,7 +17,8 @@ from tests.hub.test_overlays import screen_text
 
 
 def config(directory, handlers=None):
-    return HubConfig(directory, "graph", "test/model", auto_title=False, language="en",
+    return HubConfig(directory, agent_id="alpha", agent_definition={"engine": "graph", "engine_options": {"workflow": "alpha"}},
+        model="test/model", auto_title=False, language="en",
         engine_factories={"graph": lambda: GraphEngine(handlers=handlers or {})},
         component_factories=(WorkflowComponent,))
 
@@ -46,24 +47,25 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 await workflows.acreate(WorkflowGraph(entry="hold").node("hold", "hold")
                     .node("finish", "end").connect("hold", "finish").to_dict(), identifier="alpha")
                 await workflows.acreate(WorkflowGraph(entry="finish").node("finish", "end").to_dict(), identifier="beta")
+                options = {"workflow": "beta"}
+                await runtime.project.agents.acreate({"engine": "graph", "engine_options": options}, identifier="beta")
                 session = runtime.sessions[runtime.selected_id]
                 catalog = await runtime.execution_catalog(session.id)
-                self.assertEqual(catalog["engines"]["graph"]["kind"], "graph")
-                self.assertEqual(set(catalog["workflows"]), {"alpha", "beta"})
-                with self.assertRaises(ValueError):
-                    await runtime.submit(session.id, "missing workflow", "graph")
+                self.assertEqual(catalog["agents"]["alpha"]["engine"], "graph")
+                self.assertEqual(set(catalog["agents"]), {"alpha", "beta"})
+                with self.assertRaises(FileNotFoundError):
+                    await runtime.submit(session.id, "missing Agent", "graph")
                 self.assertEqual(await session.aconversation(), [])
-                await runtime.submit(session.id, "first", "graph", {"workflow": "alpha"})
+                await runtime.submit(session.id, "first", "alpha")
                 await asyncio.wait_for(started.wait(), 10)
-                options = {"workflow": "beta"}
-                second = await runtime.submit(session.id, "second", "graph", options)
+                second = await runtime.submit(session.id, "second", "beta")
                 options["workflow"] = "alpha"
                 queued = next(m for m in await session.aconversation() if m.id == second)
-                self.assertEqual(queued.metadata["engine_options"], {"workflow": "beta"})
+                self.assertEqual(queued.metadata["agent_binding"]["definition"]["engine_options"], {"workflow": "beta"})
                 gate.set()
                 await session.run.wait_idle()
                 runs = [await run.aget_data() for run in await session.run.alist()]
-                self.assertEqual([r.metadata["engine_options"]["workflow"] for r in runs], ["alpha", "beta"])
+                self.assertEqual([r.metadata["agent_binding"]["definition"]["engine_options"]["workflow"] for r in runs], ["alpha", "beta"])
                 self.assertTrue(all(str(r.status) == "completed" for r in runs))
                 self.assertIsNone(runtime.backend.engines.get("graph").workflow)
             finally:
@@ -74,7 +76,8 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
         from examples.hub.preview import create_preview
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
-            view.engines = ("loop", "graph")
+            view.agents = ("assistant", "alpha")
+            view.agent_engines = {"assistant": "loop", "alpha": "graph"}
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await until(lambda: app.is_running)
@@ -85,19 +88,19 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(any(binding.keys == ("c-e",) for binding in
                     view.navigation_keys.get_bindings_for_keys(("c-e",))))
                 with set_app(app):
-                    view.set_execution("graph", {"workflow": "alpha"})
+                    view.choose_agent("alpha")
                     view.selected = 1
-                    self.assertEqual(view.engine_options, {})
+                    self.assertEqual(view.agent_id, "assistant")
                     view.selected = 0
-                    self.assertEqual(view.engine_options, {"workflow": "alpha"})
-                pipe.send_text("/engine loop\r")
+                    self.assertEqual(view.agent_id, "alpha")
+                pipe.send_text("/agent assistant\r")
                 await until(lambda: view.engine == "loop")
-                self.assertEqual(view.engine_options, {})
-                pipe.send_text("/engine graph\r")
+                self.assertEqual(view.agent_id, "assistant")
+                pipe.send_text("/agent alpha\r")
                 await until(lambda: view.engine == "graph")
-                self.assertEqual(view.engine_options, {"workflow": "alpha"})
-                pipe.send_text("/engine\r")
-                await until(lambda: "loop, graph" in view.notice)
+                self.assertEqual(view.agent_id, "alpha")
+                pipe.send_text("/agent\r")
+                await until(lambda: "assistant, alpha" in view.notice)
                 self.assertIsNone(view._dialog)
             finally:
                 app.exit()

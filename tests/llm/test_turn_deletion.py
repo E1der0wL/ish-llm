@@ -64,7 +64,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                     await run.arenew_interaction(request)
                 with self.assertRaisesRegex(ValueError, "abandoned"):
                     await run.arespond(request.respond(request.options[0].id))
-                preview = await self.session.run.resume_plan(run.id, engine="graph")
+                preview = await self.session.run.resume_plan(run.id, agent_id="graph")
                 self.assertFalse(preview.can_resume)
                 self.assertTrue(any("abandoned" in b.message for b in preview.blockers))
                 with self.assertRaisesRegex(ValueError, "abandoned"):
@@ -80,7 +80,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                     self.addAsyncCleanup(self.app.shutdown)
                     self.session = (await self.app.projects.aload(project_id)).sessions.load(session_id)
                     with self.assertRaisesRegex(ValueError, "abandoned"):
-                        await self.session.run.resume(run.id, engine="graph")
+                        await self.session.run.resume(run.id, agent_id="graph")
                     self.assertFalse(await self.session.aconversation())
                 await self.app.shutdown()
 
@@ -88,7 +88,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
         first = await self.setup_graph()
         request_id = first.data.input_message_id
         old = await self.session.adelete_turn_plan(request_id)
-        later = await (await self.session.run.submit("another", engine="graph", engine_options={"workflow": "flow"})).wait()
+        later = await (await self.session.run.submit("another", agent_id="graph")).wait()
         plan = await self.session.adelete_turn_plan(request_id)
         self.assertEqual({b.source.run_id for b in plan.blockers}, {first.id, later.id})
         await self.session.run.shutdown()
@@ -217,7 +217,7 @@ session.delete_turn(sys.argv[4], abandon_runs=[b.source.run_id for b in plan.blo
         self.assertEqual(await run.ainteraction_responses(), receipts)
         # Admission and execution independently reject an abandoned source, even with a receipt.
         with self.assertRaisesRegex(ValueError, "abandoned"):
-            await self.session.run.resume(run.id, engine="graph")
+            await self.session.run.resume(run.id, agent_id="graph")
         manager = self.app._manager(self.session.data)
         candidate = replace(run.data, metadata={"resume": {"run_id": run.id}})
         with self.assertRaisesRegex(ValueError, "abandoned"):
@@ -230,8 +230,9 @@ session.delete_turn(sys.argv[4], abandon_runs=[b.source.run_id for b in plan.blo
             async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}) as app:
                 project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
                     "loop": {"config": {"completion": {"model": "test/model"}}}}}})
+                await project.agents.acreate({"engine": "loop"}, identifier="loop")
                 session = await project.sessions.acreate()
-                run = await (await session.run.submit("fail", engine="loop")).wait()
+                run = await (await session.run.submit("fail", agent_id="loop")).wait()
                 self.assertEqual(run.data.status, RunStatus.FAILED)
                 checkpoint = await run.acheckpoint("loop")
                 plan = await session.adelete_turn_plan(run.data.input_message_id)
@@ -239,7 +240,7 @@ session.delete_turn(sys.argv[4], abandon_runs=[b.source.run_id for b in plan.blo
                 await session.run.shutdown()
                 await session.adelete_turn(run.data.input_message_id, abandon_runs=[run.id], expected_revision=plan.revision)
                 with self.assertRaisesRegex(ValueError, "abandoned"):
-                    await session.run.resume(run.id, engine="loop")
+                    await session.run.resume(run.id, agent_id="loop")
                 self.assertEqual(len(provider.requests), 1)
                 self.assertEqual(await run.acheckpoint("loop"), checkpoint)
 

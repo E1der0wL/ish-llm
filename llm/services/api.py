@@ -78,6 +78,9 @@ class ProjectHandle(AsyncFacade):
         self.sessions = Sessions(self)
         self.components = Components(self)
         self.results = Results(self)
+        from llm.services.lifecycle.agents import AgentHandle
+        self.agents = AgentHandle(app.project_manager.agents, self._snapshot).bind_runtime(
+            runner=app._storage_call, access_check=app._check_open)
 
     def _describe_config(self, config=None, *, expected_version=None) -> dict:
         self.app._check_open()
@@ -348,10 +351,10 @@ class Runs(AsyncFacade):
     async def start(self) -> None:
         await self.session.app._manager(self.session._snapshot).start()
 
-    async def submit(self, content: str, *, engine: str, engine_options=UNSET) -> "RequestHandle":
-        """요청별 JSON 실행 인자를 저장한다. Graph는 workflow ID를 명시해야 한다."""
+    async def submit(self, content: str, *, agent_id: str, request_context=UNSET) -> "RequestHandle":
+        """Project Agent와 요청별 JSON 문맥을 저장한다."""
         message = await self.session.app._manager(self.session._snapshot).submit(
-            content, engine=engine, engine_options=engine_options)
+            content, agent_id=agent_id, request_context=request_context)
         return RequestHandle(self.session, message.id)
 
     async def steer(self, run_id: str, content: str, *, targets=None):
@@ -362,20 +365,20 @@ class Runs(AsyncFacade):
         """Run의 예약 경로별 다음 Agent 실행에 한 번만 전달한다."""
         return await self.app._manager(self.session._snapshot).reserve_instruction(run_id, content, targets=targets)
 
-    async def resume_plan(self, run_id: str, *, engine: str) -> ResumePlan:
-        return await self.app._manager(self.session._snapshot).resume_plan(run_id, engine=engine)
+    async def resume_plan(self, run_id: str, *, agent_id: str) -> ResumePlan:
+        return await self.app._manager(self.session._snapshot).resume_plan(run_id, agent_id=agent_id)
 
-    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None, partial_output=False,
+    async def resume(self, run_id: str, *, agent_id: str, retry_nodes=(), decisions=None, partial_output=False,
                      expected_revision=None) -> "RequestHandle":
         """이전 Run의 체크포인트를 이어갈 새 요청. 실행 중이던 노드만 명시적으로 재시도한다."""
         message = await self.app._manager(self.session._snapshot).resume(
-            run_id, engine=engine, retry_nodes=retry_nodes, decisions=decisions, partial_output=partial_output,
+            run_id, agent_id=agent_id, retry_nodes=retry_nodes, decisions=decisions, partial_output=partial_output,
             expected_revision=expected_revision)
         return RequestHandle(self.session, message.id)
 
-    async def restart(self, run_id: str, *, engine: str, expected_revision: str) -> "RequestHandle":
+    async def restart(self, run_id: str, *, agent_id: str, expected_revision: str) -> "RequestHandle":
         message = await self.app._manager(self.session._snapshot).restart(
-            run_id, engine=engine, expected_revision=expected_revision)
+            run_id, agent_id=agent_id, expected_revision=expected_revision)
         return RequestHandle(self.session, message.id)
 
     async def wait_idle(self) -> None:
@@ -610,7 +613,7 @@ class RunHandle(AsyncFacade):
             return self.app.run_repository.interaction_responses(self.session.data, self.data)
 
     def respond(self, response: InteractionResponse) -> InteractionResponse:
-        """응답을 원자적으로 저장한다. 실행은 session.run.resume(run.id, engine=...)로 명시한다."""
+        """응답을 원자적으로 저장한다. 실행은 session.run.resume(run.id, agent_id=...)로 명시한다."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session, run = self.session.data, self.data

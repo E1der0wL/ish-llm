@@ -14,7 +14,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from tests.llm.support.runtime_tools import RuntimeTools
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.tools import ToolComponent, ToolClassification
 from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
@@ -79,8 +79,9 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                                        "components": {"builtin": {"config": {"enabled": ["file_create"]}}}},
                         "policies": {"approval": {"enabled": True, "risk_scheme": "test-v1", "rules": [
                             {"id": "write", "category": "file.write", "max_risk": 20}]}}})
+                    await project.agents.acreate({"engine": "loop", "tools": ["file_create"]}, identifier="loop")
                     session = await project.sessions.acreate()
-                    run = await (await session.run.submit("create", engine="loop")).wait()
+                    run = await (await session.run.submit("create", agent_id="loop")).wait()
                     self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
                     self.assertFalse((self.work / filename).exists())
                     responses = await run.ainteraction_responses()
@@ -96,12 +97,12 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                         self.addAsyncCleanup(component.toolkit.close)
                     if change_environment:
                         with self.assertRaisesRegex(ValueError, "changed"):
-                            await session.run.resume(run.id, engine="loop")
+                            await session.run.resume(run.id, agent_id="loop")
                         self.assertFalse((self.work / filename).exists())
                         self.assertFalse((self.root / "changed-root" / filename).exists())
                         self.assertEqual(len(await session.run.alist()), 1)
                     else:
-                        resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+                        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
                         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
                         self.assertEqual((self.work / filename).read_text(), "approved effect")
 
@@ -459,9 +460,9 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                 BuiltinTools(self.work, adapters={name: adapter})
 
     async def test_prompt_updates_compare_revision_and_keep_other_settings(self):
-        async with LargeLanguageModel(self.root / "backend", components=[AgentComponent()]) as backend:
-            project = await backend.projects.acreate("prompts", components=["agents"])
-            agents = await project.components.aget("agents")
+        async with LargeLanguageModel(self.root / "backend", components=[]) as backend:
+            project = await backend.projects.acreate("prompts", components=[])
+            agents = project.agents
             original = {"engine": "loop", "purpose": "test", "system_prompt": "old", "completion": {"model": "demo"}, "policy": {"max_tool_calls": 3}}
             await agents.acreate(original, identifier="a")
             self.tools.bind_prompts(agents)
@@ -480,17 +481,18 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         completion = ScriptedCompletion([chunk(calls=[call(json.dumps(arguments), name="file_create")]), chunk(finish="tool_calls")],
                                          [chunk("done"), chunk(finish="stop")])
         async with LargeLanguageModel(self.root / "backend", components=[RuntimeTools(self.tools.registry)],
-                                      engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "demo"}})})}) as backend:
+                                      engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))}) as backend:
             project = await backend.projects.acreate("tools", components=["tools"])
             selected = await project.components.aget("tools")
             await selected.aenable("file_create")
+            await project.agents.acreate({"engine": "loop", "tools": ["file_create"], "completion": {"model": "demo"}}, identifier="loop")
             session = await project.sessions.acreate()
-            run = await (await session.run.submit("create", engine="loop")).wait()
+            run = await (await session.run.submit("create", agent_id="loop")).wait()
             self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
             self.assertFalse((self.work / "loop.txt").exists())
             request, = await run.ainteractions(pending_only=True)
             await run.arespond(request.respond("approve"))
-            run = await (await session.run.resume(run.id, engine="loop")).wait()
+            run = await (await session.run.resume(run.id, agent_id="loop")).wait()
             self.assertEqual(run.data.status, RunStatus.COMPLETED)
             step = next(step for step in await run.steps.alist() if step.kind == "tool")
             self.assertEqual(step.metadata["arguments"], arguments)
@@ -506,13 +508,14 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             project = await backend.projects.acreate("tools", components=["tools", "workflows"])
             await (await project.components.aget("tools")).aenable("file_create")
             await (await project.components.aget("workflows")).acreate(graph, identifier="g")
+            await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "g"}}, identifier="graph")
             session = await project.sessions.acreate()
-            run = await (await session.run.submit("create", engine="graph", engine_options={"workflow": "g"})).wait()
+            run = await (await session.run.submit("create", agent_id="graph")).wait()
             self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
             self.assertFalse((self.work / "graph.txt").exists())
             request, = await run.ainteractions(pending_only=True)
             await run.arespond(request.respond("approve"))
-            run = await (await session.run.resume(run.id, engine="graph")).wait()
+            run = await (await session.run.resume(run.id, agent_id="graph")).wait()
             self.assertEqual(run.data.status, RunStatus.COMPLETED)
             steps = await run.steps.alist()
             tool = next(step for step in steps if step.kind == "tool")

@@ -1,5 +1,9 @@
 # Memory에서 장기 대화·작업 최적화
 
+아래 실행 예제의 `agent_id`는 해당 Project에 미리 저장한 Agent ID다.
+생성·선택·CAS 계약은 [Agent API](agents.md)를 따른다.
+
+
 추출은 검색과 독립적이다. `extract=true`와 명시한 extract_prompt 및 추출 입력 예산만으로
 동작한다. search_strategy/host search_fn이 있으면 관련 기록을 먼저 배치하고, 없으면 record ID
 순서를 사용한다. extraction만 켠 경우 recall_limit은 필수가 아니다. 검색/recall 자체는 여전히
@@ -42,7 +46,7 @@ await memory.aconfigure({
         "max_summary_calls": 4, "max_candidates": 5, "timeout_seconds": 60, "failure_mode": "continue"}},
 })
 session = await project.sessions.acreate()
-run = await (await session.run.submit("작업을 계속해줘", engine="loop")).wait()
+run = await (await session.run.submit("작업을 계속해줘", agent_id="loop")).wait()
 ```
 
 `configure`는 전체 설정 교체다. 생략한 동작 설정은 생성하지 않는다.

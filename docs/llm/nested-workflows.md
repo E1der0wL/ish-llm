@@ -37,7 +37,9 @@ parent = (WorkflowGraph(entry="delegate", inputs={"request": "/prompt"},
 workflows = await project.components.aget("workflows")
 await workflows.acreate(child.to_dict(), identifier="write_flow")
 await workflows.acreate(parent.to_dict(), identifier="main")
-run = await (await session.run.submit("문서를 바탕으로 코드를 작성해줘", engine="graph", engine_options={"workflow": "main"})).wait()
+await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "main"}},
+                             identifier="coordinator")
+run = await (await session.run.submit("문서를 바탕으로 코드를 작성해줘", agent_id="coordinator")).wait()
 steps = await run.steps.alist()
 output = (await run.aresult()).output.data
 ```
@@ -61,7 +63,7 @@ review_engine = GraphEngine(handlers={"agent": leaf_agents})
 coordinators = AgentNode(engines={"review_graph": review_engine})
 root_engine = GraphEngine(handlers={"agent": coordinators})
 
-await project.components.agents.acreate({
+await project.agents.acreate({
     "purpose": "검토 Workflow 수행",
     "engine": "review_graph",
     "engine_options": {'policy': {'max_steps': 100}, 'workflow': 'review_flow'},
@@ -120,7 +122,7 @@ RAG는 내부의 Loop Agent resources.rag 또는 rag_search Tool 노드로 선�
 일반 LLM/Tool 사용량은 부모 Run에 계속 집계된다.
 
 자식의 pause_before는 전체 Run을 PAUSED로 끝내고 Session을 반환한다. 재개는 동일한
-`session.run.resume(run.id, engine="graph", retry_nodes=...)` API를 사용한다.
+`session.run.resume(run.id, agent_id=run.agent_id, retry_nodes=...)` API를 사용한다.
 완료된 자식 노드는 출력만 재사용하고, 미완료 wrapper는 자식 상태를 복구한다.
 체크포인트의 container=true는 엔진이 계산한 조율 노드 표식이며 재시도 승인 대상에서 제외한다.
 커스텀 처리기의 graph_engine 선언만으로는 이 표식을 부여하지 않는다. 외부 효과를 전부

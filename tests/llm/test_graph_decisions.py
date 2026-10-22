@@ -108,6 +108,7 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         project = await self.app.projects.acreate(components=["workflows"])
         await project.components.workflows.acreate(definition, identifier="flow")
+        await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
         self.session = await project.sessions.acreate()
 
     async def test_pause_resume_plan_keeps_checkpoint_step_and_effect_order(self):
@@ -143,13 +144,13 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
             .connect("route", "yes", port="yes").connect("route", "no", port="no")
             .connect("yes", "end").connect("no", "end").to_dict())
         await self.setup_graph(graph, work, observer=observe)
-        paused = await (await self.session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=15)
+        paused = await (await self.session.run.submit("go", agent_id="graph")).wait(timeout=15)
         self.assertEqual(paused.data.status, RunStatus.PAUSED)
         checkpoint = await paused.acheckpoint()
         self.assertEqual(trace, [("record", "first", "started"), ("start", "first"), ("effect", "first"),
             ("record", "first", "completed"), ("complete", "first"), ("record", "review", "waiting")])
         trace.clear()
-        resumed = await (await self.session.run.resume(paused.id, engine="graph",
+        resumed = await (await self.session.run.resume(paused.id, agent_id="graph",
             decisions={'["review"]': {"state": {"choice": "yes"}}})).wait(timeout=15)
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(calls, ["first", "review", "yes"])
@@ -170,7 +171,7 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
             .connect("route", "action", port="yes").connect("route", "end", port="no")
             .connect("action", "end").to_dict())
         await self.setup_graph(graph, work)
-        failed = await (await self.session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=15)
+        failed = await (await self.session.run.submit("go", agent_id="graph")).wait(timeout=15)
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         self.assertIn("Ordered comparison", failed.data.error)
         self.assertEqual(calls, [])

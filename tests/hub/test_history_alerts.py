@@ -26,7 +26,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
             gate = threading.Event()
             prompt = Prompt(input=pipe, output=SizedOutput())
             prompt.context.update("environ", f"PWD={directory}\0PATH=/usr/bin:/bin\0".encode())
-            installation = install(prompt, config=HubConfig(directory, "loop", "test/model", auto_title=False,
+            installation = install(prompt, config=HubConfig(directory, model="test/model", auto_title=False,
                 engine_factories={"loop": lambda: ControlledEngine(gate)}))
             view, app = installation.view, prompt.app
             task = asyncio.create_task(prompt.prompt_async())
@@ -55,7 +55,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
     async def test_ctrl_g_delete_and_ctrl_l_activity(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             factory = partial(BackendWorker, backend_factory=partial(controlled_backend, gate=threading.Event()))
-            app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                                                 input=pipe, output=SizedOutput(), worker_factory=factory)
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
@@ -114,7 +114,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_turn_catalog_branch_delete_and_project_activity(self):
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, "loop", "test/model", auto_title=False),
+            runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False),
                                  partial(controlled_backend, gate=threading.Event()))
             try:
                 await runtime.start()

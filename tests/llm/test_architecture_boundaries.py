@@ -16,6 +16,7 @@ from llm.engines.loop import LoopEngine
 
 
 class EvolutionTests(unittest.IsolatedAsyncioTestCase):
+    create_agent = refinement_tests.RefinementTests.create_agent
     asyncSetUp = refinement_tests.RefinementTests.asyncSetUp
     proposal = refinement_tests.RefinementTests.proposal
     approve = refinement_tests.RefinementTests.approve
@@ -55,16 +56,16 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
             await self.refine.arollback(identifier, expected_version=applied["version"])
         self.assertEqual(await self.refine.asnapshot(identifier), applied)
         await skills.adelete("grandchild")
-        agent = await self.project.components.agents.asnapshot("guide")
-        await self.project.components.agents.arevise("guide", {**agent["definition"],
+        agent = await self.project.agents.asnapshot("guide")
+        await self.project.agents.arevise("guide", {**agent["definition"],
             "resources": {"skills": ["child"]}}, expected_revision=agent["revision"])
         self.assertEqual([r["agent_id"] for r in (await skills.adependencies("child"))["agents"]], ["guide"])
         with self.assertRaisesRegex(ValueError, "referenced"):
             await skills.adelete("child")
         with self.assertRaisesRegex(ValueError, "referenced"):
             await self.refine.arollback(identifier, expected_version=applied["version"])
-        updated = await self.project.components.agents.asnapshot("guide")
-        await self.project.components.agents.arevise("guide", agent["definition"], expected_revision=updated["revision"])
+        updated = await self.project.agents.asnapshot("guide")
+        await self.project.agents.arevise("guide", agent["definition"], expected_revision=updated["revision"])
         await self.refine.arollback(identifier, expected_version=applied["version"])
         self.assertEqual((await skills.adependencies("guide"))["children"], [])
 
@@ -73,13 +74,14 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": identifier,
             "expected_version": view["version"]}), name="refinement_apply")], finish="tool_calls")],
             [chunk("applied", finish="stop")])
-        self.app.engines.register(engine, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
-        paused = await (await self.session.run.submit("apply proposal", engine=engine)).wait()
+        self.app.engines.register(engine, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
+        await self.create_agent(engine, "test/refiner")
+        paused = await (await self.session.run.submit("apply proposal", agent_id=engine)).wait()
         self.assertEqual(str(paused.data.status), "paused", paused.data.error)
         self.assertEqual((await self.refine.aload(identifier))["status"], "proposed")
         request, = await paused.ainteractions(pending_only=True)
         await paused.arespond(request.respond("approve"))
-        resumed = await (await self.session.run.resume(paused.id, engine=engine)).wait()
+        resumed = await (await self.session.run.resume(paused.id, agent_id=engine)).wait()
         self.assertEqual(str(resumed.data.status), "completed", resumed.data.error)
         return await self.refine.asnapshot(identifier)
 
@@ -176,7 +178,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
                 "expected_version": view["version"], "approval_required": False})
 
     async def test_binding_preserves_authority_and_rejects_stale_skill(self):
-        original = await self.project.components.agents.asnapshot("guide")
+        original = await self.project.agents.asnapshot("guide")
         data = {"operation": "bind_skills", "target": {"component": "agents", "identifier": "guide"},
                 "expected_version": original["revision"], "patch": {"skills": ["guide"]},
                 "reason": "Use guide", "evidence": self.evidence}
@@ -186,7 +188,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         await self.project.components.skills.aupdate("guide", {"instructions": "Updated"}, expected_version=skill["version"])
         with self.assertRaisesRegex(ValueError, "Skill changed"):
             await self.refine.aapply(identifier, expected_version=approved["version"])
-        self.assertEqual(await self.project.components.agents.asnapshot("guide"), original)
+        self.assertEqual(await self.project.agents.asnapshot("guide"), original)
         data["patch"]["engine"] = "other"
         with self.assertRaises(ValueError):
             await self.refine.acreate(data)
@@ -201,15 +203,16 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         profile = {"engine": "loop", "purpose": "Check work", "system_prompt": "Inline instruction",
                    "completion": {"model": "test/worker"},
                    "resources": {"prompt": "guide", "skills": ["guide"]}, "tools": []}
-        view = await self.project.components.agents.asnapshot("guide")
-        await self.project.components.agents.arevise("guide", profile, expected_revision=view["revision"])
+        view = await self.project.agents.asnapshot("guide")
+        await self.project.agents.arevise("guide", profile, expected_revision=view["revision"])
         model = ScriptedCompletion([chunk(calls=[call('{}', name="not_allowed")], finish="tool_calls")], answer("success"))
         self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={
-            "loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/worker"}})})})}))
+            "loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})}))
         workflow = agent_graph()
         workflow["nodes"]["agent"]["agent"] = "guide"
         await self.project.components.workflows.acreate(workflow, identifier="flow")
-        first = await (await self.session.run.submit("work", engine="graph", engine_options={"workflow": "flow"})).wait()
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
+        first = await (await self.session.run.submit("work", agent_id="graph")).wait()
         self.assertEqual(str(first.data.status), "failed")
         self.evidence = [{"session_id": self.session.id, "run_id": first.id}]
         old_steps = deepcopy(await first.steps.alist())
@@ -220,20 +223,21 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
             "expected_version": None, "parent": {"identifier": "guide", "version": parent["version"]},
             "patch": {"instructions": "Check allowed Tools before working"}, "reason": "Observed failure", "evidence": self.evidence}
         refiner = ScriptedCompletion([chunk(calls=[call(json.dumps(proposal), name="refinement_propose")], finish="tool_calls")], answer("Review proposal"))
-        self.app.engines.register("refiner", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=refiner)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
-        analysis = await (await self.session.run.submit("Analyze failure and propose a fork", engine="refiner")).wait()
+        self.app.engines.register("refiner", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=refiner)))
+        await self.create_agent("refiner", "test/refiner")
+        analysis = await (await self.session.run.submit("Analyze failure and propose a fork", agent_id="refiner")).wait()
         self.assertEqual(str(analysis.data.status), "completed", analysis.data.error)
         identifier, saved = next(iter((await self.refine.alist()).items()))
         self.assertEqual(saved["source"]["run_id"], analysis.id)
         await self.evaluate(identifier)
         await self.apply_tool(identifier, "apply_fork")
-        self.assertEqual((await self.project.components.agents.aload("guide"))["resources"]["skills"], ["guide"])
-        agent = await self.project.components.agents.asnapshot("guide")
+        self.assertEqual((await self.project.agents.aload("guide"))["resources"]["skills"], ["guide"])
+        agent = await self.project.agents.asnapshot("guide")
         binding = await self.refine.acreate({"operation": "bind_skills", "target": {"component": "agents", "identifier": "guide"},
             "expected_version": agent["revision"], "patch": {"skills": ["child"]}, "reason": "Use evaluated guide", "evidence": self.evidence})
         await self.evaluate(binding)
         await self.apply_tool(binding, "apply_binding")
-        second = await (await self.session.run.submit("work again", engine="graph", engine_options={"workflow": "flow"})).wait()
+        second = await (await self.session.run.submit("work again", agent_id="graph")).wait()
         self.assertEqual(str(second.data.status), "completed", second.data.error)
         self.assertEqual(await first.steps.alist(), old_steps)
         old = next(s for s in old_steps if s.kind == "agent")
@@ -288,6 +292,7 @@ class AgentCompositionTests(unittest.IsolatedAsyncioTestCase):
 
 
 class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
+    create_agent = refinement_tests.RefinementTests.create_agent
     asyncSetUp = refinement_tests.RefinementTests.asyncSetUp
 
     async def test_extraction_without_search_uses_stable_record_order(self):
@@ -308,7 +313,7 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
             "max_candidates": 2, "summary_chars": 2000}}))
         with patch.object(type(memory), "asearch", side_effect=AssertionError("retrieval must be independent")):
             for _ in range(2):
-                run = await (await self.session.run.submit("remember", engine="loop")).wait()
+                run = await (await self.session.run.submit("remember", agent_id="loop")).wait()
                 self.assertEqual(str(run.data.status), "completed", run.data.error)
         self.assertEqual([[r["id"] for r in p["existing"]] for p in captured], [["a", "guide", "z"]] * 2)
 
@@ -321,12 +326,12 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.memory_component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=extract)
         options = memory_processing({"recall": False, "extract": True, "completion": {"model": "test/extract"}})
         await self.project.components.memory.aconfigure(memory_settings({"processing": options}))
-        failed = await (await self.session.run.submit("remember", engine="loop")).wait()
+        failed = await (await self.session.run.submit("remember", agent_id="loop")).wait()
         self.assertEqual(str(failed.data.status), "failed")
         self.assertEqual(captured, [])
         options["extract_prompt_id"] = "guide"
         await self.project.components.memory.aconfigure(memory_settings({"processing": options}))
-        run = await (await self.session.run.submit("remember", engine="loop")).wait()
+        run = await (await self.session.run.submit("remember", agent_id="loop")).wait()
         self.assertEqual(str(run.data.status), "completed", run.data.error)
         self.assertIn("Before", captured[0]["messages"][0]["content"])
         records = await self.project.components.memory.alist(session_id=self.session.id)

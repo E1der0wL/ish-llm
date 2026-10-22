@@ -184,12 +184,13 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
             model = ScriptedCompletion([chunk(calls=[call('{"query":"q","limit":5,"method":"hybrid"}', name="rag_search")], finish="tool_calls")],
                                        [chunk("done", finish="stop")])
             async with LargeLanguageModel(root, components=[RuntimeTools(registry)],
-                    engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test"}})})},
+                    engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
                     services=BackendServices()) as app:
                 project = await app.projects.acreate("work", components=["tools"], config={"policies": {"tools": {"argument_constraints": {"rag_search": FIELDS}}}})
                 await project.components.tools.aenable("rag_search")
+                await project.agents.acreate({"engine": "loop", "completion": {"model": "test"}, "tools": ["rag_search"]}, identifier="loop")
                 session = await project.sessions.acreate()
-                run = await (await session.run.submit("find", engine="loop")).wait()
+                run = await (await session.run.submit("find", agent_id="loop")).wait()
                 self.assertEqual(str(run.data.status), "completed", run.data.error)
                 schema = model.requests[0]["tools"][0]["function"]["parameters"]
                 Draft202012Validator(schema).validate(handler.await_args.args[0])
@@ -226,11 +227,11 @@ class GraphConstraintTests(unittest.IsolatedAsyncioTestCase):
         changed = deepcopy(FIELDS)
         changed["limit"]["maximum"] = 10
         async with LargeLanguageModel(self.root, engines={"graph": self.engine}, components=[
-                nested.WorkflowComponent(), nested.AgentComponent(), RuntimeTools(self.tools), nested.SkillComponent()],
+                nested.WorkflowComponent(), RuntimeTools(self.tools), nested.SkillComponent()],
                 services=BackendServices(tool_runtime=ToolRuntime(authorize=ask))) as app:
             project = await app.projects.aload(self.project.id)
             await project.aconfigure_policies({"tools": {"argument_constraints": {"effect": changed}}})
             session = await project.sessions.aload(self.session.id)
             with self.assertRaises(nested.RunRequestError):
-                await session.run.resume(paused.id, engine="graph")
+                await session.run.resume(paused.id, agent_id="graph")
         handler.assert_not_awaited()

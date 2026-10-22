@@ -58,8 +58,11 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         for component in components or []:
             if isinstance(component, RuntimeTools):
                 await (await project.components.aget("tools")).aconfigure({'config': {'enabled': list(component.registry.names())}})
+        selected = [name for component in components or [] if isinstance(component, RuntimeTools)
+                    for name in component.registry.names()]
+        await project.agents.acreate({"engine": "worker", "tools": selected}, identifier="worker")
         session = await project.sessions.acreate("test")
-        request = await session.run.submit("original", engine="worker")
+        request = await session.run.submit("original", agent_id="worker")
         self.assertTrue(await asyncio.to_thread(model.entered.wait, 10))
         run = await request.aget_run()
         return app, session, request, run
@@ -71,7 +74,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         app, session, request, run = await self.setup_backend(model, observer=lambda r, e: events.append(e))
         a = await session.run.steer(run.id, "first correction")
         b = await session.run.steer(run.id, "second correction")
-        following = await session.run.submit("ordinary request", engine="worker")
+        following = await session.run.submit("ordinary request", agent_id="worker")
         self.assertEqual((await session.run.astatus()).queued_count, 1)
         self.assertEqual((await run.aget_data()).status, "running")
         self.assertEqual(a.status, InstructionStatus.PENDING)
@@ -128,7 +131,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         reopened = LargeLanguageModel(root, components=[], engines={"worker": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         self.addAsyncCleanup(reopened.shutdown)
         restored = await (await reopened.projects.aload(project_id)).sessions.aload(session_id)
-        resumed = await (await restored.run.resume(run.id, engine="worker")).wait(timeout=10)
+        resumed = await (await restored.run.resume(run.id, agent_id="worker")).wait(timeout=10)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(len(model.requests), 3)
         self.assertEqual([m["content"] for m in model.requests[2]["messages"]].count("correction"), 1)
@@ -136,7 +139,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         value = (await old.ainstructions())[0]
         self.assertEqual(value.id, instruction.id)
         self.assertEqual([a["run_id"] for a in value.applications], [run.id, resumed.id])
-        following = await (await restored.run.submit("next", engine="worker")).wait(timeout=10)
+        following = await (await restored.run.submit("next", agent_id="worker")).wait(timeout=10)
         self.assertEqual(following.data.status, "completed", following.data.error)
         self.assertEqual([m["content"] for m in model.requests[-1]["messages"]],
                          ["original", "correction", "recovered", "next"])
@@ -218,7 +221,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         _, session, request, run = await self.setup_backend(model, components=[component])
         await asyncio.wait_for(entered.wait(), 10)
         await session.run.steer(run.id, "do not lose me")
-        queued = await session.run.submit("next request", engine="worker")
+        queued = await session.run.submit("next request", agent_id="worker")
         self.assertTrue(await session.run.interrupt())
         self.assertEqual((await request.wait(timeout=10)).data.status, "interrupted")
         self.assertEqual((await queued.wait(timeout=10)).data.status, "completed")
@@ -240,7 +243,8 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         model.release.set()
         await first.wait(timeout=10)
         app.engines.register("custom", BaseEngine(action=action))
-        request = await session.run.submit("custom request", engine="custom")
+        await session.project.agents.acreate({"engine": "custom"}, identifier="custom")
+        request = await session.run.submit("custom request", agent_id="custom")
         await asyncio.wait_for(entered.wait(), 10)
         run = await request.aget_run()
         try:
@@ -325,7 +329,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         await session.run.steer(run.id, "correction")
         model.release.set()
         await request.wait(timeout=10)
-        following = await (await session.run.submit("next", engine="worker")).wait(timeout=10)
+        following = await (await session.run.submit("next", agent_id="worker")).wait(timeout=10)
         self.assertEqual(following.data.status, "completed", following.data.error)
         self.assertEqual([m["content"] for m in model.requests[2]["messages"]],
                          ["original", "correction", "answer", "next"])
@@ -335,9 +339,9 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
                       [chunk("next", finish="stop")])
         _, session, request, run = await self.setup_backend(model, config={"policies": {"run": {"max_queued": 1}}})
         await session.run.steer(run.id, "correction")
-        following = await session.run.submit("next", engine="worker")
+        following = await session.run.submit("next", agent_id="worker")
         with self.assertRaises(RunRequestError):
-            await session.run.submit("too many", engine="worker")
+            await session.run.submit("too many", agent_id="worker")
         model.release.set()
         self.assertEqual((await request.wait(timeout=10)).data.status, "completed")
         self.assertEqual((await following.wait(timeout=10)).data.status, "completed")
@@ -386,7 +390,8 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             store.set_status(saved.assistant_message_id, MessageStatus.STREAMING)
             store.create(MessageRole.USER, "old pending instruction", MessageStatus.QUEUED, run_id=run.id,
                 metadata={"steering": {"run_id": run.id, "input_message_id": saved.input_message_id, "status": "pending"}})
-            store.create(MessageRole.USER, "ordinary queued request", MessageStatus.QUEUED, metadata={"engine": "worker"})
+            store.create(MessageRole.USER, "ordinary queued request", MessageStatus.QUEUED,
+                         metadata={"agent_binding": saved.metadata["agent_binding"]})
             return store.list()
 
         before = await app._storage_call(make_stale)
@@ -405,7 +410,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(model.requests), 1)
         # 원본 Session/기록은 보존되고 다른 Session의 정상 실행은 막지 않는다.
         other = await session.project.sessions.acreate("new")
-        result = await (await other.run.submit("fresh", engine="worker")).wait(timeout=10)
+        result = await (await other.run.submit("fresh", agent_id="worker")).wait(timeout=10)
         self.assertEqual(result.data.status, "completed", result.data.error)
 
     async def test_memory_restart_allows_new_request_after_instruction_loss(self):
@@ -422,7 +427,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         async with LargeLanguageModel(root, components=[], engines={"worker": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as reopened:
             restored = await (await reopened.projects.aload(project_id)).sessions.aload(session_id)
             self.assertEqual(await restored.aconversation(), [])
-            completed = await (await restored.run.submit("fresh", engine="worker")).wait(timeout=10)
+            completed = await (await restored.run.submit("fresh", agent_id="worker")).wait(timeout=10)
             self.assertEqual(completed.data.status, "completed", completed.data.error)
             self.assertEqual([m["content"] for m in model.requests[-1]["messages"]], ["fresh"])
 
@@ -460,7 +465,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         await session.run.steer(run.id, "correction")
         model.release.set()
         self.assertEqual((await request.wait(timeout=10)).data.status, "failed")
-        resumed = await (await session.run.resume(run.id, engine="worker")).wait(timeout=10)
+        resumed = await (await session.run.resume(run.id, agent_id="worker")).wait(timeout=10)
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [1])
         self.assertEqual([m["content"] for m in model.requests[-1]["messages"]].count("correction"), 1)
@@ -510,10 +515,10 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         await session.run.steer(run.id, "correction")
         model.release.set()
         self.assertEqual((await request.wait(timeout=10)).data.status, "completed")
-        second = await (await session.run.submit("second", engine="worker")).wait(timeout=10)
+        second = await (await session.run.submit("second", agent_id="worker")).wait(timeout=10)
         self.assertEqual(second.data.status, "completed", second.data.error)
         self.assertEqual(summaries, [])
-        third = await (await session.run.submit("third", engine="worker")).wait(timeout=10)
+        third = await (await session.run.submit("third", agent_id="worker")).wait(timeout=10)
         self.assertEqual(third.data.status, "completed", third.data.error)
         self.assertEqual([m["content"] for m in summaries[0]["messages"]], ["original", "correction", "answer"])
 
@@ -564,7 +569,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         model.release.set()
         self.assertEqual((await request.wait(timeout=10)).data.status, "completed")
         next_prompt = "long next question!"
-        result = await (await session.run.submit(next_prompt, engine="worker")).wait(timeout=10)
+        result = await (await session.run.submit(next_prompt, agent_id="worker")).wait(timeout=10)
         self.assertEqual(result.data.status, "completed", result.data.error)
         self.assertEqual(model.requests[-1]["messages"], [{"role": "user", "content": next_prompt}])
 
@@ -578,7 +583,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         await request.wait(timeout=10)
         await session.run.shutdown()
         cloned = await session.aclone()
-        result = await (await cloned.run.submit("next", engine="worker")).wait(timeout=10)
+        result = await (await cloned.run.submit("next", agent_id="worker")).wait(timeout=10)
         self.assertEqual(result.data.status, "completed", result.data.error)
         self.assertEqual(len(await cloned.run.alist()), 1)
         self.assertEqual([m["content"] for m in model.requests[-1]["messages"]],
@@ -595,14 +600,15 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         model.release.set()
         self.assertEqual((await request.wait(timeout=10)).data.status, "failed")
         app.engines.register("hold", BaseEngine(action=hold))
-        blocking = await session.run.submit("hold", engine="hold")
+        await session.project.agents.acreate({"engine": "hold"}, identifier="hold")
+        blocking = await session.run.submit("hold", agent_id="hold")
         await asyncio.wait_for(entered.wait(), 10)
         try:
-            resumed = await session.run.resume(run.id, engine="worker")
+            resumed = await session.run.resume(run.id, agent_id="worker")
             await app._storage_call(app.run_repository.record_checkpoint, await run.aget_data(),
                 EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": "loop", "operation": "record",
                     "key": "changed", "value": {"status": "completed"}}))
-            following = await session.run.submit("next request", engine="worker")
+            following = await session.run.submit("next request", agent_id="worker")
         finally:
             release.set()
         self.assertEqual((await blocking.wait(timeout=10)).data.status, "completed")

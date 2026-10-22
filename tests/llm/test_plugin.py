@@ -137,17 +137,18 @@ assert info is not None
 assert info.module.__name__ == 'llm.llm'
 assert manager.get('llm') is info.module
 LargeLanguageModel = manager.get('llm').LargeLanguageModel
-from llm.engines.base import EngineEvent, EngineEventType
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.core.results import EngineDelta
 import asyncio
-class Echo:
+class Echo(BaseEngine):
     async def execute(self, context):
         yield EngineEvent(EngineEventType.TEXT_DELTA, delta=EngineDelta("test-output", 'plugin backend'))
 async def exercise_backend():
     async with LargeLanguageModel('backend-workspace', engines={'loop': Echo()}) as backend:
         project = backend.projects.create()
+        project.agents.create({"engine": "loop"}, identifier="loop")
         session = project.sessions.create()
-        await project.sessions.load(session.id).run.submit('hello', engine='loop')
+        await project.sessions.load(session.id).run.submit('hello', agent_id='loop')
         await session.run.wait_idle()
         assert session.run.list()[0].data.status.value == 'completed'
         assert session.conversation()[-1].content == 'plugin backend'

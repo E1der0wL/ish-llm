@@ -60,7 +60,7 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_activity_scroll_without_output_focus_and_close_keys(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                                                 input=pipe, output=SizedOutput())
             view = controller.view
             view.on_open = None
@@ -99,7 +99,7 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
                     controller.close()
 
     async def test_only_public_activity_api_and_commit_order(self):
-        runtime = HubRuntime(HubConfig("unused", "loop", "test/model", auto_title=False))
+        runtime = HubRuntime(HubConfig("unused", model="test/model", auto_title=False))
         runtime.project = SimpleNamespace(id="p", aactivity=AsyncMock(return_value=events()))
         rows = await runtime.project_activity()
         runtime.project.aactivity.assert_awaited_once_with(limit=300, newest_first=False)
@@ -114,7 +114,7 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_popup_error_empty_stale_results_and_error_code(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                                                 input=pipe, output=SizedOutput())
             view = controller.view
             view.on_open = None

@@ -42,7 +42,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.test_loop import ScriptedCompletion, chunk
         provider = ScriptedCompletion([chunk("hello", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
-            runtime = HubRuntime(HubConfig(root, engine="writer", auto_title=False,
+            runtime = HubRuntime(HubConfig(root, agent_definition={"engine": "writer"}, auto_title=False,
                 engine_factories={"writer": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()

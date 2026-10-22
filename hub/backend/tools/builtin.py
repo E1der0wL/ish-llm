@@ -138,6 +138,15 @@ class HubBuiltinTools(BuiltinToolComponent):
             handlers = [registry.get(name).handler for name in registry.names()]
             return deepcopy(registry, {id(handler): handler for handler in handlers})
 
+    def resolve_runtime(self, project, capability, *, data_factory):
+        registry = self.resolve(project, capability)
+        if capability == "tools":
+            from llm.core.agents import AgentDefinition
+            from .resources import authoring_tools
+            for item in authoring_tools(data_factory(self.name).agents(), "agents", AgentDefinition.schema):
+                registry.register(item)
+        return registry
+
     async def close(self):
         self.questions.close()
         self._resolved.clear()

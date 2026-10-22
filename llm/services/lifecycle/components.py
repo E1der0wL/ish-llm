@@ -24,6 +24,8 @@ class ComponentData:
         self.access, self.registry = access, registry
         self.project, self.name = deepcopy(project), name
         self.ownership = access.repository.ownership
+        from llm.services.lifecycle.references import ProjectReferences
+        self.references = ProjectReferences(registry, access.repository.agents, selected_references=access.agent_references)
         self._async_runner = None
         self._access_check = None
         self._async_storage = StorageIO(self.ownership)
@@ -35,6 +37,7 @@ class ComponentData:
         self._observability = None
         self._sessions = None
         self._steps = None
+        self._agents = None
 
     async def _async_call(self, operation, *args, **kwargs):
         if self._async_runner is not None:
@@ -56,10 +59,23 @@ class ComponentData:
         return project, self.registry.get(self.name)
 
     # 공개 API
-    def bind_resources(self, sessions, steps):
+    def bind_resources(self, sessions, steps, *, agents=None):
         """Component의 참조 조회에도 실행과 같은 저장소를 사용한다. 특정 기능은 해석하지 않는다."""
         self._sessions, self._steps = sessions, steps
+        self._agents = agents
         return self
+
+    @workspace_locked
+    def agents(self):
+        """Reach the independent domain without a Component identity or activation."""
+        from llm.services.lifecycle.agents import AgentHandle
+        project, _ = self._current()
+        if self._agents is None:
+            raise RuntimeError("Agent domain is not bound")
+        handle = AgentHandle(self._agents, project)
+        if self._async_runner is not None:
+            handle.bind_runtime(runner=self._async_runner, access_check=self._access_check)
+        return handle
 
     @workspace_locked
     def reference(self, session_id, run_id=None, step_id=None):
@@ -89,7 +105,7 @@ class ComponentData:
             raise ValueError("Component is not enabled for this Project")
         component = self.registry.get(name)
         handle = (getattr(component, "data_class", None) or ComponentData)(self.access, self.registry, project, name)
-        handle.bind_resources(self._sessions, self._steps)
+        handle.bind_resources(self._sessions, self._steps, agents=self._agents)
         if self._async_runner is not None:
             handle.bind_runtime(runner=self._async_runner, access_check=self._access_check,
                                 history_reader=self.history_reader, provider_calls=self._provider_calls,
@@ -215,7 +231,7 @@ class ComponentData:
     @workspace_locked
     def delete(self, identifier: str, *, expected_version=None) -> None:
         project, component = self._current()
-        self.registry.require_unreferenced(project, self.name, identifier)
+        self.references.require_unreferenced(project, self.name, identifier)
         if expected_version is not None:
             check_revision(component.load(project, identifier), expected_version)
         component.delete(project, identifier)

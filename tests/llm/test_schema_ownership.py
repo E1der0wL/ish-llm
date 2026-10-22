@@ -12,7 +12,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
 from llm.core.schema import object_schema, metadata_schema
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.skills import SkillComponent
 from llm.components.prompts import PromptComponent
 from llm.components.goals import GoalComponent
@@ -29,22 +29,22 @@ from llm.llm import LargeLanguageModel
 
 class DefinitionOwnershipTests(unittest.TestCase):
     def test_closed_definitions_and_explicit_application_metadata(self):
-        samples = [(AgentComponent(), {"purpose": "review", "engine": "loop"}),
-                   (SkillComponent(), {"instructions": "Check evidence"}),
-                   (PromptComponent(), {"messages": [{"role": "system", "content": "Review"}]}),
-                   (GoalComponent(), {"title": "work", "objective": "verify", "scope": {"type": "project"}, "status": "active"}),
-                   (MCPComponent(), {"transport": "stdio", "command": "server"})]
-        for component, value in samples:
-            with self.subTest(component=component.name):
-                component.validate_record("test", value)
-                component.validate_record("test", {**value, "metadata": {
+        samples = [("agents", AgentDefinition.validate, {"purpose": "review", "engine": "loop"}),
+                   (SkillComponent.name, SkillComponent().validate_record, {"instructions": "Check evidence"}),
+                   (PromptComponent.name, PromptComponent().validate_record, {"messages": [{"role": "system", "content": "Review"}]}),
+                   (GoalComponent.name, GoalComponent().validate_record, {"title": "work", "objective": "verify", "scope": {"type": "project"}, "status": "active"}),
+                   (MCPComponent.name, MCPComponent().validate_record, {"transport": "stdio", "command": "server"})]
+        for name, validate, value in samples:
+            with self.subTest(component=name):
+                validate("test", value)
+                validate("test", {**value, "metadata": {
                     "ui": {}, "application": {"anything": True}, "tools": ["admin"], "engine": "other"}})
                 for key in ("foo", "ui", "system_promt"):
                     with self.assertRaisesRegex(ValueError, key):
-                        component.validate_record("test", {**value, key: {}})
+                        validate("test", {**value, key: {}})
         for key in ("tool", "resource", "policies", "loop", "skills", "rag", "mcp"):
             with self.assertRaises(ValueError):
-                AgentComponent().validate_record("test", {"purpose": "review", "engine": "loop", key: {}})
+                AgentDefinition.validate("test", {"purpose": "review", "engine": "loop", key: {}})
 
     def test_graph_agent_allowlist_and_closed_settings(self):
         engine = GraphEngine(handlers={})
@@ -118,7 +118,7 @@ class DefinitionOwnershipTests(unittest.TestCase):
         schemas = [describe_policies(), LoopEngine().describe_config(), GraphEngine(handlers={}).describe_config(),
                    LoopEngine().for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"extra_body": {"adapter_private": 3}}})}).describe_config(),
                    MemoryComponent.content_schema]
-        for component in (AgentComponent(), SkillComponent(), PromptComponent(), GoalComponent(), MCPComponent(),
+        for component in (SkillComponent(), PromptComponent(), GoalComponent(), MCPComponent(),
                           WorkflowComponent(), RefinementComponent(), RAGComponent(), MemoryComponent(), VisionComponent(), ToolComponent()):
             schemas.append(component.describe_config())
             if hasattr(component, "schema"):
@@ -184,13 +184,14 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
                     .node("a", "custom", new_option=7, metadata={"tools": ["ignored"]})
                     .node("end", "end").connect("a", "end").to_dict())
                 await project.components.workflows.acreate(workflow, identifier="test")
+                await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "test"}}, identifier="graph")
                 session = await project.sessions.acreate()
-                result = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "test"})).wait()
+                result = await (await session.run.submit("go", agent_id="graph")).wait()
                 self.assertEqual(result.data.status, RunStatus.COMPLETED, result.data.error)
                 self.assertEqual(seen, [7])
                 workflow["nodes"]["a"]["new_option"] = "bad"
                 await project.components.workflows.asave("test", workflow)
-                rejected = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "test"})).wait()
+                rejected = await (await session.run.submit("go", agent_id="graph")).wait()
                 self.assertEqual(rejected.data.status, RunStatus.FAILED)
                 self.assertIn("new_option", rejected.data.error)
                 self.assertEqual(seen, [7])

@@ -85,7 +85,7 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
         gate.set()
         backend = partial(controlled_backend, gate=gate)
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, "loop", "test/model", auto_title=False,
+            config = HubConfig(directory, model="test/model", auto_title=False,
                                user_profile=UserProfile("my-account"))
             runtime = HubRuntime(config, backend)
             try:
@@ -144,7 +144,7 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                                             store.load(view.project_id)[1].get(identifier) == positions[identifier])
                             await minimize(pipe, view)
                             await until(lambda: not view.visible)
-                            await asyncio.wrap_future(controller.worker.call("submit", first, "Hidden addition", "loop"))
+                            await asyncio.wrap_future(controller.worker.call("submit", first, "Hidden addition", "assistant"))
                             await until(lambda: any(message.role == "assistant" and "Hidden addition" in message.text
                                                     for message in view.output.transcript.control.messages))
                             pipe.send_text("\x11")

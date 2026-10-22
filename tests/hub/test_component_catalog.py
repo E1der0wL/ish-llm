@@ -18,7 +18,7 @@ class ComponentCatalogTests(unittest.TestCase):
         self.assertEqual(list(commands), ["tools", "skills", "mcp", "rag", "agents", "workflows", "prompts", "memory"])
         self.assertTrue(all(command == name for command, name in commands.items()))
         self.assertEqual(component_commands(("memory", "goals", "refinement", "skills")),
-                         {"skills": "skills", "memory": "memory"})
+                         {"skills": "skills", "agents": "agents", "memory": "memory"})
         with self.assertRaises(ValueError):
             component_spec("unregistered")
         with self.assertRaises(FrozenInstanceError):

@@ -29,6 +29,10 @@ from llm.services.lifecycle.steps import StepRepository
 
 
 class Echo(BaseEngine):
+    def for_agent(self, definition):
+        super().for_agent(definition)
+        return self
+
     async def run(self, context):
         yield context.messages[-1].content
 
@@ -44,11 +48,13 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
                                  components=components, services=services)
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate("test", components=[item.name for item in components])
+        for name in (engines or {"echo": None}):
+            await project.agents.acreate({"engine": name}, identifier=name)
         session = await project.sessions.acreate("test")
         return app, project, session
 
     async def run_one(self, session, text="hello", engine="echo"):
-        request = await session.run.submit(text, engine=engine)
+        request = await session.run.submit(text, agent_id=engine)
         return await asyncio.wait_for(request.wait(), 5)
 
     async def test_unused_tool_does_not_break_text_engine(self):
@@ -263,7 +269,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
         handlers.register("approval.request", approval)
         _, _, session = await self.backend(engines={"approval": AwaitApproval()}, services=BackendServices(event_handlers=handlers))
-        request = await session.run.submit("hello", engine="approval")
+        request = await session.run.submit("hello", agent_id="approval")
         await asyncio.wait_for(entered.wait(), 5)
         await session.run.interrupt()
         run = await request.wait()
@@ -319,7 +325,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await release.wait()
         _, _, session = await self.backend(engines={"held": BaseEngine("held", action=wait)})
-        request = await session.run.submit("hello", engine="held")
+        request = await session.run.submit("hello", agent_id="held")
         await asyncio.wait_for(entered.wait(), 5)
         try:
             await session.asave(title="renamed", metadata={"label": "work"})

@@ -29,7 +29,7 @@ class BackendDiagnosticTests(unittest.IsolatedAsyncioTestCase):
             await runtime.start()
             try:
                 session = await runtime.project.sessions.acreate("resume")
-                first = await (await session.run.submit("original request", engine="loop")).wait(timeout=10)
+                first = await (await session.run.submit("original request", agent_id="assistant")).wait(timeout=10)
                 self.assertEqual(str(first.data.status), "failed")
                 self.assertEqual(await first.acheckpoint(), await first.acheckpoint("loop"))
                 runtime.sessions[session.id] = session
@@ -59,7 +59,7 @@ class BackendDiagnosticTests(unittest.IsolatedAsyncioTestCase):
             await runtime.start()
             try:
                 session = await runtime.project.sessions.acreate("diagnostic")
-                run = await (await session.run.submit("convert", engine="loop")).wait(timeout=10)
+                run = await (await session.run.submit("convert", agent_id="assistant")).wait(timeout=10)
                 result = await run.aresult()
                 step, = [item for item in await run.steps.alist() if item.kind == "tool"]
                 self.assertEqual(str(result.status), "failed")

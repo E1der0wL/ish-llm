@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from llm.core.agents import AgentBinding
 from llm.core.models import MessageRole as Role, MessageStatus as Status, RunStatus, Run, new_id
 from llm.core.checkpoints import build_envelope
 from llm.components.workflows import WorkflowGraph, WorkflowComponent
@@ -22,9 +23,11 @@ class ConversationTurnTests(unittest.IsolatedAsyncioTestCase):
     async def test_interleaved_turns_branch_delete_and_reopen(self):
         for storage in ("file", "memory"):
             with self.subTest(storage=storage), tempfile.TemporaryDirectory() as directory:
-                app = LargeLanguageModel(directory, components=[], engines={})
+                app = LargeLanguageModel(directory, components=[], engines={"test": BaseEngine()})
                 try:
                     project = app.projects.create("P", components=[], conversation_storage=storage)
+                    project.agents.create({"engine": "test"}, identifier="test")
+                    binding = AgentBinding.create(project.id, "test", {"engine": "test"})
                     session = project.sessions.create("S")
                     store = app.project_manager.sessions.conversations(session.data)
                     first_run, second_run = new_id(), new_id()
@@ -36,7 +39,7 @@ class ConversationTurnTests(unittest.IsolatedAsyncioTestCase):
                         for source, reply in ((first, first_reply), (second, second_reply)):
                             run = Run(source.run_id, session.id, source.id, reply.id, "test",
                                       app.run_repository.paths(session.data, source.run_id),
-                                      status=RunStatus.COMPLETED, created_at=source.created_at,
+                                      agent_id="test", metadata={"agent_binding": binding}, status=RunStatus.COMPLETED, created_at=source.created_at,
                                       started_at=source.created_at, ended_at=reply.created_at)
                             app.run_repository.create(run)
                     self.assertEqual([[m.content for m in turn] for turn in session.turns()],
@@ -63,7 +66,7 @@ class ConversationTurnTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_deletion_is_atomic_and_rejects_pending_work(self):
         with tempfile.TemporaryDirectory() as directory:
-            app = LargeLanguageModel(directory, components=[], engines={})
+            app = LargeLanguageModel(directory, components=[], engines={"test": BaseEngine()})
             try:
                 project = app.projects.create("P", components=[], conversation_storage="file")
                 session = project.sessions.create("S")
@@ -109,12 +112,12 @@ class TurnResumeTests(unittest.IsolatedAsyncioTestCase):
                     .node("second", "work", pause_before="second" in pauses).node("end", "end")
                     .connect("first", "second").connect("second", "end").to_dict())
         await self.project.components.workflows.acreate(workflow, identifier="flow")
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
         self.session = await self.project.sessions.acreate("S")
-        return await (await self.session.run.submit("original", engine="graph",
-                      engine_options={"workflow": "flow"})).wait(timeout=10)
+        return await (await self.session.run.submit("original", agent_id="graph")).wait(timeout=10)
 
     async def resume(self, run, node):
-        return await (await self.session.run.resume(run.id, engine="graph",
+        return await (await self.session.run.resume(run.id, agent_id="graph",
                       decisions={'["' + node + '"]': {}})).wait(timeout=10)
 
     async def test_completed_resume_allows_delete_without_changing_original_evidence(self):
@@ -176,8 +179,7 @@ class TurnResumeTests(unittest.IsolatedAsyncioTestCase):
     async def test_another_unfinished_run_can_protect_a_completed_chain(self):
         original = await self.setup_graph()
         done = await self.resume(original, "first")
-        later = await (await self.session.run.submit("follow up", engine="graph",
-                       engine_options={"workflow": "flow"})).wait(timeout=10)
+        later = await (await self.session.run.submit("follow up", agent_id="graph")).wait(timeout=10)
         self.assertEqual(later.data.status, RunStatus.PAUSED)
         await self.session.run.shutdown()
         for run in (original, done):
@@ -216,7 +218,8 @@ class TurnResumeTests(unittest.IsolatedAsyncioTestCase):
                 raise RuntimeError("no checkpoint")
                 yield
         self.app.engines.register("failure", Failure())
-        failed = await (await self.session.run.submit("fail", engine="failure")).wait(timeout=10)
+        await self.project.agents.acreate({"engine": "failure"}, identifier="failure")
+        failed = await (await self.session.run.submit("fail", agent_id="failure")).wait(timeout=10)
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         await self.session.run.shutdown()
         await self.session.adelete_turn(failed.data.input_message_id)
@@ -228,7 +231,7 @@ class TurnResumeTests(unittest.IsolatedAsyncioTestCase):
             # 공개 삭제는 거부된다. 외부 편집/사용자 Store도 재개 경계에서 방어한다.
             store.update_metadata(first.data.input_message_id, {"conversation_deleted": True})
         before = await first.acheckpoint()
-        plan = await self.session.run.resume_plan(first.id, engine="graph")
+        plan = await self.session.run.resume_plan(first.id, agent_id="graph")
         self.assertFalse(plan.can_resume)
         self.assertTrue(any("Deleted conversation" in d.message for d in plan.blockers))
         with self.assertRaisesRegex(ValueError, "Deleted conversation"):
@@ -315,5 +318,5 @@ class TurnInstructionTests(unittest.IsolatedAsyncioTestCase):
             app.project_manager.sessions.conversations(session.data).update_metadata(
                 instruction.id, {"conversation_deleted": True})
         with self.assertRaisesRegex(ValueError, "Deleted conversation"):
-            await session.run.resume(failed.id, engine="worker")
+            await session.run.resume(failed.id, agent_id="worker")
         self.assertEqual(len(model.requests), 2)

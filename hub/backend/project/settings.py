@@ -125,7 +125,8 @@ class SettingsService:
         values = creation_values(self.runtime.backend, values)
         self._validate(values)
         project = await create_project(self.runtime.backend, values["title"], config=values["config"],
-            components=values["components"], conversation_storage=values["conversation_storage"])
+            components=values["components"], conversation_storage=values["conversation_storage"],
+            agent_id=self.runtime.config.agent_id, agent_definition=self.runtime.config.agent_definition)
         return await self.load_project(project.id)
 
     async def select_components(self, identifier, names, previous):

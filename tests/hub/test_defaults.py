@@ -20,7 +20,7 @@ from tests.hub.test_live import until
 from tests.hub.support import SizedOutput
 
 
-COMPONENTS = {"tools", "skills", "mcp", "rag", "agents", "workflows", "memory", "prompts", "builtin_tools", "goals", "refinement", "vision"}
+COMPONENTS = {"tools", "skills", "mcp", "rag", "workflows", "memory", "prompts", "builtin_tools", "goals", "refinement", "vision"}
 
 
 class DefaultTests(unittest.IsolatedAsyncioTestCase):
@@ -128,6 +128,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                     await runtime.new_session()
                 original = await runtime.project.aget_data()
                 self.assertEqual(set(original.components), COMPONENTS)
+                self.assertIn("assistant", await runtime.project.agents.alist())
                 self.assertEqual((await runtime.snapshot()).engines, ("loop", "graph"))
                 session = runtime.sessions[runtime.selected_id]
                 with self.assertRaisesRegex(ValueError, r"parameters\.engines\.loop\.config\.completion\.model"):
@@ -136,7 +137,9 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 # A pure Graph workflow must execute without any Loop/model configuration.
                 workflows = await runtime.project.components.aget("workflows")
                 await workflows.acreate(WorkflowGraph(entry="finish").node("finish", "end").to_dict(), identifier="done")
-                await runtime.submit(session.id, "finish", "graph", {"workflow": "done"})
+                await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "done"}},
+                                                     identifier="graph")
+                await runtime.submit(session.id, "finish", "graph")
                 await session.run.wait_idle()
                 run = (await session.run.alist())[-1]
                 self.assertEqual(str((await run.aget_data()).status), "completed")

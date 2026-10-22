@@ -18,7 +18,7 @@ from llm.components.tools.component import ToolComponent, ToolPaths
 from llm.components.workflows.component import WorkflowComponent, WorkflowPaths
 from llm.core.models import MessageRole, MessageStatus, ProjectConfig, RunStatus, SessionStatus
 from llm.core.paths import ProjectPaths, SessionPaths
-from llm.engines.base import EngineEvent, EngineEventType
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.engines.registry import EngineRegistry
 from llm.engines.loop import LoopEngine
 from llm.services.history.conversation import ConversationStore
@@ -45,11 +45,12 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.catalog = ToolRegistry((Tool("add", "add", {"type": "object"}, add, contract=TEST_CONTRACT),))
         self.components = ComponentRegistry((RuntimeTools(self.catalog), WorkflowComponent()))
         self.sessions = SessionManager()
-        self.projects = ProjectManager(ProjectRepository(self.root), self.sessions, components=self.components)
-        self.project = self.projects.create("Project", config=ProjectConfig())
-        self.session = self.sessions.create(self.project, "Session")
         self.engines = EngineRegistry()
         self.engines.register("fake", FakeStreamingEngine())
+        self.projects = ProjectManager(ProjectRepository(self.root), self.sessions, components=self.components, engines=self.engines)
+        self.project = self.projects.create("Project", config=ProjectConfig())
+        self.session = self.sessions.create(self.project, "Session")
+        self.projects.agents.create(self.project, {"engine": "fake"}, identifier="fake")
 
     def manager(self, session=None, **kwargs):
         manager = RunManager(self.sessions, self.engines, session=session or self.session, **kwargs)
@@ -75,7 +76,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             await manager.start()
         with self.assertRaises(ValueError):
-            await manager.submit("rejected", engine="fake")
+            await manager.submit("rejected", agent_id="fake")
         self.assertFalse(self.session.paths.conversation.exists())
         self.assertEqual(manager.repository.list(self.session), [])
 
@@ -134,7 +135,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         forged_session = deepcopy(self.session)
         forged_session.paths = SessionPaths(self.root / "outside")
         with self.assertRaises(ValueError):
-            await self.manager(session=forged_session).submit("invalid", engine="fake")
+            await self.manager(session=forged_session).submit("invalid", agent_id="fake")
         self.assertFalse((self.root / "outside").exists())
 
     async def test_observer_errors_do_not_fail_execution_or_drop_queued_requests(self):
@@ -142,8 +143,8 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
             raise RuntimeError("private display error")
         manager = self.manager()
         manager.subscriptions.subscribe(broken, channel="engine")
-        await manager.submit("one", engine="fake")
-        await manager.submit("two", engine="fake")
+        await manager.submit("one", agent_id="fake")
+        await manager.submit("two", agent_id="fake")
         await manager.wait_idle()
         runs = manager.repository.list(self.session)
         self.assertEqual([run.status for run in runs], [RunStatus.COMPLETED, RunStatus.COMPLETED])
@@ -259,9 +260,10 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.projects.set_components(self.project, ("tools",))
         completion = Mock(side_effect=AssertionError("must not call provider"))
         self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
+        self.projects.agents.create(self.project, {"engine": "loop"}, identifier="loop")
         manager = self.manager()  # no capability resolver registered in this process
         with self.assertRaises(ValueError):
-            await manager.submit("test", engine="loop")
+            await manager.submit("test", agent_id="loop")
         self.assertEqual(manager.repository.list(self.session), [])
         completion.assert_not_called()
 
@@ -282,10 +284,12 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
                     "function": {"name": "add", "arguments": "{}"}}]}, "tool_calls"
             yield {"choices": [{"index": 0, "delta": delta, "finish_reason": reason}]}
         self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
+        self.projects.agents.create(self.project, {"engine": "loop", "tools": ["add"]}, identifier="loop")
+        self.projects.agents.create(other, {"engine": "loop"}, identifier="loop")
         manager = self.manager(capabilities=self.components)
-        await manager.submit("allowed", engine="loop")
+        await manager.submit("allowed", agent_id="loop")
         other_manager = self.manager(session=other_session, capabilities=self.components)
-        await other_manager.submit("denied", engine="loop")
+        await other_manager.submit("denied", agent_id="loop")
         await asyncio.gather(manager.wait_idle(), other_manager.wait_idle())
         self.assertEqual(self.calls, [{}])
         self.assertEqual(manager.repository.list(self.session)[0].status, RunStatus.COMPLETED)
@@ -297,7 +301,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.projects.configure_component(self.project, "tools", {'config': {'enabled': ['add']}})
         entered, release = asyncio.Event(), asyncio.Event()
         seen = []
-        class Inspect:
+        class Inspect(BaseEngine):
             required_capabilities = ("tools",)
             async def execute(self, context):
                 seen.append(context.tools.names())
@@ -306,11 +310,14 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
                 seen.append(context.tools.names())
                 yield EngineEvent(EngineEventType.TEXT_DELTA, delta=EngineDelta("test-output", "done"))
         self.engines.register("inspect", Inspect())
+        self.projects.agents.create(self.project, {"engine": "inspect", "tools": ["add"]}, identifier="inspect")
         manager = self.manager(capabilities=self.components)
-        await manager.submit("one", engine="inspect")
+        await manager.submit("one", agent_id="inspect")
         await asyncio.wait_for(entered.wait(), 5)
         self.projects.configure_component(self.project, "tools", {'config': {'enabled': []}})
-        await manager.submit("two", engine="inspect")
+        before = self.projects.agents.snapshot(self.project, "inspect")
+        self.projects.agents.revise(self.project, "inspect", {"engine": "inspect", "tools": []}, expected_revision=before["revision"])
+        await manager.submit("two", agent_id="inspect")
         release.set()
         await manager.wait_idle()
         self.assertEqual(seen, [("add",), ("add",), (), ()])
@@ -319,12 +326,13 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         builder = Mock(wraps=ConversationContextBuilder())
         factory = Mock(side_effect=lambda session: ConversationStore(session.paths.root / "custom.jsonl"))
         sessions = SessionManager(conversations=factory, context_builder=builder)
-        projects = ProjectManager(ProjectRepository(self.root / "injected"), sessions)
+        projects = ProjectManager(ProjectRepository(self.root / "injected"), sessions, engines=self.engines)
         project = projects.create("Injected", config=ProjectConfig())
+        projects.agents.create(project, {"engine": "fake"}, identifier="fake")
         session = sessions.create(project, "Injected")
         manager = RunManager(sessions, self.engines, session=session)
         self.addAsyncCleanup(manager.shutdown)
-        await manager.submit("one", engine="fake")
+        await manager.submit("one", agent_id="fake")
         await manager.wait_idle()
         await manager.shutdown()
         clone = sessions.clone(session, project)
@@ -341,6 +349,6 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         await manager.start()
         self.project.config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "updated"}}}}
         self.projects.save(self.project)
-        await manager.submit("test", engine="fake")
+        await manager.submit("test", agent_id="fake")
         await manager.wait_idle()
         self.assertEqual(self.engines.get("fake").contexts[0].project.config.parameters["engines"]["loop"]["config"]["completion"]["model"], "updated")

@@ -90,8 +90,8 @@ Hub의 `SettingsService`, Settings 화면, GeneralSettings는 Project config/pol
 | `set` | 단순 대입, 일반 config mutation 이름으로 쓰지 않음 |
 | `initialize` | lifecycle 초기화, 설정 resolution과 구별 |
 
-현재 `EngineRegistry.resolve_request()`는 for_request factory 해석을 표현하는 이름이다.
-클린 B/C에서는 이 공개 요청 경로를 Agent binding으로 직접 대체하며 호환 별칭을 두지 않는다.
+`EngineRegistry.resolve_agent()`는 선택된 저장 정의의 for_agent factory 해석이다.
+Root 요청도 같은 Agent binding을 사용하며 과거 요청 API의 호환 별칭은 없다.
 `ComponentRegistry.resolve()`는 선택 capability들을 구성하므로 get으로 바꾸지 않는다.
 
 ## Identity와 변경 식별자
@@ -119,8 +119,8 @@ Registry는 등록/조회, Repository는 영속 접근, Manager는 lifecycle 조
 Handle은 특정 객체에 bound된 facade, Execution/Executor는 실행 경계,
 Contract는 trusted invariant/declaration, Policy는 행동 규칙을 뜻한다.
 `ToolContract`, `ToolClassification`, `ToolExecutor`, `AgentExecution`, `AgentNode`,
-`ComponentRegistry`, `EngineRegistry`는 이 의미를 따른다. 현재 `AgentComponent`의 정의 저장 책임은
-클린 B에서 독립 Agent 도메인으로 이동하며 이름 보존을 위한 façade를 만들지 않는다.
+`ComponentRegistry`, `EngineRegistry`는 이 의미를 따른다. `AgentRepository`는 정의·목록 저장을, `AgentManager`는 수명과 참조·선택 검증을,
+`AgentHandle`은 Project에 bound된 공개 API를 소유한다.
 `required_components`는 정확한 persistent Component identity 의존성,
 `required_capabilities`는 consumer가 요구하는 실행 기능, `capabilities`는 제공 기능이다.
 

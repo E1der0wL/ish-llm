@@ -52,7 +52,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([m.role for m in await reader.messages(None, [record], latest=run)], ["assistant"])
 
     async def test_read_only_snapshot_has_no_localized_display_and_reuses_observations(self):
-        config = NS(engine="loop", model=None, file_root=None, user_profile=NS(display_name="Account"))
+        config = NS(agent_id="assistant", model=None, file_root=None, user_profile=NS(display_name="Account"))
         record = NS(id="s", title="Session", config={}, metadata={"hub_auto_title": True})
         run = NS(id="r", session_id="s", status="running", engine="loop", started_at="2026-10-01T00:00:00+00:00",
                  ended_at=None, error=None, metadata={"completions": [{"status": "running", "reasoning_content": "Summary", "model": "test/model"}]})
@@ -62,8 +62,8 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         session = NS(aget_data=AsyncMock(return_value=record), aconversation=AsyncMock(return_value=[message]),
                      run=NS(astatus=AsyncMock(return_value=status), alist=AsyncMock(return_value=[handle]), aload=AsyncMock()))
         project = NS(aget_data=AsyncMock(return_value=NS(id="p", title="Project", config={}, components=["tools"], conversation_storage="file")),
-                     paths=NS(root="/workspace"))
-        engines = NS(names=lambda: ("loop",), get=lambda _: NS(resolve_config=lambda *a, **kw: {"values": {"config": {"completion": {"model": "test/model"}}}}))
+                     paths=NS(root="/workspace"), agents=NS(alist=AsyncMock(return_value={"assistant": {"engine": "loop"}})))
+        engines = NS(names=lambda: ("loop",), resolve_agent=lambda _: NS(resolve_config=lambda *a, **kw: {"values": {"config": {"completion": {"model": "test/model"}}}}))
         reader = SnapshotReader()
         snapshot, observations = await reader.read(project, {"s": session}, "s", config=config, engines=engines, title_errors={})
         json.dumps(asdict(snapshot))  # No handles, tasks or UI controls cross threads.

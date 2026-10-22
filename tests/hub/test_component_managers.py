@@ -45,6 +45,13 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         popup = view._dialog
                         buttons = next(node.content.hub_button_group for node in walk(to_container(popup))
                                        if getattr(getattr(node, "content", None), "hub_button_group", None))
+                        if name == "agents":
+                            self.assertFalse(any(button.handler == popup.open_settings for button in buttons))
+                            self.assertIn(popup.edit_button, buttons)
+                            self.assertIn(popup.create_button, buttons)
+                            with set_app(app):
+                                view.close_dialog()
+                            continue
                         pipe.send_text("\t\t")  # InputField action, then component list.
                         await eventually(lambda: app.layout.current_control is popup.list)
                         pipe.send_text("\t")
@@ -113,10 +120,10 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.to_thread(controller.close)
 
     def test_commands_require_registered_component_and_exclude_aliases(self):
-        self.assertEqual(component_commands(("tools",)), {"tools": "tools"})
-        self.assertEqual(component_commands(("skills", "workflows")), {"skills": "skills", "workflows": "workflows"})
-        self.assertEqual(component_commands(("skills", "skill")), {"skills": "skills"})
-        self.assertEqual(component_commands(("mcp",)), {"mcp": "mcp"})
+        self.assertEqual(component_commands(("tools",)), {"tools": "tools", "agents": "agents"})
+        self.assertEqual(component_commands(("skills", "workflows")), {"skills": "skills", "agents": "agents", "workflows": "workflows"})
+        self.assertEqual(component_commands(("skills", "skill")), {"skills": "skills", "agents": "agents"})
+        self.assertEqual(component_commands(("mcp",)), {"mcp": "mcp", "agents": "agents"})
 
     async def test_skill_workflow_agent_mcp_import_edit_conflict_delete_and_reopen(self):
         with tempfile.TemporaryDirectory() as directory:

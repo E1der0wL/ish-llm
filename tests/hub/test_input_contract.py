@@ -158,7 +158,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                             view._focus_composer()
                             view.composer.text = "hub draft"
                             if scope == "completion":
-                                view.composer.text = "/eng"
+                                view.composer.text = "/age"
                                 view.composer.buffer.cursor_position = len(view.composer.text)
                                 view.composer.buffer.start_completion(select_first=False)
                             elif scope == "sidebar":

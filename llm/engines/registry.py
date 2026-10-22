@@ -1,8 +1,7 @@
 """Engine 등록과 실행 전 설정 검증을 담당한다. 구체적인 Engine 구현이나 저장소에 의존하지 않는다."""
 
-from llm.engines.base import Engine, required_capabilities, steering_mode
+from llm.engines.base import Engine, required_capabilities, steering_mode, agent_mode
 from llm.core.steering import SteeringMode
-from llm.core.models import ProjectConfig
 from copy import deepcopy
 import inspect
 
@@ -17,6 +16,7 @@ class EngineRegistry:
         if not callable(getattr(engine, "execute", None)):
             raise TypeError("Engine must implement execute(context)")
         required_capabilities(engine)
+        agent_mode(engine)
         if steering_mode(engine) == SteeringMode.CONSUME:
             name_of_checkpoint = getattr(engine, "checkpoint_name", None)
             if not isinstance(name_of_checkpoint, str) or not name_of_checkpoint:
@@ -66,31 +66,35 @@ class EngineRegistry:
     def get(self, name: str) -> Engine:
         return self._engines[name]
 
-    def resolve_request(self, name: str, options: dict) -> Engine:
-        """JSON 요청 인자를 실행별 Engine에 연결한다. 등록 인스턴스는 변경하지 않는다.
-
-        for_request는 동기·무효과 factory다. 옵션을 지원하지 않는 Engine은 빈 요청만
-        허용하며, 반환된 실행기가 capability 탐색과 실제 실행을 함께 담당한다.
-        """
-        if not isinstance(options, dict):
-            raise TypeError("engine_options must be a JSON object")
-        ProjectConfig.validate_json(options)
-        engine = self.get(name)
-        factory = getattr(engine, "for_request", None)
-        if factory is None:
-            if options:
-                raise ValueError("Engine does not support request options")
-            return engine
-        bound = factory(deepcopy(options))
+    def resolve_agent(self, definition: dict) -> Engine:
+        """Validate one selected, synchronous and effect-free Agent factory."""
+        from llm.core.agents import AgentDefinition
+        AgentDefinition.validate("selected", definition)
+        try:
+            engine = self.get(definition["engine"])
+        except KeyError:
+            raise ValueError(f"Unregistered Agent engine: {definition['engine']}") from None
+        AgentDefinition.validate_mode(definition, agent_mode(engine))
+        factory = getattr(engine, "for_agent", None)
+        if not callable(factory):
+            raise ValueError("Agent engines must implement for_agent(definition)")
+        bound = factory(deepcopy(definition))
         if inspect.isawaitable(bound):
             if inspect.iscoroutine(bound):
                 bound.close()
-            raise TypeError("Engine for_request must be synchronous")
+            raise TypeError("Engine for_agent must be synchronous")
         if not callable(getattr(bound, "execute", None)):
-            raise TypeError("Engine for_request must return an Engine")
+            raise TypeError("for_agent must return an Engine")
         required_capabilities(bound)
+        if agent_mode(bound) != agent_mode(engine):
+            raise ValueError("Agent binding must preserve Engine Agent mode")
         if steering_mode(bound) != steering_mode(engine):
-            raise ValueError("Request binding must preserve Engine steering mode")
+            raise ValueError("Agent binding must preserve Engine steering mode")
         if getattr(bound, "checkpoint_name", None) != getattr(engine, "checkpoint_name", None):
-            raise ValueError("Request binding must preserve Engine checkpoint name")
+            raise ValueError("Agent binding must preserve Engine checkpoint name")
+        if steering_mode(bound) == SteeringMode.CONSUME:
+            checkpoint = getattr(bound, "checkpoint_name", None)
+            if (not isinstance(checkpoint, str) or not checkpoint.strip()
+                    or not callable(getattr(bound, "validate_resume", None))):
+                raise ValueError("Steerable Agent engine requires checkpoint_name and validate_resume")
         return bound

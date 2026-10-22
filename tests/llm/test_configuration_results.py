@@ -24,18 +24,20 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         self.sessions = SessionManager()
-        self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions)
+        self.engines = EngineRegistry()
+        self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions, engines=self.engines)
         self.project = self.projects.create("Project", config=ProjectConfig(data={"project_label": "test"}, parameters={"engines": {"loop": {'policy': {'max_iterations': 2}, 'config': {'system_prompt': 'project prompt', 'completion': {'model': 'openai/test', 'top_p': 0.8}}}}}))
         self.session = self.sessions.create(self.project, "Session", config={"data": {"language": "ko"}})
-        self.engines = EngineRegistry()
         self.manager = RunManager(self.sessions, self.engines, session=self.session)
         self.addAsyncCleanup(self.manager.shutdown)
 
     async def submit(self, engine="loop", session=None):
         session = session or self.session
+        if engine not in self.projects.agents.list(self.project):
+            self.projects.agents.create(self.project, {"engine": engine}, identifier=engine)
         manager = self.manager if session.id == self.session.id else RunManager(self.sessions, self.engines, session=session)
         try:
-            await manager.submit("hello", engine=engine)
+            await manager.submit("hello", agent_id=engine)
             await asyncio.wait_for(manager.wait_idle(), 15)
             return manager.repository.list(session)[-1]
         finally:
@@ -50,7 +52,8 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.session.config["parameters"] = {"engines": {"loop": {'config': {'completion': {'top_p': 0.6, 'extra_body': {'setting': 1}}, 'system_prompt': 'session prompt'}, 'policy': {'max_iterations': 1}}}}
         self.sessions.save(self.session)
         provider = ScriptedCompletion([chunk("answer", finish="stop")])
-        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"top_p": 0.4}})}))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
+        self.projects.agents.create(self.project, {"engine": "loop", "completion": {"top_p": 0.4}}, identifier="loop")
         self.assertEqual(self.sessions.load(self.project, self.session.id).config, self.session.config)
         self.assertEqual(self.project.config, self.projects.load(self.project.id).config)
         run = await self.submit()
@@ -141,7 +144,8 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
             release.wait(5)
             yield chunk(finish="stop")
         self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
-        await self.manager.submit("hello", engine="loop")
+        self.projects.agents.create(self.project, {"engine": "loop"}, identifier="loop")
+        await self.manager.submit("hello", agent_id="loop")
         storage = StorageIO(self.projects.ownership)
         async def observed():
             while True:

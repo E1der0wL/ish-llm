@@ -27,7 +27,7 @@ class OverlayTests(unittest.IsolatedAsyncioTestCase):
             prompt = Prompt(input=pipe, output=output)
             installation = install_preview(prompt)
             view, app = installation.view, prompt.app
-            view.engines = ("loop", "review-overlay")
+            view.agents = ("loop", "review-overlay")
             task = asyncio.create_task(prompt.prompt_async())
             try:
                 await eventually(lambda: app.is_running)
@@ -40,7 +40,7 @@ class OverlayTests(unittest.IsolatedAsyncioTestCase):
                     await eventually(lambda: view.settings_open)
                     settings_button(app, pipe, view, "cancel")
                     await open_home(app, view)
-                    pipe.send_text("/engine ")
+                    pipe.send_text("/agent ")
                     await eventually(lambda: view.composer.buffer.complete_state is not None)
                     await eventually(lambda: "review-overlay" in screen_text(app, columns, rows))
                     pipe.send_text("\x05")

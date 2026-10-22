@@ -90,18 +90,18 @@ class SkillData(FileData):
 
     @workspace_locked
     def impact(self, identifier):
-        """삭제 보호와 같은 저장 참조를 조회한다. 선택 해제된 Agent도 포함한다."""
+        """삭제 보호와 같은 저장 참조를 조회한다. 저장된 모든 Agent를 포함한다."""
         self.load(identifier)
         project, _ = self._current()
-        refs = [ref for ref in self.registry.dependents(project, self.name, identifier)
+        refs = [ref for ref in self.references.dependents(project, self.name, identifier)
                 if ref["component"] == "agents"]
         if not refs:
             return []
-        # workspace 잠금 안에서 소유 Component의 공개 읽기 계약만 사용한다.
+        # workspace 잠금 안에서 Agent 소유자의 공개 읽기 계약만 사용한다.
         # 조회를 위해 Component를 선택하거나 runtime capability를 활성화하지 않는다.
-        agents = self.registry.get("agents")
+        agents = self.agents()
         return [{"agent_id": ref["identifier"],
-                 "revision": agents.revision(agents.load(project, ref["identifier"]))}
+                 "revision": agents.snapshot(ref["identifier"])["revision"]}
                 for ref in refs]
 
     @workspace_locked

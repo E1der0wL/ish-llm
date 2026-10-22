@@ -75,10 +75,12 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
 
     async def create(self, policies=None):
         project = await self.app.projects.acreate(config=ProjectConfig(policies=policies or {}))
+        for name in self.app.engines.names():
+            await project.agents.acreate({"engine": name}, identifier=name)
         return project, await project.sessions.acreate()
 
-    async def execute(self, session, text="q", engine="inspect"):
-        return await (await session.run.submit(text, engine=engine)).wait(timeout=10)
+    async def execute(self, session, text="q", agent_id="inspect"):
+        return await (await session.run.submit(text, agent_id=agent_id)).wait(timeout=10)
 
     async def test_defaults_schema_and_partial_update_preserve_other_settings(self):
         project, _ = await self.create()
@@ -130,7 +132,9 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         small, one = await self.create()
         large, two = await self.create()
         model = ScriptedCompletion([chunk("ok", finish="stop")])
-        self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
+        for project in (small, large):
+            await project.agents.acreate({"engine": "loop", "completion": {"model": "test/main"}}, identifier="loop")
         await configure_engine(small, "loop", input_policy={"max_tokens": 2, "counter": "length"})
         await configure_engine(large, "loop", input_policy={"max_tokens": 100, "counter": "length"})
         failed, passed = await asyncio.gather(self.execute(one, "hello", "loop"), self.execute(two, "hello", "loop"))
@@ -142,7 +146,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
     async def test_unknown_counter_is_rejected_before_queue_admission(self):
         project, session = await self.create({"usage": {"max_tokens": 10, "counter": "missing"}})
         with self.assertRaises(RunRequestError) as caught:
-            await session.run.submit("never queued", engine="inspect")
+            await session.run.submit("never queued", agent_id="inspect")
         self.assertEqual(caught.exception.code, "policy_unavailable")
         self.assertEqual(await session.aconversation(), [])
         self.assertEqual(await session.run.alist(), [])
@@ -163,13 +167,13 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("hold", Hold())
         project, session = await self.create()
         await configure_engine(project, "hold", input_policy={"max_tokens": 100, "counter": "length"})
-        first = await session.run.submit("first", engine="hold")
+        first = await session.run.submit("first", agent_id="hold")
         await asyncio.wait_for(entered.wait(), 5)
-        second = await session.run.submit("second", engine="hold")
+        second = await session.run.submit("second", agent_id="hold")
         await configure_engine(project, "hold", input_policy={"max_tokens": 20})
         await project.aconfigure_policies({"run": {"max_queued": 1}})
         with self.assertRaises(RunRequestError) as caught:
-            await session.run.submit("overflow", engine="hold")
+            await session.run.submit("overflow", agent_id="hold")
         self.assertEqual(caught.exception.code, "queue_full")
         release.set()
         runs = await asyncio.gather(first.wait(), second.wait())
@@ -210,9 +214,9 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
                 yield "done"
         self.app.engines.register("hold", Hold())
         project, session = await self.create()
-        first = await session.run.submit("first", engine="hold")
+        first = await session.run.submit("first", agent_id="hold")
         await asyncio.wait_for(entered.wait(), 5)
-        second = await session.run.submit("second", engine="inspect")
+        second = await session.run.submit("second", agent_id="inspect")
         await project.aconfigure_policies({"usage": {"max_tokens": 10, "counter": "missing"}})
         release.set()
         self.assertEqual((await first.wait()).data.status, RunStatus.COMPLETED)
@@ -229,7 +233,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("slow", Slow())
         _, short = await self.create({"run": {"timeout_seconds": .05}})
         _, long = await self.create({"run": {"timeout_seconds": 5}})
-        failed, completed = await asyncio.gather(self.execute(short, engine="slow"), self.execute(long, engine="slow"))
+        failed, completed = await asyncio.gather(self.execute(short, agent_id="slow"), self.execute(long, agent_id="slow"))
         self.assertEqual((await failed.aresult()).error_code, "run_timeout")
         self.assertEqual(completed.data.status, RunStatus.COMPLETED)
 

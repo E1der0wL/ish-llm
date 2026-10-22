@@ -187,8 +187,10 @@ class OutputPersistenceIntegrityTests(unittest.IsolatedAsyncioTestCase):
                     yield text
             async def main():
                 async with LargeLanguageModel(root, engines={'test': BaseEngine(action=work)}) as app:
-                    session = await (await app.projects.acreate()).sessions.acreate()
-                    await (await session.run.submit('output', engine='test')).wait()
+                    project = await app.projects.acreate()
+                    await project.agents.acreate({'engine': 'test'}, identifier='test')
+                    session = await project.sessions.acreate()
+                    await (await session.run.submit('output', agent_id='test')).wait()
             asyncio.run(main())
         ''')
         for boundary in ('source', 'manifest'):

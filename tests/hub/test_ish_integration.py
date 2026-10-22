@@ -196,11 +196,11 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x00second line")
                 await eventually(lambda: replacement.view.composer.text == "ui draft\nsecond line")
                 replacement.view.composer.text = ""
-                pipe.send_text("/eng")
+                pipe.send_text("/age")
                 await eventually(lambda: replacement.view.composer.buffer.complete_state is not None)
                 pipe.send_text("\x1b[B\t")
                 await eventually(lambda: replacement.view.composer.buffer.complete_state is None)
-                self.assertEqual(replacement.view.composer.text, "/engine")
+                self.assertEqual(replacement.view.composer.text, "/agent")
                 self.assertIsNone(replacement.view._dialog)
                 replacement.view.composer.text = "ui draft"
                 pipe.send_text("\x1b")  # ESC

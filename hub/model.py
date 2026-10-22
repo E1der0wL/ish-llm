@@ -125,6 +125,13 @@ class RetrySummary:
 
 
 @dataclass(frozen=True, slots=True)
+class AgentSummary:
+    id: str
+    engine: str
+    purpose: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class RunSummary:
     id: str
     status: str
@@ -155,3 +162,4 @@ class HubSnapshot:
     notifications: tuple[SessionNotification, ...] = ()
     components: tuple[str, ...] = ()
     questions: tuple[dict, ...] = ()
+    agents: tuple[AgentSummary, ...] = ()

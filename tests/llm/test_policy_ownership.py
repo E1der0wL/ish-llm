@@ -16,7 +16,7 @@ from llm.engines.base import BaseEngine
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
 from llm.engines.graph.agent import AgentNode
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.core.policies import normalize_policies
 from tests.llm.configuration_fixtures import configure_engine
@@ -74,6 +74,9 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
             services=BackendServices(token_counters=counters or {"count": lambda request: 1}))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=[c.name for c in components])
+        for name in engines:
+            if name != "graph":
+                await project.agents.acreate({"engine": name}, identifier=name)
         return app, project, await project.sessions.acreate()
 
     async def test_schema_and_shared_usage_counter_are_independent_of_input_policy(self):
@@ -83,7 +86,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         await configure_engine(project, "writer", completion={"model": "test", "max_tokens": 2},
             input_policy={"max_tokens": 100, "counter": "input"})
         await project.aconfigure_policies({"usage": {"max_tokens": 6, "counter": "usage"}})
-        run = await (await session.run.submit("hello", engine="writer")).wait(timeout=10)
+        run = await (await session.run.submit("hello", agent_id="writer")).wait(timeout=10)
         self.assertEqual(run.data.error_code, "usage_limit")
         self.assertEqual(model.requests, [])
         schema = app.describe_project_config()["properties"]["config"]["properties"]
@@ -100,7 +103,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
                 yield "done"
         _, project, session = await self.backend({"inspect": Inspect(), "writer": LoopEngine()})
         await configure_engine(project, "writer", input_policy={"max_tokens": 1, "counter": "missing"})
-        run = await (await session.run.submit("hello", engine="inspect")).wait(timeout=10)
+        run = await (await session.run.submit("hello", agent_id="inspect")).wait(timeout=10)
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(seen, [None])
 
@@ -109,7 +112,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         _, project, session = await self.backend({"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         await configure_engine(project, "writer", completion={"model": "test"},
             input_policy={"max_tokens": 10, "counter": "missing"})
-        run = await (await session.run.submit("hello", engine="writer")).wait(timeout=10)
+        run = await (await session.run.submit("hello", agent_id="writer")).wait(timeout=10)
         self.assertEqual(run.data.error_code, "policy_unavailable")
         self.assertEqual(model.requests, [])
 
@@ -124,16 +127,17 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
                         yield event
         implementation = InspectLoop(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
         graph = GraphEngine(handlers={"agent": AgentNode(engines={"writer": implementation})})
-        _, project, session = await self.backend({"graph": graph}, components=[AgentComponent(), WorkflowComponent()])
+        _, project, session = await self.backend({"writer": implementation, "graph": graph}, components=[WorkflowComponent()])
         await configure_engine(project, "writer", completion={"model": "test"},
             input_policy={"max_tokens": 400, "counter": "count"}, provider={"max_attempts": 2})
         for name, size in (("a", 200), ("b", 300)):
-            await project.components.agents.acreate({"engine": "writer", "purpose": name,
+            await project.agents.acreate({"engine": "writer", "purpose": name,
                 "engine_options": {'policy': {'completion': {'max_tokens': size}, 'provider': {'max_attempts': 2}}}}, identifier=name)
         workflow = (WorkflowGraph(entry="a").node("a", "agent", agent="a")
             .node("b", "agent", agent="b").node("end", "end").connect("a", "b").connect("b", "end"))
         await project.components.workflows.acreate(workflow.to_dict(), identifier="flow")
-        run = await (await session.run.submit("hello", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=10)
+        await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
+        run = await (await session.run.submit("hello", agent_id="graph")).wait(timeout=10)
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(seen, [(200, {"max_attempts": 2}), (300, {"max_attempts": 2})])
         self.assertNotIn("input_policy", implementation.resolve_config(ProjectConfig(), "writer")["values"].get("completion", {}))
@@ -147,11 +151,11 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
             input_policy={"max_tokens": 100, "counter": "count"})
         for change in ({"input_policy": {"max_tokens": 200}}, {"provider": {"max_attempts": 2}}):
             with self.subTest(change=change):
-                run = await (await session.run.submit("hello", engine="writer")).wait(timeout=10)
+                run = await (await session.run.submit("hello", agent_id="writer")).wait(timeout=10)
                 self.assertEqual(run.data.status, "failed")
                 await configure_engine(project, "writer", **change)
                 with self.assertRaisesRegex(ValueError, "changed"):
-                    await session.run.resume(run.id, engine="writer")
+                    await session.run.resume(run.id, agent_id="writer")
 
     async def test_stream_options_never_enter_sdk_kwargs_and_no_ambient_retry(self):
         calls = []

@@ -81,7 +81,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 persisted = checkpoint['records'][event.interaction.binding['key']]['interaction']
                 self.events.append((event.interaction, persisted))
         app._manager(session._snapshot).subscriptions.subscribe(observe, channel="engine")
-        run = await (await session.run.submit('go', engine='loop')).wait()
+        run = await (await session.run.submit('go', agent_id='loop')).wait()
         self.assertEqual(run.data.status, 'paused', run.data.error)
         self.assertEqual(self.effects, [])
         return app, session, run
@@ -104,8 +104,8 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, 'differently'):
             await run.arespond(request.respond('deny'))
         with self.assertRaisesRegex(Exception, 'conflicts'):
-            await session.run.resume(run.id, engine='loop', decisions={request.binding['key']: False})
-        resumed = await (await session.run.resume(run.id, engine='loop')).wait()
+            await session.run.resume(run.id, agent_id='loop', decisions={request.binding['key']: False})
+        resumed = await (await session.run.resume(run.id, agent_id='loop')).wait()
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(self.effects, [{}])
         with self.assertRaisesRegex(ValueError, 'resume request'):
@@ -115,7 +115,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
         app, session, run = await self.paused()
         request, = await run.ainteractions()
         await run.arespond(request.respond('deny'))
-        denied = await (await session.run.resume(run.id, engine='loop')).wait()
+        denied = await (await session.run.resume(run.id, agent_id='loop')).wait()
         self.assertEqual(denied.data.status, 'failed')
         self.assertEqual(self.effects, [])
 
@@ -134,7 +134,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
         session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
         run = await session.run.aload(run_id)
         self.assertEqual(await run.ainteraction_responses(), [saved])
-        resumed = await (await session.run.resume(run_id, engine='loop')).wait()
+        resumed = await (await session.run.resume(run_id, agent_id='loop')).wait()
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(self.effects, [{}])
 
@@ -149,7 +149,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
         manager = app._manager(session._snapshot)
         manager.tool_runtime = replace(manager.tool_runtime, revision='2')
         with self.assertRaisesRegex(Exception, 'changed'):
-            await session.run.resume(run.id, engine='loop')
+            await session.run.resume(run.id, agent_id='loop')
         self.assertEqual(self.effects, [])
 
     async def test_expired_request_never_resumes_via_raw_decisions(self):
@@ -157,7 +157,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
         request, = await run.ainteractions()
         self.assertEqual(await run.ainteractions(pending_only=True), [])
         with self.assertRaisesRegex(Exception, 'pending'):
-            await session.run.resume(run.id, engine='loop', decisions={request.binding['key']: True})
+            await session.run.resume(run.id, agent_id='loop', decisions={request.binding['key']: True})
         self.assertEqual(self.effects, [])
 
     async def test_concurrent_conflicting_answers_accept_only_one(self):
@@ -178,9 +178,10 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
             started.set()
             await release.wait()
         app.engines.register('wait', BaseEngine(action=wait))
-        await session.run.submit('block', engine='wait')
+        await session.project.agents.acreate({'engine': 'wait'}, identifier='wait')
+        await session.run.submit('block', agent_id='wait')
         await asyncio.wait_for(started.wait(), 10)
-        queued = await session.run.resume(run.id, engine='loop')
+        queued = await session.run.resume(run.id, agent_id='loop')
         with patch('llm.core.interactions.datetime', wraps=datetime) as clock:
             clock.now.return_value = datetime.now(timezone.utc) + timedelta(hours=2)
             release.set()
@@ -193,8 +194,8 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
         app, session, run = await self.paused()
         request, = await run.ainteractions()
         with self.assertRaises(Exception):
-            await session.run.resume(run.id, engine='loop', decisions={request.binding['key']: 1})
-        resumed = await (await session.run.resume(run.id, engine='loop', decisions={request.binding['key']: True})).wait()
+            await session.run.resume(run.id, agent_id='loop', decisions={request.binding['key']: 1})
+        resumed = await (await session.run.resume(run.id, agent_id='loop', decisions={request.binding['key']: True})).wait()
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         response, = await run.ainteraction_responses()
         self.assertEqual(response.request_id, request.id)
@@ -207,7 +208,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
         # 사용자 정의 저장소가 제공한 응답도 조회와 실행에 똑같이 사용해야 한다.
         with patch.object(app.run_repository, 'interaction_responses', return_value=[response]) as read:
             self.assertEqual(await run.ainteraction_responses(), [response])
-            resumed = await (await session.run.resume(run.id, engine='loop')).wait()
+            resumed = await (await session.run.resume(run.id, agent_id='loop')).wait()
         self.assertGreaterEqual(read.call_count, 2)
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(self.effects, [{}])
@@ -240,12 +241,13 @@ class GraphInteractionTests(unittest.IsolatedAsyncioTestCase):
         graph = (WorkflowGraph(entry='action').node('action', 'tool', tool='act', pause_before=True)
                  .node('end', 'end').connect('action', 'end').to_dict())
         await self.project.components.workflows.acreate(graph, identifier='flow')
+        await self.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier='graph')
         self.session = await self.project.sessions.acreate()
 
     async def answer_and_resume(self, run, option='approve'):
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond(option))
-        return await (await self.session.run.resume(run.id, engine='graph')).wait()
+        return await (await self.session.run.resume(run.id, agent_id='graph')).wait()
 
     async def test_workflow_confirmation_does_not_override_host_tool_denial(self):
         async def deny(call):
@@ -303,6 +305,6 @@ class GraphInteractionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(request.kind, 'confirmation')
         await run.arespond(request.respond('approve', value={'review': 'accepted'}))
         self.assertEqual(effects, [])
-        resumed = await (await self.session.run.resume(run.id, engine='graph')).wait()
+        resumed = await (await self.session.run.resume(run.id, agent_id='graph')).wait()
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(effects, ['accepted'])

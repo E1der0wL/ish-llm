@@ -119,14 +119,14 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                 backend_factory=partial(settings_backend, gate=gate))
             try:
                 session = await asyncio.wrap_future(worker.call("new_session", "new", "Running"))
-                await asyncio.wrap_future(worker.call("submit", session, "hold request", "loop"))
+                await asyncio.wrap_future(worker.call("submit", session, "hold request", "assistant"))
                 async def active():
                     return (await worker.runtime.sessions[session].run.astatus()).active_run_id
                 await until(lambda: bool(worker.runtime.sessions))
                 async with asyncio.timeout(10):
                     while not await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(active(), worker.loop)):
                         await asyncio.sleep(.01)
-                await asyncio.wrap_future(worker.call("submit", session, "queued request", "loop"))
+                await asyncio.wrap_future(worker.call("submit", session, "queued request", "assistant"))
                 await asyncio.wait_for(asyncio.wrap_future(worker.prepare_restart()), 15)
                 self.assertTrue(worker._restarting)
                 async def verify():

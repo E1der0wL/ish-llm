@@ -31,13 +31,15 @@ async def run_request(args: argparse.Namespace, *, workspace: Path,
             "config": {"completion": dict(completion)},
             "policy": {"max_iterations": max_iterations, "request_timeout": request_timeout}}
         await project.asave(config=config)
+        if not args.project_id:
+            await project.agents.acreate({"engine": "loop"}, identifier=args.agent_id)
         session = (await project.sessions.aload(args.session_id) if args.session_id
                 else await project.sessions.acreate("ish LoopEngine test"))
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
         print(f"Session: {session.id}", file=sys.stderr)
 
-        # 실행 엔진 이름은 요청마다 명시한다.
-        request = await session.run.submit(" ".join(args.prompt), engine="loop")
+        # 저장된 실제 Agent를 요청마다 선택한다.
+        request = await session.run.submit(" ".join(args.prompt), agent_id=args.agent_id)
         handle = await request.wait()
         result = await handle.aresult()
         print()
@@ -67,6 +69,7 @@ def main(*argv: str, workspace: Optional[str] = None,
     parser = argparse.ArgumentParser(prog="llm-test", description=__doc__)
     parser.add_argument("--project-id", help="이어갈 Project ID; 생략하면 새 Project 생성")
     parser.add_argument("--session-id", help="선택한 Project 안에서 이어갈 Session ID")
+    parser.add_argument("--agent-id", default="chat", help="새 Project에 생성하거나 기존 Project에서 선택할 Agent ID")
     parser.add_argument("prompt", nargs="+", help="모델에 전달할 작업 요청")
     args = parser.parse_args(list(argv))
     if args.session_id and not args.project_id:

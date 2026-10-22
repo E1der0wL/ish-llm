@@ -9,7 +9,7 @@ import json
 import math
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Mapping
-from copy import deepcopy
+from copy import copy, deepcopy
 from dataclasses import dataclass, field, replace
 from typing import Any, Optional, Protocol, TypeVar, Union
 
@@ -197,11 +197,11 @@ class EngineContext:
 
 
 class Engine(Protocol):
-    """execute는 필수다. 요청 인자는 선택적 동기 for_request(options)로 연결한다.
+    """execute와 동기 for_agent(definition)가 Agent 실행 계약이다.
 
     factory는 외부 효과 없이 등록 객체를 보존하고 실행별 사본을 반환한다.
     capability는 사본에서 탐색하며 checkpoint 이름과 추가 지시 지원 방식은 유지한다.
-    for_request가 없으면 빈 engine_options만 허용한다.
+    요청 환경을 받는 구현은 별도의 동기 for_context(context)를 선언한다.
     """
     def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]: ...
 
@@ -220,6 +220,12 @@ def steering_mode(engine) -> SteeringMode:
     return SteeringMode(getattr(engine, "steering_mode", SteeringMode.UNSUPPORTED))
 
 
+def agent_mode(engine):
+    """Read the declared execution mode through the public Engine contract."""
+    from llm.core.agents import AgentMode
+    return AgentMode(getattr(engine, "agent_mode", AgentMode.BEHAVIORAL))
+
+
 # 작업 함수를 공통 Step 이벤트와 스트리밍 출력으로 감싼다.
 class BaseEngine:
     """Adapt a developer operation to the existing Engine event contract.
@@ -228,12 +234,21 @@ class BaseEngine:
     async 함수는 EngineOutput 또는 None을 반환한다. execute()가 Step과 출력의
     소유권/이벤트를 연결한다. 복잡한 실행기는 execute()에서 아래 출력 메서드를
     재사용한다. 실행별 상태는 인스턴스에 저장하지 않는다.
-    요청별 인자가 필요하면 동기 for_request(options)를 구현하여 사본에 연결한다.
+    Agent 설정은 동기 for_agent(definition)가 검증하여 사본에 연결한다.
     Labels/metadata/error_message are trusted, persistable developer constants.
     """
 
     required_capabilities = ()
     steering_mode = SteeringMode.UNSUPPORTED
+
+    def for_agent(self, definition):
+        """Bind a host action without silently accepting unimplemented settings."""
+        from llm.core.agents import AgentDefinition
+        AgentDefinition.validate("selected", definition)
+        unsupported = set(definition) & {"system_prompt", "completion", "engine_options"}
+        if unsupported:
+            raise ValueError("Host action must implement these Agent settings: " + ", ".join(sorted(unsupported)))
+        return copy(self)
 
     def validate_selections(self, context):
         """Validate durable Tool selections in this Engine's local checkpoint scope."""

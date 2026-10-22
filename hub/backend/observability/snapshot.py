@@ -6,10 +6,10 @@ from datetime import datetime, timezone
 from typing import Any
 from time import monotonic
 
-from ...model import ChatMessage, HubSnapshot, SessionSummary, RunSummary, TraceItem
+from ...model import AgentSummary, ChatMessage, HubSnapshot, SessionSummary, RunSummary, TraceItem
 from ..execution.trace import merge_trace, tool_trace
 from ..execution.steps import display_steps
-from ..execution.engine_selection import model_name, requires_model, selected_engines
+from ..execution.engine_selection import agent_model, selected_engines
 from ..interactions.questions import waiting_status
 from ..execution.stopping import display_run, STOPPED, RESUME_INTERACTIONS
 
@@ -185,16 +185,22 @@ class SnapshotReader:
                     bool(selected.runtime.active_run_id),
                     display_steps(steps),
                     str(run.error) if run.error else "")
+        definitions = {identifier: definition for identifier, definition in (await project.agents.alist()).items()
+                       if not identifier.startswith("_hub_")}
+        definition = definitions.get(config.agent_id, next(iter(definitions.values()), None))
+        model, model_required = agent_model(engines, data.config, definition, session_config) if definition else ("", False)
         snapshot = HubSnapshot(
             project_id=data.id, project_title=data.title,
-            model=model_name(engines, data.config, config.engine, session_config),
+            model=model,
             storage=data.conversation_storage, sessions=tuple(summaries), selected_id=selected_id,
             messages=messages, run=summary,
             status=next((s.status for s in summaries if s.id == selected_id), "idle"),
             queued_count=selected.runtime.queued_count if selected else 0,
-            model_required=requires_model(engines, data.config, config.engine, session_config) if selected else False,
+            model_required=model_required if selected else False,
             title_error=title_errors.get(selected_id),
             engines=selected_engines(data.config, engines.names()),
             file_root=str(project.paths.root if config.file_root is None else config.file_root),
-            components=tuple(data.components), questions=questions)
+            components=tuple(data.components), questions=questions,
+            agents=tuple(AgentSummary(identifier, definition["engine"], definition.get("purpose", ""))
+                         for identifier, definition in definitions.items()))
         return snapshot, tuple(observations)

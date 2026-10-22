@@ -49,7 +49,7 @@ class GlobalPreferenceTests(unittest.TestCase):
             profile = {"display_name": "Reader", "language": "en", "email": "reader@example.com", "phone": "+82 10 1234 5678"}
             store.save("profile", profile)
             store.save("general", {"editor": "code --wait"})
-            config = configured_profile(HubConfig(directory, "loop", "test/model"))
+            config = configured_profile(HubConfig(directory, model="test/model"))
             self.assertEqual(config.language, "en")
             self.assertEqual(config.user_profile, UserProfile(**profile))
             command = GeneralSettings(**store.load()["general"]).editor_argv(Path(directory) / "a b.txt")
@@ -72,7 +72,7 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
                                    amodel_usage=AsyncMock(return_value=totals))
             bad = SimpleNamespace(id="bad", aget_data=AsyncMock(return_value=SimpleNamespace(id="bad", title="Bad")),
                                   amodel_usage=AsyncMock(side_effect=OSError("unreadable receipts")))
-            runtime = SimpleNamespace(config=HubConfig(directory, "loop", "test/model"), project=good,
+            runtime = SimpleNamespace(config=HubConfig(directory, model="test/model"), project=good,
                 backend=SimpleNamespace(projects=SimpleNamespace(alist=AsyncMock(return_value=[good, bad])),
                                         describe_host=lambda: {"values": {}}))
             service = SettingsService(runtime)
@@ -87,7 +87,7 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_settings_shell_return_drafts_buttons_and_general_page(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                 input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, settings = controller.view, controller.view.settings
@@ -114,7 +114,9 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(settings.page.dirty)
                 self.assertIn("email", settings.page.form.schema["properties"])
                 self.assertIn("known_tokens", settings.usage[0])
+                await until(lambda: not settings.busy)
                 settings.choose("general")
+                self.assertEqual(settings.selected, "general")
                 settings.page.form.fields[("editor",)].input.text = "nano -w"
                 settings.page.save.handler()
                 await until(lambda: not settings.busy and not settings.page.dirty)

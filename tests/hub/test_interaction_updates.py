@@ -76,8 +76,12 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                 # Initial component/project creation is backend I/O, not the
                 # three-second deadline used for an interactive UI response.
                 await until(lambda: view.connected and not view.projects.busy)
-                for engine in ("loop", "graph"):
-                    view.engine = engine
+                await asyncio.wrap_future(controller.worker.call("manage_records", view.project_id,
+                    "agents", "create", {"name": "settings-graph", "text":
+                        '{"engine":"graph","engine_options":{"workflow":"settings-only"}}'}))
+                await until(lambda: "settings-graph" in view.agents)
+                for identifier, engine in (("assistant", "loop"), ("settings-graph", "graph")):
+                    view.choose_agent(identifier)
                     with set_app(app):
                         screen.open_engine()
                     try:

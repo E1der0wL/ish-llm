@@ -79,12 +79,12 @@ def make_recovery(summarize_text):
 ## Run 계획과 실행
 
 ```python
-async def continue_run(session, run_id, engine):
-    plan = await session.run.resume_plan(run_id, engine=engine)
+async def continue_run(session, run_id, agent_id):
+    plan = await session.run.resume_plan(run_id, agent_id=agent_id)
     if plan.can_resume:
-        return await session.run.resume(run_id, engine=engine, expected_revision=plan.revision)
+        return await session.run.resume(run_id, agent_id=agent_id, expected_revision=plan.revision)
     if plan.can_restart:
-        return await session.run.restart(run_id, engine=engine, expected_revision=plan.revision)
+        return await session.run.restart(run_id, agent_id=agent_id, expected_revision=plan.revision)
     return plan  # UI가 blockers/interactions/restart_blockers를 표시한다.
 ```
 

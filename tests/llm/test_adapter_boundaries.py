@@ -203,6 +203,7 @@ class ResolverUsageTests(unittest.IsolatedAsyncioTestCase):
                         policy["counter"] = "model_default"
                     project = await app.projects.acreate(components=["auxiliary"], config=ProjectConfig(policies={"usage": policy}))
                     await project.components.aremove("auxiliary")
+                    await project.agents.acreate({"engine": "custom"}, identifier="custom")
                     session = await project.sessions.acreate()
                     delegate = ComponentToolResolver(app.project_manager.components)
                     read = []
@@ -215,7 +216,7 @@ class ResolverUsageTests(unittest.IsolatedAsyncioTestCase):
                     manager = RunManager(app.project_manager.sessions, app.engines, session=session.data,
                                          capabilities=Wrapped(), repository=app.run_repository, steps=app.step_manager)
                     try:
-                        await manager.submit("test", engine="custom")
+                        await manager.submit("test", agent_id="custom")
                         await manager.wait_idle()
                         run = manager.repository.list(session.data)[0]
                         self.assertEqual(run.error_code, "usage_limit", run.error)
@@ -238,11 +239,12 @@ class ResolverUsageTests(unittest.IsolatedAsyncioTestCase):
                 async with LargeLanguageModel(root, engines={"custom": Engine()}) as app:
                     project = await app.projects.acreate(config=ProjectConfig(
                         policies={"usage": {"max_calls": 1}} if limited else {}))
+                    await project.agents.acreate({"engine": "custom"}, identifier="custom")
                     session = await project.sessions.acreate()
                     manager = RunManager(app.project_manager.sessions, app.engines, session=session.data,
                                          capabilities=Resolver(), repository=app.run_repository, steps=app.step_manager)
                     try:
-                        await manager.submit("test", engine="custom")
+                        await manager.submit("test", agent_id="custom")
                         await manager.wait_idle()
                         run = manager.repository.list(session.data)[0]
                         self.assertEqual(run.error_code, "usage_configuration" if limited else None, run.error)

@@ -267,7 +267,7 @@ class FileData(ComponentData):
     @workspace_locked
     def delete_file(self, identifier, path, *, expected_revision):
         project, component = self._edit(identifier, expected_revision)
-        self.registry.require_unreferenced(project, self.name, identifier, path=path)
+        self.references.require_unreferenced(project, self.name, identifier, path=path)
         component.delete_file(project, identifier, path)
         return self.snapshot(identifier)
 

@@ -25,7 +25,7 @@ async def main():
     async with LargeLanguageModel(root, components=[tools], engines={"tool": ToolEngine()},
             services=BackendServices(tool_runtime=ToolRuntime(operation_key=lambda call: call.arguments["operation"]))) as app:
         session = await (await app.projects.aload(project_id)).sessions.aload(session_id)
-        await (await session.run.submit("perform", engine="tool")).wait()
+        await (await session.run.submit("perform", agent_id="tool")).wait()
 
 
 if __name__ == "__main__":

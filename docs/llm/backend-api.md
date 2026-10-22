@@ -1,7 +1,7 @@
 # 현행 Backend API
 
-기준: main `94229cb865374d99f20ec48c5e48269488041a4e`. 아래는 지금 호출 가능한 API다.
-독립 Agent·다중 수신자 API는 [클린 설계](clean-refactor.md)의 미구현 목표이며 이 예제에 섞지 않는다.
+아래는 `refactor/llm-clean`의 독립 Agent API다. [B/C 검증 상태](agent-refactor-verification.md)와
+[클린 설계](clean-refactor.md)를 따른다. 다중 수신자·병렬 Dispatcher는 후속 D 단계다.
 이전 누적 안내는 [과거 기록](backend-api-history.md)에 보존했다.
 
 ## 소유권과 수명
@@ -32,8 +32,9 @@ async def example():
     with tempfile.TemporaryDirectory() as workspace:
         async with LargeLanguageModel(workspace, engines={"echo": EchoEngine()}) as backend:
             project = await backend.projects.acreate("예제", components=[])
+            await project.agents.acreate({"engine": "echo"}, identifier="echo")
             session = await project.sessions.acreate("대화")
-            request = await session.run.submit("hello", engine="echo")
+            request = await session.run.submit("hello", agent_id="echo")
             run = await request.wait()
             result = await run.aresult()
             assert result.status == RunStatus.COMPLETED
@@ -85,11 +86,11 @@ requests = await paused_run.ainteractions(pending_only=True)
 interaction = requests[0]
 response = interaction.respond(selected_option_id)
 await paused_run.arespond(response)
-plan = await session.run.resume_plan(paused_run.id, engine=paused_run.engine)
+plan = await session.run.resume_plan(paused_run.id, agent_id=paused_run.agent_id)
 # UI에서 blockers와 효과를 검토한 뒤, can_resume일 때만 명시 실행한다.
 if plan.can_resume:
     continuation = await session.run.resume(
-        paused_run.id, engine=paused_run.engine, expected_revision=plan.revision,
+        paused_run.id, agent_id=paused_run.agent_id, expected_revision=plan.revision,
     )
     resumed_run = await continuation.wait()
 ```
@@ -124,9 +125,11 @@ ResourceRef·plan·Diagnostic을 역직렬화한 것만으로 권한을 얻지 �
 Linux Python 3.12.14에서 저장소 루트 기준:
 
 ```bash
-python -m unittest discover -v -s tests/llm -t .
-python -m unittest discover -v -s tests/hub -t .
-python -m unittest -v tests.llm.test_plugin tests.llm.test_tool_packages tests.hub.test_ish_integration
+python -m tests.llm.run_regression --suite llm --output /tmp/ish-llm-regression.json
+python -m tests.llm.run_regression --suite hub --output /tmp/ish-hub-regression.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6
+python -m tests.llm.check_docs
 ```
 
 실제 host는 `ish.platform/src/ish`에 준비하고 사용 SHA를 기록한다. `ish.platform/`은 외부 참조이며

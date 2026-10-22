@@ -43,8 +43,9 @@ async def run(args: argparse.Namespace) -> dict:
             config.parameters.setdefault("engines", {})["loop"] = {
                 "config": {"completion": {"model": args.model, "api_key": key}}, "policy": {"max_iterations": 8}}
             await project.asave(config=config)
+            await project.agents.acreate({"engine": "loop", "resources": {"rag": True}}, identifier="document-agent")
             session = await project.sessions.acreate("Document question")
-            run = await (await session.run.submit(args.ask, engine="loop")).wait()
+            run = await (await session.run.submit(args.ask, agent_id="document-agent")).wait()
             result = await run.aresult()
             steps = await run.steps.alist()
             report["run"] = {"id": run.id, "status": str(result.status),

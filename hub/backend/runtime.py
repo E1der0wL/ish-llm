@@ -1,6 +1,7 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
 
 from llm.core.models import MessageStatus, RunStatus
+from llm.core.configuration import UNSET
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -14,6 +15,7 @@ from ..config.general import GeneralSettings
 from ..config.view_state import ViewStateStore
 from .observability.notifications import NotificationBuffer
 from .bootstrap import create_backend
+from .project.agents import DEFAULT_AGENT
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,7 +27,8 @@ class HubConfig:
     Factories are validated here and constructed later on the backend thread.
     """
     workspace: str | Path = field(default_factory=lambda: Path.home() / ".ish/hub-workspace")
-    engine: str = "loop"
+    agent_id: str = DEFAULT_AGENT
+    agent_definition: dict | None = None
     model: str | None = None
     api_base: str | None = None
     project_id: str | None = None
@@ -58,14 +61,20 @@ class HubConfig:
         if not isinstance(self.tool_retry_evidence, dict) or any(not isinstance(name, str) or not name or not callable(provider)
                for name, provider in self.tool_retry_evidence.items()):
             raise TypeError("tool_retry_evidence maps Tool names to callable evidence providers")
-        if not self.engine.strip():
-            raise ValueError("An explicit engine is required")
+        from llm.core.agents import AgentDefinition
+        AgentDefinition.identifier(self.agent_id)
+        if self.agent_id.startswith("_hub_"):
+            raise ValueError("Internal Hub Agent IDs are reserved")
+        if self.agent_definition is not None:
+            from copy import deepcopy
+            AgentDefinition.validate(self.agent_id, self.agent_definition)
+            object.__setattr__(self, "agent_definition", deepcopy(self.agent_definition))
         if self.session_id and not self.project_id:
             raise ValueError("session_id requires project_id")
         if self.engine_factories is not None:
             if not isinstance(self.engine_factories, dict):
                 raise TypeError("engine_factories must be a dictionary or None")
-            if self.engine not in ("loop", "graph") and self.engine not in self.engine_factories:
+            if self.initial_engine not in ("loop", "graph") and self.initial_engine not in self.engine_factories:
                 raise ValueError("Initial engine must be registered in engine_factories")
             if any(not isinstance(name, str) or not name.strip() or name.startswith("_hub_") or not callable(factory)
                    for name, factory in self.engine_factories.items()):
@@ -75,6 +84,11 @@ class HubConfig:
                 raise TypeError("component_factories must be a tuple, list or None")
             if any(not callable(factory) for factory in self.component_factories):
                 raise ValueError("Component factories must be callable")
+
+    @property
+    def initial_engine(self):
+        """Creation preset only; requests always select a saved Project Agent."""
+        return "loop" if self.agent_definition is None else self.agent_definition["engine"]
 
 
 class HubRuntime:
@@ -232,7 +246,7 @@ class HubRuntime:
             from llm.services.query import Query
             source_runs = await source.run.alist(query=Query(descending=True, limit=1))
             if source_runs:
-                metadata["hub_title_engine"] = (await source_runs[0].aget_data()).engine
+                metadata["hub_title_agent"] = (await source_runs[0].aget_data()).agent_id
         await session.asave(metadata=metadata)
         self.sessions[session.id] = session
         self.notifications.register_session(self.project.id, session.id, (await session.aget_data()).title)
@@ -306,20 +320,10 @@ class HubRuntime:
         return await self.failure_diagnostics.read(project_id, session_id, run_ids)
 
     async def execution_catalog(self, session_id: str) -> dict:
-        from llm.engines.graph import GraphEngine
         project = self.sessions[session_id].project if session_id else self.project
-        record = await project.aget_data()
-        from .execution.environment import underlying_engine
-        engines = {name: {"kind": "graph" if isinstance(underlying_engine(self.backend.engines.get(name)), GraphEngine)
-                          else "plain"}
-                   for name in selected_engines(record.config, self.backend.engines.names())}
-        if not engines:
-            raise ValueError(self.t("settings_engine_required"))
-        workflows = {}
-        if any(item["kind"] == "graph" for item in engines.values()):
-            if "workflows" in (await project.aget_data()).components:
-                workflows = await (await project.components.aget("workflows")).alist()
-        return {"engines": engines, "workflows": workflows}
+        definitions = await project.agents.alist()
+        return {"agents": {identifier: {"engine": definition["engine"], "purpose": definition.get("purpose", "")}
+                           for identifier, definition in definitions.items() if not identifier.startswith("_hub_")}}
 
     async def rename_session(self, session_id: str, title: str) -> str:
         if not title.strip():
@@ -377,28 +381,28 @@ class HubRuntime:
             return await manager.execute(action, argument, expected_version, progress=progress)
         return await manager.execute(action, argument, expected_version)
 
-    async def submit(self, session_id: str, text: str, engine: str | None = None,
-                     engine_options: dict | None = None) -> str:
+    async def submit(self, session_id: str, text: str, agent_id: str | None = None,
+                     request_context=UNSET) -> str:
         if not text.strip():
             raise ValueError(self.t("empty_message"))
         if session_id not in self.sessions:
             raise ValueError(self.t("session_required"))
         session = self.sessions[session_id]
-        selected = engine if engine is not None else self.config.engine
-        project = await session.project.aget_data()
-        if requires_model(self.backend.engines, project.config, selected, (await session.aget_data()).config):
-            raise ValueError(self.t("model_required"))
-        if selected not in selected_engines(project.config, self.backend.engines.names()):
-            raise ValueError(self.t("settings_engine_unavailable", name=selected))
+        selected = self.config.agent_id if agent_id is None else agent_id
         if selected.startswith("_hub_"):
-            raise ValueError("Internal engine cannot receive conversation requests")
-        request = await session.run.submit(text, engine=selected, engine_options=engine_options or {})
+            raise ValueError("Internal Agent cannot receive conversation requests")
+        project = await session.project.aget_data()
+        definition = await session.project.agents.aload(selected)
+        from .execution.engine_selection import agent_model
+        if agent_model(self.backend.engines, project.config, definition, (await session.aget_data()).config)[1]:
+            raise ValueError(self.t("model_required"))
+        request = await session.run.submit(text, agent_id=selected, request_context=request_context)
         self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
         return request.id
 
-    async def submit_input(self, session_id: str, text: str, engine: str,
-                           engine_options: dict, check_running: bool = True) -> SubmissionResult:
+    async def submit_input(self, session_id: str, text: str, agent_id: str,
+                           request_context=UNSET, check_running: bool = True) -> SubmissionResult:
         """Check and admit in one UI command; acknowledge only persisted input."""
         from datetime import datetime, timezone
         timestamp = datetime.now(timezone.utc).isoformat()
@@ -406,7 +410,7 @@ class HubRuntime:
             state = await self.submission_state(session_id)
             if state["run_id"]:
                 return SubmissionResult(run_id=state["run_id"])
-        identifier = await self.submit(session_id, text, engine, engine_options)
+        identifier = await self.submit(session_id, text, agent_id, request_context)
         self.snapshot_reader.submissions[identifier] = timestamp
         if len(self.snapshot_reader.submissions) > 1024:
             self.snapshot_reader.submissions.pop(next(iter(self.snapshot_reader.submissions)))
@@ -486,10 +490,10 @@ class HubRuntime:
             denied = next(option for option in request.options if option.id == option_id).effect == InteractionOption.EFFECT_DENY
             if not await run.ainteractions(pending_only=True):
                 if not denied:
-                    engine = (await run.aget_data()).engine
+                    agent_id = (await run.aget_data()).agent_id
                     # The backend validates persisted user decisions, including
                     # uncertain-effect approval. Never invent retry_nodes here.
-                    await session.run.resume(run_id, engine=engine, partial_output=True)
+                    await session.run.resume(run_id, agent_id=agent_id, partial_output=True)
                 from .execution.stopping import finish_review
                 await finish_review(session, run_id)
         self.dirty.set()

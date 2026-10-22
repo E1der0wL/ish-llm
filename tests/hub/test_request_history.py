@@ -154,7 +154,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 sid = await runtime.new_session()
                 session = runtime.sessions[sid]
                 options = {ENVIRONMENT_OPTION: {"cwd": directory, "env": {"PWD": directory, "TEST_ENV": "retained"}}}
-                original = await runtime.submit(sid, "first request", engine_options=options)
+                original = await runtime.submit(sid, "first request", request_context=options)
                 await asyncio.wait_for(entered.wait(), 5)
                 await runtime.interrupt(sid)
                 await session.run.wait_idle()
@@ -183,7 +183,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotEqual(rows[0]["run_id"], first["run_id"])
                 fresh = await (await session.run.aload(rows[0]["run_id"])).aget_data()
                 self.assertNotIn("resume", fresh.metadata)
-                self.assertEqual(fresh.metadata["engine_options"][ENVIRONMENT_OPTION], options[ENVIRONMENT_OPTION])
+                self.assertEqual(fresh.metadata["request_context"][ENVIRONMENT_OPTION], options[ENVIRONMENT_OPTION])
                 self.assertEqual([m["content"] for m in provider.requests[-1]["messages"] if m["role"] == "user"],
                                  ["first request"])
                 snapshot = await runtime.snapshot()
@@ -200,7 +200,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         from hub.locales import Language
         request = SimpleNamespace(id="u", role="user", run_id="r", metadata={},
                                   status="committed", content="request", created_at="")
-        run = SimpleNamespace(id="r", engine="loop", status="failed", metadata={})
+        run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="failed", metadata={})
         handle = SimpleNamespace(aget_data=AsyncMock(return_value=run))
         plan = SimpleNamespace(can_resume=False, can_restart=False, blockers=[],
             restart_blockers=[Diagnostic("checkpoint_protected", "No durable proof of a pre-execution stop")])
@@ -222,7 +222,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(action=action):
                 request = SimpleNamespace(id="u", role="user", run_id="r", metadata={},
                                           status="committed", content="request", created_at="")
-                run = SimpleNamespace(id="r", engine="loop", status="failed", metadata={})
+                run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="failed", metadata={})
                 plan = SimpleNamespace(can_resume=action == "resume", can_restart=action == "restart",
                                        revision="reviewed", blockers=[], restart_blockers=[])
                 api = SimpleNamespace(
@@ -237,7 +237,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                     await TurnHistory(runtime).retry("s", "u", "r")
                 kwargs = {"partial_output": True} if action == "resume" else {}
                 self.assertEqual(getattr(api, action).await_count, 2)
-                getattr(api, action).assert_awaited_with("r", engine="loop", expected_revision="reviewed", **kwargs)
+                getattr(api, action).assert_awaited_with("r", agent_id="assistant", expected_revision="reviewed", **kwargs)
                 getattr(api, "restart" if action == "resume" else "resume").assert_not_awaited()
                 runtime.submit.assert_not_awaited()
 
@@ -245,7 +245,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         from hub.backend.history import TurnHistory
         from hub.locales import Language
         request = SimpleNamespace(id="u", role="user", run_id="r", metadata={}, status="committed", content="work")
-        run = SimpleNamespace(id="r", engine="loop", status="interrupted", metadata={})
+        run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="interrupted", metadata={})
         plans = [SimpleNamespace(can_resume=True, can_restart=False, blockers=[], revision=version) for version in ("old", "new")]
         api = SimpleNamespace(astatus=AsyncMock(return_value=SimpleNamespace(active_run_id=None, queued_count=0)),
             aload=AsyncMock(return_value=SimpleNamespace(aget_data=AsyncMock(return_value=run))),

@@ -12,6 +12,7 @@ import math
 import operator
 from copy import copy, deepcopy
 from llm.core.configuration import resolve_engine_config
+from llm.core.agents import AgentMode
 from llm.core.parameters import ParameterLayout
 from contextlib import AsyncExitStack, aclosing
 from llm.core.interactions import InteractionOption, InteractionRequest, approval_request
@@ -888,14 +889,24 @@ class GraphEngine:
     # 공개 API
     checkpoint_name = "graph"
     steering_mode = SteeringMode.FORWARD
+    agent_mode = AgentMode.WORKFLOW
 
-    def for_request(self, options: dict):
-        """요청이 선택한 Workflow ID를 사본에 고정한다. 정의는 Run 시작 시 읽는다."""
-        if not isinstance(options, dict) or options.keys() != {"workflow"}:
-            raise ValueError("Graph request requires only engine_options.workflow")
-        workflow = options["workflow"]
+    def workflow_handlers(self):
+        """Registered action owners for retained-definition reference checks; no execution."""
+        return dict(self.handlers)
+
+    def agent_references(self):
+        """The selected Graph owns the meaning of its stored Workflow choice."""
+        return ({"component": "workflows", "identifier": self.workflow},)
+
+    def discover_agent(self, definition):
+        """Resolve only structural references before selecting private Agent options."""
+        return self._select_workflow(definition.get("engine_options", {}).get("workflow"))
+
+    def _select_workflow(self, workflow):
+        """Bind the Graph-owned Workflow selection; read its definition at execution."""
         if not isinstance(workflow, str) or not workflow.strip():
-            raise ValueError("Graph request workflow must be a nonempty ID")
+            raise ValueError("Graph Agent workflow must be a nonempty ID")
         worker = copy(self)
         worker.workflow = workflow
         worker._configured = False
@@ -908,10 +919,9 @@ class GraphEngine:
         if options.keys() - allowed:
             raise ValueError("Unsupported Graph Agent engine_options")
         # 빈 resources/tools도 의미 없는 별도 behavior/authority 계층이다.
-        unsupported = set(definition) - {"purpose", "description", "engine", "engine_options", "metadata"}
-        if unsupported:
-            raise ValueError("Graph Agent only orchestrates Workflows; unsupported fields: " + ", ".join(sorted(unsupported)))
-        worker = self.for_request({"workflow": options.pop("workflow", None)})
+        from llm.core.agents import AgentDefinition
+        AgentDefinition.validate_mode(definition, self.agent_mode)
+        worker = self._select_workflow(options.pop("workflow", None))
         from jsonschema import Draft202012Validator
         Draft202012Validator(self.describe_config()).validate(options)
         copy(self)._configure(self.parameter_layout.unpack(options))

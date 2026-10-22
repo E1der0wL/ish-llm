@@ -23,7 +23,7 @@ SAMPLES = (
                 '\n'
                 '```python\n'
                 'request = await session.run.submit(\n'
-                '    "안녕하세요", engine="loop"\n'
+                '    "안녕하세요", agent_id="assistant"\n'
                 ')\n'
                 '```',
                 elapsed_seconds=2.4,

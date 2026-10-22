@@ -11,7 +11,7 @@ class HubSkillComponent(SkillComponent):
         registry = super().resolve_runtime(project, capability, data_factory=data_factory)
         if capability == "tools":
             from .resources import authoring_tools
-            for tool in authoring_tools(data_factory(self.name), self, discover=False):
+            for tool in authoring_tools(data_factory(self.name), self.name, self.schema, discover=False):
                 registry.register(tool)
         return registry
 

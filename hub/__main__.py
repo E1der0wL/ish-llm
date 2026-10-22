@@ -1,6 +1,7 @@
 """Run a live Hub from a checkout: python -m hub --help."""
 
 import argparse
+from .backend.project.agents import DEFAULT_AGENT
 from pathlib import Path
 
 from .ui.application import create_application
@@ -11,7 +12,7 @@ from .config.theme import HubTheme
 def main() -> None:
     parser = argparse.ArgumentParser(description="Hub — LargeLanguageModel terminal chat")
     parser.add_argument("--workspace", type=Path, default=Path.home() / ".ish/hub-workspace")
-    parser.add_argument("--engine", required=True, choices=("loop",))
+    parser.add_argument("--agent", default=DEFAULT_AGENT, help="Stored Agent ID; also names the Agent created for a new Project")
     parser.add_argument("--model", help="LiteLLM model name; used when creating the default Project")
     parser.add_argument("--api-base", help="OpenAI-compatible endpoint for a new Project")
     parser.add_argument("--project", help="Existing Project ID; retains its persisted model/settings")
@@ -24,7 +25,8 @@ def main() -> None:
         parser.error("provide --model for the default Project, or --project to reopen a Project")
     if args.session and not args.project:
         parser.error("--session requires --project")
-    config = HubConfig(args.workspace, args.engine, args.model, args.api_base, args.project, args.session,
+    config = HubConfig(args.workspace, agent_id=args.agent, model=args.model, api_base=args.api_base,
+                       project_id=args.project, session_id=args.session,
                        language=args.language, file_root=args.file_root)
     from .config.restart import restart_config
     from .ui.restart import RESTART

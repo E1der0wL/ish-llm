@@ -1,18 +1,19 @@
 # 현행 LLM 아키텍처
 
-기준: main `94229cb865374d99f20ec48c5e48269488041a4e`. 이 문서는 현재 구현의 구조와
-보존할 계약을 설명한다. 독립 Agent·다중 수신자·병렬 Dispatcher·Session 전송·최종 검토는
-[클린 리팩터링 설계](clean-refactor.md)의 **미구현 목표**다. 문서 정리 전 본문은
+이 문서는 `refactor/llm-clean`의 현재 구현과 보존할 계약을 설명한다. 독립 Agent와
+root 실행 전환의 검증 상태는 [B/C 기록](agent-refactor-verification.md)을 따른다. 다중 수신자·
+병렬 Dispatcher·Session 전송·최종 검토는 [클린 리팩터링 설계](clean-refactor.md)의 후속 D–F 목표다. 문서 정리 전 본문은
 [과거 기록](architecture-history.md)에 보존했다. 확인된 구현 차이는 [검토표](documentation-review.md)에 있다.
 
 ## 도메인과 책임
 
 ```text
-Project ─┬─ Components (현재 Agent 정의도 Component)
+Project ─┬─ Agents (독립 정의·필수 목록)
+         ├─ Components
          └─ Sessions ─┬─ Messages
                       └─ Runs ─ Steps
 
-현재 최상위 실행: 명시 Engine 요청 → RunManager → EngineRegistry → Engine
+현재 최상위 실행: 저장 Agent 요청 → RunManager → Agent binding → 선택 Engine
 현재 중첩 실행: Graph AgentNode / agent_run → AgentExecution → 선택 Engine
 ```
 
@@ -52,9 +53,10 @@ Engine은 실행 전략이며 영속 소유 계층의 중간 객체가 아니다
 
 ## 현재 요청과 실행 수명
 
-`session.run.submit(content, engine=..., engine_options=...)`는 durable QUEUED 입력을 저장하고
+`session.run.submit(content, agent_id=..., request_context=...)`는 durable QUEUED 입력을 저장하고
 RequestHandle을 반환한다. `wait()`는 종료된 RunHandle을 반환한다. 접수 ACK와 Run 생성·실행 시작은
-별개 경계다. 취소된 호출자가 같은 내용을 무조건 다시 제출하면 중복 요청이 될 수 있으므로
+별개 경계다. 접수 때 Agent 정의·revision·Engine binding을 고정하고 실행 전에 다시 검증한다.
+request_context는 Host 환경이며 저장 정의에 합치지 않는다. 취소된 호출자가 같은 내용을 무조건 다시 제출하면 중복 요청이 될 수 있으므로
 저장된 요청을 조회한다.
 
 현재 Session은 한 Run을 실행하며 `current_run_id`를 사용한다. 서로 다른 Session은 병행할 수 있다.
@@ -98,7 +100,7 @@ WorkspaceOwnership 아래의 TransactionManager가 쓰기 전 undo, fsync, commi
 - file/memory 대화의 재시작 수명은 다르다. memory 자료를 디스크에서 추측해 복구하지 않는다.
 - 삭제·retention·abandonment는 계획/CAS·참조 보호·트랜잭션을 사용한다. 삭제된 재개 원본을 복원하지 않는다.
 - 현재 형식의 backup/restore는 checksum·Component 검증·staging publish를 유지한다.
-  main에 남은 upgrade API는 [제거 대상](clean-refactor.md)이며 새 migration을 추가하지 않는다.
+  필수 Agent 목록도 검증하며 clone은 Project identity를 다시 결합한다. 자동 migration은 없다.
 - LogConfig는 기록/조회 활성화만 설정한다. 기본 파일은 추가 기록만 하며 회전 크기/개수는 Application sink가 소유한다. 자동 보존값은 없다.
 - 출력/관찰 이벤트 유실 시 저장된 Run/Step/journal을 조회한다. UI snapshot과 알림은 원본이 아니다.
 
@@ -107,9 +109,9 @@ WorkspaceOwnership 아래의 TransactionManager가 쓰기 전 undo, fsync, commi
 
 ## Provider·Processor·Component 경계
 
-현재 CompletionAdapter/Decoder가 SDK 호출·stream 조합·retry·usage를 맡지만 Loop/Processor/Tool 정의에는
-canonical 메시지 dict 계약이 남아 있다. 이를 완전한 Provider 독립화 완료라고 부르지 않는다.
-A 단계는 공통 typed 모델과 실제 Adapter로 해당 소비자를 직접 전환한다.
+Completion/Processor/Tool/RAG/Vision/worker/Hub는 공통 모델을 소비하며 실제 Adapter가
+SDK 호출·wire 해석·stream 조합·retry·usage를 소유한다. A의 실제 HTTP 횟수와
+전체 회귀 증거는 [Provider 검증](provider-refactor-verification.md)에 기록했다.
 
 부분 응답 뒤 자동 provider retry는 금지한다. 명시 SDK retry와 외부 retry를 중첩하지 않는다.
 LiteLLM retry guard·bundled cost map·stream/n·embedding no-cache는 실제 프로토콜 불변식으로 유지한다.

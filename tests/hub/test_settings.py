@@ -161,7 +161,7 @@ class SettingsFormTests(unittest.TestCase):
 class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_project_schema_save_clone_delete_and_component_selection(self):
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, "loop", "test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False)
             runtime = HubRuntime(config, settings_backend)
             try:
                 await runtime.start()
@@ -216,7 +216,7 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_busy_project_is_not_cloned_and_preferences_persist(self):
         gate = threading.Event()
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, "loop", "test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False)
             runtime = HubRuntime(config, partial(settings_backend, gate=gate))
             try:
                 await runtime.start()
@@ -347,7 +347,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_ctrl_q_then_ctrl_s_connects_backend_on_first_open(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                 input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             task = asyncio.create_task(app.run_async())
@@ -365,7 +365,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_ctrl_s_forms_components_validation_and_return_to_chat(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, "loop", "test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False)
             app, controller = create_application(config, input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, screen = controller.view, controller.view.settings

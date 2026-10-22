@@ -67,6 +67,6 @@ class ComposerHistoryTests(unittest.IsolatedAsyncioTestCase):
                 view.progress.close()
 
     def test_tools_command_requires_registration_and_has_no_singular_alias(self):
-        self.assertEqual(component_commands(("tools",)), {"tools": "tools"})
-        self.assertEqual(component_commands(("tools", "tool")), {"tools": "tools"})
-        self.assertEqual(component_commands(("tool",)), {})
+        self.assertEqual(component_commands(("tools",)), {"tools": "tools", "agents": "agents"})
+        self.assertEqual(component_commands(("tools", "tool")), {"tools": "tools", "agents": "agents"})
+        self.assertEqual(component_commands(("tool",)), {"agents": "agents"})

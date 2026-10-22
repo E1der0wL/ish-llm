@@ -38,7 +38,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await runtime.snapshot_reader.run_display(None, "r", run=run))[1], 2)
 
     async def test_live_elapsed_and_terminal_duration_exclude_queue_time(self):
-        runtime = HubRuntime(HubConfig("unused", "loop", "test/model", auto_title=False))
+        runtime = HubRuntime(HubConfig("unused", model="test/model", auto_title=False))
         run = SimpleNamespace(id="run", status="running", started_at="2026-10-04T00:01:00+00:00",
                               ended_at=None, metadata={"completions": [{"reasoning_content": "Reason"}]})
         read = AsyncMock(return_value=run)
@@ -69,7 +69,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
     async def test_terminal_states_and_missing_history_do_not_keep_counting(self):
         for status in ("interrupted", "failed", "cancelled", "paused"):
             with self.subTest(status=status):
-                runtime = HubRuntime(HubConfig("unused", "loop", "test/model", auto_title=False))
+                runtime = HubRuntime(HubConfig("unused", model="test/model", auto_title=False))
                 run = SimpleNamespace(status=status, started_at="2026-10-04T00:00:00+00:00",
                                       ended_at="2026-10-04T00:00:12.500000+00:00", metadata={})
                 read = AsyncMock(return_value=run)

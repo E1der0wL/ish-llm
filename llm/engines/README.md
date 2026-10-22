@@ -47,22 +47,22 @@ from llm.engines.graph import GraphEngine
 
 engines = {"assistant": LoopEngine()}
 # LargeLanguageModel(..., engines=engines)
-# await session.run.submit("안녕하세요", engine="assistant")
+# await project.agents.acreate({"engine": "assistant"}, identifier="assistant")
+# await session.run.submit("안녕하세요", agent_id="assistant")
 ```
 
-등록 이름이 설정 키입니다. Project 설정은 `parameters.engines.assistant`에 둡니다. 이름이나 파일 위치만으로 자동 발견하지 않으며, 항상 등록한 Engine 이름을 submit/resume에 전달합니다.
+등록 이름이 설정 키입니다. Project 설정은 `parameters.engines.assistant`에 둡니다. 이름이나 파일 위치만으로 자동 발견하지 않으며, 등록한 Engine을 선택한 Agent를 저장하고 실제 Agent ID를 submit/resume에 전달합니다.
 
 ## 새 Engine의 최소 계약
 
 [메인 README](../README.md#새-engine-만들기)의 EchoEngine처럼 BaseEngine.run에서 문자열·EngineDelta·최종 EngineOutput을 yield할 수 있습니다. 복잡한 Engine은 `execute(context)`를 구현하고 BaseEngine의 이벤트 helper를 재사용합니다.
 
 - `execute`는 `AsyncIterator[EngineEvent]`를 반환합니다.
-- 요청별 인자는 `submit(..., engine_options={...})`로 전달합니다. 선택적인 동기
-  `for_request(options)`가 이를 검증하고 실행별 Engine 사본을 반환합니다. 외부 I/O·효과나
-  등록 객체 변경을 하지 않습니다. 옵션 사본을 받으며 capability 탐색과 실제 실행은 같은
-  사본을 사용합니다. `checkpoint_name`과 `steering_mode`는 등록 Engine과 같아야 합니다.
-  접수 검증·실행·재개 검증에서 여러 번 호출될 수 있으므로 호출 자체가 작업을 실행하면
-  안 됩니다. 이 hook이 없는 Engine은 빈 옵션만 허용합니다. 재개도 원본 옵션으로 연결합니다.
+- `for_agent(definition)`은 저장된 정의를 검증하고 실행별 Engine 사본을 반환하는
+  순수 동기 factory입니다. I/O·효과·등록 객체 변경을 하지 않습니다. `agent_mode`,
+  `checkpoint_name`, `steering_mode`를 보존해야 합니다. 정의 Writer·접수·실행·재개에서
+  여러 번 호출되므로 호출 자체가 작업을 실행하면 안 됩니다. Host의 `request_context`는
+  별도 `for_context` 계약으로 처리하고 Agent 정의와 합치지 않습니다.
 - `required_capabilities`는 필요한 기능 이름의 중복 없는 tuple입니다. 미선언은 외부 기능 없음입니다.
 - `context`에는 도메인 스냅샷, 메시지, Run별 state/capabilities와 공유 실행 범위가 있습니다. 실행 상태를 Engine 인스턴스에 누적하지 않습니다.
 - 명시적 부분 출력 재개에서는 `context.resume_outputs`의 `ResumeOutput`에 원본 출력과

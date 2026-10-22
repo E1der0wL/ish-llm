@@ -12,7 +12,7 @@ from pathlib import Path
 from llm.components import Component, ComponentRegistry
 from llm.components.tools import Tool, ToolComponent, ToolRegistry
 from llm.components.tools.resolver import ComponentToolResolver
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentBinding, AgentDefinition
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.core.models import ProjectConfig, Run, RunStatus, MessageRole, MessageStatus, new_id
 from llm.engines import BaseEngine, EngineRegistry
@@ -29,13 +29,15 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(temp.cleanup)
         self.sessions = SessionManager()
         self.components = ComponentRegistry()
-        self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions,
-                                       components=self.components)
-        self.project = self.projects.create("Project", config=ProjectConfig())
-        self.session = self.sessions.create(self.project, "Session")
         self.engines = EngineRegistry()
         self.engine = FakeStreamingEngine()
         self.engines.register("fake", self.engine)
+        self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions,
+                                       components=self.components, engines=self.engines)
+        self.project = self.projects.create("Project", config=ProjectConfig())
+        self.session = self.sessions.create(self.project, "Session")
+        self.projects.agents.create(self.project, {"engine": "fake"}, identifier="fake")
+        self.binding = AgentBinding.create(self.project.id, "fake", {"engine": "fake"})
 
     def manager(self, session=None, **kwargs):
         manager = RunManager(self.sessions, self.engines, session=session or self.session, **kwargs)
@@ -50,13 +52,13 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(TypeError):
             await manager.submit("missing engine")
         for invalid in (None, "", "   ", 123):
-            with self.subTest(engine=invalid), self.assertRaises(RunRequestError) as raised:
-                await manager.submit("invalid engine", engine=invalid)
-            self.assertEqual(raised.exception.code, RunErrorCode.ENGINE_REQUIRED)
+            with self.subTest(agent_id=invalid), self.assertRaises(RunRequestError) as raised:
+                await manager.submit("invalid engine", agent_id=invalid)
+            self.assertEqual(raised.exception.code, RunErrorCode.AGENT_REQUIRED)
         self.assertEqual(ConversationStore(self.session.paths.conversation).list(), [])
         self.assertEqual(manager.repository.list(self.session), [])
         self.assertFalse(self.sessions.ownership.session_attached((self.project.id, self.session.id)))
-        await manager.submit("explicit choice", engine="fake")
+        await manager.submit("explicit choice", agent_id="fake")
         await manager.wait_idle()
         self.assertEqual(manager.repository.list(self.session)[0].engine, "fake")
 
@@ -83,30 +85,29 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
                 return {"custom": {"ok": True}}
         self.engine.required_capabilities = ("custom",)
         manager = self.manager(capabilities=Current())
-        await manager.submit("go", engine="fake")
+        await manager.submit("go", agent_id="fake")
         await manager.wait_idle()
         self.assertEqual(calls, [("custom",)])
         self.assertEqual(self.engine.contexts[0].capabilities["custom"], {"ok": True})
 
     async def test_restored_request_without_engine_fails_without_guessing_and_queue_continues(self):
         store = ConversationStore(self.session.paths.conversation)
-        store.create(MessageRole.USER, "legacy", MessageStatus.QUEUED)
+        store.create(MessageRole.USER, "missing admission evidence", MessageStatus.QUEUED)
         store.create(MessageRole.USER, "explicit", MessageStatus.QUEUED,
-                     metadata={"engine": "fake"})
+                     metadata={"agent_binding": self.binding})
+        before = store.path.read_bytes()
         events = []
         manager = self.manager()
         manager.subscriptions.subscribe(events.append, channel="run")
-        await manager.start()
-        await manager.wait_idle()
-        failed, completed = manager.repository.list(self.session)
-        self.assertEqual(failed.status, RunStatus.FAILED)
-        self.assertEqual(failed.error_code, RunErrorCode.ENGINE_REQUIRED)
-        self.assertEqual(failed.engine, "")
-        self.assertEqual(manager.steps.list(failed), [])
-        self.assertEqual(store.get(failed.assistant_message_id).status, MessageStatus.FAILED)
-        self.assertEqual(completed.status, RunStatus.COMPLETED)
-        self.assertEqual(len(self.engine.contexts), 1)
-        self.assertEqual(events[1].run.error_code, RunErrorCode.ENGINE_REQUIRED)
+        # C requires the original identity on every Run: no fabricated failed
+        # Run or guessed Agent can replace missing admission evidence.
+        with self.assertRaisesRegex(ValueError, "requires all current evidence"):
+            await manager.start()
+        self.assertEqual(store.path.read_bytes(), before)
+        self.assertEqual(manager.repository.list(self.session), [])
+        self.assertEqual(self.engine.contexts, [])
+        self.assertEqual(events, [])
+        self.assertFalse(self.sessions.ownership.session_attached((self.project.id, self.session.id)))
 
     async def test_session_is_required_and_binding_is_detached_from_caller_mutations(self):
         with self.assertRaises(TypeError):
@@ -118,16 +119,15 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         exposed.id = new_id()
         self.assertEqual(manager.session.id, self.session.id)
         with self.assertRaises(TypeError):
-            await manager.submit(self.project, self.session, "old signature", engine="fake")
-        await manager.submit("new signature", engine="fake")
+            await manager.submit(self.project, self.session, "old signature", agent_id="fake")
+        await manager.submit("new signature", agent_id="fake")
         await manager.wait_idle()
         self.assertEqual(manager.repository.list(self.session)[0].status, RunStatus.COMPLETED)
 
     async def test_registration_rejections_do_not_admit_messages_or_attach_runtime(self):
         manager = self.manager()
-        with self.assertRaises(RunRequestError) as caught:
-            await manager.submit("request", engine="typo")
-        self.assertEqual(caught.exception.code, RunErrorCode.ENGINE_NOT_REGISTERED)
+        with self.assertRaises(FileNotFoundError):
+            await manager.submit("request", agent_id="typo")
         self.assertEqual(ConversationStore(self.session.paths.conversation).list(), [])
         self.assertEqual(manager.repository.list(self.session), [])
         self.sessions.save(self.session)  # No runtime lease was acquired by the rejection.
@@ -136,11 +136,11 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
                 self.engines.register(name, engine)
 
     async def test_missing_component_registration_is_rejected_before_queue_admission(self):
-        self.components.register(AgentComponent())
-        self.projects.set_components(self.project, ("agents",))
+        self.components.register(WorkflowComponent())
+        self.projects.set_components(self.project, ("workflows",))
         manager = self.manager()  # Application omitted the Project component registry.
         with self.assertRaises(RunRequestError) as caught:
-            await manager.submit("request", engine="fake")
+            await manager.submit("request", agent_id="fake")
         self.assertEqual(caught.exception.code, RunErrorCode.COMPONENT_NOT_REGISTERED)
         self.assertEqual(manager.repository.list(self.session), [])
         self.assertEqual(ConversationStore(self.session.paths.conversation).list(), [])
@@ -156,7 +156,7 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
             events.append(event)
         manager = self.manager()
         manager.subscriptions.subscribe(observe, channel="run")
-        await manager.submit("request", engine="fake")
+        await manager.submit("request", agent_id="fake")
         await manager.wait_idle()
         self.assertEqual([event.type for event in events], [RunEventType.STARTED, RunEventType.COMPLETED])
         self.assertEqual(events[0].run.status, RunStatus.RUNNING)
@@ -164,16 +164,17 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("changed_by_observer", manager.repository.list(self.session)[0].metadata)
 
     async def test_early_failure_reports_code_detail_and_failed_event_then_continues_queue(self):
-        class Broken:
+        class Broken(BaseEngine):
             async def execute(self, context):
                 raise RuntimeError("action failure detail")
                 yield
         self.engines.register("broken", Broken())
+        self.projects.agents.create(self.project, {"engine": "broken"}, identifier="broken")
         events = []
         manager = self.manager()
         manager.subscriptions.subscribe(events.append, channel="run")
-        await manager.submit("bad", engine="broken")
-        await manager.submit("good", engine="fake")
+        await manager.submit("bad", agent_id="broken")
+        await manager.submit("good", agent_id="fake")
         await manager.wait_idle()
         self.assertEqual([e.type for e in events], [RunEventType.STARTED, RunEventType.FAILED,
                                                   RunEventType.STARTED, RunEventType.COMPLETED])
@@ -195,7 +196,7 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         events = []
         manager = self.manager(capabilities=self.components)
         manager.subscriptions.subscribe(events.append, channel="run")
-        await manager.submit("request", engine="fake")
+        await manager.submit("request", agent_id="fake")
         await manager.wait_idle()
         self.assertEqual(events[-1].type, RunEventType.FAILED)
         self.assertEqual(events[-1].run.error_code, RunErrorCode.CAPABILITY_FAILED)
@@ -204,8 +205,9 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_restored_queue_with_unregistered_engine_has_a_terminal_run_and_notification(self):
         store = ConversationStore(self.session.paths.conversation)
+        self.projects.agents.repository.create(self.project, {"engine": "removed_engine"}, identifier="retained")
         request = store.create(MessageRole.USER, "old request", MessageStatus.QUEUED,
-                               metadata={"engine": "removed_engine"})
+                               metadata={"agent_binding": AgentBinding.create(self.project.id, "retained", {"engine": "removed_engine"})})
         events = []
         manager = self.manager()
         manager.subscriptions.subscribe(events.append, channel="run")
@@ -224,8 +226,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
             raise RuntimeError("display failure")
         manager = self.manager()
         manager.subscriptions.subscribe(observe, channel="run")
-        await manager.submit("one", engine="fake")
-        await manager.submit("two", engine="fake")
+        await manager.submit("one", agent_id="fake")
+        await manager.submit("two", agent_id="fake")
         await manager.wait_idle()
         self.assertEqual(called.count(RunEventType.COMPLETED), 2)
         self.assertTrue(all(r.status == RunStatus.COMPLETED for r in manager.repository.list(self.session)))
@@ -237,13 +239,13 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         first = self.manager()
         first.subscriptions.subscribe(events.append, channel="run")
         second = self.manager(other)
-        await first.submit("first", engine="fake")
-        await second.submit("other", engine="fake")
+        await first.submit("first", agent_id="fake")
+        await second.submit("other", agent_id="fake")
         async def both_running():
             while self.engine.active != 2:
                 await asyncio.sleep(0.005)
         await asyncio.wait_for(both_running(), 10)
-        queued = await first.submit("later", engine="fake")
+        queued = await first.submit("later", agent_id="fake")
         await first.shutdown()
         self.assertEqual(events[-1].type, RunEventType.INTERRUPTED)
         self.assertEqual(events[-1].run.error_code, RunErrorCode.INTERRUPTED)
@@ -265,7 +267,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         request = store.create(MessageRole.USER, "claimed", MessageStatus.COMMITTED)
         run_id = new_id()
         run = Run(run_id, self.session.id, request.id, new_id(), "fake",
-                  manager.repository.paths(self.session, run_id), status=RunStatus.RUNNING)
+                  manager.repository.paths(self.session, run_id), status=RunStatus.RUNNING,
+                  agent_id="fake", metadata={"agent_binding": self.binding})
         run.started_at = run.created_at
         with self.projects.ownership.scope():
             manager.repository.create(run)
@@ -287,9 +290,13 @@ class OpenComponentTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.sessions = SessionManager()
         self.tool = ToolComponent()
-        self.components = ComponentRegistry((self.tool, AgentComponent(), WorkflowComponent()))
-        self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions, components=self.components)
-        self.project = self.projects.create("Project", components=("tools", "agents", "workflows"))
+        self.components = ComponentRegistry((self.tool, WorkflowComponent()))
+        from llm.engines.loop import LoopEngine
+        engines = EngineRegistry()
+        engines.register("loop", LoopEngine())
+        self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions,
+                                       components=self.components, engines=engines)
+        self.project = self.projects.create("Project", components=('tools', 'workflows'))
 
     def test_open_config_roundtrip_clone_session_overrides_and_field_names(self):
         config = ProjectConfig(data={"editor": {"font_size": 14}, "theme": "dark"})
@@ -321,7 +328,6 @@ class OpenComponentTests(unittest.TestCase):
         self.assertEqual(data.load("offline"), definition)
         data.update("offline", {"requirements": "# none"})
         definitions = {
-            "agents": {"engine": "loop", "purpose": "Test", "completion": {"model": "test/model"}},
             "workflows": WorkflowGraph(entry="end").node("end", "end").to_dict(),
         }
         for name, definition in definitions.items():
@@ -329,7 +335,15 @@ class OpenComponentTests(unittest.TestCase):
             records.create({**definition, "metadata": {"unknown": {"future": [1]}}}, identifier="example")
             records.update("example", {"metadata": {"new": True}})
             self.assertTrue(records.load("example")["metadata"]["new"])
+        agents = self.projects.agents
+        agents.create(self.project, {"engine": "loop", "purpose": "Test", "completion": {"model": "test/model"},
+            "metadata": {"unknown": {"future": [1]}}}, identifier="example")
+        original = agents.snapshot(self.project, "example")
+        agents.revise(self.project, "example", {**original["definition"], "metadata": {"new": True}},
+                      expected_revision=original["revision"])
+        self.assertTrue(agents.load(self.project, "example")["metadata"]["new"])
         clone = self.projects.clone(self.project)
+        self.assertEqual(agents.list(clone), agents.list(self.project))
         for name in self.project.components:
             self.assertEqual(self.projects.component(clone, name).list(), self.projects.component(self.project, name).list())
         with self.assertRaises(ValueError):
@@ -357,7 +371,7 @@ async def main():
                     raise RuntimeError("backend unavailable")
                 return "retriever instance"
         self.components.register(Multi())
-        self.projects.set_components(self.project, ("tools", "agents", "workflows", "multi"))
+        self.projects.set_components(self.project, ('tools', 'workflows', 'multi'))
         self.assertEqual(self.components.resolve(self.project, "retriever"), ("retriever instance",))
         self.assertEqual(requested, ["retriever"])
         self.assertEqual(ComponentToolResolver(self.components).resolve_tools(self.projects.load(self.project.id)).names(), ())

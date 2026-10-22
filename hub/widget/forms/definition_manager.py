@@ -21,7 +21,7 @@ from .record_manager import RecordManager
 def initial_definition(name):
     return {
         "prompts": {"messages": [{"role": "system", "content": "You are a helpful assistant."}]},
-        "agents": {"purpose": "", "engine": "loop", "system_prompt": ""},
+        "agents": {"engine": "loop"},
         "workflows": {"schema_version": WorkflowGraph.SCHEMA_VERSION, "entry": "done", "nodes": {"done": {"type": "end"}}, "edges": []},
         "memory": {"content": "", "kind": "note", "scope": MemoryComponent.PROJECT_SCOPE, "status": MemoryComponent.CONFIRMED, "tags": []},
     }[name]

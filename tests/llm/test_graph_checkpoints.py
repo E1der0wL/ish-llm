@@ -39,7 +39,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             return value
         with patch.object(ConversationStore, "create", fail_after_create):
             with self.assertRaises(OSError):
-                await self.session.run.resume(paused.id, engine="graph", decisions={'["second"]': {}})
+                await self.session.run.resume(paused.id, agent_id="graph", decisions={'["second"]': {}})
         self.assertEqual(await paused.acheckpoint(), snapshot)
         self.assertEqual(len(await self.session.aconversation()), 2)
         self.assertEqual(self.app.run_repository.interaction_responses(self.session.data, paused.data), [])
@@ -59,7 +59,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         await self.setup_graph(graph, work)
         paused = await self.run_graph()
         with self.assertRaises(Exception):
-            await self.session.run.resume(paused.id, engine='graph', decisions={'["review"]': {'state': {'other': 1}}})
+            await self.session.run.resume(paused.id, agent_id='graph', decisions={'["review"]': {'state': {'other': 1}}})
         resumed = await self.resume(paused, decisions={'["review"]': {'state': {'value': 'reviewed'}}})
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual((await self.output(resumed))['value'], 'reviewed')
@@ -80,13 +80,14 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             "parameters": {"engines": {"graph": GraphEngine.parameter_layout.pack(options)}}})
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph, identifier="flow")
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
         self.session = await self.project.sessions.acreate()
 
     async def run_graph(self):
-        return await (await self.session.run.submit("original request", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=30)
+        return await (await self.session.run.submit("original request", agent_id="graph")).wait(timeout=30)
 
     async def resume(self, run, **options):
-        return await (await self.session.run.resume(run.id, engine="graph", **options)).wait(timeout=30)
+        return await (await self.session.run.resume(run.id, agent_id="graph", **options)).wait(timeout=30)
 
     async def output(self, run):
         return next(s.output.data for s in await run.steps.alist() if s.kind == "graph")
@@ -117,7 +118,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(self.root, engines={"graph": self.engine})
         self.addAsyncCleanup(app.shutdown)
         session = (await app.projects.aload(project_id)).sessions.load(session_id)
-        resumed = await (await session.run.resume(old_id, engine="graph")).wait(timeout=30)
+        resumed = await (await session.run.resume(old_id, agent_id="graph")).wait(timeout=30)
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(calls, ["first", "second"])
         self.assertEqual((await self.output(resumed))["seen"], ["first", "second"])
@@ -135,21 +136,21 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             return {"done": True}
         await self.setup_graph(straight(), work)
-        request = await self.session.run.submit("run", engine="graph", engine_options={"workflow": "flow"})
+        request = await self.session.run.submit("run", agent_id="graph")
         await asyncio.wait_for(entered.wait(), 10)
         await self.session.run.interrupt()
         stopped = await request.wait()
         self.assertEqual(stopped.data.status, RunStatus.INTERRUPTED)
         with self.assertRaises(RunRequestError) as error:
-            await self.session.run.resume(stopped.id, engine="graph")
+            await self.session.run.resume(stopped.id, agent_id="graph")
         self.assertEqual(error.exception.code, RunErrorCode.RESUME_REJECTED)
         retried = await self.resume(stopped, retry_nodes=await self.uncertain(stopped))
         self.assertEqual(retried.data.status, RunStatus.COMPLETED, retried.data.error)
         self.assertEqual(calls, ["work", "work"])
         with self.assertRaisesRegex(RunRequestError, "already has"):
-            await self.session.run.resume(stopped.id, engine="graph", retry_nodes=await self.uncertain(stopped))
+            await self.session.run.resume(stopped.id, agent_id="graph", retry_nodes=await self.uncertain(stopped))
         with self.assertRaises(RunRequestError):
-            await self.session.run.resume(retried.id, engine="graph")
+            await self.session.run.resume(retried.id, agent_id="graph")
 
     async def test_project_policy_change_requires_original_settings_for_resume(self):
         calls = []
@@ -161,7 +162,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(paused.data.status, RunStatus.PAUSED)
         await self.project.aconfigure_policies({"context": {"mode": "recent", "max_turns": 1}})
         with self.assertRaises(RunRequestError) as caught:
-            await self.session.run.resume(paused.id, engine="graph")
+            await self.session.run.resume(paused.id, agent_id="graph")
         self.assertEqual(caught.exception.code, "resume_rejected")
         self.assertEqual(calls, [])
         await self.project.asave(config={**self.project.data.config.to_dict(), "policies": paused.data.metadata["policies"]})
@@ -241,7 +242,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             failed = await self.run_graph()
         self.assertEqual(calls, ["work"])
         with self.assertRaisesRegex(RunRequestError, "retry_nodes"):
-            await self.session.run.resume(failed.id, engine="graph")
+            await self.session.run.resume(failed.id, agent_id="graph")
 
     async def test_revision_and_ownership_validation(self):
         async def work(node):
@@ -250,10 +251,10 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         paused = await self.run_graph()
         other = await self.project.sessions.acreate()
         with self.assertRaises(RunRequestError):
-            await other.run.resume(paused.id, engine="graph")
+            await other.run.resume(paused.id, agent_id="graph")
         self.engine.revision = "2"
         with self.assertRaisesRegex(RunRequestError, "revision"):
-            await self.session.run.resume(paused.id, engine="graph")
+            await self.session.run.resume(paused.id, agent_id="graph")
 
     async def test_definition_changes_never_mix_with_previous_results(self):
         calls = []
@@ -302,8 +303,8 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(previous.data.status, RunStatus.INTERRUPTED)
         self.assertEqual((self.root / "effects.txt").read_text().splitlines(), ["first", "second"])
         with self.assertRaises(RunRequestError):
-            await session.run.resume(previous.id, engine="graph")
-        resumed = await (await session.run.resume(previous.id, engine="graph",
+            await session.run.resume(previous.id, agent_id="graph")
+        resumed = await (await session.run.resume(previous.id, agent_id="graph",
                         retry_nodes=['["second"]'])).wait(timeout=30)
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         # 실제 부작용 후 종료된 노드를 승인했으므로 해당 부작용은 중복될 수 있다.
@@ -321,12 +322,13 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await asyncio.Event().wait()
         self.app.engines.register("wait", BaseEngine(action=wait))
-        await self.session.run.submit("wait", engine="wait")
+        await self.project.agents.acreate({"engine": "wait"}, identifier="wait")
+        await self.session.run.submit("wait", agent_id="wait")
         await asyncio.wait_for(entered.wait(), 10)
-        request = await self.session.run.resume(paused.id, engine="graph")
+        request = await self.session.run.resume(paused.id, agent_id="graph")
         self.assertEqual(request.data.status, MessageStatus.QUEUED)
         with self.assertRaisesRegex(RunRequestError, "already has"):
-            await self.session.run.resume(paused.id, engine="graph")
+            await self.session.run.resume(paused.id, agent_id="graph")
         pid, tid, mid = self.project.id, self.session.id, request.id
         await self.app.shutdown()
         app = LargeLanguageModel(self.root, engines={"graph": self.engine})
@@ -342,8 +344,9 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         await self.setup_graph(straight(pause_before=True), work)
         memory = await self.app.projects.acreate("memory", components=["workflows"], conversation_storage="memory")
         await (await memory.components.aget("workflows")).acreate(straight(pause_before=True), identifier="flow")
+        await memory.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
         session = await memory.sessions.acreate()
-        paused = await (await session.run.submit("private memory transcript marker", engine="graph", engine_options={"workflow": "flow"})).wait()
+        paused = await (await session.run.submit("private memory transcript marker", agent_id="graph")).wait()
         checkpoint = await paused.acheckpoint()
         self.assertNotIn("private memory transcript marker", json.dumps(checkpoint))
         pid, tid, rid = memory.id, session.id, paused.id
@@ -352,7 +355,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(app.shutdown)
         session = (await app.projects.aload(pid)).sessions.load(tid)
         with self.assertRaisesRegex(RunRequestError, "Original conversation"):
-            await session.run.resume(rid, engine="graph")
+            await session.run.resume(rid, agent_id="graph")
 
     async def test_two_concurrent_resumes_admit_only_one_request(self):
         calls = []
@@ -361,8 +364,8 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             return {}
         await self.setup_graph(straight(pause_before=True), work)
         paused = await self.run_graph()
-        results = await asyncio.gather(self.session.run.resume(paused.id, engine="graph"),
-                                       self.session.run.resume(paused.id, engine="graph"), return_exceptions=True)
+        results = await asyncio.gather(self.session.run.resume(paused.id, agent_id="graph"),
+                                       self.session.run.resume(paused.id, agent_id="graph"), return_exceptions=True)
         accepted = [result for result in results if not isinstance(result, Exception)]
         self.assertEqual(len(accepted), 1)
         self.assertTrue(any(isinstance(result, RunRequestError) for result in results))
@@ -376,8 +379,8 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(node.context.messages[-1].id, node.context.run.input_message_id)
             return {}
         await self.setup_graph(straight(pause_before=True), work)
-        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
-        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
+        first = await self.session.run.submit("first", agent_id="graph")
+        second = await self.session.run.submit("second", agent_id="graph")
         first_run, second_run = await first.wait(), await second.wait()
         self.assertEqual(first_run.data.status, RunStatus.PAUSED)
         self.assertEqual(second_run.data.status, RunStatus.PAUSED)
@@ -405,7 +408,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         uncertain = await self.uncertain(paused)
         self.assertEqual(uncertain, ['["fork","branch","b","b"]'])
         with self.assertRaises(RunRequestError):
-            await self.session.run.resume(paused.id, engine="graph")
+            await self.session.run.resume(paused.id, agent_id="graph")
         resumed = await self.resume(paused, retry_nodes=uncertain)
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(calls.count("a"), 1)
@@ -424,9 +427,10 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await release.wait()
         self.app.engines.register("wait", BaseEngine(action=wait))
-        blocker = await self.session.run.submit("block", engine="wait")
+        await self.project.agents.acreate({"engine": "wait"}, identifier="wait")
+        blocker = await self.session.run.submit("block", agent_id="wait")
         await asyncio.wait_for(entered.wait(), 10)
-        queued = await self.session.run.resume(paused.id, engine="graph")
+        queued = await self.session.run.resume(paused.id, agent_id="graph")
         path = paused.data.paths.state / "checkpoints" / "graph" / "checkpoint.json"
         data = json.loads(path.read_text(encoding="utf-8"))
         data["header"]["initial_state"]["tampered"] = True
@@ -448,14 +452,16 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await release.wait()
         self.app.engines.register("wait", BaseEngine(action=wait))
-        await self.session.run.submit("block", engine="wait")
+        await self.project.agents.acreate({"engine": "wait"}, identifier="wait")
+        await self.session.run.submit("block", agent_id="wait")
         await asyncio.wait_for(entered.wait(), 10)
-        queued = await self.session.run.resume(paused.id, engine="graph")
+        queued = await self.session.run.resume(paused.id, agent_id="graph")
         await self.workflows.asave("flow", straight(pause_before=True, metadata={"label": "changed after queue"}))
         release.set()
         rejected = await queued.wait()
         self.assertEqual(rejected.data.status, RunStatus.FAILED)
         self.assertIn("changed", rejected.data.error)
+        self.assertEqual(rejected.data.metadata["agent_execution"], paused.data.metadata["agent_execution"])
         self.assertTrue((await rejected.acheckpoint())["records"])
         await self.workflows.asave("flow", straight(pause_before=True))
         resumed = await self.resume(rejected)
@@ -472,6 +478,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             failed = await self.resume(paused)
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         self.assertNotIn("checkpoints", failed.data.metadata)
+        self.assertEqual(failed.data.metadata["agent_execution"], paused.data.metadata["agent_execution"])
         self.assertEqual((await failed.acheckpoint())["run_id"], failed.id)
         continued = await self.resume(failed)
         self.assertEqual(continued.data.status, RunStatus.COMPLETED, continued.data.error)
@@ -489,6 +496,6 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         paused = await self.run_graph()
         self.engine.handlers.clear()
         with self.assertRaises(RunRequestError) as error:
-            await self.session.run.resume(paused.id, engine="graph")
+            await self.session.run.resume(paused.id, agent_id="graph")
         self.assertEqual(error.exception.code, RunErrorCode.RESUME_REJECTED)
         self.assertEqual(len(await self.session.run.alist()), 1)

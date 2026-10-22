@@ -26,12 +26,14 @@ completed 저장이 실패하면 started로 남아 재실행 승인이 필요하
 ## UI에서 조회·재개
 
 ```python
-request = await session.run.submit("설정 파일을 검토해줘", engine="graph", engine_options={"workflow": workflow_id})
+await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": workflow_id}},
+                             identifier="coordinator")
+request = await session.run.submit("설정 파일을 검토해줘", agent_id="coordinator")
 run = await request.wait()  # completed / failed / interrupted / paused 중 하나
 snapshot = await run.acheckpoint()
 
 # pause_before에서 기다린 노드는 별도 재시도 승인 없이 이어갈 수 있다.
-resumed_request = await session.run.resume(run.id, engine="graph")
+resumed_request = await session.run.resume(run.id, agent_id=run.agent_id)
 resumed_run = await resumed_request.wait()
 ```
 
@@ -59,7 +61,7 @@ uncertain = {
 # uncertain의 path, node_id와 원본 Run의 Step/Tool 이력을 UI에 보여준다.
 # 사용자가 재실행을 승인한 키 목록을 전달한다. 자동으로 전부 승인하지 않는다.
 resumed_request = await session.run.resume(
-    run.id, engine="graph", retry_nodes=user_approved_keys,
+    run.id, agent_id=run.agent_id, retry_nodes=user_approved_keys,
 )
 ```
 

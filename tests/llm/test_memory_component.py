@@ -12,7 +12,7 @@ from unittest.mock import patch
 from llm.components.memory import MemoryComponent, MemoryConflictError
 from llm.components.memory.tools import memory_tools
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.core.models import RunStatus
 from llm.engines.loop import LoopEngine
 from llm.engines.base import BaseEngine
@@ -45,9 +45,12 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
     async def run_tool(self, name, arguments, *, project=None):
         model = completion_for(name, arguments)
         engine = "test_" + str(len(self.app.engines.names()))
-        self.app.engines.register(engine, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
-        session = await (project or self.project).sessions.acreate()
-        run = await (await session.run.submit("기억을 관리해줘", engine=engine)).wait(timeout=20)
+        self.app.engines.register(engine, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
+        selected = project or self.project
+        await selected.agents.acreate({"engine": engine, "completion": {"model": "test/model"},
+            "tools": ["memory_search", "memory_get", "memory_create", "memory_update", "memory_delete", "memory_tool_result"]}, identifier=engine)
+        session = await selected.sessions.acreate()
+        run = await (await session.run.submit("기억을 관리해줘", agent_id=engine)).wait(timeout=20)
         return run, model, session
 
     async def test_crud_open_json_revision_and_history(self):
@@ -206,8 +209,9 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
 
         await self.memory.acreate({"content": "한국어로 응답"})
         self.app.engines.register("recall", Recall())
+        await self.project.agents.acreate({"engine": "recall"}, identifier="recall")
         session = await self.project.sessions.acreate()
-        run = await (await session.run.submit("recall", engine="recall")).wait(timeout=20)
+        run = await (await session.run.submit("recall", agent_id="recall")).wait(timeout=20)
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((await run.aresponse()).content, "한국어로 응답")
 
@@ -260,13 +264,21 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.memory.alist(), {})
 
     async def test_policy_denial_prevents_memory_effects(self):
+        async def deny(invocation):
+            return False
         async with LargeLanguageModel(self.root / "denied", components=[MemoryComponent()], engines={},
-                                      services=BackendServices()) as app:
+                                      services=BackendServices(tool_runtime=ToolRuntime(authorize=deny))) as app:
             model = completion_for("memory_create", {"content": "denied"})
-            app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
+            app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
             project = await app.projects.acreate(components=["memory"], config={"policies": {"tools": {"allowed_tools": ["memory_search"]}}})
+            await project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": ["memory_create"]}, identifier="loop")
             session = await project.sessions.acreate()
-            run = await (await session.run.submit("save", engine="loop")).wait(timeout=20)
+            rejected = await (await session.run.submit("save", agent_id="loop")).wait(timeout=20)
+            self.assertEqual(rejected.data.error_code, "tool_denied")
+            self.assertEqual(model.requests, [])
+            self.assertEqual(await project.components.memory.alist(), {})
+            await project.aconfigure_policies({"tools": {"allowed_tools": ["memory_search", "memory_create"]}})
+            run = await (await session.run.submit("save", agent_id="loop")).wait(timeout=20)
             self.assertEqual(run.data.status, RunStatus.FAILED)
             self.assertEqual(await (await project.components.aget("memory")).alist(), {})
             step = next(s for s in await run.steps.alist() if s.kind == "tool")
@@ -292,29 +304,32 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_graph_tool_node_and_agent_use_same_memory_tools(self):
         self.app.project_manager.components.register(WorkflowComponent())
-        self.app.project_manager.components.register(AgentComponent())
-        await self.project.components.aselect(["memory", "workflows", "agents"])
+        await self.project.components.aselect(['memory', 'workflows'])
         workflows = await self.project.components.aget("workflows")
         graph = (WorkflowGraph(entry="remember", initial_state={"args": {"content": "graph memory"}})
                  .node("remember", "tool", tool="memory_create", arguments_key="args", result_key="saved")
                  .node("end", "end").connect("remember", "end").to_dict())
         await workflows.acreate(graph, identifier="flow")
         self.app.engines.register("graph", GraphEngine(handlers={"tool": ToolNode()}))
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
         session = await self.project.sessions.acreate()
-        run = await (await session.run.submit("remember", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=20)
+        run = await (await session.run.submit("remember", agent_id="graph")).wait(timeout=20)
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         record = next(iter((await self.memory.alist()).values()))
         self.assertEqual(record["source"]["run_id"], run.id)
         model = completion_for("memory_get", {"identifier": record["id"]})
-        agents = await self.project.components.aget("agents")
+        worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
+        self.app.engines.register("loop", worker)
+        agents = self.project.agents
         await agents.acreate({"engine": "loop", "purpose": "Recall", "completion": {"model": "test/model"},
                               "tools": ["memory_get"]}, identifier="reader")
         graph = (WorkflowGraph(entry="reader").node("reader", "agent", agent="reader")
                  .node("end", "end").connect("reader", "end").to_dict())
         await workflows.acreate(graph, identifier="agent_flow")
         self.app.engines.register("agent", GraphEngine(handlers={
-            "agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})}))
-        run = await (await session.run.submit("recall", engine="agent", engine_options={"workflow": "agent_flow"})).wait(timeout=20)
+            "agent": AgentNode(engines={"loop": worker})}))
+        await self.project.agents.acreate({"engine": "agent", "engine_options": {"workflow": "agent_flow"}}, identifier="agent")
+        run = await (await session.run.submit("recall", agent_id="agent")).wait(timeout=20)
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual([t["function"]["name"] for t in model.requests[0]["tools"]], ["memory_get"])
         self.assertEqual(json.loads(model.requests[-1]["messages"][-1]["content"]), record)

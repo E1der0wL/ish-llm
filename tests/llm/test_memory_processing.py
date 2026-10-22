@@ -18,7 +18,7 @@ from llm.components.prompts import PromptComponent
 from llm.components.base import Component
 from llm.components.processing import CompletionSession
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.core.models import RunStatus
 from llm.engines.graph.agent import AgentNode
 from llm.engines.graph import GraphEngine
@@ -169,7 +169,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         before = await self.memory.alist(session_id=self.session.id)
         self.assertEqual(len(before), 1)
-        resumed = await (await self.session.run.resume(failed.id, engine=failed.data.engine)).wait()
+        resumed = await (await self.session.run.resume(failed.id, agent_id=failed.data.agent_id)).wait()
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(await self.memory.alist(session_id=self.session.id), before)
         self.assertEqual(len(self.aux.requests), 1)
@@ -272,7 +272,19 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         # 테스트가 생성하는 Engine별 Project 설정의 read-modify-save만 직렬화한다.
         async with self.config_lock:
             await configure_engine(self.project, name, completion={"model": "test/main"})
-        run = await (await (session or self.session).run.submit(prompt, engine=name)).wait(timeout=20)
+        # Application fixture saves the selected Tool catalogue explicitly.
+        from llm.components.tools.resolver import ComponentToolResolver
+        manager = self.app.project_manager
+        def selected_tools():
+            with manager.ownership.scope():
+                project = manager.access.require(self.project.data)
+                return list(ComponentToolResolver(manager.components,
+                    data_factory=manager.component, agents=manager.agents,
+                    engines=self.app.engines).resolve_tools(project).names())
+        await self.project.agents.acreate({"engine": name,
+            "tools": [*(await asyncio.to_thread(selected_tools)),
+                *(["memory_tool_result"] if "memory" in self.project.data.components else [])]}, identifier=name)
+        run = await (await (session or self.session).run.submit(prompt, agent_id=name)).wait(timeout=20)
         return run, model
 
     async def build_history(self):
@@ -587,20 +599,23 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(model.requests[0]["messages"][-1]["content"], "budget")
 
     async def test_graph_agent_uses_processor_without_reusing_session_summary(self):
-        for component in (AgentComponent(), WorkflowComponent()):
+        for component in (WorkflowComponent(),):
             self.app.project_manager.components.register(component)
-        await self.project.components.aselect(["memory", "prompts", "agents", "workflows"])
+        await self.project.components.aselect(['memory', 'prompts', 'workflows'])
         await self.memory.acreate({"content": "Python guidelines"})
         await self.configure(recall=True, summarize=True, extract=True)
-        agents = await self.project.components.aget("agents")
+        model = ScriptedCompletion(answer())
+        worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
+        self.app.engines.register("loop", worker)
+        agents = self.project.agents
         await agents.acreate({"engine": "loop", "purpose": "Python", "completion": {"model": "test/model"}}, identifier="reader")
         graph = (WorkflowGraph(entry="read", inputs={"request": "/prompt"})
                  .node("read", "agent", agent="reader", inputs={"request": "/request"})
                  .node("end", "end").connect("read", "end"))
         await (await self.project.components.aget("workflows")).acreate(graph.to_dict(), identifier="g")
-        model = ScriptedCompletion(answer())
-        self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})}))
-        run = await (await self.session.run.submit("Python", engine="graph", engine_options={"workflow": "g"})).wait(timeout=20)
+        self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={"loop": worker})}))
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "g"}}, identifier="graph")
+        run = await (await self.session.run.submit("Python", agent_id="graph")).wait(timeout=20)
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertIn("Python guidelines", model.requests[0]["messages"][-1]["content"])
         self.assertEqual(self.aux.requests, [])
@@ -647,8 +662,9 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             yield from self.aux(**request)
         self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=slow)
         model = ScriptedCompletion(answer())
-        self.app.engines.register("interrupt", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
-        request = await self.session.run.submit("third", engine="interrupt")
+        self.app.engines.register("interrupt", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
+        await self.project.agents.acreate({"engine": "interrupt", "completion": {"model": "test/main"}}, identifier="interrupt")
+        request = await self.session.run.submit("third", agent_id="interrupt")
         try:
             self.assertTrue(await asyncio.to_thread(entered.wait, 5))
             await self.session.run.interrupt()

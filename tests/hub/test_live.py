@@ -62,7 +62,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_sessions_execute_concurrently_without_switch_interrupt(self):
         gate = threading.Event()
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, "loop", "test/model", auto_title=False),
+            runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False),
                                  partial(controlled_backend, gate=gate))
             try:
                 await runtime.start()
@@ -94,7 +94,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             return LargeLanguageModel(config.workspace, components=[ToolComponent()],
                                       engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, "loop", "openai/test", auto_title=False), factory)
+            runtime = HubRuntime(HubConfig(directory, model="openai/test", auto_title=False), factory)
             try:
                 await runtime.start()
                 if not runtime.sessions:
@@ -114,7 +114,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 project_id = snapshot.project_id
             finally:
                 await runtime.close()
-            reopened = HubRuntime(HubConfig(directory, "loop", "openai/do-not-overwrite",
+            reopened = HubRuntime(HubConfig(directory, model="openai/do-not-overwrite",
                                             project_id=project_id, session_id=identifier, auto_title=False), factory)
             try:
                 await reopened.start()
@@ -129,7 +129,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         gate = threading.Event()
         factory = partial(controlled_backend, gate=gate)
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, "loop", "test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False)
             runtime = HubRuntime(config, factory)
             await runtime.start()
             if not runtime.sessions:
@@ -158,7 +158,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
     async def test_live_stream_queue_interrupt_hide_and_new_session(self):
         gate = threading.Event()
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, "loop", "test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False)
             factory = partial(BackendWorker, backend_factory=partial(controlled_backend, gate=gate))
             app, controller = create_application(config, input=pipe, output=SizedOutput(), worker_factory=factory)
             view = controller.view
@@ -172,6 +172,9 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("hold first\r")
                 await until(lambda: view.composer.text == "")
                 await until(lambda: any("reply" in m.text for m in view.output.transcript.control.messages))
+                history = await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(
+                    controller.worker.runtime.sessions[first_id].aconversation(), controller.worker.loop))
+                self.assertNotIn("request_context", next(m for m in history if str(m.role) == "user").metadata)
                 pipe.send_text("second\r")
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("\r")  # Default: follow-up request.
@@ -203,7 +206,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_admission_error_preserves_draft(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, "missing", "test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False)
             factory = partial(BackendWorker, backend_factory=partial(controlled_backend, gate=threading.Event()))
             app, controller = create_application(config, input=pipe, output=SizedOutput(), worker_factory=factory)
             task = asyncio.create_task(app.run_async(pre_run=lambda: controller.view.show(app)))
@@ -212,9 +215,9 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 if controller.view.no_sessions:
                     pipe.send_text("/new\r\r")
                     await until(lambda: not controller.view.no_sessions and controller.view._dialog is None)
-                # Snapshots select an available engine; force an invalid choice at admission.
+                # Snapshots select an available Agent; force an invalid choice at admission.
                 controller.view.composer.text = "keep this"
-                controller.view.engine = "missing"
+                controller.view.agent_id = "missing"
                 controller.submit(controller.view.sessions[controller.view.selected].id, "keep this")
                 await until(lambda: controller.view.notice.startswith("오류:"))
                 self.assertEqual(controller.view.composer.text, "keep this")
@@ -266,7 +269,7 @@ class HostLifecycleTests(unittest.TestCase):
                 raise SystemExit(0)
 
             prompt.run = host_run
-            installation = install(prompt, config=HubConfig(directory, "loop", "test/model", auto_title=False,
+            installation = install(prompt, config=HubConfig(directory, model="test/model", auto_title=False,
                 engine_factories={"loop": lambda: ControlledEngine(gate)}))
             with self.assertRaises(SystemExit):
                 prompt.run()

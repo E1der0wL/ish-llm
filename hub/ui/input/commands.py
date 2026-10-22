@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class CommandSpec:
     name: str
     handler: Callable[["HubView", str], object]
-    arguments: Literal["engines"] | None = None
+    arguments: Literal["agents"] | None = None
 
     @property
     def description_key(self) -> str:
@@ -20,10 +20,10 @@ class CommandSpec:
 
 
 # Execution and completion consume the same ordered definitions. Keep the
-# request-scoped engine/Workflow options available for the future Graph page.
+# saved Project Agent choices shared by execution and completion.
 COMMANDS = (
     CommandSpec("help", lambda view, argument: view.help_dialog()),
-    CommandSpec("engine", lambda view, argument: view.choose_engine(argument), arguments="engines"),
+    CommandSpec("agent", lambda view, argument: view.choose_agent(argument), arguments="agents"),
     CommandSpec("new", lambda view, argument: view.session_dialog("new", argument)),
     CommandSpec("clone", lambda view, argument: view.session_dialog("clone", argument)),
     CommandSpec("stop", lambda view, argument: view.on_interrupt and view.on_interrupt(view.sessions[view.selected].id)),

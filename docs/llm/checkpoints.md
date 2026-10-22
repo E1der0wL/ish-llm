@@ -178,7 +178,7 @@ Job 삭제로 공개 세대나 논리 사용량을 초기화하지 않는다.
 
 ## 실행 계획과 CAS
 
-`await session.run.resume_plan(run_id, engine=name)`은 기존 필드에 `state`, `revision`,
+`await session.run.resume_plan(run_id, agent_id=name)`은 기존 필드에 `state`, `revision`,
 `can_restart`, `restart_blockers`, `active`, `abandoned`를 추가한다. `state`는 `valid`,
 `not_created`, `missing`, `corrupt`, `incompatible`, `deleted`, `unsupported`, `unknown`이다.
 `valid`여도 승인·실행 상태·재개 계보에 따라 `can_resume=False`일 수 있다. Run 수명 증거 자체가

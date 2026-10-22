@@ -11,7 +11,7 @@ from llm.llm import LargeLanguageModel
 from llm.components.skills import SkillComponent
 from llm.components.data import DataComponent
 from llm.components.tools import ToolComponent
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.engines.loop import LoopEngine
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 import json
@@ -30,7 +30,7 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.parts = [SkillComponent(), DataComponent(), ToolComponent(), AgentComponent()]
+        self.parts = [SkillComponent(), DataComponent(), ToolComponent()]
         self.app = LargeLanguageModel(self.root, components=self.parts)
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate(components=[part.name for part in self.parts])
@@ -85,15 +85,15 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "referenced"):
             await self.project.components.aremove("data", permanent=True)
 
-    async def test_disabled_agent_remains_visible_in_dependencies_after_reopen(self):
-        agents = self.project.components.agents
+    async def test_independent_agent_remains_visible_in_dependencies_after_reopen(self):
+        agents = self.project.agents
         await agents.acreate({"purpose": "Read guide", "engine": "loop",
                               "resources": {"skills": ["guide"]}}, identifier="reader")
         await agents.acreate({"purpose": "Unrelated", "engine": "loop"}, identifier="other")
         snapshot = await agents.asnapshot("reader")
         expected = [{"agent_id": "reader", "revision": snapshot["revision"]}]
         self.assertEqual(await self.skills.aimpact("guide"), expected)
-        await self.project.components.aremove("agents")
+        await self.project.components.aselect([part.name for part in self.parts])
         self.assertEqual(await self.skills.adependencies("guide"), {"agents": expected, "children": []})
         with self.assertRaisesRegex(ValueError, "referenced"):
             await self.skills.adelete("guide")
@@ -109,8 +109,8 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaisesRegex(ValueError, "referenced"):
                 await skills.adelete("guide")
             await project.components.aselect([part.name for part in self.parts])
-            self.assertEqual(await project.components.agents.asnapshot("reader"), snapshot)
-            await project.components.agents.aupdate("reader", {"resources": {"skills": []}})
+            self.assertEqual(await project.agents.asnapshot("reader"), snapshot)
+            await project.agents.aupdate("reader", {"resources": {"skills": []}}, expected_revision=snapshot["revision"])
             self.assertEqual(await skills.adependencies("guide"), {"agents": [], "children": []})
             await skills.adelete("guide")
 
@@ -137,10 +137,11 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
     async def test_loop_reads_resource_and_persists_step_without_tool_authority(self):
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": "guide", "index": 0}), name="skill_read_resource")], finish="tool_calls")],
                                    [chunk("Answer", finish="stop")])
-        engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": "loop", "engine_options": LoopEngine.parameter_layout.pack({"completion": {"model": "test/model"}})})
+        engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
         self.app.engines.register("read", engine)
+        await self.project.agents.acreate({"engine": "read", "completion": {"model": "test/model"}, "tools": ["skill_read_resource"], "resources": {"skills": ["guide"]}}, identifier="read")
         session = await self.project.sessions.acreate()
-        result = await (await session.run.submit("Read guide", engine="read")).wait()
+        result = await (await session.run.submit("Read guide", agent_id="read")).wait()
         self.assertEqual(str(result.data.status), "completed", result.data.error)
         self.assertNotIn("helper", [tool["function"]["name"] for tool in model.requests[0]["tools"]])
         self.assertIn("Exact evidence", json.dumps([m for m in model.requests[-1]["messages"] if m["role"] == "tool"]))
@@ -180,13 +181,14 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
                  .node("read", "tool", tool="skill_read_resource", arguments={"identifier": "guide", "index": 0}, pause_before=True)
                  .node("end", "end").connect("read", "end").to_dict())
         await self.project.components.workflows.acreate(graph, identifier="read")
+        await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "read"}}, identifier="graph")
         session = await self.project.sessions.acreate()
-        paused = await (await session.run.submit("Read", engine="graph", engine_options={"workflow": "read"})).wait()
+        paused = await (await session.run.submit("Read", agent_id="graph")).wait()
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
         changed = await self.data.awrite_file("manual", "reference.md", "Changed", expected_revision=self.refs[0]["revision"])
         with self.assertRaisesRegex(ValueError, "reference revision"):
-            await session.run.resume(paused.id, engine="graph")
+            await session.run.resume(paused.id, agent_id="graph")
         self.assertEqual((await paused.aget_data()).status, RunStatus.PAUSED)
         await self.data.awrite_file("manual", "reference.md", "Exact evidence", expected_revision=changed["version"])
-        resumed = await (await session.run.resume(paused.id, engine="graph")).wait()
+        resumed = await (await session.run.resume(paused.id, agent_id="graph")).wait()
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)

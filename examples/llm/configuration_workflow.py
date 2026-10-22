@@ -16,7 +16,7 @@ import stat
 import sys
 from uuid import uuid4
 
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.rag import RAGComponent
 from llm.components.tools import Tool, ToolRegistry
 from llm.components.base import Component
@@ -382,7 +382,7 @@ def backend(workspace, config, review, *, completion_adapter=None, rag_component
     graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": loop}),
         "snapshot": review.snapshot, "validate_candidate": review.validate, "tool": ToolNode()})
     return LargeLanguageModel(workspace, engines={"graph": graph, "loop": loop}, components=[
-        rag_component or RAGComponent(), AgentComponent(), WorkflowComponent(), ReviewTools(registry)],
+        rag_component or RAGComponent(), WorkflowComponent(), ReviewTools(registry)],
         services=BackendServices(tool_runtime=ToolRuntime(authorize=review.authorize, revision=review.binding,
             operation_key=lambda call: digest(call.arguments) if call.name == "apply_configuration" else None)))
 
@@ -414,21 +414,22 @@ async def plan(workspace, config, request, *, report_only=False, completion_adap
     try:
         async with backend(workspace, config, review, completion_adapter=completion_adapter, rag_component=rag_component) as app:
             project = await app.projects.acreate("Configuration review", config=ProjectConfig.from_dict(config["project_config"]),
-                components=["rag", "agents", "workflows", "review_tools"], conversation_storage="file")
+                components=['rag', 'workflows', 'review_tools'], conversation_storage="file")
             report["project_id"] = project.id
             rag = await project.components.aget("rag")
             for identifier, document in documents.items():
                 print(f"[RAG] {document['title']}", flush=True)
                 await rag.aadd_document(identifier=identifier, **document)
-            await (await project.components.aget("agents")).acreate({"engine": "loop",
+            await (project.agents).acreate({"engine": "loop",
                 "purpose": "Propose evidence-based configuration changes", "system_prompt": AGENT_PROMPT,
                 "completion": dict(config["project_config"]["parameters"]["engines"]["loop"]["config"]["completion"]), "tools": [], "resources": {"rag": True},
                 "policy": {"require_tool": True}}, identifier="configuration-editor")
             await (await project.components.aget("workflows")).acreate(make_workflow(config["max_attempts"]),
                                                                        identifier="configuration-review")
+            await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "configuration-review"}}, identifier="configuration-review-agent")
             session = await project.sessions.acreate("Configuration change request")
             report["session_id"] = session.id
-            await describe_run(await (await session.run.submit(request, engine="graph", engine_options={"workflow": "configuration-review"})).wait(), report)
+            await describe_run(await (await session.run.submit(request, agent_id="configuration-review-agent")).wait(), report)
     except Exception as error:
         report.update(status="failed", error=f"{type(error).__name__}: {error}")
     finally:
@@ -458,7 +459,7 @@ async def decide(report_path, config, decision, *, expected_package, completion_
             raise ValueError("Approval digest does not match the stored change package")
         await run.arespond(interaction.respond(decision))
         report["source_run_id"] = run.id
-        await describe_run(await (await session.run.resume(run.id, engine="graph")).wait(), report)
+        await describe_run(await (await session.run.resume(run.id, agent_id="configuration-review-agent")).wait(), report)
     atomic_json(Path(report_path), report)
     return report
 

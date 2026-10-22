@@ -45,12 +45,12 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                 session = await runtime.project.sessions.acreate("File delivery")
                 options = {ENVIRONMENT_OPTION: ShellEnvironment(str(work), ()).to_dict()}
                 result = await (await session.run.submit(
-                    "현재 디렉토리에 인사 함수를 greeting.py로 작성해줘.", engine="loop", engine_options=options)).wait()
+                    "현재 디렉토리에 인사 함수를 greeting.py로 작성해줘.", agent_id="assistant", request_context=options)).wait()
                 self.assertEqual(str(result.data.status), "paused")
                 self.assertFalse((work / "greeting.py").exists())
                 request, = await result.ainteractions(pending_only=True)
                 await result.arespond(request.respond("approve"))
-                result = await (await session.run.resume(result.id, engine="loop")).wait()
+                result = await (await session.run.resume(result.id, agent_id="assistant")).wait()
                 self.assertEqual(str(result.data.status), "completed", result.data.error)
                 self.assertEqual((work / "greeting.py").read_text(encoding="utf-8"), content)
                 self.assertFalse((fallback / "greeting.py").exists())
@@ -63,7 +63,7 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(any(value.get("text") == content for value in tool_results))
                 # Chat-only examples can complete without manufacturing a file operation.
                 response = await (await session.run.submit("파일은 바꾸지 말고 사용 예시만 보여줘.",
-                    engine="loop", engine_options=options)).wait()
+                    agent_id="assistant", request_context=options)).wait()
                 self.assertEqual(str(response.data.status), "completed", response.data.error)
                 self.assertFalse(any(step.kind == "tool" for step in await response.steps.alist()))
                 self.assertEqual({path.name for path in work.iterdir()}, {"greeting.py", "keep.txt"})
@@ -119,11 +119,11 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                     provider.responses.extend([
                         [chunk(calls=[call(json.dumps(arguments), name=name)], finish="tool_calls")],
                         [chunk("Tool result checked", finish="stop")]])
-                    result = await (await session.run.submit(name, engine="loop")).wait()
+                    result = await (await session.run.submit(name, agent_id="assistant")).wait()
                     if str(result.data.status) == "paused":
                         request, = await result.ainteractions()
                         await result.arespond(request.respond("approve"))
-                        result = await (await session.run.resume(result.id, engine="loop")).wait()
+                        result = await (await session.run.resume(result.id, agent_id="assistant")).wait()
                     self.assertEqual(str(result.data.status), "completed", result.data.error)
                     return next(step.output.data for step in await result.steps.alist() if step.kind == "tool")
 

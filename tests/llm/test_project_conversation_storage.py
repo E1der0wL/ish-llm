@@ -24,7 +24,9 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
         return app
 
     async def answer(self, session, text):
-        run = await (await session.run.submit(text, engine="test")).wait(timeout=15)
+        if "test" not in await session.project.agents.alist():
+            await session.project.agents.acreate({"engine": "test"}, identifier="test")
+        run = await (await session.run.submit(text, agent_id="test")).wait(timeout=15)
         self.assertEqual((await run.aresponse()).content, "answer:" + text)
         return run
 

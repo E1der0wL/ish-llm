@@ -115,9 +115,10 @@ authorize는 기술적 거부/외부 runtime authorization용이며 Project 승�
 
 ## 저장 Agent 위임
 
-`AgentComponent(engines=registry)`는 `agents`와 `tools` capability를 제공한다. 기본 backend는
-자기 EngineRegistry를 연결한다. engines를 연결하지 않은 AgentComponent는 정의 CRUD만 제공한다.
-Project가 agents를 선택하면 Loop/ToolNode에 `agent_run`을 제공할 수 있다.
+`project.agents`는 독립 AgentManager/Handle이다. 공개 Writer와 실행 경계는 등록된
+EngineRegistry의 순수 `for_agent` 계약을 검증한다. ToolResolver는 bound AgentHandle에서
+`agents`와 `agent_run`을 구성한다. 저장만으로 실행 권한을 얻지 않으며 호출 Agent의
+명시적인 Tool 선택과 Project 한도를 모두 적용한다.
 
 ```json
 {"agent_id": "reviewer", "input": {"request": "이 변경을 검토해줘"}}

@@ -1,3 +1,4 @@
+from llm.core.agents import AgentBinding
 from llm.core.results import EngineDelta
 from asyncio import timeout
 import asyncio
@@ -11,7 +12,7 @@ from pathlib import Path
 from llm.core.models import (
     MessageRole, MessageStatus, ProjectConfig, Run, RunStatus, StepStatus, SessionStatus, new_id,
 )
-from llm.engines.base import EngineEvent, EngineEventType
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.engines.registry import EngineRegistry
 from tests.llm.support.fake_engine import FakeStreamingEngine
 from llm.services.history.conversation import ConversationStore
@@ -26,13 +27,15 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.sessions = SessionManager()
-        self.projects = ProjectManager(ProjectRepository(self.root / "projects"), self.sessions)
-        self.project = self.projects.create("Project", config=ProjectConfig())
-        self.session = self.sessions.create(self.project, "Session")
-        self.store = ConversationStore(self.session.paths.conversation)
         self.engine = FakeStreamingEngine()
         self.registry = EngineRegistry()
         self.registry.register("fake", self.engine)
+        self.projects = ProjectManager(ProjectRepository(self.root / "projects"), self.sessions, engines=self.registry)
+        self.project = self.projects.create("Project", config=ProjectConfig())
+        self.session = self.sessions.create(self.project, "Session")
+        self.store = ConversationStore(self.session.paths.conversation)
+        self.projects.agents.create(self.project, {"engine": "fake"}, identifier="fake")
+        self.binding = AgentBinding.create(self.project.id, "fake", {"engine": "fake"})
         self.manager = self.make_manager()
 
     def make_manager(self, session=None) -> RunManager:
@@ -50,7 +53,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(0.001)
 
     async def test_single_request_is_durable_before_execution(self) -> None:
-        request = await self.manager.submit("hello", engine="fake")
+        request = await self.manager.submit("hello", agent_id="fake")
         self.assertEqual(self.store.get(request.id).status, MessageStatus.QUEUED)
         self.assertEqual(self.manager.repository.list(self.session), [])
         await self.idle()
@@ -71,13 +74,13 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_streaming_and_second_input_remains_queued(self) -> None:
         self.engine.gate = asyncio.Event()
-        await self.manager.submit("first", engine="fake")
+        await self.manager.submit("first", agent_id="fake")
         await self.until(lambda: any(message.content == "Hello" for message in self.store.list()))
         run, = self.manager.repository.list(self.session)
         self.assertEqual(run.status, RunStatus.RUNNING)
         self.assertEqual(self.store.get(run.assistant_message_id).status, MessageStatus.STREAMING)
         self.assertEqual(self.manager.steps.list(run)[0].status, StepStatus.RUNNING)
-        second = await self.manager.submit("second", engine="fake")
+        second = await self.manager.submit("second", agent_id="fake")
         prefix = self.store.path.read_bytes()
         self.assertEqual(self.store.get(second.id).status, MessageStatus.QUEUED)
         self.assertEqual(len(self.engine.contexts), 1)
@@ -91,7 +94,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_burst_queue_context_pairs_answers_with_prior_inputs(self) -> None:
         for content in ("first", "second", "third"):
-            await self.manager.submit(content, engine="fake")
+            await self.manager.submit(content, agent_id="fake")
         await self.idle()
         self.assertEqual([[message.content for message in context.messages]
                           for context in self.engine.contexts], [
@@ -103,10 +106,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_interrupt_preserves_queue_and_worker_continues(self) -> None:
         self.engine.gate = asyncio.Event()
-        await self.manager.submit("first", engine="fake")
+        await self.manager.submit("first", agent_id="fake")
         await self.until(lambda: self.engine.active == 1)
-        second = await self.manager.submit("second", engine="fake")
-        third = await self.manager.submit("third", engine="fake")
+        second = await self.manager.submit("second", agent_id="fake")
+        third = await self.manager.submit("third", agent_id="fake")
         self.assertTrue(await self.manager.interrupt())
         first_run = self.manager.repository.list(self.session)[0]
         self.assertEqual(first_run.status, RunStatus.INTERRUPTED)
@@ -123,7 +126,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(await self.manager.interrupt())
 
     async def test_cancel_before_engine_first_instruction_finalizes_run(self) -> None:
-        await self.manager.submit("first", engine="fake")
+        await self.manager.submit("first", agent_id="fake")
         # The worker begins and schedules its child behind this test continuation.
         await asyncio.sleep(0)
         self.assertEqual(len(self.engine.contexts), 0)
@@ -138,8 +141,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.engine.gate = asyncio.Event()
         other = self.sessions.create(self.project, "Other")
         other_manager = self.make_manager(other)
-        await self.manager.submit("first", engine="fake")
-        await other_manager.submit("other", engine="fake")
+        await self.manager.submit("first", agent_id="fake")
+        await other_manager.submit("other", agent_id="fake")
         await self.until(lambda: self.engine.active == 2)
         self.assertEqual(self.engine.max_active, 2)
         self.assertTrue(await self.manager.interrupt())
@@ -152,8 +155,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_engine_failure_preserves_partial_text_and_processes_next_request(self) -> None:
         self.engine.fail_after = 1
         self.engine.fail_inputs = frozenset({"fail"})
-        await self.manager.submit("fail", engine="fake")
-        await self.manager.submit("success", engine="fake")
+        await self.manager.submit("fail", agent_id="fake")
+        await self.manager.submit("success", agent_id="fake")
         await self.idle()
         failed, completed = self.manager.repository.list(self.session)
         self.assertEqual(failed.status, RunStatus.FAILED)
@@ -164,9 +167,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.engine.active, 0)
 
     async def test_unknown_engine_fails_one_run_without_dropping_queue(self) -> None:
-        with self.assertRaises(ValueError):
-            await self.manager.submit("bad", engine="missing")
-        await self.manager.submit("good", engine="fake")
+        with self.assertRaises(FileNotFoundError):
+            await self.manager.submit("bad", agent_id="missing")
+        await self.manager.submit("good", agent_id="fake")
         await self.idle()
         self.assertEqual([run.status for run in self.manager.repository.list(self.session)],
                          [RunStatus.COMPLETED])
@@ -174,24 +177,25 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_explicit_engine_choices_are_durable(self) -> None:
         alternate = FakeStreamingEngine(("alternate",))
         self.registry.register("alternate", alternate)
-        await self.manager.submit("selected", engine="alternate")
-        await self.manager.submit("override", engine="fake")
+        self.projects.agents.create(self.project, {"engine": "alternate"}, identifier="alternate")
+        await self.manager.submit("selected", agent_id="alternate")
+        await self.manager.submit("override", agent_id="fake")
         await self.idle()
         self.assertEqual([run.engine for run in self.manager.repository.list(self.session)], ["alternate", "fake"])
         self.assertEqual(len(alternate.contexts), 1)
 
     async def test_shutdown_preserves_queue_for_new_manager(self) -> None:
         self.engine.gate = asyncio.Event()
-        await self.manager.submit("active", engine="fake")
+        await self.manager.submit("active", agent_id="fake")
         await self.until(lambda: self.engine.active == 1)
-        queued = await self.manager.submit("queued", engine="fake")
+        queued = await self.manager.submit("queued", agent_id="fake")
         await self.manager.shutdown()
         self.assertEqual(self.engine.active, 0)
         self.assertEqual(self.store.get(queued.id).status, MessageStatus.QUEUED)
         self.assertEqual(self.manager.repository.list(self.session)[0].status, RunStatus.INTERRUPTED)
         before = self.store.path.read_bytes()
         with self.assertRaises(RuntimeError):
-            await self.manager.submit("rejected", engine="fake")
+            await self.manager.submit("rejected", agent_id="fake")
         self.assertEqual(self.store.path.read_bytes(), before)
         self.engine.gate.set()
         recovered = self.make_manager()
@@ -200,7 +204,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([context.messages[-1].content for context in self.engine.contexts], ["active", "queued"])
 
     async def test_shutdown_before_worker_starts_keeps_all_requests_queued(self) -> None:
-        await self.manager.submit("queued", engine="fake")
+        await self.manager.submit("queued", agent_id="fake")
         await self.manager.shutdown()
         self.assertEqual(self.manager.repository.list(self.session), [])
         self.assertEqual(self.store.list()[0].status, MessageStatus.QUEUED)
@@ -217,7 +221,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             assistant = self.store.create(MessageRole.ASSISTANT, "partial", MessageStatus.STREAMING,
                                           run_id=run_id)
             run = Run(run_id, self.session.id, message.id, assistant.id, "fake",
-                      self.manager.repository.paths(self.session, run_id), status=status)
+                      self.manager.repository.paths(self.session, run_id), status=status,
+                      agent_id="fake", metadata={"agent_binding": self.binding})
             if status in Run.STARTED_STATES:
                 run.started_at = run.created_at
             if status not in Run.ACTIVE_STATES:
@@ -232,7 +237,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.session.status = SessionStatus.RUNNING
         self.session.current_run_id = stale_runs[1].id
         self.sessions.repository.save(self.session)
-        queued = self.store.create(MessageRole.USER, "recover-me", MessageStatus.QUEUED, metadata={"engine": "fake"})
+        queued = self.store.create(MessageRole.USER, "recover-me", MessageStatus.QUEUED, metadata={"agent_binding": self.binding})
         await self.manager.start()
         await self.manager.start()
         await self.idle()
@@ -247,12 +252,14 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.store.get(orphan.id).status, MessageStatus.INTERRUPTED)
 
     async def test_crash_between_run_creation_and_commit_does_not_replay_claimed_input(self) -> None:
-        claimed = self.store.create(MessageRole.USER, "claimed", MessageStatus.QUEUED)
+        claimed = self.store.create(MessageRole.USER, "claimed", MessageStatus.QUEUED,
+                                    metadata={"agent_binding": self.binding})
         run_id = new_id()
         run = Run(run_id, self.session.id, claimed.id, new_id(), "fake",
-                  self.manager.repository.paths(self.session, run_id))
+                  self.manager.repository.paths(self.session, run_id),
+                  agent_id="fake", metadata={"agent_binding": self.binding})
         self.manager.repository.create(run)
-        self.store.create(MessageRole.USER, "future", MessageStatus.QUEUED, metadata={"engine": "fake"})
+        self.store.create(MessageRole.USER, "future", MessageStatus.QUEUED, metadata={"agent_binding": self.binding})
         await self.manager.start()
         await self.idle()
         self.assertEqual([context.messages[-1].content for context in self.engine.contexts], ["future"])
@@ -276,17 +283,17 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             from llm.services.runtime.runs import RunManager
             async def main():
                 sessions = SessionManager()
-                projects = ProjectManager(ProjectRepository(Path(sys.argv[1])), sessions)
-                project = projects.load(sys.argv[2])
-                session = sessions.load(project, sys.argv[3])
                 engine = FakeStreamingEngine(gate=asyncio.Event())
                 registry = EngineRegistry()
                 registry.register("fake", engine)
+                projects = ProjectManager(ProjectRepository(Path(sys.argv[1])), sessions, engines=registry)
+                project = projects.load(sys.argv[2])
+                session = sessions.load(project, sys.argv[3])
                 manager = RunManager(sessions, registry, session=session)
-                await manager.submit("crashed", engine="fake")
+                await manager.submit("crashed", agent_id="fake")
                 while not engine.active:
                     await asyncio.sleep(0)
-                await manager.submit("survived", engine="fake")
+                await manager.submit("survived", agent_id="fake")
                 os._exit(23)
             asyncio.run(main())
         ''')
@@ -306,12 +313,13 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.store.get(stale.assistant_message_id).status, MessageStatus.INTERRUPTED)
 
     async def test_provider_error_diagnostics_are_recorded(self) -> None:
-        class FailingEngine:
+        class FailingEngine(BaseEngine):
             async def execute(self, context):
                 yield EngineEvent(EngineEventType.STEP_STARTED, step_id=new_id())
                 raise RuntimeError("provider failure detail")
         self.registry.register("provider-error", FailingEngine())
-        await self.manager.submit("request", engine="provider-error")
+        self.projects.agents.create(self.project, {"engine": "provider-error"}, identifier="provider-error")
+        await self.manager.submit("request", agent_id="provider-error")
         await self.idle()
         self.assertEqual(self.manager.repository.list(self.session)[0].error, "provider failure detail")
         run, = self.manager.repository.list(self.session)
@@ -320,7 +328,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_unfinished_step_fails_run_and_closes_generator(self) -> None:
         closed = asyncio.Event()
-        class IncompleteEngine:
+        class IncompleteEngine(BaseEngine):
             async def execute(self, context):
                 try:
                     yield EngineEvent(EngineEventType.STEP_STARTED, step_id=new_id())
@@ -328,7 +336,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 finally:
                     closed.set()
         self.registry.register("incomplete", IncompleteEngine())
-        await self.manager.submit("request", engine="incomplete")
+        self.projects.agents.create(self.project, {"engine": "incomplete"}, identifier="incomplete")
+        await self.manager.submit("request", agent_id="incomplete")
         await self.idle()
         self.assertTrue(closed.is_set())
         run, = self.manager.repository.list(self.session)
@@ -336,7 +345,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.manager.steps.list(run)[0].status, StepStatus.FAILED)
 
     async def test_engine_receives_snapshot_not_mutable_service_state(self) -> None:
-        class MutatingEngine:
+        class MutatingEngine(BaseEngine):
             async def execute(self, context):
                 context.project.title = "mutated"
                 context.session.title = "mutated"
@@ -344,7 +353,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 context.messages[-1].content = "mutated"
                 yield EngineEvent(EngineEventType.TEXT_DELTA, delta=EngineDelta("test-output", "answer"))
         self.registry.register("mutating", MutatingEngine())
-        request = await self.manager.submit("original", engine="mutating")
+        self.projects.agents.create(self.project, {"engine": "mutating"}, identifier="mutating")
+        request = await self.manager.submit("original", agent_id="mutating")
         await self.idle()
         self.assertEqual(self.store.get(request.id).content, "original")
         self.assertEqual(self.sessions.load(self.project, self.session.id).title, "Session")
@@ -353,7 +363,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_deleted_session_and_wrong_project_are_rejected(self) -> None:
         self.sessions.delete(self.session)
         with self.assertRaises(ValueError):
-            await self.manager.submit("rejected", engine="fake")
+            await self.manager.submit("rejected", agent_id="fake")
         self.assertEqual(self.store.list(), [])
         self.sessions.restore(self.session)
         other = self.projects.create("Other")
@@ -361,13 +371,15 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         wrong = deepcopy(self.session)
         wrong.project_id = other.id
         with self.assertRaises((ValueError, FileNotFoundError)):
-            await self.make_manager(wrong).submit("rejected", engine="fake")
+            await self.make_manager(wrong).submit("rejected", agent_id="fake")
 
     async def test_empty_response_and_failure_before_first_delta(self) -> None:
         self.registry.register("empty", FakeStreamingEngine(()))
+        self.projects.agents.create(self.project, {"engine": "empty"}, identifier="empty")
         self.registry.register("early-failure", FakeStreamingEngine(fail_after=0))
-        await self.manager.submit("empty", engine="empty")
-        await self.manager.submit("fail", engine="early-failure")
+        self.projects.agents.create(self.project, {"engine": "early-failure"}, identifier="early-failure")
+        await self.manager.submit("empty", agent_id="empty")
+        await self.manager.submit("fail", agent_id="early-failure")
         await self.idle()
         completed, failed = self.manager.repository.list(self.session)
         self.assertEqual(completed.status, RunStatus.COMPLETED)
@@ -383,32 +395,33 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             async def __anext__(self):
                 raise StopAsyncIteration
 
-        class IteratorEngine:
+        class IteratorEngine(BaseEngine):
             def execute(self, context):
                 return Events()
 
         self.registry.register("iterator", IteratorEngine())
-        await self.manager.submit("request", engine="iterator")
+        self.projects.agents.create(self.project, {"engine": "iterator"}, identifier="iterator")
+        await self.manager.submit("request", agent_id="iterator")
         await self.idle()
         self.assertEqual(self.manager.repository.list(self.session)[0].status, RunStatus.COMPLETED)
 
     async def test_cloned_burst_history_preserves_turn_order(self) -> None:
-        await self.manager.submit("first", engine="fake")
-        await self.manager.submit("second", engine="fake")
+        await self.manager.submit("first", agent_id="fake")
+        await self.manager.submit("second", agent_id="fake")
         await self.idle()
         await self.manager.shutdown()
         clone = self.sessions.clone(self.sessions.load(self.project, self.session.id), self.project)
         recovered = self.make_manager(clone)
-        await recovered.submit("third", engine="fake")
+        await recovered.submit("third", agent_id="fake")
         await self.idle(session=clone, manager=recovered)
         self.assertEqual([message.content for message in self.engine.contexts[-1].messages],
                          ["first", "Hello world", "second", "Hello world", "third"])
 
     async def test_wait_idle_during_shutdown_does_not_hang_on_preserved_queue(self) -> None:
         self.engine.gate = asyncio.Event()
-        await self.manager.submit("active", engine="fake")
+        await self.manager.submit("active", agent_id="fake")
         await self.until(lambda: self.engine.active == 1)
-        await self.manager.submit("queued", engine="fake")
+        await self.manager.submit("queued", agent_id="fake")
         waiting = asyncio.create_task(self.manager.wait_idle())
         await asyncio.sleep(0)
         await self.manager.shutdown()

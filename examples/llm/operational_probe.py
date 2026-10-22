@@ -57,7 +57,7 @@ async def probe(args):
 
     async def request(session, text):
         before = time.monotonic()
-        run = await (await session.run.submit(text, engine='probe')).wait(timeout=120)
+        run = await (await session.run.submit(text, agent_id='probe-agent')).wait(timeout=120)
         data = await run.aget_data()
         if data.status != 'completed' or (await run.aresponse()).content != text:
             raise AssertionError(f'Incorrect persisted result: {data.id}, {data.status}')
@@ -67,6 +67,7 @@ async def probe(args):
     try:
         async with LargeLanguageModel(root, components=[], engines={'probe': ProbeEngine()}) as app:
             project = await app.projects.acreate('Operational probe')
+            await project.agents.acreate({'engine': 'probe'}, identifier='probe-agent')
             sessions = [await project.sessions.acreate(f'Session {i}') for i in range(args.sessions)]
             samples.append(resources())
             while rounds == 0 or time.monotonic() - started < args.seconds:

@@ -29,3 +29,16 @@ def requires_model(engines, config, engine, session_config=None):
         return False
     return not view["values"].get("config", {}).get("completion", {}).get("model")
 
+
+def agent_model(engines, config, definition, session_config=None):
+    """Resolve the actual Agent's parameters through its selected Engine."""
+    from llm.engines.loop import LoopEngine
+    from .environment import underlying_engine
+    engine = engines.resolve_agent(definition)
+    describe = getattr(engine, "resolve_config", None)
+    view = describe(config, definition["engine"], session_config=session_config) if callable(describe) else {}
+    model = view.get("values", {}).get("config", {}).get("completion", {}).get("model", "")
+    required = (isinstance(underlying_engine(engine), LoopEngine)
+                and "completion" not in view.get("runtime", ()) and not model)
+    return model, required
+

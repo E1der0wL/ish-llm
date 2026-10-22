@@ -67,6 +67,7 @@ class RunReferenceIntegrityTests(unittest.IsolatedAsyncioTestCase):
         app, source, _, model = await self.create({'project_max_calls': 2})
         project = await app.projects.acreate(components=[], conversation_storage='memory',
                                             config=(await source.aget_data()).config)
+        await project.agents.acreate(await source.agents.aload('loop'), identifier='loop')
         session = await project.sessions.acreate()
         self.assertEqual((await self.run_once(session)).data.status, 'completed')
         await session.run.shutdown()
@@ -79,6 +80,7 @@ class RunReferenceIntegrityTests(unittest.IsolatedAsyncioTestCase):
         app, source, _, _ = await self.create({})
         project = await app.projects.acreate(components=[], conversation_storage='memory',
                                             config=(await source.aget_data()).config)
+        await project.agents.acreate(await source.agents.aload('loop'), identifier='loop')
         session = await project.sessions.acreate()
         data = await session.aget_data()
         data.status, data.current_run_id = SessionStatus.RUNNING, '0' * 32

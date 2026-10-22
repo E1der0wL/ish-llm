@@ -29,11 +29,12 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
             parameters["components"] = {"tools": {"config": {"enabled": [tool.name for tool in tools]}}}
         project = await app.projects.acreate(components=[] if tools is None else ["tools"],
                                             config={"policies": {"usage": usage}, "parameters": parameters})
+        await project.agents.acreate({"engine": "loop", "tools": [] if tools is None else [tool.name for tool in tools]}, identifier="loop")
         session = await project.sessions.acreate()
         return app, project, session, model
 
     async def run_once(self, session):
-        return await (await session.run.submit("request", engine="loop")).wait()
+        return await (await session.run.submit("request", agent_id="loop")).wait()
 
     async def test_permanent_delete_cannot_reset_project_call_quota(self):
         _, project, session, model = await self.create({"project_max_calls": 1})
@@ -74,7 +75,7 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.run_once(session)).data.status, "completed")
         await session.run.shutdown()
         other = await project.sessions.acreate()
-        pending = await other.run.submit("request", engine="loop")
+        pending = await other.run.submit("request", agent_id="loop")
         try:
             await asyncio.wait_for(entered.wait(), 5)
             self.assertEqual(len(model.requests), 2)

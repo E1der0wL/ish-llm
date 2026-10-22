@@ -18,6 +18,7 @@ class ProjectReader(Protocol):
 class ProjectAccess:
     def __init__(self, repository: ProjectReader) -> None:
         self.repository = repository
+        self.agent_references = None
 
     def load(self, project_id: str, *, allow_deleted: bool = False) -> Project:
         current = self.repository.load(project_id)

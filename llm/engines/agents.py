@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from contextlib import AsyncExitStack, aclosing
+from contextlib import AsyncExitStack, aclosing, nullcontext
 from copy import deepcopy
 from dataclasses import replace
 from types import SimpleNamespace
@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from jsonschema import Draft202012Validator
 
 from asyncio import timeout
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentBinding, AgentDefinition, AgentMode
 from llm.components.base import Component
 from llm.components.tools import Tool, ToolRegistry
 from llm.core.checkpoints import CheckpointStatus
@@ -19,11 +19,11 @@ from llm.services.infrastructure.storage import revision_token
 from llm.core.results import EngineOutput
 from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime, ToolUsageError
 from llm.policies import ExecutionLimitError
-from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode, agent_mode
 from llm.core.steering import SteeringMode
 from llm.core.schema import object_schema, field
 from llm.engines.registry import EngineRegistry
-from .graph.engine import GraphEngine, _GraphPause
+from .graph.engine import _GraphPause
 from .graph.checkpoints import EngineCheckpointScope
 
 
@@ -41,6 +41,24 @@ class AgentExecution:
     resumable_container = True
     selection_binding = True
     USAGE_FIELD = "agent_usage"
+
+    @staticmethod
+    def agent_references(node):
+        """The action owner interprets its stored selection without resolving an Engine."""
+        return (AgentDefinition.identifier(node["agent"]),)
+
+    @staticmethod
+    def referenced_agents(record):
+        """Read only execution-owned selections, never arbitrary application metadata."""
+        from llm.core.checkpoints import unwrap_record
+        while record.get("node_type") == "engine_record":
+            record, _ = unwrap_record(record)
+        selections = []
+        if "agent_binding" in record:
+            selections.append(record["agent_binding"])
+        if "handler_selection" in record:
+            selections.append(record["handler_selection"]["binding"])
+        return {value["agent_id"] for value in selections if "agent_id" in value}
 
     @staticmethod
     def describe_config():
@@ -71,33 +89,11 @@ class AgentExecution:
         if not isinstance(identifier, str) or not identifier:
             raise ValueError("Agent node requires an agent ID")
         profile = deepcopy(self._record(capabilities, "agents", identifier)[1])
-        AgentComponent().validate_record(identifier, profile)
+        AgentDefinition.validate(identifier, profile)
         return profile
 
     def _engine(self, profile):
-        try:
-            engine = self.engines.get(profile["engine"])
-        except KeyError:
-            raise ValueError(f"Unregistered Agent engine: {profile['engine']}") from None
-        factory = getattr(engine, "for_agent", None)
-        if not callable(factory):
-            raise ValueError("Agent engines must implement for_agent(definition)")
-        bound = factory(deepcopy(profile))
-        if not callable(getattr(bound, "execute", None)):
-            raise TypeError("for_agent must return an Engine")
-        required_capabilities(bound)
-        # Reservation discovery reads the registered public capability without
-        # evaluating unselected Agent configuration. The selected factory must
-        # preserve that declaration before approval, resource lookup or effects.
-        if steering_mode(bound) != steering_mode(engine):
-            raise ValueError("Agent binding must preserve Engine steering mode")
-        # Validate the selected factory before this Agent's approval or effects.
-        if steering_mode(bound) == SteeringMode.CONSUME:
-            checkpoint = getattr(bound, "checkpoint_name", None)
-            if (not isinstance(checkpoint, str) or not checkpoint.strip()
-                    or not callable(getattr(bound, "validate_resume", None))):
-                raise ValueError("Steerable Agent engine requires checkpoint_name and validate_resume")
-        return bound
+        return self.engines.resolve_agent(profile)
 
     def _resources(self, profile, context):
         resources = profile.get("resources", {})
@@ -130,6 +126,26 @@ class AgentExecution:
                        "prompt": prompt, "prompt_revision": revision_token(prompt) if prompt is not None else None,
                        "mcp": mcp, "rag": bool(resources.get("rag"))}
 
+    async def connect_resources(self, resources, context, tools, stack):
+        for server, resource in resources["mcp"].items():
+            source, _ = self._record(context.capabilities, "mcp", server)
+            remote = await stack.enter_async_context(source["connector"](deepcopy(resource["definition"])))
+            if not isinstance(remote, ToolRegistry):
+                raise TypeError("MCP connector must provide a ToolRegistry")
+            for alias, name in resource["aliases"].items():
+                tool = remote.get(name)
+                tools.register(Tool(alias, tool.description, tool.parameters, tool.handler,
+                                    contract=tool.contract, classification=tool.classification))
+
+    @staticmethod
+    def compose_instructions(engine, resources, context):
+        if resources["skills"] or resources["prompt"]:
+            engine = engine.with_instructions(context,
+                before=tuple(f"{m['role']}: {m['content']}" for m in resources["prompt"]["messages"])
+                       if resources["prompt"] else (),
+                after=tuple(f"Skill {name}:\n{skill['instructions']}" for name, skill in resources["skills"].items()))
+        return engine
+
     def additional_capabilities(self, definition, capabilities):
         profile = self._profile(definition, capabilities)
         resources = profile.get("resources", {})
@@ -140,7 +156,7 @@ class AgentExecution:
     def graph_engine(self, definition, capabilities):
         """Graph 사전 탐색에 하위 실행 정의를 선언한다. 실행은 하지 않는다."""
         engine = self._engine(self._profile(definition, capabilities))
-        return engine if isinstance(engine, GraphEngine) else None
+        return engine if agent_mode(engine) == AgentMode.WORKFLOW else None
 
     def graph_context(self, definition, context):
         """Graph 환경은 부모 Run 권한을 공유한다. wrapper Tool ceiling은 없다."""
@@ -150,9 +166,9 @@ class AgentExecution:
         """Structural Workflow references only; private Agent options are selected later."""
         profile = self._profile(definition, capabilities)
         engine = self.engines.get(profile["engine"])
-        if not isinstance(engine, GraphEngine):
+        if agent_mode(engine) != AgentMode.WORKFLOW:
             return None
-        return engine.for_request({"workflow": profile.get("engine_options", {}).get("workflow")})
+        return engine.discover_agent(profile)
 
     def checkpoint_engine(self, definition, context):
         """저장·재개 계약을 제공하는 자식만 조율 노드로 선언한다."""
@@ -170,11 +186,11 @@ class AgentExecution:
         engine = self._engine(profile)
         describe = getattr(engine, "resolve_config", None)
         binding = {"agent_id": definition["agent"], "agent": profile,
-                "agent_revision": AgentComponent.revision(profile), "engine": profile["engine"],
+                "agent_revision": AgentDefinition.revision(profile), "engine": profile["engine"],
                 "handler_revision": self.revision,
                 "configuration": describe(context.project.config, profile["engine"], session_config=context.session.config)
                                  if describe else {"runtime_only": True}}
-        if isinstance(engine, GraphEngine):
+        if agent_mode(engine) == AgentMode.WORKFLOW:
             binding["workflow_id"] = engine.workflow
         else:
             binding["resources"] = self._resources(profile, context)[1]
@@ -188,7 +204,7 @@ class AgentExecution:
         """Validate the selected Agent before its approval or external work."""
         profile = self._profile(definition, context.capabilities)
         engine = self._engine(profile)
-        if isinstance(engine, GraphEngine):
+        if agent_mode(engine) == AgentMode.WORKFLOW:
             if any(key in definition for key in ("output_format", "emit_text")):
                 raise ValueError("Graph Agent nodes do not support output_format or emit_text")
             return
@@ -206,15 +222,15 @@ class AgentExecution:
         context = self.prepare_context(definition, context)
         profile = self._profile(definition, context.capabilities)
         engine = self._engine(profile)
-        if isinstance(engine, GraphEngine) and not wrapped_graph:
+        if agent_mode(engine) == AgentMode.WORKFLOW and not wrapped_graph:
             return  # Inline Graph children are visited in the parent Graph environment.
         name = getattr(engine, "checkpoint_name", None)
-        if not isinstance(engine, GraphEngine):
+        if agent_mode(engine) != AgentMode.WORKFLOW:
             self._checkpoint_usage(records, owner, name)
         validate = getattr(engine, "validate_selections", None)
         if name is None or not callable(validate):
             return
-        if not isinstance(engine, GraphEngine):
+        if agent_mode(engine) != AgentMode.WORKFLOW:
             tools, _ = self._resources(profile, context)
             context = replace(context, tools=tools)
         bridge = EngineCheckpointScope(owner, name, records, parent_name=checkpoint_name)
@@ -310,7 +326,7 @@ class AgentExecution:
         """업무의 입력/출력을 검증하고 연결 세션과 실행 스코프를 호출별로 정리한다."""
         profile = self._profile(node.definition, node.context.capabilities)
         engine = self._engine(profile)
-        if isinstance(engine, GraphEngine):
+        if agent_mode(engine) == AgentMode.WORKFLOW:
             return await self._graph_call(node, engine)
         tools, resources = self._resources(profile, node.context)
         inputs = node.inputs if node.inputs is not None else node.state
@@ -323,22 +339,8 @@ class AgentExecution:
         try:
             policy = profile.get("policy", {})
             async with timeout(policy.get("timeout_seconds")), AsyncExitStack() as stack:
-                for server, resource in resources["mcp"].items():
-                    source, _ = self._record(node.context.capabilities, "mcp", server)
-                    remote = await stack.enter_async_context(source["connector"](deepcopy(resource["definition"])))
-                    if not isinstance(remote, ToolRegistry):
-                        raise TypeError("MCP connector must provide a ToolRegistry")
-                    for alias, name in resource["aliases"].items():
-                        tool = remote.get(name)
-                        tools.register(Tool(alias, tool.description, tool.parameters, tool.handler,
-                                            contract=tool.contract, classification=tool.classification))
-                if resources["skills"] or resources["prompt"]:
-                    # The selected Engine owns inherited instructions and null semantics.
-                    # Agent resources supply text, never interpret child-private config.
-                    engine = engine.with_instructions(node.context,
-                        before=tuple(f"{m['role']}: {m['content']}" for m in resources["prompt"]["messages"])
-                               if resources["prompt"] else (),
-                        after=tuple(f"Skill {name}:\n{skill['instructions']}" for name, skill in resources["skills"].items()))
+                await self.connect_resources(resources, node.context, tools, stack)
+                engine = self.compose_instructions(engine, resources, node.context)
                 scope = (node.context.tool_scope or ToolExecutionScope(ToolRuntime())).child(
                     allowed_tools=tools.names(), max_calls=policy.get("max_tool_calls"))
                 if node.context.checkpoint:
@@ -454,6 +456,104 @@ class AgentExecution:
             EngineOutput(text=result["text"], data=result.get("data"), visibility=visibility),
             metadata={"tool_calls": scope.calls, "completed_tools": scope.completed}))
         return result
+
+
+class AgentInvocation:
+    """One admitted root Agent; scheduling and persisted effects stay in RunManager."""
+
+    def __init__(self, binding, engine, engines):
+        self.binding = AgentBinding.read(binding)
+        self.profile, self.engine = self.binding["definition"], engine
+        self.selection = AgentExecution(engines=engines)
+        self.mode = agent_mode(engine)
+        self.resources = None
+        self.runtime_binding = None
+
+    def __getattr__(self, name):
+        return getattr(self.engine, name)
+
+    @property
+    def required_capabilities(self):
+        resources = self.profile.get("resources", {})
+        return tuple(dict.fromkeys((*required_capabilities(self.engine),
+            *(name for name in ("skills", "mcp", "rag") if resources.get(name)),
+            *(("prompts",) if resources.get("prompt") else ()),
+            *(("tools",) if self.profile.get("tools") or resources.get("mcp") or resources.get("rag") else ()))))
+
+    def additional_capabilities(self, capabilities):
+        discover = getattr(self.engine, "additional_capabilities", None)
+        return discover(capabilities) if callable(discover) else ()
+
+    def prepare_context(self, context):
+        if self.mode == AgentMode.BEHAVIORAL:
+            tools, self.resources = self.selection._resources(self.profile, context)
+            aliases = [alias for server in self.resources["mcp"].values() for alias in server["aliases"]]
+            policy = self.profile.get("policy", {})
+            scope = context.tool_scope.child(allowed_tools=(*tools.names(), *aliases),
+                                             max_calls=policy.get("max_tool_calls"))
+            if context.checkpoint is not None:
+                scope.restore_checkpoint(context.checkpoint["records"])
+            self.engine = self.selection.compose_instructions(self.engine, self.resources, context)
+            capabilities = dict(context.capabilities)
+            if "tools" in capabilities:
+                capabilities["tools"] = tools
+            context = replace(context, tools=tools, capabilities=capabilities, tool_scope=scope)
+            if "input_schema" in self.profile:
+                message = next(item for item in context.messages if item.id == context.run.input_message_id)
+                Draft202012Validator(self.profile["input_schema"]).validate(message.content)
+        describe = getattr(self.engine, "resolve_config", None)
+        configuration = (revision_token(describe(context.project.config, self.binding["engine"],
+                         session_config=context.session.config)) if callable(describe) else None)
+        execution = getattr(self.engine, "bind_execution", None)
+        self.runtime_binding = {
+            "agent_id": self.binding["agent_id"], "revision": self.binding["revision"],
+            "engine": self.binding["engine"], "mode": self.mode.value,
+            "configuration": configuration, "resources": deepcopy(self.resources),
+            "tools": [tool.to_dict() for tool in context.tools.definitions()],
+            "tool_contracts": context.tools.contracts(), "tool_policy": context.tool_scope.binding(),
+            "execution": revision_token({"value": execution(context)}) if callable(execution) else None,
+        }
+        Component.serialize(self.runtime_binding)
+        # Root identity is already in Run admission evidence. The Engine owns
+        # its private state; binding must not seed or persist application state.
+        return context
+
+    def validate_resume(self, checkpoint, *, retry_nodes=(), context=None, **kwargs):
+        validate = getattr(self.engine, "validate_resume", None)
+        if not callable(validate):
+            raise ValueError("Engine does not support checkpoint resume")
+        # Connected remote definitions are checked after connection and before execution.
+        if self.profile.get("resources", {}).get("mcp"):
+            context = None
+        return validate(checkpoint, retry_nodes=retry_nodes,
+                        **({"context": context} if context is not None else {}), **kwargs)
+
+    async def execute(self, context):
+        if self.runtime_binding is None:
+            raise RuntimeError("Agent invocation requires a prepared execution binding")
+        policy = self.profile.get("policy", {})
+        async with timeout(policy.get("timeout_seconds")), AsyncExitStack() as stack:
+            if self.resources is not None:
+                await self.selection.connect_resources(self.resources, context, context.tools, stack)
+            if self.profile.get("resources", {}).get("mcp") and context.checkpoint is not None:
+                descriptor = context.run.metadata["resume"]
+                self.engine.validate_resume(context.checkpoint, context=context,
+                    retry_nodes=descriptor["retry_nodes"], decisions=descriptor["decisions"])
+            stream = self.engine.execute(context)
+            async with aclosing(stream) if callable(getattr(stream, "aclose", None)) else nullcontext(stream):
+                async for event in stream:
+                    if event.type == EngineEventType.OUTPUT and event.output is not None:
+                        if policy.get("require_tool") and not context.tool_scope.completed:
+                            raise ValueError("Agent requires at least one successfully completed Tool")
+                        value = {"text": event.output.text}
+                        if event.output.data is not None:
+                            value["data"] = event.output.data
+                        elif self.profile.get("output_format") == "json":
+                            value["data"] = json.loads(event.output.text)
+                            event = replace(event, output=replace(event.output, data=value["data"]))
+                        if "output_schema" in self.profile:
+                            Draft202012Validator(self.profile["output_schema"]).validate(value)
+                    yield event
 
 
 class AgentDelegation:
