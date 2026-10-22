@@ -1,8 +1,18 @@
 # A Provider 전환 검증 기록
 
-H1–H5 및 [P1 최종 로컬 게이트](p1-verification.md)는 완료했다. 현재 A를 진행 중이며,
+H1–H5 및 [P1 최종 로컬 게이트](p1-verification.md)에 이어 A의 로컬·원격 전체 게이트를 완료했다.
 과거 backend 브랜치의 구현/시험은 읽기 전용 참고다. 이 문서는 A의 변경·실제 실행 증거만
 추가한다. [Level 1–3](verification-policy.md)과 [공통 호출 값](model-protocol.md)을 따른다.
+
+## A 정확한 Push SHA의 원격 완료
+
+`2f2781b7d8314e19b3dce42f036040117413de76`의 [GitHub Actions run 39708988316](https://github.com/E1der0wL/ish-llm/actions/runs/39708988316)을
+2026-10-22 02:22:35 UTC에 조회해 workflow `SUCCESS`와 원본 회귀 요약을 확인했다.
+LLM 2137/2137/2137(발견/실행/통과, 1144.493166초), Hub 577/577/577(732.405843초)이며,
+각 suite의 Failure/Error/Skip/expected failure/unexpected success/누락/중복/예상 밖 실행은 모두 0이다.
+CI 필수 검증을 줄이지 않았다. 로컬 실행과 CI 실행은 각각의 환경과 소스에 대한 별도 증거다.
+원본 웹·JSON은 `/workspace/llm-clean-resume/a/remote-ci/`에 보존했다. 아래의 과거 실패·대기 기록은
+당시 결과이며 수정하지 않는다. 다음 작업은 [B/C Agent 전환](agent-refactor-verification.md)이다.
 
 ## A-c 구현과 A 로컬 Level 3 완료
 
