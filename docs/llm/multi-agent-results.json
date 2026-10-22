@@ -1,0 +1,228 @@
+{
+  "baseline": "975913e71b413618125b7b770802baaba0d88e52",
+  "runs": [
+    {
+      "name": "d-admission-1",
+      "execution": {
+        "command": [
+          "/workspace/ish-llm/.venv-linux312/bin/python",
+          "-m",
+          "tests.llm.run_regression",
+          "--suite",
+          "llm",
+          "--output",
+          "/workspace/llm-clean-resume/b/d-admission-1/llm.json",
+          "--modules",
+          "tests.llm.test_request_admission",
+          "tests.llm.test_agent_storage",
+          "tests.llm.test_agent_execution",
+          "tests.llm.test_checkpoint_integrity",
+          "tests.llm.test_operation_integrity",
+          "tests.llm.test_lifecycle_integrity",
+          "tests.llm.test_usage_deletion",
+          "tests.llm.test_interaction_storage"
+        ],
+        "exit_code": 1,
+        "summary": {
+          "discovered": 76,
+          "started": 76,
+          "passed": 71,
+          "failed": 5,
+          "failures": 0,
+          "errors": 5,
+          "skipped": 0,
+          "expected_failures": 0,
+          "unexpected_successes": 0,
+          "missing": 0,
+          "unexpected": 0,
+          "duplicates": 0,
+          "ok": false,
+          "suite": "llm",
+          "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+          "seconds": 20.88792764399841,
+          "scope": "selected",
+          "modules": 8,
+          "available": 2178
+        }
+      },
+      "snapshots": {
+        "source": {
+          "sha256": "24463898ec24a92cba30f9d8c13af9382f6228094850d8c0544c48768519a0a9",
+          "before_equals_after": true,
+          "path": "/workspace/llm-clean-resume/b/d-admission-1/source-before.json"
+        },
+        "input": {
+          "sha256": "b2fe02aa597d04483d584c8c2e34b37e90d45368e60d488b3f4cd086617997a6",
+          "before_equals_after": true,
+          "path": "/workspace/llm-clean-resume/b/d-admission-1/input-before.json"
+        }
+      },
+      "result_file": "/workspace/llm-clean-resume/b/d-admission-1/llm.json",
+      "log_file": "/workspace/llm-clean-resume/b/d-admission-1/llm.log",
+      "failures": 0,
+      "test_ids": {}
+    },
+    {
+      "name": "d-admission-2",
+      "execution": {
+        "command": [
+          "/workspace/ish-llm/.venv-linux312/bin/python",
+          "-m",
+          "tests.llm.run_regression",
+          "--suite",
+          "llm",
+          "--output",
+          "/workspace/llm-clean-resume/b/d-admission-2/llm.json",
+          "--modules",
+          "tests.llm.test_request_admission",
+          "tests.llm.test_agent_storage",
+          "tests.llm.test_agent_execution",
+          "tests.llm.test_checkpoint_integrity",
+          "tests.llm.test_operation_integrity",
+          "tests.llm.test_lifecycle_integrity",
+          "tests.llm.test_usage_deletion",
+          "tests.llm.test_interaction_storage"
+        ],
+        "exit_code": 0,
+        "summary": {
+          "discovered": 76,
+          "started": 76,
+          "passed": 76,
+          "failed": 0,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "expected_failures": 0,
+          "unexpected_successes": 0,
+          "missing": 0,
+          "unexpected": 0,
+          "duplicates": 0,
+          "ok": true,
+          "suite": "llm",
+          "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+          "seconds": 21.328775239002425,
+          "scope": "selected",
+          "modules": 8,
+          "available": 2178
+        }
+      },
+      "snapshots": {
+        "source": {
+          "sha256": "8fdd665dd041036c0ae5b9943335627e3f2e58a363dc4095bb3e535a0af52d0d",
+          "before_equals_after": true,
+          "path": "/workspace/llm-clean-resume/b/d-admission-2/source-before.json"
+        },
+        "input": {
+          "sha256": "27dbf029fccea2286c152e06bf41b6475f47dc47573700417e2dc44fa402cda4",
+          "before_equals_after": true,
+          "path": "/workspace/llm-clean-resume/b/d-admission-2/input-before.json"
+        }
+      },
+      "result_file": "/workspace/llm-clean-resume/b/d-admission-2/llm.json",
+      "log_file": "/workspace/llm-clean-resume/b/d-admission-2/llm.log",
+      "failures": 0,
+      "test_ids": {}
+    }
+  ],
+  "auxiliary": [
+    {
+      "name": "d-admission-aux-1",
+      "execution": [
+        {
+          "name": "mutation",
+          "command": [
+            "/workspace/ish-llm/.venv-linux312/bin/python",
+            "-m",
+            "tests.llm.check_budget_mutation"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "static",
+          "command": [
+            "/workspace/ish-llm/.venv-linux312/bin/python",
+            "-m",
+            "tests.llm.check_architecture",
+            "--require",
+            "S1",
+            "--require",
+            "S2",
+            "--require",
+            "S3",
+            "--require",
+            "S4",
+            "--require",
+            "S5",
+            "--require",
+            "S6",
+            "--output",
+            "/workspace/llm-clean-resume/b/d-admission-aux-1/static.json"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "docs",
+          "command": [
+            "/workspace/ish-llm/.venv-linux312/bin/python",
+            "-m",
+            "tests.llm.check_docs",
+            "--output",
+            "/workspace/llm-clean-resume/b/d-admission-aux-1/docs.json"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "env-llm",
+          "command": [
+            "/workspace/ish-llm/.venv-linux312/bin/python",
+            "-m",
+            "tests.llm.check_environment",
+            "--suite",
+            "llm",
+            "--host-revision",
+            "d833790959a76ac457fdeea3f21a6bea1eecfe12",
+            "--output",
+            "/workspace/llm-clean-resume/b/d-admission-aux-1/env-llm.json"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "env-hub",
+          "command": [
+            "/workspace/ish-llm/.venv-linux312/bin/python",
+            "-m",
+            "tests.llm.check_environment",
+            "--suite",
+            "hub",
+            "--host-revision",
+            "d833790959a76ac457fdeea3f21a6bea1eecfe12",
+            "--output",
+            "/workspace/llm-clean-resume/b/d-admission-aux-1/env-hub.json"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "provider-environment",
+          "command": [
+            "/workspace/ish-llm/.venv-linux312/bin/python",
+            "-m",
+            "tests.llm.check_provider_environment",
+            "--output",
+            "/workspace/llm-clean-resume/b/d-admission-aux-1/provider-environment.json"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "snapshots": {
+        "source": {
+          "sha256": "8fdd665dd041036c0ae5b9943335627e3f2e58a363dc4095bb3e535a0af52d0d",
+          "before_equals_after": true
+        },
+        "input": {
+          "sha256": "8f666e830c0eb58a3e7301725421081073ee00816a9ff228989cf65dc54aeb36",
+          "before_equals_after": true
+        }
+      }
+    }
+  ]
+}
