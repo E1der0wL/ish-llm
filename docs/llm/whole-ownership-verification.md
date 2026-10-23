@@ -1653,3 +1653,39 @@ incomplete 계약 2개이며 전체 완료는 계속 차단된다.
 현재 증거는 Level 2와 실패 수정 집중 검증이다. 공유 회수/중첩 증거에 영향을 주므로 다음
 group12 고정 현재 소스 Level 3를 필수로 수행하고 성공 뒤에만 Push한다. 정확한 SHA 원격 CI와
 남은 전체 Owner/고정 구조 전환도 계속 진행한다.
+
+
+## 내장 진단 Tool의 선언·입력·관측 타입 연결 (2026-10-23)
+
+[내장 조회 계약](builtin-observations.md)에 따라 DiagnosticTools의 세 Tool은 같은 dataclass
+필드에서 Schema를 파생하고 내부에서 타입 속성으로 소비한다. ProcessStat 커널 Reader를
+재사용하며 시스템·목록·상세·FD 결과는 응답 Owner가 직렬화한다. 생략/명시 null·빈 관측·실패
+생략·unavailable·페이지 종료·PID identity 경합의 기존 의미를 유지한다. 입력 원본과 공개 Schema
+사본을 보호하며 실행 승인/정책·저장 형식을 변경하지 않는다.
+
+카탈로그의 diagnostics 블록 이외 AST는 동일하다. 세 Host 구성에서 이전/현재의 전체 Tool
+정의·계약·환경 binding이 같았으며 독립 wire/오류 주입과 기존 실제 Tool smoke 35개는
+pass/exit 0(6.511초)였다. 아래 공식 결과와 합산하지 않는다.
+
+- `whole-builtin-diagnostics-01`: 발견/시작/pass 96/96/96, exit 0, 37.809858초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-builtin-diagnostics-01/llm.json --modules tests.llm.test_builtin_diagnostic_values tests.llm.test_builtin_tools tests.llm.test_process_group_cleanup tests.llm.test_tool_declarations tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `7e4a2566d195b6fa212ab5a73a75eefdf1eba9423ecd96e9128accf11046655c`, input `783bff94babfb345d60a159f80dc5f80bf3632e13fec66d3877b73bb62d11ecb`.
+
+- `whole-builtin-diagnostics-hub-01`: 발견/시작/pass 24/24/24, exit 0, 99.472369초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-builtin-diagnostics-hub-01/hub.json --modules tests.hub.test_backend_diagnostics tests.hub.test_shell_environment tests.hub.test_tool_retry`. source `7e4a2566d195b6fa212ab5a73a75eefdf1eba9423ecd96e9128accf11046655c`, input `783bff94babfb345d60a159f80dc5f80bf3632e13fec66d3877b73bb62d11ecb`.
+
+- `whole-builtin-diagnostics-wire-02`: 발견/시작/pass 4/4/4, exit 0, 0.002604초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-builtin-diagnostics-wire-02/llm.json --modules tests.llm.test_builtin_diagnostic_values`. source `726fcaf674b7b9ec8561656074616e02e20d491da694abe17912f6ea8d7cec1a`, input `63288c0c00d66cc14cf691382e7c88cd0028df232bf801fdf142befd12d9d5ad`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이며 전후 manifest는 동일하다.
+마지막 실행은 페이지 종료 None을 ProcessPage 필드 기본값으로 옮긴 최종 소스에서 수행했다.
+앞선 집중/Hub 결과는 그 이전 소스의 증거이며 최종 전체 성공으로 합산하지 않는다. 추가 변경은
+그 기본값 선언과 동일 생성 호출뿐이고 필드·효과·정책·테스트/fixture·의존성/환경은 그대로다.
+Python 3.12.14/Clang·고정 Host·namespace/X11을 유지했다.
+
+기존 정적 발생 추가/삭제는 없고 카탈로그 의존 근거 1건을 재검토했다. 세 새 전수 판정은 실제
+선언·Reader/Writer·동적 등록/관측 경로를 모두 확인한 파일에만 추가했다. 카탈로그의 나머지
+파일/프로세스/어댑터 등록은 미완료다. 감사 자체 16개와 builtin-diagnostics-auxiliary의
+S1–S7 144건·문서·R3·SDK·양 suite 환경은 각각 pass/exit 0이다.
+현재 468개 파일, 미검토 393개, 미분류 29708개,
+incomplete 계약 2개로 전체 완료를 선언하지 않는다.
+
+이 소단계는 영향이 진단 입력/관측에 제한된 Level 2다. 공유 실행/회수 변경을 검증 중인
+고정 SHA adb0c5c의 group12에는 포함되지 않으며 다음 내장 Tool 묶음 Level 3에서 통합한다.
+전체 대상 정리와 각 Push의 정확한 SHA 원격 CI 확인을 계속 진행한다.

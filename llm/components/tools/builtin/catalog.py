@@ -163,17 +163,11 @@ class BuiltinTools:
                        ["process_id"]), self.processes.output, contract=self.READ_CONTRACT)
         if diagnostics:
             inspector = DiagnosticTools(self.files.root)
-            diagnostic_specs = {
-                "system_inspect": ("Read Linux kernel, Python, memory, load and work-root disk information.", schema({}), inspector.system),
-                "process_list": ("List visible Linux processes and parent/terminal identity. Optional query matches process names. Results are live observations, not an atomic snapshot.",
-                    schema({"query": string(), "after_pid": {"type": "integer", "minimum": 1}, "limit": {"type": "integer", "minimum": 1}}), inspector.processes),
-                "process_inspect": ("Inspect a Linux PID's cwd, command, standard I/O and terminal/process groups. Optional file descriptors expose pipes/sockets. Unavailable fields are explicit; this cannot observe application UI focus or reconstruct past events.",
-                    schema({"pid": {"type": "integer", "minimum": 1}, "expected_start_ticks": {"type": "integer", "minimum": 0}, "include_files": {"type": "boolean"}}, ["pid"]), inspector.inspect),
-            }
-            for name, (description, parameters, operation) in diagnostic_specs.items():
+            for declaration, operation in inspector.declarations():
                 async def inspect(args, operation=operation):
                     return await asyncio.to_thread(operation, args)
-                self._register(name, description, parameters, inspect, contract=self.READ_CONTRACT)
+                self._register(declaration.NAME, declaration.DESCRIPTION, declaration.schema(), inspect,
+                               contract=self.READ_CONTRACT)
         if git:
             prefix = ["git", "--no-optional-locks", "-c", "core.fsmonitor=false", "--no-pager"]
             async def status(args):

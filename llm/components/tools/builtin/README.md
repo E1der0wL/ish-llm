@@ -12,6 +12,8 @@
 | [files.py](files.py) | 지정한 root 범위의 파일 조회·읽기·작성·수정·삭제를 구현합니다. |
 | [processes.py](processes.py) | 명령 실행·pipe 입력·출력 cursor와 프로세스 종료를 관리합니다. |
 | [diagnostics.py](diagnostics.py) | Linux 시스템·프로세스·표준 I/O 연결을 읽기 전용으로 조회합니다. |
+| [diagnostic_values.py](diagnostic_values.py) | 진단 Tool의 입력 필드·Schema와 시스템/프로세스 관측 응답을 선언합니다. |
+| [arguments.py](arguments.py) | 내장 Tool 필드 선언에서 입력 조회와 공개 Schema를 파생합니다. |
 | [workspaces.py](workspaces.py) | Project별 테스트 파일 공간의 생성·복사·잠금·명시적 삭제와 sandbox 실행 라우팅을 담당합니다. |
 
 ## 연결 방법

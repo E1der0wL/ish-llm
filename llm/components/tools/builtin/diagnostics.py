@@ -6,85 +6,103 @@ from pathlib import Path
 import shutil
 import sys
 from llm.services.infrastructure.process_state import ProcessStat
+from llm.core.configuration import UNSET
+from .diagnostic_values import (SystemInspectArguments, ProcessListArguments, ProcessInspectArguments,
+    DiskObservation, SystemObservation, UnavailableProcess, ProcessPage, FileDescriptorTarget,
+    UnavailableFileDescriptor, ProcessDetails, ProcessInspection)
 
 
 class DiagnosticTools:
     """호스트가 명시적으로 노출한 /proc 관찰. 결과는 서로 다른 시점의 best-effort 표본이다."""
+
+    MEMORY_FILE = ProcessStat.ROOT / "meminfo"
+    MEMORY_FIELDS = ("MemTotal", "MemAvailable", "SwapTotal", "SwapFree")
+    MEMORY_SEPARATOR = ":"
+    MEMORY_KIB_BYTES = 1024
+    PROC_CWD = "cwd"
+    PROC_EXECUTABLE = "exe"
+    PROC_COMMAND = "cmdline"
+    PROC_DESCRIPTORS = "fd"
+    STANDARD_DESCRIPTORS = ((ProcessDetails.stdin, "0"), (ProcessDetails.stdout, "1"), (ProcessDetails.stderr, "2"))
+    COMMAND_SEPARATOR = b"\0"
+    COMMAND_ENCODING = "utf-8"
+    COMMAND_ERRORS = "replace"
+    MIN_PID = 1
+    INVALID_PID = "pid must be a positive integer"
+    IDENTITY_CHANGED = "PID identity changed; list processes again"
+    IDENTITY_RACED = "PID identity changed during observation"
 
     def __init__(self, root: Path):
         self.root = root
 
     @staticmethod
     def _stat(pid):
-        return ProcessStat.read(pid).to_dict()
+        return ProcessStat.read(pid)
+
+    def declarations(self):
+        return ((SystemInspectArguments, self.system), (ProcessListArguments, self.processes),
+                (ProcessInspectArguments, self.inspect))
 
     def system(self, arguments):
         """작업 루트의 디스크와 커널/메모리 상태를 반환한다. 환경변수 전체를 수집하지 않는다."""
         usage = shutil.disk_usage(self.root)
         memory = {}
-        for line in Path("/proc/meminfo").read_text().splitlines():
-            key, value = line.split(":", 1)
-            if key in ("MemTotal", "MemAvailable", "SwapTotal", "SwapFree"):
-                memory[key] = int(value.split()[0]) * 1024
-        return {"observed_at": datetime.now(timezone.utc).isoformat(), "kernel": os.uname().release,
-                "python": sys.version, "cpu_count": os.cpu_count(), "load_average": list(os.getloadavg()),
-                "memory_bytes": memory, "disk": {"path": str(self.root),
-                "total_bytes": usage.total, "used_bytes": usage.used, "free_bytes": usage.free}}
+        for line in self.MEMORY_FILE.read_text().splitlines():
+            key, value = line.split(self.MEMORY_SEPARATOR, 1)
+            if key in self.MEMORY_FIELDS:
+                memory[key] = int(value.split()[0]) * self.MEMORY_KIB_BYTES
+        return SystemObservation(datetime.now(timezone.utc).isoformat(), os.uname().release,
+            sys.version, os.cpu_count(), list(os.getloadavg()), memory,
+            DiskObservation(str(self.root), usage.total, usage.used, usage.free)).to_dict()
 
     def processes(self, arguments):
         """보이는 PID 목록의 이름 검색·페이지 조회. 사라지거나 읽을 수 없는 PID는 표시한다."""
-        query = arguments.get("query", "").casefold()
+        arguments = ProcessListArguments.read(arguments)
+        query = arguments.query.casefold()
         rows, unavailable = [], []
-        limit = arguments.get("limit")
-        for pid in sorted(int(path.name) for path in Path("/proc").iterdir() if path.name.isdecimal()):
-            if pid <= arguments.get("after_pid", 0):
+        limit = arguments.limit
+        for pid in sorted(int(path.name) for path in ProcessStat.ROOT.iterdir() if path.name.isdecimal()):
+            if pid <= arguments.after_pid:
                 continue
             try:
                 row = self._stat(pid)
             except (OSError, ValueError, IndexError) as error:
-                unavailable.append({"pid": pid, "reason": type(error).__name__})
+                unavailable.append(UnavailableProcess(pid, type(error).__name__))
                 continue
-            if query not in row["name"].casefold():
+            if query not in row.name.casefold():
                 continue
             if limit is not None and len(rows) >= limit:
-                return {"processes": rows, "unavailable": unavailable, "next_pid": rows[-1]["pid"]}
+                return ProcessPage(rows, unavailable, rows[-1].pid).to_dict()
             rows.append(row)
-        return {"processes": rows, "unavailable": unavailable, "next_pid": None}
+        return ProcessPage(rows, unavailable).to_dict()
 
     def inspect(self, arguments):
         """PID 재사용이 감지되면 다른 프로세스 자료를 합쳐 반환하지 않는다."""
-        pid = arguments["pid"]
-        if type(pid) is not int or pid < 1:
-            raise ValueError("pid must be a positive integer")
-        root = Path("/proc") / str(pid)
-        result = self._stat(pid)
-        if "expected_start_ticks" in arguments and arguments["expected_start_ticks"] != result["start_ticks"]:
-            raise ValueError("PID identity changed; list processes again")
-        unavailable = {}
-
-        def observe(name, function):
-            try:
-                result[name] = function()
-            except OSError as error:
-                unavailable[name] = type(error).__name__
-
-        observe("cwd", lambda: os.readlink(root / "cwd"))
-        observe("executable", lambda: os.readlink(root / "exe"))
-        observe("argv", lambda: [part.decode("utf-8", errors="replace")
-                                 for part in (root / "cmdline").read_bytes().split(b"\0") if part])
-        for name, fd in (("stdin", "0"), ("stdout", "1"), ("stderr", "2")):
-            observe(name, lambda fd=fd: os.readlink(root / "fd" / fd))
-        if arguments.get("include_files", False):
+        arguments = ProcessInspectArguments.read(arguments)
+        pid = arguments.pid
+        if type(pid) is not int or pid < self.MIN_PID:
+            raise ValueError(self.INVALID_PID)
+        root = ProcessStat.ROOT / str(pid)
+        initial = self._stat(pid)
+        if arguments.expected_start_ticks is not UNSET and arguments.expected_start_ticks != initial.start_ticks:
+            raise ValueError(self.IDENTITY_CHANGED)
+        result = ProcessInspection(initial)
+        result.observe(ProcessDetails.cwd, lambda: os.readlink(root / self.PROC_CWD))
+        result.observe(ProcessDetails.executable, lambda: os.readlink(root / self.PROC_EXECUTABLE))
+        result.observe(ProcessDetails.argv, lambda: [part.decode(self.COMMAND_ENCODING, errors=self.COMMAND_ERRORS)
+            for part in (root / self.PROC_COMMAND).read_bytes().split(self.COMMAND_SEPARATOR) if part])
+        for declaration, fd in self.STANDARD_DESCRIPTORS:
+            result.observe(declaration, lambda fd=fd: os.readlink(root / self.PROC_DESCRIPTORS / fd))
+        if arguments.include_files:
             def files():
                 values = []
-                for path in sorted((root / "fd").iterdir(), key=lambda p: int(p.name)):
+                for path in sorted((root / self.PROC_DESCRIPTORS).iterdir(), key=lambda p: int(p.name)):
                     try:
-                        values.append({"fd": int(path.name), "target": os.readlink(path)})
+                        values.append(FileDescriptorTarget(int(path.name), os.readlink(path)))
                     except OSError as error:
-                        values.append({"fd": int(path.name), "unavailable": type(error).__name__})
+                        values.append(UnavailableFileDescriptor(int(path.name), type(error).__name__))
                 return values
-            observe("files", files)
-        if self._stat(pid)["start_ticks"] != result["start_ticks"]:
-            raise ValueError("PID identity changed during observation")
-        result.update(observed_at=datetime.now(timezone.utc).isoformat(), unavailable=unavailable)
-        return result
+            result.observe(ProcessDetails.files, files)
+        if self._stat(pid).start_ticks != initial.start_ticks:
+            raise ValueError(self.IDENTITY_RACED)
+        return result.to_dict(observed_at=datetime.now(timezone.utc).isoformat())

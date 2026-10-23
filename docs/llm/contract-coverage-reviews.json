@@ -6477,5 +6477,606 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/tools/builtin/arguments.py",
+    "sha256": "452bd0ccebdd2d713263b1af581c79cae11abc7f2edbbbdb0ab29a71c88286da",
+    "reason": "Entire declared-field projection and Schema derivation reviewed. Required fields remain required, explicit null is retained, defaults are only local dataclass values, original input is untouched. Other boundary fields are not interpreted; ToolRegistry remains the admission validator.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "03a1b0460a7dd457c7381f90ca17afb0650112c4e9aa29d45a9c76b0cbc16dbb",
+        "classification": "declaration",
+        "owner": "BuiltinArguments",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "BuiltinArguments",
+        "declaration": "llm/components/tools/builtin/arguments.py",
+        "consumers": [
+          "llm/components/tools/builtin/diagnostic_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_builtin_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/diagnostic_values.py",
+    "sha256": "951c0eb4c4c7dd16e2f6e0fb3b00c84e44c6040b70797f3b84e47d4a90af2433",
+    "reason": "All request names/descriptions/fields/constraints and output shapes are declared before methods. Serialization omits unavailable optional observations while retaining explicit unavailability and empty observed arrays. ProcessStat owns kernel fields. None end-of-page is declared on ProcessPage. No stored state or authority is created.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3e8758f990ad420a0991e0fa072a82fa48ff765dd657b9e04b384481c52778d5",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "78abc3f0ff18c2745cea00b06a46ac608c4eae1b97200296e38f5c7963cebc8a",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "0721dcbc50500864e7cd1be2cbcbe73d04400358abec5a2b3563033d1c619b4d",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "fafcb1cee6a0c0d042f0bd51218011ca11362d8118e1489604f6fca940224652",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "a64bdd53841b8c8add234dc00fb2db28cc089597e03c1a3d9e7c17ee3bf43535",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "c0761f3834894cdcd50ab0d8f65b9d34441c4a8d2a9fe69875a29bec571ab0ef",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "4a6c24f2a16e35eba986b6af80d2678112c0029e08761dca284de0c38abf5a48",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "b700c1d7f71e823c3a38406e2d09ad40f0611b0e94ffccec1e1bf2b9b9025322",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "b03130c2730f0bb75ca5f1dae38255c548ab994b65f7a577c4753fee186f6d6e",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "636a6b62cdc5c7f523b5b6f904eadbfeb82680ce9ab9ea7f1ca42402cd4efe0c",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "9df42b063e63474706d73461c38a813a28781156342a1f046e51b54baa4edd4c",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "b0e11ff4c52f58561a05fac86b191224671069d5185246971bd45ca170602d21",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "e3a787f098a7d851d445b92666adc6f2d2db491d64a968a2adf876d64bf680a9",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "4ed966593be9acac6b7fd50bfd721138876f80ae53d5eec0486a2cfbfa221594",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "b539583baac0467e01e2955f947a9e4458d1bb2a797d90260d9c3cb99af1622d",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "582b9de0a8a021b4fd95e1d28f9d036c58649977326727dfbd97cf4dcf0a5d8f",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "d08f27dc6d967a1604e024125d2f5bb8f3fde20409a9e4763fec09977a3560b8",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "5f38849c9aece9751cabac8396af5f76af188a86598d74ae856f8d03791363e1",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "83585324a8b064cdb7c5dfc6fa088fa59dd66fcc36a379eed07c733a5d2ce2a1",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "9856abc8424e0a8418f9e28089060ad59d84a0d9fc246e5708b2332898e8b523",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "e142e4863892ee7abd4afdc66f12d9c2cda934c30c75d90cdb619841d8dea91d",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "6e914cec607abb43cf30d0158d9ec8c85346643d1487ea105e579177c4277071",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "fed46bb398b326f420f5cebff5f8853e3c6fafb036685f3f12208e82c4f40998",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "fc246589661e6f2c10202990b57ca63758f032cf3a60875c8f0e82d9af6d9c8e",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "9a332272f16ad9e1c47caad7a60ab66754f9395d31677beb042348de01434de8",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "2988280f4166fb728e75b9c7d0cb0599ee0dd26dd0672a7b22ed7b06d0737754",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "32ae36e9010dbeaef4559893b7f3c400cca889efab0f6a567a770d6fd01c6b67",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "c8656b6e9ca262d5b68ce5da9d45aecd58216df442cd5cddf81d21d89567d2be",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "1a4808bd471f9213056bfb0f4adf9b3f24bb5e6b2e112bb63a0919f988f2aeec",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "db256e06576550627444a731ba3b7cc76f40cae2493f966d0c5b577dcd8fa66a",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "fb44230bb698e5f0f5c5cac7df8b063350587e41043feba41a8224887305031a",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "e73e2009616a417a39843937b11d4f48cfadebf575d713aeaa21e9aa7f8dc9c4",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "5f0a88296821d11e5449fbc746120249b71245d0fe0e5834990a61ab34fc1c80",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "f01fde71452840c1e2096807056510f64811b49c578fec3100b6d1bc67c77bbf",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "e04d074c1678f9ff748e023870d37ab18d7a201e8f718e4d213f3d8d33e2dfb5",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "188dfcd849e6796832895c28693690eb6527c23d721efd01c0175a529ca8f187",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "b3d24c3c9a35189949fca6ea64d5741c09ad2e200790fa84822c55d77f8df2d5",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "01e6afd05026a6cbb85c8114ca6176375a92a34463c52cab43d892f6d077b63b",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "f7e7fa9f931bb83b96de2849e927b74629eff478db111d5047e8c2eb94e32855",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "a2aa503252c12b339f98169c350e26b5e0d07828b9f90dcb7e61a85e1fdd091e",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "7e48bccdb25981190ec553df8f976ee8a0c25c8f1903e2a8fba93f0ea3e051bf",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "9b8f83ba7b06b3cab075dd79e854d5eae7b8bebb82e496ca7b5f472c21b827d1",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "0300e04d11214224b111fda0c4f0b1ee5476e254c50817d6fd648ffdc573bcc3",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "a82d6b4979bee4351bb498b88dc4f08aa41faf97383842ca5b0403182db2454b",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "ae181b9ff4a72e12ab5820845dd2e63d2ab005f87b0835bcb8bb749f5ca2b7de",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "e14d3c6e41af830467c14ddb559fe52ebb2e296d36380bdd465f0977ffaccfc0",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "6280ede945b8d1c644ede84f85093cb9194a4844980cea2b23185e94fa21f38b",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "6a026a98dbb04e36e69c45deb094c4eac033d6efb4c2ea9fdbd9c2252b85bd95",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "1f9dffd5b75589eb31d12102346f99241ce16314689e9283e0e23482c010c312",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "b00e7bceea159eaf61d1f95d6313647e7329ec5dc11f6f26f0d8c07bb7e6972b",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "e2f4cd5548df6230f55c1d4f5bcbbeca604f5706fc76c23de40e0335fb38397f",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "15d6d551d544e80cb1bdd4365d529bbf338f5ab90040cb83c6f7cd803678ffce",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "42d897adb87d239af13201e2608734d5e8725a73e1ea5ebb888d3b8f6ec8761b",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "36f9234cd9ee13e6ff39ff5be7e76ff95c33931e95fb083f01e4cce1e099b20a",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "a8169c00329bb28ea35d876ed513144eb9ee6187fe8e45e28cf6ee3784ef3786",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "595958b07287195275030f2d9b1de2435ef2836f20e6a71e11b50486056b70cb",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "1803bcc2257013120ccd8ae14827387467ea0bedfca9f0c43597b67c6140051d",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "7f3e35d1dfd9f0f1aaec8fd9e17f363899fd9c78ed46351cafa47f4b3d202b24",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "1e10d45a6fcd79aa3d07f1308f472ab313207ec79db5ed50e0d191bec3b0edee",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "0125eb8c4bc40ec35094d60ebbf56ab988dbc8d823d0811a09bf74fda1b3fd13",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "69da642ad4e3f5f7bf2187674e8aaaa44d8c80b9a6b3d3cb69c19f81517fa196",
+        "classification": "declaration",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "c307ee28522a0bae7d1c064a0c0e2c119d152074617ee58fc0191b50a600907a",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      },
+      {
+        "id": "2c653cd982d0634be4a7baa694aea0fee40af51069e09ea4036cbf5a567a1fb1",
+        "classification": "non_contract",
+        "owner": "Diagnostic request and observation types",
+        "reason": "Python dataclass generation options, not domain defaults or wire values."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Diagnostic request and observation types",
+        "declaration": "llm/components/tools/builtin/diagnostic_values.py",
+        "consumers": [
+          "llm/components/tools/builtin/diagnostics.py",
+          "llm/components/tools/builtin/catalog.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_builtin_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/diagnostics.py",
+    "sha256": "548ed304c75e0f58d1890fd5891077ff188ec97e9ce5c3da72e91207a95ba7e7",
+    "reason": "Entire Linux observation path reviewed: kernel path/encoding/unit declarations precede methods. Reads produce typed ProcessStat and output projections. Query, paging, partial observation, malformed errors and before/after start identity checks retain timing and behavior. Public registration uses the same argument Schema declarations.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e91f89a78dd92a512ea8a36648df5c560aa26e5fcef4fe1599fb7e86bf603fb3",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "0c48cfe736fea70b4f4b165568520d964284357a1d89a7b2c13e8ad52456f9f7",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "b943db736cfd96c7375af69968ee36b4d464ec6658c759bd32b45fbf42582efa",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "e8f877b17e62d358263f67ff14d5844ef7b568f0eb4911c7b7985ae234930ff1",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "5d2f79437aa7ce8e814f040c52cad96cdcfc835525233260c488441e1287b8c4",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "c4b0681a137d39f081c5de8c4a94ee00e0415f5bf8f5596e44c972ce979414ff",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "5bdfa451af3eeec615f516b1667b2fa6b292fb04bdd0f3bf8fa45ef663529628",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "19878ac2f10323939780294daf1efadefaa29c3c45fb63dccb553e2ef7dd45a1",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "8c13cc46de47f2bde4875b56a1f1d851c1670dace8edb350c1beb70ca9b1e844",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "0ca579e62535202aae4f6b9d64c22da86a42a8347ccc7b032354237a183e913c",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "46df1c49c0dd9deae947ed513cf7012ae6bc4cde8b279af4146d254eb9a024d6",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "73746dc3d1eadb8eb4c6028b73c7ef6b1f2d2d2530f8a6cd440d639fb8580257",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "05ac0a242b9443d46fa11779ce42df59cdbc3f56bb9299eae7066eaa3937d889",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "3e24f076d95e659287c77fddf704ce7a8e02c64b199ac6a6a5972477d183c322",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "bbd59112f4c9c51bc39ee49f9a1a3c4c85c53bae249a0620f0b38e7b0626e34a",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "490e1a83c6511262650ccde23bd6aa6d4d7b2402ee512d40406e237f6dbbb673",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "15d5edda20f05ae9ec22984d01d9303527887d3d7efa4217b55b3a094acbebba",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "9d6ab616147d2683eed8918afdaaf6c73e30630357bb611b4f359033530ea2b7",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "47240bd90f8608324119ffb4853ad15891f7eadc719cd66fcfe128c90fa31283",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "7dcbaccccedc9aa5555bef189e494303b805d66afee1d09f11b71c0da3441c87",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "219158da83465f0ac72227dfa2b23427b299b720ca38d2825801c04dab45925f",
+        "classification": "declaration",
+        "owner": "DiagnosticTools",
+        "reason": "Owner field/Schema/default/name/protocol/diagnostic declaration before implementation."
+      },
+      {
+        "id": "449b0304d5d45d5c246db14c7e102962923947fd3504edd751ad8f4fd7a7674e",
+        "classification": "non_contract",
+        "owner": "DiagnosticTools",
+        "reason": "Local first-token/last-element selection, one split, or comparison with the declared optional limit. No record default or execution policy is introduced."
+      },
+      {
+        "id": "967441326865e49c82c57c6977e89032aa4981a123e442b44e7a26b9239bf000",
+        "classification": "non_contract",
+        "owner": "DiagnosticTools",
+        "reason": "Local first-token/last-element selection, one split, or comparison with the declared optional limit. No record default or execution policy is introduced."
+      },
+      {
+        "id": "57c166bf584ef1b6549a6c38b6e53b4c7422fb2961d1a9c899bfe9c674fd29d3",
+        "classification": "non_contract",
+        "owner": "DiagnosticTools",
+        "reason": "Local first-token/last-element selection, one split, or comparison with the declared optional limit. No record default or execution policy is introduced."
+      },
+      {
+        "id": "bb1bac383731d2b0109e9e6105b0129e7039166c5023c6253f606cf108c28225",
+        "classification": "non_contract",
+        "owner": "DiagnosticTools",
+        "reason": "Local first-token/last-element selection, one split, or comparison with the declared optional limit. No record default or execution policy is introduced."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DiagnosticTools",
+        "declaration": "llm/components/tools/builtin/diagnostics.py",
+        "consumers": [
+          "llm/components/tools/builtin/catalog.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_builtin_tools.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 466,
-    "unreviewed_files": 394,
+    "files": 468,
+    "unreviewed_files": 393,
     "stale_files": 0,
-    "unclassified": 29813,
+    "unclassified": 29708,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 396,
+    "unreviewed_dynamic_paths": 395,
     "unreadable_files": 0,
-    "candidates": 30637,
+    "candidates": 30621,
     "issues": 0
   },
   "files": [
@@ -1804,7 +1804,7 @@
     {
       "path": "llm/components/tools/builtin/README.md",
       "status": "unreviewed",
-      "sha256": "a7670e8e25f506efc23ca40865714ebbd7faaac775f894be9898a85a03af44be",
+      "sha256": "5e83d624d859dd9bdd2794515fd5d486493362943ab7bf4d0d931e34ec374639",
       "candidates": 0
     },
     {
@@ -1814,10 +1814,16 @@
       "candidates": 4
     },
     {
+      "path": "llm/components/tools/builtin/arguments.py",
+      "status": "reviewed",
+      "sha256": "452bd0ccebdd2d713263b1af581c79cae11abc7f2edbbbdb0ab29a71c88286da",
+      "candidates": 1
+    },
+    {
       "path": "llm/components/tools/builtin/catalog.py",
       "status": "unreviewed",
-      "sha256": "3c4a5da93659f2b3e903945f6bf13416d8e8f3fec6af37fb97df8d7895255d04",
-      "candidates": 430
+      "sha256": "c179bf1fb5799afe12202a99ac8e9b5ed83f34d528948487802603f834e23ee7",
+      "candidates": 399
     },
     {
       "path": "llm/components/tools/builtin/component.py",
@@ -1826,10 +1832,16 @@
       "candidates": 3
     },
     {
+      "path": "llm/components/tools/builtin/diagnostic_values.py",
+      "status": "reviewed",
+      "sha256": "951c0eb4c4c7dd16e2f6e0fb3b00c84e44c6040b70797f3b84e47d4a90af2433",
+      "candidates": 63
+    },
+    {
       "path": "llm/components/tools/builtin/diagnostics.py",
-      "status": "unreviewed",
-      "sha256": "a0d20a47f0f0296085619c8a01c6797fc1f28f51ea21393a07a434fce31992b9",
-      "candidates": 74
+      "status": "reviewed",
+      "sha256": "548ed304c75e0f58d1890fd5891077ff188ec97e9ce5c3da72e91207a95ba7e7",
+      "candidates": 25
     },
     {
       "path": "llm/components/tools/builtin/files.py",
