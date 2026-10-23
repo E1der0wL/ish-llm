@@ -633,8 +633,8 @@
   },
   {
     "path": "llm/services/runtime/transfers.py",
-    "sha256": "6bf41b67f34d1747ffad1e1db6825c6c1bc494eef7bf0f2469f033ee3fcf243d",
-    "reason": "Read the entire transfer Owner and every product, repository extension, callback, fault injection and raw-wire consumer. Intent/source/receipt/inventory and observation schemas have single declarations and typed internal consumers; JSON appears only at authorization, storage, clone and facade boundaries. Source/target receipts, exact history/Run witnesses, original CAS revision, deadline, idempotency, no-replay, transaction/ACK and actual effects assertions are retained. Declaration-only classification is occurrence-specific; neighboring modules are not approved.",
+    "sha256": "fc49b8eb383e58c4d85599b71b2239b59632ff2ebf277a16be6de7bc93fe300a",
+    "reason": "Read the entire transfer Owner and every product, repository extension, callback, fault injection and raw-wire consumer. Intent/source/receipt/inventory and observation schemas have single declarations and typed internal consumers; JSON appears only at authorization, storage, clone and facade boundaries. Source/target receipts, exact history/Run witnesses, original CAS revision, deadline, idempotency, no-replay, transaction/ACK and actual effects assertions are retained. Declaration-only classification is occurrence-specific; neighboring modules are not approved. Lineage uses ResumeRecord/RestartRecord presence and required source properties. The same full readers reject partial evidence before following source Run and request links. Cycle, deadline and authorization checks are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -1378,6 +1378,226 @@
           "tests/llm/test_cross_session_requests.py",
           "tests/llm/test_cross_session_crash.py",
           "tests/llm/test_repositories.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/continuations.py",
+    "sha256": "8ac5a581a3d5b492dd1f61e1b57f0cc210c99eb6f769627393c8a10e9e5b6bbc",
+    "reason": "The sole full reader now requires original identity/digest and resume choices; immutable typed properties replace partial dict reads. Child choices preserve original witnesses and opaque extensions. Execution entry absence stays unknown, explicit null/numeric values fail. Pure hash projections preserve raw nested values and wire shapes. All product consumers were located: services, nested Engines, approval tools and Hub use validated properties or raw presence only. No mapping compatibility methods or second stored definition were added.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9044b44514eda3d0ca9cac326bb8fe3ab48e67e4d58b610a2d0bcdba0a3577e1",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Decorator storage/constructor flags govern generated Python methods, not a wire field, execution policy or persisted state; validating Owner factories and detached projections govern data."
+      },
+      {
+        "id": "70bb3c858b422407e7b7b5f7c45fe95a767967f198e1d51b9ab4d8351cbdd61e",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Decorator storage/constructor flags govern generated Python methods, not a wire field, execution policy or persisted state; validating Owner factories and detached projections govern data."
+      },
+      {
+        "id": "3414186e2fbac826bd6851f3340745c153622876137c6783de5fe505bf02c9c7",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Decorator storage/constructor flags govern generated Python methods, not a wire field, execution policy or persisted state; validating Owner factories and detached projections govern data."
+      },
+      {
+        "id": "090e242808b8517b8baf90bdcf42a974149f84fc2dc9cd12e248516963a09bce",
+        "classification": "declaration",
+        "owner": "RunLink",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "4ad21f8c33ca2df4ca01519520887ef52b64ec0d1185c6271fb6bd2928b81842",
+        "classification": "declaration",
+        "owner": "RunLink",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "c618318c28a6dbb59977b136da6636ca784f889d3c200b1389a21dcccc53514c",
+        "classification": "declaration",
+        "owner": "RunLink",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "d6c045a68bcae5634a0510ec59541577a0c5406a7f648814ae159130a9c323b0",
+        "classification": "declaration",
+        "owner": "RunLink",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "72828c5359a19022a79b09edeb7e33940acc1c3059cb2db6c14e4d3d52cecfa8",
+        "classification": "declaration",
+        "owner": "RunLink",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "5aa8bf4fb5a50bb1d9e06e8010f8d26e115de56dc03296df6c580e5c9a35cb8a",
+        "classification": "non_contract",
+        "owner": "Python dict.pop discarded return",
+        "reason": "Discarded removal result in detached clone metadata. No None is inserted into original evidence or used as continuation permission."
+      },
+      {
+        "id": "74d76e4fae04f69f9d853b4d595f70c7b967f23b0e1767bf93321b4bcab45fb6",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "2f1d8319766450cb2c56c242cb9a05495e28398e031156d008f9b705e73b261c",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "5ec9cb8010dc644754e77ec7ea68e70ff339fe52ea1766641be2797686a0b643",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "841422bbc013ba4f79d2c3521157450164ff774057dff571d6edd47473d20230",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "f4410a2ba674bee484f81f3544fb9f8294c37f36c0158162bfd6903347820a99",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "273c1696ab5be4ffa04fffd0b03f4ac7517109db12776fe02f595badad831c27",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "639d08990fa1b44dd3cf0435f0d0b50c5b4a62512690749bbfcdd7c1b111debf",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "d75672497bc997b895d7ba7c95d8905a41a0437a0393245b896588bdb0ae2b4b",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "6546ea82ddc3ee83f2ff95c37a510d804e13bc812be7b1b5726d0766ab11336b",
+        "classification": "declaration",
+        "owner": "ResumeRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "6d4d9f419d14ff009acc763e18ece0458f085ea513b5960732b6c872e1991f22",
+        "classification": "declaration",
+        "owner": "RestartRecord",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "efc584b47cddb38f1f864f0521140ac98aead613e8ac22c09bdc28ffcebb60bf",
+        "classification": "declaration",
+        "owner": "RunExecutionEvidence",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "130b22e08d979633ae7370cab5ac85d0a4cf7f38dfb068aeefbdd00b63f21f16",
+        "classification": "declaration",
+        "owner": "RunExecutionEvidence",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "730640c0a39f71140621a0af3d33eaf7bae2686bf8db7911fe63c00bf38e95a2",
+        "classification": "declaration",
+        "owner": "RunExecutionEvidence",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "30f934d1963d6461e4cb0e71261e150d27d0e1eddb8d7fd0f4856ec43c2e096f",
+        "classification": "declaration",
+        "owner": "RunExecutionEvidence",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "52554a57872d33473f57545090f46af90f0b129994f92668776f77150275db14",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Decorator storage/constructor flags govern generated Python methods, not a wire field, execution policy or persisted state; validating Owner factories and detached projections govern data."
+      },
+      {
+        "id": "8c6caca04f5a8a9cecd464aba80e08ffd80dbd37f0b7b129dd7e67ac11a218bf",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Decorator storage/constructor flags govern generated Python methods, not a wire field, execution policy or persisted state; validating Owner factories and detached projections govern data."
+      },
+      {
+        "id": "58bd0b742e6aece0cb638abf0003c1c06ccad8c26e0f5670e595c2692278fd11",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Decorator storage/constructor flags govern generated Python methods, not a wire field, execution policy or persisted state; validating Owner factories and detached projections govern data."
+      },
+      {
+        "id": "b5dc83b7464bcf47548847fc5e2227308cef1d381abc9e4cacf3814d90b52728",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Decorator storage/constructor flags govern generated Python methods, not a wire field, execution policy or persisted state; validating Owner factories and detached projections govern data."
+      },
+      {
+        "id": "72dd59fafa80499864a482080e7d544d367503f41d447610cb1abf4771c723f1",
+        "classification": "declaration",
+        "owner": "ResumePlanEvidence",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "999285adbe6c0d593f019e013331744982e9c62e3eab342ff96ed14fa9b025f2",
+        "classification": "declaration",
+        "owner": "ResumePlanEvidence",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "57132e18b596cbd9e3fd82ec883895db1430f2d58f4f5fec8bddc4fd758cc7d0",
+        "classification": "declaration",
+        "owner": "ResumePlanEvidence",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      },
+      {
+        "id": "98be9f7b7799fb16e3608ed668d7398acd6e357a0f063d04ae02ea6e67e45333",
+        "classification": "declaration",
+        "owner": "ResumePlanEvidence",
+        "reason": "Canonical continuation identity, choices, default, error or execution-entry declaration at its Owner before methods. Reader, creation, child projection and serialization share this declaration."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RunLink / ResumeRecord / RestartRecord / RunExecutionEvidence / revision projections",
+        "declaration": "llm/core/continuations.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/transfers.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/checkpoints.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_continuation_values.py",
+          "tests/llm/test_backend_contracts.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_cross_session_crash.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_approval_continuation.py"
         ],
         "complete": true
       }

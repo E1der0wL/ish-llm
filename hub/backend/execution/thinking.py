@@ -56,7 +56,7 @@ class ThinkingPhases:
         completions = CompletionRecords.results(run.metadata)
         if completions:
             return "thinking" if completions[-1].status in (RunStatus.PENDING, RunStatus.RUNNING) else "running"
-        return "resuming" if run.metadata.get(ResumeRecord.KEY) else "preparing"
+        return "resuming" if ResumeRecord.from_metadata(run.metadata) else "preparing"
 
     def visible(self, run_id, fallback, *, active, content):
         if not active:

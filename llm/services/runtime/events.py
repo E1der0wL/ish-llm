@@ -1,6 +1,6 @@
 """실행에 영향을 주는 이벤트 처리기와 실행을 관찰하는 구독자를 분리한다."""
 
-from llm.core.continuations import RestartRecord, ResumeRecord
+from llm.core.continuations import RestartRecord, ResumeRecord, RunExecutionEvidence
 
 import asyncio
 import inspect
@@ -82,7 +82,7 @@ class EventContext:
 
     # Run 시작 시 확정한 정책과 실행/재개 원본은 서비스만 변경한다.
     _managed_metadata = frozenset(("policies", CompletionRecords.KEY, ResumeRecord.KEY, CheckpointDeclarations.NAMES, "output", SteeringChannel.KEY, "engine_options",
-                                  ResumeAbandonment.KEY, CheckpointDeletion.KEY, "execution_started", RestartRecord.KEY, "diagnostic",
+                                  ResumeAbandonment.KEY, CheckpointDeletion.KEY, RunExecutionEvidence.KEY, RestartRecord.KEY, "diagnostic",
                                   AgentBinding.METADATA_FIELD, AgentBinding.CONTEXT_FIELD, AgentBinding.EXECUTION_FIELD))
 
     def __init__(self, run, engine_context, io, repository):

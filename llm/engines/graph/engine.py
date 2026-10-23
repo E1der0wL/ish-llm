@@ -527,7 +527,7 @@ class _WorkflowRuntime:
                     raise GraphExecutionError("Selected handler configuration changed; start a new request")
                 info["handler_selection"] = selection
             plan = _plan_node(definition, state, saved=saved, resuming=self.resuming,
-                              decisions=context.run.metadata.get(ResumeRecord.KEY, {}).get(ResumeRecord.DECISIONS, {}), key=key)
+                              decisions=ResumeRecord.decisions_for(context.run.metadata), key=key)
             if plan.action == "reuse":
                 await self.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id,
                     kind="graph_node", name=name, metadata={**info, "checkpoint_key": key,
@@ -1026,8 +1026,8 @@ class GraphEngine:
         binding = self._binding(context, graph, prepared)
         if context.checkpoint is not None:
             self._validate_selections(context, prepared, CheckpointRecords.from_checkpoint(context.checkpoint).records)
-            self.validate_resume(context.checkpoint, retry_nodes=context.run.metadata[ResumeRecord.KEY][ResumeRecord.RETRY_NODES],
-                                 decisions=context.run.metadata[ResumeRecord.KEY].get(ResumeRecord.DECISIONS))
+            self.validate_resume(context.checkpoint, retry_nodes=ResumeRecord.require(context.run.metadata).retry_nodes,
+                                 decisions=ResumeRecord.require(context.run.metadata).decisions)
             header = deepcopy(CheckpointContent.from_checkpoint(context.checkpoint).header)
             if binding != header["binding"]:
                 raise GraphExecutionError("Workflow, Agent, Tool or execution configuration changed; start a new request")

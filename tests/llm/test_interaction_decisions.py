@@ -1,4 +1,5 @@
 """승인/재개 값의 공통 해석. 형식 해석은 권한이나 새 응답 영수증을 만들지 않는다."""
+from tests.llm.support.continuation import resume_record
 
 from llm.engines.loop import LoopEngine
 
@@ -194,7 +195,7 @@ class DecisionRepositoryTests(unittest.TestCase):
 class ToolDecisionTests(unittest.IsolatedAsyncioTestCase):
     def context(self, request, decision):
         return EngineContext(SimpleNamespace(id="p"), SimpleNamespace(id="s"),
-            SimpleNamespace(id="r", input_message_id="m", metadata={"resume": {"decisions": {"key": decision}}}),
+            SimpleNamespace(id="r", input_message_id="m", metadata={"resume": resume_record(**{"decisions": {"key": decision}})}),
             (), checkpoint={"records": {"key": {"status": "waiting", "interaction": request.to_dict()}}})
 
     async def test_invalid_raw_graph_decision_fails_before_step_or_worker(self):
@@ -236,7 +237,7 @@ class EngineDecisionTests(unittest.TestCase):
 
     def context(self, decisions, retry=()):
         return EngineContext(SimpleNamespace(id="p"), SimpleNamespace(id="s"),
-            SimpleNamespace(id="r", metadata={"resume": {"decisions": decisions, "retry_nodes": list(retry)}}), ())
+            SimpleNamespace(id="r", metadata={"resume": resume_record(**{"decisions": decisions, "retry_nodes": list(retry)})}), ())
 
     def test_nested_choice_id_restores_original_value_without_new_receipt(self):
         request = replace(approval_request("Review"), options=(

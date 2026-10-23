@@ -1,4 +1,5 @@
 """기본 Tool의 실제 파일/프로세스 동작, 연결 어댑터, 공통 실행 이력을 검증한다."""
+from tests.llm.support.continuation import resume_record
 
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
@@ -414,7 +415,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         args = {"command": 'printf "%s" "$VALUE"', "env": {"VALUE": "approved"}}
         def context(checkpoint=None, decisions=None):
             return EngineContext(SimpleNamespace(id="p"), SimpleNamespace(id="s"),
-                SimpleNamespace(id="r", input_message_id="m", metadata={"resume": {"decisions": decisions or {}}}),
+                SimpleNamespace(id="r", input_message_id="m", metadata={"resume": resume_record(**{"decisions": decisions or {}})}),
                 (), tool_scope=ToolExecutionScope(ToolRuntime()), checkpoint=checkpoint)
         async def execute(arguments, ctx):
             result = {}

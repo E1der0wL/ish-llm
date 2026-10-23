@@ -45,7 +45,7 @@ class SteeringChannel:
             raise InstructionDataError(self.INVALID)
         self._value = deepcopy(value)
         self._run_id = run.id
-        self._resuming = ResumeRecord.KEY in run.metadata
+        self._resuming = ResumeRecord.present(run.metadata)
 
     @classmethod
     def initial(cls, run, mode, input_message_id):

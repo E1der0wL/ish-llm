@@ -11,8 +11,8 @@ from .trace import merge_trace
 
 
 def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessage]) -> tuple[ChatMessage, ...]:
-    parents = {run_id: m.metadata[ResumeRecord.KEY][ResumeRecord.SOURCE_RUN] for m in records
-               if str(m.role) == "user" and m.metadata.get(ResumeRecord.KEY)
+    parents = {run_id: ResumeRecord.require(m.metadata).source_run_id for m in records
+               if str(m.role) == "user" and ResumeRecord.from_metadata(m.metadata)
                for run_id in RequestAdmission.run_ids(m)}
     assistants = {m.run_id: m.id for m in records if str(m.role) == "assistant" and m.run_id}
     sources, hidden = {}, set()
@@ -27,7 +27,7 @@ def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessag
             parent = parents[parent]
         if parent in seen:
             continue
-        if str(record.role) == "user" and record.metadata.get(ResumeRecord.KEY):
+        if str(record.role) == "user" and ResumeRecord.from_metadata(record.metadata):
             hidden.add(record.id)
         elif str(record.role) == "assistant":
             sources[record.id] = assistants[parent]

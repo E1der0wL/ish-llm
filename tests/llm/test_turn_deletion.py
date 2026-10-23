@@ -1,4 +1,5 @@
 """재개 포기와 대화 삭제의 CAS, 영속성, 승인 및 rollback 경계."""
+from tests.llm.support.continuation import resume_record
 
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
@@ -219,7 +220,7 @@ session.delete_turn(sys.argv[4], abandon_runs=[b.source.run_id for b in plan.blo
         with self.assertRaisesRegex(ValueError, "abandoned"):
             await self.session.run.resume(run.id, agent_id="graph")
         manager = self.app._manager(self.session.data)
-        candidate = replace(run.data, metadata={"resume": {"run_id": run.id}})
+        candidate = replace(run.data, metadata={"resume": resume_record(**{"run_id": run.id})})
         with self.assertRaisesRegex(ValueError, "abandoned"):
             manager._resume_checkpoint(self.session.data, candidate)
         self.assertFalse(self.effects)

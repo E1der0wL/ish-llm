@@ -544,9 +544,9 @@ class AgentInvocation:
             if self.resources is not None:
                 await self.selection.connect_resources(self.resources, context, context.tools, stack)
             if self.profile.get("resources", {}).get("mcp") and context.checkpoint is not None:
-                descriptor = context.run.metadata[ResumeRecord.KEY]
+                descriptor = ResumeRecord.require(context.run.metadata)
                 self.engine.validate_resume(context.checkpoint, context=context,
-                    retry_nodes=descriptor[ResumeRecord.RETRY_NODES], decisions=descriptor[ResumeRecord.DECISIONS])
+                    retry_nodes=descriptor.retry_nodes, decisions=descriptor.decisions)
             stream = self.engine.execute(context)
             async with aclosing(stream) if callable(getattr(stream, "aclose", None)) else nullcontext(stream):
                 async for event in stream:

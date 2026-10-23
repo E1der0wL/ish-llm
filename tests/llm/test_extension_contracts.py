@@ -1,4 +1,5 @@
 """Owner boundaries remain valid for substituted engines, handlers and providers."""
+from tests.llm.support.continuation import resume_record
 
 from llm.core.model_protocol import ModelMessage, ModelRequest
 
@@ -88,7 +89,7 @@ class CheckpointBoundaryTests(unittest.TestCase):
         decision = parent.respond("address", value="Seoul").decision(parent)
         self.assertEqual(parent.select_decision(decision)[0].id, "address")
         context = EngineContext(SimpleNamespace(), SimpleNamespace(), SimpleNamespace(metadata={
-            "resume": {"decisions": {scope.key("question"): decision}, "retry_nodes": []}}), ())
+            "resume": resume_record(**{"decisions": {scope.key("question"): decision}, "retry_nodes": []})}), ())
         child = scope.context(context)
         self.assertEqual(child.run.metadata["resume"]["decisions"], {"question": "Seoul"})
         self.assertEqual(child.checkpoint["records"]["question"]["status"], "private-await")

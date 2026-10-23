@@ -54,11 +54,11 @@ class EngineCheckpointScope:
     def context(self, context):
         snapshot = self.snapshot()
         run = deepcopy(context.run)
-        descriptor = run.metadata.get(ResumeRecord.KEY, {})
+        descriptor = ResumeRecord.from_metadata(run.metadata)
         decisions = {}
         for key, record in self.records.items():
             if (not CheckpointEnvelope.belongs_to(record, self.owner, self.name)
-                    or key not in descriptor.get(ResumeRecord.DECISIONS, {})):
+                    or descriptor is None or key not in descriptor.decisions):
                 continue
             envelope, payload = CheckpointEnvelope.read(record)
             local = envelope.local_key
@@ -70,13 +70,13 @@ class EngineCheckpointScope:
                 raise ValueError("Child interaction does not match its checkpoint scope")
             # 부모의 승인 값 모양을 가정하지 않고 같은 선택지 ID를 자식의 원래 값으로 복원한다.
             # 수명/갱신/응답 영수증은 서비스가 검증한다. 여기서 원본 요청을 다시 승인하지 않는다.
-            option, supplied = parent.select_decision(descriptor[ResumeRecord.DECISIONS][key])
+            option, supplied = parent.select_decision(descriptor.decisions[key])
             decisions[local] = child.decision_for(option.id, value=supplied)
         retry = [CheckpointEnvelope.from_dict(v).local_key for key, v in self.records.items()
             if CheckpointEnvelope.belongs_to(v, self.owner, self.name)
-            and key in descriptor.get(ResumeRecord.RETRY_NODES, [])]
-        if ResumeRecord.KEY in run.metadata:
-            run.metadata[ResumeRecord.KEY] = ResumeRecord.for_child(descriptor, decisions=decisions, retry_nodes=retry)
+            and descriptor is not None and key in descriptor.retry_nodes]
+        if descriptor is not None:
+            descriptor.for_child(decisions=decisions, retry_nodes=retry).store(run.metadata)
         return replace(context, run=run, checkpoint=snapshot, checkpoint_scope=self.owner)
 
     def wrap(self, event):

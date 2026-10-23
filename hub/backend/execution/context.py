@@ -13,7 +13,7 @@ from .followup import split_followup
 class HubContextBuilder(ConversationContextBuilder):
     def for_clone(self, messages):
         from .turns import TurnIndex, TURN_OPTION, edit_source
-        if not any(edit_source(m) or m.metadata.get(ResumeRecord.KEY) or m.metadata.get(RestartRecord.KEY) for m in messages):
+        if not any(edit_source(m) or ResumeRecord.from_metadata(m.metadata) or RestartRecord.from_metadata(m.metadata) for m in messages):
             return super().for_clone(messages)
         records = [m for m in messages if m.role in ("system", "developer")]
         for turn in TurnIndex(messages).turns:

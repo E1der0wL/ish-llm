@@ -69,19 +69,19 @@ class OwnerDeclarationTests(unittest.IsolatedAsyncioTestCase):
 
     def test_continuation_projections_preserve_originals_and_missing_evidence(self):
         decisions = {"node": {"approved": True}}
-        value = ResumeRecord.create("source", "graph", "digest", ["node"], decisions)
+        value = ResumeRecord.create("source", "graph", "digest", ["node"], decisions).to_dict()
         self.assertEqual(value, {"run_id": "source", "checkpoint": "graph", "digest": "digest",
                                  "retry_nodes": ["node"], "decisions": {"node": {"approved": True}}})
         decisions["node"]["approved"] = False
         self.assertTrue(value["decisions"]["node"]["approved"])
-        child = ResumeRecord.for_child(value, decisions={"child": {"value": [1]}}, retry_nodes=[])
+        child = ResumeRecord.read(value).for_child(decisions={"child": {"value": [1]}}, retry_nodes=[]).to_dict()
         self.assertEqual(child["digest"], "digest")
         self.assertEqual(child["retry_nodes"], [])
         self.assertEqual(value["retry_nodes"], ["node"])
-        self.assertEqual(RestartRecord.create("source", "revision"), {"run_id": "source", "digest": "revision"})
+        self.assertEqual(RestartRecord.create("source", "revision").to_dict(), {"run_id": "source", "digest": "revision"})
         self.assertIsNone(ResumeRecord.source_id({}))
         self.assertEqual(ResumeRecord.source_id({"resume": value}), "source")
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(ValueError):
             ResumeRecord.source_id({"resume": None})
         metadata = {"resume": value, "application": {"preserve": True}}
         ResumeRecord.remove(metadata)

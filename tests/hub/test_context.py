@@ -16,6 +16,7 @@ from tests.llm.test_loop import ScriptedCompletion, chunk
 
 
 from tests.llm.support.admission import uid, admitted_message
+from tests.llm.support.continuation import resume_record
 
 message = admitted_message
 
@@ -47,7 +48,7 @@ class ContextTests(unittest.IsolatedAsyncioTestCase):
         history = [message(uid('u1'), "user", "committed", uid('r1')), message(uid('a1'), "assistant", "paused", uid('r1')),
                    message(uid('u2'), "user", "committed", uid('r2')), message(uid('a2'), "assistant", "completed", uid('r2')),
                    message(uid('now'), "user", "committed", uid('r3'))]
-        history[2].metadata["resume"] = {"run_id": uid('r1')}
+        history[2].metadata["resume"] = resume_record(run_id=uid('r1'))
         self.assertEqual([m.id for m in builder.for_run(history, uid('now'))], [m.id for m in history])
         history[3].status = MessageStatus.INTERRUPTED
         self.assertEqual([m.id for m in builder.for_run(history, uid('now'))], [uid('now')])

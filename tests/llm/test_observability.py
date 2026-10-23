@@ -1,4 +1,5 @@
 """누적 fact 집계와 authoritative gauge 합성·승인 재개 중복·privacy 경계."""
+from tests.llm.support.continuation import resume_record
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -142,7 +143,7 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
     async def test_same_arguments_at_different_checkpoint_keys_are_distinct_requests(self):
         observer = Observability()
         context = SimpleNamespace(project=SimpleNamespace(id='p'), session=SimpleNamespace(id='s'),
-            run=SimpleNamespace(id='r', input_message_id='m', metadata={'resume': {'decisions': {'a': True, 'b': True}}}),
+            run=SimpleNamespace(id='r', input_message_id='m', metadata={'resume': resume_record(**{'decisions': {'a': True, 'b': True}})}),
             tool_scope=ToolExecutionScope(ToolRuntime()),
             checkpoint={'records': {
                 'a': {'status': 'waiting', 'interaction': approval_request('Tool',
@@ -221,7 +222,7 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
 class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
     def context(self, *, records=None, decisions=None, scope=None):
         return EngineContext(SimpleNamespace(id='p'), SimpleNamespace(id='s'),
-            SimpleNamespace(id='resume', input_message_id='m', metadata={'resume': {'decisions': decisions or {}}}),
+            SimpleNamespace(id='resume', input_message_id='m', metadata={'resume': resume_record(**{'decisions': decisions or {}})}),
             (), checkpoint={'records': records or {}}, tool_scope=scope or ToolExecutionScope(ToolRuntime()))
 
     def waiting(self, key, *, tool='act', arguments=None, graph=False):

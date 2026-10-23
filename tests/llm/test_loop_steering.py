@@ -1,3 +1,4 @@
+from tests.llm.support.continuation import resume_record
 
 from llm.providers.litellm import LiteLLMCompletionAdapter
 from tests.llm.configuration_fixtures import memory_settings
@@ -634,7 +635,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             return uuid5(NAMESPACE_URL, value).hex
         def user(name, run_id, **metadata):
             if "resume" in metadata:
-                metadata["resume"] = {"run_id": identifier(metadata["resume"]["run_id"])}
+                metadata["resume"] = resume_record(run_id=identifier(metadata["resume"]["run_id"]))
             message = Message(identifier(name), MessageRole.USER, name, MessageStatus.COMMITTED,
                               run_id=identifier(run_id) if "steering" in metadata else None, metadata=metadata)
             if "steering" not in metadata:

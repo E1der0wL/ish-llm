@@ -1,4 +1,5 @@
 """Approval continues the saved tool call and never submits its answer as a prompt."""
+from tests.llm.support.continuation import resume_record
 
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
@@ -32,7 +33,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
         from hub.backend.execution.continuations import continued_messages
         records = [admitted_message(uid('u1'), 'user', 'committed', uid('r1')),
                    admitted_message(uid('a1'), 'assistant', 'paused', uid('r1')),
-                   admitted_message(uid('u2'), 'user', 'committed', uid('r2'), {'resume': {'run_id': uid('r1')}}),
+                   admitted_message(uid('u2'), 'user', 'committed', uid('r2'), {'resume': resume_record(**{'run_id': uid('r1')})}),
                    admitted_message(uid('a2'), 'assistant', 'streaming', uid('r2'))]
         messages = (ChatMessage('user', 'Request', id=uid('u1')),
                     ChatMessage('reasoning', 'First thought', id=uid('a1') + ":reasoning",
@@ -65,7 +66,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 RunInstruction.validate_message(message)
                 return message
             return admitted_message(identifier, role, 'queued' if run_id is None else 'committed', run_id,
-                                    {'resume': {'run_id': parent}} if parent else {})
+                                    {'resume': resume_record(**{'run_id': parent})} if parent else {})
         records = [record(uid('u1'), 'user', uid('r1')), record(uid('a1'), 'assistant', uid('r1')),
                    record(uid('u2'), 'user', uid('r2'), uid('r1')), record(uid('a2'), 'assistant', uid('r2')),
                    record(uid('steer'), 'user', uid('r2')), record(uid('u3'), 'user', uid('r3'), uid('r2')),

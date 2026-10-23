@@ -1,4 +1,5 @@
 """Durable attempts stay at their logical position; UI actions honor selection."""
+from tests.llm.support.continuation import resume_record
 
 from llm.core.models import Message
 
@@ -302,7 +303,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         first.metadata["admission"] = RequestAdmission.dispatch(admission,
             run_ids={"assistant": run_id}, history=[first]).to_dict()
         following = Message(new_id(), MessageRole.USER, "request", MessageStatus.QUEUED,
-                            metadata={"resume": {"run_id": run_id}})
+                            metadata={"resume": resume_record(**{"run_id": run_id})})
         following.metadata["admission"] = RequestAdmission.create(project_id=project_id, session_id=session_id,
             message_id=following.id, bindings={"assistant": binding}).to_dict()
         records = [first, Message(new_id(), MessageRole.ASSISTANT, "partial", MessageStatus.FAILED,

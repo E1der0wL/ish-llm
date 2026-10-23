@@ -296,9 +296,10 @@ class LoopEngine(BaseEngine):
         if prompt:
             messages.insert(0, CompletionMessage(ModelMessage(ModelRole.SYSTEM, prompt)))
         if context.checkpoint is not None:
+            continuation = ResumeRecord.from_metadata(context.run.metadata)
             self.validate_resume(context.checkpoint,
-                retry_nodes=context.run.metadata.get(ResumeRecord.KEY, {}).get(ResumeRecord.RETRY_NODES, ()),
-                decisions=context.run.metadata.get(ResumeRecord.KEY, {}).get(ResumeRecord.DECISIONS))
+                retry_nodes=continuation.retry_nodes if continuation is not None else ResumeRecord.FRESH_RETRY_NODES,
+                decisions=continuation.decisions if continuation is not None else None)
             if CheckpointContent.from_checkpoint(context.checkpoint).header["binding"] != self._resume_binding:
                 raise ValueError("Loop configuration or Tool definitions changed; start a new request")
         reviewers = review_identities(context.capabilities.get("completion_processors", ())) if self.final_review is not None else []

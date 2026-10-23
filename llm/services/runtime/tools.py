@@ -434,7 +434,7 @@ class ToolExecutor:
         """권한을 부여하지 않고 기존 체크포인트 연결만 검증한다. 계측 여부와 무관하다."""
         records = CheckpointRecords.records_or_empty(getattr(context, "checkpoint", None))
         run = getattr(context, "run", None)
-        decisions = getattr(run, "metadata", {}).get(ResumeRecord.KEY, {}).get(ResumeRecord.DECISIONS, {})
+        decisions = ResumeRecord.decisions_for(getattr(run, "metadata", {}))
         previous = records.get(request_key, {})
 
         def tool_approval(record):

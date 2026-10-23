@@ -32,7 +32,7 @@ class LogicalTurn:
                     if index == 0 or str(group[0].status) != MessageStatus.CANCELLED]
         start = 0
         for index, group in enumerate(attempts):
-            if group[0].metadata.get(RestartRecord.KEY) or edit_source(group[0]) and not group[0].metadata.get(ResumeRecord.KEY):
+            if RestartRecord.from_metadata(group[0].metadata) or edit_source(group[0]) and not ResumeRecord.from_metadata(group[0].metadata):
                 start = index
         return attempts[start:]
 
@@ -48,7 +48,7 @@ class TurnIndex:
         by_run = {}
         for group in conversation_turns(records):
             request = group[0]
-            parent = (request.metadata.get(ResumeRecord.KEY) or request.metadata.get(RestartRecord.KEY) or {}).get(ResumeRecord.SOURCE_RUN)
+            parent = ResumeRecord.source_id(request.metadata) or RestartRecord.source_id(request.metadata)
             turn = by_run.get(parent) or self.by_id.get(edit_source(request))
             if turn is None:
                 turn = LogicalTurn()
@@ -59,7 +59,7 @@ class TurnIndex:
                 by_run[run_id] = turn
 
     def display(self, messages):
-        if not any(edit_source(m) or m.metadata.get(ResumeRecord.KEY) or m.metadata.get(RestartRecord.KEY) for m in self.records):
+        if not any(edit_source(m) or ResumeRecord.from_metadata(m.metadata) or RestartRecord.from_metadata(m.metadata) for m in self.records):
             return continued_messages(self.records, messages)
         by_id = {message.id: message for message in messages}
         result = []

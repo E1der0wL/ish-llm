@@ -1,4 +1,5 @@
 """Host 인자 제약의 schema/runtime/승인 binding을 공통 경계에서 검증한다."""
+from tests.llm.support.continuation import resume_record
 
 from llm.providers.litellm import LiteLLMCompletionAdapter
 import json
@@ -107,7 +108,7 @@ class ConstraintSchemaTests(unittest.TestCase):
 class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
     def context(self, runtime, *, constraints=None, checkpoint=None, decisions=None):
         return EngineContext(SimpleNamespace(id="p"), SimpleNamespace(id="s"),
-            SimpleNamespace(id="r", input_message_id="m", metadata={"resume": {"decisions": decisions or {}}}),
+            SimpleNamespace(id="r", input_message_id="m", metadata={"resume": resume_record(**{"decisions": decisions or {}})}),
             (), tool_scope=ToolExecutionScope(runtime, policy={"argument_constraints": constraints or {}}), checkpoint=checkpoint)
 
     async def execute(self, tool, values, context, **kwargs):

@@ -31,6 +31,17 @@ Tool operation 원장, 승인 응답, Run/Step 기록, 저장 트랜잭션 저�
 
 ## 재개 조정과 독립 판단
 
+`ResumeRecord`와 `RestartRecord`가 원본 Run 연결과 digest의 Reader·생성·직렬화를 소유한다.
+서비스·Engine·Hub는 검증된 속성을 사용한다. 재개 기록에는 원본 Run, checkpoint, digest,
+retry nodes, decisions가 모두 있어야 한다. 기록 전체의 부재와 손상된 부분 기록을 구별하며,
+필수 선택 기록의 유실을 빈 선택으로 복원하지 않는다. 자식 scope는 원본 연결·digest를 보존하고
+해당 scope의 선택만 투영한다. 부분 출력 옵션의 생략과 명시적 false도 원문에서 구별한다.
+
+`RunExecutionEvidence`는 서비스의 실행 진입 증거를 소유한다. 저장된 정확한 false만
+미실행 증거다. 필드 부재는 unknown이며 null·숫자·문자열은 손상이다. 조회나 재시작 계획은
+이를 false로 채우지 않는다. `RestartEvidence`와 `ResumePlanEvidence`는 기존 revision 입력
+모양을 보존하는 메모리 Projection이며 추가 영속 원본이나 실행 권한이 아니다.
+
 RunManager는 재개 계획·접수·실행 직전 검증을 조정한다. 각 검증 기준과 저장 자료는 아래
 소유자가 관리한다. 계획의 `can_resume`는 검토 시점의 관찰이며 실행 권한이나 예산 예약이 아니다.
 

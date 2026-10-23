@@ -113,12 +113,12 @@ class TransferRecords:
     def lineage(message, messages, runs):
         """Follow saved Resume/restart evidence; no guessed parent or hidden depth."""
         visited, descendants = set(), []
-        while ResumeRecord.KEY in message.metadata or RestartRecord.KEY in message.metadata:
+        while ResumeRecord.present(message.metadata) or RestartRecord.present(message.metadata):
             if message.id in visited:
                 raise ValueError(TransferRecords.CONTINUATION_CYCLE)
             visited.add(message.id)
             descendants.append(message)
-            source_id = (ResumeRecord.require_source_id(message.metadata) if ResumeRecord.KEY in message.metadata
+            source_id = (ResumeRecord.require_source_id(message.metadata) if ResumeRecord.present(message.metadata)
                          else RestartRecord.require_source_id(message.metadata))
             message = messages[runs[source_id].input_message_id]
         origin = TransferReceipt.from_metadata(message.metadata)

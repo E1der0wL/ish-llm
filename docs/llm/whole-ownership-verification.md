@@ -473,3 +473,95 @@ R3는 실제 효과 횟수 단언 두 개로 mutation을 검출했다.
 전수 inventory는 448개 파일, 418개 미검토 파일, 31,307개 미분류 후보다. 이는 전수 완료가 아니다.
 이 소단계는 Level 2 완료이며, 요청 접수와 전송을 묶은 고정 SHA에서 전체 LLM/Hub 및 필수 보조
 검증을 실행한다. 전체 성공 전 새 소단계를 원격 완료로 기록하거나 Push하지 않는다.
+
+
+## 묶음 3 전체 게이트·CI 시간 예산
+
+고정 checkout `ef25aa0353bd52fc2be681401356a741960af318`의 `whole-owners-group3-l3`에서
+LLM 2,354/2,354와 Hub 586/586이 모두 pass/exit 0이었다. 각각 1,263.68초, 1,074.05초이며
+Failure/Error/Skip/xfail/xpass/누락/추가/중복은 모두 0이다. source
+`e116c7bf0d6cec7e9712dc39c176db18200e3a7ab9aed50fa66e5689dedfbd91`, input
+`314f080fb70828aa150075d3665d2463824a327a7dbff954d6a808cda4674d77`는 전후 동일했다.
+실제 명령은 `python -m tests.llm.run_regression --suite llm|hub --output /workspace/llm-clean-resume/b/whole-owners-group3-l3/<suite>.json`이며 각 suite를 독립 실행했다.
+`group3-auxiliary/results.json`의 S1–S7(147건)·문서·R3·SDK·LLM/Hub 환경 검사는 각각 exit 0이다.
+로컬 환경은 Python 3.12.14 Clang 22.1.3 및 위에 고정한 host다.
+
+기존 Push `967f6dd`의 [원격 실행](https://github.com/E1der0wL/ish-llm/actions/runs/39901306599)은
+Hub 586/586 success였으나 LLM Job이 **30분 제한 초과로 cancelled**였다. LLM의 최종 집계는
+없으므로 성공으로 처리하지 않는다. GitHub annotation의 실제 원인은 `The job has exceeded the maximum execution time of 30m0s`다.
+로그 archive 요청은 HTTP 403이었으며 성공 로그로 대체하지 않았다. 원격 상태·공개 summary·annotation을
+`ci/967f6dd933f201232ef2d1896687a7f4b62415df/`에 보존했다.
+
+`ae418a7fa073d4f477d5cd903c52292bb9243e7e`는 위 전체 통과 제품/시험에 CI deadline 30→60분과
+[시간 예산 기록](ci-execution-budget.md)만 추가했다. 두 tree의 차이가 workflow와 새 문서뿐이고
+제품·시험·fixture·의존성은 동일함을 확인했다. YAML 비교에서도 deadline 한 값 외 matrix/step/env/명령은
+동일했다(`ci-budget-validation.json`). 이 SHA의 별도 checkout에서 S1–S7·문서가 exit 0이었다.
+동일 제품에 대한 위 로컬 전체 결과를 제한적으로 재사용하며 새 로컬 전체 실행으로 합산하지 않는다.
+`git push origin ae418a7fa073d4f477d5cd903c52292bb9243e7e:refs/heads/refactor/llm-clean` exit 0.
+main/이전 브랜치 SHA는 이전 기록과 같으며 수정하지 않았다.
+[새 정확한 SHA의 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39905057801)는 현재 실행 중이다.
+CI Python은 3.12.14 GCC 13.3.0으로 로컬 compiler 환경과 다르며 원격 결과를 별도로 확인한다.
+
+## 재개·재시작·실행 진입 증거
+
+`RunLink`/`ResumeRecord`/`RestartRecord`의 단일 Reader·생성·속성·자식 투영·직렬화를 연결했다.
+RunRepository/RunManager, Tool 승인, Agent/중첩 Graph/Loop, 전송 lineage, Hub 이력/표시가
+같은 Owner를 사용한다. 필수 원본 ID·digest·checkpoint·선택 목록 유실을 빈 선택으로 채우지 않는다.
+원본 request와 opaque metadata를 보존하고 부분 출력 옵션의 생략/명시 false도 유지한다.
+`RunExecutionEvidence`는 필드 부재를 unknown, 정확한 저장 false만 미실행으로 해석한다.
+숫자/null을 false로 변환하지 않는다. `RestartEvidence`/`ResumePlanEvidence`는 기존 hash 입력과
+중첩 원문 값을 보존하는 메모리 Projection이다. 추가 저장본이나 실행 권한을 만들지 않는다.
+
+동일 Agent binding의 중복 raw 비교는 기존 `AgentBinding.same_request`로 일원화했다.
+이 함수는 전체 검증 binding과 Missing/Null request context를 비교한다. 원본 상태·Step·digest·
+현재 정책·승인·누적 예산·효과·Checkpoint 검사는 유지한다. [Checkpoint 계약](checkpoints.md)에
+Owner와 누락 증거 처리를 추가했다.
+
+첫 Hub 집중 검증은 기존 context fixture가 source ID만 가진 부분 resume라 35개 중 34 pass/1 error였다.
+독립 wire helper로 긍정 fixture의 필수 필드를 명시했고 재실행 35개가 모두 통과했다.
+기존 실패·효과·권한 Assertion은 유지했다. `test_owner_declarations`의 null resume 오류 종류는
+우연한 AttributeError에서 Owner의 ValueError로 변경했으며 거부 Assertion은 유지했다.
+손상 음성 fixture를 정상화하지 않았다. 새 6개 시험은 필수 필드 유실·null/숫자 거부·중첩 사본·
+자식 투영·M/N/V·unknown 실행 진입·revision 원문 보존을 독립 기대값으로 검증한다.
+
+| 실행 | 발견/실행/pass | Failure / Error / Skip | xfail·xpass·누락·추가·중복 | Exit |
+|---|---|---|---|---|
+| whole-continuation-01 | 267/267/267 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-continuation-hub-01 | 35/35/34 | 0 / 1 / 0 | 모두 0 | 1 |
+| whole-continuation-hub-02 | 35/35/35 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-continuation-safety-03 | 148/148/148 | 0 / 0 / 0 | 모두 0 | 0 |
+
+각 실행의 실제 명령과 source/input hash(각각 실행 전후 동일):
+
+- `whole-continuation-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-continuation-01/llm.json --modules tests.llm.test_continuation_values tests.llm.test_owner_declarations tests.llm.test_checkpoint_lifecycle tests.llm.test_conversation_turns tests.llm.test_turn_deletion tests.llm.test_cross_session_requests tests.llm.test_cross_session_crash tests.llm.test_nested_graph tests.llm.test_graph_checkpoints tests.llm.test_extension_contracts tests.llm.test_interaction_decisions tests.llm.test_tool_constraints tests.llm.test_observability tests.llm.test_builtin_tools tests.llm.test_loop_steering`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-continuation-hub-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-continuation-hub-01/hub.json --modules tests.hub.test_context tests.hub.test_approval_continuation tests.hub.test_request_history tests.hub.test_tool_history tests.hub.test_features`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-continuation-hub-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-continuation-hub-02/hub.json --modules tests.hub.test_context tests.hub.test_approval_continuation tests.hub.test_request_history tests.hub.test_tool_history tests.hub.test_features`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-continuation-safety-03`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-continuation-safety-03/llm.json --modules tests.llm.test_continuation_values tests.llm.test_backend_contracts tests.llm.test_steering_values tests.llm.test_agent_execution tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+초기 LLM 범위는 직접 Owner, 소유 선언, checkpoint 수명, 대화/turn 삭제, 전송/실제 중단,
+중첩 Graph, Engine 확장, 승인/Tool 제약·실제 명령 효과·관측·Loop steering이다.
+최종 안전성 범위는 실제 backend restart, Step 없는 custom Engine, Agent/추가 지시,
+승인·예산 삭제·Tool 원장·Checkpoint·RAG·수명/삭제·트랜잭션·감사/inventory다.
+Hub 범위는 context/승인 continuation/request history/Tool history/features다.
+마지막 공통 digest 선언 정리 이후 최종 LLM 안전성을 실행했다. 다른 소스의 결과를 하나의
+전체 실행으로 합산하지 않는다. 환경은 앞서 고정한 로컬 Python/host와 동일하다.
+
+S1–S7 최초 검사는 변경된 근거 hash를 거절했다(exit 1). 51건의 개별 의존 근거를 실제 변경
+의미별로 재검토했고 새 정적 발생은 없었다. 최종 `continuation-auxiliary/results.json`의
+S1–S7(147건)·문서·R3·SDK·양 suite 환경 검사 모두 exit 0이다. 실제 명령은 위 묶음 3 보조
+검사와 같고 output 디렉터리만 `continuation-auxiliary/`다. R3의 원래 실제 효과 단언을 유지했다.
+기존 전송 파일 전체 검토는 presence API 변경 두 곳만 재대조했고 후보 목록은 동일했다.
+새 continuation 파일의 후보 31개와 실제 소비자를 개별 분류했다. 전수 inventory는 448개 파일,
+417개 미검토 파일/31,276개 미분류 후보다. 부분 파일의 상단·다른 함수까지 완료로 승인하지 않았다.
+이 소단계는 Level 2 로컬 완료다. 현 통합 SHA에서 다음 전체 게이트를 수행하며 전체 리팩터링을 계속한다.
