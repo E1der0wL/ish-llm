@@ -1,5 +1,7 @@
 """제안·승인·CAS 적용·CAS 되돌리기. 대상 공개 API와 동일 workspace transaction을 사용한다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from copy import deepcopy
 from .lifecycle import RefinementStatus
 from llm.components.skills.records import SkillRecord
@@ -66,7 +68,7 @@ class RefinementData(ComponentData):
         return {key: handle.snapshot(key)["version"] for key in skills}
 
     def _require_evaluation(self, proposal):
-        if self.get_config().get("policy", {}).get("require_evaluation") is True and not proposal.get("evaluations"):
+        if ImplementationParameters.read(self.get_config()).policy.get("require_evaluation") is True and not proposal.get("evaluations"):
             raise ValueError("Proposal requires evaluation before approval")
 
     def _proposal(self, identifier, expected_version, statuses):

@@ -1,5 +1,7 @@
 """Select bounded argument repairs; llm owns eligibility, execution and approval."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from llm.core.configuration_views import ConfigurationView
 
 from llm.core.model_protocol import copy_model
@@ -129,13 +131,13 @@ class ToolRetrySelector:
         resolve = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
         values = ConfigurationView.read(resolve(frame.context.project.config, name,
             session_config=frame.context.session.config)).values if resolve else {}
-        if not values.get("config", {}).get("completion", {}).get("model"):
+        if not ImplementationParameters.read(values).config.get("completion", {}).get("model"):
             engine, name = self.fallback_engine, "loop"
             if engine is None:
                 return None
             values = ConfigurationView.read(engine.resolve_config(frame.context.project.config, name,
                 session_config=frame.context.session.config)).values
-        params = copy_model(values.get("config", {}).get("completion", {}))
+        params = copy_model(ImplementationParameters.read(values).config.get("completion", {}))
         if not params.get("model") or not hasattr(engine, "completion_adapter"):
             return None
         document = asdict(payload)

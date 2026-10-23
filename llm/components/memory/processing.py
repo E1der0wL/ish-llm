@@ -1,5 +1,7 @@
 """Memory가 소유하는 문맥 처리. 원본 대화/Tool 결과와 실행 체크포인트는 변경하지 않는다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from llm.core.models import RunErrorCode
 from llm.core.results import OutputVisibility
 
@@ -497,7 +499,7 @@ class MemorySession(CompletionSession):
         from .component import MemoryComponent
         current = self.recall_query or next((m.content for m in self.context.messages if m.id == self.context.run.input_message_id), "")
         if current.strip():
-            config = self.snapshot["configuration"].get("policy", {})
+            config = ImplementationParameters.read(self.snapshot["configuration"]).policy
             limit = self.config["recall_limit"]
             if config.get("max_search_results") is not None:
                 limit = min(limit, config["max_search_results"])

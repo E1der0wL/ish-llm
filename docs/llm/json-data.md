@@ -14,3 +14,9 @@ Reader는 없다. 값의 형태가 JSON이라는 사실은 승인·상태·버�
 기존 지연 import 위치를 유지하며 문법 검증 이동으로 worker 실행 환경이나 저장 형식을 바꾸지 않는다.
 이 변경의 AST 대조·실제 worker·실패 주입·전체 게이트 증거는
 [전수 소유권 검증 기록](whole-ownership-verification.md)에 남긴다.
+
+`JsonPointer`는 RFC 6901 구분자·escape·구성을 소유한다. Workflow의 영속 binding은
+`parse`로 엄격하게 검사하며 루트·빈 이름·잘못된 escape·누락을 기존과 같이 구분한다.
+설정 관측 경로의 `parts`는 기존 leading separator 해석을 보존한다. 관측용 해석을
+영속 binding의 검증 대체로 사용하지 않는다. ParameterLayout의 로컬 Schema 참조도
+같은 escape 구성 API를 사용한다.

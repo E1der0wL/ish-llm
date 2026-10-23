@@ -3,16 +3,12 @@
 from copy import deepcopy
 
 from jsonschema import Draft202012Validator
+from llm.core.json_data import JsonPointer
 
 
 def pointer_parts(path: str) -> list[str]:
     """RFC 6901 포인터를 해석한다. 표현식이나 Python 코드는 실행하지 않는다."""
-    if not isinstance(path, str) or (path and not path.startswith("/")):
-        raise ValueError("Binding path must be a JSON Pointer")
-    parts = path[1:].split("/") if path else []
-    if any("~" in part.replace("~1", "").replace("~0", "") for part in parts):
-        raise ValueError("Invalid JSON Pointer escape")
-    return [part.replace("~1", "/").replace("~0", "~") for part in parts]
+    return JsonPointer.parse(path)
 
 
 def read_pointer(document, path: str):

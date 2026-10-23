@@ -764,3 +764,92 @@ new/stale/outstanding/error 0), 문서, R3, SDK, 양 suite 환경이 각각 exit
 새 JSON Owner 후보 6개를 분류했다. 현재 inventory는 450개 파일, 416개 미검토 파일,
 31,108개 미분류 후보다. 이 구간은 Level 2 완료이며 도메인 Record·설정·JSON의 현 통합 SHA를
 묶은 Level 3를 수행한다. 전수 소유권 작업은 계속 진행한다.
+
+## 재개·재시작 SHA 원격 게이트와 묶음 5 전체 게이트
+
+`2f134127c502cf761d032b66aa43234b1a729858`의
+[원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39908324282)를
+2026-10-23 06:27:09 UTC에 실제 확인했다. LLM 2,360/2,360/2,360, Hub 586/586/586,
+모든 실패·오류·skip·xfail/xpass·누락·추가·중복 0, 양 Job 및 필수 정적·문서·R3·SDK·환경·
+증거 단계 success였다. 원격 Python 3.12.14 GCC 13.3.0과 로컬 Clang 환경은 구분한다.
+증거는 `whole-ownership/ci/2f134127c502cf761d032b66aa43234b1a729858/status.json`이다.
+
+도메인 Record·설정 조회·JSON 문법 Owner를 묶은 현재 SHA
+`d43c82a5ee619f7b99d49bf6a4de05533725a4bb`는 별도 고정 checkout
+`/workspace/ish-llm-group5-validation`에서 Level 3를 실행했다.
+`/workspace/ish-llm/.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group5-l3`
+의 실제 각 suite 명령과 결과:
+
+- `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group5-l3/llm.json`: 2374/2374/2374, 모든 bad count 0, exit 0, 1346.719초.
+- `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group5-l3/hub.json`: 586/586/586, 모든 bad count 0, exit 0, 1089.120초.
+  source `9004813735d6f464bf53b4dadade018a5746cc596413f0be745c8951e2f2e853` 전후 동일.
+  input `ba47fc9c9a86cc7ea7a33f229c9673be82f57da4ffab29cadbcc9e072e1a2ae5` 전후 동일.
+
+동일 SHA의 `group5-auxiliary/results.json`에서 S1–S7 145건(new/stale/outstanding/error 0),
+문서, R3, Provider SDK, LLM/Hub 실제 환경 검사가 각각 exit 0이었다. Python·고정 host·
+namespace/X11은 앞서 명시한 로컬 환경과 같다. `d43c82a`를 작업 브랜치에 Push했다.
+그 SHA의 원격 CI는 이 기록 시점에 아직 확인 중이며 전체 작업 완료로 선언하지 않는다.
+main과 refactor/llm-backend의 원격 SHA는 기존 값과 동일했다. Draft PR #1은 변경하지 않았다.
+
+## Schema·ParameterLayout·구현체 외형 Owner
+
+`SchemaKeyword/Type/Boolean/Extension/Traversal/Reference/Narrowing`의 선언에서 JSON Schema
+구조·탐색·참조·narrowing 문법을 관리한다. `ImplementationParameters`가 config/policy의
+공통 외형을 읽고 `ParameterLookup`이 경로 존재와 값을 구분한다. `ParameterLayout`은
+이 Owner들을 사용하며 원본 설정·SDK 옵션·명시적 null/false/0·부분 확장·정책 우회 거부를
+보존한다. Component별 중첩 정책과 Agent policy/Project config는 서로 합치지 않았다.
+
+`JsonPointer`는 설정 관측 경로·Schema reference 작성·Workflow 엄격 binding 파서를 소유한다.
+관측 경로의 기존 해석과 영속 binding의 엄격 검증을 구분하고, 루트·빈 키·이스케이프·누락의
+기존 의미를 독립 시험으로 검증했다. 외부 참조·암묵적 default·안전하게 재배치할 수 없는
+제약·지원하지 않는 narrowing 선언은 계속 거부한다. Schema의 annotation/const 데이터는
+구조로 오인하지 않는다. Schema 함수 11개의 선언 확장 AST가 기존과 동일했고, 나머지 두
+함수는 같은 envelope 검증 위임 및 동일 오류 template 이동이다. 비교 증거는
+`schema-draft/schema-ast-comparison.json`과 각 차이 파일에 보존한다.
+
+실패 이력: `whole-parameters-01`/`whole-parameters-hub-01`은 모듈 이름에 tests.llm/tests.hub
+prefix를 빠뜨려 discovery exit 2, summary incomplete였다. 통과로 집계하지 않았다.
+해당 모듈들은 실제 존재하며 올바른 qualified 이름으로 아래 검증을 다시 실행했다.
+간이 unit 실행 23개는 모두 통과했으나 공식 발견·누락 검사를 대신하지 않는다.
+
+| 실행 | 발견/시작/통과 | Failure / Error / Skip | xfail/xpass·누락/추가/중복 | exit |
+|---|---:|---|---|---:|
+| whole-parameters-02 | 194/194/194 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-parameters-hub-02 | 38/38/38 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-parameters-safety-03 | 189/189/189 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-parameters-hub-03 | 8/8/8 | 0 / 0 / 0 | 모두 0 | 0 |
+
+실제 명령과 각 실행 전후 동일한 소스/입력:
+
+- `whole-parameters-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-parameters-02/llm.json --modules tests.llm.test_parameter_values tests.llm.test_settings_contract tests.llm.test_configuration_values tests.llm.test_configuration_validation tests.llm.test_configuration_objects tests.llm.test_configuration_results tests.llm.test_settings_consistency tests.llm.test_explicit_configuration tests.llm.test_schema_ownership tests.llm.test_workflow_format tests.llm.test_agent_workflow tests.llm.test_goals tests.llm.test_refinement tests.llm.test_memory_processing_config tests.llm.test_mcp_runtime tests.llm.test_vision tests.llm.test_project_component_settings`.
+  source `a68d25e28d613f08095104747d234fb90b4236c7e142d4b775f3170b5daa2b7e`.
+  input `16aa13e1685755ac0b53732a3028e45762b70f4a1dac66c8d937f01a6d82c003`.
+- `whole-parameters-hub-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-parameters-hub-02/hub.json --modules tests.hub.test_settings tests.hub.test_settings_json tests.hub.test_settings_project_flow tests.hub.test_tool_retry tests.hub.test_rag_extensions tests.hub.test_rag_defaults`.
+  source `a68d25e28d613f08095104747d234fb90b4236c7e142d4b775f3170b5daa2b7e`.
+  input `16aa13e1685755ac0b53732a3028e45762b70f4a1dac66c8d937f01a6d82c003`.
+- `whole-parameters-safety-03`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-parameters-safety-03/llm.json --modules tests.llm.test_parameter_values tests.llm.test_goals tests.llm.test_refinement tests.llm.test_memory_processing tests.llm.test_rag_components tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `f41f286af9402e335d2d609a0ad7879772065a71d69852f6e61b3b5b719ea77b`.
+  input `c289503815d4d1c2f477c7b8675cc1ce7a990f3c96981e096ae5ac8a020d3d7b`.
+- `whole-parameters-hub-03`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-parameters-hub-03/hub.json --modules tests.hub.test_naming tests.hub.test_resource_tools`.
+  source `f41f286af9402e335d2d609a0ad7879772065a71d69852f6e61b3b5b719ea77b`.
+  input `c289503815d4d1c2f477c7b8675cc1ce7a990f3c96981e096ae5ac8a020d3d7b`.
+
+첫 집중 실행 후 D14 용어 일관성을 위해 세 메서드의 지역 변수 settings를 parameters로
+변경했다. `schema-draft/local-name-proof.json`에서 alpha-equivalent AST를 확인했다.
+그 외 제품·시험 변경 없이 해당 첫 집중 결과를 제한적으로 재사용하며, 최종 소스에서는
+새 Owner·Goal·Refinement·Memory·RAG와 승인·예산·효과·Checkpoint·원본 보존·삭제·트랜잭션·
+정적 감사/inventory의 안전성 집합을 실행했다. Hub는 설정 UI·JSON·프로젝트 저장·재시도·
+RAG 설정에 더해 자동 제목과 리소스 Tool 실제 경로를 검증했다. 다른 실행을 하나의 전체
+실행으로 합산하지 않는다. 환경·고정 의존성·host·실제 namespace/X11은 동일하게 유지했다.
+
+정적 검사는 변경된 근거 hash를 먼저 거절했다. 실제 호출과 AST/시험을 대조해 83건의
+의존 근거를 재검토했고, 기존 exact-True 정책 비교 두 발생은 새 envelope 접근의 ID로
+이동했다. 기존 명시적 허가·평가 필요 조건과 Assertion은 유지했다. S1–S7은 145건,
+new/stale/outstanding/error 0이다. `parameters-auxiliary/results.json`의 정적·문서·R3·SDK·
+양 suite 환경 6개 검사는 모두 exit 0이며 각 실제 명령을 같은 파일에 보존했다.
+
+현재 inventory는 제품 451개, 미검토 파일 414개, 미분류 후보 30,804개다. Schema 어휘와
+구현체 외형의 남은 소비 경로 두 계약은 명시적으로 incomplete이며 dynamic 검토도 완료로
+표시하지 않았다. 선언 후보 분류가 전체 소비자 완료를 뜻하지 않는다. 이 구간은 Level 2로
+보존하고, 이어 Project/Session 설정 대상 및 Schema 소비자 전환과 묶어 현 통합 소스의
+Level 3를 수행한다. 전체 게이트는 실행 시점을 묶었으며 필수 안전성 기준을 낮추지 않았다.

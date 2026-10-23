@@ -1952,45 +1952,93 @@
   },
   {
     "path": "llm/core/json_data.py",
-    "sha256": "8bf7cf802e4aa2924686d8fd116c77d9cc92097740791046d118f9c9d94dbb36",
-    "reason": "JSON syntax ownership review: validator calls now target JsonObject. The validator body is AST-identical after expanding its canonical declarations; each consumer AST is identical after normalizing only that call/import, and every original import scope is preserved, including the isolated worker. Record-specific mandatory fields, policy, identity, version, CAS, effects and permission validation are unchanged. ProjectConfig retains a direct public delegate, never a second validator. Read the complete syntax Owner and all 36 direct consumers plus the documented public ProjectConfig entry point. Open JSON fields remain open; typed/domain readers supply their own semantics.",
+    "sha256": "d5f75d6207b94e6bf0bf8c85d78d00a089639068c841b8c2866d6b82837cbacd",
+    "reason": "Reviewed complete file and actual listed parser/layout consumers; syntax and missing/null behavior are preserved. Other consumer files retain their independent whole-file review status.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "f7bd62e3e651af8296089c66e01010b05bcb516e315c95ae67665141e7a77ab6",
         "classification": "declaration",
-        "owner": "JsonObject",
-        "reason": "Canonical JSON syntax error, finite-number constraint or JSON null declaration, before methods. The single recursive validator consumes it without altering the input."
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
         "id": "d64a25b4d7360a5ab22ad465df9a538561af53f1c0662ea242ad3dc6d651aa8d",
         "classification": "declaration",
-        "owner": "JsonObject",
-        "reason": "Canonical JSON syntax error, finite-number constraint or JSON null declaration, before methods. The single recursive validator consumes it without altering the input."
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
         "id": "9245e4284ac43ddbd4e84a58e979780a4b7815cfcb9843917665070787d1dde6",
         "classification": "declaration",
-        "owner": "JsonObject",
-        "reason": "Canonical JSON syntax error, finite-number constraint or JSON null declaration, before methods. The single recursive validator consumes it without altering the input."
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
         "id": "09b371f69cc0b9356996d87cd54c9dffad930925969acd9c37ff23893f95bc82",
         "classification": "declaration",
-        "owner": "JsonObject",
-        "reason": "Canonical JSON syntax error, finite-number constraint or JSON null declaration, before methods. The single recursive validator consumes it without altering the input."
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
         "id": "7e59129cf80545469b75741989056c477dc63b996c90e15d5c474be013a6d0f7",
         "classification": "declaration",
-        "owner": "JsonObject",
-        "reason": "Canonical JSON syntax error, finite-number constraint or JSON null declaration, before methods. The single recursive validator consumes it without altering the input."
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
         "id": "86477a7bc062115c6a9af13fa1772652a179939acfae853f558f7f24f96608e1",
         "classification": "non_contract",
-        "owner": "Python return annotation",
-        "reason": "The validator has no returned data object. This None annotates its Python return type; JSON null acceptance is separately declared as JsonObject.NULL and is not defaulted into input."
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Python no-return annotation; no serialized null, fallback or policy value."
+      },
+      {
+        "id": "88817cc2f9a3381384aef1380b7f1b1b39a26cf708a4b77d2c66cc084fc6c63d",
+        "classification": "declaration",
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "c277ad894c7fff64bc2ee811407cf095f28227a3ba6fc0c47063239f7fbeed38",
+        "classification": "declaration",
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "ccca560e07fbf9e0a2a7f663fbeb48c64fc17b89c3ff31326201c3606702e64e",
+        "classification": "declaration",
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "ce7a9295bef894d2b45a92b3b50778ccfdfea0c553d5558b83386b44c63ee063",
+        "classification": "declaration",
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "c1a5009d2350c142db99661dbfe1799d9c76ca2d85dda749baf11507fed27e0a",
+        "classification": "declaration",
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "2da33e01e37bad67b83bf88e2f49ff5ff96fcbe1005b0da560940695ad05ae12",
+        "classification": "declaration",
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "a1d094b44c3e1474fbab534c06c09c821f180b2a151fe26577876d58e5ffe3f9",
+        "classification": "declaration",
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "ef93e1e88343943f0ff8511b6b401c4cdb1c6f9b4ec9099e4b6158ee9d2b05e0",
+        "classification": "declaration",
+        "owner": "JsonObject / JsonPointer",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       }
     ],
     "contracts": [
@@ -2045,6 +2093,757 @@
           "tests/llm/test_lifecycle_integrity.py"
         ],
         "complete": true
+      },
+      {
+        "owner": "JsonPointer syntax and strict binding parser",
+        "declaration": "llm/core/json_data.py",
+        "consumers": [
+          "llm/core/configuration.py",
+          "llm/core/parameters.py",
+          "llm/services/schema.py",
+          "hub/widget/forms/settings.py",
+          "llm/components/workflows/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_parameter_values.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/parameters.py",
+    "sha256": "7a385f49f73023a2e51fe6f1a5cf78085ed0417cdf1b1e515acd70ed695091e9",
+    "reason": "Reviewed complete file and actual listed parser/layout consumers; syntax and missing/null behavior are preserved. Other consumer files retain their independent whole-file review status.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9548c043fb4ad4497b47dff2b159047287b82429a09d995c733384a12a1ac636",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "6cb7e02948fc92cf4988faf0e869f681158a7870bb732b8150bb473aa76070ee",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e95d788c1bc0cfca1acf6f334a19172d1828d2d423739ce0bbc4c9a7613924ee",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "5273461095cb6ea5951578500ac7701bfed249476e1c55cab17ac9813ed882a9",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "c1688099888e8e176678a1692091849c7d5fa385407598f26b87f43436b4932e",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "2c9afff9e6d060a35c9b1f619edd4e870f17103ac5acabb7d81c19b041f8dd46",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "2b4911f42c0edd0a4b6038087e200a4a32999d348f9acb0680adb66863134959",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "52d043484256eda5b9e628e22de2d030aaeadb5f7875bb255b3efbc0a39fa941",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "4a97d80e4110072dab0ef4c5b156267f5b04a1d1ac0d0e57ccc338482e152fb7",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "3380bff7028012ab2d5794788888eb64b88bf919a79e0c315d5af95cc330ab9e",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "02a87d732536c39772fc3fa5befcdfe882cc7e3d2445c72be88d510854032b54",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "bad5c5cd2f211a0721be7ec277707d020fab6d8dd564bfc7a2c8c94f0cc4d276",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "72a3d95116010ee3bc624404dbaa4340c1851fd071062807e7391d08da7c89e7",
+        "classification": "declaration",
+        "owner": "ParameterLayout",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "ba3d7494887f2a6329f36b0c0e0a94ae4ebf21d3feef943b333333f8ab7e4159",
+        "classification": "non_contract",
+        "owner": "ParameterLayout",
+        "reason": "Pure first/last segment indexing of an already validated dotted path; no limit, revision or stored default."
+      },
+      {
+        "id": "d69031c6203786ba9393be7b33728d6d225da7323cc91a1379101432ea1dcc48",
+        "classification": "non_contract",
+        "owner": "ParameterLayout",
+        "reason": "Pure first/last segment indexing of an already validated dotted path; no limit, revision or stored default."
+      },
+      {
+        "id": "c20c4e554f5814a1a20549d4027c71eedcf06f986f889a5ef0b539c0929fc6ea",
+        "classification": "non_contract",
+        "owner": "ParameterLayout",
+        "reason": "Pure first/last segment indexing of an already validated dotted path; no limit, revision or stored default."
+      },
+      {
+        "id": "f5169fde60cc60714985ee1a6e8607a7433544114291425d0924f04315374c05",
+        "classification": "non_contract",
+        "owner": "ParameterLayout",
+        "reason": "Pure first/last segment indexing of an already validated dotted path; no limit, revision or stored default."
+      },
+      {
+        "id": "7336efb4693ab34be8e3dc0651204309f0ae386eda8d5f2bf29dbd6dcf802210",
+        "classification": "non_contract",
+        "owner": "ParameterLayout",
+        "reason": "Pure first/last segment indexing of an already validated dotted path; no limit, revision or stored default."
+      },
+      {
+        "id": "4a456a3bf7e02fee59517f44d805616fe5f02e3c4fddb568b0a7cf13a70a1617",
+        "classification": "non_contract",
+        "owner": "ParameterLayout",
+        "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ParameterLayout",
+        "declaration": "llm/core/parameters.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/components/rag/component.py",
+          "llm/components/tools/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_parameter_values.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_configuration_validation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/implementation_parameters.py",
+    "sha256": "0e3056702a65dc27fd432072c14e7a47bc6151e6d70f49cd40bd030eb4e218ac",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status.",
+    "dynamic_paths_reviewed": false,
+    "decisions": [
+      {
+        "id": "f466847925cf68f6826a3c11cb98c13a501b7ed7d2b876a7ff70a1ba99fa223c",
+        "classification": "non_contract",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Dataclass frozen/slots/init generation flags; no application field value or runtime policy."
+      },
+      {
+        "id": "0fef4b1b0b83ea029fbcc712ded3d438d2b62006dfdf3d3e4eedc6060089e6ef",
+        "classification": "non_contract",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Dataclass frozen/slots/init generation flags; no application field value or runtime policy."
+      },
+      {
+        "id": "bf9338e06f4e622d236bccc5ca5bed80df660ae673a77d24b66e0785eac7d456",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "ad1fcdf38c69cd99c2dce423e40e40f967d4ca2b9bb6ccdc4f3f64b00da028e5",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "53f756f1152f1e7e0e2a8ccd0121704e434553d3a9c7e2f83c6450a800195127",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "606658601c74940d87f8e7821e27039fcf3d481adbbfc3d9780c7e96737696c1",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "49a78a6a05e25d3bfb9ffd080e584baf35e2037cf3fcdf6e2f05e7891e4d2e39",
+        "classification": "non_contract",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Dataclass frozen/slots/init generation flags; no application field value or runtime policy."
+      },
+      {
+        "id": "22453da7ae79268e60c213e33de89c0cea5d153617ba2de6b737d3f776617cdb",
+        "classification": "non_contract",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Dataclass frozen/slots/init generation flags; no application field value or runtime policy."
+      },
+      {
+        "id": "0909666383f1a101a02dfe5ff30e889803166752e44ee8df6b9000d81d413cee",
+        "classification": "non_contract",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Dataclass frozen/slots/init generation flags; no application field value or runtime policy."
+      },
+      {
+        "id": "6570e6d9f134c60e4fe395935c8c0717fe5ddcebbaac76dbb52658017532636a",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "ded32a36c8f59df484c7a6f329247afb9b89be504ed0d7dd0bfae8c79b83628b",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "de8213c24d045eddfa8973c04a6de89c2dc3c47169ed4e71ac1d35c2092cd979",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e33f958f4449457a4031b25487aab6805e29b0c1618d7909b78b124ac5ac0218",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "ccec5ce1fbda149975dcd33b64788b908fe7fd3369874ec351f5d3b12ac32868",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "f1e89aa9f1952208952149a6b984461d52f834bda66e07148f4a810fa99ccbf3",
+        "classification": "declaration",
+        "owner": "ImplementationParameters / ParameterLookup",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ImplementationParameters / ParameterLookup",
+        "declaration": "llm/core/implementation_parameters.py",
+        "consumers": [
+          "llm/core/parameters.py",
+          "llm/core/schema.py",
+          "llm/engines/loop/engine.py",
+          "llm/components/goals/component.py",
+          "hub/backend/tools/retry.py"
+        ],
+        "tests": [
+          "tests/llm/test_parameter_values.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_configuration_validation.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/core/schema.py",
+    "sha256": "a72be5e8f4f9461e6ab9d3944142142a258f16d2c7f63d9b93f2a99e816ce7ce",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status.",
+    "dynamic_paths_reviewed": false,
+    "decisions": [
+      {
+        "id": "e88c20cd8084893261e263f17a5c71617b2307e7304acff5e4bb6664a5de739c",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e16cdc450331a70b702b4da0180b7526e1eb34d0a5664636b8d44a437e4bcb3b",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "0328e17eb9cf327d6bf4b81d637b6d8c24bce7536fc32fe78b716aac55d3201d",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "917b683fb67b50ee9a9ae4328f14136a66cbc05402a927131d633f0c5db9351f",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "656dfc948933bff7cb24fcb2ef07f360ef9920d44da3612784ea0b1b8d8743ad",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "b5a2b30a5f82143ddc45b0ee7dae6770d8a8126f24ce88852855912f658c8fec",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "3bce744022723effdde9313b4d464afaef552cc8cc9760cefee54effc7e4624a",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "52c5e4f5801423edaefddf675b68f92e49ecec17be1cdf067dda6e48d1753e47",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "1506ad5527cfada38be7bb9881937a5d1140421549990aa2d58443857f448526",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "c1b6631af7b2b7452dfeff9c167b58ef2dd3e1723a1806c3822f6cb34462a3ec",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "32f618fa4e463334943d58eb563f86549d952e53398ed92deec6b1030fcf45a1",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "2514b03d84bd22144e25e081a841d31773ba1e1b5dac72ab89eb022271a0bf58",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e6b6a97427c3529cbf7fc038223dfc9f6785f02519e0b17881860c11d89f4dfb",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "4aa39720efe16a743fa666e6949dc90e09af18c33b21486823d58972059061b9",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "72c78b35f8d84b0b964ee7c4164e557533b0c3db2ee651194f6e2b35e13ab733",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "b0f76f533268938607507768e347e9c21f653afff48f1193b451bdc6ebf84e15",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "7417d27663d170482416cac093f13bf91cfb163fcf4bd7a01a825a815b97ab60",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e161019bc45bbf5d5867c8945ef2719dbbceeafd2c47e2244ffaf8327d58ac11",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "bb267e9ba93116eab4de51ca48d833778154859dedef9704fd77a32db403f3e9",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "52c5b0b09b6df0d3f34eddab655f4966ebad7cea400c49193e7befd2da9c48fc",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "5a0d1763bac534beb78999986d0c40cf4d9730c51271b60b8b6ef8b414989ae5",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "28fa80228d316b7c2e436d3d892bdc81e2cdff1376d6c9bfc7ec22d9a311f8fc",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "2809031841228c9091b34753970240e47e9a47df22afb60bfe417e7a4068d3af",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "846b03c18757f1910c1a03ed795655f321a129a0b380968309121b684a731a30",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "b075cbcef39ba97dfffcc5af0a2de963a3765f01c1b6f69f784a542785567271",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "89f530a7a93ea691620308f4e0b548cee073f60a8005591bca5faf4d92e6589a",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "a877c5e5b68d73e7a354b738b4ec1a00d19a3c329e6187ac92a63dc9d4f286f3",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "44d6fb2bed7cd36e77569bf0d9b57e5693b5451e345686b6e6d806cc599ebae1",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "9a818a9456527aeb782170f127d7197fe9f49239838c6ea7c8f2b156d187ad78",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "7c8f785f465b38217b055d9c24e6501f2bb20ffac3ef96b4ac4eab36096cf870",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "ec8d9b6e65c3d11ef67b1d614161b45df5905a6f9c1b641e6b31b1309f8eb99b",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "befc2f23ab0d913098aa301cff0fb7dc1fe2b4e0f94ca2ae0b3d417457bf35a6",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "1fe08420c6f91814f6cb16175763148157a603336affa52e5c7206b3ae6b39e0",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "84ac8e5cf4698da7aaaea979acda67af2c899cd957e56b2aa79899dda807afd8",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "268ce3f39e88f886a7eb2377f7584217426f7ea2def12069be3b1493349ac6e4",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "6d7ca605a9b2e0088e8c99a4164daeadc01b7f3fe50d8918d92e014c8a8c11d9",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "cc4715030dc0eae705fed74e9eb79a65840527daf32b36cad514cb9f8e24f31c",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "5b2585b2e9d6f7c3232473ca489701e2d8f05655cc81d592f4926f1e8a36ceb9",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "c356b233a21770dd8b157a99c80d3f2c75e663bcba0f6f4b82e4b638244247b3",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "7f975eb7839e56735bffc3310827e3c48ee8de3843c9ac2e455c684e97037eed",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "91b0de91b16df1f4f67ed6454d6f1b395bf5ee43e1655ae2cedf0295c058c2d1",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "2816201c5c2a9961782274a5b8e8dfcf370753b3bb13190696d426a940ff6d22",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "d0af838c21dd3fc2c47e447351d4f67f97829730a73535643123faebc4716e52",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e5ac0b4896f53d3d155e39326690b32bf14f52b6d09710bb8590085d1de0fb01",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "974e176aeb7601d45391b47e807036b1ebd9ff5dfe7bbb9b08ff075a68d86df7",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "2240ae25c2589cb1bfa0e67176ef5bf52119ba4a73feaac4132bf8abdcd6ae69",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "c685b123547087988ac091ca9257fcaa71dc8ae041efeb18a963264dde1cb78a",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "1eecb911b4aac2e2639ef650fd39b2881538a78a6eb15f9135ee0f946377d2a5",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "6dde85dde52eb41251b2ca5e50268890d415754066dfa870954c76b3ebaaa421",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "be4201585426e39cfbb1d1a585b66efdf68c0b1fa0bc32e3802ced7931eadec9",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "db023c711ba2dddca819c4f1790491802f6f6529908d3a2e72f4175b2bcee205",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "438f3e8b4dd4d8b18b922bbe9cebebeeb453f4702626af1683897ab62bcd3a2a",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "1db77c9cf955dfae654971445cea3e930f569a81699892636f1c0b516dec65af",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "7a0923be171508a62c0d8f2a27fda38b805fe7422076e630d0e4a62814143639",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e0c2028d318caa9850311e1589eeb7e92cc3a572f24072d2a3b9865bafee4baa",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "60758bb7bb18b3846a06959c51a18b7a79a1f0c9c4761808c33e6cc867f7e8a5",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "b018ca4b6c118c5d30c5603d4f72e035aa972d61313a3df50ef57d11fc4970db",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "318a76c027a0fd9958eb5b806e1ff5376ccd8c8d86726d6efe169dd16d92125c",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "82f5f5475472d983a84e550dd556e250fa8f9e9683e40f993036dcc533ad5c05",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "9022fa0ee5b59c103dd3b8f266b104e07d5752c158bd4df89af9914302c599b8",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "8f8a759c6321ae53b88c2c10b172fe1c67fa9b4faa301d2fa948efaec2aea954",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "01c98880337db3b0cf1fad31268b1cdbffc17b1be133246790ff83cc2bb617fc",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "264bfed094fe4ab2df63aeba1c56077276ca30abd9862989284e3aac29699c05",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "2ca46bc65fd445f7e589c693323c9768c2f11e3f5b58d59af4d23edb0136f948",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e8649b8b9cd686c635324015295b7f990f3bda5c2e6087f66bd3b7bbd7726cf0",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "88589a066fcce1d0bd08cdbbd58dd80d693bedad9d6f10c950349de61052cf61",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "b74297561deedec684d3f7a9b86822d1897c09c55064457c506fdbe39211068c",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "d036912179c8dd3c48b82c204be691fe57b376dd558e811fd185cb8cbc41be2c",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "942facf3d693a8a9636836d80277d7ba4b4df77b55d32e8728a7af4beb39190b",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "111a4805d7291f188b9cc90143a381c566d3f4484c6c3ec5dde5beda19e707ca",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "004fbe95531f5d65ab75b2ddef8103e5eb2b5e3a04763a3b519914ab9356d359",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "e81117e47b7d1ca28ddcd05e32c7b97dca1238024ca3d97350eadc8ed64bf038",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "6daed7eed75844745116a73280cd7cfe861b27b2a94c448b69fb28ed0af9aa46",
+        "classification": "declaration",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
+      },
+      {
+        "id": "a334ea4d4b2e9af16f8d80a9fd0dfe8d9a8694a2b3f8518233e6e34695d6d62c",
+        "classification": "non_contract",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
+      },
+      {
+        "id": "e104e77228a73a5bfba74a5ad949af2dcb0d347a87021f133716ceffdf1447c6",
+        "classification": "non_contract",
+        "owner": "JSON Schema vocabulary and traversal",
+        "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "JSON Schema vocabulary and traversal",
+        "declaration": "llm/core/schema.py",
+        "consumers": [
+          "llm/core/parameters.py",
+          "llm/core/configuration.py",
+          "llm/engines/registry.py",
+          "llm/services/schema.py",
+          "hub/widget/forms/settings.py"
+        ],
+        "tests": [
+          "tests/llm/test_parameter_values.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_configuration_validation.py"
+        ],
+        "complete": false
       }
     ]
   }

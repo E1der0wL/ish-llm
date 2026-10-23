@@ -1,5 +1,7 @@
 """MCP 발견 결과를 명시적으로 준비하고, 저장된 선택만 공통 Tool 경계에 연결한다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from copy import deepcopy
 from dataclasses import asdict
 
@@ -74,7 +76,7 @@ class MCPData(ComponentData):
     def _tools(self):
         project, component = self._current()
         result = ToolRegistry()
-        for alias, selection in component.get_config(project).get("config", {}).get("tools", {}).items():
+        for alias, selection in ImplementationParameters.read(component.get_config(project)).config.get("tools", {}).items():
             snapshot = self._catalog(selection["server"])
             descriptor = next((item for item in snapshot["tools"] if item["name"] == selection["tool"]), None)
             if descriptor is None:

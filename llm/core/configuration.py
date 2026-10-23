@@ -5,7 +5,7 @@ from enum import StrEnum
 from jsonschema import Draft202012Validator
 
 from .models import ProjectConfig
-from llm.core.json_data import JsonObject
+from llm.core.json_data import JsonObject, JsonPointer
 from .configuration_views import ConfigurationView, ConfigurationOverride
 
 
@@ -21,26 +21,6 @@ class ConfigurationSource(StrEnum):
     CLIENT = "client"
 
 
-class ConfigurationPointer:
-    ROOT = ""
-    SEPARATOR = "/"
-    ESCAPE = "~"
-    ESCAPED_ESCAPE = "~0"
-    ESCAPED_SEPARATOR = "~1"
-
-    @classmethod
-    def append(cls, path, key):
-        return path + cls.SEPARATOR + key.replace(cls.ESCAPE, cls.ESCAPED_ESCAPE).replace(
-            cls.SEPARATOR, cls.ESCAPED_SEPARATOR)
-
-    @classmethod
-    def parts(cls, path):
-        return tuple(part.replace(cls.ESCAPED_SEPARATOR, cls.SEPARATOR).replace(
-            cls.ESCAPED_ESCAPE, cls.ESCAPE) for part in path.lstrip(cls.SEPARATOR).split(cls.SEPARATOR))
-
-
-
-
 class ConfigurationError:
     INVALID = "Invalid configuration: {message}"
     WIDENING = "{source} configuration widens parent limit: /{path}"
@@ -52,9 +32,9 @@ def resolve_config(layers, *, schema=None, host=None):
     """뒤의 계층이 우선한다. 호스트 지정 필드는 JSON 경로별로 편집 불가를 표시한다."""
     values, sources, overridden = {}, {}, {}
 
-    def merge(target, changes, source, path=ConfigurationPointer.ROOT):
+    def merge(target, changes, source, path=JsonPointer.ROOT):
         for key, value in changes.items():
-            pointer = ConfigurationPointer.append(path, key)
+            pointer = JsonPointer.append(path, key)
             if isinstance(value, dict):
                 if not isinstance(target.get(key), dict):
                     if pointer in sources:
@@ -67,7 +47,7 @@ def resolve_config(layers, *, schema=None, host=None):
                     overridden.setdefault(pointer, []).append(ConfigurationOverride(sources[pointer], target[key]).to_dict())
                 target[key], sources[pointer] = deepcopy(value), source
                 for child in tuple(sources):
-                    if child.startswith(pointer + ConfigurationPointer.SEPARATOR):
+                    if child.startswith(pointer + JsonPointer.SEPARATOR):
                         del sources[child]
 
     for source, data in [*layers, (ConfigurationSource.HOST, {} if host is None else host)]:
@@ -112,7 +92,7 @@ def resolve_engine_config(config, name, *, session_config=None, agent=None, sche
         for path in limits:
             parent, child = read(prior, path), read(merged, path)
             if parent is not None and (child is None or child > parent):
-                raise ValueError(ConfigurationError.WIDENING.format(source=source, path=ConfigurationPointer.SEPARATOR.join(path)))
+                raise ValueError(ConfigurationError.WIDENING.format(source=source, path=JsonPointer.SEPARATOR.join(path)))
         prior = merged
     return ConfigurationView.read(resolve_config(layers, schema=schema)).with_engine_key(name).to_dict()
 

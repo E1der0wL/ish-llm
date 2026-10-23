@@ -1,5 +1,7 @@
 """Selected files become text documents; Vision retains image provenance."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from llm.core.configuration_views import ConfigurationView
 
 import asyncio
@@ -29,7 +31,7 @@ async def read_document(manager, argument, *, progress=None):
         if manager.project is None or "vision" not in (await manager.project.aget_data()).components:
             raise ValueError("Open Vision settings from the image import dialog to enable and configure it first")
         vision = await manager.project.components.aget("vision")
-        config = ConfigurationView.read(await vision.aresolve_config()).values.get("config", {})
+        config = ImplementationParameters.read(ConfigurationView.read(await vision.aresolve_config()).values).config
         mode = argument["mode"]
         if mode == "ocr" and not config.get("ocr", {}).get("backend"):
             raise ValueError("Configure vision.config.ocr.backend before importing images with OCR")

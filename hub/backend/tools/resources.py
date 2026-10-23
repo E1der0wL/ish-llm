@@ -1,5 +1,7 @@
 """Hub authoring tools use selected component handles, never storage paths."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from copy import deepcopy
 
 from llm.components.goals import GoalComponent
@@ -118,7 +120,7 @@ class HubRAGComponent(RAGComponent):
 class HubGoalComponent(GoalComponent):
     def resolve_runtime(self, project, capability, *, data_factory):
         registry = super().resolve_runtime(project, capability, data_factory=data_factory)
-        if capability != "tools" or not self.get_config(project).get("policy", {}).get("write_tools"):
+        if capability != "tools" or not ImplementationParameters.read(self.get_config(project)).policy.get("write_tools"):
             return registry
         data = data_factory(self.name)
 

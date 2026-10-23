@@ -1,5 +1,7 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from llm.core.configuration_views import ConfigurationView
 from llm.core.configuration import ConfigurationSource
 
@@ -348,7 +350,7 @@ class RAGComponent(DefinitionComponent):
         view["enforced"] = {"config": {"embedding_params": deepcopy(getattr(selected, "enforced_configuration", {}))}}
         view["model_providers"] = {name: resolve_config([
             (ConfigurationSource.CLIENT, getattr(getattr(self, name), "provider_options", {})),
-            (ConfigurationSource.PROJECT, ConfigurationView.read(view).values.get("policy", {}).get("provider", {}))], schema=provider_schema())
+            (ConfigurationSource.PROJECT, ImplementationParameters.read(ConfigurationView.read(view).values).policy.get("provider", {}))], schema=provider_schema())
             for name in ("embedding", "extractor", "reranker")}
         view["runtime"] = runtime
         return view

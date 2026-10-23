@@ -1,7 +1,7 @@
 """등록 객체가 선언한 Project 편집 스키마를 조합한다. 저장 파일이나 모델은 읽지 않는다."""
 
 from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
-from llm.core.configuration import ConfigurationPointer
+from llm.core.json_data import JsonPointer
 
 from copy import deepcopy
 import json
@@ -154,7 +154,7 @@ class ProjectConfiguration:
                     if editable:
                         continue
                     path = ("config", "parameters", kind, name,
-                            *ConfigurationPointer.parts(pointer))
+                            *JsonPointer.parts(pointer))
                     fixed.add(path)
         for path in fixed:
             before, after = at(record["values"], path), at(candidate, path)

@@ -1,5 +1,7 @@
 """Project-scoped Tool management through public component CRUD and package codecs."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from __future__ import annotations
 
 import ast
@@ -54,7 +56,7 @@ class ToolManagement:
         if self.builtin is not None and self.builtin.name in self.record.components:
             settings = await self.project.components.aget(self.builtin.name)
             snapshot = await settings.asnapshot()
-            selected = snapshot["data"].get("config", {}).get("enabled", [])
+            selected = ImplementationParameters.read(snapshot["data"]).config.get("enabled", [])
             for name in self.builtin.toolkit.registry.names():
                 tool = self.builtin.toolkit.registry.get(name)
                 entries.append({"name": "builtin:" + name, "label": name, "builtin": True,

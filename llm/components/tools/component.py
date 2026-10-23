@@ -1,5 +1,7 @@
 """Project-owned Python Tool 패키지와 활성화 선택. 실행 수명은 기존 ToolExecutor가 소유한다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from copy import deepcopy
 from typing import Sequence
 from llm.components.base import Component, validate_name
@@ -29,7 +31,7 @@ class ToolComponent(Component):
 
     def validate_config(self, configuration):
         super().validate_config(configuration)
-        names = configuration.get("config", {}).get("enabled", [])
+        names = ImplementationParameters.read(configuration).config.get("enabled", [])
         if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
             raise ValueError("Enabled tools must be a list of names")
         if len(set(names)) != len(names):

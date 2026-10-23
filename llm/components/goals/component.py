@@ -1,5 +1,7 @@
 """목표와 진행 상태를 저장한다. Run은 소유하지 않고 참조만 한다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from copy import deepcopy
 from llm.components.definitions import DefinitionComponent
 from llm.core.schema import implementation_schema, object_schema, field, metadata_schema
@@ -33,7 +35,8 @@ class GoalComponent(DefinitionComponent):
 
     def validate_config(self, data):
         super().validate_config(data)
-        if data.get("policy", {}).get("inject") and "priority" not in data.get("config", {}):
+        parameters = ImplementationParameters.read(data)
+        if parameters.policy.get("inject") and "priority" not in parameters.config:
             raise ValueError("Goal context injection requires config.priority")
 
     def history_references(self, project):
@@ -60,7 +63,7 @@ class GoalComponent(DefinitionComponent):
             return data
         if capability == "tools":
             from .tools import goal_tools
-            return goal_tools(data, write=self.get_config(project).get("policy", {}).get("write_tools") is True)
+            return goal_tools(data, write=ImplementationParameters.read(self.get_config(project)).policy.get("write_tools") is True)
         if capability == "completion_processors":
             from .processing import GoalProcessor
             return GoalProcessor(data, self.get_config(project))

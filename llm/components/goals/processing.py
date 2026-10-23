@@ -1,5 +1,7 @@
 """명시적으로 선택한 활성 목표만 모델의 사용자 참고 자료에 주입한다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 import json
 from copy import deepcopy
 from llm.components.processing import CompletionSession
@@ -11,7 +13,7 @@ class GoalProcessor:
 
     def __init__(self, data, config):
         self.data, self.config = data, deepcopy(config)
-        self.priority = config.get("config", {}).get("priority", 0)  # 비활성 처리기의 중립 순서
+        self.priority = ImplementationParameters.read(config).config.get("priority", 0)  # 비활성 처리기의 중립 순서
 
     def session(self, context):
         return GoalSession(self, context)
@@ -22,8 +24,9 @@ class GoalSession(CompletionSession):
         self.processor, self.context = processor, context
 
     async def prepare(self, request):
-        config = self.processor.config.get("config", {})
-        if not self.processor.config.get("policy", {}).get("inject"):
+        parameters = ImplementationParameters.read(self.processor.config)
+        config = parameters.config
+        if not parameters.policy.get("inject"):
             return
         if self.context.output_step_id is not None and self.context.state.get("agent", {}).get("agent_id") not in config.get("nested_agent_ids", []):
             return

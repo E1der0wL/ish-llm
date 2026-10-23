@@ -1,5 +1,7 @@
 """All registered public engines are available without an activation checklist."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from llm.core.configuration_views import ConfigurationView
 
 
@@ -13,7 +15,7 @@ def model_name(engines, config, engine, session_config=None):
     implementation = engines.get(engine)
     describe = getattr(implementation, ConfigurationView.RESOLVE_METHOD, None)
     if describe:
-        return ConfigurationView.read(describe(config, engine, session_config=session_config)).values.get("config", {}).get("completion", {}).get("model", "")
+        return ImplementationParameters.read(ConfigurationView.read(describe(config, engine, session_config=session_config)).values).config.get("completion", {}).get("model", "")
     return ""
 
 def requires_model(engines, config, engine, session_config=None):
@@ -29,7 +31,7 @@ def requires_model(engines, config, engine, session_config=None):
     # JSON으로 표현하지 않은 host client/factory는 조회만으로 모델 누락을 판정하지 않는다.
     if "completion" in view.runtime:
         return False
-    return not view.values.get("config", {}).get("completion", {}).get("model")
+    return not ImplementationParameters.read(view.values).config.get("completion", {}).get("model")
 
 
 def agent_model(engines, config, definition, session_config=None):
@@ -39,7 +41,7 @@ def agent_model(engines, config, definition, session_config=None):
     engine = engines.resolve_agent(definition)
     describe = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
     view = ConfigurationView.read(describe(config, definition["engine"], session_config=session_config) if callable(describe) else {})
-    model = view.values.get("config", {}).get("completion", {}).get("model", "")
+    model = ImplementationParameters.read(view.values).config.get("completion", {}).get("model", "")
     required = (isinstance(underlying_engine(engine), LoopEngine)
                 and "completion" not in view.runtime and not model)
     return model, required

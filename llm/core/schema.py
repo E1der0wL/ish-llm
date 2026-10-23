@@ -3,10 +3,132 @@
 from copy import deepcopy
 import json
 from jsonschema import Draft202012Validator
+from .implementation_parameters import ImplementationParameters
+from .json_data import JsonObject, JsonPointer
 
 
-def field(kind, description="", **constraints):
-    return {"type": kind, "description": description, **constraints}
+class SchemaKeyword:
+    TYPE = "type"
+    DESCRIPTION = "description"
+    TITLE = "title"
+    PROPERTIES = "properties"
+    ADDITIONAL_PROPERTIES = "additionalProperties"
+    PATTERN_PROPERTIES = "patternProperties"
+    DEFS = "$defs"
+    DEFINITIONS = "definitions"
+    DEPENDENT_SCHEMAS = "dependentSchemas"
+    ITEMS = "items"
+    ADDITIONAL_ITEMS = "additionalItems"
+    UNEVALUATED_PROPERTIES = "unevaluatedProperties"
+    UNEVALUATED_ITEMS = "unevaluatedItems"
+    CONTAINS = "contains"
+    PROPERTY_NAMES = "propertyNames"
+    NOT = "not"
+    IF = "if"
+    THEN = "then"
+    ELSE = "else"
+    CONTENT_SCHEMA = "contentSchema"
+    ALL_OF = "allOf"
+    ANY_OF = "anyOf"
+    ONE_OF = "oneOf"
+    PREFIX_ITEMS = "prefixItems"
+    DEPENDENCIES = "dependencies"
+    REF = "$ref"
+    DYNAMIC_REF = "$dynamicRef"
+    DEFAULT = "default"
+    REQUIRED = "required"
+    COMMENT = "$comment"
+    SCHEMA = "$schema"
+    ID = "$id"
+    ANCHOR = "$anchor"
+    DYNAMIC_ANCHOR = "$dynamicAnchor"
+
+
+class SchemaType:
+    OBJECT = "object"
+    INTEGER = "integer"
+    NUMBER = "number"
+    NULL = "null"
+    STRING = "string"
+    ARRAY = "array"
+    BOOLEAN = "boolean"
+
+
+class SchemaBoolean:
+    ACCEPT = True
+    REJECT = False
+
+
+class SchemaExtension:
+    PREFIX = "x-"
+    OWNER = "x-schema-owner"
+    OPEN_KIND = "x-open-kind"
+    HOST_OVERRIDE = "x-host-override"
+    HOST_FIXED = True
+    NARROWING = "x-narrowing"
+
+
+class OpenSchemaKind:
+    METADATA = "metadata"
+    PROVIDER = "provider"
+    IMPLEMENTATION = "implementation"
+    ADAPTER = "adapter"
+    RESULT = "result"
+    SCHEMA = "schema"
+    DATA = "data"
+    ALL = (METADATA, PROVIDER, IMPLEMENTATION, ADAPTER, RESULT, SCHEMA, DATA)
+
+
+class SchemaOwnership:
+    APPLICATION_METADATA = "application.metadata"
+    HOST_IMPLEMENTATION = "host-supplied selected implementation value"
+
+
+class SchemaInput:
+    UNSPECIFIED = None
+    EMPTY_DESCRIPTION = ""
+
+
+class SchemaTraversal:
+    REFERENCE_OR_COMPOSITION = (SchemaKeyword.REF, SchemaKeyword.ALL_OF, SchemaKeyword.ANY_OF, SchemaKeyword.ONE_OF)
+    MAPPINGS = (SchemaKeyword.PROPERTIES, SchemaKeyword.PATTERN_PROPERTIES, SchemaKeyword.DEFS,
+                SchemaKeyword.DEFINITIONS, SchemaKeyword.DEPENDENT_SCHEMAS)
+    SINGLE = (SchemaKeyword.ITEMS, SchemaKeyword.ADDITIONAL_ITEMS, SchemaKeyword.ADDITIONAL_PROPERTIES,
+              SchemaKeyword.UNEVALUATED_PROPERTIES, SchemaKeyword.UNEVALUATED_ITEMS, SchemaKeyword.CONTAINS,
+              SchemaKeyword.PROPERTY_NAMES, SchemaKeyword.NOT, SchemaKeyword.IF, SchemaKeyword.THEN,
+              SchemaKeyword.ELSE, SchemaKeyword.CONTENT_SCHEMA)
+    ARRAYS = (SchemaKeyword.ALL_OF, SchemaKeyword.ANY_OF, SchemaKeyword.ONE_OF, SchemaKeyword.PREFIX_ITEMS)
+    DIRECT = True
+    INDIRECT = False
+
+
+class SchemaReference:
+    LOCAL_KEYS = (SchemaKeyword.REF, SchemaKeyword.DYNAMIC_REF)
+    RESOURCE_KEYS = (SchemaKeyword.ID, SchemaKeyword.ANCHOR, SchemaKeyword.DYNAMIC_ANCHOR, SchemaKeyword.DYNAMIC_REF)
+    DEFINITION_PREFIXES = tuple(JsonPointer.reference((key,)) + JsonPointer.SEPARATOR
+                                for key in (SchemaKeyword.DEFS, SchemaKeyword.DEFINITIONS))
+
+
+class SchemaNarrowing:
+    MAXIMUM = "maximum"
+    NUMERIC = frozenset((SchemaType.INTEGER, SchemaType.NUMBER))
+    NULLABLE_NUMERIC = NUMERIC | {SchemaType.NULL}
+
+
+class SchemaError:
+    UNKNOWN_FIELD = "Unknown declared field: "
+    FIELD_SEPARATOR = ": "
+    INTEGER_REQUIRED = " must be an integer"
+    OPEN_OWNER = "Open schema requires an explicit semantic owner and category"
+    LOCAL_REFERENCE = "Only local schema references are supported"
+    IMPLICIT_DEFAULT = "Configuration schemas must not provide implicit defaults"
+    IMPLEMENTATION_OBJECT = "Implementation configuration schema must describe an object"
+    IMPLEMENTATION_FIELDS = "Implementation configuration schema fields belong under config/policy"
+    NON_NULL_SECTION = "Implementation {name} schema must describe a non-null object"
+    NARROWING_PATH = "x-narrowing requires an inline numeric property path: "
+
+def field(kind, description=SchemaInput.EMPTY_DESCRIPTION, **constraints):
+    return {SchemaKeyword.TYPE: kind, SchemaKeyword.DESCRIPTION: description, **constraints}
 
 
 def validate_declared_fields(values, properties):
@@ -15,67 +137,59 @@ def validate_declared_fields(values, properties):
     Owners supply the same property declarations used by their public Schema.
     Runtime SDK objects must stay outside this JSON-only projection.
     """
-    json.dumps(values, allow_nan=False)
+    json.dumps(values, allow_nan=JsonObject.ALLOW_NON_FINITE)
     for name, value in values.items():
         if name not in properties:
-            raise ValueError("Unknown declared field: " + name)
+            raise ValueError(SchemaError.UNKNOWN_FIELD + name)
         spec = properties[name]
         error = next(Draft202012Validator(spec).iter_errors(value), None)
         if error is not None:
-            raise ValueError(name + ": " + error.message)
-        kinds = spec.get("type", ())
-        if value is not None and (kinds == "integer" or isinstance(kinds, list) and "integer" in kinds):
+            raise ValueError(name + SchemaError.FIELD_SEPARATOR + error.message)
+        kinds = spec.get(SchemaKeyword.TYPE, ())
+        if value is not JsonObject.NULL and (kinds == SchemaType.INTEGER or isinstance(kinds, list) and SchemaType.INTEGER in kinds):
             if type(value) is not int:
-                raise ValueError(name + " must be an integer")
+                raise ValueError(name + SchemaError.INTEGER_REQUIRED)
 
 
-def object_schema(properties=None, **extra):
-    return {"type": "object", "properties": properties or {}, "additionalProperties": False, **extra}
+def object_schema(properties=SchemaInput.UNSPECIFIED, **extra):
+    return {SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.PROPERTIES: properties or {}, SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT, **extra}
 
 
-def open_schema(owner, *, category, properties=None, **extra):
+def open_schema(owner, *, category, properties=SchemaInput.UNSPECIFIED, **extra):
     """교체 가능한 구현/외부 데이터의 소유자를 명시한다. backend 설정 기본값은 아니다."""
-    if not isinstance(owner, str) or not owner.strip() or category not in (
-            "metadata", "provider", "implementation", "adapter", "result", "schema", "data"):
-        raise ValueError("Open schema requires an explicit semantic owner and category")
-    return object_schema(properties, additionalProperties=True,
-                         **{"x-schema-owner": owner, "x-open-kind": category}, **extra)
+    if not isinstance(owner, str) or not owner.strip() or category not in OpenSchemaKind.ALL:
+        raise ValueError(SchemaError.OPEN_OWNER)
+    return object_schema(properties, additionalProperties=SchemaBoolean.ACCEPT,
+                         **{SchemaExtension.OWNER: owner, SchemaExtension.OPEN_KIND: category}, **extra)
 
 
 def metadata_schema():
     """Application 데이터. 실행 권한이나 구현체 설정으로 읽지 않는다."""
-    return open_schema("application.metadata", category="metadata")
+    return open_schema(SchemaOwnership.APPLICATION_METADATA, category=OpenSchemaKind.METADATA)
 
 
-def implementation_schema(*, config=None, policy=None, **metadata):
+def implementation_schema(*, config=SchemaInput.UNSPECIFIED, policy=SchemaInput.UNSPECIFIED, **metadata):
     """구현체 설정의 공통 외형. 필드 의미·필수값은 구현체가 선언하며 값은 만들지 않는다."""
-    return object_schema({"config": object_schema() if config is None else config,
-                          "policy": object_schema() if policy is None else policy},
-                         additionalProperties=False, **metadata)
+    return object_schema({ImplementationParameters.CONFIG: object_schema() if config is SchemaInput.UNSPECIFIED else config,
+                          ImplementationParameters.POLICY: object_schema() if policy is SchemaInput.UNSPECIFIED else policy},
+                         additionalProperties=SchemaBoolean.REJECT, **metadata)
 
 
-def validate_parameters(value, *, scope="implementation"):
-    """저장·직접 설정 경계에서 평면 설정과 null 컨테이너를 거부한다."""
-    if not isinstance(value, dict):
-        raise TypeError(f"{scope} configuration must be an object")
-    extra = value.keys() - {"config", "policy"}
-    if extra:
-        raise ValueError(f"{scope}: configuration belong under config/policy: {sorted(extra)}")
-    for key in ("config", "policy"):
-        if key in value and not isinstance(value[key], dict):
-            raise TypeError(f"{scope}.{key} must be an object; omit an unset section")
+def validate_parameters(value, *, scope=ImplementationParameters.DEFAULT_SCOPE):
+    """Public envelope validation delegates to its sole config/policy Owner."""
+    ImplementationParameters.validate(value, scope=scope)
 
 
 def mark_host_overrides(schema, values):
     """병합과 같은 leaf 단위로 고정값을 표시한다. 빈 dict는 덮어쓰는 값이 없다."""
     if isinstance(values, dict):
-        if values and "type" not in schema and not any(key in schema for key in ("$ref", "allOf", "anyOf", "oneOf")):
+        if values and SchemaKeyword.TYPE not in schema and not any(key in schema for key in SchemaTraversal.REFERENCE_OR_COMPOSITION):
             # 선택 구현체의 opaque 인자에 대한 UI 관찰이다. Backend가 새 옵션 계약을 만들지 않는다.
-            schema.update(open_schema("host-supplied selected implementation value", category="implementation"))
+            schema.update(open_schema(SchemaOwnership.HOST_IMPLEMENTATION, category=OpenSchemaKind.IMPLEMENTATION))
         for key, value in values.items():
-            mark_host_overrides(schema.setdefault("properties", {}).setdefault(key, {}), value)
+            mark_host_overrides(schema.setdefault(SchemaKeyword.PROPERTIES, {}).setdefault(key, {}), value)
     else:
-        schema["x-host-override"] = True
+        schema[SchemaExtension.HOST_OVERRIDE] = SchemaExtension.HOST_FIXED
 
 
 def schema_nodes(value):
@@ -88,25 +202,24 @@ def schema_nodes(value):
     if not isinstance(value, dict):
         return
     yield value
-    for key in ("properties", "patternProperties", "$defs", "definitions", "dependentSchemas"):
+    for key in SchemaTraversal.MAPPINGS:
         mapping = value.get(key)
         if isinstance(mapping, dict):
             for child in mapping.values():
                 yield from schema_nodes(child)
-    for key in ("items", "additionalItems", "additionalProperties", "unevaluatedProperties",
-                "unevaluatedItems", "contains", "propertyNames", "not", "if", "then", "else", "contentSchema"):
+    for key in SchemaTraversal.SINGLE:
         child = value.get(key)
         if isinstance(child, list):
             for item in child:
                 yield from schema_nodes(item)
         else:
             yield from schema_nodes(child)
-    for key in ("allOf", "anyOf", "oneOf", "prefixItems"):
+    for key in SchemaTraversal.ARRAYS:
         children = value.get(key)
         if isinstance(children, list):
             for child in children:
                 yield from schema_nodes(child)
-    dependencies = value.get("dependencies")
+    dependencies = value.get(SchemaKeyword.DEPENDENCIES)
     if isinstance(dependencies, dict):
         for child in dependencies.values():
             yield from schema_nodes(child)  # Property dependency lists are not schemas.
@@ -115,20 +228,20 @@ def schema_nodes(value):
 def validate_local_refs(value):
     """Check schema references, never keys inside instance data or annotations."""
     for item in schema_nodes(value):
-        for key in ("$ref", "$dynamicRef"):
-            if key in item and (not isinstance(item[key], str) or not item[key].startswith("#")):
-                raise ValueError("Only local schema references are supported")
+        for key in SchemaReference.LOCAL_KEYS:
+            if key in item and (not isinstance(item[key], str) or not item[key].startswith(JsonPointer.FRAGMENT)):
+                raise ValueError(SchemaError.LOCAL_REFERENCE)
 
 
 def checked_schema(value):
     """UI 스키마는 JSON이며 외부 스키마를 내려받지 않는다."""
     import json
-    json.dumps(value, allow_nan=False)
+    json.dumps(value, allow_nan=JsonObject.ALLOW_NON_FINITE)
     Draft202012Validator.check_schema(value)
     validate_local_refs(value)
     for item in schema_nodes(value):
-        if "default" in item:
-            raise ValueError("Configuration schemas must not provide implicit defaults")
+        if SchemaKeyword.DEFAULT in item:
+            raise ValueError(SchemaError.IMPLICIT_DEFAULT)
     return deepcopy(value)
 
 
@@ -136,15 +249,15 @@ def checked_implementation_schema(value):
     """확장 구현체도 같은 설정 외형을 공개한다. 각 section의 내용은 구현체가 결정한다."""
     spec = checked_schema(value)
     narrowing_paths(spec)
-    if not isinstance(spec, dict) or spec.get("type") != "object":
-        raise ValueError("Implementation configuration schema must describe an object")
-    if spec.get("properties", {}).keys() - {"config", "policy"}:
-        raise ValueError("Implementation configuration schema fields belong under config/policy")
-    for name, section in spec.get("properties", {}).items():
-        if not isinstance(section, dict) or section.get("type") != "object":
-            raise ValueError(f"Implementation {name} schema must describe a non-null object")
+    if not isinstance(spec, dict) or spec.get(SchemaKeyword.TYPE) != SchemaType.OBJECT:
+        raise ValueError(SchemaError.IMPLEMENTATION_OBJECT)
+    if spec.get(SchemaKeyword.PROPERTIES, {}).keys() - set(ImplementationParameters.SECTIONS):
+        raise ValueError(SchemaError.IMPLEMENTATION_FIELDS)
+    for name, section in spec.get(SchemaKeyword.PROPERTIES, {}).items():
+        if not isinstance(section, dict) or section.get(SchemaKeyword.TYPE) != SchemaType.OBJECT:
+            raise ValueError(SchemaError.NON_NULL_SECTION.format(name=name))
     # 외형 제한을 schema에도 담아 ProjectConfig와 UI 검증이 일치하게 한다.
-    spec["additionalProperties"] = False
+    spec[SchemaKeyword.ADDITIONAL_PROPERTIES] = SchemaBoolean.REJECT
     return spec
 
 
@@ -157,35 +270,34 @@ def narrowing_paths(schema):
     resolution rather than silently losing its authority constraint.
     """
     paths = []
-    mappings = {"properties", "patternProperties", "$defs", "definitions", "dependentSchemas"}
-    single = {"items", "additionalItems", "additionalProperties", "unevaluatedProperties",
-              "unevaluatedItems", "contains", "propertyNames", "not", "if", "then", "else", "contentSchema"}
-    arrays = {"allOf", "anyOf", "oneOf", "prefixItems"}
+    mappings = set(SchemaTraversal.MAPPINGS)
+    single = set(SchemaTraversal.SINGLE)
+    arrays = set(SchemaTraversal.ARRAYS)
 
-    def visit(spec, path=(), direct=True):
+    def visit(spec, path=(), direct=SchemaTraversal.DIRECT):
         if not isinstance(spec, dict):
             return
-        if "x-narrowing" in spec:
-            kinds = spec.get("type")
+        if SchemaExtension.NARROWING in spec:
+            kinds = spec.get(SchemaKeyword.TYPE)
             kinds = {kinds} if isinstance(kinds, str) else set(kinds or ())
-            if (not direct or not path or spec["x-narrowing"] != "maximum"
-                    or not kinds.intersection({"integer", "number"})
-                    or kinds - {"integer", "number", "null"}):
-                raise ValueError("x-narrowing requires an inline numeric property path: " + "/".join(path))
+            if (not direct or not path or spec[SchemaExtension.NARROWING] != SchemaNarrowing.MAXIMUM
+                    or not kinds.intersection(SchemaNarrowing.NUMERIC)
+                    or kinds - SchemaNarrowing.NULLABLE_NUMERIC):
+                raise ValueError(SchemaError.NARROWING_PATH + JsonPointer.SEPARATOR.join(path))
             paths.append(path)
         for key in mappings:
             for name, child in spec.get(key, {}).items():
-                visit(child, (*path, name), direct and key == "properties")
+                visit(child, (*path, name), direct and key == SchemaKeyword.PROPERTIES)
         for key in single:
             child = spec.get(key)
             if isinstance(child, list):
                 for item in child:
-                    visit(item, path, False)
+                    visit(item, path, SchemaTraversal.INDIRECT)
             else:
-                visit(child, path, False)
+                visit(child, path, SchemaTraversal.INDIRECT)
         for key in arrays:
             for child in spec.get(key, []):
-                visit(child, path, False)
+                visit(child, path, SchemaTraversal.INDIRECT)
 
     visit(schema)
     return tuple(paths)

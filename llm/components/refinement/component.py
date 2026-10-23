@@ -1,5 +1,7 @@
 """제안은 실행 기록의 참조 데이터다. 자동 모델 호출이나 Run 수명은 소유하지 않는다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from datetime import datetime
 
 from llm.components.definitions import DefinitionComponent
@@ -113,7 +115,7 @@ class RefinementComponent(DefinitionComponent):
             return data
         if capability == "tools":
             from .tools import refinement_tools
-            policy = self.get_config(project).get("policy", {})
+            policy = ImplementationParameters.read(self.get_config(project)).policy
             return refinement_tools(data, apply=policy.get("apply_tools") is True,
                                     operations=policy.get("proposal_operations", ()))
         return super().resolve_runtime(project, capability, data_factory=data_factory)

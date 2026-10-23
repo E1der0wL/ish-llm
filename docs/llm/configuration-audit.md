@@ -168,7 +168,7 @@ Python API의 None은 null을 허용하는 설정 경계에서 명시적 해제�
 조회 구조를 소유한다. `ConfigurationOverride`, `EngineConfigurationKey`,
 `RuntimeConfiguration`/`RuntimeOnlyConfiguration`의 타입 선언이 직렬화 이름의 원본이다.
 Engine·Component·Agent binding·Hub 모델 선택/재시도·설정 편집은 같은 Reader와 속성을 사용한다.
-`ConfigurationSource`와 `ConfigurationPointer`가 출처 및 JSON pointer 구성을 소유한다.
+`ConfigurationSource`와 `llm/core/json_data.py`의 `JsonPointer`가 출처 및 JSON pointer 구성을 소유한다.
 
 조회 결과는 저장 원본이 아니다. 사용자 확장이 제공하지 않는 관측 필드는 조회에서 빈 집합으로
 볼 수 있지만 to_dict는 원래 생략 상태를 보존한다. runtime_only처럼 설정 조회를 제공하지 않는
@@ -179,3 +179,18 @@ Engine·Component·Agent binding·Hub 모델 선택/재시도·설정 편집은 
 확장 SDK 옵션과 Component별 추가 관측은 보존한다. 중첩 반환값은 독립 사본이며 화면의
 편집 잠금 계산은 Owner의 editable 결과를 읽는다. 실제 저장 검증과 host 고정값 검사는
 기존 경계에서 유지한다. 관측값을 저장 설정으로 복사하거나 실행 기본값을 추가하지 않는다.
+
+## 구현체 외형과 경로 해석의 소유 (2026-10-23)
+
+`ImplementationParameters`가 config/policy 외형의 단일 Reader다. 각 Component·Engine은
+공통 외형을 속성으로 소비하고 중첩 필드의 의미·정책·검증은 계속 직접 소유한다.
+Project config, Agent policy, 승인 binding의 policy와는 서로 다른 계약이다.
+공개 `validate_parameters`는 같은 검증기로 위임한다. 명시된 section의 null은 거부하고,
+생략한 section은 조회 시 빈 집합으로 보되 직렬화 시 원래 생략 상태를 유지한다.
+
+`ParameterLookup`은 경로 존재 여부와 값을 구분한다. `ParameterLayout`은 이를 사용해
+명시적 null/false/0, 열린 SDK 확장과 정책 경로의 우회 거부를 보존한다. 원본은 변경하지
+않으며 중첩 조회 결과도 독립 사본이다. Schema 구조 키·탐색 문법·참조·narrowing 선언은
+`llm/core/schema.py`가 소유한다. 외부 참조 거부, default annotation 거부, 숫자 한도 축소와
+복잡한 제약의 임의 재배치 거부를 유지한다. Schema 안의 const/enum/annotation 값은
+Schema 구조로 오해하지 않는다. 제품 코드 전수 전환의 잔여는 별도 inventory에 남긴다.

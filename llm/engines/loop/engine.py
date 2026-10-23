@@ -2,6 +2,8 @@
 
 A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from llm.core.configuration_views import ConfigurationView
 
 from llm.core.checkpoint_records import CheckpointWrite
@@ -87,7 +89,7 @@ class LoopEngine(BaseEngine):
                          "adapter": {"type": type(self.completion_adapter).__module__ + "." + type(self.completion_adapter).__qualname__,
                                      "binding": getattr(self.completion_adapter, "execution_binding", None)},
                          **context.tools.execution_binding(context.tool_scope.binding() if context.tool_scope else None)})
-        policy = ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values.get("policy", {}).get("final_review")
+        policy = ImplementationParameters.read(ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values).policy.get("final_review")
         if ReviewPolicy.read(policy) is not None:
             values["final_reviewers"] = review_identities(context.capabilities.get("completion_processors", ()))
         return hashlib.sha256(json.dumps(values, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
@@ -210,11 +212,11 @@ class LoopEngine(BaseEngine):
             overrides["completion"] = agent["completion"]
         view = ConfigurationView.read(resolve_engine_config(config, key, session_config=session_config,
             agent=self.parameter_layout.pack(overrides), schema=self.describe_config()))
-        values = view.values
-        CompletionPolicy.validate_config(values.get("policy", {}).get("completion"))
-        provider = values.get("policy", {}).get("provider")
+        policy = ImplementationParameters.read(view.values).policy
+        CompletionPolicy.validate_config(policy.get("completion"))
+        provider = policy.get("provider")
         resolve_provider_options({} if provider is None else provider)
-        ReviewPolicy.read(values.get("policy", {}).get("final_review"))
+        ReviewPolicy.read(policy.get("final_review"))
         return view.with_runtime(()).to_dict()
 
     def _request(self, context: EngineContext, params: dict[str, Any]) -> ModelRequest:

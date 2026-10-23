@@ -1,6 +1,6 @@
 """Schema fields retain missing/null distinctions and unknown JSON properties."""
 
-from llm.core.configuration import ConfigurationPointer
+from llm.core.json_data import JsonPointer
 from llm.core.configuration_views import ConfigurationView
 
 
@@ -173,7 +173,7 @@ class SchemaForm:
         for view in self.effective.values():
             for pointer, editable in view.editable.items():
                 if not editable:
-                    self.locked.add((*prefix, *ConfigurationPointer.parts(pointer)))
+                    self.locked.add((*prefix, *JsonPointer.parts(pointer)))
         self._schema_locks(schema, prefix)
         self.fields = {}
         self.children = []

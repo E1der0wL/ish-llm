@@ -1,5 +1,7 @@
 """얇은 Vision Tool 어댑터. UI/RAG와 같은 공개 API를 호출하고 별도 실행 상태를 만들지 않는다."""
 
+from llm.core.implementation_parameters import ImplementationParameters
+
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from .images import operation_schema
 from llm.components.tools import ToolEffect, ToolIsolation
@@ -22,7 +24,7 @@ def vision_tools(data, binding, backends):
     async def analyze(arguments):
         return await data.aanalyze(**arguments)
 
-    required = [] if "backend" in data.get_config().get("config", {}).get("ocr", {}) else ["backend"]
+    required = [] if "backend" in ImplementationParameters.read(data.get_config()).config.get("ocr", {}) else ["backend"]
     tools = [Tool("image_preprocess", "Create a new PNG from a registered project image without changing its original. "
         "Operations run in order on the previous result. Crop uses left,top,right,bottom pixels; rotate is counterclockwise. "
         "Use the returned id for OCR/analysis. Only request transformations needed for the task.",
