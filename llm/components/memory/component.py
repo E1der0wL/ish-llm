@@ -22,6 +22,8 @@ from llm.errors import CodedError
 from .data import MemoryData
 from .summary_storage import SummaryStorage
 from .summary_records import SummaryRecord
+from .records import MemoryRecord, MemorySearchHit
+from .history import MemoryHistory, MemoryEnvelope
 from .processing import MemoryProcessor
 from llm.services.infrastructure.storage import atomic_json, read_json
 
@@ -41,17 +43,18 @@ class MemoryComponent(Component):
 
     name = "memory"
     directory = "memory"
-    CANDIDATE = "candidate"
-    CONFIRMED = "confirmed"
-    STATUSES = (CANDIDATE, CONFIRMED)
-    ALL = "all"
-    PROJECT_SCOPE, SESSION_SCOPE = "project", "session"
-    SCOPES = (PROJECT_SCOPE, SESSION_SCOPE)
+    CANDIDATE = MemoryRecord.CANDIDATE
+    CONFIRMED = MemoryRecord.CONFIRMED
+    STATUSES = MemoryRecord.STATUSES
+    ALL = MemoryRecord.ALL
+    PROJECT_SCOPE, SESSION_SCOPE = MemoryRecord.PROJECT_SCOPE, MemoryRecord.SESSION_SCOPE
+    SCOPES = MemoryRecord.SCOPES
     KEYWORD = "keyword"
-    CREATE, SAVE, UPDATE, DELETE, RESTORE = "create", "save", "update", "delete", "restore"
-    OPERATIONS = (CREATE, SAVE, UPDATE, DELETE, RESTORE)
-    HISTORY_FIELDS = frozenset(("revision", "operation", "at", "source", "data"))
-    HISTORY_IDENTITY = ("id", "generation", "created_at", "source", "scope", "session_id")
+    CREATE, SAVE, UPDATE, DELETE, RESTORE = (MemoryHistory.CREATE, MemoryHistory.SAVE,
+                                           MemoryHistory.UPDATE, MemoryHistory.DELETE, MemoryHistory.RESTORE)
+    OPERATIONS = MemoryHistory.OPERATIONS
+    HISTORY_FIELDS = MemoryHistory.FIELDS
+    HISTORY_IDENTITY = MemoryRecord.IMMUTABLE
     capabilities = ("memory", ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
     data_class = MemoryData
     parameter_layout = ParameterLayout(
@@ -59,14 +62,8 @@ class MemoryComponent(Component):
         policy=("tool_write_status", "max_search_results"),
         paths={**{"processing." + key: "config.processing." + key for key in MemoryProcessor.CONFIG_FIELDS},
                **{"processing." + key: "policy.processing." + key for key in MemoryProcessor.POLICY_FIELDS}})
-    _managed = frozenset({"id", "generation", "revision", "created_at", "updated_at", "deleted", "source"})
-    content_schema = object_schema({"content": field("string", minLength=1), "kind": field("string", minLength=1),
-        "scope": field("string", enum=list(SCOPES)), "session_id": field(["string", "null"]),
-        "status": field("string", enum=list(STATUSES)), "tags": field("array", items=field("string", minLength=1)),
-        "expires_at": field(["string", "null"]), "metadata": metadata_schema(),
-        "replaces": field("array", items=object_schema({"id": field("string", minLength=1),
-            "generation": field("string", pattern=r"^[a-f0-9]{32}$"), "revision": field("integer", minimum=1)},
-            required=["id", "generation", "revision"]))})
+    _managed = MemoryRecord.MANAGED
+    content_schema = MemoryRecord.content_schema(scopes=SCOPES, statuses=STATUSES)
 
     def __init__(self, *, completion_adapter=None, token_counter=None, search_fn=None):
         """보조 모델과 토큰 계수기는 런타임에 주입한다. 설정/레코드에는 저장하지 않는다."""
@@ -96,7 +93,7 @@ class MemoryComponent(Component):
             stat = path.stat()
             signature = (stat.st_dev, stat.st_ino, stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size)
             cached = self._record_cache.pop(str(path), None)
-            record = cached[1] if cached and cached[0] == signature else self._decode_record(identifier, raw)["record"]
+            record = cached[1] if cached and cached[0] == signature else MemoryEnvelope(self._decode_record(identifier, raw)).record
             if limit:
                 self._record_cache[str(path)] = (signature, deepcopy(record))
             while len(self._record_cache) > limit:
@@ -111,20 +108,15 @@ class MemoryComponent(Component):
 
     @classmethod
     def _visible(cls, record, session_id):
-        return record["scope"] == cls.PROJECT_SCOPE or record.get("session_id") == session_id
+        return MemoryRecord(record).visible(session_id, project_scope=cls.PROJECT_SCOPE)
 
     @staticmethod
     def _expired(record):
-        return bool(record.get("expires_at") and
-                    datetime.fromisoformat(record["expires_at"]) <= datetime.now(timezone.utc))
+        return MemoryRecord(record).expired()
 
     def _payload(self, data):
         value = self.deserialize(self.serialize(data))
-        if self._managed.intersection(value):
-            raise ValueError("Memory lifecycle fields cannot be supplied as content")
-        error = next(Draft202012Validator(self.content_schema).iter_errors(value), None)
-        if error:
-            raise ValueError(f"Memory content: {error.message}") from error
+        MemoryRecord.validate_content(value, managed=self._managed, schema=self.content_schema)
         return value
 
     def _read(self, project, identifier):
@@ -138,75 +130,44 @@ class MemoryComponent(Component):
 
     def _commit(self, project, identifier, record, history, operation, source):
         self._assert_ready(project)
-        entry = {"revision": record["revision"], "operation": operation,
-                 "at": record["updated_at"], "source": self._source(project, source),
-                 "data": deepcopy(record)}
-        self._write(project, identifier, {"record": record, "history": [*history, entry]})
+        selected = MemoryRecord(record)
+        entry = MemoryHistory.entry(revision=selected.revision, operation=operation,
+            at=selected.updated_at, source=self._source(project, source), data=deepcopy(record))
+        self._write(project, identifier, MemoryEnvelope.append(record, history, entry))
         return deepcopy(record)
 
     def _change(self, project, identifier, expected_revision, expected_generation, operation, *, changes=None, source=None, session_id=None):
         envelope = self._read(project, identifier)
-        record = envelope["record"]
+        record = MemoryEnvelope(envelope).record
         if not self._visible(record, session_id):
             raise FileNotFoundError("Memory is outside the requested scope")
         self._check_revision(record, expected_revision, expected_generation)
-        if changes is not None and any(key in changes and changes[key] != record.get(key) for key in ("scope", "session_id")):
-            raise ValueError("Memory scope cannot be changed")
-        if record["deleted"] != (operation == self.RESTORE):
-            raise ValueError("Memory is deleted" if record["deleted"] else "Memory is not deleted")
+        selected = MemoryRecord(record)
+        if changes is not None:
+            selected.require_unchanged_scope(changes)
+        selected.require_edit_state(operation == self.RESTORE)
         if operation == self.SAVE:
-            record = {**{key: record[key] for key in self._managed}, **self._payload(changes)}
+            record = MemoryRecord.replace(selected.managed_fields(self._managed), self._payload(changes))
+            selected = MemoryRecord(record)
         elif changes is not None:
             record.update(self._payload(changes))
-        record["deleted"] = operation == self.DELETE
-        record["revision"] += 1
-        record["updated_at"] = datetime.now(timezone.utc).isoformat()
-        return self._commit(project, identifier, record, envelope["history"], operation, source)
+        selected.deleted = operation == self.DELETE
+        selected.advance_revision()
+        selected.updated_at = datetime.now(timezone.utc).isoformat()
+        return self._commit(project, identifier, record, MemoryEnvelope(envelope).history, operation, source)
 
     @staticmethod
     def _check_revision(record, expected_revision, expected_generation):
-        if type(expected_revision) is not int or expected_revision < 1:
-            raise ValueError("expected_revision must be a positive integer")
-        if not isinstance(expected_generation, str) or not re.fullmatch(r"[a-f0-9]{32}", expected_generation):
-            raise ValueError("expected_generation must be the generation read from the record")
-        if (record["generation"], record["revision"]) != (expected_generation, expected_revision):
-            raise MemoryConflictError("Memory changed; reload before editing")
+        return MemoryRecord.check_revision(record, expected_revision, expected_generation, conflict=MemoryConflictError)
 
     @classmethod
     def _status(cls, status, *, allow_all=False):
-        if status not in ((*cls.STATUSES, cls.ALL) if allow_all else cls.STATUSES):
-            raise ValueError("Invalid memory status")
+        return MemoryRecord.validate_status(status, allow_all=allow_all, statuses=cls.STATUSES, all_status=cls.ALL)
 
     def _validate_memory(self, identifier, record):
-        self._payload({key: value for key, value in record.items() if key not in self._managed})
-        if not isinstance(record.get("generation"), str) or not re.fullmatch(r"[a-f0-9]{32}", record["generation"]):
-            raise ValueError("Memory requires a stored generation; re-register records without one")
-        if record.get("id") != identifier or type(record.get("revision")) is not int or record["revision"] < 1:
-            raise ValueError("Invalid memory identity or revision")
-        for key in ("content", "kind", "created_at", "updated_at"):
-            if not isinstance(record.get(key), str) or not record[key].strip():
-                raise ValueError(f"Memory {key} must be nonempty text")
-        for key in ("created_at", "updated_at"):
-            if datetime.fromisoformat(record[key]).utcoffset() is None:
-                raise ValueError(f"Memory {key} requires a timezone")
-        self._status(record.get("status"))
-        if record.get("scope") not in self.SCOPES or type(record.get("deleted")) is not bool:
-            raise ValueError("Memory requires project/session scope and a deletion marker")
-        if record["scope"] == self.SESSION_SCOPE:
-            validate_name(record.get("session_id"))
-        elif record.get("session_id") is not None:
-            raise ValueError("Project memories cannot have a session_id")
-        if record.get("expires_at") is not None:
-            if not isinstance(record["expires_at"], str):
-                raise ValueError("Memory expiry must be ISO datetime text")
-            expires = datetime.fromisoformat(record["expires_at"])
-            if expires.tzinfo is None:
-                raise ValueError("Memory expiry requires a timezone")
-        if "metadata" in record and not isinstance(record["metadata"], dict):
-            raise ValueError("Memory metadata must be an object")
-        if not isinstance(record.get("source"), dict) or not isinstance(record.get("tags"), list) or any(
-                not isinstance(tag, str) or not tag.strip() for tag in record["tags"]):
-            raise ValueError("Memory requires source object and text tags")
+        self._payload(MemoryRecord(record).content_fields(self._managed))
+        MemoryRecord.validate_fields(identifier, record, validate_status=self._status,
+                                     scopes=self.SCOPES, session_scope=self.SESSION_SCOPE)
 
     # 공개 API: ComponentData가 아래 트랜잭션 전체를 workspace 잠금으로 보호한다.
     def summary(self, project, session_id):
@@ -269,9 +230,9 @@ class MemoryComponent(Component):
                     messages.add(value["input_message_id"])
         for identifier, _ in self._all_records(project):
             envelope = self._read(project, identifier)
-            source(envelope["record"].get("source"))
-            for entry in envelope["history"]:
-                source(entry.get("source"))
+            source(MemoryRecord(MemoryEnvelope(envelope).record).optional_source)
+            for entry in MemoryEnvelope(envelope).history:
+                source(MemoryHistory.optional_source(entry))
         # 요약의 coverage hash는 전체 원본 접두부를 검증한다. 부분 삭제로 이를 깨지 않는다.
         for value in SummaryStorage(project, self).inventory().records.values():
             summary = SummaryRecord(value)
@@ -320,70 +281,29 @@ class MemoryComponent(Component):
             "processing": MemoryProcessor.describe_config(completion_adapter=self.completion_adapter)}))
 
     def _validate_transition(self, previous, entry):
-        record, operation = entry["data"], entry["operation"]
-        if previous is None:
-            if (operation != self.CREATE or record["deleted"]
-                    or record["created_at"] != record["updated_at"] or entry["source"] != record["source"]):
-                raise ValueError("Memory history requires its original creation")
-            return
-        if any(record.get(key) != previous.get(key) for key in self.HISTORY_IDENTITY):
-            raise ValueError("Memory history changes immutable identity or scope")
-        if (operation == self.CREATE or previous["deleted"] != (operation == self.RESTORE)
-                or record["deleted"] != (operation == self.DELETE)):
-            raise ValueError("Invalid memory history state transition")
-        if operation in (self.DELETE, self.RESTORE):
-            expected = {**previous, "revision": record["revision"], "updated_at": record["updated_at"],
-                        "deleted": record["deleted"]}
-            if operation == self.DELETE and record.get("metadata") != previous.get("metadata"):
-                from .consolidation import MemoryConsolidation
-                expected["metadata"] = MemoryConsolidation.deletion_metadata(previous, record, entry["source"])
-            if record != expected:
-                raise ValueError("Memory deletion or restoration changed stored content")
+        return MemoryHistory.validate_transition(previous, entry, create=self.CREATE,
+            delete=self.DELETE, restore=self.RESTORE, identity_fields=self.HISTORY_IDENTITY)
 
     def validate_record(self, identifier, data):
-        if data.keys() - {"record", "history"}:
-            raise ValueError("Memory envelope requires only record/history")
-        record, history = data.get("record"), data.get("history")
-        if not isinstance(record, dict) or not isinstance(history, list) or not history:
-            raise ValueError("Memory requires a record and revision history")
-        self._validate_memory(identifier, record)
-        if len(history) != record["revision"]:
-            raise ValueError("Incomplete memory revision history")
-        previous = None
-        for revision, entry in enumerate(history, 1):
-            if not isinstance(entry, dict) or not isinstance(entry.get("data"), dict):
-                raise ValueError("Invalid memory history entry")
-            if entry.keys() != self.HISTORY_FIELDS:
-                raise ValueError("Invalid Memory history fields")
-            self._validate_memory(identifier, entry["data"])
-            if entry["data"]["generation"] != record["generation"]:
-                raise ValueError("Memory history crosses record generations")
-            if type(entry["revision"]) is not int or entry["revision"] != revision or entry["data"]["revision"] != revision or (
-                    entry["operation"] not in self.OPERATIONS
-                    or not isinstance(entry["source"], dict) or entry["at"] != entry["data"]["updated_at"]):
-                raise ValueError("Invalid memory revision history")
-            self._validate_transition(previous, entry)
-            previous = entry["data"]
-        if history[-1]["data"] != record:
-            raise ValueError("Memory and history disagree")
+        return MemoryHistory.validate_envelope(identifier, data, validate_memory=self._validate_memory,
+            validate_transition=self._validate_transition, operations=self.OPERATIONS, fields=self.HISTORY_FIELDS)
 
     def create(self, project, data, *, identifier=None, source=None):
         identifier = new_id() if identifier is None else validate_name(identifier)
         if self._record_path(project, identifier).exists():
             raise FileExistsError("Memory already exists")
         now = datetime.now(timezone.utc).isoformat()
-        record = {"kind": "note", "scope": self.PROJECT_SCOPE, "status": self.CONFIRMED, "tags": [],
-                  **self._payload(data), "id": identifier, "generation": new_id(), "revision": 1,
-                  "created_at": now, "updated_at": now, "deleted": False,
-                  "source": self._source(project, source)}
+        record = MemoryRecord.create(project_scope=self.PROJECT_SCOPE, confirmed=self.CONFIRMED,
+            payload=self._payload(data), identifier=identifier, generation=new_id(),
+            at=now, source=self._source(project, source))
         self._commit(project, identifier, record, [], self.CREATE, source)
         return identifier
 
     def load(self, project, identifier, *, include_deleted=False, session_id=None):
-        record = self._read(project, identifier)["record"]
+        record = MemoryEnvelope(self._read(project, identifier)).record
         if not self._visible(record, session_id):
             raise FileNotFoundError("Memory is outside the requested scope")
-        if record["deleted"] and not include_deleted:
+        if MemoryRecord(record).deleted and not include_deleted:
             raise FileNotFoundError("Memory is deleted")
         return record
 
@@ -392,7 +312,7 @@ class MemoryComponent(Component):
             self._status(status, allow_all=True)
         records = {}
         for identifier, record in self._all_records(project):
-            if self._visible(record, session_id) and (include_deleted or not record["deleted"]) and (status in (None, self.ALL) or record["status"] == status):
+            if self._visible(record, session_id) and (include_deleted or not MemoryRecord(record).deleted) and (status in (None, self.ALL) or MemoryRecord(record).status == status):
                 records[identifier] = record
         return records
 
@@ -411,18 +331,18 @@ class MemoryComponent(Component):
     def purge(self, project, identifier, *, expected_revision, expected_generation, session_id=None):
         record = self.load(project, identifier, include_deleted=True, session_id=session_id)
         self._check_revision(record, expected_revision, expected_generation)
-        if not record["deleted"]:
+        if not MemoryRecord(record).deleted:
             raise ValueError("Soft-delete memory before permanent removal")
         super().delete(project, identifier)
 
     def history(self, project, identifier, *, session_id=None):
         self.load(project, identifier, include_deleted=True, session_id=session_id)
-        return self._read(project, identifier)["history"]
+        return MemoryEnvelope(self._read(project, identifier)).history
 
     def score(self, query, record):
         """명시적으로 선택한 keyword 알고리즘: Unicode 단어 부분 일치 비율."""
         terms = set(re.findall(r"\w+", query.casefold()))
-        text = " ".join([record["content"], record["kind"], *record["tags"]]).casefold()
+        text = " ".join([MemoryRecord(record).content, MemoryRecord(record).kind, *MemoryRecord(record).tags]).casefold()
         return sum(term in text for term in terms) / len(terms) if terms else 0.0
 
     def search(self, project, query, *, limit=None, status=None, session_id=None):
@@ -445,10 +365,10 @@ class MemoryComponent(Component):
             raise ValueError("Memory search adapter must return finite scores for visible memory IDs")
         # keyword의 매칭 조건은 양수 일치율이다. 주입 검색기는 반환한 ID 집합을
         # 직접 소유하므로 0점도 보존한다. 추가 cutoff는 명시된 경우에만 적용한다.
-        hits = [{"score": score, "memory": records[key]} for key, score in scores.items()
+        hits = [MemorySearchHit.create(score, records[key]) for key, score in scores.items()
                 if (self.search_fn is not None or score > 0)
                 and ("min_score" not in config or score >= config["min_score"])]
-        return sorted(hits, key=lambda hit: (-hit["score"], hit["memory"]["id"]))[:limit]
+        return sorted(hits, key=lambda hit: MemorySearchHit(hit).rank)[:limit]
 
     def consolidate(self, project, identifier, *, expected_revision, expected_generation, session_id=None, source=None):
         from .consolidation import MemoryConsolidation

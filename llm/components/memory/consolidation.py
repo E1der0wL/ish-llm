@@ -1,6 +1,8 @@
 """명시적으로 승인한 기억 병합을 저널로 복구한다. 모델은 병합을 확정하지 않는다."""
 
 from copy import deepcopy
+from .records import MemoryRecord
+from .history import MemoryHistory, MemoryEnvelope
 from datetime import datetime, timezone
 import hashlib
 import re
@@ -57,27 +59,30 @@ class MemoryConsolidation:
     @classmethod
     def deletion_metadata(cls, previous, record, source):
         """Validate the metadata change owned by a consolidation deletion."""
-        proposal = record["metadata"].get("superseded_by")
+        proposal = MemoryRecord(record).metadata.get("superseded_by")
         cls._operation({"id": source.get("operation_id"), "source": source,
-                        "proposal": proposal, "superseded": [previous["id"]]})
-        expected = {**previous.get("metadata", {}), "superseded_by": proposal}
-        if record["metadata"] != expected:
+                        "proposal": proposal, "superseded": [MemoryRecord(previous).identifier]})
+        expected = {**MemoryRecord(previous).metadata_or_empty, "superseded_by": proposal}
+        if MemoryRecord(record).metadata != expected:
             raise ValueError("Consolidation deletion changed unrelated metadata")
         return expected
 
     def _after(self, identifier, before, proposal, source, at, operation_id):
         after = deepcopy(before)
-        record = after["record"]
-        record["revision"] += 1
-        record["updated_at"] = at
-        record["deleted"] = identifier != proposal
+        selected = MemoryEnvelope(after)
+        record = selected.record
+        current = MemoryRecord(record)
+        current.advance_revision()
+        current.updated_at = at
+        current.deleted = identifier != proposal
         if identifier == proposal:
-            record["status"] = self.component.CONFIRMED
-            record.setdefault("metadata", {})["consolidation_id"] = operation_id
+            current.status = self.component.CONFIRMED
+            current.ensure_metadata()["consolidation_id"] = operation_id
         else:
-            record.setdefault("metadata", {})["superseded_by"] = proposal
-        after["history"].append({"revision": record["revision"], "operation": self.component.UPDATE if identifier == proposal else self.component.DELETE,
-            "at": record["updated_at"], "source": source, "data": deepcopy(record)})
+            current.ensure_metadata()["superseded_by"] = proposal
+        selected.history.append(MemoryHistory.entry(revision=current.revision,
+            operation=self.component.UPDATE if identifier == proposal else self.component.DELETE,
+            at=current.updated_at, source=source, data=deepcopy(record)))
         self.component.validate_record(identifier, after)
         return after
 
@@ -98,26 +103,26 @@ class MemoryConsolidation:
             if not isinstance(after, dict):
                 raise ValueError("Consolidation requires the complete after envelope")
             self.component.validate_record(identifier, after)
-            if len(after["history"]) < 2:
+            if len(MemoryEnvelope(after).history) < MemoryHistory.MINIMUM_TRANSITION_ENTRIES:
                 raise ValueError("Consolidation requires a prior revision")
-            before = {"record": deepcopy(after["history"][-2]["data"]), "history": deepcopy(after["history"][:-1])}
+            before = MemoryEnvelope(after).previous()
             self.component.validate_record(identifier, before)
-            before_records[identifier] = before["record"]
-            at = after["record"]["updated_at"]
+            before_records[identifier] = MemoryEnvelope(before).record
+            at = MemoryRecord(MemoryEnvelope(after).record).updated_at
             if not isinstance(at, str) or datetime.fromisoformat(at).utcoffset() is None:
                 raise ValueError("Consolidation time requires a timezone")
-            if (self._digest(before) != entry["before"] or before["record"]["deleted"]
+            if (self._digest(before) != entry["before"] or MemoryRecord(MemoryEnvelope(before).record).deleted
                     or after != self._after(identifier, before, value["proposal"], value["source"], at, value["id"])):
                 raise ValueError("Consolidation entry is not the reviewed change")
-            if identifier == value["proposal"] and before["record"]["status"] != self.component.CANDIDATE:
+            if identifier == value["proposal"] and MemoryRecord(MemoryEnvelope(before).record).status != self.component.CANDIDATE:
                 raise ValueError("Consolidation proposal was not a candidate")
         if identifiers != [value["proposal"], *value["superseded"]]:
             raise ValueError("Consolidation entries must exactly cover reviewed targets")
         proposal = before_records[value["proposal"]]
-        references = [{"id": name, "generation": before_records[name]["generation"],
-                       "revision": before_records[name]["revision"]} for name in value["superseded"]]
-        if proposal.get("replaces", []) != references or any(
-                (record["scope"], record.get("session_id")) != (proposal["scope"], proposal.get("session_id"))
+        references = [MemoryRecord.reference(name, MemoryRecord(before_records[name]).generation,
+                       MemoryRecord(before_records[name]).revision) for name in value["superseded"]]
+        if MemoryRecord(proposal).replacements != references or any(
+                MemoryRecord(record).scope_identity != MemoryRecord(proposal).scope_identity
                 for record in before_records.values()):
             raise ValueError("Consolidation targets differ from the reviewed proposal")
 
@@ -212,18 +217,18 @@ class MemoryConsolidation:
         component, project = self.component, self.project
         candidate = component.load(project, proposal, session_id=session_id)
         component._check_revision(candidate, expected_revision, expected_generation)
-        if candidate["status"] != component.CANDIDATE or component._expired(candidate):
+        if MemoryRecord(candidate).status != component.CANDIDATE or component._expired(candidate):
             raise ValueError("Consolidation requires an unexpired candidate")
-        references = candidate.get("replaces", [])
+        references = MemoryRecord(candidate).replacements
         if not isinstance(references, list) or any(not isinstance(r, dict) for r in references):
             raise ValueError("Invalid consolidation references")
-        names = [r.get("id") for r in references]
+        names = [MemoryRecord(r).optional_identifier for r in references]
         if len(names) != len(set(names)) or proposal in names:
             raise ValueError("Consolidation references must be distinct")
         for ref in references:
-            record = component.load(project, ref["id"], session_id=session_id)
-            component._check_revision(record, ref["revision"], ref["generation"])
-            if (record["scope"], record.get("session_id")) != (candidate["scope"], candidate.get("session_id")):
+            record = component.load(project, MemoryRecord(ref).identifier, session_id=session_id)
+            component._check_revision(record, MemoryRecord(ref).revision, MemoryRecord(ref).generation)
+            if MemoryRecord(record).scope_identity != MemoryRecord(candidate).scope_identity:
                 raise ValueError("Consolidation cannot cross memory scopes")
         operation_id = new_id()
         source = component._source(project, {**(source or {}), "kind": self.KIND, "operation_id": operation_id})

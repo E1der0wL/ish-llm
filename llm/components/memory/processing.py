@@ -3,6 +3,7 @@
 from llm.core.implementation_parameters import ImplementationParameters
 from .work_state import WorkState, WorkStateMetadata, WorkStateProvenance
 from .snapshot import MemoryProcessingSnapshot
+from .records import MemoryRecord, MemorySearchHit, MemoryContextReference
 from .summary_records import (SummaryRecord, SummaryMetadata, SummaryCursor, SummaryProfile,
                               SummaryObservation, SummaryContextReference)
 
@@ -507,8 +508,8 @@ class MemorySession(CompletionSession):
             if config.get("max_search_results") is not None:
                 limit = min(limit, config["max_search_results"])
             hits = await self.data.asearch(current, status=MemoryComponent.CONFIRMED, limit=limit, session_id=self.context.session.id)
-            self.recalled = [hit["memory"] for hit in hits if hit["memory"]["kind"] != "conversation_summary"]
-        result["memories"] = [{"id": m["id"], "generation": m["generation"], "revision": m["revision"]} for m in self.recalled]
+            self.recalled = [MemorySearchHit(hit).memory for hit in hits if MemoryRecord(MemorySearchHit(hit).memory).kind != SummaryContextReference.KIND]
+        result["memories"] = [MemoryRecord(m).to_reference() for m in self.recalled]
         if False:
             yield
 
@@ -538,7 +539,7 @@ class MemorySession(CompletionSession):
                 entries.clear()
         use_summary = bool(entries)
         for record in self.recalled:
-            entry = {"type": "memory", "id": record["id"], "generation": record["generation"], "revision": record["revision"], "content": record["content"]}
+            entry = MemoryContextReference.project(MemoryRecord(record))
             if self._fits(render([*entries, entry])):
                 entries.append(entry)
         if entries:
@@ -597,12 +598,12 @@ class MemorySession(CompletionSession):
         # 검색을 선택한 경우에만 관련도 순서를 쓴다. 추출 자체는 검색에 의존하지 않는다.
         ranked = (await self.data.asearch(latest, status=MemoryComponent.ALL, limit=self.config.get("recall_limit"),
                   session_id=self.context.session.id) if latest.strip() and observed.has_search else [])
-        ordered = {item["memory"]["id"]: item["memory"] for item in ranked}
+        ordered = {MemoryRecord(MemorySearchHit(item).memory).identifier: MemorySearchHit(item).memory for item in ranked}
         ordered.update({key: observed.records[key] for key in sorted(observed.records) if key not in ordered})
         for record in ordered.values():
-            if record["deleted"] or record["kind"] == "conversation_summary":
+            if MemoryRecord(record).deleted or MemoryRecord(record).kind == SummaryContextReference.KIND:
                 continue
-            item = {"id": record["id"], "generation": record["generation"], "revision": record["revision"], "content": record["content"]}
+            item = MemoryRecord(record).content_reference()
             if len(json.dumps([*existing, item], ensure_ascii=False)) > allowance:
                 break
             existing.append(item)
@@ -618,7 +619,7 @@ class MemorySession(CompletionSession):
         values = answer.get("memories")
         if not isinstance(values, list) or len(values) > self.config["max_candidates"]:
             raise ValueError("Invalid memory candidates")
-        visible = {r["id"]: (r["generation"], r["revision"]) for r in existing}
+        visible = {MemoryRecord(r).identifier: MemoryRecord(r).version for r in existing}
         candidates = []
         for value in values:
             if not isinstance(value, dict) or not isinstance(value.get("content"), str) or not value["content"].strip():

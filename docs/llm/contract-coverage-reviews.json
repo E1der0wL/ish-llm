@@ -44154,5 +44154,534 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/memory/records.py",
+    "sha256": "5abebc9693a49cd6ebee629e425788f44ae0f8673d5f849a6a0c301423acf28f",
+    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fe797ffbb0cea094192d97c43539e6ee2e0d988d7a00b28daaf51ca2147c635c",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "e90b567ba82affde19c31384c1b114c8e176f6339d0bf3fc040dceed2a7d7df1",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "2743fda75111949f78efe8515b8f8831bc35039a4bb7430e1d86a23ccc70a470",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "a0b02c07b3c3b6c52a89665610993beeb5a6d785ce9ffba120bf09ac42e56105",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "f328e85dbbe9c92f9827ad411fed0746f318c5ed0983697313ac2eead9fec179",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "461e5cf447b31b290ead11fb3581546b19e2795a0811374bb0949feb5f30ad26",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "22caec805c6808ba888c9183ba70e2d6a07db69a584a71a0c21afa10862fca1d",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "19b905564a7b6ac4896a492b1d49929bd21d90ac01d0fd037adadd50ffa2ef41",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "f260c00c293942a23e76966b98bcdd9a3832209b73cf5462bb3dfd23f0d6fb7a",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "a9156596c3e143cd8c110652bd7deceb922304bdc68305d038b5015108eb9605",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "135b45d11665500a8043bb8eecf7b2f310e6651b0ed23ce39c2805d4099d3337",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "54f055a4aff61dccc3b58e6b19c677bc60c019d8ceb90c5db5a01006e9c88faf",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "76e20a8d36bb108600daf9d93f90b89e8ef61b015d96122fb4c72e17bb1e265b",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "c8456d40e37b8bf2281610c6ef8a97d378e7cfffc45dcc95ea3493d713ee2791",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "0a2d1ec13c152bcb08e4a1466802614f1e5fe46f9e748be5a660f1ba4e047c36",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "6912be67466539716aa38ff2be431bcc0b02614c7c2a18665c7162ac457788b9",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "1e3b08563645b9f911a058715ab81d0bad265b3f4ef8e676c5fa5328781ec0b2",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "9bdfe7e08f653b36608f6a34dde434c9125466ef77eeec7a883ac826b9ca84a1",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "0ebd0c425b06950808839c82ff9082b2e8e087f25441eef623f23ad56fe3bbd1",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "47a29543edf7ca08f49ff504bfb1f39af85c60da941f519c9635c36b8784927c",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "a129fd116ff47ac05622234adc56b7554e6a94595057748eb8c46cc63ebf0fe0",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "5a050c6580305e3b0228c4aed7b95e11a080a65437a86f93c14a659a118b0f96",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "7c6f4fb606be1f1d4b2faf2a8ce5fad954eb3098e2aa009e31d2d8e10b2dbdcd",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "b191e7769d4f01f9afe46c8338aaab61f0d37a6deac2a73d2929d81ebab7e288",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "ade4ee4ba66a381f0f8a4707dbf1443fa46009869505358bc1254f1897377c64",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "16cca98569f5d260d6f8eec2d8f90538ec82c936f60bff3f82ab086b5f623eab",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "a7e5bec17241200107c719c2ef005a5902a357982538ee937dcea367a62a3500",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "30db8089890f256863d1209de427b36fccef8a32708c62c17469b8a9c1f2bab5",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "ab2b5ae55bd802172a4a734405816b2980b3a86fb92a2325f498b41481239868",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "94c8c36cce250d20e234890eaf8f10c815ed9df1e90ad187d9e9b7f64dbcef38",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "dd86125cbed51e699c754ec30f28b4569583a1fe9f3a8721d413aa3bc7f649f7",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "1e741b7d7eab4734c0b93e8f24ac98a33fe67e9aff4e1db673e0e9d84c2e8f77",
+        "classification": "declaration",
+        "owner": "MemoryRecord",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "f1f161b67a7a0ef2adaf2270b34b6dd7c103276c973f53301a982995df5ea13a",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "8cdef8b4171dacb1879a0e12c197436329e14ceecb21a728316a45c4a73a9455",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "d7bb478beaed7fa321c2331e9871c5bb652eecef7d7f8b351a72344fea2a586e",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "54c48a37bb35c10ebdce8ec164d6ca9249acb0e6b14aa15b71dee1958b35b1e3",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "213247122d95bd81e7e98cd41e9021b927bfe31ffe908aaacecf0dad3aeadcc6",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "2182caecc0e9654f2130a8d6337e602a7b1fee365b9fc8e466fa703e6d5292ef",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "da40d3da36e645000e59e12cf9ac892c040c3830d0523688ee22eb5b3631196c",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "01755d82131757c94ecc8f57480d1061bd37448f3dab14e9478313ebaa4dc080",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "c31bbcc612318bff7711a8d929f2d632731c5d09bcb0c9eadab2fbbfd6bf33e3",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "acfdea4f31713ad8039306694b80b4ddafe3dad62604a39b78490b90f290138f",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "e1a982a8220ab68b3df39367268c8ccd0a19daeec69d346f9fce11ef00b10e24",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "8d419c7c1af9faecaab5ac24f31566b36f581a7f4b5f16035d2491de2e3e7df3",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "eff01736d4ad396580557f7ec525bcd6062c72be7454a200e82f0d4c0bb7df08",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "117b0074a959ec06df37e14df71dbf52a1cb596036a3773ac82abbdb4cf54514",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "9e1666c9e77f9a63f63a9ee53206c75e1509f249cf552583b1de13c2532984cc",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "aefcc3df2da2eba083da63788dd9fba54258f36cac50a341bb35323c96aeb577",
+        "classification": "declaration",
+        "owner": "MemoryRecord.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "a4e79db8c0e1041beb249039792047bf91c52120b9351532a19620bfb0a7092e",
+        "classification": "declaration",
+        "owner": "MemorySearchHit.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "e5989fc877fcf8a356b85914c6d5f4ffb21ea4aafc20dfa05699eb85f966f68a",
+        "classification": "declaration",
+        "owner": "MemorySearchHit.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "54c8e0fdb015136660c8911f1273c86751e26151936730ac4d36b3fbddc1ca3d",
+        "classification": "declaration",
+        "owner": "MemoryContextReference",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "f133d72daa164caaba7a44916bda8db36c691980fbd150b5d775b51f12a28b4e",
+        "classification": "declaration",
+        "owner": "MemoryContextReference",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryRecord / MemorySearchHit / MemoryContextReference",
+        "declaration": "llm/components/memory/records.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/consolidation.py",
+          "llm/components/memory/processing.py",
+          "llm/components/memory/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/history.py",
+    "sha256": "3149594bb0f0762135ba51b002fb488f912936c1f5a4a47a283292463bdc72e4",
+    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "803c79a8dfd20e2fc8679f23c150ff6a317e1fce7ae0f66fe36fa309b8829dfa",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "c2f625a35256c3b4c55f9868b42f9ce50d5119b948773e04abf58c93c25dd4f9",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "6abbd6cd51b7112ef7392295ae0fcebca7214f9c256cb48e505e138d6787ac33",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "224c76981e006ce6439f29d6dbe534e4fdea3affac0097347a38646a1b594766",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "17da0b3bdb6a803e82eb532dc7b18c2b812574e425343b8f48c8fc5ae14b33f7",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "ef230bcf4cefa57bf152500ad7c9ad20d3ac1c04c86ff7025128f751051595f3",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "783b55433147cc9966188054222406bb4ef00263967ff05f9794e0ca5b0eba6d",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "465f313a943e08fa25dc31bdfa67bb1f4916506775f31c355cad86af6cf3394d",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "8f62c91bd6fd252a17b97dd931fb6b265be4c997136b851f5738a9a8c2989f2e",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "9eeeed35d6c10e1f55fe3b8e9c605f34ae139665291b4617966593d69ddb5e86",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "b624ad48f76f27b92337a4a132a26f03020de271313a0501655e1acb3de54a5d",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "a4f004735069dae524f5f69b5fc262ab04797a4fe41517e9104ba4d9268de5de",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "1dc577ac78576f2e1b2619bae1f84294f74b9fc8813ce9f62759aa1f66b76201",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "f396eb23abfb304504637fa2ce55f54ee4bd8fba6a0f60bb5f9a058086ba6a8e",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "eb14eadfdacfe96dd7d81d23d05279cf34f262db7adc7a5f6e8ebf222c694d6a",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "de09559bbbd4e1fd151fa84d09f18d375d4c7acb58255e922a28c9df0e5e153f",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "fe7884aa36e2029cd4ee6c1b01d924c3da6dc1a06d8eaaeb4a83da25504ce765",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "8a0b89bf80ad907ea723a122c026fc9decf7d940444d2d08370663fc3131b348",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "7e89c7d9db13d468771d44e2947f0f72b771515fdec728d3886982f903130622",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "1ef6c998247312635d9396aeb6a35e0e94043c7cb073b5d12c2892fbd9f4b8bc",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "1760c223e7321057af62177809d4b5dea5fc80f1910f175843b9584b0b926b37",
+        "classification": "declaration",
+        "owner": "MemoryHistory",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "ab4ffd3c41f65e78cc0aba001ba168d6390e650b4bf8e38e8c32494716382061",
+        "classification": "declaration",
+        "owner": "MemoryHistory.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "7719f1ceb44c0a10aad78df6d8f3d15ff5878a30562b7bee3fdc94664954a8b3",
+        "classification": "declaration",
+        "owner": "MemoryHistory.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "2ff831c7287535bae2188b30ea380dcb205516dc9c23f05204df2b041afe863a",
+        "classification": "declaration",
+        "owner": "MemoryHistory.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "49dba1ed017d0b7bafd11846dc30be9df3cee1e0b7adb3591b61a66437c10d0c",
+        "classification": "declaration",
+        "owner": "MemoryEnvelope.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      },
+      {
+        "id": "d1562cf4f5846f5c4893dc7089d2fe4aa0b99af6459b221ea15cd8a9da242529",
+        "classification": "declaration",
+        "owner": "MemoryEnvelope.Field",
+        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryHistory / MemoryEnvelope",
+        "declaration": "llm/components/memory/history.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/consolidation.py",
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -4,6 +4,7 @@ from llm.core.editable_snapshot import EditableSnapshot
 from llm.components.goals.records import GoalContextReference, GoalDefinition
 from .snapshot import MemoryProcessingSnapshot
 from .summary_records import SummaryRecord
+from .records import MemoryRecord
 
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
@@ -77,16 +78,17 @@ class MemoryData(ComponentData):
         selected = MemoryProcessingSnapshot(snapshot)
         # 모든 참조를 쓰기 전에 검사한다. 모델에게 다른 Session의 ID/버전을 선택하게 하지 않는다.
         for candidate in candidates:
-            for ref in candidate.get("replaces", []):
-                if ref["id"] not in selected.records or ref["id"] not in records:
+            for raw in MemoryRecord(candidate).replacements:
+                ref = MemoryRecord(raw)
+                if ref.identifier not in selected.records or ref.identifier not in records:
                     raise MemoryConflictError("Consolidation reference is unavailable")
-                if ((ref["generation"], ref["revision"]) != (records[ref["id"]]["generation"], records[ref["id"]]["revision"]) or
-                        records[ref["id"]] != selected.records[ref["id"]]):
+                if (ref.version != MemoryRecord(records[ref.identifier]).version or
+                        records[ref.identifier] != selected.records[ref.identifier]):
                     raise MemoryConflictError("Consolidation reference changed")
-        keys = {(r["scope"], r.get("session_id"), content_key(r["content"])) for r in records.values()}
+        keys = {MemoryRecord(r).content_identity(content_key) for r in records.values()}
         created = []
         for candidate in candidates:
-            key = (candidate["scope"], candidate.get("session_id"), content_key(candidate["content"]))
+            key = MemoryRecord(candidate).content_identity(content_key)
             if key in keys:
                 continue  # 삭제된 기억도 자동으로 되살리지 않는다.
             created.append(component.create(project, candidate, source=source))
@@ -348,10 +350,10 @@ class MemoryData(ComponentData):
         project, component = self._current()
         groups, expired, proposals = {}, [], []
         for identifier, record in component.list(project, session_id=session_id).items():
-            groups.setdefault((record["scope"], record.get("session_id"), content_key(record["content"])), []).append(identifier)
+            groups.setdefault(MemoryRecord(record).content_identity(content_key), []).append(identifier)
             if component._expired(record):
                 expired.append(identifier)
-            if record.get("replaces"):
+            if MemoryRecord(record).replacements:
                 proposals.append(deepcopy(record))
         return {"duplicates": [ids for ids in groups.values() if len(ids) > 1],
                 "expired": expired, "proposals": proposals}
