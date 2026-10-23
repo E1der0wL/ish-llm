@@ -15127,12 +15127,12 @@
   },
   {
     "path": "llm/components/prompts/__init__.py",
-    "sha256": "77884144a830485679b79a1a761ac6bebbbeffaddbd5bf94c7f729a266ae6c88",
-    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "sha256": "d8c058dcc234474e043426d7daa0c62a50781e6921eaccb269c3af0edf0719ac",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation. Prompt projection import-boundary review: the same sole declared public PromptComponent export is loaded on attribute access, allowing pure Prompt value consumers to avoid lifecycle/Engine/SDK imports. The declared allowlist controls dynamic lookup, returned class identity and public export list are unchanged. Both original lightweight RAG import assertions now pass in fresh subprocesses; no test exclusion or optional-dependency fallback was added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "5fc12f58e353aee79474e3561cb85ee1de02a2630ffcb3df661dfb1b13a4ec76",
+        "id": "763878538762fd8f3e612bbd1eeeef3d71e784697f1cf5d5954f2ff6326a33c6",
         "classification": "declaration",
         "owner": "llm.components.prompts public namespace",
         "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
@@ -39042,6 +39042,137 @@
           "tests/llm/test_multi_agent_crash.py",
           "tests/llm/test_backup_owner_integrity.py",
           "tests/hub/test_agent_selection.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/prompts/records.py",
+    "sha256": "191d8a551044827147e73302e18e8a2efbe7b07ad1e18a3abb7773c14c09c668",
+    "reason": "Read all Schema, message projection, explicit construction and model normalization. Stored definitions keep their original required nonempty message array, exact three-role subset, string content, closed fields and open metadata. The Owner supplies typed messages for Agent reference rendering and model conversion for RAG; runtime explicit empty selection remains distinct from persisted definitions. Required keys are indexed without fallback; no stored repair, normalization at read, template execution, instruction elevation or second schema is introduced. Both public Schema and default RAG example retain exact key order/JSON; invalid projections preserve failure type/message and source.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7b8aa9f7933611641dbcd246f2f4426f36be6b5b83f4ac0023eb99b429e0819a",
+        "classification": "non_contract",
+        "owner": "PromptDefinition / PromptMessage",
+        "reason": "Python frozen/slots dataclass layout; not a stored prompt value or policy."
+      },
+      {
+        "id": "8ad1ed858a99d48fe0a233a9da5724b570d2ac06108b9bdc7fceadecda3000d3",
+        "classification": "non_contract",
+        "owner": "PromptDefinition / PromptMessage",
+        "reason": "Python frozen/slots dataclass layout; not a stored prompt value or policy."
+      },
+      {
+        "id": "9568a3967f3c6b56428075da906d46ce14c71cc9b98a769c5c9c9f7816bacbe0",
+        "classification": "declaration",
+        "owner": "PromptDefinition / PromptMessage",
+        "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
+      },
+      {
+        "id": "4d41514f78dfaf3c61c1cb9ef51c6414249598c1932d317b0bcc823daaf7b109",
+        "classification": "declaration",
+        "owner": "PromptDefinition / PromptMessage",
+        "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
+      },
+      {
+        "id": "c62e3579fe473664fe6cabd702d1c51ef4d0d90e781ddfbab6a5a6586d18abc2",
+        "classification": "declaration",
+        "owner": "PromptDefinition / PromptMessage",
+        "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
+      },
+      {
+        "id": "ee62ba1325d8c6ec8dc06b7ca7569fd3276a8e626c92396d18a45648257cdf02",
+        "classification": "declaration",
+        "owner": "PromptDefinition / PromptMessage",
+        "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
+      },
+      {
+        "id": "a8bdfbb33b9ecce600d3be8e79c0c0398c40083240bbb10daf2f8f05fca4b37f",
+        "classification": "declaration",
+        "owner": "PromptDefinition / PromptMessage",
+        "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PromptDefinition / PromptMessage",
+        "declaration": "llm/components/prompts/records.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/components/rag/prompts.py",
+          "llm/components/rag/extraction.py",
+          "llm/components/rag/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/hub/test_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/prompts/component.py",
+    "sha256": "a8b4007e8c243051f0ded2354817c2a1bb8017747a3feeb300090c57d1cbc4e8",
+    "reason": "Read complete Component declaration and inherited DefinitionComponent contract. Component name/directory/capability have one local declaration; canonical PromptDefinition Schema replaces the copied inline declaration. Persistence, definition CRUD and reference protection remain inherited and unchanged; no new data/operation files or defaults.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "596c31468885a48a329d2d4de3bc1636e9ae542b976f187a46e3eacc375afda0",
+        "classification": "declaration",
+        "owner": "PromptComponent",
+        "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PromptComponent",
+        "declaration": "llm/components/prompts/component.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/components/rag/prompts.py",
+          "llm/components/rag/extraction.py",
+          "llm/components/rag/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/hub/test_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/prompts/README.md",
+    "sha256": "b34a58c97bf827853c1e99e7de6f1198474562c3956807da389a03c59d1e4984",
+    "reason": "Read complete Prompt guidance, RAG example and stored/reference contracts. New records module and runtime projection distinction are documented. Examples are explicit user definitions, not implicit product policy. Stored nonempty constraints and optional additional RAG guidance remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Prompt package documentation",
+        "declaration": "llm/components/prompts/README.md",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/components/rag/prompts.py",
+          "llm/components/rag/extraction.py",
+          "llm/components/rag/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/hub/test_components.py"
         ],
         "complete": true
       }

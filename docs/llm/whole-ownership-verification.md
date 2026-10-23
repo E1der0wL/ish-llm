@@ -2816,3 +2816,68 @@ xfail/xpass/누락/추가/중복 각 0이다. 원격 Python 3.12.14/GCC 13.3.0 �
 94229cb865374d99f20ec48c5e48269488041a4e / bb0946257ab6bcabb9a3ef04d3d854e5333b07d5로
 동일하고 Draft PR #1은 변경하지 않았다. 로컬 gate21 전체 성공 SHA 7931e27의 Push와
 원격 CI는 별도로 추적한다.
+
+
+## llm Prompt 정의·Agent/RAG 소비 경계 (2026-10-23)
+
+PromptDefinition/PromptMessage가 필드·기존 저장 Schema·세 역할·내용 제약과 메시지
+Projection을 소유한다. PromptComponent는 같은 정규 Schema를 사용한다. Agent는
+role/content 속성으로 참고 지침을 구성하고 RAG는 Owner의 model_messages를 사용한다.
+RAG 예제도 같은 Writer로 구성한다. Schema/예제의 JSON 값과 순서는 그대로다.
+저장된 필수 messages/role/content 누락을 복원하지 않는다. RAG가 명시 생성한 빈 런타임
+선택과 저장 정의의 비어 있지 않은 조건을 구분한다. 역할 승격·템플릿 실행·기본 지침 선택·
+추출 정책/repair 예산·원본 저장 형식은 바꾸지 않는다.
+
+4f7e493 대비 Schema/JSON 순서와 예제/JSON 순서 각 1개, 저장 검증·ModelMessage 변환·
+Agent 지침 Projection 각 74개가 정상/손상 입력에 대해 정확한 결과·예외·원본 보존을
+확인했다. 초기 smoke 24개 pass/exit 0(7.190초)다.
+
+최초 엄격 01은 LLM 발견/시작 205개, pass 203개/failure 2개, exit 1(102.553초)이었다.
+실패는 test_rag_components.ParsingTests.test_rag_model_import_is_lightweight와
+test_rag_models.RAGModelTests.test_import_does_not_load_engines_services_or_sdk다.
+Prompt package의 eager Component import가 순수 RAG 모델 import에 수명 서비스/Engine을
+동반하는 회귀를 검출했다. 기존 공개 export allowlist를 사용한 지연 로드로 수정했고,
+PromptComponent 클래스 identity는 동일하다. 원래 assertion을 그대로 유지한 재현 2개가
+pass/exit 0(0.260초)이며 최종 대조도 fresh subprocess import 2개를 포함해 exit 0이다.
+01의 Hub 8개 성공은 수정 전 소스의 별도 증거로 보존한다.
+
+01 source는 `93a9f559af8e90eff24e3106c01144f89796b18a9fb66fdd7c8abf4ce605e8c5`,
+input은 `5e998078bd696be748d035cfd1e163448ac7e4916db03c3ffff7a1a1277e736b`이다.
+아래 02는 모든 관련 통합·핵심 안전성 시험을 최종 소스로 다시 실행한 결과다.
+
+- `whole-prompt-definition-closure-02`: 발견/시작/pass 205/205/205, exit 0, 101.179679초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-prompt-definition-closure-02/llm.json --modules tests.llm.test_definition_components tests.llm.test_components tests.llm.test_rag_extraction_repair tests.llm.test_rag_components tests.llm.test_rag_optimization tests.llm.test_rag_models tests.llm.test_agent_workflow tests.llm.test_agent_resource_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `591a856e2b8ebe54054fc2abffb2cd4586fe53062fbde72320f8eb476aa160ed`, input `73463f9632f3196922ce132e470149679a3aa8c474f1a98fd60f79ac3f6f744e`.
+
+- `whole-prompt-definition-closure-hub-02`: 발견/시작/pass 8/8/8, exit 0, 20.765278초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-prompt-definition-closure-hub-02/hub.json --modules tests.hub.test_components tests.hub.test_agent_graph tests.hub.test_usage_definitions_system`. source `591a856e2b8ebe54054fc2abffb2cd4586fe53062fbde72320f8eb476aa160ed`, input `73463f9632f3196922ce132e470149679a3aa8c474f1a98fd60f79ac3f6f744e`.
+
+최종 failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이며 새 파일도
+발견 목록에 포함했다. Python 3.12.14/Clang·Host d833790·동일 의존성·실제 namespace/X11
+환경이다. Component CRUD·Prompt 원본/참조 삭제 보호·RAG 모델/추출 수정/캐시·Agent
+소비와 핵심 승인/예산/효과/Resume/무결성 및 Hub 직접 소비자를 선정했다.
+정적 117개 동일, 변경 의존 검토 11개만 갱신했다. 보조 정적·문서·R3·SDK·양 환경은
+각 exit 0이다. 외부 검토 생성 스크립트가 README를 Python AST로 읽는 오류를 수정했고,
+그 때문에 남은 stale import 검토 1개를 감사가 검출했다(16개 중 failure 1, exit 1).
+검토와 index 수정 후 같은 감사 16개는 pass/exit 0이다. 그 수정은 검토 JSON/index뿐이고
+제품·시험·Fixture·의존성·환경은 동일하므로 R3/SDK/환경 성공을 재사용한다. 정적 검토
+Fixture는 보조 검증 전에 이미 갱신되었으며 이후 바뀌지 않았다. 최종 문서 검사는 별도 실행한다.
+
+Prompt records/component/README를 전수 완료로, package import 검토를 갱신했다. RAG와
+Agent 실행 파일은 변경한 소비 경계만 확인했으므로 전체 완료로 표시하지 않는다.
+현재 488개 중 미검토 299, 미분류 22852, incomplete
+3개다. Level 2 완료이며 앞 Agent 정의/수명과 이번 Prompt의
+실제 통합 소스를 gate23으로 동결하여 전체 LLM/Hub·정적·문서·R3·실환경을 검증한다.
+Hub 제품 변경은 llm/ 완료 이후다.
+
+### gate22 전체 결과와 원격 추적
+
+acfdda6fbd36eb62ae878ee89ead5c5f85f9b3b7에서 전체 LLM 2,482개(1458.297879초),
+Hub 588개(1145.934777초) pass/exit 0, 모든 비성공·누락·중복 0이다. source
+`d26f7811d2876197428b8db97396d4511c056123a4d1c008d2c348fd5d6be297`, input
+`a0c93f56095bf858ae6d51083f6b006ab36952b07f203a32828cb0239e736812` 전후 동일이다.
+명령은 고정 환경의 `python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group22-l3`,
+보조 `python /workspace/llm-clean-resume/whole-ownership/auxiliary.py group22-auxiliary`
+6개도 exit 0이다. 이 게이트에는 이후 Agent/Prompt 변경이 포함되지 않는다.
+
+gate21의 정확한 7931e2701aaf17164b7a5b12eec22cf0ae768504를 작업 브랜치에 Push했다.
+[run 39996119494](https://github.com/E1der0wL/ish-llm/actions/runs/39996119494)는
+2026-10-23T17:45:47Z 두 필수 Job 실행 중이다. 현재 HEAD의 원격 통과로 표현하지 않는다.
+다음 Push는 앞 CI 완료와 해당 통합 SHA의 전체 검증 성공을 확인한 뒤 진행한다.

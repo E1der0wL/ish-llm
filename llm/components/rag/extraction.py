@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from llm.components.rag._client import ModelClient
 from llm.core.model_protocol import ModelMessage, ModelRole
 from .prompts import EXTRACTION_CONTRACT, ExtractionJSONMode
+from llm.components.prompts.records import PromptDefinition
 from llm.errors import CodedError
 from .splitting import validate_chunk
 
@@ -179,7 +180,7 @@ class TripleExtractor(ModelClient):
     def __init__(self, *, adapter=None, **params):
         super().__init__(params, adapter=adapter)
         self.extraction = {}
-        self.prompt = {"messages": []}
+        self.prompt = PromptDefinition.create(())
 
     def with_extraction(self, options: dict, prompt: dict):
         """호출별 정책/프롬프트 사본. 등록 클라이언트나 다른 Project는 변경하지 않는다."""
@@ -194,7 +195,7 @@ class TripleExtractor(ModelClient):
         """검증 오류만 제한 횟수 수정한다. 연결 오류·취소·사용량 제한은 그대로 전달한다."""
         messages = [ModelMessage(ModelRole.SYSTEM, EXTRACTION_CONTRACT + "\nPreferred relation types: "
                      + json.dumps(self.extraction.get("relation_types", []), ensure_ascii=False)),
-                    *(ModelMessage(ModelRole(item["role"]), item["content"]) for item in self.prompt["messages"]),
+                    *PromptDefinition.model_messages(self.prompt),
                     ModelMessage(ModelRole.USER, json.dumps(chunks, ensure_ascii=False))]
         from llm.providers.requests import error_code
         from llm.providers.runtime import diagnostic

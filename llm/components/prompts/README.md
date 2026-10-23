@@ -7,7 +7,8 @@
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | PromptComponent 공개 import입니다. |
-| [component.py](component.py) | messages의 형식과 역할을 검증하고 공통 JSON CRUD로 저장합니다. |
+| [component.py](component.py) | 정규 PromptDefinition Schema를 사용하고 공통 JSON CRUD로 저장합니다. |
+| [records.py](records.py) | 정의/메시지의 필드·역할·제약과 Agent/RAG 소비용 메시지 Projection을 소유합니다. |
 
 ## 사용 예
 
@@ -34,6 +35,15 @@ await rag.aconfigure(configuration)
 ```
 
 레코드의 `messages`는 비어 있지 않은 배열입니다. 각 항목은 system/user/assistant 중 하나의 role과 비어 있지 않은 문자열 content를 가집니다. description은 선언된 최상위 필드이며, 라벨 등 Application 확장은 metadata 안에 둡니다.
+
+Agent는 PromptMessage의 role/content 속성으로 참고 지침을 구성하고, RAG는
+PromptDefinition.model_messages에서 기존 공통 ModelMessage 변환을 사용합니다.
+필수 messages/role/content 소실은 거부하며 생략값을 만들지 않습니다. RAG가 생성한
+명시적 빈 런타임 선택과 저장된 Prompt의 비어 있지 않은 조건은 별개입니다.
+Projection은 새 저장 형식이나 호환 Reader가 아니며, 원본 정의와 역할·내용을 보존합니다.
+
+Prompt의 순수 값만 가져올 때 수명 서비스·Engine·SDK를 로드하지 않습니다.
+공개 PromptComponent는 같은 클래스와 export 이름을 유지하며 실제 접근 시 로드합니다.
 
 ## 저장과 참조
 

@@ -15,6 +15,7 @@ import json
 from contextlib import AsyncExitStack, aclosing, nullcontext
 from copy import deepcopy
 from llm.components.skills.records import SkillRecord
+from llm.components.prompts.records import PromptDefinition
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -161,7 +162,7 @@ class AgentExecution:
     def compose_instructions(engine, resources, context):
         if resources["skills"] or resources["prompt"]:
             engine = engine.with_instructions(context,
-                before=tuple(f"{m['role']}: {m['content']}" for m in resources["prompt"]["messages"])
+                before=tuple(f"{m.role}: {m.content}" for m in PromptDefinition.message_values(resources["prompt"]))
                        if resources["prompt"] else (),
                 after=tuple(f"Skill {name}:\n{SkillRecord.instructions(skill)}" for name, skill in resources["skills"].items()))
         return engine

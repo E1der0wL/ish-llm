@@ -2,6 +2,8 @@
 
 from enum import StrEnum
 import json
+from llm.core.model_protocol import ModelRole
+from llm.components.prompts.records import PromptDefinition, PromptMessage
 
 
 class ExtractionFailurePolicy(StrEnum):
@@ -47,14 +49,13 @@ def default_prompt() -> dict:
     graph = {"entities": [{"id": "a", "name": "Atlas"}, {"id": "h", "name": "Harbor"}],
              "relations": [{"source": "a", "target": "h", "type": "USES",
                             "source_id": "example:c1", "evidence": "Atlas uses Harbor.", "metadata": {}}]}
-    return {"description": "Grounded RAG entity/relation extraction with few-shot examples",
-            "messages": [
-                {"role": "system", "content": "Extract precise, minimal facts. Names are labels; IDs are references."},
-                {"role": "user", "content": json.dumps(chunks)},
-                {"role": "assistant", "content": json.dumps(graph)},
-                {"role": "user", "content": '[{"id":"example:c2","text":"Welcome to the documentation."}]'},
-                {"role": "assistant", "content": '{"entities":[],"relations":[]}'},
-            ]}
+    return PromptDefinition.create((
+        PromptMessage(ModelRole.SYSTEM.value, "Extract precise, minimal facts. Names are labels; IDs are references."),
+        PromptMessage(ModelRole.USER.value, json.dumps(chunks)),
+        PromptMessage(ModelRole.ASSISTANT.value, json.dumps(graph)),
+        PromptMessage(ModelRole.USER.value, '[{"id":"example:c2","text":"Welcome to the documentation."}]'),
+        PromptMessage(ModelRole.ASSISTANT.value, '{"entities":[],"relations":[]}'),
+    ), description="Grounded RAG entity/relation extraction with few-shot examples")
 
 
 def extraction_schema() -> dict:
