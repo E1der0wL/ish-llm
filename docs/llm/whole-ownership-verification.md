@@ -4060,3 +4060,44 @@ Compaction 요청 Owner와 연결한다. 기존 MemoryRecord 후보 Writer/Tool 
 Assertion 실패를 탐지했다. 정적 finding 110개, stale/미검토 신규 0이다.
 전체 510개 중 미검토 283, 미분류 20673, incomplete 6, 위반/감사 오류 0이다.
 증가한 미완료 계약은 Tool 결과 옵션 Projection의 남은 연결을 명시한 것으로, 다음 작업에서 해소한다.
+
+
+## llm Memory 추출·Tool 경계와 이력 소비자 — Level 2
+
+기준 `665ef9205b296a48e4101a34bc92e0145055ce4d` 이후 추출 Prompt/후보/출처,
+Tool 선언·인자·schema·응답을 해당 Owner로 연결했다. Prompt 메시지는 기존 PromptDefinition
+Reader를 사용한다. 후보 생성의 상태·scope·generation/revision, Tool 인자의 쓰기 상태 강제,
+현재 Run 소유 검사, 출처 참조 수집의 기존 의미·순서·사본 경계를 보존한다.
+기존 History 검토에서 남은 외부 Record 고정 키 조회도 typed 속성·전이 Projection으로 연결했다.
+Record의 문자열·참조 검증은 같은 Owner의 함수로 공유하며 후보와 저장 기록의 서로 다른 필수
+필드 계약은 합치지 않는다. 기존 승인·예산·트랜잭션·모델/Tool 실행 순서와 저장 형식은 같다.
+
+환경 연결 중단 후 작업 파일·증거를 확인하고 비교 검증을 재실행했다.
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/memory-extraction-draft/equivalence.py`
+exit 0: instruction wire 1, Tool wire/schema/순서/계약 6, 인자·정책·scope·callback 120,
+API 출처 사본/누락 8, 실제 추출 generator의 검증·모델 입력·발행 순서 96,
+Prompt 선택/필드 오류 순서 12, 이력 출처 수집/부분 실패 9, 실제 Tool handler의 소유 검사와
+거부 시 callback 0 검증 49개가 기존 구현과 같다. 같은 경로의 `history-proof/equivalence.py`
+exit 0: 저장 기록 192, payload 11, CAS 90, envelope/이력 오류 순서 413, 전이 60,
+수정 callback/사본 40 등 이전 Record/History 비교 범위를 현재 변경에 재검증했다.
+초기 smoke 3 pass/4.143초, CRUD/이력 29 pass/14.342초, 이력·병합 22 pass/14.703초는
+각 중간 소스의 독립 실행이다. 아래 최종 Level 2와 합쳐 한 실행으로 표현하지 않는다.
+
+- `whole-memory-extraction-tools-01`: 발견/시작/pass 185/185/185, exit 0, 291.933656초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-extraction-tools-01/llm.json --modules tests.llm.test_memory_component tests.llm.test_memory_history_integrity tests.llm.test_memory_consolidation_integrity tests.llm.test_memory_processing tests.llm.test_memory_summary_integrity tests.llm.test_history_retention_integrity tests.llm.test_completion_processing tests.llm.test_refinement tests.llm.test_naming_contract tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `b24a59a14a240dfdc701da7172c98aa9e6a6c29d36c66e51c13606eee36b0932`, input `28a141832d8e4c80a8295560875f1314e4cd27eb9d07c65417133e4b92e780df`.
+
+- `whole-memory-extraction-tools-hub-01`: 발견/시작/pass 17/17/17, exit 0, 104.400916초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-memory-extraction-tools-hub-01/hub.json --modules tests.hub.test_memory_manager tests.hub.test_resource_tools tests.hub.test_history_retention tests.hub.test_context`. source `b24a59a14a240dfdc701da7172c98aa9e6a6c29d36c66e51c13606eee36b0932`, input `28a141832d8e4c80a8295560875f1314e4cd27eb9d07c65417133e4b92e780df`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+Python 3.12.14/Clang·Host d833790와 실행 의존성/Fixture/환경은 각 input manifest에 고정했다.
+Memory CRUD/추출/이력/병합/요약·삭제 참조·Completion/Prompt와 직접 Hub 소비자,
+공통 승인·예산·효과·Checkpoint·RAG·수명 안전성 시험을 실행했다. 기존 Assertion은 수정하지 않았다.
+
+정적 finding 110개 유지, 새 finding/제거 0이다. 추출/출처/Tool 선언의 후보 23/11/37개는
+선언 영역이며 Tool 실행 모듈 후보는 0이다. 기록의 전체 소비 연결은 병합 등 남은 소비자까지
+끝난 후 완료 판정한다. Tool 이름의 결과 처리 소비자와 출처의 병합 소비자도 다음 묶음에 남긴다.
+Memory Component/Data/Processing 전체 완료를 주장하지 않는다.
+이번 영향은 동일 계약의 선언·검증·Projection 이동으로 입증됐으므로 Level 2를 적용했다.
+전체 회귀/Push는 유예한다. 다음 압축 요청·진행 기록·Tool 결과 연결까지 관련 변경을 묶어
+Level 3를 실행한다. 범위를 입증하지 못하거나 안전성 계약에 영향이 생기면 즉시 승격한다.
+
+추출·Tool 묶음 후속 감사: `python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16 pass/3.323초/exit 0, `check_architecture`·`check_docs` exit 0, `check_budget_mutation` exit 0(의도한 한도 제거 2건의 실패 및 실제 효과 Assertion으로 검출). 전체 목록은 513파일, 미검토 282, 미분류 후보 20,438, 미완료 계약 8, stale/issues 0이다. 후보/미완료 수를 성공 기준에서 제외하지 않는다.

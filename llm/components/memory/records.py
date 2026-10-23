@@ -122,6 +122,16 @@ class MemoryRecord:
         return bool(self._value.get(self.Field.EXPIRES_AT) and
                     datetime.fromisoformat(self._value[self.Field.EXPIRES_AT]) <= datetime.now(timezone.utc))
 
+    @staticmethod
+    def nonempty_text(value):
+        return isinstance(value, str) and bool(value.strip())
+
+    @classmethod
+    def invalid_reference(cls, value, visible):
+        return (not isinstance(value, dict) or type(value.get(cls.Field.REVISION)) is not int
+                or value.get(cls.Field.ID) not in visible
+                or visible[value[cls.Field.ID]] != (value.get(cls.Field.GENERATION), value[cls.Field.REVISION]))
+
     @classmethod
     def validate_fields(cls, identifier, record, *, validate_status, scopes, session_scope):
         if not isinstance(record.get(cls.Field.GENERATION), str) or not re.fullmatch(cls.GENERATION_PATTERN, record[cls.Field.GENERATION]):
@@ -129,7 +139,7 @@ class MemoryRecord:
         if record.get(cls.Field.ID) != identifier or type(record.get(cls.Field.REVISION)) is not int or record[cls.Field.REVISION] < cls.MINIMUM_REVISION:
             raise ValueError(cls.INVALID_IDENTITY)
         for key in cls.TEXT_FIELDS:
-            if not isinstance(record.get(key), str) or not record[key].strip():
+            if not cls.nonempty_text(record.get(key)):
                 raise ValueError(cls.NONEMPTY_TEXT.format(key=key))
         for key in cls.TIME_FIELDS:
             if datetime.fromisoformat(record[key]).utcoffset() is cls.ABSENT:
@@ -150,7 +160,7 @@ class MemoryRecord:
         if cls.Field.METADATA in record and not isinstance(record[cls.Field.METADATA], dict):
             raise ValueError(cls.INVALID_METADATA)
         if not isinstance(record.get(cls.Field.SOURCE), dict) or not isinstance(record.get(cls.Field.TAGS), list) or any(
-                not isinstance(tag, str) or not tag.strip() for tag in record[cls.Field.TAGS]):
+                not cls.nonempty_text(tag) for tag in record[cls.Field.TAGS]):
             raise ValueError(cls.INVALID_SOURCE_TAGS)
 
     @property
@@ -239,6 +249,10 @@ class MemoryRecord:
     def session_id(self):
         return self._value.get(self.Field.SESSION_ID)
 
+    @session_id.setter
+    def session_id(self, value):
+        self._value[self.Field.SESSION_ID] = value
+
     @property
     def replacements(self):
         return self._value.get(self.Field.REPLACES, [])
@@ -249,6 +263,14 @@ class MemoryRecord:
     @property
     def metadata(self):
         return self._value[self.Field.METADATA]
+
+    @metadata.setter
+    def metadata(self, value):
+        self._value[self.Field.METADATA] = value
+
+    @property
+    def optional_metadata(self):
+        return self._value.get(self.Field.METADATA)
 
     @property
     def metadata_or_empty(self):
@@ -278,6 +300,22 @@ class MemoryRecord:
 
     def content_reference(self):
         return {**self.to_reference(), self.Field.CONTENT: self.content}
+
+    @property
+    def created_at(self):
+        return self._value[self.Field.CREATED_AT]
+
+    @property
+    def source(self):
+        return self._value[self.Field.SOURCE]
+
+    def matches_identity(self, previous, fields):
+        return not any(self._value.get(key) != previous.get(key) for key in fields)
+
+    @classmethod
+    def transition_projection(cls, previous, *, revision, updated_at, deleted):
+        return {**previous, cls.Field.REVISION: revision,
+                cls.Field.UPDATED_AT: updated_at, cls.Field.DELETED: deleted}
 
 
 class MemorySearchHit:

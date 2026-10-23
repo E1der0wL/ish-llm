@@ -24,6 +24,7 @@ from .summary_storage import SummaryStorage
 from .summary_records import SummaryRecord
 from .records import MemoryRecord, MemorySearchHit
 from .history import MemoryHistory, MemoryEnvelope
+from .sources import MemorySource
 from .processing import MemoryProcessor
 from .configuration import MemoryConfiguration, MemoryProcessingConfig
 from llm.services.infrastructure.storage import atomic_json, read_json
@@ -121,9 +122,8 @@ class MemoryComponent(Component):
         return super().load(project, identifier)
 
     def _source(self, project, source):
-        value = self.deserialize(self.serialize(source or {"kind": "api"}))
-        value.setdefault("project_id", project.id)
-        return value
+        value = self.deserialize(self.serialize(MemorySource.api_input(source)))
+        return MemorySource.ensure_project(value, project.id)
 
     def _commit(self, project, identifier, record, history, operation, source):
         self._assert_ready(project)
@@ -219,12 +219,7 @@ class MemoryComponent(Component):
         if not self._has_storage(project):
             return HistoryReferenceRecord.project(run_ids=[], message_ids=[], session_ids=[])
         def source(value):
-            if isinstance(value, dict):
-                if value.get("run_id"):
-                    runs.add(value["run_id"])
-                messages.update(value.get("message_ids", []))
-                if value.get("input_message_id"):
-                    messages.add(value["input_message_id"])
+            MemorySource.collect_history_references(value, runs, messages)
         for identifier, _ in self._all_records(project):
             envelope = self._read(project, identifier)
             source(MemoryRecord(MemoryEnvelope(envelope).record).optional_source)

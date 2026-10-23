@@ -46,22 +46,23 @@ class MemoryHistory:
     @classmethod
     def validate_transition(cls, previous, entry, *, create, delete, restore, identity_fields):
         record, operation = entry[cls.Field.DATA], entry[cls.Field.OPERATION]
+        selected = MemoryRecord(record)
         if previous is cls.ABSENT:
-            if (operation != create or record[MemoryRecord.Field.DELETED]
-                    or record[MemoryRecord.Field.CREATED_AT] != record[MemoryRecord.Field.UPDATED_AT] or entry[cls.Field.SOURCE] != record[cls.Field.SOURCE]):
+            if (operation != create or selected.deleted
+                    or selected.created_at != selected.updated_at or entry[cls.Field.SOURCE] != selected.source):
                 raise ValueError(cls.INVALID_CREATION)
             return
-        if any(record.get(key) != previous.get(key) for key in identity_fields):
+        if not selected.matches_identity(previous, identity_fields):
             raise ValueError(cls.CHANGED_IDENTITY)
-        if (operation == create or previous[MemoryRecord.Field.DELETED] != (operation == restore)
-                or record[MemoryRecord.Field.DELETED] != (operation == delete)):
+        if (operation == create or MemoryRecord(previous).deleted != (operation == restore)
+                or selected.deleted != (operation == delete)):
             raise ValueError(cls.INVALID_TRANSITION)
         if operation in (delete, restore):
-            expected = {**previous, cls.Field.REVISION: record[cls.Field.REVISION], MemoryRecord.Field.UPDATED_AT: record[MemoryRecord.Field.UPDATED_AT],
-                        MemoryRecord.Field.DELETED: record[MemoryRecord.Field.DELETED]}
-            if operation == delete and record.get(MemoryRecord.Field.METADATA) != previous.get(MemoryRecord.Field.METADATA):
+            expected = MemoryRecord.transition_projection(previous, revision=selected.revision,
+                updated_at=selected.updated_at, deleted=selected.deleted)
+            if operation == delete and selected.optional_metadata != MemoryRecord(previous).optional_metadata:
                 from .consolidation import MemoryConsolidation
-                expected[MemoryRecord.Field.METADATA] = MemoryConsolidation.deletion_metadata(previous, record, entry[cls.Field.SOURCE])
+                MemoryRecord(expected).metadata = MemoryConsolidation.deletion_metadata(previous, record, entry[cls.Field.SOURCE])
             if record != expected:
                 raise ValueError(cls.CHANGED_CONTENT)
 
@@ -73,7 +74,7 @@ class MemoryHistory:
         if not isinstance(record, dict) or not isinstance(history, list) or not history:
             raise ValueError(cls.MISSING_HISTORY)
         validate_memory(identifier, record)
-        if len(history) != record[cls.Field.REVISION]:
+        if len(history) != MemoryRecord(record).revision:
             raise ValueError(cls.INCOMPLETE_HISTORY)
         previous = cls.ABSENT
         for revision, entry in enumerate(history, cls.FIRST_REVISION):
@@ -82,11 +83,11 @@ class MemoryHistory:
             if entry.keys() != fields:
                 raise ValueError(cls.INVALID_FIELDS)
             validate_memory(identifier, entry[cls.Field.DATA])
-            if entry[cls.Field.DATA][MemoryRecord.Field.GENERATION] != record[MemoryRecord.Field.GENERATION]:
+            if MemoryRecord(entry[cls.Field.DATA]).generation != MemoryRecord(record).generation:
                 raise ValueError(cls.CROSSED_GENERATION)
-            if type(entry[cls.Field.REVISION]) is not int or entry[cls.Field.REVISION] != revision or entry[cls.Field.DATA][cls.Field.REVISION] != revision or (
+            if type(entry[cls.Field.REVISION]) is not int or entry[cls.Field.REVISION] != revision or MemoryRecord(entry[cls.Field.DATA]).revision != revision or (
                     entry[cls.Field.OPERATION] not in operations
-                    or not isinstance(entry[cls.Field.SOURCE], dict) or entry[cls.Field.AT] != entry[cls.Field.DATA][MemoryRecord.Field.UPDATED_AT]):
+                    or not isinstance(entry[cls.Field.SOURCE], dict) or entry[cls.Field.AT] != MemoryRecord(entry[cls.Field.DATA]).updated_at):
                 raise ValueError(cls.INVALID_REVISION)
             validate_transition(previous, entry)
             previous = entry[cls.Field.DATA]

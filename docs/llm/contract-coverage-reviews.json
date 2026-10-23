@@ -44157,8 +44157,8 @@
   },
   {
     "path": "llm/components/memory/records.py",
-    "sha256": "5abebc9693a49cd6ebee629e425788f44ae0f8673d5f849a6a0c301423acf28f",
-    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete.",
+    "sha256": "cdb84d5ded4931896e5ef8a991eccda6c5fe235709e379ade2efc507d79ea9ae",
+    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete. Extraction and Tool candidate projection consumers are now connected. History uses Record typed properties and transition projections rather than foreign raw keys. Full old/new history checks were repeated on this source. Remaining consolidation and other unreviewed consumer paths are not claimed complete.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -44450,25 +44450,25 @@
         "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
       },
       {
-        "id": "a4e79db8c0e1041beb249039792047bf91c52120b9351532a19620bfb0a7092e",
+        "id": "0b4c4320a263497940241cd41e38aedf1c37c1d18ac03eceb4b64926dde2b98a",
         "classification": "declaration",
         "owner": "MemorySearchHit.Field",
         "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
       },
       {
-        "id": "e5989fc877fcf8a356b85914c6d5f4ffb21ea4aafc20dfa05699eb85f966f68a",
+        "id": "0e58d7497186044fb3cf97e70fb37661d094008e1f9ab5335af527724aabf3c1",
         "classification": "declaration",
         "owner": "MemorySearchHit.Field",
         "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
       },
       {
-        "id": "54c8e0fdb015136660c8911f1273c86751e26151936730ac4d36b3fbddc1ca3d",
+        "id": "18505182189f1b5c1bc35eb259e1b02f00a6e78d4e910fcbfa66f727a598dd05",
         "classification": "declaration",
         "owner": "MemoryContextReference",
         "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
       },
       {
-        "id": "f133d72daa164caaba7a44916bda8db36c691980fbd150b5d775b51f12a28b4e",
+        "id": "ba38aae1dfaa6188fd14b90ad46d5fd64aac6fe93c391d3866a9f0e0860ef1ce",
         "classification": "declaration",
         "owner": "MemoryContextReference",
         "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
@@ -44483,7 +44483,10 @@
           "llm/components/memory/data.py",
           "llm/components/memory/consolidation.py",
           "llm/components/memory/processing.py",
-          "llm/components/memory/tools.py"
+          "llm/components/memory/tools.py",
+          "llm/components/memory/extraction.py",
+          "llm/components/memory/tool_values.py",
+          "llm/components/memory/history.py"
         ],
         "tests": [
           "tests/llm/test_memory_component.py",
@@ -44500,8 +44503,8 @@
   },
   {
     "path": "llm/components/memory/history.py",
-    "sha256": "3149594bb0f0762135ba51b002fb488f912936c1f5a4a47a283292463bdc72e4",
-    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass.",
+    "sha256": "9b6ae63621a2b77002522d9f4b225b1e97432c2e92e0a60e9f3d9aee4b2c2f1a",
+    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. Extraction and Tool candidate projection consumers are now connected. History uses Record typed properties and transition projections rather than foreign raw keys. Full old/new history checks were repeated on this source. Remaining consolidation and other unreviewed consumer paths are not claimed complete.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -44649,13 +44652,13 @@
         "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
       },
       {
-        "id": "49dba1ed017d0b7bafd11846dc30be9df3cee1e0b7adb3591b61a66437c10d0c",
+        "id": "9730f9d70fc9083fad58523cda312d8852cb00b21282773458c7f37f1a81f35a",
         "classification": "declaration",
         "owner": "MemoryEnvelope.Field",
         "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
       },
       {
-        "id": "d1562cf4f5846f5c4893dc7089d2fe4aa0b99af6459b221ea15cd8a9da242529",
+        "id": "1c340d256e466df52e2ef63367c090ba1ff7c5e23ce1d5a22efa94ac5b49bd16",
         "classification": "declaration",
         "owner": "MemoryEnvelope.Field",
         "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
@@ -45134,6 +45137,548 @@
           "tests/hub/test_memory_manager.py"
         ],
         "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/extraction.py",
+    "sha256": "99a9dfd55e59bf19f4c8f9c715896cc58e3235427d22ada08b0cdfffde572d1c",
+    "reason": "Read the complete file and changed writer/reader/handler consumers. Extraction candidates are a distinct model-response contract sharing Record field declarations and validation, not a second persisted Record reader. Tool arguments/schema are the explicit invocation boundary; source projections keep old API/Tool/processing shapes. Differential traces check missing/corrupt inputs, validation order, copies and zero publication/callbacks on denial. Shared execution authorization and storage/transaction order remain in existing owners. Sources consolidation consumer and Tool name consumption by tool_results remain incomplete where marked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e32ea4eb482e181baa736638d64857f44a45cf2832c287593a77a66799bf3da4",
+        "classification": "declaration",
+        "owner": "MemoryExtractionPrompt",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "bb001be365175eb7b022920c99774b50e1f2edfcce7459d929a75910559d4540",
+        "classification": "declaration",
+        "owner": "MemoryExtractionPrompt",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "afcda0c28e929fd1d10f1c545da2e9cd4ffa1a826e01b5489b62f5d9cc2da4ec",
+        "classification": "declaration",
+        "owner": "MemoryExtractionPrompt",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "f11fe6e24f7ace9c5faf1fe6ac3279e988ff35e3c2433bdf23245315b422ec4d",
+        "classification": "declaration",
+        "owner": "MemoryExtractionPrompt",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "7bce3ea6c1417bd4ac393ca091f6a2de26ef356baf17143d734f1b130aa1a054",
+        "classification": "declaration",
+        "owner": "MemoryExtractionPrompt.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "c8cfa92e178008fc8dd2fda7a8b2e2455b40fc180347b25670d8367dd7246050",
+        "classification": "declaration",
+        "owner": "MemoryExtractionPrompt.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "90818d29b036fb3814f5dd862b8ae416d305deff064f37b742ed9925cb96374a",
+        "classification": "declaration",
+        "owner": "MemoryExtractionPrompt.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "d67ee77261e84a17bd82643778650cafecb0c46b8787dcd769e8110b2f9b385f",
+        "classification": "declaration",
+        "owner": "MemoryCandidateFields",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "44d6834f61f62be72da6c537205e2b0da5b1198e8d08b2beb2e962526271e2f3",
+        "classification": "declaration",
+        "owner": "MemoryCandidateFields",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "d7fcad3ca8d7fa1c0d96c8559b3168bf3977b159b425bcdafcfe1b6b402d5743",
+        "classification": "declaration",
+        "owner": "MemoryCandidate",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "d864973937d69e4e4d8b54f87eece75195035bf5308e0e6f428d17bec1d84b70",
+        "classification": "declaration",
+        "owner": "MemoryCandidate",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "1742d219951faa23c021141e710381026e6c6b86da5451b64991f9b04c11cb72",
+        "classification": "declaration",
+        "owner": "MemoryCandidates",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "8ab72254bc98ce319d948ac90e64688f2c3173a4a01efe86b39dfee0054643f1",
+        "classification": "declaration",
+        "owner": "MemoryCandidates",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "48ec3ceb74e60c96dbb331bbe27e5cb9d2dcee2ade569cc7c9376164bade5eb5",
+        "classification": "declaration",
+        "owner": "MemoryExtractionProvenance",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "e3e4f875e68a2f36b5ca356bf231bd9874d0b83201bbc5024f2b3f9be41b5e91",
+        "classification": "declaration",
+        "owner": "MemoryExtractionRequest",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "cd6ea95f09c591d60623ea506ef66ca62aa0c2e0b5da7f7f79449403f5cbe409",
+        "classification": "declaration",
+        "owner": "MemoryExtractionRequest",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "d841d346ec4d63499b530caaf0e0ed48e515b103a2edc9dd6630a786fb910526",
+        "classification": "declaration",
+        "owner": "MemoryExtractionRequest",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "7f0ed132e9c67dd0f904f7db12e316094a756f4c3059d784463db529460b0937",
+        "classification": "declaration",
+        "owner": "MemoryExtractionRequest",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "aa8c50c26134ccfdd7339b14e42ee0d69c5753d05462ab8aa1bc202d4727def2",
+        "classification": "declaration",
+        "owner": "MemoryExtractionRequest",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "f1537d2939841a814c33f9338ffc95c555c6e8887a50650265bd57336edab039",
+        "classification": "declaration",
+        "owner": "MemoryExtractionRequest",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "6e1c568bc6ce235219467188a7bbff650c925557a308b29fc92069d06d4ddb3f",
+        "classification": "declaration",
+        "owner": "MemoryExtractionRequest",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "ddd9ffd81b016e5b22d9db771221a6cfda3aece5eb4696dc91b29b27a4e8aeab",
+        "classification": "declaration",
+        "owner": "MemoryExtractionRequest",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "5a23cb6cb252e79dba1702df83ff0f71c70fa4688b207c5791231919776e1731",
+        "classification": "declaration",
+        "owner": "MemoryExtractionObservation",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Memory extraction Prompt, candidate, request and observation",
+        "declaration": "llm/components/memory/extraction.py",
+        "consumers": [
+          "llm/components/memory/data.py",
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/sources.py",
+    "sha256": "7827e295b9f364a6fbe43462b7237d4a9be70877ec4b85b6718c4e6e08db7ae3",
+    "reason": "Read the complete file and changed writer/reader/handler consumers. Extraction candidates are a distinct model-response contract sharing Record field declarations and validation, not a second persisted Record reader. Tool arguments/schema are the explicit invocation boundary; source projections keep old API/Tool/processing shapes. Differential traces check missing/corrupt inputs, validation order, copies and zero publication/callbacks on denial. Shared execution authorization and storage/transaction order remain in existing owners. Sources consolidation consumer and Tool name consumption by tool_results remain incomplete where marked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "244234dea4744d2a81a60d3c8f9d322580f4128c2ab4d9ae2f93b08740dab126",
+        "classification": "declaration",
+        "owner": "MemorySource",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "d18b3a32b2f85c98bbc920e70240e11d6a648ed0340fec6a90cda41091b48af2",
+        "classification": "declaration",
+        "owner": "MemorySource",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "ae47dfb78bc08e53e27c68729a2a1f93b8872a236f021ada3dcd10f0d5f0d87e",
+        "classification": "declaration",
+        "owner": "MemorySource",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "dd2bc4b82d55640b27d5b911bbe00f4768fdafb0175791ec0e5ea58c49267021",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "02ff0329f170dfe37d80f7805bff389f210352f53dd60e62f81d05b1dcd41516",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "75691238cb2c479d13a39ce05bdaebea6e14b00fad31fbabc06dff96f5215b75",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "d86af742dca8c83ae17758095eb920f1c79efdce661b486bd7b2820f24549a00",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "1829f8644e8ee326f0e31302b702dd2f3822f361a2a9f45f21c425235276bea9",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "20c0c5d54fb644f8ad250ca9c00789509507ce039253cbbef71f82549c576095",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "51d817b26e8c1996b071af77f00a6471a924213eb02a986025f400bb5f83cc90",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "4213a684c19339dd2c6f32418001854efffba87efd90cee2f9a8d8e093e2c549",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemorySource",
+        "declaration": "llm/components/memory/sources.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/processing.py",
+          "llm/components/memory/tools.py",
+          "llm/components/memory/tool_values.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/consolidation.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/tool_values.py",
+    "sha256": "d3bca7f2804e707b12147f9bb6648f6b8277b215866eb9270c6a77fa3dc3c7c1",
+    "reason": "Read the complete file and changed writer/reader/handler consumers. Extraction candidates are a distinct model-response contract sharing Record field declarations and validation, not a second persisted Record reader. Tool arguments/schema are the explicit invocation boundary; source projections keep old API/Tool/processing shapes. Differential traces check missing/corrupt inputs, validation order, copies and zero publication/callbacks on denial. Shared execution authorization and storage/transaction order remain in existing owners. Sources consolidation consumer and Tool name consumption by tool_results remain incomplete where marked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3d015c6903518d33bae864d24b95bf842897b2260d598c0900f5bb171c04e6d9",
+        "classification": "declaration",
+        "owner": "MemoryToolArguments.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "1b721eb8ec5432f39d6cacdd7f2c19cf8695f964a7a1d9e242858575c18f01d1",
+        "classification": "declaration",
+        "owner": "MemoryToolArguments.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "8c87a26ae920f091ac82ffce5aafd16575a6074328b744afa4002d5904ba02bc",
+        "classification": "declaration",
+        "owner": "MemoryToolArguments.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "bf739bdf9b5aefe743bcfb431a7a55649137ef44d8acea32ca8ce43b10cdbb47",
+        "classification": "declaration",
+        "owner": "MemoryToolArguments.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "77c5c6bfb844a04698d2ce9d34ab75f759be94030b3ef1e47be419d8350d9a9d",
+        "classification": "declaration",
+        "owner": "MemoryToolArguments.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "e9b85cd18746917a1dc6cffd7fedebac25cae571c6880b8249bdac47bdf1619c",
+        "classification": "declaration",
+        "owner": "MemoryToolArguments.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "72addcffa31ba99a7caf82794aede821307ec1b0f1e22a016432499d675988a2",
+        "classification": "declaration",
+        "owner": "MemoryToolArguments.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "b5eb920591dc76a50c1a8a2f178bcf43825603ab4521627e2dd0594a293aaf13",
+        "classification": "declaration",
+        "owner": "MemoryToolArguments.Field",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "ec9a1bc8405304744b7514b0b7215d7f6cac9a4a787d7ea5117aca5bd7318e97",
+        "classification": "declaration",
+        "owner": "MemoryToolResult",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "bab5cc909a30c07e56ddb57e8260f7e792ab275d574d8685d8f0f6eaaaf23d9d",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "bb828ccf7e5a41dcdb7c98832ae3856b0a85e15256a93d0e34ffe8ba740015e2",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "f5f9daa1a876851a4ddca8a402f9f144840349c3e189a4885efe8b66a7d6f78d",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "f341b2046eb52f6258d0a51b949ae143bc4ea158346fdee1e0516aa70028ef85",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "b82c4d9aca31cdcf0db4314ced07824a4e04c93cfafdcd07ff4f3c29794bd2a0",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "7eb8b855329ece105de976db707ffc356a221b37a05343021b87c8fc5358e427",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "63fe138002456cf82f640e0fe219281eb38bd9a5c415a8755311cb9d5c5c003a",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "01c2814e03fda3c79aa0655be88158b15bb65bb26fbf8b8fd8dc8a4f943761a2",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "de8f3649024dad562f7fd5f5bdcc5c12eadbea3a548cc4b17c80d4216d27bf49",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "9f06f9e0e443dd9dfc8d7394793c74f083aa90b0fa8a977e1b1b665328c32043",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "6a7ace66677249911190bc0e1099c1a7fe23bb17715cbaba17bea80bdd82d53b",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Name",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "d069320af54c348fa778ec012a9ecf2f22b7840c0a03562948b94c016ef69298",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Name",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "0ce80624d65c94912c579844775606728cf386000ba285b771e8f8ae5d277d9e",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Name",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "602bf16b4db1120545e518fd3dbf1dbb5dea5f1018d1582a06a3d6e533b8d4a0",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Name",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "3c201319ccc12f2cb8da2b339ae1a24750942dd29b7401cf5cc4a83c7e7a3722",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Name",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "b0db7bf09d3173d465194807e7a8583473531292cdbda57ac28c3625620c2ae3",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Name",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "b292f6cfc838797faeb31b41bf3358bd3ce646e0727c06b5526ff678013a26b6",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Name",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "3b30f0575781fe210ce954b38f5fa2ef9b43696615bd26d404ee772141fb746e",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Description",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "35aefcec5bdddf18f01290b99b7b09400352c6a79c4a0cc1c61b7773f4cd3e51",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Description",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "b950ff9c375078b289525c42f0aafbf18173d7ea80f02f46b8c494f3a132dcd7",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Description",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "8fdc01dde14fa1945a02b584714d4c2a570f646e923c1a3bacb2b64e079ccb86",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Description",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "ce642898179576cee878f7d388df16cd32381a0c61f44d95c540042b32454d53",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Description",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "f8ba87117478bfc2003f208518e87f59b2b8e6f2a97606471c422b4c01215d70",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Description",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "d196fe097d4616c280d8c81a6c8a4b9a33ff5811c90e74150d00aa3a44b19cbd",
+        "classification": "declaration",
+        "owner": "MemoryToolDefinition.Description",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "f34674ba679b63f5da765546dda31031085faaf2134b5a6aa66b430aa0193c10",
+        "classification": "declaration",
+        "owner": "MemoryToolSchemas",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "6764a8b482970eaae93615c3cb196f523317e65db4cac44ba0aeb3396445ed6d",
+        "classification": "declaration",
+        "owner": "MemoryToolSchemas",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "76c40aa09e6fa575ea5372daaab9d3229245a67837d4ec908a97abadb5a59d05",
+        "classification": "declaration",
+        "owner": "MemoryToolSchemas",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      },
+      {
+        "id": "0a7436d2fda2ffa3823d184806f945ca455a18e7e5635528783855353ded9ee8",
+        "classification": "declaration",
+        "owner": "MemoryToolSchemas",
+        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryToolArguments / MemoryToolSchemas / MemoryToolDefinition / MemoryToolResult",
+        "declaration": "llm/components/memory/tool_values.py",
+        "consumers": [
+          "llm/components/memory/tools.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/tool_results.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/tools.py",
+    "sha256": "2f203490b09bf45a27003aee6976f6bf9aee702bbc4850319e8f143bae0ccab8",
+    "reason": "Read the complete file and changed writer/reader/handler consumers. Extraction candidates are a distinct model-response contract sharing Record field declarations and validation, not a second persisted Record reader. Tool arguments/schema are the explicit invocation boundary; source projections keep old API/Tool/processing shapes. Differential traces check missing/corrupt inputs, validation order, copies and zero publication/callbacks on denial. Shared execution authorization and storage/transaction order remain in existing owners. Sources consolidation consumer and Tool name consumption by tool_results remain incomplete where marked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Memory Tool handler execution",
+        "declaration": "llm/components/memory/tools.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
       }
     ]
   }

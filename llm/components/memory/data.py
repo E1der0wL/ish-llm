@@ -6,6 +6,11 @@ from .snapshot import MemoryProcessingSnapshot
 from .summary_records import SummaryRecord
 from .records import MemoryRecord
 from .configuration import MemoryConfiguration
+from .extraction import MemoryExtractionPrompt
+from .history import MemoryHistory
+from .sources import MemorySource
+from .tool_values import MemoryToolArguments, MemoryToolDefinition
+from llm.components.prompts.records import PromptDefinition
 
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
@@ -36,10 +41,9 @@ class MemoryData(ComponentData):
         """한 처리기 실행에서 사용할 명시적 추출 지침과 버전만 읽는다."""
         self._current()
         if identifier is None:
-            raise ValueError("Memory extraction requires config.processing.extract_prompt_id")
-        snapshot = EditableSnapshot.read(self.related("prompts").snapshot(identifier))
-        return {"text": "\n\n".join(f"{m['role']}: {m['content']}" for m in snapshot.data["messages"]),
-                "version": snapshot.version, "source": identifier}
+            raise ValueError(MemoryExtractionPrompt.MISSING)
+        snapshot = EditableSnapshot.read(self.related(PromptDefinition.CAPABILITY).snapshot(identifier))
+        return MemoryExtractionPrompt.create(snapshot.data, version=snapshot.version, source=identifier)
 
     def _check_snapshot(self, project, component, snapshot):
         selected = MemoryProcessingSnapshot(snapshot)
@@ -102,21 +106,20 @@ class MemoryData(ComponentData):
         # 설정 검사와 쓰기를 하나의 잠금 범위에서 수행한다. Tool 인자로 상태를 승격할 수 없다.
         project, component = self._current()
         config = MemoryConfiguration(component._options(project))
-        if operation != "delete" and not config.has_tool_write_status:
+        if operation != MemoryHistory.DELETE and not config.has_tool_write_status:
             raise ValueError(MemoryConfiguration.MISSING_WRITE_STATUS)
-        arguments = dict(arguments)
-        if operation == "create":
-            if arguments.get("scope") == "session":
-                arguments["session_id"] = source["session_id"]
-            arguments = {"data": {**arguments, "status": config.tool_write_status}}
-        elif operation == "update":
-            arguments["changes"] = {**arguments["changes"], "status": config.tool_write_status}
-        elif operation != "delete":
-            raise ValueError("Unsupported memory Tool mutation")
-        if operation != "create":
-            arguments["session_id"] = source["session_id"]
-        result = self._write_memory(operation, **arguments, source=source)
-        return component.load(project, result, session_id=source["session_id"]) if operation == "create" else result
+        selected = MemoryToolArguments.read(arguments)
+        if operation == MemoryHistory.CREATE:
+            selected.bind_create_scope(source)
+            selected = selected.for_create(config.tool_write_status)
+        elif operation == MemoryHistory.UPDATE:
+            selected.for_update(config.tool_write_status)
+        elif operation != MemoryHistory.DELETE:
+            raise ValueError(MemoryToolDefinition.UNSUPPORTED_MUTATION)
+        if operation != MemoryHistory.CREATE:
+            selected.bind_session(source)
+        result = self._write_memory(operation, **selected.to_kwargs(), source=source)
+        return component.load(project, result, session_id=MemorySource(source).session_id) if operation == MemoryHistory.CREATE else result
 
     @workspace_locked
     def _compaction_state(self, session_id, scope, *, tool_id=None):
