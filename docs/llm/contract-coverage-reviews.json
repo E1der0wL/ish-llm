@@ -43555,5 +43555,205 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/memory/work_state.py",
+    "sha256": "9249585ede8bdb487da128638ba49e368cc0bc5c7e22b397ff3d3bcf9d9e04c2",
+    "reason": "Read all WorkState definition/schema/instruction/validation, optional metadata and provenance Reader/Writer paths plus Component and processor consumers. Public exports alias the current definition; public helpers delegate to the same validator/projection. Exact schema and prompt are unchanged, first JSON schema error and deepcopy remain, optional metadata validates only present work_state, version comparison semantics are preserved, and provenance deduplicates first occurrence before copying Goal references. Boundary marking only tags derived range references; no source IDs are invented, no prior execution evidence is replaced, no new retry/summary policy or compatibility path. Ordinary summary projection is unchanged; structured/invalid/Goal-change integration keeps original context.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f01398525ce267a95a197f86f7e512148c82c77da4bda0771675a1bd4d71b8e3",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "db517d23e8725b02562092d3009af9128d218f2b1ae44f871767c43f1800a76f",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "d52c6853d927bccf72f4b2b5b133ce981358e9051b2306d1021c0e08de765e09",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "d05aa4a84549a538c562e93f924e205a43b39b4f01959e2ac9c6dedcbf6a42b1",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "201962900090b5b37f0295930a08cc52897ad6c448c70fa76a400464ab667861",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "415d68149509f5fe8df320379f450dfd93375688a7184f57768508eded0e967c",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "6af0a908e1dd67efb6b0ee00b11e7249d349376743305db6baf2776171359197",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "d3bae5401c2a5fd820fde918cd2dae35e02be4ba33de877d584e2caf1f972340",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "de20839b819cca87f906f171bb0ee3c59d984bdf761c0c8d418127ae05f206af",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "56d90f38d633c8a54f336447d8e3644ceb9931d184ed526f67be5080f521a821",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "bb7a81b0057dac28430d76f3a476257ae926d35b9c61808deefaf0bde41e83c1",
+        "classification": "declaration",
+        "owner": "WorkState",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "29d22c14610767d37346c95d6c8be31bc8249a5e28d92214e413f2d23bf8bc59",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "993eef4e19514a54360aad580e4ef5cc91d12b567348394baabf54e6f274fbaa",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "17031df69f0b13f977c5ddcc08ce0671c77c666074ac794f881302fc909c2988",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "e86b6c27d47059c5570b9fb883e1ccfc760b759b76f4720a153cefa2a6ca1b13",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "632e06ac5ea1469b75509b98ef91c62a472aa1dd94368147d7152878ee18c595",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "f8a1479f95d40d028f6b478ffc7ab44ab71fff11b9d376e49c13ee490335836e",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "a2ff75bee6237a8d0d6a40fa516a1ce150bc8999301612c02f46bc702240d3c0",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "4ee8588c1ffadd79d0e9627246837acc1f94b19abed63d4f714ec19107629ee5",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "001a007b83224f57286666f26fb0e2a870c4db86f512053bfec33c0a3e5918f4",
+        "classification": "declaration",
+        "owner": "WorkState.Field",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "3aa816095aef70fd028fef474510765efd5dd362344645835a9ce7324a580d9d",
+        "classification": "declaration",
+        "owner": "WorkStateMetadata",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "7677ad307f23bd7b0a9a9a7b197a9473b591affeeaa8ccfc05cb2b2657cce45b",
+        "classification": "declaration",
+        "owner": "WorkStateMetadata",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "a9c63928efa5401f2d8a4be4f2a291b6d3a96300297770bbdde15c73383efe27",
+        "classification": "declaration",
+        "owner": "WorkStateProvenance",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "d0e301626e657c4c03e6638dae619a94e2b96b8d85e4a6010b9068d15ddcb001",
+        "classification": "declaration",
+        "owner": "WorkStateProvenance",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "ad7c339d5e095be9e99c248f196b79771fc07759d106b51b9bd1eff0d7c04946",
+        "classification": "declaration",
+        "owner": "WorkStateProvenance",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "56387662f0e5628bf5bd32e7dc0542d2e2e03a7ef994c3725d3eb64a5ea2db83",
+        "classification": "declaration",
+        "owner": "WorkStateProvenance",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "43727de741368313c34e92cf8ebf6b649497832cf4074bf3a7716313015db488",
+        "classification": "declaration",
+        "owner": "WorkStateProvenance",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "506f0f2c0dbdd7a4910cfc14cacdf7415ecb3c5176339d44c9fd3b2b9549e0c8",
+        "classification": "declaration",
+        "owner": "WorkStateProvenance",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      },
+      {
+        "id": "95156cb08e2a78eb7cc3b047b78e69b9b54c8616746343f55119e2f8d3596a91",
+        "classification": "declaration",
+        "owner": "WorkStateProvenance",
+        "reason": "WorkState fields/format/version/schema constraint, reference-only prompt fragments, metadata diagnostics and provenance fields/marker are declared by their owning type before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkState / WorkStateMetadata / WorkStateProvenance",
+        "declaration": "llm/components/memory/work_state.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_work_state.py",
+          "tests/llm/test_memory_summary_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_refinement.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

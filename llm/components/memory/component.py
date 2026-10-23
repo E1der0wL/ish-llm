@@ -116,11 +116,8 @@ class MemoryComponent(Component):
         metadata = value.get("metadata")
         if not isinstance(metadata, dict):
             raise ValueError("Invalid Session summary metadata")
-        if "work_state" in metadata:
-            from .work_state import SUMMARY_FORMAT_VERSION, validate_work_state
-            if metadata.get("summary_format_version") != SUMMARY_FORMAT_VERSION:
-                raise ValueError("Invalid work state format version")
-            validate_work_state(metadata["work_state"])
+        from .work_state import WorkStateMetadata
+        WorkStateMetadata.validate_present(metadata)
         if type(metadata.get("coverage_count")) is not int or metadata["coverage_count"] < 0:
             raise ValueError("Invalid Session summary coverage")
         partial = metadata.get("partial")

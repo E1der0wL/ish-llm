@@ -1,6 +1,7 @@
 """Memory가 소유하는 문맥 처리. 원본 대화/Tool 결과와 실행 체크포인트는 변경하지 않는다."""
 
 from llm.core.implementation_parameters import ImplementationParameters
+from .work_state import WorkState, WorkStateMetadata, WorkStateProvenance
 
 from llm.core.models import RunErrorCode
 from llm.core.results import OutputVisibility
@@ -110,7 +111,8 @@ class MemoryProcessor:
     UNCONFIGURED_PRIORITY = 0  # Neutral ordering; enabled processing requires an explicit config priority.
     RAISE, CONTINUE = "raise", "continue"
     FAILURE_MODES = (RAISE, CONTINUE)
-    TEXT, WORK_STATE = "text", "work_state"
+    TEXT = "text"
+    WORK_STATE = WorkState.KEY
     SUMMARY_FORMATS = (TEXT, WORK_STATE)
     CONFIG_FIELDS = ("completion", "priority", "extract_scope", "extract_prompt_id", "summary_chars", "recall_limit",
                      "recall_query_chars", "summary_format", "goal_ids", "tool_result_mode", "tool_data", "tool_summary_prompt")
@@ -207,19 +209,18 @@ class MemorySession(CompletionSession):
                 async for event in events:
                     yield event
             return
-        from .work_state import INSTRUCTION, validate_work_state
+        from .work_state import INSTRUCTION
         answer = {}
         async with aclosing(self._model(INSTRUCTION, payload, answer)) as events:
             async for event in events:
                 yield event
-        state = validate_work_state(answer.get("work_state"))
+        state = WorkState.from_answer(answer)
         result["summary"] = json.dumps(state, ensure_ascii=False)
 
     def _summary_metadata(self, text, *, sources):
-        from .work_state import SUMMARY_FORMAT_VERSION, validate_work_state
         result = {"sources": sources}
         if self.config.get("summary_format") == MemoryProcessor.WORK_STATE:
-            result.update(work_state=validate_work_state(json.loads(text)), summary_format_version=SUMMARY_FORMAT_VERSION)
+            result.update(WorkStateMetadata.from_text(text))
         return result
 
     async def _compact_active(self, request, result, source):
@@ -482,7 +483,7 @@ class MemorySession(CompletionSession):
         sources = provenance(messages=[m.id for m in boundaries],
             run_ids=[identifier for identifier in (first_run, last_run) if identifier],
             checksum=digest(signatures[:covered]), goals=self.goal_references)
-        sources["messages_are_range_boundaries"] = True
+        WorkStateProvenance.mark_range_boundaries(sources)
         # 부분 턴의 작업 상태는 완성된 요약으로 공개하지 않는다.
         if covered:
             record["metadata"].update(self._summary_metadata(text, sources=sources))

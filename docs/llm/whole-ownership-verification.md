@@ -3757,3 +3757,79 @@ Level 2 완료다. 저장/검증/트랜잭션 동등성과 실제 장애 통합 
 진행한다. 고정 fdb50ee의 gate28은 이번 Memory 변경을 포함하지 않는다. llm/ 잔여 작업을
 계속하며 Hub 구현은 llm/ 완료 이후다. 전체 게이트 성공 후 정확한 SHA만 Push하고 원격 CI의
 필수 두 job·artifact 결과를 실제 확인하기 전에는 원격 통과로 기록하지 않는다.
+
+
+## llm Memory 구조화 작업 상태 Owner closure
+
+기준 52ef098 이후 WorkState가 필드·형식 버전·Schema·참고자료 지침·검증·모델 응답 조회를,
+WorkStateMetadata가 선택적인 작업 상태 metadata의 Reader/Writer를, WorkStateProvenance가
+출처 Projection과 범위 표시를 소유한다. Memory Component의 요약 validator, Processor의
+형식 선언·응답 처리·metadata 작성·출처 범위 표시가 같은 Owner API를 사용한다.
+기존 공개 상수는 한 정규 정의를 가리키고 공개 함수는 같은 검증/Projection으로 위임한다.
+이중 Reader나 레거시 실행 경로를 만들지 않았다.
+
+Schema의 필수 필드·닫힌 구조와 지침의 정확한 문자열, 오류 순서, 생략/명시 null,
+존재하는 작업 상태만 검증하는 조건과 기존 버전 비교, 독립 사본을 보존한다.
+출처의 중복 ID는 원래 첫 등장 순서로 제거하고 Goal 참조는 사본으로 유지한다.
+원본 메시지·Tool/Run 증거를 새로 만들거나 대체하지 않으며 모델·재시도·요약 정책을
+추가하지 않는다. 이 파일의 리터럴 후보 29개는 모두 Owner 선언부다. 다른 Memory 파일의
+남은 필드·이력·검색·실행 책임은 별도 미완료 항목으로 유지한다.
+
+### 검증
+
+`python -m unittest tests.llm.test_work_state tests.llm.test_memory_summary_integrity`
+15개 pass/21.143초/exit 0. 기존 Assertion과 실제 원본 보존 검증은 그대로다.
+`PYTHONPATH=. python /workspace/llm-clean-resume/whole-ownership/work-state-closure-draft/equivalence.py`
+exit 0: 공개 값 3, Schema wire 1, 상태 검증 87, 출처 순서/사본/오류 7, 저장 metadata 45,
+일반/구조화 summary Projection 16, 모델 응답 4, 범위 표시 1개가 52ef098과 동일하다.
+
+- `whole-work-state-01`: 발견/시작/pass 122/122/122, exit 0, 274.707278초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-work-state-01/llm.json --modules tests.llm.test_work_state tests.llm.test_memory_summary_integrity tests.llm.test_memory_processing tests.llm.test_memory_compaction_integrity tests.llm.test_refinement tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `b915fcde34f77658f4cfd92fd0fa746e868b41789f86067185be15889acfceef`, input `558d348c8b0d47941de9f6ded4b3e95ac23d6ba99b7a85cfa9e6bb78eb9e7670`.
+
+- `whole-work-state-hub-01`: 발견/시작/pass 8/8/8, exit 0, 5.379710초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-work-state-hub-01/hub.json --modules tests.hub.test_history_retention tests.hub.test_deletion_feedback`. source `b915fcde34f77658f4cfd92fd0fa746e868b41789f86067185be15889acfceef`, input `558d348c8b0d47941de9f6ded4b3e95ac23d6ba99b7a85cfa9e6bb78eb9e7670`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+Python 3.12.14/Clang, Host d833790, 같은 의존성·실제 namespace/X11 환경이다.
+변경 영향은 일반/구조화 요약·긴 대화 cursor·Compaction·Goal 수정/동시 수정·Refinement,
+출처 보존과 승인·예산·효과·Checkpoint/RAG·수명 무결성으로 선정했다. 실패한 구조화 출력과
+Goal revision 변경이 원본 문맥을 숨기지 않고 손상 기록/중단 후 잘못된 상태를 공개하지 않음을
+검증했다. Hub의 보관·삭제 소비자를 별도 실행했다.
+
+정적 finding 118개가 그대로이며 변경된 의존 근거만 갱신했다.
+`python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`
+16개 pass/exit 0, `python /workspace/llm-clean-resume/whole-ownership/auxiliary.py work-state-auxiliary`의
+S1–S7·문서·R3 mutation·SDK·LLM/Hub 환경 6개가 각 exit 0이다. 최종 문서/diff도 검사한다.
+
+현재 전체 505개 중 미검토 283, 미분류 21448, incomplete 4; stale/위반/감사 오류 0이다.
+
+Level 2 완료다. 정책/저장 형식/증거/검증 순서 동등성과 관련 소비자·안전성 시험으로 영향을
+제한해 소단계 전체 회귀는 유예했다. SummaryStorage와 함께 gate29 전체 검증을 수행한다.
+llm/ 전체 완료 전 Hub 구현은 시작하지 않으며 Hub 소비자 시험은 유지한다.
+
+### 고정 소스 전체 게이트 후속 기록
+
+6b2a10a877e3125bd1e39be1de2cdeb1819b2cd4의
+`python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group27-l3` 완료를 확인했다.
+LLM 2490/2490 pass/1483.214347초, Hub 588/588 pass/1152.188907초, 각 exit 0이다.
+failure/error/skip/xfail/xpass/누락/추가/중복은 모두 0이며 source/input 전후 동일하다.
+source 590e6b2574c654596942aea6288067e0ff789a92c1853f40200f1aa41467a0db,
+input abe7f149a7361e3ebf461f4d5b2edbd7f32b477c8806e77ba742efd111af1a8c.
+같은 SHA의 group27-auxiliary 6개도 각 exit 0이다. 이 실행은 뒤의 History/Goal/Memory 변경을
+포함하지 않는다. 통합 결과를 다른 소스로 승계하지 않는다.
+
+다음 gate28은 fdb50ee2348f8bee2bc8b5af022d5302a192518f에서 실행 중이며 History/Goal 변경을
+포함한다. 같은 SHA의 group28-auxiliary 6개는 통과했다. 현재 Memory 변경은 gate29 대상이다.
+원격 CI 확인 기록은 실제 완료 결과를 별도로 추가하며 진행 중 결과를 통과로 표현하지 않는다.
+
+### 정확한 SHA 원격 확인과 다음 Push
+
+f4eb0385a1f221c7d02514ffe14888ffecb2807f의
+[CI 40018903169](https://github.com/E1der0wL/ish-llm/actions/runs/40018903169)를
+2026-10-23T20:56:41Z에 headSha·필수 LLM/Hub job·artifact까지 확인해 verified=true다.
+원격 LLM 2490/2490 pass(1837.654912초), Hub 588/588 pass(1446.488730초),
+모든 failure/error/skip/xfail/xpass/누락/추가/중복 0이다. CI Python 3.12.14/GCC 13.3.0이며
+동일 소스의 로컬 실행과 별개의 결과다.
+
+전체 검증이 완료된 6b2a10a877e3125bd1e39be1de2cdeb1819b2cd4만 refactor/llm-clean에 Push했다
+(f4eb038→6b2a10a). 원격 조회에서 main 94229cb865374d99f20ec48c5e48269488041a4e와
+backend bb0946257ab6bcabb9a3ef04d3d854e5333b07d5가 그대로임을 확인했다. 이 Push의
+원격 CI는 아직 완료 확인 전이다. 뒤의 Goal/Memory 로컬 커밋과 현재 변경은 포함하지 않았다.
