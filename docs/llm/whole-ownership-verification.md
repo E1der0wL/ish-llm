@@ -100,3 +100,38 @@ Hub에는 `HUB_TEST_XVFB`·`HUB_TEST_XCLIP`을 명시했다. 서로 다른 실�
 전체 LLM/Hub 회귀는 관련 다음 소단계들과 묶은 통합 게이트에서 실행하며 성공 전에는 Push하지 않는다.
 현재 후보 32,221개/443개 파일의 전수 분류는 완료하지 않았고 전체 완료 게이트는 계속 차단한다.
 결과 기록과 inventory 표시 순서만 갱신한 뒤 코드·시험 변경 없이 소단계 커밋으로 보존한다.
+
+## 대화 삭제 표식과 Session 설정 응답
+
+사용량 소단계는 `19b132b`로 로컬 커밋했다. 후속 변경은 `Message`의 논리 삭제 표식 조회·patch
+생성과 `ResumeAbandonment`의 사유 선언/생성, `SessionConfigurationView`의 설정 응답 생성이다.
+대화 조회·문맥·turn 분류·재개·cross-Session 전달 검증과 삭제 Writer가 해당 Owner를 사용한다.
+주입 Conversation에는 기존 `update_metadata` API를 계속 사용하며 새 필수 인터페이스를 요구하지
+않는다. Session 설정 응답의 사본과 생략/null·유효값 출처, 이미 실행 중인 Run snapshot은 보존한다.
+
+`whole-conversation-01`: 발견/실행 141, pass 125, 실패한 test ID 16개, failure 1/error 19,
+exit 1. 일부 subtest 오류로 error 이벤트 수가 실패 ID 수보다 크다. 원인은 Session 삭제 Writer의
+새 `Message.deletion_metadata()` 호출에 필요한 import 누락이었다. 프로세스 중단 시험도 같은
+NameError 때문에 목표 장애 주입 지점에 도달하지 못했다. import를 수정했고 기존 rollback·
+중단 복구·원본 보존 Assertion을 변경하지 않았다. source
+`be64afd05983f6b0aca024dbdaee0333aa0872e92829449e032b2e8be7b6baeb`, input
+`4d8a415985bddd2c6ec34217624b7dbccaaf2a492a7680644794239d401f4b17`는 전후 동일했다.
+
+수정 후 결과:
+
+| 실행 | 범위 | 발견/실행/pass | failure/error/skip/xfail/xpass/누락/중복 | Exit |
+|---|---|---|---|---|
+| whole-conversation-02 | turn 삭제·대화·cross-Session/실제 중단·Checkpoint 수명·설정/명명·주입 서비스·감사 11개 모듈 | 141/141/141 | 모두 0 | 0 |
+| whole-conversation-safety-03 | 사용량 삭제·수명 삭제·승인·효과·Checkpoint 무결성·실제 트랜잭션 6개 모듈 | 69/69/69 | 모두 0 | 0 |
+
+실제 명령은 각각 `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-conversation-02 tests.llm.test_turn_deletion tests.llm.test_conversation_turns tests.llm.test_cross_session_requests tests.llm.test_cross_session_crash tests.llm.test_checkpoint_lifecycle tests.llm.test_naming_contract tests.llm.test_configuration_results tests.llm.test_settings_consistency tests.llm.test_service_extensions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`,
+`.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-conversation-safety-03 tests.llm.test_usage_deletion tests.llm.test_lifecycle_deletion_integrity tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_transactions`다.
+각 실행 디렉터리의 `llm-execution.json`·로그·전후 manifest에 증거를 보존한다. Source
+`2bf876651be16f69875fb47f5ad172b771022cc608213493c6a4fad30a648e0b`, input
+`8839a960aa562d816a8d055790f2a72efc894e363f6dcdecc32c32ed9694298c`는 두 실행에서 같고 각자 전후 동일하다.
+서로 다른 실행을 하나의 전체 회귀로 합산하지 않는다. Level 2 소단계 결과이며 전체 작업은 계속한다.
+
+보조 검증은 기존과 동일한 명령의 S1–S7 정적 검사(`conversation-static-02.json`, 검토 144,
+new/stale/outstanding/error 0), `check_budget_mutation`(`conversation-mutation-01.log`, 실제 효과
+Assertion 검출), `check_docs`(`conversation-docs-01.json`)가 모두 exit 0이다. 전체 회귀는
+Checkpoint 소비 경로를 포함하는 다음 통합 게이트에서 수행하며 아직 Push하지 않는다.

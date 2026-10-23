@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from collections.abc import Callable
 
-from llm.core.models import ConversationStorage, MessageStatus, Project, ProjectConfig, Run, Session, SessionStatus, new_id
+from llm.core.models import ConversationStorage, Message, MessageStatus, Project, ProjectConfig, Run, Session, SessionStatus, new_id
 from llm.core.configuration import UNSET
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.core.contracts import Diagnostic, ResourceRef
@@ -573,7 +573,7 @@ class SessionManager:
             activity_event(self._owner(current), run, ActivityEventType.RUN_RESUME_ABANDONED,
                 time=run.metadata["resume_abandonment"]["abandoned_at"], status=run.status)
         for message in group:
-            store.update_metadata(message.id, {"conversation_deleted": True})
+            store.update_metadata(message.id, Message.deletion_metadata())
         log_event(current.paths.logs, "conversation.deleted", entity_id=request_id, count=len(group))
 
     @workspace_locked

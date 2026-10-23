@@ -26,6 +26,11 @@ class CheckpointOperation(StrEnum):
     RECORD = "record"
 
 
+class ResumeAbandonmentReason(StrEnum):
+    EXPLICIT = "explicit"
+    CONVERSATION_DELETED = "conversation_deleted"
+
+
 @dataclass(frozen=True, slots=True)
 class CheckpointEnvelope:
     """Common nested identity and lifecycle; the child owns the opaque payload."""
@@ -183,20 +188,30 @@ def unwrap_record(record):
 @dataclass(frozen=True, slots=True)
 class ResumeAbandonment(JsonValue):
     """재개 권한의 영구 포기. 실행 취소나 파일 삭제, 외부 효과 취소가 아니다."""
+
+    INVALID: ClassVar[str] = "Invalid resume abandonment record"
+    INVALID_TIME: ClassVar[str] = "Abandonment time requires a timezone"
+    MISSING_REQUEST: ClassVar[str] = "Conversation abandonment requires request_id"
+    UNEXPECTED_REQUEST: ClassVar[str] = "Explicit abandonment has no conversation request"
     abandoned_at: str
     reason: str
     request_id: Optional[str] = None
 
     def __post_init__(self):
         JsonValue.__post_init__(self)
-        if not self.abandoned_at or self.reason not in ("explicit", "conversation_deleted"):
-            raise ValueError("Invalid resume abandonment record")
+        if not self.abandoned_at or self.reason not in tuple(ResumeAbandonmentReason):
+            raise ValueError(self.INVALID)
         if datetime.fromisoformat(self.abandoned_at).utcoffset() is None:
-            raise ValueError("Abandonment time requires a timezone")
-        if self.reason == "conversation_deleted" and not self.request_id:
-            raise ValueError("Conversation abandonment requires request_id")
-        if self.reason == "explicit" and self.request_id is not None:
-            raise ValueError("Explicit abandonment has no conversation request")
+            raise ValueError(self.INVALID_TIME)
+        if self.reason == ResumeAbandonmentReason.CONVERSATION_DELETED and not self.request_id:
+            raise ValueError(self.MISSING_REQUEST)
+        if self.reason == ResumeAbandonmentReason.EXPLICIT and self.request_id is not None:
+            raise ValueError(self.UNEXPECTED_REQUEST)
+
+    @classmethod
+    def for_request(cls, abandoned_at, request_id):
+        reason = ResumeAbandonmentReason.CONVERSATION_DELETED if request_id is not None else ResumeAbandonmentReason.EXPLICIT
+        return cls(abandoned_at, reason, request_id)
 
 
 def require_checkpoint_plan(plan: CheckpointPlan, expected_revision: str, *, action: str) -> None:

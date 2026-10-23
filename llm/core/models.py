@@ -468,6 +468,9 @@ class Session:
 @dataclass(slots=True)
 # Session 대화의 메시지와 상태. Run ID로 실행과 연결된다.
 class Message:
+    CONVERSATION_DELETED = "conversation_deleted"
+    DELETION_MARKER = True
+
     id: str
     role: MessageRole
     content: str
@@ -475,6 +478,14 @@ class Message:
     run_id: Optional[str] = None
     created_at: str = field(default_factory=now)
     metadata: dict = field(default_factory=dict)
+
+    @property
+    def conversation_deleted(self) -> bool:
+        return bool(self.metadata.get(self.CONVERSATION_DELETED))
+
+    @classmethod
+    def deletion_metadata(cls) -> dict:
+        return {cls.CONVERSATION_DELETED: cls.DELETION_MARKER}
 
     @classmethod
     def from_record(cls, data):

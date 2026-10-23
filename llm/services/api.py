@@ -315,11 +315,10 @@ class SessionHandle(AsyncFacade):
 
     def describe_config(self) -> dict:
         """Session 덮어쓰기까지 적용한 설정 조회. 실행 중 Run의 설정을 변경하지 않는다."""
-        from llm.services.schema import effective_engines
+        from llm.services.schema import SessionConfigurationView
         with self.app.project_manager.ownership.scope():
             session, project = self.data, self.project.data
-            return {"config": deepcopy(session.config), "effective_engines":
-                    effective_engines(self.app, project.config, session_config=session.config)}
+            return SessionConfigurationView.describe(self.app, project, session).to_dict()
 
     adescribe_config = async_method(describe_config)
 
@@ -327,7 +326,7 @@ class SessionHandle(AsyncFacade):
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             messages = self.app.project_manager.sessions.conversations(self.data).list()
-            return select([m for m in messages if include_deleted or not m.metadata.get("conversation_deleted")], query)
+            return select([m for m in messages if include_deleted or not m.conversation_deleted], query)
 
     async def aget_data(self) -> Session:
         return await self._async_call(lambda: self.data)

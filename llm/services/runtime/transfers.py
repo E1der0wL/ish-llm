@@ -234,14 +234,14 @@ class TransferRecords:
             source, target = value["source"]["session_id"], value["target_session_id"]
             original = messages[target][value["target_message_id"]]
             admission = RequestAdmission.read(original, project_id=project.id, session_id=target)
-            if (original.metadata.get("transfer") != value or original.metadata.get("conversation_deleted")
+            if (original.metadata.get("transfer") != value or original.conversation_deleted
                     or content_digest(original.content) != value["content_digest"] or admission["recipients"] != value["recipients"]):
                 raise ValueError("Transfer target differs from the accepted request")
             chain = [source]
             if value["source"]["run_id"] is not None:
                 run = runs[source][value["source"]["run_id"]]
                 message = messages[source][run.input_message_id]
-                if run.agent_id != value["source"]["agent_id"] or message.id != value["source"]["message_id"] or message.metadata.get("conversation_deleted"):
+                if run.agent_id != value["source"]["agent_id"] or message.id != value["source"]["message_id"] or message.conversation_deleted:
                     raise ValueError("Transfer source Run identity changed")
                 parent = self.lineage(message, messages[source], runs[source])
                 if parent is not None:

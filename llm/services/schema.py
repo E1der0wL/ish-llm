@@ -56,6 +56,22 @@ class ProjectConfigurationView:
     components: dict
 
 
+@dataclass(frozen=True)
+class SessionConfigurationView:
+    """Detached Session overrides and effective Engine observations, never stored defaults."""
+
+    config: dict
+    effective_engines: dict
+
+    @classmethod
+    def describe(cls, app, project, session):
+        return cls(deepcopy(session.config),
+                   effective_engines(app, project.config, session_config=session.config))
+
+    def to_dict(self):
+        return asdict(self)
+
+
 class ProjectConfiguration:
     """Owner of the public configuration description, detached from stored state."""
 

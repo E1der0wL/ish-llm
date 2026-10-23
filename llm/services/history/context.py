@@ -75,7 +75,7 @@ class ConversationContextBuilder:
     # 공개 API
     def for_run(self, messages: list[Message], input_message_id: str, *,
                  policy: Optional[ContextPolicy] = None) -> tuple[Message, ...]:
-        messages = [m for m in messages if not m.metadata.get("conversation_deleted")]
+        messages = [m for m in messages if not m.conversation_deleted]
         for message in messages:
             if is_instruction(message):
                 RunInstruction.validate_message(message)
@@ -103,7 +103,7 @@ class ConversationContextBuilder:
 
     def for_clone(self, messages: list[Message]) -> list[Message]:
         from llm.services.runtime.requests import RequestAdmission
-        messages = [m for m in messages if not m.metadata.get("conversation_deleted")]
+        messages = [m for m in messages if not m.conversation_deleted]
         for message in messages:
             if is_instruction(message):
                 RunInstruction.validate_message(message)

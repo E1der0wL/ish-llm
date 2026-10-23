@@ -7,7 +7,7 @@ from llm.services.runtime.requests import RequestAdmission
 def conversation_turns(messages):
     groups, by_run = [], {}
     for message in messages:
-        if message.metadata.get("conversation_deleted"):
+        if message.conversation_deleted:
             continue
         if message.role == "user" and not is_instruction(message):
             group = [message]
@@ -17,7 +17,7 @@ def conversation_turns(messages):
     by_id = {group[0].id: group for group in groups}
     current = None
     for message in messages:
-        if message.metadata.get("conversation_deleted"):
+        if message.conversation_deleted:
             continue
         if message.id in by_id:
             current = by_id[message.id]

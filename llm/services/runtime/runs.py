@@ -522,8 +522,7 @@ class RunRepository:
         self.require_resume(run)
         if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
             raise ValueError("Only an inactive resumable Run can be abandoned")
-        run.metadata["resume_abandonment"] = ResumeAbandonment(
-            now(), "conversation_deleted" if request_id is not None else "explicit", request_id).to_dict()
+        run.metadata["resume_abandonment"] = ResumeAbandonment.for_request(now(), request_id).to_dict()
         self.save(run)
 
     def checkpoint_plan(self, session, run, store, *, attached=False):
@@ -1208,7 +1207,7 @@ class RunManager:
                and m.status != MessageStatus.CANCELLED for m in messages):
             restart_blockers.append(Diagnostic(PlanBlockerCode.RESTART_RESERVED, "A later request already uses this Run", source=ref))
         original = next((m for m in messages if m.id == source.input_message_id), None)
-        if original is None or original.metadata.get("conversation_deleted"):
+        if original is None or original.conversation_deleted:
             restart_blockers.append(Diagnostic(PlanBlockerCode.INPUT_UNAVAILABLE, "Original input is unavailable", source=ref))
         if any(self.repository.load(session, identifier).agent_id == source.agent_id
                for identifier in session.active_run_ids) or self.pending_work.active:
@@ -1260,7 +1259,7 @@ class RunManager:
                 or not AgentBinding.same_request(source.metadata, run.metadata)
                 or source.status not in (RunStatus.FAILED, RunStatus.INTERRUPTED)
                 or self.steps.list(source) or self.repository.resume_abandoned(source)
-                or original.metadata.get("conversation_deleted")
+                or original.conversation_deleted
                 or revision_token({"run": record(source), "input": record(original)}) != descriptor[RestartRecord.DIGEST]):
             raise CheckpointError(CheckpointErrorCode.CONFLICT, "Restart source changed after admission")
 
@@ -1399,7 +1398,7 @@ class RunManager:
         identifiers = checkpoint_message_ids(checkpoint) | {input_message_id}
         get = store.get if messages is None else {message.id: message for message in messages}.__getitem__
         try:
-            if any(get(identifier).metadata.get("conversation_deleted") for identifier in identifiers):
+            if any(get(identifier).conversation_deleted for identifier in identifiers):
                 raise ValueError("Deleted conversation messages cannot be used for resume; submit a new request")
         except KeyError as error:
             raise ValueError("Original conversation is unavailable; memory-mode resume requires the original backend") from error
