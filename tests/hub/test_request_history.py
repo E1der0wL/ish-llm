@@ -293,7 +293,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         from llm.core.agents import AgentBinding
         from llm.services.runtime.requests import RequestAdmission
         project_id, session_id, run_id = new_id(), new_id(), new_id()
-        binding = AgentBinding.create(project_id, "assistant", {"engine": "loop"})
+        binding = AgentBinding.create(project_id, "assistant", {"engine": "loop"}).to_dict()
         first = Message(new_id(), MessageRole.USER, "request", MessageStatus.COMMITTED)
         admission = RequestAdmission.create(project_id=project_id, session_id=session_id,
             message_id=first.id, bindings={"assistant": binding})

@@ -215,6 +215,44 @@ class Engine(Protocol):
     def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]: ...
 
 
+class EngineContextBinding:
+    """The Engine extension boundary owns validation of a request-bound Engine."""
+
+    FOR_CONTEXT = 'for_context'
+    EXECUTE = 'execute'
+    CHECKPOINT_NAME = 'checkpoint_name'
+    INVALID_CONTEXT = 'request_context must be a JSON object'
+    UNSUPPORTED = 'Selected Engine does not accept request context'
+    ASYNC_FACTORY = 'Engine for_context must be synchronous'
+    INVALID_ENGINE = 'for_context must return an Engine'
+    CHANGED_CONTRACT = 'Request context must preserve Engine execution contracts'
+
+    @classmethod
+    def bind(cls, engine, request_context=UNSET):
+        if request_context is not UNSET:
+            if not isinstance(request_context, dict):
+                raise TypeError(cls.INVALID_CONTEXT)
+            from llm.core.models import ProjectConfig
+            ProjectConfig.validate_json(request_context)
+            factory = getattr(engine, cls.FOR_CONTEXT, None)
+            if not callable(factory):
+                raise ValueError(cls.UNSUPPORTED)
+            bound = factory(deepcopy(request_context))
+            if inspect.isawaitable(bound):
+                if inspect.iscoroutine(bound):
+                    bound.close()
+                raise TypeError(cls.ASYNC_FACTORY)
+            if not callable(getattr(bound, cls.EXECUTE, None)):
+                raise TypeError(cls.INVALID_ENGINE)
+            required_capabilities(bound)
+            if (agent_mode(bound) != agent_mode(engine)
+                    or steering_mode(bound) != steering_mode(engine)
+                    or getattr(bound, cls.CHECKPOINT_NAME, None) != getattr(engine, cls.CHECKPOINT_NAME, None)):
+                raise ValueError(cls.CHANGED_CONTRACT)
+            engine = bound
+        return engine
+
+
 def required_capabilities(engine) -> tuple[str, ...]:
     """선언하지 않은 Engine은 외부 기능 없이 실행한다."""
     names = getattr(engine, "required_capabilities", ())

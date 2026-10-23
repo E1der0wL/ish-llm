@@ -1,15 +1,14 @@
 """추가 지시의 메시지/체크포인트 연결. 호출자는 저장 잠금과 트랜잭션을 소유한다."""
 
-from llm.core.checkpoints import CheckpointOperation
+from llm.core.checkpoints import CheckpointOperation, CheckpointConversation
 
 from llm.core.continuations import ResumeRecord
 
 from copy import deepcopy
 
 from llm.core.models import Message, MessageRole, MessageStatus, now, new_id
-from llm.core.steering import INSTRUCTION_INPUT_STATUS
 from llm.core.steering import (InstructionStatus, is_instruction, RunInstruction, SteeringTarget, SteeringMode,
-                               InstructionDataError, validate_instruction_record, SteeringRoute)
+                               InstructionDataError, InstructionCheckpoint, SteeringRoute)
 from llm.services.history.conversation import Conversation
 from llm.services.query import Query
 from llm.services.runtime.tools import ToolExecutionScope
@@ -128,9 +127,9 @@ def instruction_records(checkpoint):
     from llm.core.checkpoints import unwrap_record
     for key, record in checkpoint["records"].items():
         payload, scope = unwrap_record(record)
-        if isinstance(payload, dict) and payload.get("kind") == "instruction":
-            validate_instruction_record(payload)
-            if scope is not None and payload["target_scope"] != scope:
+        if InstructionCheckpoint.is_record(payload):
+            payload = InstructionCheckpoint.read(payload)
+            if scope is not None and payload.target_scope != scope:
                 raise InstructionDataError("checkpoint scope mismatch")
             yield key, payload
 
@@ -140,9 +139,9 @@ def checkpoint_messages(store: Conversation, checkpoint: dict) -> dict[str, Mess
     result = {}
     seen = set()
     for key, record in instruction_records(checkpoint):
-        ids = record["message_ids"]
+        ids = record.message_ids
         for identifier in ids:
-            identity = (record["target_scope"], identifier)
+            identity = (record.target_scope, identifier)
             if identity in seen:
                 raise InstructionDataError("repeated checkpoint message")
             seen.add(identity)
@@ -152,8 +151,8 @@ def checkpoint_messages(store: Conversation, checkpoint: dict) -> dict[str, Mess
                 raise InstructionDataError("checkpoint message is unavailable") from error
             RunInstruction.validate_message(message)
             if (not is_instruction(message) or message.role != MessageRole.USER
-                    or message.metadata["steering"]["input_message_id"] != checkpoint["header"]["input_message_id"]
-                    or not any(t["scope"] == record["target_scope"] for t in message.metadata["steering"]["targets"])):
+                    or message.metadata["steering"]["input_message_id"] != CheckpointConversation.from_checkpoint(checkpoint).input_message_id
+                    or not any(t["scope"] == record.target_scope for t in message.metadata["steering"]["targets"])):
                 raise InstructionDataError("checkpoint message ownership mismatch")
             result[identifier] = message
     return result
@@ -167,14 +166,14 @@ def resume_instructions(store: Conversation, checkpoint: dict) -> dict:
     """
     history = checkpoint_messages(store, checkpoint)
     result = deepcopy(checkpoint)
-    for _, record in instruction_records(result):
+    for key, record in instruction_records(result):
         kept = []
-        for identifier in record["message_ids"]:
+        for identifier in record.message_ids:
             receipt = next(t for t in history[identifier].metadata["steering"]["targets"]
-                           if t["scope"] == record["target_scope"])
+                           if t["scope"] == record.target_scope)
             if "reservation" not in receipt or receipt["status"] == InstructionStatus.APPLIED:
                 kept.append(identifier)
-        record["message_ids"] = kept
+        result["records"][key] = InstructionCheckpoint.replace_message_ids(result["records"][key], kept)
     return result
 
 
@@ -299,11 +298,11 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         messages = pending if data["allow_continue"] else []
         if data["final"] and not messages:
             return (), close(data.get("reason") or "completed")
-        selected = {mid for _, value in instruction_records(checkpoint) if value["target_scope"] == target["scope"]
-                    for mid in value["message_ids"]}
+        selected = {mid for _, value in instruction_records(checkpoint) if value.target_scope == target["scope"]
+                    for mid in value.message_ids}
         if selected.intersection(m.id for m in messages):
             raise ValueError("Apply the selected instruction boundary before selecting again")
-        record = {"kind": "instruction", "status": INSTRUCTION_INPUT_STATUS, "target_scope": target["scope"], "message_ids": [m.id for m in messages]}
+        record = InstructionCheckpoint.create(target["scope"], (m.id for m in messages)).to_dict()
         if envelope is not None:
             record = {**deepcopy(envelope), "payload": record}
         ToolExecutionScope.validate_usage([tool_usage])
@@ -313,10 +312,10 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         return tuple(messages), []
     if operation == "apply":
         record = dict(instruction_records(checkpoint))[key]
-        if record["target_scope"] != target["scope"]:
+        if record.target_scope != target["scope"]:
             raise ValueError("Instruction application target mismatch")
         history = checkpoint_messages(store, checkpoint)
-        messages = tuple(history[i] for i in record["message_ids"])
+        messages = tuple(history[i] for i in record.message_ids)
         return messages, apply_instructions(store, messages, run.id, key, event.step_id,
                                             target=target, details=data.get("details"))
     raise ValueError("Unknown instruction operation")

@@ -748,6 +748,8 @@ class LargeLanguageModel:
     step_manager로 접근할 수 있지만 UI에서는 위 Facade API를 사용한다.
     """
 
+    NO_UNFINISHED_WORK = 0
+
     def __init__(self, workspace: Union[str, Path] = "workspace", *,
                  components: Optional[Iterable[ProjectComponent]] = None,
                  engines: Optional[Mapping[str, Engine]] = None,
@@ -875,6 +877,12 @@ class LargeLanguageModel:
             self._loop = loop
         elif self._loop is not loop:
             raise RuntimeError("Use LargeLanguageModel on its original event loop")
+
+    def unfinished_work(self, session: Session) -> int:
+        """Observe pending work without creating a runtime or interpreting its internals."""
+        self._check_open()
+        manager = self._managers.get((session.project_id, session.id))
+        return manager.pending_work.active if manager is not None else self.NO_UNFINISHED_WORK
 
     def _manager(self, session: Session) -> RunManager:
         self._check_open()

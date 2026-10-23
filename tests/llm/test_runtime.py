@@ -37,7 +37,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.projects.agents.create(self.project, {"engine": "fake"}, identifier="fake")
         self.session = self.sessions.create(self.project, "Session", agent_ids=["fake"])
         self.store = ConversationStore(self.session.paths.conversation)
-        self.binding = AgentBinding.create(self.project.id, "fake", {"engine": "fake"})
+        self.binding = AgentBinding.create(self.project.id, "fake", {"engine": "fake"}).to_dict()
         self.manager = self.make_manager()
 
     def make_manager(self, session=None) -> RunManager:
@@ -229,7 +229,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         for status in (RunStatus.PENDING, RunStatus.RUNNING, RunStatus.COMPLETED):
             runtime = SessionRuntime(self.project, self.session)
             with self.projects.ownership.scope():
-                message = self.manager._admit(runtime, f"old-{status}", {"fake": self.binding})
+                message = self.manager._admit(runtime, f"old-{status}", {"fake": AgentBinding.read(self.binding)})
                 run, = self.manager._dispatch_request(runtime, message)
                 run.status = status
                 if status in Run.STARTED_STATES:
@@ -247,7 +247,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.session.status = SessionStatus.RUNNING
         self.session.active_run_ids = [stale_runs[1].id]
         self.sessions.repository.save(self.session)
-        queued = self.manager._admit(runtime, "recover-me", {"fake": self.binding})
+        queued = self.manager._admit(runtime, "recover-me", {"fake": AgentBinding.read(self.binding)})
         await self.manager.start()
         await self.manager.start()
         await self.idle()
@@ -264,9 +264,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_committed_dispatch_before_start_does_not_replay_claimed_input(self) -> None:
         runtime = SessionRuntime(self.project, self.session)
         with self.projects.ownership.scope():
-            claimed = self.manager._admit(runtime, "claimed", {"fake": self.binding})
+            claimed = self.manager._admit(runtime, "claimed", {"fake": AgentBinding.read(self.binding)})
             run, = self.manager._dispatch_request(runtime, claimed)
-            self.manager._admit(runtime, "future", {"fake": self.binding})
+            self.manager._admit(runtime, "future", {"fake": AgentBinding.read(self.binding)})
         await self.manager.start()
         await self.idle()
         self.assertEqual([context.messages[-1].content for context in self.engine.contexts], ["future"])

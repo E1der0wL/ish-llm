@@ -249,7 +249,7 @@ class AgentExecution:
     def _checkpoint_usage(cls, records, owner, name):
         """선택한 Agent의 실행 기록만 해석하고 필수 사용량을 검증한다."""
         from llm.core.checkpoints import CheckpointEnvelope, unwrap_record
-        from llm.core.steering import validate_instruction_record
+        from llm.core.steering import InstructionCheckpoint
 
         values = []
         def append(record):
@@ -262,9 +262,9 @@ class AgentExecution:
                     if record.get("engine_scope") == owner and record.get("checkpoint_name") == name]
         for record in selected:
             payload, _ = unwrap_record(record)
-            if payload.get("kind") == "instruction":
+            if InstructionCheckpoint.is_record(payload):
                 # 지시는 실행 사용량의 소유자가 아니다. 해당 소유자의 계약으로만 구분한다.
-                validate_instruction_record(payload)
+                InstructionCheckpoint.read(payload)
                 continue
             append(record)
         marker = records.get(owner)
@@ -470,8 +470,8 @@ class AgentInvocation:
     """One admitted root Agent; scheduling and persisted effects stay in RunManager."""
 
     def __init__(self, binding, engine, engines):
-        self.binding = AgentBinding.read(binding)
-        self.profile, self.engine = self.binding["definition"], engine
+        self.binding = AgentBinding.read(binding.to_dict())
+        self.profile, self.engine = self.binding.definition, engine
         self.selection = AgentExecution(engines=engines)
         self.mode = agent_mode(engine)
         self.resources = None
@@ -510,12 +510,12 @@ class AgentInvocation:
                 message = next(item for item in context.messages if item.id == context.run.input_message_id)
                 Draft202012Validator(self.profile["input_schema"]).validate(message.content)
         describe = getattr(self.engine, "resolve_config", None)
-        configuration = (revision_token(describe(context.project.config, self.binding["engine"],
+        configuration = (revision_token(describe(context.project.config, self.binding.engine,
                          session_config=context.session.config)) if callable(describe) else None)
         execution = getattr(self.engine, "bind_execution", None)
         self.runtime_binding = {
-            "agent_id": self.binding["agent_id"], "revision": self.binding["revision"],
-            "engine": self.binding["engine"], "mode": self.mode.value,
+            "agent_id": self.binding.agent_id, "revision": self.binding.revision,
+            "engine": self.binding.engine, "mode": self.mode.value,
             "configuration": configuration, "resources": deepcopy(self.resources),
             **context.tools.execution_binding(context.tool_scope.binding()),
             "execution": revision_token({"value": execution(context)}) if callable(execution) else None,

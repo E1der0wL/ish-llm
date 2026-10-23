@@ -14,7 +14,7 @@ class RequestAdmissionTests(unittest.TestCase):
     def setUp(self):
         self.project, self.session, self.message_id = new_id(), new_id(), new_id()
         self.bindings = {identifier: AgentBinding.create(self.project, identifier,
-                         {"engine": "base", "tools": [], "system_prompt": None})
+                         {"engine": "base", "tools": [], "system_prompt": None}).to_dict()
                          for identifier in ("writer", "reader")}
         self.value = RequestAdmission.create(project_id=self.project, session_id=self.session,
                     message_id=self.message_id, bindings=self.bindings)

@@ -36,7 +36,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         identifier = new_id()
         run = Run(identifier, session.id, new_id(), new_id(), "custom",
                   app.run_repository.paths(session.data, identifier), agent_id="custom",
-                  metadata={"agent_binding": AgentBinding.create(project.id, "custom", {"engine": "custom", "tools": []})})
+                  metadata={"agent_binding": AgentBinding.create(project.id, "custom", {"engine": "custom", "tools": []}).to_dict()})
         run.status = RunStatus.INTERRUPTED
         run.ended_at = run.created_at
         with app.project_manager.ownership.scope():

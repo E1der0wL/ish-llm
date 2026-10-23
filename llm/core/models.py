@@ -520,7 +520,7 @@ class Run:
         _stored_fields(cls, data)
         from llm.core.agents import AgentBinding
         binding = AgentBinding.from_metadata(data["metadata"])
-        if data["agent_id"] != binding["agent_id"] or data["engine"] != binding["engine"]:
+        if data["agent_id"] != binding.agent_id or data["engine"] != binding.engine:
             raise ValueError("Run Agent identity must match its original binding")
         status = RunStatus(data["status"])
         if ((status in cls.STARTED_STATES and data["started_at"] is None)

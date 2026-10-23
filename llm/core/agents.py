@@ -1,6 +1,9 @@
 """Independent Agent definition and current storage envelopes; no execution state."""
 
 from copy import deepcopy
+from collections.abc import Mapping
+from dataclasses import dataclass, fields, replace
+from types import MappingProxyType
 import hashlib
 import json
 import re
@@ -20,12 +23,14 @@ class AgentMode(StrEnum):
 class AgentDefinition:
     """A selected Engine is required; application descriptions remain optional."""
 
+    ENGINE_FIELD = "engine"
+
     schema = {
-        "type": "object", "required": ["engine"], "additionalProperties": False,
+        "type": "object", "required": [ENGINE_FIELD], "additionalProperties": False,
         "properties": {
             "purpose": {"type": "string", "minLength": 1},
             "description": {"type": "string"}, "metadata": metadata_schema(),
-            "engine": {"type": "string", "minLength": 1},
+            ENGINE_FIELD: {"type": "string", "minLength": 1},
             "system_prompt": {"type": ["string", "null"]},
             "completion": open_schema("selected Agent Engine completion adapter", category="provider"),
             "engine_options": open_schema("selected Agent Engine.for_agent", category="implementation"),
@@ -53,6 +58,10 @@ class AgentDefinition:
         },
     }
 
+
+    @classmethod
+    def engine(cls, definition):
+        return definition[cls.ENGINE_FIELD]
 
     @staticmethod
     def validate_mode(definition, mode):
@@ -94,74 +103,203 @@ class AgentDefinition:
             raise ValueError("require_tool needs at least one allowed Tool")
 
 
+@dataclass(frozen=True, init=False)
 class AgentRecord:
-    """Current identity, definition and revision are all required on every read."""
+    """Validated storage snapshot; wire dictionaries never escape through properties."""
 
     STORAGE_VERSION = 1
+    PROJECT_PATTERN = r"[a-f0-9]{32}"
+    INVALID_PROJECT = "Invalid Agent Project ID"
+    INVALID_FIELDS = "Agent record requires all current fields"
+    INVALID_VERSION = "Unsupported Agent storage_version"
+    INVALID_IDENTITY = "Agent record identity or revision mismatch"
 
-    @staticmethod
-    def project_id(value):
-        if not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{32}", value):
-            raise ValueError("Invalid Agent Project ID")
+    class Field(StrEnum):
+        STORAGE_VERSION = "storage_version"
+        PROJECT_ID = "project_id"
+        ID = "id"
+        DEFINITION = "definition"
+        REVISION = "revision"
+
+    _value: dict
+
+    @classmethod
+    def validate_project_id(cls, value):
+        if not isinstance(value, str) or not re.fullmatch(cls.PROJECT_PATTERN, value):
+            raise ValueError(cls.INVALID_PROJECT)
         return value
 
     @classmethod
     def create(cls, project_id, identifier, definition):
-        cls.project_id(project_id)
+        cls.validate_project_id(project_id)
         AgentDefinition.validate(identifier, definition)
-        return {"storage_version": cls.STORAGE_VERSION, "project_id": project_id,
-                "id": identifier, "definition": deepcopy(definition),
-                "revision": AgentDefinition.revision(definition)}
+        result = object.__new__(cls)
+        object.__setattr__(result, "_value", {
+            cls.Field.STORAGE_VERSION: cls.STORAGE_VERSION, cls.Field.PROJECT_ID: project_id,
+            cls.Field.ID: identifier, cls.Field.DEFINITION: deepcopy(definition),
+            cls.Field.REVISION: AgentDefinition.revision(definition)})
+        return result
 
     @classmethod
     def read(cls, value, *, project_id, identifier):
-        if not isinstance(value, dict) or value.keys() != {
-                "storage_version", "project_id", "id", "definition", "revision"}:
-            raise ValueError("Agent record requires all current fields")
-        if type(value["storage_version"]) is not int or value["storage_version"] != cls.STORAGE_VERSION:
-            raise ValueError("Unsupported Agent storage_version")
-        expected = cls.create(project_id, identifier, value["definition"])
-        if value != expected:
-            raise ValueError("Agent record identity or revision mismatch")
-        return deepcopy(value)
+        if not isinstance(value, dict) or value.keys() != set(cls.Field):
+            raise ValueError(cls.INVALID_FIELDS)
+        version = value[cls.Field.STORAGE_VERSION]
+        if type(version) is not int or version != cls.STORAGE_VERSION:
+            raise ValueError(cls.INVALID_VERSION)
+        expected = cls.create(project_id, identifier, value[cls.Field.DEFINITION])
+        if value != expected.to_dict():
+            raise ValueError(cls.INVALID_IDENTITY)
+        return expected
+
+    @property
+    def project_id(self):
+        return self._value[self.Field.PROJECT_ID]
+
+    @property
+    def id(self):
+        return self._value[self.Field.ID]
+
+    @property
+    def definition(self):
+        return deepcopy(self._value[self.Field.DEFINITION])
+
+    @property
+    def revision(self):
+        return self._value[self.Field.REVISION]
+
+    def to_dict(self):
+        return deepcopy(self._value)
 
 
+@dataclass(frozen=True)
 class AgentCatalog:
-    """Mandatory Project inventory: lost records never mean an empty catalogue."""
+    """Mandatory Project inventory; missing evidence never becomes an empty catalogue."""
 
     SCHEMA_VERSION = 1
+    DIGEST_PATTERN = r"[a-f0-9]{64}"
+    INVALID_FIELDS = "Agent catalog requires all current fields"
+    INVALID_VERSION = "Unsupported Agent catalog schema_version"
+    INVALID_OWNER = "Invalid Agent catalog owner or records"
+    INVALID_DIGEST = "Invalid Agent record digest"
+
+    schema_version: int
+    project_id: str
+    records: Mapping[str, str]
+
+    def __post_init__(self):
+        AgentRecord.validate_project_id(self.project_id)
+        if type(self.schema_version) is not int or self.schema_version != self.SCHEMA_VERSION:
+            raise ValueError(self.INVALID_VERSION)
+        if not isinstance(self.records, Mapping):
+            raise ValueError(self.INVALID_OWNER)
+        for identifier, digest in self.records.items():
+            AgentDefinition.identifier(identifier)
+            if not isinstance(digest, str) or not re.fullmatch(self.DIGEST_PATTERN, digest):
+                raise ValueError(self.INVALID_DIGEST)
+        object.__setattr__(self, "records", MappingProxyType(dict(self.records)))
 
     @classmethod
     def empty(cls, project_id):
-        AgentRecord.project_id(project_id)
-        return {"schema_version": cls.SCHEMA_VERSION, "project_id": project_id, "records": {}}
+        return cls(cls.SCHEMA_VERSION, project_id, {})
 
     @classmethod
-    def validate(cls, value, *, project_id):
-        AgentRecord.project_id(project_id)
-        if not isinstance(value, dict) or value.keys() != {"schema_version", "project_id", "records"}:
-            raise ValueError("Agent catalog requires all current fields")
-        if type(value["schema_version"]) is not int or value["schema_version"] != cls.SCHEMA_VERSION:
-            raise ValueError("Unsupported Agent catalog schema_version")
-        if value["project_id"] != project_id or not isinstance(value["records"], dict):
-            raise ValueError("Invalid Agent catalog owner or records")
-        for identifier, digest in value["records"].items():
-            AgentDefinition.identifier(identifier)
-            if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
-                raise ValueError("Invalid Agent record digest")
+    def read(cls, value, *, project_id):
+        AgentRecord.validate_project_id(project_id)
+        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
+            raise ValueError(cls.INVALID_FIELDS)
+        ProjectConfig.validate_json(value)
+        result = cls(**value)
+        if result.project_id != project_id:
+            raise ValueError(cls.INVALID_OWNER)
+        return result
+
+    def with_record(self, identifier, digest):
+        return replace(self, records={**self.records, identifier: digest})
+
+    def without_record(self, identifier):
+        records = dict(self.records)
+        del records[identifier]
+        return replace(self, records=records)
+
+    def to_dict(self):
+        return {item.name: dict(value) if isinstance(value, Mapping) else value
+                for item in fields(self) for value in (getattr(self, item.name),)}
 
 
+@dataclass(frozen=True, init=False)
 class AgentBinding:
-    """Immutable admitted identity; missing evidence is never filled from a current definition."""
+    """Immutable admitted evidence, with detached definition and wire projections."""
 
     SCHEMA_VERSION = 1
     METADATA_FIELD = "agent_binding"
     CONTEXT_FIELD = "request_context"
     EXECUTION_FIELD = "agent_execution"
+    INVALID_FIELDS = "Agent execution binding requires all current evidence"
+    INVALID_VERSION = "Unsupported Agent binding schema_version"
+    INVALID_IDENTITY = "Agent binding identity, revision or Engine mismatch"
+    MISSING_BINDING = "Run is missing its original Agent binding"
+    RUN_MISMATCH = "Run Agent and Engine binding mismatch"
+    IMMUTABLE_EVIDENCE = "Run Agent evidence is immutable"
+
+    class Field(StrEnum):
+        SCHEMA_VERSION = "schema_version"
+        PROJECT_ID = "project_id"
+        AGENT_ID = "agent_id"
+        DEFINITION = "definition"
+        REVISION = "revision"
+        ENGINE = "engine"
+
+    _value: dict
+
+    @classmethod
+    def create(cls, project_id, identifier, definition):
+        record = AgentRecord.create(project_id, identifier, definition)
+        result = object.__new__(cls)
+        object.__setattr__(result, "_value", {
+            cls.Field.SCHEMA_VERSION: cls.SCHEMA_VERSION, cls.Field.PROJECT_ID: record.project_id,
+            cls.Field.AGENT_ID: record.id, cls.Field.DEFINITION: record.definition,
+            cls.Field.REVISION: record.revision, cls.Field.ENGINE: AgentDefinition.engine(definition)})
+        return result
+
+    @classmethod
+    def read(cls, value):
+        if not isinstance(value, dict) or value.keys() != set(cls.Field):
+            raise ValueError(cls.INVALID_FIELDS)
+        version = value[cls.Field.SCHEMA_VERSION]
+        if type(version) is not int or version != cls.SCHEMA_VERSION:
+            raise ValueError(cls.INVALID_VERSION)
+        expected = cls.create(value[cls.Field.PROJECT_ID], value[cls.Field.AGENT_ID], value[cls.Field.DEFINITION])
+        if value != expected.to_dict():
+            raise ValueError(cls.INVALID_IDENTITY)
+        return expected
+
+    @property
+    def project_id(self):
+        return self._value[self.Field.PROJECT_ID]
+
+    @property
+    def agent_id(self):
+        return self._value[self.Field.AGENT_ID]
+
+    @property
+    def definition(self):
+        return deepcopy(self._value[self.Field.DEFINITION])
+
+    @property
+    def revision(self):
+        return self._value[self.Field.REVISION]
+
+    @property
+    def engine(self):
+        return self._value[self.Field.ENGINE]
+
+    def to_dict(self):
+        return deepcopy(self._value)
 
     @classmethod
     def metadata(cls, binding, request_context=UNSET):
-        value = {cls.METADATA_FIELD: cls.read(binding)}
+        value = {cls.METADATA_FIELD: cls.read(binding.to_dict()).to_dict()}
         if request_context is not UNSET:
             value[cls.CONTEXT_FIELD] = deepcopy(request_context)
         return value
@@ -173,20 +311,19 @@ class AgentBinding:
     @classmethod
     def from_metadata(cls, metadata):
         if cls.METADATA_FIELD not in metadata:
-            raise ValueError("Run is missing its original Agent binding")
+            raise ValueError(cls.MISSING_BINDING)
         return cls.read(metadata[cls.METADATA_FIELD])
 
     @classmethod
     def from_run(cls, run):
         binding = cls.from_metadata(run.metadata)
-        if binding["agent_id"] != run.agent_id or binding["engine"] != run.engine:
-            raise ValueError("Run Agent and Engine binding mismatch")
+        if binding.agent_id != run.agent_id or binding.engine != run.engine:
+            raise ValueError(cls.RUN_MISMATCH)
         return binding
 
     @classmethod
     def definition_from_metadata(cls, metadata):
-        """Detached admitted definition for read-only consumers such as naming."""
-        return cls.from_metadata(metadata)["definition"]
+        return cls.from_metadata(metadata).definition
 
     @classmethod
     def same_request(cls, left, right):
@@ -199,23 +336,4 @@ class AgentBinding:
                 or not cls.same_request(prior.metadata, current.metadata)
                 or (cls.EXECUTION_FIELD in prior.metadata
                     and prior.metadata[cls.EXECUTION_FIELD] != current.metadata.get(cls.EXECUTION_FIELD))):
-            raise ValueError("Run Agent evidence is immutable")
-
-    @classmethod
-    def create(cls, project_id, identifier, definition):
-        record = AgentRecord.create(project_id, identifier, definition)
-        return {"schema_version": cls.SCHEMA_VERSION, "project_id": record["project_id"],
-                "agent_id": record["id"], "definition": record["definition"],
-                "revision": record["revision"], "engine": definition["engine"]}
-
-    @classmethod
-    def read(cls, value):
-        if not isinstance(value, dict) or value.keys() != {
-                "schema_version", "project_id", "agent_id", "definition", "revision", "engine"}:
-            raise ValueError("Agent execution binding requires all current evidence")
-        if type(value["schema_version"]) is not int or value["schema_version"] != cls.SCHEMA_VERSION:
-            raise ValueError("Unsupported Agent binding schema_version")
-        expected = cls.create(value["project_id"], value["agent_id"], value["definition"])
-        if value != expected:
-            raise ValueError("Agent binding identity, revision or Engine mismatch")
-        return deepcopy(value)
+            raise ValueError(cls.IMMUTABLE_EVIDENCE)

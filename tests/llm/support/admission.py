@@ -29,7 +29,7 @@ def admitted_message(identifier, role, status, run_id=None, metadata=None):
                       MessageStatus(status), run_id=run_id, metadata=metadata or {})
     if role == 'user':
         message.run_id = None
-        binding = AgentBinding.create('a' * 32, 'fixture', {'engine': 'test'})
+        binding = AgentBinding.create('a' * 32, 'fixture', {'engine': 'test'}).to_dict()
         admission = RequestAdmission.create(project_id='a' * 32, session_id='b' * 32,
             message_id=identifier, bindings={'fixture': binding})
         if run_id is not None:

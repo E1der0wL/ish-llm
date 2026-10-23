@@ -67,7 +67,7 @@ class RequestAdmission:
             raise ValueError("Every recipient requires exactly one binding")
         for identifier, binding in bindings.items():
             binding = AgentBinding.read(binding)
-            if binding["agent_id"] != identifier or binding["project_id"] != value["project_id"]:
+            if binding.agent_id != identifier or binding.project_id != value["project_id"]:
                 raise ValueError("Recipient binding ownership mismatch")
         dispatch = value["dispatch"]
         if dispatch is not None:
@@ -148,9 +148,9 @@ class RequestAdmission:
         if len({run.assistant_message_id for run in selected}) != len(selected):
             raise ValueError("Recipient Assistants must be distinct")
         for identifier, run in by_agent.items():
-            binding = admission["bindings"][identifier]
-            if (run.session_id != session_id or run.engine != binding["engine"]
-                    or run.metadata.get(AgentBinding.METADATA_FIELD) != binding):
+            binding = AgentBinding.read(admission["bindings"][identifier])
+            if (run.session_id != session_id or run.engine != binding.engine
+                    or AgentBinding.from_run(run) != binding):
                 raise ValueError("Run differs from its admitted owner or Agent binding")
             if AgentBinding.request_context(run.metadata) != AgentBinding.request_context(message.metadata):
                 raise ValueError("Run differs from its original request context")

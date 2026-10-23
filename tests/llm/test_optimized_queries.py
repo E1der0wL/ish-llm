@@ -115,7 +115,7 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
             for index in range(12):
                 session = sessions[index % 2]
                 identifier = new_id()
-                run = Run(identifier, session.id, new_id(), new_id(), "test", repository.paths(session, identifier), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(session.project_id, "fixture", {"engine": 'test'})})
+                run = Run(identifier, session.id, new_id(), new_id(), "test", repository.paths(session, identifier), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(session.project_id, "fixture", {"engine": 'test'}).to_dict()})
                 run.status = RunStatus.COMPLETED if index % 3 else RunStatus.FAILED
                 run.started_at = run.ended_at = f"2026-10-16T00:00:{index:02d}+00:00"
                 repository.create(run)

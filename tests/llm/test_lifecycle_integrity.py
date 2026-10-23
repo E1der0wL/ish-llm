@@ -195,7 +195,7 @@ class DomainRecordTests(unittest.TestCase):
     def test_every_serialized_field_is_required_on_domain_read(self):
         runs = RunRepository()
         run_id = new_id()
-        run = Run(run_id, self.session.id, new_id(), new_id(), 'loop', runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'loop'})})
+        run = Run(run_id, self.session.id, new_id(), new_id(), 'loop', runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'loop'}).to_dict()})
         runs.create(run)
         steps = StepRepository()
         step_id = new_id()

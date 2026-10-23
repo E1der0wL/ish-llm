@@ -6,7 +6,7 @@ from llm.core.continuations import ResumeRecord
 
 import json
 from copy import deepcopy
-from llm.core.steering import INSTRUCTION_INPUT_STATUS
+from llm.core.steering import InstructionCheckpoint
 from llm.core.interactions import InteractionRequest
 from llm.core.checkpoints import CheckpointEnvelope, CheckpointStatus, build_envelope
 from dataclasses import replace
@@ -128,6 +128,5 @@ class EngineCheckpointScope:
     def accepted_instruction(self, event, inbox):
         if event.metadata["operation"] == "select" and not inbox.closed:
             data = event.metadata
-            self.records[data["boundary"]] = CheckpointEnvelope.attach(data["envelope"], {
-                "kind": "instruction", "status": INSTRUCTION_INPUT_STATUS, "target_scope": self.owner,
-                "message_ids": [m.id for m in inbox.messages]})
+            self.records[data["boundary"]] = CheckpointEnvelope.attach(data["envelope"],
+                InstructionCheckpoint.create(self.owner, (m.id for m in inbox.messages)).to_dict())

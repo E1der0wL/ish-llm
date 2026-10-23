@@ -4,7 +4,7 @@
 파일 I/O는 호출자의 StorageIO/워크스페이스 소유권 안에서 수행한다.
 """
 
-from llm.core.checkpoints import CheckpointOperation
+from llm.core.checkpoints import CheckpointOperation, CheckpointConversation
 
 from copy import deepcopy
 import hashlib
@@ -26,14 +26,10 @@ def checkpoint_digest(value: dict) -> str:
 def checkpoint_message_ids(checkpoint: dict) -> set[str]:
     """재개에 필요한 문맥·직접/중첩 추가 지시의 원본 ID. 삭제 검사와 재개가 공유한다."""
     from llm.services.runtime.steering import instruction_records
-    header = checkpoint["header"]
-    identifiers = header["message_ids"]
-    if (not isinstance(identifiers, list) or any(not isinstance(v, str) or not v for v in identifiers)
-            or not isinstance(header["input_message_id"], str) or not header["input_message_id"]):
-        raise ValueError("Invalid checkpoint conversation references")
-    result = {*identifiers, header["input_message_id"]}
+    references = CheckpointConversation.from_checkpoint(checkpoint)
+    result = {*references.message_ids, references.input_message_id}
     for _, record in instruction_records(checkpoint):
-        result.update(record["message_ids"])
+        result.update(record.message_ids)
     return result
 
 

@@ -16,6 +16,7 @@
 | [계약 선언과 의미 해석의 단일 소유](llm/contract-ownership.md) | 현행 설계 계약 | 1회 사용도 포함하는 의미 있는 리터럴, 책임 경계, 필수 재검증, 독립 시험과 완료 기준 |
 | [계약 소유권과 책임 경계의 후속 정리](llm/ownership-refactor.md) | 미완료 작업 목록 | 확인된 OW 항목, O0–O7의 조사·구현·검증 게이트. 기존 기능 회귀와 Owner 전수 정리 완료를 구분 |
 | [고정 구조 데이터 Owner 보강 검증](llm/typed-contracts-verification.md) | 구현·검증 기록 | TC1–TC3: 사용량 manifest·파일 증거·Skill 요청/응답의 타입과 경계. 실패·집중·전체·정확한 SHA CI 증거와 미전환 범위 구분 |
+| [선언 위치·전수 완료 기준 검증](llm/declaration-coverage-verification.md) | 구현·검증 기록 | DC1–DC3: 전체 파일/hash·미분류 추적, Agent·Session·Checkpoint Owner 소비 경로와 실제 검증 결과 |
 
 이 추가 목록은 아래 2026-10-20 고정 감사 범위나 과거 검증 결과를 다시 작성하지 않는다.
 

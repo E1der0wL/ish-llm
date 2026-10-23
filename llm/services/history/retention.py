@@ -100,7 +100,7 @@ class HistoryRetention:
                         protected_messages.update(checkpoint["header"].get("message_ids", []))
                         if "steering" in run.metadata:
                             from llm.services.runtime.steering import instruction_records
-                            protected_messages.update(mid for _, value in instruction_records(checkpoint) for mid in value["message_ids"])
+                            protected_messages.update(mid for _, value in instruction_records(checkpoint) for mid in value.message_ids)
             keep.update(identifier for m in messages if m.id in protected_messages
                         for identifier in RequestAdmission.run_ids(m))
             groups = {}

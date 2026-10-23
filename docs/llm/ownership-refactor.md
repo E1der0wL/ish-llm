@@ -18,6 +18,31 @@ H1–H5 → P1 → A–F의 기존 기능·안전성 검증 기록은 보존한�
 
 ## 확인된 항목과 조사 후보
 
+### 전수 완료 기준 보강 DC1–DC3
+
+2026-10-23 기준 `e8769c174401ba6530439ffc0527f93b0e6c41ab`. 전체 계약 리팩터링은 **미완료**다.
+O0–O7·TC1–TC3의 아래 상태는 당시 기록된 범위의 구현·검증이며 저장소 전체 완료를 뜻하지
+않는다. [선언 위치와 전체 완료 게이트](contract-ownership.md)를 적용하고, 원래 작업 범위를
+유지한 채 계약별 소비 경로를 닫는다. 미완료를 이번 범위 밖으로 옮겨 전체 완료 처리하지 않는다.
+
+| 단계 | 작업·완료 증거 | 상태 |
+|---|---|---|
+| DC1 | 전체 제품 파일·assets 목록/hash, 후보 분류와 미검토 추적. 선언 위치·dict·비교·기본값·동적 접근의 감사 범위와 독립 시험 보강 | 목록/hash·감사 도구와 음성 시험 구현, 전수 분류 미완료 |
+| DC2 | Agent binding/record/catalog, Session runtime view, Checkpoint 대화·추가 지시 참조부터 Owner 선언과 실제 소비자를 연결. 남은 계약은 같은 기준으로 계속 전환 | 명시한 소비 경로 보강·집중·안전성·로컬 통합 통과. 정확한 Push SHA 원격 결과는 DC 검증 기록/최종 보고 참조 |
+| DC3 | 잔여 항목 0 확인과 전체 통합·정적·R3·문서·실환경·정확한 SHA 원격 CI. 부분 통과로 전수 완료를 대체하지 않음 | 미완료 |
+
+현재 확인한 잔여에는 아래 기존 TC 목록뿐 아니라 `RunAgentResolver`의 binding 키 조회,
+`AgentRepository`의 catalog/record 해석, `SessionRuntimeView(**dict)` 생성,
+Checkpoint header/추가 지시의 직접 필드 해석·판별자 비교가 포함된다. 이 목록도 전수 목록은
+아니다. 파일·계약 목록을 먼저 고정하고 미검토·미분류·확정 위반·정당한 선언/비계약을 구분한다.
+각 변경은 기존 기록을 다시 쓰지 않고 검증 범위·실행 결과·남은 항목만 덧붙인다.
+현재 증거는 [DC 검증 기록](declaration-coverage-verification.md)에 연결한다.
+
+이전 SHA `e8769c174401ba6530439ffc0527f93b0e6c41ab`의
+[원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39873257533)는
+2026-10-23 확인 시 **cancelled**다. Hub 586/586 success, LLM cancelled로 전체 원격 통과는
+확인되지 않았다. 기존 로컬 통과 기록은 보존하고 다음 소스의 증거와 구분한다.
+
 ### 고정 구조 데이터 후속 보강 TC1–TC3
 
 기준 `38e18566c8ea60143601bff161f27c37775c4d6b`. O0–O7와 Agent Skills 전환의 기능·안전성
@@ -38,7 +63,7 @@ H1–H5 → P1 → A–F의 기존 기능·안전성 검증 기록은 보존한�
   Component snapshot/삭제 참조의 공개 dict를 직접 해석·조립한다. 참조 프로토콜 Owner와
   전체 Component·Agent 삭제 소비자를 함께 전환해야 하며 Skills 전용 상수로 대체하지 않는다.
 - 다른 Component Tool·서비스/Hub의 고정 응답과 설정 snapshot: 기존 O0–O7 후보·Owner 근거를
-  재사용하여 실제 변경 경로별로 타입/Reader/Projection 연결을 검증한다. 이번 TC 범위 밖이다.
+  재사용하여 실제 변경 경로별로 타입/Reader/Projection 연결을 검증한다. 전체 작업의 미완료다.
 
 TC3 통과도 저장소 전체 dict 전환 완료가 아니다. 위 대상은 필드/상태의 같은 철자만으로
 공통화하지 않으며 각 계약의 전체 소비 경로와 Level 1–3 증거를 갖춰 후속 완료한다.

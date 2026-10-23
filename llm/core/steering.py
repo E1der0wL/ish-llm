@@ -27,15 +27,69 @@ def _text(value):
     return isinstance(value, str) and bool(value.strip())
 
 
+@dataclass(frozen=True, init=False)
+class InstructionCheckpoint:
+    """The instruction payload owner, including its scope and original message IDs."""
+
+    KIND = "instruction"
+    INVALID_IDENTITY = "checkpoint kind/status/target_scope"
+    INVALID_MESSAGES = "checkpoint message_ids"
+
+    class Field(StrEnum):
+        KIND = "kind"
+        STATUS = "status"
+        TARGET_SCOPE = "target_scope"
+        MESSAGE_IDS = "message_ids"
+
+    _value: dict
+
+    @classmethod
+    def is_record(cls, value):
+        return isinstance(value, dict) and value.get(cls.Field.KIND) == cls.KIND
+
+    @classmethod
+    def create(cls, target_scope, message_ids):
+        return cls.read({cls.Field.KIND: cls.KIND, cls.Field.STATUS: INSTRUCTION_INPUT_STATUS,
+                         cls.Field.TARGET_SCOPE: target_scope, cls.Field.MESSAGE_IDS: list(message_ids)})
+
+    @classmethod
+    def read(cls, value):
+        if (not cls.is_record(value) or value.get(cls.Field.STATUS) != INSTRUCTION_INPUT_STATUS
+                or cls.Field.TARGET_SCOPE not in value
+                or value[cls.Field.TARGET_SCOPE] is not None and not _text(value[cls.Field.TARGET_SCOPE])):
+            raise InstructionDataError(cls.INVALID_IDENTITY)
+        ids = value.get(cls.Field.MESSAGE_IDS)
+        if not isinstance(ids, list) or any(not _text(v) for v in ids) or len(set(ids)) != len(ids):
+            raise InstructionDataError(cls.INVALID_MESSAGES)
+        result = object.__new__(cls)
+        object.__setattr__(result, "_value", deepcopy(value))
+        return result
+
+    @property
+    def target_scope(self):
+        return self._value[self.Field.TARGET_SCOPE]
+
+    @property
+    def message_ids(self):
+        return tuple(self._value[self.Field.MESSAGE_IDS])
+
+    def to_dict(self):
+        return deepcopy(self._value)
+
+    @classmethod
+    def replace_message_ids(cls, record, identifiers):
+        """Return a new validated record, preserving the envelope and unrelated receipts."""
+        from llm.core.checkpoints import CheckpointEnvelope, unwrap_record
+        payload, _ = unwrap_record(record)
+        value = cls.read(payload).to_dict()
+        value[cls.Field.MESSAGE_IDS] = list(identifiers)
+        updated = cls.read(value).to_dict()
+        return CheckpointEnvelope.attach(record, updated) if CheckpointEnvelope.is_record(record) else updated
+
+
 def validate_instruction_record(value):
-    """Engine의 현재 input 기록만 검증한다. 임의 checkpoint payload는 해석하지 않는다."""
-    if (not isinstance(value, dict) or value.get("kind") != "instruction"
-            or value.get("status") != INSTRUCTION_INPUT_STATUS or "target_scope" not in value
-            or value["target_scope"] is not None and not _text(value["target_scope"])):
-        raise InstructionDataError("checkpoint kind/status/target_scope")
-    ids = value.get("message_ids")
-    if not isinstance(ids, list) or any(not _text(v) for v in ids) or len(set(ids)) != len(ids):
-        raise InstructionDataError("checkpoint message_ids")
+    """Validate through the single payload Reader; arbitrary Engine payloads stay opaque."""
+    InstructionCheckpoint.read(value)
 
 
 class InstructionStatus(StrEnum):

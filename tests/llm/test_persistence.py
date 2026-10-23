@@ -97,7 +97,7 @@ class PersistenceTests(unittest.TestCase):
             self.sessions.load(self.project, "../outside")
 
     def test_soft_delete_restore_preserves_history(self) -> None:
-        user = stored_request(self.store, self.session, "queued", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}))
+        user = stored_request(self.store, self.session, "queued", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}).to_dict())
         self.sessions.delete(self.session)
         self.assertEqual(self.sessions.list(self.project), [])
         self.assertEqual(len(self.sessions.list(self.project, include_deleted=True)), 1)
@@ -112,9 +112,9 @@ class PersistenceTests(unittest.TestCase):
 
     def test_clone_copies_configuration_and_history_without_replaying_queue(self) -> None:
         run_id = new_id()
-        user = stored_request(self.store, self.session, "done", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}), run_id=run_id)
+        user = stored_request(self.store, self.session, "done", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}).to_dict(), run_id=run_id)
         self.store.create(MessageRole.ASSISTANT, "answer", MessageStatus.COMPLETED, run_id=run_id)
-        stored_request(self.store, self.session, "queued", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}))
+        stored_request(self.store, self.session, "queued", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}).to_dict())
         cloned_project = self.projects.clone(self.project, title="Copy")
         cloned_session = self.sessions.list(cloned_project)[0]
         messages = ConversationStore(cloned_session.paths.conversation).list()
@@ -148,7 +148,7 @@ class PersistenceTests(unittest.TestCase):
     def test_step_events_and_recovery(self) -> None:
         runs = RunRepository()
         run_id = new_id()
-        run = Run(run_id, self.session.id, new_id(), new_id(), "fake", runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'})})
+        run = Run(run_id, self.session.id, new_id(), new_id(), "fake", runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'}).to_dict()})
         runs.create(run)
         self.assertEqual(runs.load(self.session, run.id).status, RunStatus.PENDING)
         manager = StepManager()

@@ -94,7 +94,8 @@ class ConfigurationBoundaryTests(unittest.TestCase):
         self.assertEqual(unwrap_record(record), (payload, "custom-owner"))
         self.assertEqual(unwrap_record(payload), (payload, None))
         from llm.services.runtime.steering import instruction_records
-        self.assertEqual(list(instruction_records({"records": {"key": record}})), [("key", payload)])
+        self.assertEqual([(key, value.to_dict()) for key, value in
+                          instruction_records({"records": {"key": record}})], [("key", payload)])
         for key, value in (("engine_scope", ""), ("requires_retry", True), ("payload", [])):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 unwrap_record({**record, key: value})

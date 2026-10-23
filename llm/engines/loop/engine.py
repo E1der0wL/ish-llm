@@ -2,6 +2,8 @@
 
 A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
+from llm.core.checkpoints import CheckpointConversation
+
 from llm.core.models import ResourceKind, StepKind
 
 from llm.core.checkpoints import CheckpointOperation
@@ -25,7 +27,7 @@ from typing import Any, Optional, Union
 from contextlib import aclosing
 from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
 from llm.core.models import MessageRole, MessageStatus
-from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record, INSTRUCTION_INPUT_STATUS
+from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record, InstructionCheckpoint
 from llm.core.configuration import resolve_engine_config, UNSET
 from llm.core.parameters import ParameterLayout
 from llm.core.results import EngineOutput
@@ -305,8 +307,7 @@ class LoopEngine(BaseEngine):
         if (context.output_step_id is None or context.checkpoint_scope is not None) and context.checkpoint is None:
             yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": LoopEngine.checkpoint_name, "operation": CheckpointOperation.INITIALIZE,
                 "header": {"format": self.CHECKPOINT_FORMAT, "binding": self._resume_binding,
-                           "message_ids": [m.id for m in context.messages],
-                           "input_message_id": context.run.input_message_id,
+                           **CheckpointConversation(tuple(m.id for m in context.messages), context.run.input_message_id).to_dict(),
                            **({"review": review.contract} if review is not None else {})}})
         async with aclosing(self.open_instructions(context)) as events:
             async for event in events:
@@ -348,8 +349,8 @@ class LoopEngine(BaseEngine):
                                                                   boundary=instruction_key)) as events:
                         async for event in events:
                             yield event
-                    records[instruction_key] = {"status": INSTRUCTION_INPUT_STATUS, "message_ids": [m.id for m in inbox.messages]}
-                selected = [inbox.history[i] for i in records[instruction_key]["message_ids"]]
+                    records[instruction_key] = InstructionCheckpoint.create(inbox.scope, (m.id for m in inbox.messages)).to_dict()
+                selected = [inbox.history[i] for i in InstructionCheckpoint.read(records[instruction_key]).message_ids]
                 messages.extend(CompletionMessage(ModelMessage(ModelRole.USER, m.content), m.id, True) for m in selected)
             saved = records.get(f"iteration:{iteration}", {})
             response = ModelResponse.from_dict(saved["response"]) if saved else None
@@ -409,7 +410,7 @@ class LoopEngine(BaseEngine):
                         prepared_request = await asyncio.to_thread(prepare_turn, prepared_request, current_index, starts)
                     else:
                         prepared_request = await asyncio.to_thread(context.completion_policy.prepare, prepared_request)
-                if inbox is not None and records[instruction_key]["message_ids"]:
+                if inbox is not None and InstructionCheckpoint.read(records[instruction_key]).message_ids:
                     async with aclosing(self.apply_instructions(context, checkpoint=self.checkpoint_name,
                             boundary=instruction_key, details={"iteration": iteration})) as events:
                         async for event in events:
@@ -502,9 +503,9 @@ class LoopEngine(BaseEngine):
                                 yield event
                         following = [m.id for m in inbox.messages]
                         if following:
-                            records[next_key] = {"status": INSTRUCTION_INPUT_STATUS, "message_ids": following}
+                            records[next_key] = InstructionCheckpoint.create(inbox.scope, following).to_dict()
                     else:
-                        following = records[next_key]["message_ids"]
+                        following = InstructionCheckpoint.read(records[next_key]).message_ids
                     if following:
                         messages.append(CompletionMessage(response.message))
                         continue

@@ -394,8 +394,9 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             store.create(MessageRole.USER, "old pending instruction", MessageStatus.QUEUED, run_id=run.id,
                 metadata={"steering": {"run_id": run.id, "input_message_id": saved.input_message_id, "status": "pending"}})
             from llm.services.lifecycle.sessions import SessionRuntime
+            from llm.core.agents import AgentBinding
             manager._admit(SessionRuntime(session.project.data, session.data),
-                "ordinary queued request", {"worker": saved.metadata["agent_binding"]})
+                "ordinary queued request", {"worker": AgentBinding.read(saved.metadata["agent_binding"])})
             return store.list()
 
         before = await app._storage_call(make_stale)
@@ -637,7 +638,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             message = Message(identifier(name), MessageRole.USER, name, MessageStatus.COMMITTED,
                               run_id=identifier(run_id) if "steering" in metadata else None, metadata=metadata)
             if "steering" not in metadata:
-                binding = AgentBinding.create("1" * 32, "worker", {"engine": "worker"})
+                binding = AgentBinding.create("1" * 32, "worker", {"engine": "worker"}).to_dict()
                 admission = RequestAdmission.create(project_id="1" * 32, session_id="2" * 32,
                     message_id=message.id, bindings={"worker": binding})
                 message.metadata["admission"] = RequestAdmission.dispatch(admission,

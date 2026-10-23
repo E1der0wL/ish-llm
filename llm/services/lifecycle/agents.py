@@ -23,6 +23,7 @@ class AgentRepository:
     DIRECTORY = ProjectPaths.AGENTS
     RECORDS = "records"
     MANIFEST = "records.manifest.json"
+    RECORD_SUFFIX = ".json"
 
     def __init__(self, ownership):
         self.ownership = ownership
@@ -40,37 +41,36 @@ class AgentRepository:
         if project.paths.root.exists():
             raise FileExistsError("Agent initialization requires a new Project tree")
         make_directory(root / self.RECORDS)
-        atomic_json(root / self.MANIFEST, AgentCatalog.empty(project.id))
+        atomic_json(root / self.MANIFEST, AgentCatalog.empty(project.id).to_dict())
 
     def _inventory(self, project):
         return self._inventory_at(self.root(project), project.id)
 
     def _inventory_at(self, root, project_id):
         # No missing-root or missing-manifest fallback, including empty stores.
-        manifest = read_json(reject_links(root / self.MANIFEST))
-        AgentCatalog.validate(manifest, project_id=project_id)
+        manifest = AgentCatalog.read(read_json(reject_links(root / self.MANIFEST)), project_id=project_id)
         if {reject_links(path).name for path in root.iterdir()} != {self.MANIFEST, self.RECORDS}:
             raise ValueError("Agent storage contains undeclared entries")
         directory = reject_links(root / self.RECORDS)
         paths = {}
         for path in directory.iterdir():
             reject_links(path)
-            if not path.is_file() or path.suffix != ".json":
+            if not path.is_file() or path.suffix != self.RECORD_SUFFIX:
                 raise ValueError("Invalid Agent record file")
             paths[AgentDefinition.identifier(path.stem)] = path
-        if paths.keys() != manifest["records"].keys():
+        if paths.keys() != manifest.records.keys():
             raise ValueError("Agent records are missing or undeclared")
         records = {}
         for identifier, path in sorted(paths.items()):
             raw = path.read_bytes()
-            if hashlib.sha256(raw).hexdigest() != manifest["records"][identifier]:
+            if hashlib.sha256(raw).hexdigest() != manifest.records[identifier]:
                 raise ValueError("Agent record integrity mismatch")
             records[identifier] = AgentRecord.read(json.loads(raw), project_id=project_id, identifier=identifier)
         return manifest, records
 
     @workspace_locked
     def list(self, project):
-        return {identifier: record["definition"] for identifier, record in self._inventory(project)[1].items()}
+        return {identifier: record.definition for identifier, record in self._inventory(project)[1].items()}
 
     @workspace_locked
     def snapshot(self, project, identifier):
@@ -79,7 +79,7 @@ class AgentRepository:
         if identifier not in records:
             raise FileNotFoundError(f"Unknown Agent: {identifier}")
         value = records[identifier]
-        return {"agent_id": identifier, "definition": value["definition"], "revision": value["revision"]}
+        return {"agent_id": identifier, "definition": value.definition, "revision": value.revision}
 
     @workspace_locked
     def load(self, project, identifier):
@@ -87,11 +87,12 @@ class AgentRepository:
 
     def _write(self, project, identifier, definition, manifest):
         value = AgentRecord.create(project.id, identifier, definition)
-        raw = json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+        raw = json.dumps(value.to_dict(), ensure_ascii=False, allow_nan=False).encode("utf-8")
         root = self.root(project)
-        manifest["records"][identifier] = hashlib.sha256(raw).hexdigest()
-        atomic_bytes(root / self.RECORDS / (identifier + ".json"), raw)
-        atomic_json(root / self.MANIFEST, manifest)
+        manifest = manifest.with_record(identifier, hashlib.sha256(raw).hexdigest())
+        atomic_bytes(root / self.RECORDS / (identifier + self.RECORD_SUFFIX), raw)
+        atomic_json(root / self.MANIFEST, manifest.to_dict())
+        return manifest
 
     @workspace_locked
     def create(self, project, definition, *, identifier=None):
@@ -105,7 +106,7 @@ class AgentRepository:
 
     @staticmethod
     def _check_revision(record, expected_revision):
-        if not isinstance(expected_revision, str) or expected_revision != record["revision"]:
+        if not isinstance(expected_revision, str) or expected_revision != record.revision:
             raise ValueError("edit_conflict: Agent changed; reload before editing")
 
     @workspace_locked
@@ -124,10 +125,10 @@ class AgentRepository:
         if identifier not in records:
             raise FileNotFoundError(f"Unknown Agent: {identifier}")
         self._check_revision(records[identifier], expected_revision)
-        del manifest["records"][identifier]
+        manifest = manifest.without_record(identifier)
         root = self.root(project)
-        unlink_file(root / self.RECORDS / (identifier + ".json"))
-        atomic_json(root / self.MANIFEST, manifest)
+        unlink_file(root / self.RECORDS / (identifier + self.RECORD_SUFFIX))
+        atomic_json(root / self.MANIFEST, manifest.to_dict())
 
     @workspace_locked
     def clone(self, source, destination):
@@ -136,7 +137,7 @@ class AgentRepository:
         if existing:
             raise ValueError("Agent clone requires an empty destination catalogue")
         for identifier, record in records.items():
-            self._write(destination, identifier, record["definition"], manifest)
+            manifest = self._write(destination, identifier, record.definition, manifest)
 
     @workspace_locked
     def validate_backup(self, project):

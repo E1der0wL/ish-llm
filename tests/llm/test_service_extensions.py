@@ -424,7 +424,7 @@ class ContextPolicyTests(unittest.TestCase):
         ]
         from llm.core.agents import AgentBinding
         from llm.services.runtime.requests import RequestAdmission
-        binding = AgentBinding.create("a" * 32, "fixture", {"engine": "test"})
+        binding = AgentBinding.create("a" * 32, "fixture", {"engine": "test"}).to_dict()
         for message in messages:
             if message.role == MessageRole.USER:
                 run_id, message.run_id = message.run_id, None

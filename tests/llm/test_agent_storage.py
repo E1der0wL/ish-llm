@@ -28,11 +28,11 @@ class AgentDefinitionTests(unittest.TestCase):
                             'tools': [], 'resources': {'rag': False}, 'metadata': {'zero': 0}}):
             with self.subTest(definition=definition):
                 original = deepcopy(definition)
-                value = AgentRecord.create('a' * 32, 'worker', definition)
+                value = AgentRecord.create('a' * 32, 'worker', definition).to_dict()
                 result = AgentRecord.read(value, project_id='a' * 32, identifier='worker')
-                self.assertEqual(result['definition'], original)
+                self.assertEqual(result.definition, original)
                 self.assertEqual(definition, original)
-                result['definition']['engine'] = 'changed'
+                result.definition['engine'] = 'changed'
                 self.assertEqual(value['definition'], original)
 
     def test_invalid_definitions_cannot_be_normalized(self):
@@ -49,7 +49,7 @@ class AgentDefinitionTests(unittest.TestCase):
                     AgentDefinition.validate('worker', definition)
 
     def test_record_all_fields_current_version_and_owner_are_required(self):
-        original = AgentRecord.create('a' * 32, 'worker', {'engine': 'base'})
+        original = AgentRecord.create('a' * 32, 'worker', {'engine': 'base'}).to_dict()
         invalid = [{k: v for k, v in original.items() if k != key} for key in original]
         invalid += [{**original, 'storage_version': v} for v in (None, True, 1.0, '1', 0, 2)]
         invalid += [{**original, key: value} for key, value in (
@@ -193,7 +193,7 @@ class AgentStorageTests(unittest.TestCase):
             with self.subTest(value=value):
                 raw = json.dumps(value).encode()
                 path.write_bytes(raw)
-                manifest = AgentCatalog.empty(self.project.id)
+                manifest = AgentCatalog.empty(self.project.id).to_dict()
                 manifest['records']['worker'] = hashlib.sha256(raw).hexdigest()
                 (self.root / self.repository.MANIFEST).write_text(json.dumps(manifest))
                 for operation in self.operations(revision):

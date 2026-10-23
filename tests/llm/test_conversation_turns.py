@@ -28,7 +28,7 @@ class ConversationTurnTests(unittest.IsolatedAsyncioTestCase):
                 try:
                     project = app.projects.create("P", components=[], conversation_storage=storage)
                     project.agents.create({"engine": "test"}, identifier="test")
-                    binding = AgentBinding.create(project.id, "test", {"engine": "test"})
+                    binding = AgentBinding.create(project.id, "test", {"engine": "test"}).to_dict()
                     session = project.sessions.create("S", agent_ids=sorted(project.agents.list()))
                     store = app.project_manager.sessions.conversations(session.data)
                     first_run, second_run = new_id(), new_id()

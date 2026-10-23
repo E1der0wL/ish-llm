@@ -20,7 +20,7 @@ def admitted_user(created_at, *, content="Q", run_id=None):
     message = Message(new_id(), MessageRole.USER, content,
         MessageStatus.COMMITTED if run_id else MessageStatus.QUEUED, created_at=created_at)
     admission = RequestAdmission.create(project_id="a" * 32, session_id="b" * 32,
-        message_id=message.id, bindings={"fixture": AgentBinding.create("a" * 32, "fixture", {"engine": "test"})})
+        message_id=message.id, bindings={"fixture": AgentBinding.create("a" * 32, "fixture", {"engine": "test"}).to_dict()})
     if run_id is not None:
         admission = RequestAdmission.dispatch(admission, run_ids={"fixture": run_id}, history=[message])
     message.metadata["admission"] = admission

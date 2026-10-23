@@ -146,7 +146,7 @@ class ProjectRecovery:
                         checkpoint_ids = list(checkpoint["header"].get("message_ids", []))
                         if "steering" in run.metadata:
                             from llm.services.runtime.steering import instruction_records
-                            checkpoint_ids.extend(mid for _, value in instruction_records(checkpoint) for mid in value["message_ids"])
+                            checkpoint_ids.extend(mid for _, value in instruction_records(checkpoint) for mid in value.message_ids)
                         if run.status != RunStatus.COMPLETED and any(mid not in messages for mid in checkpoint_ids):
                             issue("missing_checkpoint_message", session=session.id, run=run.id)
                     outputs = self.runs.outputs(run)

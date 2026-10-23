@@ -39,7 +39,7 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         self.projects.agents.create(self.project, {"engine": "fake"}, identifier="fake")
         self.session.agent_ids = ["fake"]
         self.sessions.save(self.session)
-        self.binding = AgentBinding.create(self.project.id, "fake", {"engine": "fake"})
+        self.binding = AgentBinding.create(self.project.id, "fake", {"engine": "fake"}).to_dict()
 
     def manager(self, session=None, **kwargs):
         manager = RunManager(self.sessions, self.engines, session=session or self.session, **kwargs)
@@ -275,7 +275,7 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         store = ConversationStore(self.session.paths.conversation)
         with self.projects.ownership.scope():
             runtime = SessionRuntime(self.project, self.session)
-            request = manager._admit(runtime, "claimed", {"fake": self.binding})
+            request = manager._admit(runtime, "claimed", {"fake": AgentBinding.read(self.binding)})
             run, = manager._dispatch_request(runtime, request)
             run.status, run.started_at = RunStatus.RUNNING, run.created_at
             manager.repository.save(run)

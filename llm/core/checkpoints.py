@@ -80,6 +80,34 @@ class CheckpointEnvelope:
         return {**deepcopy(envelope), cls.PAYLOAD_FIELD: deepcopy(payload)}
 
 
+@dataclass(frozen=True, slots=True)
+class CheckpointConversation(JsonValue):
+    """Common conversation references; Engine-specific header fields remain Engine-owned."""
+
+    HEADER_FIELD: ClassVar[str] = "header"
+    INVALID: ClassVar[str] = "Invalid checkpoint conversation references"
+    message_ids: tuple[str, ...]
+    input_message_id: str
+
+    def __post_init__(self):
+        JsonValue.__post_init__(self)
+        if any(not value for value in (*self.message_ids, self.input_message_id)):
+            raise ValueError(self.INVALID)
+
+    @classmethod
+    def from_header(cls, header):
+        if not isinstance(header, dict):
+            raise ValueError(cls.INVALID)
+        try:
+            return cls.from_dict({item.name: header[item.name] for item in fields(cls)})
+        except (KeyError, TypeError, ValueError) as error:
+            raise ValueError(cls.INVALID) from error
+
+    @classmethod
+    def from_checkpoint(cls, checkpoint):
+        return cls.from_header(checkpoint[cls.HEADER_FIELD])
+
+
 class CheckpointErrorCode(StrEnum):
     CONFLICT = "checkpoint_conflict"
     PROTECTED = "checkpoint_protected"

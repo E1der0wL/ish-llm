@@ -418,11 +418,11 @@ class Runs(AsyncFacade):
             active = [run for run in records if run.status == RunStatus.RUNNING]
             if {run.id for run in active} != set(session.active_run_ids):
                 raise ValueError("Session active Run projection differs from its records")
-            return SessionRuntimeView(**{"session_id": session.id, "status": session.status,
-                    "unfinished_work": getattr(self.app._managers.get((session.project_id, session.id)), "pending_work", None).active if (session.project_id, session.id) in self.app._managers else 0,
-                    "active_runs": [ActiveRunView(run.id, run.agent_id, run.engine, run.started_at) for run in active],
-                    "queued_count": len(requests),
-                    "queued_request_ids": [message.id for message in queued]})
+            return SessionRuntimeView(
+                session_id=session.id, status=session.status,
+                unfinished_work=self.app.unfinished_work(session),
+                active_runs=[ActiveRunView(run.id, run.agent_id, run.engine, run.started_at) for run in active],
+                queued_count=len(requests), queued_request_ids=[message.id for message in queued])
 
     def load(self, run_id: str) -> "RunHandle":
         self.session.app._check_open()

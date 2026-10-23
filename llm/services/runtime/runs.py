@@ -1,5 +1,7 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
+from llm.core.checkpoints import CheckpointConversation
+
 from llm.core.models import StepErrorCode
 
 from llm.core.contracts import ActivityEventType, ProjectActivityEvent
@@ -875,7 +877,7 @@ class RunManager:
     def _open_resumed_steering(self, run: Run, checkpoint: dict) -> None:
         """재개 원본 검증 뒤에만 접수한다. 검증 실패도 기존 Run 종료 경계에서 처리한다."""
         run.metadata["steering"] = initial_channel(run, steering_mode(self.engines.get(run.engine)),
-                                                  checkpoint["header"]["input_message_id"])
+                                                  CheckpointConversation.from_checkpoint(checkpoint).input_message_id)
         self.repository.save(run)
 
     async def _publish_run(self, run: Run) -> None:
@@ -916,7 +918,8 @@ class RunManager:
         self._history(runtime.project, runtime.session)
         message_id = new_id()
         admission = RequestAdmission.create(project_id=runtime.project.id,
-            session_id=runtime.session.id, message_id=message_id, bindings=bindings)
+            session_id=runtime.session.id, message_id=message_id,
+            bindings={identifier: binding.to_dict() for identifier, binding in bindings.items()})
         values = {"admission": admission}
         if request_context is not UNSET:
             values[AgentBinding.CONTEXT_FIELD] = deepcopy(request_context)
@@ -949,7 +952,7 @@ class RunManager:
 
     def _source_agent(self, project, session, run, agent_id=None, *, records=None):
         binding = self.agents.source(project, run)
-        if agent_id is not None and binding["agent_id"] != agent_id:
+        if agent_id is not None and binding.agent_id != agent_id:
             raise ValueError("Resume requires the original Agent")
         try:
             original = self._store(session).get(run.input_message_id)
@@ -961,7 +964,7 @@ class RunManager:
             raise ValueError("Run is absent from its original request admission")
         admission = RequestAdmission.read(original, project_id=project.id, session_id=session.id)
         if AgentBinding.metadata(binding, AgentBinding.request_context(run.metadata)) != AgentBinding.metadata(
-                admission["bindings"][run.agent_id], AgentBinding.request_context(original.metadata)):
+                AgentBinding.read(admission["bindings"][run.agent_id]), AgentBinding.request_context(original.metadata)):
             raise ValueError("Run Agent binding or request context differs from its admitted input")
         return binding
 
@@ -1310,10 +1313,10 @@ class RunManager:
         session = runtime.session
         run_id = new_id()
         binding = AgentBinding.read(binding)
-        if binding["project_id"] != runtime.project.id:
+        if binding.project_id != runtime.project.id:
             raise ValueError("Queued Agent binding belongs to another Project")
-        run = Run(run_id, session.id, message.id, new_id(), binding["engine"],
-                  self.repository.paths(session, run_id), agent_id=binding["agent_id"])
+        run = Run(run_id, session.id, message.id, new_id(), binding.engine,
+                  self.repository.paths(session, run_id), agent_id=binding.agent_id)
         run.metadata["policies"] = deepcopy(runtime.project.config.policies)
         run.metadata.update(AgentBinding.metadata(binding, AgentBinding.request_context(message.metadata)))
         # Service dispatch fact, not an effects guarantee after execution.
@@ -1327,7 +1330,7 @@ class RunManager:
         if ResumeRecord.KEY in message.metadata:
             run.metadata[ResumeRecord.KEY] = deepcopy(message.metadata[ResumeRecord.KEY])
             source = self.repository.load(session, run.metadata[ResumeRecord.KEY][ResumeRecord.SOURCE_RUN])
-            if (source.metadata[AgentBinding.METADATA_FIELD] != binding
+            if (AgentBinding.from_run(source) != binding
                     or AgentBinding.EXECUTION_FIELD not in source.metadata):
                 raise ValueError("Original Agent execution evidence is missing or inconsistent")
             # Preserve the already-admitted evidence in the creation transaction,
@@ -1440,13 +1443,13 @@ class RunManager:
             self._restart_source(runtime.session, run)
         if ResumeRecord.KEY in run.metadata:
             checkpoint = self._resume_checkpoint(runtime.session, run)
-            header = checkpoint["header"]
+            references = CheckpointConversation.from_checkpoint(checkpoint)
             try:
-                history = tuple(store.get(identifier) for identifier in header["message_ids"])
+                history = tuple(store.get(identifier) for identifier in references.message_ids)
             except KeyError as error:
                 raise ValueError("Original conversation is unavailable; memory-mode resume requires the original backend") from error
             history = tuple(replace(item, id=run.input_message_id, run_id=run.id)
-                            if item.id == header["input_message_id"] else item for item in history)
+                            if item.id == references.input_message_id else item for item in history)
         else:
             message = store.get(run.input_message_id)
             admission = RequestAdmission.read(message, project_id=runtime.project.id, session_id=runtime.session.id)

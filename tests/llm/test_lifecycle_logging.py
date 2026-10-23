@@ -39,7 +39,7 @@ class LifecycleTests(unittest.TestCase):
         self.project = self.projects.create("Project")
         self.session = self.sessions.create(self.project, "Session")
         self.store = ConversationStore(self.session.paths.conversation)
-        stored_request(self.store, self.session, "retained history", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}))
+        stored_request(self.store, self.session, "retained history", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}).to_dict())
 
     def test_delete_defaults_to_reversible_metadata_change(self) -> None:
         stale = deepcopy(self.session)
@@ -61,10 +61,10 @@ class LifecycleTests(unittest.TestCase):
         identifier = new_id()
         repository = self.sessions.run_repository
         with self.projects.ownership.scope():
-            request = stored_request(self.store, self.session, "completed work", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}), run_id=identifier)
+            request = stored_request(self.store, self.session, "completed work", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}).to_dict(), run_id=identifier)
             assistant = self.store.create(MessageRole.ASSISTANT, "done", MessageStatus.COMPLETED, run_id=identifier)
             run = Run(identifier, self.session.id, request.id, assistant.id, "fake",
-                      repository.paths(self.session, identifier), status=RunStatus.COMPLETED, agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'})})
+                      repository.paths(self.session, identifier), status=RunStatus.COMPLETED, agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'}).to_dict()})
             run.started_at = run.ended_at = run.created_at
             repository.create(run)
         artifact = run.paths.root / "artifacts" / "nested" / "artifact.txt"
@@ -116,7 +116,7 @@ class LifecycleTests(unittest.TestCase):
         assistant = store.create(MessageRole.ASSISTANT, "", MessageStatus.STREAMING, run_id=identifier)
         repository = self.sessions.run_repository
         run = Run(identifier, self.session.id, request.id, assistant.id, "fake",
-                  repository.paths(self.session, identifier), status=RunStatus.RUNNING, agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'})})
+                  repository.paths(self.session, identifier), status=RunStatus.RUNNING, agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'}).to_dict()})
         run.started_at = run.created_at
         repository.create(run)
         self.session.status = SessionStatus.RUNNING

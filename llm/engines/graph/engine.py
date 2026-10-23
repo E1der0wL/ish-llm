@@ -4,6 +4,8 @@
 상태 채널에는 JSON만 전달하고 런타임 객체를 저장 형식에 노출하지 않는다.
 """
 
+from llm.core.checkpoints import CheckpointConversation
+
 from llm.components.workflows.graph import ControlNodeType, ConditionOperator, LoopLimit
 
 from .checkpoints import GRAPH_CHECKPOINT_FORMAT, GRAPH_CHECKPOINT_NAME
@@ -1034,7 +1036,7 @@ class GraphEngine:
                 state.update(bind(graph["inputs"], {"prompt": message.content, "message_id": message.id}))
             validate_value(graph, "input", state)
             header = {"format": GRAPH_CHECKPOINT_FORMAT, "binding": binding, "initial_state": state,
-                      "input_message_id": message.id, "message_ids": [item.id for item in context.messages]}
+                      **CheckpointConversation(tuple(item.id for item in context.messages), message.id).to_dict()}
         Component.serialize(header)
         # 첫 LangGraph import도 UI 루프 밖에서 수행한다. 플러그인 import는 가볍게 유지한다.
         await asyncio.to_thread(importlib.import_module, "langgraph.graph")
