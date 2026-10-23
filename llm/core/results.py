@@ -16,6 +16,7 @@ from typing import Any, Optional
 from .contracts import Diagnostic, ResourceRef
 from .models import StepStatus, ProjectConfig, Run, RunStatus, Step, new_id, now
 from .model_protocol import StopReason
+from .usage import TokenUsage, UsageReceipt
 
 
 class OutputVisibility(StrEnum):
@@ -151,7 +152,7 @@ class ResumeOutput:
 # 개별 모델 호출의 종료 이유, 시간과 사용량을 기록한다.
 class CompletionResult:
     RESERVATION_FIELDS = ("id", "step_id", "started_at", "reserved_tokens")
-    USAGE_FIELDS = ("started_at", "usage", "usage_complete", "reserved_tokens")
+    INVALID_TOKEN_COUNT = "Completion usage must contain nonnegative token counts"
 
     id: str = field(default_factory=new_id)
     step_id: Optional[str] = None
@@ -171,7 +172,7 @@ class CompletionResult:
 
     def usage_record(self) -> dict:
         """Detached quota projection; unknown usage and its reservation stay explicit."""
-        return {name: deepcopy(getattr(self, name)) for name in self.USAGE_FIELDS}
+        return UsageReceipt.from_result(self).to_dict()
 
     @classmethod
     def from_record(cls, data):
@@ -189,12 +190,7 @@ class CompletionResult:
                 raise ValueError("Completion timestamps require a timezone")
         if type(data["usage_complete"]) is not bool or not isinstance(data["usage"], dict):
             raise ValueError("Invalid Completion usage")
-        for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
-            value = data["usage"].get(key)
-            if value is not None and (type(value) is not int or value < 0):
-                raise ValueError("Completion usage must contain nonnegative token counts")
-        if data["usage_complete"] and type(data["usage"].get("total_tokens")) is not int:
-            raise ValueError("Complete usage requires total_tokens")
+        TokenUsage(data["usage"]).validate(complete=data["usage_complete"], invalid_count=cls.INVALID_TOKEN_COUNT)
         reservation = data["reserved_tokens"]
         if reservation is not None and (type(reservation) is not int or reservation < 0):
             raise ValueError("Invalid Completion token reservation")
@@ -316,11 +312,7 @@ class ExecutionResult:
     def from_run(cls, project_id: str, run: Run) -> "ExecutionResult":
         completions = [CompletionResult.for_run(data, run)
                        for data in CompletionRecords.read(run.metadata)]
-        usage = {}
-        for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
-            values = [item.usage.get(key) for item in completions]
-            usage[key] = (sum(values) if values and all(type(value) is int for value in values)
-                          and all(item.usage_complete for item in completions) else None)
+        usage = TokenUsage.aggregate(completions).to_dict()
         return cls(project_id, run.session_id, run.id, run.engine, run.status,
                    run.started_at, run.ended_at, duration_seconds(run.started_at, run.ended_at),
                    completions=completions, usage=usage, error=run.error, error_code=run.error_code,
@@ -340,7 +332,7 @@ class ExecutionResult:
 
     @property
     def total_tokens(self) -> Optional[int]:
-        return self.usage.get("total_tokens")
+        return TokenUsage(self.usage).total_tokens
 
     @property
     def finish_reasons(self) -> list[Optional[str]]:

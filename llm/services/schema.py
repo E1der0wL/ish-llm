@@ -6,6 +6,7 @@ from dataclasses import asdict, dataclass, field, fields
 
 from llm.core.configuration import resolve_component_config
 from llm.core.models import ConversationStorage, ProjectConfig
+from llm.core.policies import PolicySection, UsagePolicy
 from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema, schema_nodes
 
 
@@ -193,7 +194,7 @@ def describe_project_config(app, components=None):
     policies = ProjectConfig.describe_policies()
     names = sorted(getattr(app.policy_resolver, "token_counters", {}))
     if names:
-        policies["properties"]["usage"]["properties"]["counter"]["enum"] = names
+        policies["properties"][PolicySection.USAGE] = UsagePolicy.schema(counters=names)
     # 비활성 컴포넌트의 설정도 보관할 수 있지만 선택 전에는 초기화/실행하지 않는다.
     project_components = {}
     for name in registry.names():

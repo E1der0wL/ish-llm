@@ -5,7 +5,7 @@ import math
 from collections.abc import Mapping
 
 from llm.policies import errors
-from llm.core.policies import RunPolicy, ContextPolicy
+from llm.core.policies import RunPolicy, ContextPolicy, UsagePolicy
 
 
 def positive_seconds(value, name):
@@ -30,7 +30,7 @@ class ProjectPolicyResolver:
     def resolve(self, policies: dict):
         from llm.core.policies import normalize_policies
         values = normalize_policies(policies)
-        usage = values.get("usage", {})
-        if (usage.get("max_tokens") is not None or usage.get("project_max_tokens") is not None) and usage.get("counter") not in self.token_counters:
+        usage = UsagePolicy.from_policies(values)
+        if usage.requires_reservation and usage.counter not in self.token_counters:
             raise errors.ExecutionLimitError(RunErrorCode.POLICY_UNAVAILABLE, "Usage quota requires a registered token counter")
         return (ContextPolicy(**values["context"]) if values.get("context") else None), RunPolicy(**values.get("run", {}))

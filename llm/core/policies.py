@@ -11,6 +11,22 @@ from jsonschema import Draft202012Validator
 
 class UsageErrorCode(StrEnum):
     LIMIT = "usage_limit"
+    CONFIGURATION = "usage_configuration"
+    UNKNOWN = "usage_unknown"
+
+
+class PolicySection(StrEnum):
+    USAGE = "usage"
+
+
+class RunPolicySnapshot:
+    """Required admitted policy evidence; never default a missing Run snapshot."""
+
+    KEY = "policies"
+
+    @classmethod
+    def read(cls, metadata):
+        return metadata[cls.KEY]
 
 
 class ContextMode(StrEnum):
@@ -38,6 +54,78 @@ def _validate_runtime_policy(value, *, allow_absent=True):
                 if getattr(value, item.name) is not None}
     from .schema import validate_declared_fields
     validate_declared_fields(supplied, schema["properties"])
+
+
+@dataclass(frozen=True, slots=True)
+class UsageLimit:
+    """A quota's two explicit ceilings and their public diagnostic labels."""
+
+    max_calls: int | None
+    max_tokens: int | None
+    calls_label: str
+    tokens_label: str
+
+    @property
+    def active(self):
+        return self.max_calls is not None or self.max_tokens is not None
+
+
+@dataclass(frozen=True, slots=True)
+class UsagePolicy:
+    """Read-only effective quota view; it never materializes omitted settings."""
+
+    INVALID_COUNTER: ClassVar[str] = "Usage counter must be a nonempty name"
+    counter: str | None = policy_field(default=None, metadata={"schema": {
+        "type": "string", "description": "누적 토큰 예약 계산기 이름. Engine 입력 선택과 독립적이다", "minLength": 1}})
+    max_calls: int | None = policy_field(default=None, metadata={"schema": {
+        "type": ["integer", "null"], "description": "Run의 누적 모델 호출 상한", "minimum": 1}})
+    max_tokens: int | None = policy_field(default=None, metadata={"schema": {
+        "type": ["integer", "null"], "description": "Run 토큰 예약 상한", "minimum": 1}})
+    project_max_calls: int | None = policy_field(default=None, metadata={"schema": {
+        "type": ["integer", "null"], "description": "Project 기간 내 모델 호출 상한", "minimum": 1}})
+    project_max_tokens: int | None = policy_field(default=None, metadata={"schema": {
+        "type": ["integer", "null"], "description": "Project 기간 내 토큰 예약 상한", "minimum": 1}})
+    period_seconds: float | None = policy_field(default=None, metadata={"schema": {
+        "type": ["number", "null"], "description": "Project 사용량 집계 기간; null은 전체", "exclusiveMinimum": 0}})
+
+    @classmethod
+    def schema(cls, *, counters=()):
+        value = _declared_policy_schema(cls)
+        if counters:
+            value["properties"][cls.counter.__name__]["enum"] = list(counters)
+        return value
+
+    @classmethod
+    def from_dict(cls, value):
+        # The Project Reader validates stored fields. This snapshot only reads them.
+        return cls(**deepcopy(value))
+
+    @classmethod
+    def from_policies(cls, policies):
+        return cls.from_dict(policies.get(PolicySection.USAGE, {}))
+
+    @classmethod
+    def from_run(cls, run):
+        return cls.from_policies(RunPolicySnapshot.read(run.metadata))
+
+    def __post_init__(self):
+        _validate_runtime_policy(self)
+        if self.counter is not None and not self.counter.strip():
+            raise ValueError(self.INVALID_COUNTER)
+
+    @property
+    def run(self):
+        return UsageLimit(self.max_calls, self.max_tokens,
+                          type(self).max_calls.__name__, type(self).max_tokens.__name__)
+
+    @property
+    def project(self):
+        return UsageLimit(self.project_max_calls, self.project_max_tokens,
+                          type(self).project_max_calls.__name__, type(self).project_max_tokens.__name__)
+
+    @property
+    def requires_reservation(self):
+        return self.max_tokens is not None or self.project_max_tokens is not None
 
 
 @dataclass(frozen=True, slots=True)
@@ -273,13 +361,7 @@ def describe_policies() -> dict:
         "tool_retry": section({
             "max_retries": field(["integer", "null"], "조건부 Tool 재시도; null은 비활성화", minimum=0),
             "delay_seconds": field(["number", "null"], "Tool 재시도 대기; null은 비활성화", minimum=0)}),
-        "usage": section({
-            "counter": field("string", "누적 토큰 예약 계산기 이름. Engine 입력 선택과 독립적이다", minLength=1),
-            "max_calls": field(["integer", "null"], "Run의 누적 모델 호출 상한", minimum=1),
-            "max_tokens": field(["integer", "null"], "Run 토큰 예약 상한", minimum=1),
-            "project_max_calls": field(["integer", "null"], "Project 기간 내 모델 호출 상한", minimum=1),
-            "project_max_tokens": field(["integer", "null"], "Project 기간 내 토큰 예약 상한", minimum=1),
-            "period_seconds": field(["number", "null"], "Project 사용량 집계 기간; null은 전체", exclusiveMinimum=0)}),
+        PolicySection.USAGE: UsagePolicy.schema(),
         "run": RunPolicy.schema()}}
 
 
@@ -312,6 +394,5 @@ def normalize_policies(value: dict) -> dict:
         raise ValueError("Approval max_risk must be a nonnegative integer")
     context = result.get("context", {})
     ContextPolicy.validate_budget(context.get("mode"), context.get("max_chars"))
-    if "counter" in result.get("usage", {}) and not result["usage"]["counter"].strip():
-        raise ValueError("Usage counter must be a nonempty name")
+    UsagePolicy.from_policies(result)
     return result

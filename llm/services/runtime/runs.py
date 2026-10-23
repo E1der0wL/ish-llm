@@ -79,7 +79,9 @@ from llm.services.runtime.events import EventHandlers, EventContext, EventSubscr
 from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_digest, checkpoint_message_ids
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
-from llm.services.runtime.usage import UsageScope, check_admission, has_limit
+from llm.services.runtime.usage import UsageScope, check_admission, completion_usage
+from llm.core.policies import UsagePolicy, UsageErrorCode
+from llm.core.usage import UsageSource, UsageReceipt, UsageCall
 from llm.services.infrastructure.observability import ObservationKind, ObservationStatus
 
 
@@ -1549,9 +1551,10 @@ class RunManager:
         guard = timeout(seconds)
         try:
             async with guard:
-                counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("usage", {}).get("counter"))
-                source = {"project_id": runtime.project.id, "session_id": runtime.session.id, "run_id": run.id}
-                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent, **source, engine=run.engine, diagnostics=self.provider_diagnostics), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope():
+                usage_policy = UsagePolicy.from_run(run)
+                counter = getattr(self.policy_resolver, "token_counters", {}).get(usage_policy.counter)
+                source = UsageSource(runtime.project.id, runtime.session.id, run.id)
+                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent, **source.to_dict(), engine=run.engine, diagnostics=self.provider_diagnostics), self.provider_calls.scope(), UsageScope(usage_policy, counter, source).scope():
                     await self._consume(runtime, run, policies)
         except asyncio.TimeoutError as error:
             expired = guard.expired() if callable(guard.expired) else guard.expired
@@ -1744,26 +1747,25 @@ class RunManager:
             raise ValueError("Completion event requires a result")
         child(run.paths.state, event.completion.id)
         if not CompletionRecords.contains(run.metadata, event.completion.id):
-            policy = run.metadata["policies"].get("usage", {})
+            policy = UsagePolicy.from_run(run)
             project_entries = []
             auxiliary = []
-            project_limited = has_limit(policy, project=True)
-            if project_limited or has_limit(policy):
+            project_limited = policy.project.active
+            if project_limited or policy.run.active:
                 project = self.sessions.project_access.load(self._session.project_id)
                 reader = getattr(self.capabilities, "model_usage", None)
                 if not callable(reader):
-                    raise ExecutionLimitError("usage_configuration",
+                    raise ExecutionLimitError(UsageErrorCode.CONFIGURATION,
                         "Usage limits require CapabilityResolver.model_usage(project)")
                 auxiliary = reader(project)
                 if not isinstance(auxiliary, list) or any(not isinstance(entry, dict) for entry in auxiliary):
-                    raise ExecutionLimitError("usage_configuration", "Component usage must be a list of receipts")
+                    raise ExecutionLimitError(UsageErrorCode.CONFIGURATION, "Component usage must be a list of receipts")
             if project_limited:
-                reader = getattr(self.repository, "completion_history", None)
-                project_entries = [entry for session in self.sessions.list(project, include_deleted=True)
-                                   for entry in (reader(session) if reader else [e for r in self.repository.list(session)
-                                       for e in CompletionRecords.read(r.metadata)])]
-            check_admission(run, asdict(event.completion), event.completion.reserved_tokens, [*project_entries, *auxiliary],
-                            [e for e in auxiliary if e.get("run_id") == run.id])
+                project_entries = completion_usage(self.repository, self.sessions.list(project, include_deleted=True))
+            run_entries = [UsageReceipt.from_result(result) for result in CompletionRecords.results(run.metadata)]
+            run_entries.extend(UsageReceipt.from_record(e) for e in auxiliary if UsageCall.belongs_to_run(e, run.id))
+            check_admission(policy, event.completion.reserved_tokens,
+                            [*project_entries, *[UsageReceipt.from_record(e) for e in auxiliary]], run_entries)
         CompletionRecords.upsert(run.metadata, event.completion)
         self.repository.save(run)
 

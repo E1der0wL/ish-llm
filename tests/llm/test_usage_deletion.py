@@ -166,13 +166,16 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
 class UsagePeriodTests(unittest.TestCase):
     def test_period_boundary_is_shared_and_never_mutates_receipts(self):
         from llm.services.runtime.usage import period_entries
+        from llm.core.policies import UsagePolicy
+        from llm.core.usage import UsageReceipt
         clock = datetime(2026, 10, 20, tzinfo=timezone.utc)
         entries = [{"started_at": (clock - timedelta(seconds=seconds)).isoformat()}
                    for seconds in (61, 60, 59)]
         before = deepcopy(entries)
-        self.assertEqual(period_entries(entries, {"period_seconds": 60}, at=clock), entries[1:])
+        receipts = [UsageReceipt.from_record(entry) for entry in entries]
+        self.assertEqual(period_entries(receipts, UsagePolicy.from_dict({"period_seconds": 60}), at=clock), receipts[1:])
         for policy in ({}, {"period_seconds": None}):
-            self.assertEqual(period_entries(entries, policy, at=clock), entries)
+            self.assertEqual(period_entries(receipts, UsagePolicy.from_dict(policy), at=clock), receipts)
         self.assertEqual(entries, before)
 
 

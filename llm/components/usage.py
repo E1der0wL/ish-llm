@@ -1,13 +1,14 @@
 """Component-owned model call receipts, independent of Run completion storage."""
 
 from copy import deepcopy
-from dataclasses import asdict, dataclass, fields, replace
+from dataclasses import asdict, dataclass, field, fields, replace
 from datetime import datetime
 from enum import StrEnum
 import re
 from types import MappingProxyType
 
 from llm.core.models import ProjectConfig
+from llm.core.usage import TokenUsage
 
 
 class ModelUsageStatus(StrEnum):
@@ -21,6 +22,9 @@ class ModelUsageRecord:
     SCHEMA_VERSION = 1
     DIRECTORY = "usage"
     MANIFEST = "manifest.json"
+    INVALID_DIAGNOSTIC = "Model error classification requires a code"
+    INVALID_TOKEN_COUNT = "Invalid complete model usage token count"
+    UNKNOWN_TOTAL = "Invalid complete model usage"
     schema_version: int
     id: str
     project_id: str
@@ -30,13 +34,21 @@ class ModelUsageRecord:
     session_id: str | None
     run_id: str | None
     started_at: str
-    ended_at: str | None
-    status: str
-    usage: dict
-    usage_complete: bool
-    reserved_tokens: int | None
-    error: str | None
-    diagnostic_code: str | None
+    ended_at: str | None = None
+    status: str = ModelUsageStatus.STARTED
+    usage: dict = field(default_factory=dict)
+    usage_complete: bool = False
+    reserved_tokens: int | None = None
+    error: str | None = None
+    diagnostic_code: str | None = None
+
+    @classmethod
+    def reserve(cls, *, project_id, component, invocation, source, reservation):
+        from llm.core.models import new_id, now
+        return cls(schema_version=cls.SCHEMA_VERSION, id=new_id(), project_id=project_id,
+            component=component, operation=invocation.operation, model=invocation.model,
+            session_id=source.session_id if source is not None else None,
+            run_id=source.run_id if source is not None else None, started_at=now(), reserved_tokens=reservation)
 
     @classmethod
     def from_dict(cls, value):
@@ -78,14 +90,9 @@ class ModelUsageRecord:
         started = self.timestamp(self.started_at)
         if type(self.usage_complete) is not bool or not isinstance(self.usage, dict):
             raise ValueError("Invalid component model usage")
-        for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
-            value = self.usage.get(key)
-            if value is not None and (type(value) is not int or value < 0):
-                raise ValueError("Invalid complete model usage token count")
-        if self.usage_complete:
-            if type(self.usage.get("total_tokens")) is not int:
-                raise ValueError("Invalid complete model usage")
-        elif self.usage:
+        TokenUsage(self.usage).validate(complete=self.usage_complete,
+            invalid_count=self.INVALID_TOKEN_COUNT, unknown_total=self.UNKNOWN_TOTAL)
+        if not self.usage_complete and self.usage:
             raise ValueError("Unknown component usage must remain an explicit empty object")
         if self.reserved_tokens is not None and (type(self.reserved_tokens) is not int or self.reserved_tokens < 0):
             raise ValueError("Invalid model token reservation")
@@ -111,6 +118,19 @@ class ModelUsageRecord:
                      "session_id", "run_id", "started_at", "reserved_tokens"):
             if getattr(self, name) != getattr(previous, name):
                 raise ValueError("Model usage reservation identity changed")
+
+    def finish(self, *, ended_at, usage, diagnostic_code=None):
+        """Preserve the reservation while acquiring validated terminal evidence."""
+        observed = TokenUsage(usage)
+        known = diagnostic_code is None and observed.total_tokens is not None
+        if diagnostic_code is not None and (not isinstance(diagnostic_code, str) or not diagnostic_code):
+            raise TypeError(self.INVALID_DIAGNOSTIC)
+        result = replace(self, ended_at=ended_at,
+            status=ModelUsageStatus.COMPLETED if diagnostic_code is None else ModelUsageStatus.FAILED,
+            usage=observed.to_dict() if known else {}, usage_complete=known,
+            error=diagnostic_code, diagnostic_code=diagnostic_code)
+        result.validate_update(self)
+        return result
 
 
 @dataclass(frozen=True)

@@ -138,13 +138,15 @@ class ComponentData:
         """한도가 켜졌으면 관찰 계약을 지원하지 않는 주입 클라이언트를 호출 전에 거부한다."""
         from llm.services.runtime.usage import current_usage
         from llm.policies import ExecutionLimitError
+        from llm.core.policies import UsagePolicy, UsageErrorCode
         project, _ = self._current()
         scope = current_usage()
-        policies = [project.config.policies.get("usage", {}), scope.policy if scope else {}]
-        limited = any(policy.get(key) is not None for policy in policies
-                      for key in ("max_calls", "max_tokens", "project_max_calls", "project_max_tokens"))
+        policies = [UsagePolicy.from_policies(project.config.policies)]
+        if scope is not None:
+            policies.append(scope.policy)
+        limited = any(policy.run.active or policy.project.active for policy in policies)
         if limited and (self._model_usage is None or any(c is not None and getattr(c, "observes_model_calls", False) is not True for c in clients)):
-            raise ExecutionLimitError("usage_configuration", "Configured quota requires observable component model clients")
+            raise ExecutionLimitError(UsageErrorCode.CONFIGURATION, "Configured quota requires observable component model clients")
 
     @workspace_locked
     def model_usage(self):

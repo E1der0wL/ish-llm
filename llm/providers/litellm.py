@@ -60,6 +60,7 @@ def describe_call(operation, request):
     from .observations import ModelCall
     from .requests import error_code
     from llm.policies import ExecutionLimitError
+    from llm.core.policies import UsageErrorCode
 
     def count_tokens(counter):
         counted = copy_model(request)
@@ -70,12 +71,12 @@ def describe_call(operation, request):
         elif operation in ("completion", "acompletion"):
             output = request.get("max_completion_tokens", request.get("max_tokens"))
             if type(output) is not int or output < 1:
-                raise ExecutionLimitError("usage_configuration", "Token quota requires an explicit completion output limit")
+                raise ExecutionLimitError(UsageErrorCode.CONFIGURATION, "Token quota requires an explicit completion output limit")
         else:
-            raise ExecutionLimitError("usage_configuration", "Adapter has no token accounting contract for this operation")
+            raise ExecutionLimitError(UsageErrorCode.CONFIGURATION, "Adapter has no token accounting contract for this operation")
         count = counter(_counter_request(counted))
         if type(count) is not int or count < 0:
-            raise ExecutionLimitError("usage_configuration", "Token counter must return a nonnegative integer")
+            raise ExecutionLimitError(UsageErrorCode.CONFIGURATION, "Token counter must return a nonnegative integer")
         return count + output
 
     def read_usage(response):

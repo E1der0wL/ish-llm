@@ -206,26 +206,16 @@ class ProjectManager:
     @workspace_locked
     def model_usage(self, project):
         """Run과 컴포넌트의 원본 영수증을 조회한다. 프로젝트 합계 파일은 만들지 않는다."""
-        from llm.services.runtime.usage import component_usage, period_entries
+        from llm.services.runtime.usage import component_usage
+        from llm.core.usage import UsageCall, UsageSummary
+        from llm.core.policies import UsagePolicy
         current = self.access.require(project)
-        records = [{**entry, "source": "run", "session_id": session.id, "run_id": run.id}
+        records = [UsageCall.for_run(result, run)
                    for session in self.sessions.list(current, include_deleted=True)
                    for run in self.sessions.run_repository.list(session)
-                   for entry in CompletionRecords.read(run.metadata)]
-        records.extend({**entry, "source": "component"} for entry in component_usage(self.components, current))
-        policy = current.config.policies.get("usage", {})
-        records = period_entries(records, policy)
-        known, reserved, unknown = 0, 0, 0
-        for entry in records:
-            tokens = entry.get("usage", {}).get("total_tokens")
-            if entry.get("usage_complete") and type(tokens) is int:
-                known += tokens
-            elif entry.get("reserved_tokens") is not None:
-                reserved += entry["reserved_tokens"]
-            else:
-                unknown += 1
-        return {"calls": records, "call_count": len(records), "known_tokens": known,
-                "reserved_tokens": reserved, "unknown_calls": unknown, "period_seconds": policy.get("period_seconds")}
+                   for result in CompletionRecords.results(run.metadata)]
+        records.extend(UsageCall.for_component(entry) for entry in component_usage(self.components, current))
+        return UsageSummary.collect(records, UsagePolicy.from_policies(current.config.policies)).to_dict()
 
     @workspace_locked
     def recovery(self, project, *, apply=False, expected_version=None):
