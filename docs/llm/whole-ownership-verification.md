@@ -4130,7 +4130,8 @@ exit 0: 순서 포함 schema 1, 설정 거부/Adapter callback 122, 누락·손�
 - `whole-memory-compaction-values-hub-01`: 발견/시작/pass 25/25/25, exit 0, 85.949667초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-memory-compaction-values-hub-01/hub.json --modules tests.hub.test_summary_api tests.hub.test_provider_recovery tests.hub.test_rag_retention`. source `eb07f7d4a7eebeed9d13ea1bc9e2be1a62bc640b90da47eb8710722159b7e370`, input `7070a42d0b18599c43a0ef437e0063647b0be7e8b8607e7f02655b664a9244ec`.
 
 각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
-Python 3.12.14/Clang·Host d833790, 동일 의존성과 실제 namespace/X11 입력은 manifest에 기록했다.
+Python 3.12.14/Clang·Host d833790, 의존성·환경 변수·실행 파일 hash는 manifest에 기록했다.
+이번 Level 2는 기본 셸 샌드박스에서 실행했으며 namespace 격리 가용성은 별도 환경 검사 대상이다.
 대용량 fragment/명시 resume/실제 효과 횟수, 취소 중 늦은 발행, 원본과 참조의 원자적 복구,
 cursor·manifest 소실·변조, 실제 프로세스 중단·재열기, 기존 Memory 처리/설정/삭제 참조와
 공통 승인·예산·효과·Checkpoint·RAG·수명 안전성, Hub 공개 요약/복구/참조 소비자를 실행했다.
@@ -4146,3 +4147,19 @@ Configuration/추출·Tool과 이번 압축 묶음의 현재 통합 소스에 �
 묶어 Push하고 정확한 SHA의 전체 원격 CI를 확인한다. gate28의 이전 실패 기록은 유지한다.
 
 압축 묶음 후속 감사: `python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16 pass/3.159초/exit 0, `check_architecture`·`check_docs` exit 0, `check_budget_mutation` exit 0(실제 효과 Assertion으로 의도한 한도 제거 2건 검출). 전체 516파일, 미검토 281(llm 104/hub 177), 미분류 후보 20,160, 미완료 계약 8, stale/issues 0이다. Level 3 group30은 이 커밋의 고정 소스에서 실행한다. group29는 시작 전 동결본만 있으며 실행하지 않았고, group28 실패를 성공으로 바꾸지 않는다.
+
+
+## group30 환경 실패와 재실행 경계
+
+`050e87a2b7af512b071afbcd0d30e3897150a150`의 group30 환경 검사는 LLM/Hub 모두 exit 1이었다.
+바깥 셸 샌드박스가 `bwrap`의 UID 매핑을 차단했고 실제 오류는
+`bwrap: setting up uid map: Read-only file system`이다. 동일 환경에서 진행하던 두 전체 시험
+프로세스에만 SIGINT를 보내 중단했다. 이 실행은 전체 완료나 통과로 집계하지 않는다.
+원본 `group30-gate.log`, `group30-auxiliary/`, `b/whole-owners-group30-l3/environment-abort.json`
+및 각 실행 로그를 보존했다. 정적/문서/R3/Provider 검사는 각각 exit 0이나 환경 실패를 대체하지 않는다.
+
+동일 SHA에서 필수 `check_environment --suite llm`을 필요한 셸 권한으로 실행해 exit 0을 확인했다
+(`group30-auxiliary/llm-environment-escalated.json`). 제품 Tool 격리를 낮춘 것이 아니라,
+실제 namespace 검사를 실행할 수 있는 바깥 셸 권한을 사용한다. 새 group31은 이 설명을 반영한
+고정 SHA에서 환경 검사를 먼저 통과시킨 뒤 전체 LLM/Hub를 실행한다. Level 2의 앞선 185/17,
+136/25 pass는 해당 집중 실행 결과로 보존하며, namespace 전체 게이트 통과 증거로 재해석하지 않는다.
