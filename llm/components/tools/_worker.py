@@ -11,17 +11,18 @@ import types
 def load(request):
     from llm.components.tools.function import function_tool
     from llm.components.tools.packages import ToolPaths, read_package
+    from llm.components.tools.package_values import ToolPackageSource
     from llm.components.tools.process import fingerprint
     source = Path(request.source_path)
-    data = read_package(ToolPaths(source.parent.parent, request.project_id), request.tool_name)
-    if (fingerprint(data["source"]) != request.source_hash or
-            fingerprint(data.get("requirements", "")) != request.requirements_hash):
+    data = ToolPackageSource.read(read_package(ToolPaths(source.parent.parent, request.project_id), request.tool_name))
+    if (fingerprint(data.source) != request.source_hash or
+            fingerprint(data.requirements_text) != request.requirements_hash):
         raise ValueError("Tool package changed after resolution; resolve again")
     identity = "_ish_llm_tool_" + request.source_hash
     module = types.ModuleType(identity)
     module.__file__ = str(source)
     sys.modules[identity] = module
-    exec(compile(data["source"], str(source), "exec"), module.__dict__)
+    exec(compile(data.source, str(source), "exec"), module.__dict__)
     return function_tool(request.tool_name, getattr(module, "main", None))
 
 

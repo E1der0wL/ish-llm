@@ -4,17 +4,14 @@
 """
 
 from contextlib import ExitStack
-from copy import deepcopy
 import importlib
-import hashlib
-import re
 import importlib.metadata
 import os
 from pathlib import Path
 import stat
 import sys
 
-from packaging.requirements import Requirement, InvalidRequirement
+from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 from dataclasses import dataclass
 from typing import ClassVar
@@ -23,6 +20,7 @@ from llm.components.usage import ModelUsageRecord
 from llm.services.infrastructure.storage import (reject_links, make_directory, prepare_replace,
     temporary_file, sync_directory, unlink_file, atomic_json, read_json, remove_named_tree)
 from .process import inspect_tool
+from .package_values import ToolPackageSource, ToolPackageDigests, ToolPackageManifest, ToolRequirements
 
 
 def _checked(path):
@@ -34,7 +32,9 @@ def _checked(path):
 @dataclass(frozen=True, slots=True)
 class ToolPaths:
     COMPONENT: ClassVar[str] = "tools"
-    SCHEMA_VERSION = 1
+    SCHEMA_VERSION = ToolPackageManifest.VERSION
+    SOURCE_SUFFIX = ".py"
+    REQUIREMENTS_FILE = "requirements.txt"
     MANIFEST = "packages.manifest.json"
     root: Path
     project_id: str
@@ -57,10 +57,10 @@ class ToolPaths:
         return _checked(self.root / validate_name(name))
 
     def source(self, name):
-        return _checked(self.package(name) / (name + ".py"))
+        return _checked(self.package(name) / (name + self.SOURCE_SUFFIX))
 
     def requirements(self, name):
-        return _checked(self.package(name) / "requirements.txt")
+        return _checked(self.package(name) / self.REQUIREMENTS_FILE)
 
     @property
     def manifest(self):
@@ -71,34 +71,19 @@ class ToolPaths:
             raise FileExistsError("Tool package manifest already exists")
         if {path.name for path in self.root.iterdir()} != {ModelUsageRecord.DIRECTORY}:
             raise ValueError("Cannot adopt undeclared Tool packages")
-        atomic_json(self.manifest, {"schema_version": self.SCHEMA_VERSION,
-            "project_id": self.project_id, "component": self.COMPONENT, "packages": {}})
+        atomic_json(self.manifest, ToolPackageManifest.create(self.project_id, self.COMPONENT).to_dict())
 
     @staticmethod
     def fingerprints(value):
-        return {"source": hashlib.sha256(value["source"].encode("utf-8")).hexdigest(),
-                "requirements": hashlib.sha256(value["requirements"].encode("utf-8")).hexdigest()
-                    if "requirements" in value else None}
+        return ToolPackageDigests.fingerprint_record(value).to_dict()
 
     def inventory(self):
         """Owner-local existence and content proof; never import package code."""
         if not self.manifest.is_file():
             raise ValueError("Tool package manifest must be a regular file")
-        manifest = read_json(self.manifest)
-        if (not isinstance(manifest, dict)
-                or manifest.keys() != {"schema_version", "project_id", "component", "packages"}
-                or type(manifest["schema_version"]) is not int
-                or manifest["schema_version"] != self.SCHEMA_VERSION
-                or manifest["project_id"] != self.project_id or manifest["component"] != self.COMPONENT
-                or not isinstance(manifest["packages"], dict)):
-            raise ValueError("Invalid Tool package manifest")
-        for name, entry in manifest["packages"].items():
+        manifest = ToolPackageManifest.read(read_json(self.manifest), project_id=self.project_id, component=self.COMPONENT)
+        for name in manifest.packages:
             self.package(name)
-            if (not isinstance(entry, dict) or entry.keys() != {"source", "requirements"}
-                    or not isinstance(entry["source"], str) or not re.fullmatch(r"[a-f0-9]{64}", entry["source"])
-                    or entry["requirements"] is not None and (not isinstance(entry["requirements"], str)
-                        or not re.fullmatch(r"[a-f0-9]{64}", entry["requirements"]))):
-                raise ValueError("Invalid Tool package content declaration")
         actual = set()
         for path in self.root.iterdir():
             _checked(path)
@@ -107,14 +92,14 @@ class ToolPaths:
             if not path.is_dir():
                 raise ValueError("Tool packages must be directories")
             actual.add(validate_name(path.name))
-        if actual != manifest["packages"].keys():
+        if actual != manifest.packages.keys():
             raise ValueError("Tool packages are missing or undeclared")
         packages = {}
-        for name in sorted(manifest["packages"]):
-            entry = manifest["packages"][name]
-            expected = {name + ".py"}
-            if entry["requirements"] is not None:
-                expected.add("requirements.txt")
+        for name in sorted(manifest.packages):
+            entry = manifest.packages[name]
+            expected = {name + self.SOURCE_SUFFIX}
+            if entry.has_requirements:
+                expected.add(self.REQUIREMENTS_FILE)
             actual = set()
             for path in self.package(name).iterdir():
                 if not stat.S_ISREG(_checked(path).stat().st_mode):
@@ -122,43 +107,21 @@ class ToolPaths:
                 actual.add(path.name)
             if actual != expected:
                 raise ValueError("Tool package files are missing or undeclared")
-            value = {"source": self.source(name).read_bytes().decode("utf-8")}
-            if entry["requirements"] is not None:
-                value["requirements"] = self.requirements(name).read_bytes().decode("utf-8")
-            if self.fingerprints(value) != entry:
+            source = self.source(name).read_bytes().decode(ToolPackageSource.ENCODING)
+            wanted = (self.requirements(name).read_bytes().decode(ToolPackageSource.ENCODING)
+                      if entry.has_requirements else ToolPackageSource.ABSENT_REQUIREMENTS)
+            if ToolPackageDigests.for_text(source, wanted) != entry:
                 raise ValueError("Tool package integrity mismatch")
-            packages[name] = validate_source(value)
+            packages[name] = ToolPackageSource(source, wanted)
         return manifest, packages
 
 
-def requirements(text):
-    """단순 PEP 508만 허용한다. pip 옵션/파일 include/URL은 실행하지 않는다."""
-    result = []
-    for line in text.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("-"):
-            raise ValueError("Tool requirements only support PEP 508 requirement lines")
-        try:
-            item = Requirement(line)
-        except InvalidRequirement as error:
-            raise ValueError("Invalid Tool requirement") from error
-        if item.url:
-            raise ValueError("Tool requirements do not support URL/path installations")
-        result.append(item)
-    return result
+# Public validators delegate to the one current definition Owner.
+requirements = ToolRequirements.parse
 
 
 def validate_source(data):
-    if not isinstance(data, dict) or set(data) - {"source", "requirements"} or "source" not in data:
-        raise ValueError("Tool package requires source and optional requirements")
-    if any(not isinstance(value, str) for value in data.values()) or not data["source"].strip():
-        raise ValueError("Tool package contents must be UTF-8 text with nonempty source")
-    for value in data.values():
-        value.encode("utf-8")
-    requirements(data.get("requirements", ""))
-    return deepcopy(data)
+    return ToolPackageSource.read(data).to_dict()
 
 
 def read_package(paths, name):
@@ -166,7 +129,7 @@ def read_package(paths, name):
     _, packages = paths.inventory()
     if name not in packages:
         raise FileNotFoundError("Tool package does not exist")
-    return packages[name]
+    return packages[name].to_dict()
 
 
 def read_source_package(directory):
@@ -180,12 +143,12 @@ def read_source_package(directory):
         if not stat.S_ISREG(_checked(path).stat().st_mode):
             raise ValueError("Tool package contents must be regular files")
         files[path.name] = path
-    if set(files) not in ({name + ".py"}, {name + ".py", "requirements.txt"}):
+    if set(files) not in ({name + ToolPaths.SOURCE_SUFFIX}, {name + ToolPaths.SOURCE_SUFFIX, ToolPaths.REQUIREMENTS_FILE}):
         raise ValueError("Tool source package requires source and optional requirements")
-    value = {"source": files[name + ".py"].read_bytes().decode("utf-8")}
-    if "requirements.txt" in files:
-        value["requirements"] = files["requirements.txt"].read_bytes().decode("utf-8")
-    return validate_source(value)
+    source = files[name + ToolPaths.SOURCE_SUFFIX].read_bytes().decode(ToolPackageSource.ENCODING)
+    wanted = (files[ToolPaths.REQUIREMENTS_FILE].read_bytes().decode(ToolPackageSource.ENCODING)
+              if ToolPaths.REQUIREMENTS_FILE in files else ToolPackageSource.ABSENT_REQUIREMENTS)
+    return ToolPackageSource(source, wanted).to_dict()
 
 
 def _write_text(path, text):
@@ -193,7 +156,7 @@ def _write_text(path, text):
     fd, temporary = temporary_file(path)
     try:
         with os.fdopen(fd, "wb") as stream:
-            stream.write(text.encode("utf-8"))
+            stream.write(text.encode(ToolPackageSource.ENCODING))
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)
@@ -203,16 +166,15 @@ def _write_text(path, text):
 
 
 def write_package(paths, name, data):
-    data = validate_source(data)
+    data = ToolPackageSource.read(data)
     manifest, _ = paths.inventory()
     make_directory(paths.package(name))
-    _write_text(paths.source(name), data["source"])
-    if "requirements" in data:
-        _write_text(paths.requirements(name), data["requirements"])
+    _write_text(paths.source(name), data.source)
+    if data.has_requirements:
+        _write_text(paths.requirements(name), data.requirements)
     elif paths.requirements(name).exists():
         unlink_file(paths.requirements(name))
-    manifest["packages"][name] = paths.fingerprints(data)
-    atomic_json(paths.manifest, manifest)
+    atomic_json(paths.manifest, manifest.with_package(name, data).to_dict())
 
 
 def delete_package(paths, name):
@@ -221,8 +183,7 @@ def delete_package(paths, name):
     if name not in packages:
         raise FileNotFoundError("Tool package does not exist")
     remove_named_tree(paths.root, paths.package(name), name)
-    del manifest["packages"][name]
-    atomic_json(paths.manifest, manifest)
+    atomic_json(paths.manifest, manifest.without_package(name).to_dict())
 
 
 def _installed(target):
@@ -276,7 +237,7 @@ def _host_target():
 def load_tool(project, name, *, prepare=False):
     """prepare만 ish installer를 호출한다. resolve는 availability만 확인하고 실패한다."""
     data = read_package(ToolPaths.for_project(project), name)
-    wanted = requirements(data.get("requirements", ""))
+    wanted = requirements(ToolPackageSource.read(data).requirements_text)
     if not wanted:
         # Host 공용 경로는 dependency가 없는 Tool에서도 제공할 수 있다.
         config = sys.modules.get("ish.config")

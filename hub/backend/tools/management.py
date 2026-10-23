@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from llm.core.implementation_parameters import ImplementationParameters
+from llm.components.tools.package_values import ToolPackageSource
 
 import ast
 import asyncio
@@ -67,7 +68,7 @@ class ToolManagement:
             def modified(name=name):
                 return max(path.stat().st_mtime for path in self.paths.package(name).iterdir())
             stamp = await asyncio.to_thread(modified)
-            entries.append({"name": name, "description": description(snapshot["data"]["source"]),
+            entries.append({"name": name, "description": description(ToolPackageSource.read(snapshot["data"]).source),
                             "modified": datetime.fromtimestamp(stamp, timezone.utc).isoformat(),
                             "enabled": name in enabled, "version": snapshot["version"]})
         return entries

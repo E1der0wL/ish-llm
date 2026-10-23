@@ -224,9 +224,11 @@ class ProjectToolHandler:
 
 def inspect_tool(project, name, data, plugin_lib=None):
     from .packages import ToolPaths
+    from .package_values import ToolPackageSource
+    data = ToolPackageSource.read(data)
     request = ToolWorkerRequest(ToolWorkerOperation.INSPECT, name, project.id,
-        str(ToolPaths.for_project(project).source(name).absolute()), fingerprint(data["source"]),
-        fingerprint(data.get("requirements", "")), str(plugin_lib) if plugin_lib is not None else None)
+        str(ToolPaths.for_project(project).source(name).absolute()), fingerprint(data.source),
+        fingerprint(data.requirements_text), str(plugin_lib) if plugin_lib is not None else None)
     def run():
         return asyncio.run(invoke_worker(request))
     try:

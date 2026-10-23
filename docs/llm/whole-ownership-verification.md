@@ -1103,3 +1103,67 @@ incomplete 계약 2개이며 전체 완료는 계속 차단된다.
 이 소단계는 Level 2다. 실행 중인 290c576 고정 전체 게이트에는 이번 IPC 변경이 포함되지
 않았다. Tool 패키지/선택 설정과 묶은 후속 현재 통합 소스의 Level 3 및 정확한 SHA CI를
 수행한다. 전체 대상·핵심 안전성·후속 단계 완료 기준은 유지한다.
+
+
+## 290c576 전체 게이트와 원격 Push
+
+`290c57665bf4ef6cef4466dc4ab66d342b7118e0` 고정 소스의 `whole-owners-group7-l3`는
+LLM 2387/2387/2387 pass, 1392.063513초와 Hub 586/586/586 pass, 1119.631919초로
+각각 exit 0이었다. failure/error/skip/xfail/xpass·누락/추가/중복 모두 0이다.
+source `c2e2a8b6c3a179cac53601d46ac4eb100dc19d4e17b99c2efdf800a97bf030d8`,
+input `1a5b3101d3f3316aac6a371ca5f86f8397d4594c520c51f15c7794d91914a09e`는 전후 동일했다.
+실제 명령과 실행 증거는 `/workspace/llm-clean-resume/b/whole-owners-group7-l3`에 보존한다.
+`group7-auxiliary/results.json`의 정적 145건·문서·R3·SDK·양 suite 환경도 모두 exit 0이다.
+
+원격 상태를 재확인한 뒤 `git push origin 290c576:refs/heads/refactor/llm-clean`이 exit 0이었다.
+main `94229cb865374d99f20ec48c5e48269488041a4e`와 refactor/llm-backend
+`bb0946257ab6bcabb9a3ef04d3d854e5333b07d5`는 그대로다. Draft PR #1도 변경하지 않았다.
+[정확한 SHA CI](https://github.com/E1der0wL/ish-llm/actions/runs/39920714762)는
+2026-10-23T07:52:51Z 확인에서 실행 중이었다. 아직 원격 통과를 선언하지 않았다.
+후속 IPC 커밋 `831ea60`과 아래 패키지 변경은 이 전체 게이트의 검증 범위에 포함되지 않는다.
+
+## Python Tool 정의·digest·manifest Owner (2026-10-23)
+
+[패키지 계약](tool-package-records.md)의 Source·digest·manifest·PEP 508 Reader를 분리하고
+Repository inventory, CRUD, worker, dependency 준비, Hub 설명까지 같은 Owner로 연결했다.
+source/requirements 원본 파일이 계속 정규 정의이며 새 JSON 정의나 호환 Reader를 만들지 않는다.
+Source Reader의 이전/현재 결과·오류는 130개 입력에서 동일했다. 생략·null·빈 문자열,
+UTF-8/줄바꿈, unknown 필드와 금지 dependency 문법을 포함한다.
+
+초기 smoke는 54개 중 error 1, exit 1이었다. 기존
+`tests.llm.test_tool_package_integrity.ToolPackageLossTests.test_package_semantics_are_checked_even_when_manifest_hashes_match`
+재현 fixture가 잘못된 requirements의 checksum을 만들던 과정에서 실패했다. 체크섬 API에
+정의 의미 검증을 추가한 것이 원인이었다. ToolPackageDigests의 checksum projection과
+ToolPackageSource의 의미 검증 책임을 분리했고, 원래 실패 Assertion을 그대로 유지한 단일
+재현은 1 pass/exit 0이었다. 이후 값/무결성 smoke 18개도 pass/exit 0이었다.
+실패 및 수정 로그는 `tool-package-draft/smoke.log`, `repro-fixed.log`, `smoke-02.log`에 보존한다.
+
+다음 공식 집중 실행은 각각 failure/error/skip/xfail/xpass·누락/추가/중복 0이며 전후 manifest가 동일하다.
+
+- `whole-tool-package-01`: 발견/시작/pass 122/122/122, exit 0, 99.509865초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-package-01/llm.json --modules tests.llm.test_tool_package_values tests.llm.test_tool_packages tests.llm.test_tool_package_integrity tests.llm.test_tool_data tests.llm.test_tool_workers tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `c567f0c2fad694bf735c4cb8b2bf7e3075e35c641dc31734a6bba745f17e82ec`, input `3070d5a6b1b39d41e1f5c17d8bdaa122de01730d51089bfefb4f1e2d8a1716bc`.
+
+- `whole-tool-package-hub-01`: 발견/시작/pass 17/17/17, exit 0, 47.306820초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-tool-package-hub-01/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_question_tools`.
+  source `c567f0c2fad694bf735c4cb8b2bf7e3075e35c641dc31734a6bba745f17e82ec`, input `3070d5a6b1b39d41e1f5c17d8bdaa122de01730d51089bfefb4f1e2d8a1716bc`.
+
+- `whole-tool-package-values-02`: 발견/시작/pass 34/34/34, exit 0, 8.944547초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-package-values-02/llm.json --modules tests.llm.test_tool_package_values tests.llm.test_tool_package_integrity tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `a1472bdea9d02512d4907a1d35e293b321a3714b88f96a84c1a38e4826be4c70`, input `aecf8437307d4a59ebde498fd0af74d6429ddde6199b122fd90659e778e97438`.
+
+첫 LLM은 실제 패키지/파일·누락·손상·중단/원자적 복원·선택 CRUD·worker 및 승인·예산 삭제·
+효과·Checkpoint·RAG·수명 안전성, Hub는 실제 import/list/open/delete와 built-in 승인 경로다.
+마지막 실행은 checksum 구현 공통화 후 현재 소스의 값/실제 무결성과 감사 fail-closed 계약을
+검증했다. 서로 다른 실행을 합산해 전체 pass로 표현하지 않는다. 로컬 Python 3.12.14/Clang,
+고정 host/의존성·namespace/X11은 앞선 실행과 동일하다.
+
+기존 정적 의존 근거 4건과 새 S4 후보 2건을 검토했다. 두 후보는 Owner Reader의 exact int
+version 및 단일 VERSION 비교이며, boolean/누락/잘못된 identity를 거부하는 기존 계약이다.
+`tool-package-auxiliary/results.json`의 정적 S1–S7 147건·문서·R3·SDK·양 suite 환경은
+각각 exit 0이다. 원본 Assertion이나 필수 job을 제외하지 않았다.
+현재 455개 파일, 미검토 406개, 미분류 30375개,
+incomplete 계약 2개로 전수 완료는 계속 차단된다.
+
+이 소단계는 Level 2이며 전체 회귀는 다음 Tool 선택/관련 소비자와 묶은 현재 통합 Level 3에서
+수행한다. 현재 IPC·패키지 변경은 이미 통과한 290c576 전체/원격 결과에 승계하지 않는다.

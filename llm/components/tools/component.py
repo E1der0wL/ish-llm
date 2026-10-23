@@ -70,7 +70,7 @@ class ToolComponent(Component):
     def list(self, project):
         if not self._has_storage(project):
             return {}
-        return ToolPaths.for_project(project).inventory()[1]
+        return {name: value.to_dict() for name, value in ToolPaths.for_project(project).inventory()[1].items()}
 
     def save(self, project, identifier, data):
         self.load(project, identifier)

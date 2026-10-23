@@ -3803,5 +3803,173 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/tools/package_values.py",
+    "sha256": "726ed9603acf35f058ec1f2490b9be2e6177649c1e0fc0b1afda0791b73fa2ba",
+    "reason": "Read the complete definition/digest/manifest/parser Owner and actual inventory/write/delete/import, worker inspection/execution, component list, installer and Hub description consumers. Raw text and optional file presence remain exact. Checksum projection explicitly does not validate definition semantics; the existing malicious matching-manifest test remains necessary. Dynamic package identifiers stay with ToolPaths and filesystem transactions remain with their existing Owner. Product-wide searches found only independent docstring examples and unrelated plugin requirements outside these consumers; surrounding files are not approved as complete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cab67c87e43df0f950cae92b00e63b57d75bb9fb319613b3e0363e6516917c74",
+        "classification": "declaration",
+        "owner": "ToolRequirements",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "eb9c20d182745f65bd8ed8a7fb9b56a2960d94681b71418f56ae1c27143fb7c8",
+        "classification": "declaration",
+        "owner": "ToolRequirements",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "58303e384c03e2e6581aec3a614ac49ad26200c89bf26acaaefa185f68f22ba5",
+        "classification": "declaration",
+        "owner": "ToolRequirements",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "dbe1066b37f45651d50b0235d9c2d06fc85f205f8375eb15a39aeb38ec3ba611",
+        "classification": "declaration",
+        "owner": "ToolRequirements",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "89d28c67cac17e6c1318df5e6ca52b1b17767dfaf4e3811a5717f2343495120e",
+        "classification": "declaration",
+        "owner": "ToolRequirements",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "acb2173085ffdf56a9cbca150b7dec321a94ade1d931ba29de729b302cde4651",
+        "classification": "non_contract",
+        "owner": "ToolPackageSource",
+        "reason": "Dataclass frozen/slots generation; not stored package or execution policy."
+      },
+      {
+        "id": "5084b5113903dace0559df5523e432b74e42e26644f38d398e859a44ef8fc74f",
+        "classification": "non_contract",
+        "owner": "ToolPackageSource",
+        "reason": "Dataclass frozen/slots generation; not stored package or execution policy."
+      },
+      {
+        "id": "267e5479542f267061734fd276b0f3247ac6bd810e1741af3e329a6f83cf1ea4",
+        "classification": "declaration",
+        "owner": "ToolPackageSource",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "820c71ae6c3306f45eb3782ea4e72478a22e39b537e3db149b15971664866aff",
+        "classification": "declaration",
+        "owner": "ToolPackageSource",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "956d869c7a5ddcbb29570433b5113aff04a6864b5e6a2d60d1e72c8c92eba24b",
+        "classification": "declaration",
+        "owner": "ToolPackageSource",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "a3aa846ecb30215854406002d4fd99fd696dc3f966654742bd6da16c8a9b1f73",
+        "classification": "declaration",
+        "owner": "ToolPackageSource",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "0bec3201d1c709b5fd818966632e7503d0e9f8493d4b8d8325b05fce92fc25b7",
+        "classification": "declaration",
+        "owner": "ToolPackageSource",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "5f9919b425532772a005d7cb7a20b80a3e79cef21e27f507b5f427cf79898023",
+        "classification": "declaration",
+        "owner": "ToolPackageSource",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "eaf4620a0dc7fc264fb6a434e3e4cc433653903b1c401d61c9d9c7b475604936",
+        "classification": "non_contract",
+        "owner": "ToolPackageDigests",
+        "reason": "Dataclass frozen/slots generation; not stored package or execution policy."
+      },
+      {
+        "id": "7e91fcf4fe8a7cce3e5faabbbf7923c75dbedb2e73a0850bd721015cb335ff61",
+        "classification": "non_contract",
+        "owner": "ToolPackageDigests",
+        "reason": "Dataclass frozen/slots generation; not stored package or execution policy."
+      },
+      {
+        "id": "8c17d98ace6c3273dd7487b65541cdb1e644195b541396df5525e0f78eeb1a80",
+        "classification": "declaration",
+        "owner": "ToolPackageDigests",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "4b80c9c944b674cb7b758b283b2228727480d2f7450af5a3238108b1ba3299cc",
+        "classification": "declaration",
+        "owner": "ToolPackageDigests",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "206304b0de30bdd8edeea7ad6308d8a1e548b9eba7c4c81fdf65d888f1dc204b",
+        "classification": "declaration",
+        "owner": "ToolPackageDigests",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "37828236f5f190a683d062fd8b92e5d1e941f0370604ee7e6130c762f3ec3f66",
+        "classification": "declaration",
+        "owner": "ToolPackageDigests",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "d660376c889322decdb969198f7360a271d1076b3a34bf97f1ce015c1a5e3b9e",
+        "classification": "non_contract",
+        "owner": "ToolPackageManifest",
+        "reason": "Dataclass frozen/slots generation; not stored package or execution policy."
+      },
+      {
+        "id": "6d8ad5451cf57bbc6383f16b5fa6e62ffb9ca47fd2ef60c22f5a27eb7d7893e4",
+        "classification": "non_contract",
+        "owner": "ToolPackageManifest",
+        "reason": "Dataclass frozen/slots generation; not stored package or execution policy."
+      },
+      {
+        "id": "fccb0eb7076c68d35ab47605bff4759ad94be8e0180e5db07ceee3c890d8fc08",
+        "classification": "declaration",
+        "owner": "ToolPackageManifest",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      },
+      {
+        "id": "204c6f631994486f666b15c9a1afe27123504fab904959fc1d05fdb51ce7bdbf",
+        "classification": "declaration",
+        "owner": "ToolPackageManifest",
+        "reason": "Canonical package definition, digest, manifest version/field or PEP 508 parser vocabulary declared before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolPackageSource / ToolPackageDigests / ToolPackageManifest / ToolRequirements",
+        "declaration": "llm/components/tools/package_values.py",
+        "consumers": [
+          "llm/components/tools/packages.py",
+          "llm/components/tools/component.py",
+          "llm/components/tools/process.py",
+          "llm/components/tools/_worker.py",
+          "hub/backend/tools/management.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_tool_data.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/hub/test_interaction_updates.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]
