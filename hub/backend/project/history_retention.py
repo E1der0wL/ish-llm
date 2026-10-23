@@ -6,7 +6,8 @@ from datetime import datetime, timezone
 import math
 from typing import ClassVar
 
-from llm.core.models import ProjectConfig, RunStatus
+from llm.core.models import RunStatus
+from llm.core.json_data import JsonObject
 from llm.core.plans import RetentionPlan, RetentionUnit
 
 
@@ -32,7 +33,7 @@ class HistoryRetentionPolicy:
             raise ValueError('Retention age must be positive and finite')
         if not isinstance(self.counter_params, dict) or 'messages' in self.counter_params:
             raise ValueError('Counter parameters cannot override messages')
-        ProjectConfig.validate_json(self.counter_params)
+        JsonObject.validate(self.counter_params)
         object.__setattr__(self, 'counter_params', deepcopy(self.counter_params))
 
 

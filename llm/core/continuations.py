@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from .configuration import UNSET
 from .contracts import JsonValue
-from .models import ProjectConfig
+from llm.core.json_data import JsonObject
 
 
 @dataclass(frozen=True, init=False, slots=True)
@@ -28,7 +28,7 @@ class RunLink:
     def read(cls, value):
         if not isinstance(value, dict) or not set(cls.REQUIRED_FIELDS) <= value.keys():
             raise ValueError(cls.INVALID_RECORD)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         for name in cls.TEXT_FIELDS:
             if not isinstance(value[name], str) or not value[name]:
                 raise ValueError(cls.INVALID_IDENTITY)

@@ -158,8 +158,8 @@ async def _invoke_worker(request):
             raise WorkerError("tool_worker_failed", "Tool worker exited abnormally")
         try:
             payload = json.loads(stdout, parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
-            from llm.core.models import ProjectConfig
-            ProjectConfig.validate_json({"response": payload})
+            from llm.core.json_data import JsonObject
+            JsonObject.validate({"response": payload})
         except (ValueError, TypeError, UnicodeError) as error:
             raise WorkerError("tool_worker_protocol", "Tool worker returned invalid JSON") from error
         return _decode(payload, request["operation"])

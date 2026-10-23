@@ -218,9 +218,9 @@ class ArgumentConstraint:
     """Project-owned rule syntax and narrowing; Tool schemas remain independent."""
 
     def __init__(self, rule):
-        from .models import ProjectConfig
+        from llm.core.json_data import JsonObject
         from .interactions import same_interaction_value
-        ProjectConfig.validate_json(rule)
+        JsonObject.validate(rule)
         if not isinstance(rule, dict):
             raise ValueError("Invalid Tool argument constraint")
         mode = rule.get("mode")
@@ -299,8 +299,8 @@ class ArgumentConstraint:
 
 
 def validate_tool_constraints(constraints: dict) -> None:
-    from .models import ProjectConfig
-    ProjectConfig.validate_json(constraints)
+    from llm.core.json_data import JsonObject
+    JsonObject.validate(constraints)
     if not isinstance(constraints, dict):
         raise ValueError("argument_constraints must be an object")
     for name, fields in constraints.items():

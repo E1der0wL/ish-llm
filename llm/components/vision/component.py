@@ -9,7 +9,8 @@ import re
 from pathlib import Path
 
 from llm.components.base import Component, validate_name
-from llm.core.models import new_id, now, ProjectConfig
+from llm.core.models import new_id, now
+from llm.core.json_data import JsonObject
 from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, checked_schema
 from llm.providers.requests import provider_schema, resolve_provider_options
@@ -87,7 +88,7 @@ class VisionComponent(Component):
 
     def validate_config(self, values):
         super().validate_config(values)
-        ProjectConfig.validate_json(values)
+        JsonObject.validate(values)
         values = self.parameter_layout.unpack(values)
         resolve_provider_options(values.get("provider", {}))
         params = values.get("completion", {})

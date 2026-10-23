@@ -36,9 +36,9 @@ class CompletionPolicy:
 
     @classmethod
     def validate_config(cls, policy):
-        from llm.core.models import ProjectConfig
+        from llm.core.json_data import JsonObject
         from jsonschema import Draft202012Validator
-        ProjectConfig.validate_json({"completion": policy})
+        JsonObject.validate({"completion": policy})
         error = next(Draft202012Validator(cls.describe_config()).iter_errors(policy), None)
         if error:
             raise ValueError("Invalid completion policy: " + error.message)

@@ -26,7 +26,7 @@ def load(request):
 
 
 async def dispatch(request):
-    from llm.core.models import ProjectConfig
+    from llm.core.json_data import JsonObject
     from llm.errors import stable_error_code
     from llm.services.runtime.tools import ToolExecutionError
     try:
@@ -51,7 +51,7 @@ async def dispatch(request):
                 _tool_call.reset(token)
         else:
             raise ValueError("Unknown Tool worker operation")
-        ProjectConfig.validate_json({"value": value})
+        JsonObject.validate({"value": value})
         return {"ok": True, "value": value}
     except asyncio.CancelledError:
         raise

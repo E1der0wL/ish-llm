@@ -27,6 +27,7 @@ from .graph_search import graph_search, related_graph
 from .files import copy_file
 from llm.core.configuration import resolve_config, require_config
 from llm.core.models import ProjectConfig
+from llm.core.json_data import JsonObject
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, metadata_schema
@@ -137,7 +138,7 @@ class RAGComponent(DefinitionComponent):
         if (not isinstance(source, dict) or not cls.INPUT_FIELDS <= source.keys()
                 or source.keys() - cls.INPUT_FIELDS - {"description"}):
             raise ValueError("RAG document input fields are incomplete or unknown")
-        ProjectConfig.validate_json(source)
+        JsonObject.validate(source)
         validate_name(source["identifier"])
         if (any(not isinstance(source[key], str) or not source[key].strip() for key in ("title", "content"))
                 or not isinstance(source["metadata"], dict)
@@ -182,7 +183,7 @@ class RAGComponent(DefinitionComponent):
         if (not cls.DOCUMENT_FIELDS <= document.keys()
                 or document.keys() - cls.DOCUMENT_FIELDS - {"description"}):
             raise ValueError("Prepared RAG document fields are incomplete or unknown")
-        ProjectConfig.validate_json(document)
+        JsonObject.validate(document)
         if (not isinstance(document["title"], str) or not document["title"].strip()
                 or not isinstance(document["content"], str) or not document["content"].strip()
                 or not isinstance(document["metadata"], dict)

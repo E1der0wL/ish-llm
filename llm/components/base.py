@@ -12,7 +12,8 @@ from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
-from llm.core.models import Project, ProjectConfig, new_id
+from llm.core.models import Project, new_id
+from llm.core.json_data import JsonObject
 from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.storage import atomic_json, remove_named_tree
 
@@ -97,13 +98,13 @@ class Component:
     @staticmethod
     def serialize(data: dict) -> str:
         """Encode an open JSON object without dropping unknown keys."""
-        ProjectConfig.validate_json(data)
+        JsonObject.validate(data)
         return json.dumps(data, ensure_ascii=False, allow_nan=False)
 
     @staticmethod
     def deserialize(value: str) -> dict:
         data = json.loads(value)
-        ProjectConfig.validate_json(data)
+        JsonObject.validate(data)
         return data
 
     def describe_config(self) -> dict:

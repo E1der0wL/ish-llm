@@ -4,7 +4,7 @@ from copy import deepcopy
 from dataclasses import dataclass, fields
 from enum import StrEnum
 
-from .models import ProjectConfig
+from llm.core.json_data import JsonObject
 from .steering import SteeringTarget, SteeringRoute, RunInstruction
 
 
@@ -48,7 +48,7 @@ class SteeringEventData:
         DETAILS = "details"
 
     def __init__(self, value):
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         self._value = deepcopy(value)
 
     @classmethod

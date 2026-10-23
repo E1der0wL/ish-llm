@@ -5,6 +5,7 @@ from enum import StrEnum
 from jsonschema import Draft202012Validator
 
 from .models import ProjectConfig
+from llm.core.json_data import JsonObject
 from .configuration_views import ConfigurationView, ConfigurationOverride
 
 
@@ -70,7 +71,7 @@ def resolve_config(layers, *, schema=None, host=None):
                         del sources[child]
 
     for source, data in [*layers, (ConfigurationSource.HOST, {} if host is None else host)]:
-        ProjectConfig.validate_json(data)
+        JsonObject.validate(data)
         merge(values, data, source)
     if schema is not None:
         error = next(Draft202012Validator(schema).iter_errors(values), None)
@@ -86,7 +87,7 @@ def resolve_engine_config(config, name, *, session_config=None, agent=None, sche
     session = {} if session_config is None else session_config
     ProjectConfig.validate_session(session)
     agent = {} if agent is None else agent
-    ProjectConfig.validate_json(agent)
+    JsonObject.validate(agent)
     layers = [
         (ConfigurationSource.PROJECT, config.parameters.get("engines", {}).get(name, {})),
         (ConfigurationSource.SESSION, session.get("parameters", {}).get("engines", {}).get(name, {})),

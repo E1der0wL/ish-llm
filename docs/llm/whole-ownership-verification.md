@@ -697,3 +697,70 @@ new/stale/outstanding/error 0), 문서, R3, SDK, 양 suite 환경 모두 exit 0�
 Assertion을 제거하지 않았다. query Owner 파일 후보 18개와 실제 동적 소비 경로만 개별
 완료로 분류했다. 전수 inventory는 449개 파일, 416개 미검토 파일/31,113개 미분류 후보다.
 이 소단계는 Level 2 완료이며 도메인 Record·후속 공통 검증 변경과 다음 전체 게이트로 묶는다.
+
+
+## 묶음 3 원격 성공·묶음 4 Push
+
+`ae418a7fa073d4f477d5cd903c52292bb9243e7e`의
+[원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39905057801)를 2026-10-23 05:53:36 UTC에
+다시 조회했다. 정확한 head SHA와 두 필수 Job의 모든 필수 step success를 확인했다.
+LLM 2,354/2,354(1,735.80초), Hub 586/586(1,386.94초), Failure/Error/Skip/xfail/xpass/누락/추가/중복 0.
+정적·문서·R3·SDK·환경·증거 보존 step도 실제 success다. 증거는
+`ci/ae418a7fa073d4f477d5cd903c52292bb9243e7e/status.json`이며 verified=true다.
+원격 Python은 GCC 13.3.0 빌드로 로컬 Clang 환경과 구별한다. 60분 deadline 조정 후 전체 Job이
+완료됐으며 기존 필수 검사·실행 범위를 줄이지 않았다. 앞선 967f6dd의 cancelled 기록은 유지한다.
+
+원격 세 브랜치 SHA를 다시 확인했고 main/이전 브랜치는 원래 값과 동일했다.
+`git push origin 2f134127c502cf761d032b66aa43234b1a729858:refs/heads/refactor/llm-clean`이 exit 0이었다.
+이는 위 묶음 4 전체 통과 SHA다. 그 뒤 Record/설정/JSON 변경은 이 Push에 포함하지 않는다.
+새 SHA의 원격 CI는 별도 확인하며 ae418a7의 원격 통과를 승계하지 않는다.
+
+## 열린 JSON 문법 검증 책임
+
+`JsonObject.validate`가 JSON 객체/문자열 key/재귀 값/유한 숫자를 검증한다. ProjectConfig는
+Project 설정 의미를 소유하고 기존 공개 validate_json은 단일 JsonObject 구현으로 위임한다.
+36개 직접 소비자에서 JSON 문법 검사를 위한 ProjectConfig 의존을 제거했다. 승인·효과·예약·
+상태·필수 필드·version/revision·Component 정책 검증은 해당 Owner에 남는다.
+[JSON 책임 계약](json-data.md)에 경계를 명시했다. 값 변환·누락 필드 추가·두 번째 Reader는 없다.
+
+`json-ownership-equivalence.json`은 최종 36개 소비자의 실행 AST가 validator 호출/import만
+정규화했을 때 동일함을 기록한다. 기존 import의 함수/클래스 scope도 각각 동일하다.
+JsonObject 본문은 선언 참조를 펼치면 기존 ProjectConfig.validate_json 본문과 AST가 동일하다.
+따라서 오류 종류·문구·JSON scalar·유한 숫자·unknown key 처리도 그대로다. 특히 worker는
+sys.path/protocol FD 설정 뒤의 원래 지연 import를 유지했다. 새 독립 4개 시험은 원문/수치 타입,
+잘못된 컨테이너/key/value/NaN/무한대, 공개 위임 API, JSON 유효성과 도메인 필수 증거의 구분을 검증한다.
+
+| 실행 | 발견/실행/pass | Failure / Error / Skip | xfail·xpass·누락·추가·중복 | Exit |
+|---|---|---|---|---|
+| whole-json-01 | 108/108/108 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-json-safety-02 | 129/129/129 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-json-hub-01 | 13/13/13 | 0 / 0 / 0 | 모두 0 | 0 |
+
+실제 명령과 각각 실행 전후 동일한 source/input:
+
+- `whole-json-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-json-01/llm.json --modules tests.llm.test_json_data tests.llm.test_contracts tests.llm.test_typed_contracts tests.llm.test_configuration_values tests.llm.test_configuration_objects tests.llm.test_tool_workers tests.llm.test_isolated_tools tests.llm.test_tool_constraints tests.llm.test_vision tests.llm.test_continuation_values tests.llm.test_request_values tests.llm.test_transfer_values`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-json-safety-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-json-safety-02/llm.json --modules tests.llm.test_json_data tests.llm.test_completion_processing tests.llm.test_memory_processing_config tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-json-hub-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-json-hub-01/hub.json --modules tests.hub.test_history_retention tests.hub.test_settings_project_flow tests.hub.test_settings_json`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+직접 범위는 공통 typed contract/설정 객체, 실제 격리 Tool worker/인자 제약, Vision, 재개·접수·전송이다.
+최종 안전성은 Completion/Memory 처리, 승인·예산 삭제·효과·Checkpoint·RAG·수명/부모 삭제·
+트랜잭션·정적 감사/inventory다. Hub 직접 변경은 설정 저장/JSON 편집과 history retention이다.
+로컬 Python/host/namespace 환경은 앞서 고정한 것과 같다. 실제 파일 효과·장애 주입 Assertion을
+그대로 유지했다. 서로 다른 실행의 pass를 하나의 전체 실행으로 합산하지 않는다.
+
+최초 정적 검사는 변경된 source hash를 거절했다. 위 동일성 증거와 각 실제 호출을 검토하여
+80건 의존 근거를 갱신했다. 새 정적 발생은 없고 `json-auxiliary/results.json`의 S1–S7(145건,
+new/stale/outstanding/error 0), 문서, R3, SDK, 양 suite 환경이 각각 exit 0이었다.
+실제 보조 명령은 위와 동일하고 output 디렉터리만 json-auxiliary다. 기존 전수 검토 4개 파일은
+동일 literal 후보와 변경된 validator 호출만 재검토했다. 그 외 변경 파일 전체를 완료로 승인하지 않았다.
+새 JSON Owner 후보 6개를 분류했다. 현재 inventory는 450개 파일, 416개 미검토 파일,
+31,108개 미분류 후보다. 이 구간은 Level 2 완료이며 도메인 Record·설정·JSON의 현 통합 SHA를
+묶은 Level 3를 수행한다. 전수 소유권 작업은 계속 진행한다.

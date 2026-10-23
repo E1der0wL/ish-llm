@@ -7,7 +7,7 @@ from enum import StrEnum
 import re
 from types import MappingProxyType
 
-from llm.core.models import ProjectConfig
+from llm.core.json_data import JsonObject
 from llm.core.usage import TokenUsage
 
 
@@ -54,7 +54,7 @@ class ModelUsageRecord:
     def from_dict(cls, value):
         if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
             raise ValueError("Component model usage requires all current fields")
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         return cls(**deepcopy(value))
 
     def to_dict(self):

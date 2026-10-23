@@ -236,8 +236,8 @@ class EngineContextBinding:
         if request_context is not UNSET:
             if not isinstance(request_context, dict):
                 raise TypeError(cls.INVALID_CONTEXT)
-            from llm.core.models import ProjectConfig
-            ProjectConfig.validate_json(request_context)
+            from llm.core.json_data import JsonObject
+            JsonObject.validate(request_context)
             factory = getattr(engine, cls.FOR_CONTEXT, None)
             if not callable(factory):
                 raise ValueError(cls.UNSUPPORTED)

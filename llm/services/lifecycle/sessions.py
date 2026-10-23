@@ -19,6 +19,7 @@ from copy import deepcopy
 from collections.abc import Callable
 
 from llm.core.models import ConversationStorage, Message, MessageStatus, Project, ProjectConfig, Run, Session, SessionStatus, new_id
+from llm.core.json_data import JsonObject
 from llm.core.configuration import UNSET
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.core.contracts import Diagnostic, ResourceRef
@@ -308,7 +309,7 @@ class SessionManager:
                 raise TypeError("Session title must be a string")
             current.title = title
         if metadata is not None:
-            ProjectConfig.validate_json(metadata)
+            JsonObject.validate(metadata)
             current.metadata = deepcopy(metadata)
         self.repository.save(current)
 

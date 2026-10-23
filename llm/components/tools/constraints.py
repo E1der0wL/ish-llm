@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from jsonschema import Draft202012Validator
-from llm.core.models import ProjectConfig
+from llm.core.json_data import JsonObject
 from llm.core.policies import ArgumentConstraint, ConstraintMode
 
 
@@ -27,7 +27,7 @@ def constrained_parameters(schema: dict, fields: dict) -> dict:
 
 
 def constrained_arguments(schema: dict, values: dict, fields: dict) -> dict:
-    ProjectConfig.validate_json(values)
+    JsonObject.validate(values)
     if not isinstance(values, dict):
         raise ValueError("Tool arguments must be an object")
     result = deepcopy(values)

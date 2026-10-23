@@ -30,7 +30,8 @@ class SettingsService:
     def _validate(self, values):
         from jsonschema import Draft202012Validator
         from llm.core.models import ProjectConfig
-        ProjectConfig.validate_json(values)
+        from llm.core.json_data import JsonObject
+        JsonObject.validate(values)
         Draft202012Validator(self._schema()).validate(values)
         form = ProjectConfigForm.from_dict(values)
         if not form.title.strip():

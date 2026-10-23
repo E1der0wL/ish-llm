@@ -14,7 +14,8 @@ import math
 from typing import Any, Optional
 
 from .contracts import Diagnostic, ResourceRef
-from .models import StepStatus, ProjectConfig, Run, RunStatus, Step, new_id, now
+from .models import StepStatus, Run, RunStatus, Step, new_id, now
+from llm.core.json_data import JsonObject
 from .model_protocol import StopReason
 from .usage import TokenUsage, UsageReceipt
 
@@ -80,7 +81,7 @@ class EngineOutput:
             raise ValueError("Invalid output final/metadata")
         # 엔진/SDK의 가변 객체를 UI와 저장소에 그대로 넘기지 않는다.
         copied = {"data": self.data, "metadata": self.metadata}
-        ProjectConfig.validate_json(copied)
+        JsonObject.validate(copied)
         copied = deepcopy(copied)
         object.__setattr__(self, "data", copied["data"])
         object.__setattr__(self, "metadata", copied["metadata"])

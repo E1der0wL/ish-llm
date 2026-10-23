@@ -10,7 +10,8 @@ import json
 import re
 from typing import Any, TYPE_CHECKING
 
-from llm.core.models import ProjectConfig, Session, now
+from llm.core.models import Session, now
+from llm.core.json_data import JsonObject
 from llm.services.infrastructure.storage import atomic_json, read_json, revision_token, reject_links
 from llm.policies import ExecutionLimitError
 
@@ -79,7 +80,7 @@ class OperationRecord:
     def from_dict(cls, value):
         if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
             raise ValueError("Operation record requires all current fields")
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         return cls(**deepcopy(value))
 
     def __post_init__(self):
@@ -133,7 +134,7 @@ class OperationRecord:
         required = {"status", "evidence", *(["at"] if stored else [])}
         if not isinstance(value, dict) or not required <= value.keys() or value.keys() - required - {"result"}:
             raise ValueError("Invalid external operation observation fields")
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         if value["status"] not in OBSERVATION_STATUSES:
             raise ValueError("Invalid external operation observation")
         _evidence(value["evidence"])
@@ -207,7 +208,7 @@ class OperationRepository:
         return path
 
     def _complete(self, session, value, result, evidence):
-        ProjectConfig.validate_json({"result": result})
+        JsonObject.validate({"result": result})
         value.update(status=OperationStatus.COMPLETED, result=deepcopy(result), ended_at=now(), evidence=evidence)
         self._save(session, value)
 
@@ -221,7 +222,7 @@ class OperationRepository:
     def claim(self, session: Session, call: "ToolCall") -> dict:
         manifest = self._manifest(session)
         request = {"name": call.name, "arguments": call.arguments, "contract": call.contract}
-        ProjectConfig.validate_json(request)
+        JsonObject.validate(request)
         digest = _request_digest(call.name, call.arguments, call.contract)
         token = operation_token(session.project_id, session.id, call.operation_key)
         if token in manifest["records"]:

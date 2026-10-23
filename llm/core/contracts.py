@@ -9,7 +9,8 @@ from pathlib import Path
 from types import UnionType
 from typing import Any, Optional, Union, get_args, get_origin, get_type_hints
 
-from .models import ResourceKind, RunStatus, StepStatus, ProjectConfig
+from .models import ResourceKind, RunStatus, StepStatus
+from llm.core.json_data import JsonObject
 from llm.errors import exception_chain, stable_error_code, get_error_attribute
 
 
@@ -90,11 +91,11 @@ class JsonValue:
         hints = get_type_hints(type(self))
         for item in fields(self):
             object.__setattr__(self, item.name, _decode(hints[item.name], _encode(getattr(self, item.name))))
-        ProjectConfig.validate_json(self.to_dict())
+        JsonObject.validate(self.to_dict())
 
     def to_dict(self) -> dict:
         value = _encode(self)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         return value
 
     @classmethod

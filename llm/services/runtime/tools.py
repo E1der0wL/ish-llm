@@ -27,7 +27,8 @@ from llm.core.contracts import Diagnostic
 from llm.errors import CodedError, stable_error_code
 from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
 from llm.core.configuration import UNSET
-from llm.core.models import ProjectConfig, new_id
+from llm.core.models import new_id
+from llm.core.json_data import JsonObject
 from llm.core.results import EngineOutput
 from llm.core.interactions import InteractionOption, InteractionRequest, approval_request, same_interaction_value
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
@@ -398,7 +399,7 @@ class ToolExecutor:
                 or type(state["pending"]) is not bool
                 or not isinstance(state["failures"], list) or len(state["failures"]) != state["attempt"]):
             raise ToolInvocationError("Tool retry checkpoint does not match its original invocation")
-        ProjectConfig.validate_json(state)
+        JsonObject.validate(state)
         if not state["pending"]:
             # 명시적 재개도 이미 실행한 시도의 번호를 재사용하여 한도를 초기화하지 않는다.
             state["attempt"] += 1
@@ -499,7 +500,7 @@ class ToolExecutor:
 
     async def _execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None, classification=None,
                        request_key=None, retry_state=None):
-        ProjectConfig.validate_json(arguments)
+        JsonObject.validate(arguments)
         step_id = new_id()
         scope = getattr(context, "tool_scope", None) or ToolExecutionScope(ToolRuntime())
         scope.validate(tool)
@@ -630,7 +631,7 @@ class ToolExecutor:
                             raise
                         from llm.components.tools.constraints import constrained_arguments
                         def validate(candidate):
-                            ProjectConfig.validate_json(candidate)
+                            JsonObject.validate(candidate)
                             constrained_arguments(tool.parameters, candidate, scope.argument_constraints.get(tool.name, {}))
                         candidate = change_arguments(arguments, selected, allowed=fields, validate=validate)
                         modified = not same_interaction_value(candidate, arguments)
@@ -671,7 +672,7 @@ class ToolExecutor:
                             if reservation["reused"]:
                                 value = reservation["result"]
                                 record(ObservationKind.TOOLS.value, ObservationStatus.REUSED.value, name=tool.name)
-            ProjectConfig.validate_json({"result": value})
+            JsonObject.validate({"result": value})
             content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
             if output_limit is not None and len(content) > output_limit:
                 raise ValueError("Tool output limit exceeded")
@@ -729,7 +730,7 @@ class ToolExecutor:
         bind = getattr(tool.handler, "bind_arguments") if getattr_static(tool.handler, "bind_arguments", None) is not None else None
         if callable(bind):
             selected = {"tool": tool.name, "arguments": deepcopy(arguments), "binding": bind(deepcopy(arguments), context)}
-            ProjectConfig.validate_json(selected)
+            JsonObject.validate(selected)
             name = (metadata or {}).get("checkpoint_name")
             if context is None or not request_key or not name:
                 raise ToolInvocationError("Selected Tool execution binding requires a durable checkpoint")

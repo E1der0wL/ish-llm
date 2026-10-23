@@ -1966,10 +1966,10 @@ class RunManager:
     async def submit(self, content: str, *, recipients, request_context=UNSET) -> Message:
         """Persist the selected Project Agent and the separate request context."""
         if request_context is not UNSET:
-            from llm.core.models import ProjectConfig
+            from llm.core.json_data import JsonObject
             if not isinstance(request_context, dict):
                 raise TypeError("request_context must be a JSON object")
-            ProjectConfig.validate_json(request_context)
+            JsonObject.validate(request_context)
             request_context = deepcopy(request_context)
         return await drain_on_cancel(self._submit(content, recipients, request_context))
 

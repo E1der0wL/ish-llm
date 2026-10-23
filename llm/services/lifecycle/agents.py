@@ -233,8 +233,8 @@ class AgentManager:
 
     @workspace_locked
     def update(self, project, identifier, changes, *, expected_revision):
-        from llm.core.models import ProjectConfig
-        ProjectConfig.validate_json(changes)
+        from llm.core.json_data import JsonObject
+        JsonObject.validate(changes)
         definition = {**self.load(project, identifier), **deepcopy(changes)}
         self.revise(project, identifier, definition, expected_revision=expected_revision)
         return definition

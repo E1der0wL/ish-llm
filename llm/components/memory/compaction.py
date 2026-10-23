@@ -11,7 +11,8 @@ import re
 
 from jsonschema import Draft202012Validator, ValidationError
 
-from llm.core.models import new_id, ProjectConfig, RunStatus
+from llm.core.models import new_id, RunStatus
+from llm.core.json_data import JsonObject
 from llm.core.schema import object_schema, field
 from llm.providers.litellm import LiteLLMCompletionAdapter
 from llm.providers.requests import provider_schema
@@ -37,7 +38,7 @@ def compaction_schema(*, completion_adapter=None):
 
 def validate_compaction_options(options, *, completion_adapter=None):
     adapter = LiteLLMCompletionAdapter() if completion_adapter is None else completion_adapter
-    ProjectConfig.validate_json(options)
+    JsonObject.validate(options)
     Draft202012Validator(compaction_schema(completion_adapter=adapter)).validate(options)
     adapter.validate_input_ownership(options["completion"], auxiliary=True)
     adapter.validate_request(options["completion"], require_model=True)

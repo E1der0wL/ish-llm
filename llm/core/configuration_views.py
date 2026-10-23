@@ -5,7 +5,7 @@ from dataclasses import dataclass, field, fields
 from typing import Any
 
 from .contracts import JsonValue
-from .models import ProjectConfig
+from llm.core.json_data import JsonObject
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,7 +60,7 @@ class ConfigurationView:
 
     @classmethod
     def read(cls, value):
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         resolution = ConfigurationResolution.from_dict({item.name: value[item.name]
             for item in fields(ConfigurationResolution) if item.name in value})
         runtime = RuntimeConfiguration.from_dict({item.name: value[item.name]

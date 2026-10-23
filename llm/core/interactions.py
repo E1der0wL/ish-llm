@@ -8,7 +8,8 @@ import hashlib
 import json
 from typing import Any, ClassVar, Optional
 
-from .models import ProjectConfig, new_id, now
+from .models import new_id, now
+from llm.core.json_data import JsonObject
 from .schema import checked_schema
 
 
@@ -31,7 +32,7 @@ class InteractionBinding:
     def __init__(self, value):
         if not isinstance(value, dict):
             raise TypeError(self.INVALID)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         object.__setattr__(self, "_value", deepcopy(value))
 
     @classmethod
@@ -112,7 +113,7 @@ def _stored_fields(cls, value):
     if value.keys() != names:
         raise ValueError(f"{cls.__name__} requires all current fields; "
                          f"missing={sorted(names - value.keys())}, extra={sorted(value.keys() - names)}")
-    ProjectConfig.validate_json(value)
+    JsonObject.validate(value)
     return deepcopy(value)
 
 
@@ -123,7 +124,7 @@ def _timestamp(value):
 
 def same_interaction_value(left: Any, right: Any) -> bool:
     """JSON 응답을 강제 변환 없이 비교한다. 중첩된 true/1과 1/1.0도 구분한다."""
-    ProjectConfig.validate_json({"left": left, "right": right})
+    JsonObject.validate({"left": left, "right": right})
     return json.dumps(left, sort_keys=True, allow_nan=False) == json.dumps(right, sort_keys=True, allow_nan=False)
 
 
@@ -147,11 +148,11 @@ class InteractionOption:
             raise ValueError("Interaction options require an ID and label")
         if not isinstance(self.description, str) or not isinstance(self.effect, str):
             raise TypeError("Invalid interaction option text")
-        ProjectConfig.validate_json({"value": self.value})
+        JsonObject.validate({"value": self.value})
 
     def to_dict(self) -> dict:
         value = asdict(self)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         return deepcopy(value)
 
     @classmethod
@@ -217,7 +218,7 @@ class InteractionRequest:
         for value in (self.source, self.action, self.binding):
             if not isinstance(value, dict):
                 raise TypeError("Interaction source/action/binding must be objects")
-            ProjectConfig.validate_json(value)
+            JsonObject.validate(value)
         _timestamp(self.created_at)
         if self.expires_at is not None:
             _timestamp(self.expires_at)
@@ -253,7 +254,7 @@ class InteractionRequest:
     def to_dict(self) -> dict:
         value = asdict(self)
         value["options"] = [asdict(o) for o in self.options]
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         return deepcopy(value)
 
     @classmethod
@@ -274,7 +275,7 @@ class InteractionRequest:
     def decision_for(self, option_id: str, *, value: Any = None) -> Any:
         """선택지와 입력의 순수 형식 변환. 요청 수명/응답 지문 검증이나 승인을 대신하지 않는다."""
         from jsonschema import Draft202012Validator, ValidationError
-        ProjectConfig.validate_json({"value": value})
+        JsonObject.validate({"value": value})
         option = next((o for o in self.options if o.id == option_id), None)
         if option is None:
             raise ValueError("Unknown interaction option")
@@ -306,7 +307,7 @@ class InteractionRequest:
         빈 confirmation은 명시적 확인 경로에서만 승인 선택으로 해석한다. 일반 approval,
         choice에는 적용하지 않는다. 반환값은 사본이며 응답 영수증을 생성하지 않는다.
         """
-        ProjectConfig.validate_json({"decision": decision})
+        JsonObject.validate({"decision": decision})
         if self.checkpoint_binding.selection:
             selected = InteractionSelection.from_dict(decision)
             self.decision_for(selected.option_id, value=selected.value)
@@ -372,7 +373,7 @@ class InteractionResponse:
         if self.actor not in InteractionActor:
             raise ValueError("Invalid interaction response actor")
         _timestamp(self.created_at)
-        ProjectConfig.validate_json({"value": self.value})
+        JsonObject.validate({"value": self.value})
         if self.policy_id is not None and (not isinstance(self.policy_id, str) or not self.policy_id):
             raise ValueError("Invalid interaction policy ID")
         if (self.actor == InteractionActor.POLICY) != (self.policy_id is not None):
@@ -384,7 +385,7 @@ class InteractionResponse:
 
     def to_dict(self) -> dict:
         value = asdict(self)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         return deepcopy(value)
 
     def decision(self, request: InteractionRequest) -> Any:

@@ -9,7 +9,8 @@ from llm.services.infrastructure.storage import read_domain_record, atomic_domai
 from llm.services.query import FileCatalog, Query, select
 from copy import deepcopy
 from typing import Optional
-from llm.core.models import ProjectConfig, Run, Step, StepStatus, new_id, now, validate_step_transition
+from llm.core.models import Run, Step, StepStatus, new_id, now, validate_step_transition
+from llm.core.json_data import JsonObject
 from llm.core.paths import StepPaths
 from llm.core.results import EngineOutput
 from llm.engines.base import EngineEvent, EngineEventType
@@ -200,7 +201,7 @@ class StepEventRecorder:
         if event.metadata:
             if "output" in event.metadata:
                 raise ValueError("Use EngineEvent.output for Step results")
-            ProjectConfig.validate_json(event.metadata)
+            JsonObject.validate(event.metadata)
             step.metadata.update(deepcopy(event.metadata))
         if event.output is not None:
             if not isinstance(event.output, EngineOutput) or event.output.step_id != step.id:

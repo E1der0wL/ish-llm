@@ -8,7 +8,7 @@ import hashlib
 from pathlib import Path
 
 from llm.core.contracts import JsonValue
-from llm.core.models import ProjectConfig
+from llm.core.json_data import JsonObject
 from llm.errors import CodedError
 from llm.services.infrastructure.storage import child, revision_token
 from llm.services.runtime.requests import RequestAdmission
@@ -202,7 +202,7 @@ class TransferReceipt(TransferIntent):
     def read(cls, value):
         if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
             raise ValueError(cls.INVALID_FIELDS)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         # Validate the supplied raw bytes' JSON meaning before decoding a projection.
         cls.require_revision(value)
         try:

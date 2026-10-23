@@ -13,7 +13,8 @@ from llm.core.interactions import (
 )
 from llm.core.checkpoints import CheckpointStatus
 from llm.core.checkpoint_records import CheckpointInteractions, CheckpointStep
-from llm.core.models import RunStatus, ProjectConfig, Run
+from llm.core.models import RunStatus, Run
+from llm.core.json_data import JsonObject
 from llm.services.infrastructure.storage import atomic_json, child, read_json
 
 
@@ -63,7 +64,7 @@ class InteractionRecord:
     def from_dict(cls, value):
         if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
             raise ValueError("Interaction record fields changed or are incomplete")
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         return cls(**deepcopy(value))
 
     def to_dict(self):

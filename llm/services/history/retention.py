@@ -15,7 +15,8 @@ from llm.core.steering_channel import SteeringChannel
 from llm.core.checkpoint_records import CheckpointDeclarations
 from llm.core.checkpoints import CheckpointConversation
 from llm.core.plans import RetentionPlan, RetentionUnit
-from llm.core.models import ConversationStorage, MessageStatus, now, new_id, RunStatus, ProjectConfig
+from llm.core.models import ConversationStorage, MessageStatus, now, new_id, RunStatus
+from llm.core.json_data import JsonObject
 from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links, tree_snapshot, child
 from llm.services.runtime.usage import project_usage_policies, protects_project_usage
 from llm.services.runtime.requests import RequestAdmission
@@ -27,7 +28,7 @@ class HistoryRetention:
         self.counter_params = {} if counter_params is None else counter_params
         if not isinstance(self.counter_params, dict) or "messages" in self.counter_params:
             raise ValueError("Retention counter parameters cannot override messages")
-        ProjectConfig.validate_json(self.counter_params)
+        JsonObject.validate(self.counter_params)
         if counter is not None and not callable(counter):
             raise ValueError("Retention requires an explicitly selected callable counter")
         if self.counter_params and counter is None:

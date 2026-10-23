@@ -1,5 +1,7 @@
 """Project → Session → Run → Step의 영속 데이터와 상태를 정의한다. asyncio 객체나 서비스 핸들은 이 모델에 저장하지 않는다."""
 
+from llm.core.json_data import JsonObject
+
 from typing import Any, Optional, TYPE_CHECKING
 from collections.abc import Iterator
 import json
@@ -280,22 +282,8 @@ class ProjectConfig(dict):
 
     @staticmethod
     def validate_json(value: dict) -> None:
-        """Check JSON compatibility without restricting application field names."""
-        if not isinstance(value, dict):
-            raise TypeError("JSON data must be a dictionary")
-        def check(item):
-            if isinstance(item, dict):
-                for key, nested in item.items():
-                    if not isinstance(key, str):
-                        raise TypeError("JSON keys must be strings")
-                    check(nested)
-            elif isinstance(item, list):
-                for nested in item:
-                    check(nested)
-            elif item is not None and not isinstance(item, (str, bool, int, float)):
-                raise TypeError("JSON data must contain only JSON values")
-        check(value)
-        json.dumps(value, allow_nan=False)
+        """Public configuration entry point for the shared JSON object validator."""
+        JsonObject.validate(value)
 
     def validate(self) -> None:
         self.validate_json(self)

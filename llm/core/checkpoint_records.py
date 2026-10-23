@@ -8,7 +8,8 @@ from typing import ClassVar
 
 from .contracts import JsonValue
 from .configuration import UNSET
-from .models import ProjectConfig, RunStatus
+from .models import RunStatus
+from llm.core.json_data import JsonObject
 from .checkpoints import ResumeAbandonment, CheckpointOperation
 from .interactions import InteractionRequest
 
@@ -40,7 +41,7 @@ class CheckpointRecords(JsonValue):
     def validate_entry(cls, key, value):
         if not isinstance(key, str) or not key or not isinstance(value, dict):
             raise ValueError(cls.INVALID_ENTRY)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
 
     @classmethod
     def from_checkpoint(cls, value):
@@ -266,7 +267,7 @@ class CheckpointWrite:
         LIFECYCLE = "lifecycle"
 
     def __init__(self, value):
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         self._value = deepcopy(value)
 
     @classmethod

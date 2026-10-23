@@ -28,8 +28,8 @@ class OCRBackend(Protocol):
 
 def validate_ocr(result: dict, width: int, height: int) -> dict:
     """backend confidence는 그대로 보존하며 backend 간 비교 점수로 변환하지 않는다."""
-    from llm.core.models import ProjectConfig
-    ProjectConfig.validate_json(result)
+    from llm.core.json_data import JsonObject
+    JsonObject.validate(result)
     if not isinstance(result, dict) or not isinstance(result.get("text"), str) or not isinstance(result.get("blocks"), list):
         raise VisionError("vision_invalid_response", "OCR requires text and blocks")
     for block in result["blocks"]:

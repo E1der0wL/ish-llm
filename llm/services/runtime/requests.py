@@ -10,7 +10,8 @@ from enum import StrEnum
 from pathlib import Path
 
 from llm.core.agents import AgentBinding, AgentDefinition
-from llm.core.models import Message, MessageRole, MessageStatus, ProjectConfig
+from llm.core.models import Message, MessageRole, MessageStatus
+from llm.core.json_data import JsonObject
 from llm.core.steering import is_instruction
 from llm.services.infrastructure.storage import child, record, revision_token
 
@@ -183,7 +184,7 @@ class RequestAdmission:
     def validate(cls, value):
         if not isinstance(value, dict) or value.keys() != set(cls.Field):
             raise ValueError(cls.INVALID_FIELDS)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         if type(value[cls.Field.SCHEMA_VERSION]) is not int or value[cls.Field.SCHEMA_VERSION] != cls.SCHEMA_VERSION:
             raise ValueError(cls.INVALID_VERSION)
         for name in cls.IDENTITY_FIELDS:

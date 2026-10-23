@@ -10,7 +10,7 @@ import re
 from enum import StrEnum
 
 from jsonschema import Draft202012Validator
-from llm.core.models import ProjectConfig
+from llm.core.json_data import JsonObject
 from llm.core.schema import open_schema, metadata_schema, validate_local_refs
 from llm.core.configuration import UNSET
 
@@ -79,14 +79,14 @@ class AgentDefinition:
 
     @staticmethod
     def revision(definition):
-        ProjectConfig.validate_json(definition)
+        JsonObject.validate(definition)
         return hashlib.sha256(json.dumps(definition, ensure_ascii=False, sort_keys=True,
                                          allow_nan=False).encode("utf-8")).hexdigest()
 
     @classmethod
     def validate(cls, identifier, definition):
         cls.identifier(identifier)
-        ProjectConfig.validate_json(definition)
+        JsonObject.validate(definition)
         errors = sorted(Draft202012Validator(cls.schema).iter_errors(definition),
                         key=lambda error: str(list(error.path)))
         if errors:
@@ -208,7 +208,7 @@ class AgentCatalog:
         AgentRecord.validate_project_id(project_id)
         if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
             raise ValueError(cls.INVALID_FIELDS)
-        ProjectConfig.validate_json(value)
+        JsonObject.validate(value)
         result = cls(**value)
         if result.project_id != project_id:
             raise ValueError(cls.INVALID_OWNER)
