@@ -41533,5 +41533,618 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/engines/events.py",
+    "sha256": "91533237b2237d2cb0ca9dd9db6ebb675a9f622b43c4c1e407c2e342fc236dcd",
+    "reason": "All event declarations and attached-checkpoint, diagnostic, progress and failure-code validation reviewed. Progress phases and optional error-code observations use StepEventMetadata; invalid/missing display hints retain the original fallback and never repair persisted evidence. Slot-derived assignment references the sole field declaration. The exact public class identity is exported through base, with one implementation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1c6e129c85bfed41dede62e143206005af7e7198b1b37de47e039e00461afc62",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "bfe2b9ccfa9081fd030810d8c65938f7302840d92053eb6c3d1890e0956eebcb",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "e6fa9bdda0adc227edc628ff1e10f7b01bf5bd90179ac47580b4f4b01d7d25ec",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "1bc88254f671264ddbf407f3f6df7e5db8c6de5657747f13e25c50e67a6b1ff0",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "9930f04c9c8ae7f821cb2ca08c236ffa0c47bca01eacce2aa75654d8699042bb",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "9b8a16960a0a927fdf0361552393aafdba68f6995db809763f1e34ee0e0e2fa6",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "b6fb2a5a226f6b2674c6583d902af70327acb4a63a0c3aab9da7735f24c18759",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "0203e5720dcb5c7fc2d0a205aa4e5789e5e481492efc2f0a2487b450f9cfa363",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "59909f7d6d64ddba5196aa83d84158e5817740bfc94bf56ad1acc0e24015d60b",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "1e9439954ae25029ba62e71a9682b905370ff4c6ceaad990c0ce134facd784da",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "fc54df250164ca3471275e5e7e69cbc8e141bbbd7d2b4ef68f926bcbfc04c386",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "ebf367d7f170ae4e0d650fc2c99b86f069d280e281ad8c892ef8fa9be27034e8",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "0084cfe9193fe0c651b7a67a28988a4b046743790f28ab3a2fda9970f0e1c2e9",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "841763d670341a66a9ee72518b5b15c875e8674a24d47c35bb9061ab78c37bf7",
+        "classification": "declaration",
+        "owner": "EngineEventType",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "498a896bcca3a5a606691076252e12e4ab7b7dbd846b31f8a7e08425f7cfbb87",
+        "classification": "non_contract",
+        "owner": "EngineEvent",
+        "reason": "Python frozen/slots dataclass layout rather than execution policy."
+      },
+      {
+        "id": "61a5910721fd9984b4ff8fb5c2dd20653cd53a3d1fd9d3b2c61ab3bf7cc2b2ba",
+        "classification": "non_contract",
+        "owner": "EngineEvent",
+        "reason": "Python frozen/slots dataclass layout rather than execution policy."
+      },
+      {
+        "id": "710cf8cb95040007895eccba68580127c12b6bc52a79c8aac70ea27aa4232b18",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "7f168a2cf0d2ac6eeb9d87e002e92ebc3db05e9eeb76f544007aa4e53e06c07b",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "eeddfb80ae69f47b1d3b95bcc65c1003f588a61609ec22da7021e95ce9e5d1a8",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "82ba86830a0c9b961f668be83c46bae110c5b1f7c2cb00b743ff03bf1a2f9d28",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "3080f8f2b8707be323a69f18d788a257a8c8238b20aac246e042342df9c72c37",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "32ff6a6c9cd5cad37a37821b50f8db2ccbeb046cd8fc688797f6f910a1806263",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "d531deb26c03fb4dade48cd11c61b12b5b73dffac83dc861b976be69f1d5bb3c",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "f0ae00977fcc2a49a7d17346f7a0e169d53be9ccd0a7e5921605162b23342111",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "bec3169204c0a08a77435e83ace7953b9c83c8a89526446d67b871c9460dec2e",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "f2d76c2997d0fc8f9a464b7bf44dc88d5ed4b46dd3684ae5443d5b646e383fff",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "cc720428f4a19af2584030e023024aaace6d8b8523f286aa40489b633a7f283e",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "c3558e866b0db1706b09d42aeb0692f56705c229f09e241207c07262d31100f6",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "133ffc1ab9e2f6ec523423c4fabd697ace1fefe41805ce45cdd0f2c5f8377d3c",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "bff055d09754e4fd3e9b4d2a06dd4f863a85c93d4cc5d61df8bdcbec07ccfc61",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "14ad9ce300b5b45660b4f88924c09305b7543a4166bd8218b6018744f223b580",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "0f247f7d08dde34458e2740bdfe86c6fdb39d3f243a18d5a833c3d84bf7fbdaf",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "f92b9a2e326811bc9ebd1dfaa1a9cfdc1afce82b74c3a74f59b88b286757f18f",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "b87e380392784367a27da2485a3f616d11f51834e12a1b542cc5246831a1e4f5",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "bb82ba97e3bb5e0bda4687c12b05599606d7b15b9389ec76c898b6f31dbac26c",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "67deb30de18d1c5b76107ce10b1e9ea8bea175b69b34bab5efab1a83be672386",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "6f79aaf15a742b2fc3b43d83568a8d79e01441cc6dd053ffddd0cd38240f1d52",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "9fe8a82ab8c0507c6f4272ce3ea339d72946cb2084d8217f9c289ba83f4a4fc9",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "7b78b2827311073e8aa5d8034150202e2f9c5043bfd573ad702eda5f7877431e",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "00cee1508f3be92f67d877a2671455ca9e5041f4e7eed4871715243917d28350",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EngineEvent / EngineEventType",
+        "declaration": "llm/engines/events.py",
+        "consumers": [
+          "llm/engines/base.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_engine_layout.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_checkpoint_lifecycle.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/context.py",
+    "sha256": "a623dd4d282aa37307c0493496ff4a9717cda2ec12826ed812187d84fa2799de",
+    "reason": "Complete Run-local snapshot and instruction-channel review: shared channels, copied history, unique child scope and original mode validation; capability requirement tuple validation, exact missing names and resolver response, current-engine selection, required Tool key and explicit executor forwarding. No durable writes, approvals, new default policy, expanded permissions or compatibility reader. Public identity and process imports remain tested.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "41f3dd9a489df0a758238db044d97226151a365a7a8d4aafa9a77a51e3650041",
+        "classification": "non_contract",
+        "owner": "SteeringInbox",
+        "reason": "Python frozen/slots dataclass layout rather than execution policy."
+      },
+      {
+        "id": "f613cfd38bcb3a5e1e2da59a356745aee8b2e913514945c405432faa2aca4550",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "8fe280829ca1f2333148745c6101d1961adb81fe246699421134a164a649bf76",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "ed0b04542f899c531caa926faef4c59f28d8acbf2da1422adc1b55bf795d453e",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "0fbf5ef378e1d1844afd1e11d488e11209841221052da8872876910e132929d2",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "c60554c4e36177d1202e1ab6ab443cf8ad745ef42a0e826e23f9e43e9ab99ee3",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "50f9aa074fa18edf0eed16e39a4cde18f7c2613ea7aa6f6b2ea348833941a6b8",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "3c0977aee2cb492a56740ba95d2df63645e3ea9bfa34ff3812e6607555d80273",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "a81dd9d76cdc7724e103c76b38035dd9ec2be145aecd9cbfe2c1919661526c19",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "b43a591ab38613fa2fb12ee4730770a5754dc9e9badd421accd7df7ce4a8f111",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "652c69055915c2fc147921fdcba5d5ee8e3d2b5766d115fe8311c67bf797e886",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "eb9f74f5e6b84f4f78b673c846068738dbbd2e3d1ab70a405c9d284bd5252d44",
+        "classification": "declaration",
+        "owner": "SteeringInbox",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "f7cb5feafa6c378b3184e10be2f13491c8e8946a3f59351d08b43de70a242d08",
+        "classification": "non_contract",
+        "owner": "SteeringInbox.child",
+        "reason": "Python forward type annotation, not dynamic dispatch or a stored discriminator."
+      },
+      {
+        "id": "7e745131c0e6db9f26d9281379d77924d2c2659d7e73486dddf1e604a4272b0d",
+        "classification": "non_contract",
+        "owner": "EngineContext",
+        "reason": "Python frozen/slots dataclass layout rather than execution policy."
+      },
+      {
+        "id": "d09ec5b69a2e23b615942474a17c9871043008d713c56d9e9086f93e5c52d95c",
+        "classification": "non_contract",
+        "owner": "EngineContext",
+        "reason": "Python frozen/slots dataclass layout rather than execution policy."
+      },
+      {
+        "id": "f3e957bc9783ddba17b1e162a319b1d4d2b6f26842f87f5af323cb9ffdf59032",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "b2eeb4dd3d2c92fd0a87566bb6c5d21d03e5e2cedcb552ebfe7c3aa3449c0adc",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "535ad1c873532a6d3ef3d6ee3f5f4bdbd12d77bce7181e0acfcc113c57536023",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "8a947e22f46112401e7b8570ee9339a798f96e1a9c3214371a533219c3071d00",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "634864c259734a1702bd86251b834913bb8c01f35ca9dcab99f81c328790d829",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "152813405f3c282dd13875ab5199f99fb0a8027cfa4137645b03ccdfea120e81",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "695108b2934402050cf6c6cdd99423ee303ef6fb5bfe8ec0f1a5ef6f8be00b76",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "a7d4dafd517fc16b0dd21deeaa4117cf88b4ad9b1db9e8123e4b5bae165da2dc",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "46e3fc29b2c2e6237807d92d986b9168fc630ce5b7bdcddc47609a94533c046c",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "f58d8b8f122a9c5b579ace4633ee2f4cd78616dda57d4485ac8ffc6f9e25a480",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "9e8ef7ecc127633a16639a2b4fb9c1d75a0f008a50caf78233be4abb703066c2",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "581e6c5d4ebd34029f6b15be25baf22d05099bb6c539c164e08edaaaf8a9002e",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "7e2ca56f06e8c473170f2a4480d61d5dbfd76fa1630791df3d25eb27c06d3396",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "f4ada085699f96abf1ff65fe9b595ad73794d52f683d680631de01e06b9918ea",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "b2ba22260515b20401f62405754c4e3cc807d40fce8cc977fdea14243aabaa01",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "8f69cf1a24406e5693558aa342483d1882ff49f315569b40418be2948a79d198",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "5a741fffa8204af1937c488c142e642396ffddf547e0c394da3885a39c45a334",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "1fa07358899548bdafd4e71eb3bfc4f913c35fbce663de0ce3324fe3c78d5c69",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "1626f7299c0032dec94c85a742325f4363803e33ecfefef59b48ce08d1d1b339",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "e14cdc464e1ef58fa560f3f47ea21346cee849957e65b911f469ff9cab605100",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "87cd9af398eb1491d2148eaa48f2d9e3fb3ea931ca5986776dac3993d69712a1",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "740aeb3f6687afa4966818cadc62f9b1d2c894741f4e4a7cf4cee622ac6bfbbf",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "4b1e6ea194278d4442e1fe354ed74da407591892a84fd3bdc308f93c6103a71d",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "d2133498ee73588e1a1bfd68900351c2cbdd06080d7bbccd9f53dd1aa426b78e",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "82eb368b36c11c1c2dcfc1a1781e2f0c07ddc36b50eaf949a4703867c89293d2",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "c0532e1f9a66f9bae8103f57d2ead32b2bcc4d525228d54809df601133e98ff0",
+        "classification": "declaration",
+        "owner": "EngineContext",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EngineContext / SteeringInbox",
+        "declaration": "llm/engines/context.py",
+        "consumers": [
+          "llm/engines/base.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_engine_layout.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_capability_owners.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/step_event_metadata.py",
+    "sha256": "c918d11b720076e566bc38cb130c6ec1c38d56fcb8ead4b9eae594a80e5e6674",
+    "reason": "Common event display metadata has its single field/phase declarations and Writer/Reader. Valid nonblank host observations remain verbatim; absent/null/false/blank hints retain the previous display fallback. Ordered phase/error-code projections preserve event payload and unrelated opaque metadata. Tool-specific phases stay with ToolExecutionPhase. These observations grant no transition or execution authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7252509a45695f1e2a1d1eec6e63123b3207809c4bd84c55bf9ccfd81df280c2",
+        "classification": "declaration",
+        "owner": "StepEventPhase",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "6b81d111dc5f37932110670fc496b8def144edb58fbfe2c15ddd6c3364fb7ee3",
+        "classification": "declaration",
+        "owner": "StepEventPhase",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "402447dfd9fdaf1d040cec17f4a8cf9f860e2a0d91f2b19936d35b45dde88011",
+        "classification": "declaration",
+        "owner": "StepEventPhase",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "a373de0a8752682a800e42a33bf6a9c285f81c404a0a9090dfc0480b42e89066",
+        "classification": "declaration",
+        "owner": "StepEventPhase",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "5f741d29cc4e48aa46a56ea0ead2042f462edf1cfe2b48bbf3357f4be7bca102",
+        "classification": "declaration",
+        "owner": "StepEventPhase",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "bfede4883ed8bb46a5e2e68c152efadfe9d0aa6499937c5f9db3c6dbea13dec7",
+        "classification": "declaration",
+        "owner": "StepEventPhase",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "cedcf69ca8e7e9409b1e4d9bd9e04f6d7a24e934de212d75536b41e5db4d695a",
+        "classification": "declaration",
+        "owner": "StepEventMetadata.Field",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "7a7f1606797d97a27c69406a877c6e80f3a659bff0b639bf5018f9fbf90160be",
+        "classification": "declaration",
+        "owner": "StepEventMetadata.Field",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "StepEventMetadata / StepEventPhase",
+        "declaration": "llm/core/step_event_metadata.py",
+        "consumers": [
+          "llm/engines/events.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_base_engine.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -7,7 +7,9 @@ Engine은 하나의 Run을 어떻게 실행할지 정의합니다. 모델을 반
 | 파일/폴더 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | BaseEngine, EngineContext, EngineRegistry와 Graph 타입의 공개 import입니다. |
-| [base.py](base.py) | Engine protocol, EngineContext/EngineEvent, BaseEngine과 Step·출력·Tool helper입니다. |
+| [base.py](base.py) | Engine protocol, BaseEngine과 Step·출력·Tool helper 및 기존 공개 import입니다. |
+| [events.py](events.py) | EngineEvent/EngineEventType의 단일 선언과 관찰 값·첨부 checkpoint 검증입니다. |
+| [context.py](context.py) | EngineContext/SteeringInbox의 호출별 스냅샷·capability 해석 연결·Tool 실행 위임입니다. |
 | [agents.py](agents.py) | Graph AgentNode와 agent_run Tool이 공유하는 Agent 실행·중첩 checkpoint 경계입니다. |
 | [agent_resources.py](agent_resources.py) | Root·Graph·Tool 위임이 공유하는 자원 선택/연결과 기존 binding 자원 snapshot의 타입입니다. |
 | [../policies/](../policies/README.md) | Engine/Component가 재사용하는 CompletionPolicy 알고리즘입니다. |

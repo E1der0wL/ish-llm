@@ -3399,3 +3399,55 @@ refactor/llm-backend bb0946257ab6bcabb9a3ef04d3d854e5333b07d5는 변경하지 �
 [원격 실행 40013608607](https://github.com/E1der0wL/ish-llm/actions/runs/40013608607)은
 2026-10-23T19:47:43Z 확인 시 두 필수 job 모두 in_progress이며 아직 원격 통과로 선언하지 않는다.
 현재 8f141c6 이후 변경에는 이 전체 결과를 승계하지 않는다.
+
+
+## llm Engine 이벤트·호출 문맥 책임 분리
+
+기준 cc28eab 이후 EngineEvent/EngineEventType은 engines/events.py, EngineContext/
+SteeringInbox는 engines/context.py가 단일 구현을 소유한다. 기존 base와 공개 package import는
+동일 클래스 객체를 제공한다. 별도 Reader나 호환 실행 분기는 없다. BaseEngine은 Step 실행과
+공통 helper를 계속 소유하며 EngineRegistry/factory 검증과 이벤트/문맥 구현을 중복하지 않는다.
+
+StepEventMetadata가 공통 이벤트 phase/error_code Reader·Projection을 소유한다. 모든 현행 Tool
+Writer와 EngineEvent Reader를 연결했다. Tool의 authorizing/executing/waiting_child/retrying/
+waiting_approval 값은 ToolExecutionPhase 선언에 둔다. 이벤트의 기본 표시 phase는 StepEventPhase,
+이벤트 종류와 기본 phase 관계는 EngineEvent가 소유한다. 이 값들은 관찰용이며 실제 상태 전이·
+승인·Tool 실행 권한을 계산하지 않는다. 원래 유효 문자열 보존과 빈/잘못된 표시 힌트의 기본 표시,
+첨부 checkpoint 필수 조건과 오류 순서, 내부/공개 출력 및 사본 경계를 유지한다.
+
+호출 문맥은 capability 요구 검증·정확한 누락 이름·resolver 응답 검증·현재 Engine 선택·
+명시 executor 위임을 보존한다. SteeringInbox는 history 사본, 공유 channel, 고유한 자식 scope와
+mode 검증을 유지한다. 원본/저장 설정, 실행 제한, 데이터 형식과 영수증 증거를 변경하지 않는다.
+새 프로세스 import 순서 시험에 공개 타입 identity와 pickle 왕복을 추가했고 기존 Assertion은
+그대로다. Engine README의 책임 표를 현행 단일 구현 경로로 갱신했다.
+
+### 검증
+
+smoke `python -m unittest tests.llm.test_engine_layout tests.llm.test_base_engine
+ tests.llm.test_engine_outputs tests.llm.test_execution_contexts tests.llm.test_execution_observations`는
+45개 pass, 10.391초, exit 0이다. 이후 public identity/pickle 시험 보강을 아래 최종 실행에 포함했다.
+외부 equivalence.py는 기존 소스와 필드/기본값 3, 이벤트 metadata 330, 오류 24,
+checkpoint attachment 5, capability 조회/callback 30, phase/실패 Projection 각 20을 대조해 exit 0이다.
+타입 경로는 분리된 단일 구현 module 이름만 정규화하며 값/오류/호출 trace와 필드 옵션은 그대로 비교한다.
+
+- `whole-engine-context-01`: 발견/시작/pass 236/236/236, exit 0, 129.930718초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-engine-context-01/llm.json --modules tests.llm.test_engine_layout tests.llm.test_base_engine tests.llm.test_engine_outputs tests.llm.test_execution_contexts tests.llm.test_execution_observations tests.llm.test_engine_steering tests.llm.test_engine_requests tests.llm.test_agent_delegation tests.llm.test_nested_graph tests.llm.test_capability_owners tests.llm.test_retry tests.llm.test_checkpoint_lifecycle tests.llm.test_graph_checkpoints tests.llm.test_checkpoint_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `03d9f4416b717250f5f2226987b9f164be0ff1ef0c80c20009f0c0fa262a32f4`, input `38f4341821046fc41e82d794868e1fb7d94f08417d93f29beb80c7df47571167`.
+
+- `whole-engine-context-hub-01`: 발견/시작/pass 20/20/20, exit 0, 97.482183초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-engine-context-hub-01/hub.json --modules tests.hub.test_agent_graph tests.hub.test_tool_history tests.hub.test_tool_retry tests.hub.test_retry_observations`. source `03d9f4416b717250f5f2226987b9f164be0ff1ef0c80c20009f0c0fa262a32f4`, input `38f4341821046fc41e82d794868e1fb7d94f08417d93f29beb80c7df47571167`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 source/input 전후 동일이다.
+Python 3.12.14/Clang·Host d833790·동일 의존성·실제 namespace/X11 환경에서 실행했다.
+공개 import·출력/이벤트·호출 문맥·capability·steering·위임·중첩 Agent·Tool retry·Checkpoint
+직접 소비자 및 승인/예산/효과/삭제/RAG/수명 무결성, Hub Tool 기록/재시도/Agent를 선정했다.
+서로 다른 선택 실행이며 하나의 전체 실행으로 합산하지 않는다.
+
+정적 finding 115개는 동일하며 이동한 실제 구현 파일을 의존 증거에 추가했다.
+`python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16개와
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py engine-context-auxiliary`의
+정적 S1–S7·문서·R3·SDK·양쪽 환경 6개가 각 exit 0이다. 기록 후 문서와 diff를 최종 검사한다.
+
+현재 전체 500개 중 미검토 291, 미분류 22035, incomplete 4개이며 stale/위반/감사 오류 0이다. 새 Owner 3개를 전수 검토했고 BaseEngine·ToolExecutor 나머지는 미완료다.
+
+Level 2 완료다. Engine factory·Agent 실행·이벤트/문맥 변경을 gate26에서 현재 통합 상태로
+전체 LLM/Hub·정적·R3·문서·실환경 검증한다. 그 성공 SHA만 Push하고 원격 필수 job과
+엄격 집계 artifact를 실제 확인한다. llm/ 잔여 Provider/Engine/Component/서비스를 먼저 이어간다.
+Hub 제품 구현은 llm/ 완료 이후이며 전체 범위와 최종 완료 조건은 유지한다.

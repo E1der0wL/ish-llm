@@ -4,6 +4,7 @@ from llm.core.tool_contracts import ToolContract
 from llm.core.tool_selection_records import ToolBindingRecord, ToolInvocationSelection
 from llm.core.tool_usage_records import ToolUsageError, ToolUsageRecord, ToolUsageCheckpoint
 from llm.core.tool_event_result import ToolEventResult
+from llm.core.step_event_metadata import StepEventMetadata, StepEventPhase
 from llm.core.policies import ToolPolicyValues, ToolRetryPolicy, PolicySection
 from llm.core.tool_policy_binding import ToolExecutionBinding
 from llm.components.tools.bindings import ToolHandlerBindings
@@ -43,6 +44,14 @@ from llm.policies import ExecutionLimitError
 from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
 from llm.services.runtime.operations import operation_token
 from .tool_context import ToolCallContext
+
+
+class ToolExecutionPhase:
+    AUTHORIZING = "authorizing"
+    EXECUTING = "executing"
+    WAITING_CHILD = "waiting_child"
+    RETRYING = "retrying"
+    WAITING_APPROVAL = "waiting_approval"
 
 
 @dataclass(frozen=True, slots=True)
@@ -510,7 +519,7 @@ class ToolExecutor:
                 yield event
         yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind=StepKind.TOOL, name=tool.name,
                           metadata={**deepcopy(metadata or {}), "arguments": deepcopy(arguments),
-                                    "phase": "authorizing", "operation_key": call.operation_key,
+                                    **StepEventMetadata.phase(ToolExecutionPhase.AUTHORIZING), "operation_key": call.operation_key,
                                     "idempotency_key": call.idempotency_key})
         authorized = False
         try:
@@ -525,7 +534,7 @@ class ToolExecutor:
             authorized = True
             # yield 바깥 서비스 I/O까지 timeout context가 취소하지 않도록 분리한다.
             yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id,
-                              metadata={"phase": "executing", "authorization": "allowed"})
+                              metadata={**StepEventMetadata.phase(ToolExecutionPhase.EXECUTING), "authorization": "allowed"})
             remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
             if remaining is not None and remaining <= 0:
                 raise asyncio.TimeoutError()
@@ -569,7 +578,7 @@ class ToolExecutor:
                                         break
                                     if event.type == EngineEventType.PAUSED:
                                         yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
-                                            metadata={"phase": "waiting_child"})
+                                            metadata=StepEventMetadata.phase(ToolExecutionPhase.WAITING_CHILD))
                                         ToolEventResult(result).pause()
                                         yield event
                                         return
@@ -628,7 +637,7 @@ class ToolExecutor:
                         retry_state.update(attempt=attempt, arguments=deepcopy(candidate),
                                            repairs=retry_state["repairs"] + int(modified), uncertain=uncertain_attempt, pending=True)
                         yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id,
-                            metadata={"phase": "retrying", "retry_attempt": attempt,
+                            metadata={**StepEventMetadata.phase(ToolExecutionPhase.RETRYING), "retry_attempt": attempt,
                                       "effect": error.effect, "retry_error": str(error),
                                       "retry_failures": deepcopy(retry_state["failures"])})
                         event = self._retry_event(retry_state, metadata, request_key)
@@ -649,7 +658,7 @@ class ToolExecutor:
                                 await scope.authorize(call, decision=None, invocation=invocation)
                             authorized = True
                             yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id,
-                                metadata={"phase": "executing", "authorization": "allowed", "arguments": deepcopy(arguments),
+                                metadata={**StepEventMetadata.phase(ToolExecutionPhase.EXECUTING), "authorization": "allowed", "arguments": deepcopy(arguments),
                                           "operation_key": call.operation_key, "idempotency_key": call.idempotency_key})
                         if call.operation_key is not None and not uncertain_attempt:
                             async with timeout(retry.remaining()):
@@ -673,7 +682,7 @@ class ToolExecutor:
             if authorized:
                 error = ToolExecutionError("Approval requests must originate before Tool execution", effect=ToolExecutionError.UNCERTAIN_EFFECT)
                 yield BaseEngine.step_failed_event(step_id, error, code=ToolExecutionError.code,
-                    metadata={"phase": "failed", "error_code": ToolExecutionError.code})
+                    metadata=StepEventMetadata.failure(StepEventPhase.FAILED.value, ToolExecutionError.code))
                 raise error from request
             # 표시용 문구와 실제 실행 대상은 분리한다. 호출자 제공 source/action은 신뢰하지 않는다.
             request.request = replace(request.request, **call.classification,
@@ -683,18 +692,18 @@ class ToolExecutor:
                         "contract": deepcopy(call.contract), "policy": scope.binding(),
                         "classification": deepcopy(call.classification)})
             yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
-                              metadata={"phase": "waiting_approval", "arguments": deepcopy(arguments)})
+                              metadata={**StepEventMetadata.phase(ToolExecutionPhase.WAITING_APPROVAL), "arguments": deepcopy(arguments)})
             raise
         except Exception as error:
             if isinstance(error, asyncio.TimeoutError):
                 error = ExecutionLimitError(RunErrorCode.TOOL_TIMEOUT, "Tool execution or authorization timed out")
             yield BaseEngine.step_failed_event(step_id, error, code=ToolExecutionError.code,
                 message=f"Tool execution failed: {error}",
-                metadata={"phase": "failed", "error_code": getattr(error, "code", ToolExecutionError.code)})
+                metadata=StepEventMetadata.failure(StepEventPhase.FAILED.value, getattr(error, "code", ToolExecutionError.code)))
             raise error
         yield EngineEvent(EngineEventType.STEP_COMPLETED, step_id=step_id,
                           output=EngineOutput(step_id, data=value, step_id=step_id, visibility=OutputVisibility.INTERNAL),
-                          metadata={"phase": "completed", "reused": reservation["reused"]})
+                          metadata={**StepEventMetadata.phase(StepEventPhase.COMPLETED.value), "reused": reservation["reused"]})
 
     async def execute(self, tool, arguments, *, result, metadata=None, context=None, decision=UNSET,
                       request_key=None):

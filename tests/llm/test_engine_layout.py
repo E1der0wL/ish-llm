@@ -14,7 +14,9 @@ class EngineLayoutTests(unittest.TestCase):
                 code = '''
 import importlib, pickle, sys
 importlib.import_module(sys.argv[1])
-from llm.engines.base import BaseEngine
+from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType, SteeringInbox
+from llm.engines.context import EngineContext as ContextOwner, SteeringInbox as InboxOwner
+from llm.engines.events import EngineEvent as EventOwner, EngineEventType as EventTypeOwner
 from llm.engines.registry import EngineRegistry
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine, GraphNodeContext
@@ -22,8 +24,11 @@ from llm.engines.graph.agent import AgentNode
 from llm.engines.graph.tool import ToolNode
 from llm.llm import LoopEngine as HostLoop, GraphEngine as HostGraph
 assert LoopEngine is HostLoop and GraphEngine is HostGraph
+assert EngineContext is ContextOwner and SteeringInbox is InboxOwner
+assert EngineEvent is EventOwner and EngineEventType is EventTypeOwner
 assert issubclass(LoopEngine, BaseEngine)
-for cls in (EngineRegistry, LoopEngine, GraphEngine, GraphNodeContext, AgentNode,
+for cls in (EngineContext, SteeringInbox, EngineEvent, EngineEventType,
+            EngineRegistry, LoopEngine, GraphEngine, GraphNodeContext, AgentNode,
             ToolNode):
     assert pickle.loads(pickle.dumps(cls)) is cls
 assert not any(name == 'langgraph' or name.startswith('langgraph.') for name in sys.modules)

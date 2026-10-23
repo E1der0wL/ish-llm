@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 497,
+    "files": 500,
     "unreviewed_files": 291,
     "stale_files": 0,
-    "unclassified": 22141,
+    "unclassified": 22035,
     "violations": 0,
     "incomplete_contracts": 4,
     "unreviewed_dynamic_paths": 293,
     "unreadable_files": 0,
-    "candidates": 28162,
+    "candidates": 28145,
     "issues": 0
   },
   "files": [
@@ -2300,6 +2300,12 @@
       "candidates": 33
     },
     {
+      "path": "llm/core/step_event_metadata.py",
+      "status": "reviewed",
+      "sha256": "c918d11b720076e566bc38cb130c6ec1c38d56fcb8ead4b9eae594a80e5e6674",
+      "candidates": 8
+    },
+    {
       "path": "llm/core/tool_codes.py",
       "status": "reviewed",
       "sha256": "f241426436d0a2c4bd4e78447572d6785ea4a69817004d55967fdfea12e87551",
@@ -2356,7 +2362,7 @@
     {
       "path": "llm/engines/README.md",
       "status": "unreviewed",
-      "sha256": "e8b7c36df4b8cef36b456071194f8c0862082446320b28d4c33ea9d0a1dd0e6c",
+      "sha256": "53a2632e9576056d40a4c629fceff6fc07f16d61f8f496596c11aecd5d2233c1",
       "candidates": 0
     },
     {
@@ -2398,14 +2404,26 @@
     {
       "path": "llm/engines/base.py",
       "status": "unreviewed",
-      "sha256": "79707b179571e357242174e7666eb9275e7737dbd08271e819382fc7a2ff4245",
-      "candidates": 274
+      "sha256": "72eb879e36d3639cd1d9f07d524ef735bc49457c736fbb6eec526ac34c5acecb",
+      "candidates": 183
+    },
+    {
+      "path": "llm/engines/context.py",
+      "status": "reviewed",
+      "sha256": "a623dd4d282aa37307c0493496ff4a9717cda2ec12826ed812187d84fa2799de",
+      "candidates": 41
     },
     {
       "path": "llm/engines/contracts.py",
       "status": "reviewed",
       "sha256": "3b9b2e9bcddef5c7701551fd4c6a5a99afbdbcb61b4f2b44b8900447d8e42fa4",
       "candidates": 31
+    },
+    {
+      "path": "llm/engines/events.py",
+      "status": "reviewed",
+      "sha256": "91533237b2237d2cb0ca9dd9db6ebb675a9f622b43c4c1e407c2e342fc236dcd",
+      "candidates": 40
     },
     {
       "path": "llm/engines/graph/README.md",
@@ -2968,8 +2986,8 @@
     {
       "path": "llm/services/runtime/tools.py",
       "status": "unreviewed",
-      "sha256": "5471b96f9f6b071c9d69c22461f6f3d2fe636daaf928dcb5f93ea525a754998d",
-      "candidates": 443
+      "sha256": "db477802e9924a7059f7b64ad027128bbbc0b532c5c1176acc00b16c3d05a1dc",
+      "candidates": 428
     },
     {
       "path": "llm/services/runtime/transfer_values.py",
