@@ -1,5 +1,7 @@
 """Selected files become text documents; Vision retains image provenance."""
 
+from llm.core.editable_snapshot import EditableSnapshot
+
 from llm.core.implementation_parameters import ImplementationParameters
 
 from llm.core.configuration_views import ConfigurationView
@@ -49,8 +51,8 @@ async def read_document(manager, argument, *, progress=None):
             # Public deletion tombstones only this newly imported image. Vision
             # owns bytes; no filesystem cleanup or removal of previous sources.
             try:
-                snapshot = await vision.asnapshot(image["id"])
-                await vision.adelete(image["id"], expected_version=snapshot["version"])
+                snapshot = EditableSnapshot.read(await vision.asnapshot(image["id"]))
+                await vision.adelete(image["id"], expected_version=snapshot.version)
             except Exception as cleanup:
                 diagnostic_failure(cleanup, operation="hub.rag.image_cleanup", stage="cleanup")
             raise

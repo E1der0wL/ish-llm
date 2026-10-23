@@ -2,6 +2,8 @@
 
 Lifecycle-checked component data access without domain-specific knowledge."""
 
+from llm.core.editable_snapshot import EditableSnapshot
+
 from copy import deepcopy
 from contextlib import contextmanager, nullcontext
 import asyncio
@@ -206,7 +208,7 @@ class ComponentData:
         """UI 편집용 데이터와 충돌 검사용 버전을 함께 조회한다. None이면 Component 설정이다."""
         project, component = self._current()
         data = component.get_config(project) if identifier is None else component.load(project, identifier)
-        return {"data": deepcopy(data), "version": revision_token(data)}
+        return EditableSnapshot(data, revision_token(data)).to_dict()
 
     @workspace_locked
     def list(self) -> dict[str, dict]:

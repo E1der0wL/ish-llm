@@ -1,5 +1,7 @@
 """Project 수명 검사와 잠금 아래에서 Memory API와 비동기 API를 제공한다."""
 
+from llm.core.editable_snapshot import EditableSnapshot
+
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.logging import log_event
@@ -30,9 +32,9 @@ class MemoryData(ComponentData):
         self._current()
         if identifier is None:
             raise ValueError("Memory extraction requires config.processing.extract_prompt_id")
-        snapshot = self.related("prompts").snapshot(identifier)
-        return {"text": "\n\n".join(f"{m['role']}: {m['content']}" for m in snapshot["data"]["messages"]),
-                "version": snapshot["version"], "source": identifier}
+        snapshot = EditableSnapshot.read(self.related("prompts").snapshot(identifier))
+        return {"text": "\n\n".join(f"{m['role']}: {m['content']}" for m in snapshot.data["messages"]),
+                "version": snapshot.version, "source": identifier}
 
     def _check_snapshot(self, project, component, snapshot):
         if (component.identity(project) != snapshot["identity"] or
@@ -179,13 +181,13 @@ class MemoryData(ComponentData):
             raise ValueError("Source ranges must be nonnegative integers")
         from llm.services.infrastructure.storage import revision_token
         files = self.related(reference["component"])
-        snapshot = files.snapshot(reference["identifier"])
-        info = snapshot["data"].get("files", {}).get(reference["path"])
+        snapshot = EditableSnapshot.read(files.snapshot(reference["identifier"]))
+        info = snapshot.data.get("files", {}).get(reference["path"])
         if info is None or revision_token(info) != reference["revision"]:
             raise ValueError("Summary source file changed; the saved reference is stale")
         if limit == 0:
             return ""
-        text = files.read_file(reference["identifier"], reference["path"], expected_revision=snapshot["version"]).decode("utf-8")
+        text = files.read_file(reference["identifier"], reference["path"], expected_revision=snapshot.version).decode("utf-8")
         return text[offset:] if limit is None else text[offset:offset + limit]
 
     @workspace_locked
@@ -198,12 +200,13 @@ class MemoryData(ComponentData):
             storage.check_sources(state["request"])
             return state
         files = self.related(destination["component"])
-        snapshot = files.snapshot(destination["identifier"])
+        snapshot = EditableSnapshot.read(files.snapshot(destination["identifier"]))
         path = f"tool-results/{session_id}/{identifier}.txt"
-        if path in snapshot["data"].get("files", {}):
+        if path in snapshot.data.get("files", {}):
             raise ValueError("Source file already exists without a summary request")
-        snapshot = files.write_file(destination["identifier"], path, text, expected_revision=snapshot["version"])
-        reference = {**destination, "path": path, "revision": revision_token(snapshot["data"]["files"][path])}
+        snapshot = EditableSnapshot.read(files.write_file(
+            destination["identifier"], path, text, expected_revision=snapshot.version))
+        reference = {**destination, "path": path, "revision": revision_token(snapshot.data["files"][path])}
         state = {"request": {"id": identifier, "status": Compactions.APPLIED if mode == Compactions.REFERENCE else Compactions.PENDING,
             "mode": mode, "options": deepcopy(options), "reference": reference, "tool_call_id": call_id}}
         if mode == Compactions.REFERENCE:

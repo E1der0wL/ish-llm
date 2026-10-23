@@ -1,5 +1,8 @@
 """Skill 파일과 참조·lineage를 검증한다. 각 소유자의 정의가 참조의 원본이다."""
 
+from llm.core.editable_snapshot import EditableSnapshot
+from llm.core.agent_views import AgentSnapshot
+
 from llm.components.files import FileData
 from .records import SkillRecord as Record, SkillFileEvidence
 from .views import SkillFileView, SkillReferenceView
@@ -19,8 +22,8 @@ class SkillData(FileData):
     def _target(self, ref):
         """참조의 public snapshot/file 계약만 사용한다. 대상 저장 경로는 해석하지 않는다."""
         target = self.related(ref[Record.COMPONENT])
-        snapshot = target.snapshot(ref[Record.IDENTIFIER])
-        if snapshot["version"] != ref[Record.REVISION]:
+        snapshot = EditableSnapshot.read(target.snapshot(ref[Record.IDENTIFIER]))
+        if snapshot.version != ref[Record.REVISION]:
             raise ValueError("Skill reference revision changed; explicitly update the reference")
         if ref[Record.COMPONENT] == Record.DATA and ref[Record.PATH] not in target.list_files(ref[Record.IDENTIFIER]):
             raise ValueError("Skill Data reference must name a registered file")
@@ -105,7 +108,7 @@ class SkillData(FileData):
         # 조회를 위해 Component를 선택하거나 runtime capability를 활성화하지 않는다.
         agents = self.agents()
         return [{"agent_id": ref[Record.IDENTIFIER],
-                 Record.REVISION: agents.snapshot(ref[Record.IDENTIFIER])[Record.REVISION]}
+                 Record.REVISION: AgentSnapshot.read(agents.snapshot(ref[Record.IDENTIFIER])).revision}
                 for ref in refs]
 
     @workspace_locked
@@ -113,7 +116,7 @@ class SkillData(FileData):
         """Agent 참조와 child lineage를 원본 정의에서 조회한다. 중복 인덱스 없음."""
         self.load(identifier)
         return {"agents": self.impact(identifier), "children": [
-            {"skill_id": key, "version": self.snapshot(key)["version"]}
+            {"skill_id": key, "version": EditableSnapshot.read(self.snapshot(key)).version}
             for key, value in self.list().items() if value.get(Record.LINEAGE, {}).get(Record.PARENT) == identifier]}
 
     @workspace_locked

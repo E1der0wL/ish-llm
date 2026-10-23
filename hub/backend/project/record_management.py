@@ -1,5 +1,8 @@
 """Component manager operations through lifecycle-checked public data handles."""
 
+from llm.core.editable_snapshot import EditableSnapshot
+from llm.core.agent_views import AgentSnapshot
+
 import asyncio
 import json
 from pathlib import Path
@@ -74,13 +77,13 @@ class RecordManagement:
     async def list(self):
         entries = []
         for identifier in await self.data.alist():
-            snapshot = await self.snapshot(identifier)
-            entries.append(self._entry(identifier, snapshot["data"], snapshot["version"]))
+            snapshot = EditableSnapshot.read(await self.snapshot(identifier))
+            entries.append(self._entry(identifier, snapshot.data, snapshot.version))
         return entries
 
     async def read(self, identifier):
-        snapshot = await self.snapshot(identifier)
-        return {"text": json.dumps(snapshot["data"], ensure_ascii=False, indent=2), "version": snapshot["version"]}
+        snapshot = EditableSnapshot.read(await self.snapshot(identifier))
+        return {"text": json.dumps(snapshot.data, ensure_ascii=False, indent=2), "version": snapshot.version}
 
     async def snapshot(self, identifier):
         return await self.data.asnapshot(identifier)
@@ -130,17 +133,17 @@ class SkillManagement(RecordManagement):
         from llm.components.skills import SkillRecord
         entries = []
         for identifier in await self.data.alist():
-            snapshot = await self.snapshot(identifier)
-            document = SkillRecord.document(snapshot["data"])
+            snapshot = EditableSnapshot.read(await self.snapshot(identifier))
+            document = SkillRecord.document(snapshot.data)
             entries.append({"name": identifier, "label": document.name,
                             "description": document.summary()[document.DESCRIPTION],
-                            "modified": "", "version": snapshot["version"]})
+                            "modified": "", "version": snapshot.version})
         return entries
 
     async def read(self, identifier):
         from llm.components.skills import SkillRecord
-        snapshot = await self.snapshot(identifier)
-        return {"text": SkillRecord.document(snapshot["data"]).text, "version": snapshot["version"]}
+        snapshot = EditableSnapshot.read(await self.snapshot(identifier))
+        return {"text": SkillRecord.document(snapshot.data).text, "version": snapshot.version}
 
     async def execute(self, action, argument="", expected_version=None):
         if action == "import":
@@ -160,8 +163,8 @@ class SkillManagement(RecordManagement):
 
 class AgentManagement(RecordManagement):
     async def snapshot(self, identifier):
-        snapshot = await self.data.asnapshot(identifier)
-        return {"data": snapshot["definition"], "version": snapshot["revision"]}
+        snapshot = AgentSnapshot.read(await self.data.asnapshot(identifier))
+        return EditableSnapshot(snapshot.definition, snapshot.revision).to_dict()
 
     async def save(self, identifier, values, version):
         await self.data.arevise(identifier, values, expected_revision=version)

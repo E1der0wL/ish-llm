@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from llm.core.editable_snapshot import EditableSnapshot
+
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.components.tools.package_values import ToolPackageSource
 from llm.components.tools.selection import ToolSelection
@@ -57,22 +59,22 @@ class ToolManagement:
         entries = []
         if self.builtin is not None and self.builtin.name in self.record.components:
             settings = await self.project.components.aget(self.builtin.name)
-            snapshot = await settings.asnapshot()
-            selected = ToolSelection.read(ImplementationParameters.read(snapshot["data"]).config,
+            snapshot = EditableSnapshot.read(await settings.asnapshot())
+            selected = ToolSelection.read(ImplementationParameters.read(snapshot.data).config,
                                           scope=self.builtin.name).names
             for name in self.builtin.toolkit.registry.names():
                 tool = self.builtin.toolkit.registry.get(name)
                 entries.append({"name": "builtin:" + name, "label": name, "builtin": True,
                                 "description": tool.description, "modified": "", "enabled": name in selected,
-                                "version": snapshot["version"]})
+                                "version": snapshot.version})
         for name in packages:
-            snapshot = await self.data.asnapshot(name)
+            snapshot = EditableSnapshot.read(await self.data.asnapshot(name))
             def modified(name=name):
                 return max(path.stat().st_mtime for path in self.paths.package(name).iterdir())
             stamp = await asyncio.to_thread(modified)
-            entries.append({"name": name, "description": description(ToolPackageSource.read(snapshot["data"]).source),
+            entries.append({"name": name, "description": description(ToolPackageSource.read(snapshot.data).source),
                             "modified": datetime.fromtimestamp(stamp, timezone.utc).isoformat(),
-                            "enabled": name in enabled, "version": snapshot["version"]})
+                            "enabled": name in enabled, "version": snapshot.version})
         return entries
 
     async def import_package(self, argument: str) -> list[dict]:
@@ -87,8 +89,8 @@ class ToolManagement:
         return await self.list()
 
     async def delete(self, argument: str, expected_version: str | None) -> list[dict]:
-        current = await self.data.asnapshot(argument)
-        if current["version"] != expected_version:
+        current = EditableSnapshot.read(await self.data.asnapshot(argument))
+        if current.version != expected_version:
             raise ValueError("Tool changed; reload the list before deleting")
         if argument in await self.data.aenabled():
             await self.data.adisable(argument)
@@ -102,10 +104,10 @@ class ToolManagement:
         if name not in self.builtin.toolkit.registry.names():
             raise ValueError("Unknown built-in Tool")
         settings = await self.project.components.aget(self.builtin.name)
-        current = await settings.asnapshot()
-        if current["version"] != expected_version:
+        current = EditableSnapshot.read(await settings.asnapshot())
+        if current.version != expected_version:
             raise ValueError("Tool settings changed; reload the list")
-        parameters = ImplementationParameters.read(current["data"])
+        parameters = ImplementationParameters.read(current.data)
         selection = ToolSelection.read(parameters.config, scope=self.builtin.name)
         selection = (selection.remove((name,), scope=self.builtin.name) if name in selection.names else
                      selection.add((name,), scope=self.builtin.name))

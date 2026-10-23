@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 457,
+    "files": 460,
     "unreviewed_files": 405,
     "stale_files": 0,
-    "unclassified": 30317,
+    "unclassified": 30278,
     "violations": 0,
     "incomplete_contracts": 2,
     "unreviewed_dynamic_paths": 407,
     "unreadable_files": 0,
-    "candidates": 30846,
+    "candidates": 30820,
     "issues": 0
   },
   "files": [
@@ -346,8 +346,8 @@
     {
       "path": "hub/backend/project/rag_import.py",
       "status": "unreviewed",
-      "sha256": "b269f8ade4689ff3f1477003b9d5e08ea081c7c4fc307b79c55d7fa2301c984e",
-      "candidates": 46
+      "sha256": "495e6dda72753271f63cd3a85758c863ac465e946a49852d8be2901e71f167e8",
+      "candidates": 45
     },
     {
       "path": "hub/backend/project/rag_management.py",
@@ -364,8 +364,8 @@
     {
       "path": "hub/backend/project/record_management.py",
       "status": "unreviewed",
-      "sha256": "f137645f96b2b9b4e76da73a6036a1fdceb24f4d1cdc89197fd500ee450b2998",
-      "candidates": 133
+      "sha256": "3a0512db734c312b7abda257064c6daeadfe7aaa8dffa0cef6f88daed5628278",
+      "candidates": 121
     },
     {
       "path": "hub/backend/project/settings.py",
@@ -412,8 +412,8 @@
     {
       "path": "hub/backend/tools/management.py",
       "status": "unreviewed",
-      "sha256": "52c2f5396abdc7aa1b138f85f3d87e3eaf0107727c69295558a6b4cf048c59fb",
-      "candidates": 57
+      "sha256": "134b068182c698d11695021bf366aef4a8f83adc298322c12cba9aa0f65d9563",
+      "candidates": 50
     },
     {
       "path": "hub/backend/tools/paths.py",
@@ -428,10 +428,16 @@
       "candidates": 1
     },
     {
+      "path": "hub/backend/tools/resource_views.py",
+      "status": "reviewed",
+      "sha256": "ee8b6532f0a8cd77db3cdb82486c00454404472cca5494126c5420d095941e98",
+      "candidates": 2
+    },
+    {
       "path": "hub/backend/tools/resources.py",
       "status": "unreviewed",
-      "sha256": "d79403e49fda04ab87e7d4587a77ffa835b12b76fdd1d3dc940416c58f14adad",
-      "candidates": 159
+      "sha256": "07681e6f50b82e278456bd040e4a2077845d1580ef8f51ad624c573bbc9557db",
+      "candidates": 158
     },
     {
       "path": "hub/backend/tools/retry.py",
@@ -1480,8 +1486,8 @@
     {
       "path": "llm/components/memory/data.py",
       "status": "unreviewed",
-      "sha256": "1ac007fd51a739b383e74397c9fdf0de649fbbc41c001fa46e11a6a6ce4a787f",
-      "candidates": 233
+      "sha256": "7f4372538f1fb0ed10fe688af363744704d902734facbd19f63bea763ffdbe3d",
+      "candidates": 226
     },
     {
       "path": "llm/components/memory/processing.py",
@@ -1684,8 +1690,8 @@
     {
       "path": "llm/components/refinement/data.py",
       "status": "unreviewed",
-      "sha256": "affa5e3e247b1247c4b3dc1ce4b2529df86fa1dba4fa82fb30c568871477e7af",
-      "candidates": 272
+      "sha256": "c306946233fe988b259f67df5ae6cd13ffdc0e4b02588bdbefb5d0436fc6f22a",
+      "candidates": 271
     },
     {
       "path": "llm/components/refinement/lifecycle.py",
@@ -1732,8 +1738,8 @@
     {
       "path": "llm/components/skills/data.py",
       "status": "unreviewed",
-      "sha256": "5f2a78762dd1e692a49c88b0ea43fc35db959a58afba9768f3fdb139be33342b",
-      "candidates": 25
+      "sha256": "259dcba5fe1459e5d82d21ab9971ebd35fc35604023c8308ca92fb33611c347f",
+      "candidates": 23
     },
     {
       "path": "llm/components/skills/records.py",
@@ -1994,6 +2000,12 @@
       "candidates": 0
     },
     {
+      "path": "llm/core/agent_views.py",
+      "status": "reviewed",
+      "sha256": "fa8b060a62701759399040419d774f7f03bd92a998f915bcc41717d9526dff47",
+      "candidates": 6
+    },
+    {
       "path": "llm/core/agents.py",
       "status": "unreviewed",
       "sha256": "f225fe9e699d049ade4441b7740a24223115969748e907e71e3b83456c110cb8",
@@ -2046,6 +2058,12 @@
       "status": "unreviewed",
       "sha256": "4d85a6b65d78f4ab139d025f92639424e570ec3b17387ce33b9686bf18d7dcab",
       "candidates": 11
+    },
+    {
+      "path": "llm/core/editable_snapshot.py",
+      "status": "reviewed",
+      "sha256": "ddc86f09a02377d2c5a1cbf820987359dbd5c48fb79175dffd868a5fbf0985e8",
+      "candidates": 5
     },
     {
       "path": "llm/core/embeddings.py",
@@ -2584,14 +2602,14 @@
     {
       "path": "llm/services/lifecycle/agents.py",
       "status": "unreviewed",
-      "sha256": "8f43e42cda320f80c29933c5018e0f365d9177a725d28ea47413f00a5488d991",
-      "candidates": 110
+      "sha256": "1a856343dbdc35d22bfe3372ef61c4484e2cbb07e58c74fbb78506f77c32f29f",
+      "candidates": 104
     },
     {
       "path": "llm/services/lifecycle/components.py",
       "status": "unreviewed",
-      "sha256": "d0871d658524d77bc5d714f0ccfc70dd444aab35a938e65a1503098b0b6545c3",
-      "candidates": 75
+      "sha256": "62b09e94f9e207826032a12c5911de60993946c2657947cf8ba0b8b8c45893e3",
+      "candidates": 73
     },
     {
       "path": "llm/services/lifecycle/projects.py",

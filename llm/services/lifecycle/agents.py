@@ -5,6 +5,8 @@ the Agent manager. Repository methods never execute an Engine or activate a
 Component. Every mutation validates the complete existing inventory first.
 """
 
+from llm.core.agent_views import AgentSnapshot
+
 from llm.core.checkpoint_records import CheckpointRecords
 
 import hashlib
@@ -81,11 +83,11 @@ class AgentRepository:
         if identifier not in records:
             raise FileNotFoundError(f"Unknown Agent: {identifier}")
         value = records[identifier]
-        return {"agent_id": identifier, "definition": value.definition, "revision": value.revision}
+        return AgentSnapshot.from_record(value).to_dict()
 
     @workspace_locked
     def load(self, project, identifier):
-        return self.snapshot(project, identifier)["definition"]
+        return AgentSnapshot.read(self.snapshot(project, identifier)).definition
 
     def _write(self, project, identifier, definition, manifest):
         value = AgentRecord.create(project.id, identifier, definition)
@@ -241,9 +243,9 @@ class AgentManager:
 
     @workspace_locked
     def prompt(self, project, identifier):
-        snapshot = self.snapshot(project, identifier)
-        definition = snapshot["definition"]
-        return {"agent_id": identifier, "revision": snapshot["revision"],
+        snapshot = AgentSnapshot.read(self.snapshot(project, identifier))
+        definition = snapshot.definition
+        return {"agent_id": identifier, "revision": snapshot.revision,
                 **({"system_prompt": definition["system_prompt"]} if "system_prompt" in definition else {})}
 
     @workspace_locked

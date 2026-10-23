@@ -1,5 +1,7 @@
 """Hub authoring tools use selected component handles, never storage paths."""
 
+from .resource_views import CreatedResource
+
 from llm.core.implementation_parameters import ImplementationParameters
 
 from copy import deepcopy
@@ -131,7 +133,7 @@ class HubGoalComponent(GoalComponent):
                 "success_criteria": args["success_criteria"], "scope": {"type": "session", "id": call.session_id},
                 "status": GoalStatus.ACTIVE.value, "run_refs": [{"session_id": call.session_id, "run_id": call.run_id,
                                                      "relation": "contributes_to"}]}, identifier=args["identifier"])
-            return {"id": identifier, **await data.asnapshot(identifier)}
+            return CreatedResource.from_snapshot(identifier, await data.asnapshot(identifier)).to_dict()
 
         async def complete(args):
             call = owner(data)

@@ -1288,3 +1288,44 @@ failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. Python 3
 정적 S1–S7 145건·문서·R3·SDK·양 suite 환경도 각각 exit 0이다. 테스트 준비 동기화의
 Level 2 검증이며 앞선 전체 실패를 지우지 않는다. 실행 문맥 변경까지 포함하는 새 고정
 통합 Level 3를 실행하고 통과 후에만 작업 브랜치에 Push한다.
+
+
+## 편집 snapshot Owner와 Component·Agent·Hub 소비 연결 (2026-10-23)
+
+[편집 관찰 계약](editable-snapshots.md)의 EditableSnapshot과 AgentSnapshot이 공개 봉투의
+필드·Reader·Writer·사본 경계를 소유한다. Hub의 생성 결과는 같은 필드를 상속한
+CreatedResource Projection을 사용한다. Component/Agent 저장·동기/비동기 공개 응답은
+동일한 JSON이며 Repository load의 공개 snapshot 호출도 유지했다. 잘못된 필수 필드·
+타입/unknown·Agent 정의/지문 불일치는 거부한다. 공통 Component version은 불투명한
+문자열로 보존하고 빈 문자열을 임의의 새 버전으로 바꾸거나 재계산하지 않는다.
+
+실제 소비는 Hub Tool·Record·Skill 관리/Vision 실패 정리, Skill 참조·Agent 영향/child
+조회, Refinement binding, Memory 추출/원본 파일까지 연결했다. 기존 CAS·잠금·원본
+보존·효과/예산/삭제 판단 순서는 유지했다. 초기 Owner·Agent 저장·Skill 참조 smoke는
+30개 pass/exit 0이었다. 신규 시험은 중첩 조회 사본과 실제 오래된 버전의 save/delete가
+현재 파일을 바꾸지 못함을 확인한다.
+
+- `whole-editable-snapshot-01`: 발견/시작/pass 173/173/173, exit 0, 272.105543초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-editable-snapshot-01/llm.json --modules tests.llm.test_editable_snapshots tests.llm.test_agent_storage tests.llm.test_agent_domain tests.llm.test_component_record_integrity tests.llm.test_settings_contract tests.llm.test_skill_references tests.llm.test_memory_processing tests.llm.test_memory_compaction_integrity tests.llm.test_refinement tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `b783781df96f09e1f64c19fc02c3b32e944a52e2953ffddf81cf9ca219818cc9`, input `f6a32220d3559e0d93e0cd68663ed90d5d2085e88410ea6f8782ff778b78395e`.
+
+- `whole-editable-snapshot-hub-01`: 발견/시작/pass 29/29/29, exit 0, 178.810726초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-editable-snapshot-hub-01/hub.json --modules tests.hub.test_component_managers tests.hub.test_resource_tools tests.hub.test_interaction_updates tests.hub.test_question_tools`.
+  source `b783781df96f09e1f64c19fc02c3b32e944a52e2953ffddf81cf9ca219818cc9`, input `f6a32220d3559e0d93e0cd68663ed90d5d2085e88410ea6f8782ff778b78395e`.
+
+두 실행 모두 failure/error/skip/xfail/xpass·누락/추가/중복 0이며 전후 manifest가 같다.
+LLM은 모든 직접 변경 소비자와 실제 저장 무결성·중단/재개·승인·예산 삭제·효과·Checkpoint·
+RAG·수명 안전성, Hub는 실제 관리 화면·Resource Tool·Tool 관리·질문 승인 경로를 검증했다.
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11은 이전 환경과 동일하다.
+
+기존 정적 근거 16건의 변경 의존성을 재검토했다. S4 발생 3개는 dict 조회에서 타입 속성으로
+변경한 동일 CAS/고정 참조 비교이며 각각 연결했고 과거 행은 removed-findings.json에 보존했다.
+`snapshot-auxiliary/results.json`의 S1–S7 145건·문서·R3·SDK·양 suite 환경은 모두 exit 0이다.
+감사 fail-closed 자체 시험 `python -m unittest tests.llm.test_architecture_reviews
+ tests.llm.test_contract_coverage`는 16개 pass/exit 0이었다. 위 집중 실행과 합산하지 않는다.
+현재 460개 파일, 미검토 405개, 미분류 30278개,
+incomplete 계약 2개이며 이번에는 새 Owner 3개만 전수 검토했다.
+
+이 소단계는 Level 2다. 진행 중인 9067faa 고정 통합 게이트에는 이 변경이 포함되지 않는다.
+참조/삭제 보호와 관련 후속 소단계를 묶은 현재 소스의 다음 Level 3에서 전체를 검증한다.
+payload의 Prompt·Memory·파일 의미, 참조 프로토콜과 Manager 고정 응답은 계속 후속 작업이다.

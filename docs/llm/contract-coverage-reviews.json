@@ -4162,5 +4162,159 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/editable_snapshot.py",
+    "sha256": "ddc86f09a02377d2c5a1cbf820987359dbd5c48fb79175dffd868a5fbf0985e8",
+    "reason": "Read all declarations, constructor, Reader, detached properties and serialization and all public snapshot call sites. One field declaration supplies strict JSON parsing; opaque Component contents and CAS token remain unchanged. Actual stale save/delete and detached mutation tests verify no disk effects.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "92e5575ec7ccda1b6566e0f2f79b25a62508a5fbe7e3fe4090450b2c70c23246",
+        "classification": "non_contract",
+        "owner": "EditableSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "f66d98ce5dec2eab4c47eed29e9dc0556206bcceeb708212dd263648f285b5f1",
+        "classification": "non_contract",
+        "owner": "EditableSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "56f850d7990c1eec7ebe1780b3081e3d1e8ca71c0f187d5e807c6e4da4ae8a90",
+        "classification": "non_contract",
+        "owner": "EditableSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "ee208e695d56d71b52e72b3612bb177bb2a9ec7f7d740b558134ea922eda8d33",
+        "classification": "non_contract",
+        "owner": "EditableSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "d7198d5507fd033f1911e5863f2db90c1366038cfdd7cc914a3e8e34cf62d03a",
+        "classification": "non_contract",
+        "owner": "EditableSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EditableSnapshot",
+        "declaration": "llm/core/editable_snapshot.py",
+        "consumers": [
+          "llm/services/lifecycle/components.py",
+          "hub/backend/project/record_management.py",
+          "hub/backend/tools/management.py",
+          "llm/components/skills/data.py",
+          "llm/components/refinement/data.py",
+          "llm/components/memory/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_editable_snapshots.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/agent_views.py",
+    "sha256": "fa8b060a62701759399040419d774f7f03bd92a998f915bcc41717d9526dff47",
+    "reason": "Read all fields, factory, Reader, properties and Writer. Projection delegates current identifier/definition and revision checks to AgentDefinition, protects nested copies, and retains public AgentRepository snapshot dispatch. No storage envelope or execution binding fallback exists.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ad2a3b3d9a07d42cb4306335b550c072423bacce3b6df415e23577432e27e157",
+        "classification": "non_contract",
+        "owner": "AgentSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "50199c06b71d34b1c393b64e997b75ecf03aa8bfd9222a1475fb236c94a7db63",
+        "classification": "non_contract",
+        "owner": "AgentSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "4b7b5ea00427f059fba06dfb36fa1681feae4bf565ce35ecfa3b0626af19da7b",
+        "classification": "non_contract",
+        "owner": "AgentSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "234e5070c1d0b9a97f49753627ca5593dafe8ae01ac8f25ebbd686a73d155fcc",
+        "classification": "non_contract",
+        "owner": "AgentSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "a225b9f94765661b45412eca1b136dc31f2abc16ffc33a555249e52e21f56e0b",
+        "classification": "non_contract",
+        "owner": "AgentSnapshot",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "d1da911064ee10db6413f9e3e5f28b5a03faba0d0e8949f975b54b227b4621c0",
+        "classification": "declaration",
+        "owner": "AgentSnapshot",
+        "reason": "Owner declares its diagnostic before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AgentSnapshot",
+        "declaration": "llm/core/agent_views.py",
+        "consumers": [
+          "llm/services/lifecycle/agents.py",
+          "llm/components/skills/data.py",
+          "hub/backend/project/record_management.py"
+        ],
+        "tests": [
+          "tests/llm/test_editable_snapshots.py",
+          "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_domain.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/tools/resource_views.py",
+    "sha256": "ee8b6532f0a8cd77db3cdb82486c00454404472cca5494126c5420d095941e98",
+    "reason": "Read the complete Hub response projection and its sole Goal creation consumer. Snapshot fields are inherited from their canonical declaration, id is the only additional wire field, and reading is delegated to EditableSnapshot. No storage, business policy or implicit authority is introduced.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "16575a1dd5c6f1a01d9dd94b8a0044ff6fa85b70a5402bd0adec459ffa31acd6",
+        "classification": "non_contract",
+        "owner": "CreatedResource",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      },
+      {
+        "id": "e8840214ada4d9d26d280a91dd5d1610db99c10b6c7a7fd44f2bcdf633a3412c",
+        "classification": "non_contract",
+        "owner": "CreatedResource",
+        "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CreatedResource",
+        "declaration": "hub/backend/tools/resource_views.py",
+        "consumers": [
+          "hub/backend/tools/resources.py"
+        ],
+        "tests": [
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_editable_snapshots.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

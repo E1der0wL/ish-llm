@@ -1,5 +1,7 @@
 """제안·승인·CAS 적용·CAS 되돌리기. 대상 공개 API와 동일 workspace transaction을 사용한다."""
 
+from llm.core.editable_snapshot import EditableSnapshot
+
 from llm.core.implementation_parameters import ImplementationParameters
 
 from copy import deepcopy
@@ -65,7 +67,7 @@ class RefinementData(ComponentData):
         if not isinstance(skills, list) or any(not isinstance(s, str) for s in skills) or len(set(skills)) != len(skills):
             raise ValueError("Skill binding requires unique Skill IDs")
         handle = self.related("skills")
-        return {key: handle.snapshot(key)["version"] for key in skills}
+        return {key: EditableSnapshot.read(handle.snapshot(key)).version for key in skills}
 
     def _require_evaluation(self, proposal):
         if ImplementationParameters.read(self.get_config()).policy.get("require_evaluation") is True and not proposal.get("evaluations"):
