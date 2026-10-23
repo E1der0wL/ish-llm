@@ -10,6 +10,7 @@ class ToolClassification:
     """Classification supplied by the trusted Application, never inferred from arguments."""
 
     INVALID_CATEGORY = "Tool classification category must be nonempty"
+    REQUIRED_FIELDS = "Stored Tool classification requires exactly the current fields"
 
     category: str = "tool.execute"
     risk_scheme: Optional[str] = None
@@ -23,6 +24,13 @@ class ToolClassification:
 
     def to_dict(self):
         return asdict(self)
+
+    @classmethod
+    def from_dict(cls, value):
+        """A persisted classification is complete evidence, not a new declaration."""
+        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
+            raise ValueError(cls.REQUIRED_FIELDS)
+        return cls(**value)
 
 
 class ToolEffect(StrEnum):

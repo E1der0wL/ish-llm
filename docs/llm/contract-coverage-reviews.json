@@ -3249,8 +3249,8 @@
   },
   {
     "path": "llm/core/tool_contracts.py",
-    "sha256": "0987faeb9d5a103ae1ae0def437e2b839acf9edc7243c5c76b7ed1e13f515124",
-    "reason": "Read all declarations, closed Reader/Writer, registration re-export, approval attribute consumption, provider and component declaration imports. Mandatory choices, detached array serialization, enum values, risk validation and public type identity are unchanged. The remaining Tool binding/worker/protocol contracts are not covered by this file review.",
+    "sha256": "f2deeca851e4e04b14981f1f33d471bd5de494da634e070e4ea5193faff5cd9e",
+    "reason": "Read all declarations, closed Reader/Writer, registration re-export, approval attribute consumption, provider and component declaration imports. Mandatory choices, detached array serialization, enum values, risk validation and public type identity are unchanged. The remaining Tool binding/worker/protocol contracts are not covered by this file review. Stored-classification Reader addition: exact required field names derive from existing dataclass fields, preserving explicit null risk fields and constructor validation. Persisted missing fields fail rather than using new-declaration defaults. MCP incomplete-file tests preserve damaged bytes and prove no connection, model call or effect. Constructor and existing serializer are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -3272,103 +3272,109 @@
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "9e996c30cff0f323348ef0fbce1452a5474367489b2c4abf712b6c183b3da8f7",
+        "id": "ab4a941b4a6d509a3f42e5d633bc5f3522945c0b4616e3f7213f35127b28d1ad",
+        "classification": "declaration",
+        "owner": "ToolClassification",
+        "reason": "Stored classification completeness diagnostic declared beside its existing fields; the Reader uses dataclass fields as the only required-key list."
+      },
+      {
+        "id": "40c2d83688d6a186497a28c5788fa85d5256284845d4dbef9cd289d3e5af218b",
         "classification": "declaration",
         "owner": "ToolClassification",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "7bb1a2a84cc6c8ccdeabfa82f079e736f91e215633fe4e2029781c68afefd556",
+        "id": "4082bee7f8f83f097ff663f8fcdf45334ea4ca0ee395ce2d330762bc213df097",
         "classification": "declaration",
         "owner": "ToolClassification",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "aa0cf88ed84325aff40b699a53508119a9c8b570d396cc43e2587d5869a619d2",
+        "id": "4718560155e51d1ed0f4378d820f9c2599fd3cfadca3b79b9fafe3391bb7972e",
         "classification": "declaration",
         "owner": "ToolClassification",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "22c47d11a5abc1c0f993aaa813af3ec62c7da565a9d7c7b0061591ac14b75711",
+        "id": "bfe75f9feae4316130f947e4abd821e1ae63e8692d2615ed1a1e45fcbe3a5a5c",
         "classification": "declaration",
         "owner": "ToolEffect",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "e047e5a356e9f948ccefcbeacde22d21c75cd2a4fedb772ec119ef8b0275567f",
+        "id": "e03f4c88654f8687ea063e544f39140799fef353e99b04429aaf7829b356922e",
         "classification": "declaration",
         "owner": "ToolEffect",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "6ac42696950c24d1170a8a68007ced6aedfe95a2b6f2803e3b2f8d220d19ae08",
+        "id": "f5931093cab4c7071c713aabd75c8e2a706049617d0a3ef626c629ac7c66d750",
         "classification": "declaration",
         "owner": "ToolEffect",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "85f80597e4c9007c6f5be45b90a0f4833e978e8d666576aa69388e05270654ff",
+        "id": "7d72de6409d9e8faaa1c3d1b3d2e355706544bb2ddcd83dcf1c725b08d7c599b",
         "classification": "declaration",
         "owner": "ToolIsolation",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "fdb8d535e6b03e7f8f2c9fad6cc500c5eda7e7f0ffbd1236989f7b24f83812e5",
+        "id": "651b29fb7b091b9a1cc48fbe43f1d147a5659452a3615a8c656f95d83e17825c",
         "classification": "declaration",
         "owner": "ToolIsolation",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "eb707dc07a30d19264ea7ad2aa97fc0e0ba98a0d7475a5a8ad862735a6cda3a5",
+        "id": "8376894c33e1d9d6104e8d9b4f30fc61a9a6d8c4f20485400e846ccdba372347",
         "classification": "declaration",
         "owner": "ToolIsolation",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "1fa2d4d20102cec2da79dfa7b1f2adba52295111c61fa3fb61e7a01f8f189a6f",
+        "id": "b334c69cff3d8dce0117474430e22b2b0cf398b87ce3f2075e90998632304d52",
         "classification": "non_contract",
         "owner": "ToolContract",
         "reason": "Frozen/slotted dataclass code generation; not execution authority or wire data."
       },
       {
-        "id": "8e84b515b38ba3f050a42bfd8b241f3461dcd0b6c8d3455e959de193c1f05ec3",
+        "id": "5f25057a2367e88b5538213741d0c841a22577d4ece06e8f213856f2f5a9c371",
         "classification": "non_contract",
         "owner": "ToolContract",
         "reason": "Frozen/slotted dataclass code generation; not execution authority or wire data."
       },
       {
-        "id": "c959f47be973ef8f67c67213e137f1b8125bb0395a49f95f349fb9554c201d4d",
+        "id": "e8c78598590102463830285820a047b0b56ce3fa308fc0a0e0b9b693d48157dd",
         "classification": "declaration",
         "owner": "ToolContract",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "3dcd922a996782eabd1a0dc4eb7ae41da540315aa40bdbc8b3a1b7a91ce8ad42",
+        "id": "b7774cea2847d9e62a4a05e069dbf5d85ac8830860492cd367fb1491e10bad40",
         "classification": "declaration",
         "owner": "ToolContract",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "e1801323afa870146990e20c23cf255419a4b51252506dd53a43ca17087676b9",
+        "id": "48461bbcfffcaf2cbb60d10f9e6f97c9f76cc1f5112076eae8b26582ed2a70f2",
         "classification": "declaration",
         "owner": "ToolContract",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "69cda2452802030284ebe9a8bdb9cfc6b985b784a65c2f4e197ed3b8f0b0560f",
+        "id": "c926f5775c5d9390e949592b6b69dd71949d692a7e3fe396fd98cb5d9780ff19",
         "classification": "declaration",
         "owner": "ToolContract",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "0210013bf4323ce58b6aaa2e97de99c9a977bd7669fd59ebb087e485ac65e3b5",
+        "id": "76b8e5149257cbdf7cdbfcff90840e037babe2cef51fd3a628eb9260d96377e7",
         "classification": "declaration",
         "owner": "ToolContract",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
       },
       {
-        "id": "af61c4c9eb536c0d3acca91571f5e160867af9d3a586effe7db13347b3f42202",
+        "id": "56ba2c39495b76fb6a0681e6ac855cc7749c36b63a13d0c9548c4fcdae37c546",
         "classification": "declaration",
         "owner": "ToolContract",
         "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
@@ -3401,7 +3407,8 @@
           "llm/providers/mcp.py",
           "llm/services/runtime/operations.py",
           "llm/services/runtime/processes.py",
-          "llm/services/runtime/tools.py"
+          "llm/services/runtime/tools.py",
+          "llm/components/mcp/records.py"
         ],
         "tests": [
           "tests/llm/test_tool_declarations.py",
@@ -15049,12 +15056,12 @@
   },
   {
     "path": "llm/components/mcp/__init__.py",
-    "sha256": "9dffd8d4a7e0f392f43af002e3cd8831c919007b9cb74114835b0c94aed2b168",
-    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "sha256": "61cdbaf232349c837045c9f2fbd473f3430945be4c715aaa96c9e4567998b2c3",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation. MCP import projection: existing sole public export is lazily resolved through the same declared allowlist; public class identity is unchanged and pure record import loads no services/Engines/SDK.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "c145cb902b9609642453fd714c80410f97e817ba1f42e40d219734e43cf6924e",
+        "id": "2def9150078d762ea9555f954c4a7086f53b3152023e08210f3f93b773029a22",
         "classification": "declaration",
         "owner": "llm.components.mcp public namespace",
         "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
@@ -39172,6 +39179,719 @@
           "tests/llm/test_rag_extraction_repair.py",
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_agent_resource_integrity.py",
+          "tests/hub/test_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/mcp/records.py",
+    "sha256": "e6563f7d445b5571ec8112c38e2ced75f2a3e53e922ebfabe49797f278ade664",
+    "reason": "Read all canonical Schema/transport/field declarations, optional auth projection, closed catalog/Tool evidence Readers and serializers, explicit runtime handles and binding projection. Normal wire order/values and revision hash remain exact. User metadata is open; auth callback sees a detached original and only transport auth fields are merged in memory. Missing catalog/classification fields are not construction defaults. Runtime connector identity and source extensions survive; no connector is stored or created implicitly.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "005e88873ca5b2f6bad6ef36412412d8f558e9cb8b9b04a2fd1293198c3f07d5",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "570f12ffe57ae021edd2882dae4f93fa6a23ff56aeb282d8ccf0552813d225bb",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "757df48c6d3a7c63513c4e5ea9dfbee068562514eb00c55118358ced75d30fb2",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "e66bb6a79004fef3e96005ec07ed08ac5d1779707b81279513502842cd3e678d",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "14ae1514d38c340bae3576c3c731924db260749489942feabaddfd12cd930c26",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "2741c799c70b17dd6458b76c6e7b3c75f99124cfd66688abecc071e881fb21f8",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "fc8cd150b64e525e99ba159cc4f6d8c778bd5e4f5f8250b68de4cb68920d9d95",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "803d6e9199e72f7cfb6de66fa6a6a31422fe6abd7981db2b3752e6390bf44255",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "03607f769cf8675499b7f466d6b10b2d58a85f10d9e17f8fdd3563015dbfe04a",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "ab1916b4fd1494fdb30a5ad41c325bf8d6478f1f240f76cc7d5caaa4d09fff79",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "9a01aad4cb851ec7e8f01de3853f845759097f9a77a6645506e1471ff2fa4e22",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "e0c7007553bdad91f2a83142b984f0c19466e36123267d49e569b260f1d72113",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "dbe72b942a91fb58b31362cda97cbd693313f2decfd0ca12350c90b71fd52d88",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "7f6506ddd3bd9d0956439a267680cadce76498cb7575aff18569f886a2e47271",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "4a130ec8fff953216ed5aa0ff7e4854e20221f47d1b4c863183e229ae96c5836",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "921a3522e86f2563263cc1372bdb6fe9fa87c6d2e8b8c57bc6a2623418178734",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "ca76476f0f0a149f6d2b534fd8b5e5c48ade3b49aa7c66ded68282bbf9e8a7f3",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "8c8bb974ddee9b9bf48bacc7461604714048a69081673ac40949027f2a5e557e",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "421ff98748ecabf274662ce472f7900fed34e498aa45897a189471bbea95374a",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "b3827eadeca6e390e6be73c5bc6cb3a3cedc0f7f05cb56973adebe350acc7a70",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "7954ed5adb2724411404fe92c7014ad167a855f74d6771b9d1102225480924b7",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "8dd2650156677e4d2f6f767aac429ddab4f293dde7e3beef34fc27540be713b7",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "ee405f924986acaa26dbd30cae4e562e3bf241670499a619894c03c25e372751",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "edc79efde4f00b547f0abb852f898fa01560bbf882d1a2c3eee092db0b0df906",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "719a8b62a2864bddbb3321ed0c3c377a63cbc3abf2c4d4d28bd2385ffb47a0a8",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "56c7916b20c1f3d316f1f8bd9b9abc9738a2b8a63933dcd9bb25e98280fb00a5",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "4d51d427df22bb167c8098fe595204cbdb77e291fa551907fddfa7c03cde0d54",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "f13f47c37769ff5a3ad04e51bfca8561c7ce907840235ed1a13bb44cf366f58a",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "59bafc4c73924135b1cb325f47573a20085d8baacaf9ff0e8ecd8c6ffd89ce78",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "d3745872a58e6aaafa3f1d770cb7da5701bb031c73a5997c91587a9bba36ff6e",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "d7455883b8be1141804a6191023871ba1af70eb6f44a8e3757f2d569d4bbdb23",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "37f4b691b091f3c026b2425922f646cbf94d1ff8c863bb358132dcffd4f0e832",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "fb9b74df09666ce21856383ec02ef60373c9e77474e1d4c629ebd4fde739f9f7",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "2d9fed437b60f6cdfde20aa06575a53ac8339d52c623fba9fa5f40c7b8b3affb",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "788aa1ba896de42f54257f4332209964698370e3afd45dd015b9f63701c2edc2",
+        "classification": "declaration",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "9e2bf82256dfcc0fc326b7cc0e81a8eb897986dd5dd33b997dad048c4f35e8e2",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "3c75b03123d7c31a05fc507d72182826d9df869b03d29c00c91ac0a5128a6ce7",
+        "classification": "non_contract",
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MCP definition, selection, discovery and runtime values",
+        "declaration": "llm/components/mcp/records.py",
+        "consumers": [
+          "llm/components/mcp/component.py",
+          "llm/components/mcp/data.py",
+          "llm/providers/mcp.py",
+          "llm/engines/agents.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_mcp_runtime.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_tool_declarations.py",
+          "tests/hub/test_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/mcp/catalogs.py",
+    "sha256": "f6ced27bdd8f14f3cfa1b2686150117227f82eb9f618b72a026e2b7ec4db197c",
+    "reason": "Read complete path/read/atomic-write Owner. Existing catalogs/id.json placement, identifier validation, checked paths and atomic_json transaction semantics are unchanged. Absent files still reject preparation; only typed complete current records reach consumers. No fallback, legacy Reader or second canonical definition.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "89c35d7f9bb515b6c08a4b0f195186f2f722bf57664807fe6a572e7595de74b4",
+        "classification": "declaration",
+        "owner": "MCPCatalogRepository",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "040e311fbeaa81657e74eb95c854a55bb67d5985c639f5f27f2aa27c1e5ac91c",
+        "classification": "declaration",
+        "owner": "MCPCatalogRepository",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "cb6d617e540877e641c664f9a75d029ed7be17ead5780f4ad716d70038574bf2",
+        "classification": "declaration",
+        "owner": "MCPCatalogRepository",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MCPCatalogRepository",
+        "declaration": "llm/components/mcp/catalogs.py",
+        "consumers": [
+          "llm/components/mcp/component.py",
+          "llm/components/mcp/data.py",
+          "llm/providers/mcp.py",
+          "llm/engines/agents.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_mcp_runtime.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_tool_declarations.py",
+          "tests/hub/test_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/mcp/component.py",
+    "sha256": "4c20ed09b66114decf07e929c0d2e5d91b9547c328239046807e9ed7664a36fc",
+    "reason": "Read complete injection/configuration/capability declaration and inherited definition storage contract. Canonical definition and config Schema replace inline copies. Connector/revision validation and default revision remain exact; only explicit runtime capability exports connector handles.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "aff2f0aa2a36595ef9a8ef183c4b97afc61312961ce80f4d635ba4505c072d69",
+        "classification": "declaration",
+        "owner": "MCPComponent",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "a743205b695b801799b94f0bf759088137274fd5a568d2c520c53c1627aeb25f",
+        "classification": "declaration",
+        "owner": "MCPComponent",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "23ff4617ba89a3c7925bc161fa7bd04115ef290d63102903a2690854ac1a2a16",
+        "classification": "declaration",
+        "owner": "MCPComponent",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MCPComponent",
+        "declaration": "llm/components/mcp/component.py",
+        "consumers": [
+          "llm/components/mcp/component.py",
+          "llm/components/mcp/data.py",
+          "llm/providers/mcp.py",
+          "llm/engines/agents.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_mcp_runtime.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_tool_declarations.py",
+          "tests/hub/test_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/mcp/data.py",
+    "sha256": "50f2650daa4d1bb216489a147df4bf17e77f5993a64f52a5eafc6709f4d07c7b",
+    "reason": "Read complete discovery/selection/invocation flow. Repository owns files, records own field parsing and Data owns current-Project lookup, freshness and explicit connection lifetime. Raw dict consumers and positional connection tuples are replaced with typed values. Discovery rechecks under the same lock; approved RemoteTool checks definition/connector and remote descriptor before the handler. Same hash/binding and real effect/uncertainty/cancellation behavior; no automatic calls/retries.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e81fc662453c48e427183f43c393600691c9231edf39df41cc96b862d878bfac",
+        "classification": "declaration",
+        "owner": "MCPData / RemoteTool",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "69f8a8c5ce5f9508265b39d1658720f338139e91857f2c8853126567799be5bf",
+        "classification": "declaration",
+        "owner": "MCPData / RemoteTool",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "c90fbd71c34859a5f2176a1beffa5bb2287013b523c1b2c6c10b2317ea39ed24",
+        "classification": "declaration",
+        "owner": "MCPData / RemoteTool",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "7dd5125ee8345f750460c9cbdb706da56f9eee0f74117ac991035ab38648236f",
+        "classification": "declaration",
+        "owner": "MCPData / RemoteTool",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "bcdfee6d8f94ec29c439515297eef360e1e859f04a46e6772d3466e9670f9fa3",
+        "classification": "declaration",
+        "owner": "MCPData / RemoteTool",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "582da547371a9817130d2991b2f11899f787bb2f8ae474130d85a5df311e56ef",
+        "classification": "declaration",
+        "owner": "MCPData / RemoteTool",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "40764f02217fa18c4021ba4c414410574edb2364844e5c839eeddb85d6de9892",
+        "classification": "declaration",
+        "owner": "MCPData / RemoteTool",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MCPData / RemoteTool",
+        "declaration": "llm/components/mcp/data.py",
+        "consumers": [
+          "llm/components/mcp/component.py",
+          "llm/components/mcp/data.py",
+          "llm/providers/mcp.py",
+          "llm/engines/agents.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_mcp_runtime.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_tool_declarations.py",
+          "tests/hub/test_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/mcp.py",
+    "sha256": "71593353554d998df420bbfc65ea68a158cecd799b925f2a8305e62cb1efcda9",
+    "reason": "Read all SDK loading, stdio/HTTP argument projection, explicit credential restrictions, timeout, pagination, callback contract, call, diagnostic and async cleanup paths. SDK wire options/stages/messages are declared before implementation. 84 old/new SDK transport traces match including omission, null, auth rejection and timeouts; error diagnostic JSON is exact. SDK import remains at execution. Uncertain Tool errors never retry; caller exceptions survive async cleanup and cancellation propagates.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c3532cbbbf0f3a2d4fe25cd551e7de22cc773ae32a84927f6e32493d8ad42bee",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "1f4341f9515327ef93804cec4ad0eb75a4fb4aec11dcb23496a8ea265bc72b78",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "b01b1179ccc3c7ee14d991e00cae871d86c78f526ca2b03ce75e8ef609178062",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "a9b8d098f9eaf77fcd03deb4ee16043b4deb26201fc933c784bd8c062ee866bd",
+        "classification": "non_contract",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "5008194ecc9f4dfb875db3020504bc5ed14d18fd1de0454c3f3af23018905cdd",
+        "classification": "non_contract",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "1328a1d22fe5b24dab937cae61e185d5c2ec701e83c50a4314f75bfdc934ba28",
+        "classification": "non_contract",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "24ad8605e35c6a19f263295192687158010cb63be5e3aa0f74fcb5d803ef115b",
+        "classification": "non_contract",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Frozen/slots Python dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "00ac353c6048aa1841af38e5453726ce4da28e48d23c0ed0f274e103d1703020",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "ec6057c3273f5cfa2788492f90b1f1f2fa5b132328bf3fc1255da74e6143a98c",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "0b86a0abfa955dced3b5f5b7e4fb67d66a0657369477610561cff9ae83306fc3",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "2d42d6f7e78963d40119623ad310cd577bc1d19b93e26c52c7354e18c8690f7a",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "b939c25517cfd18de226d0f1fa7d6d6a814d265fa2023303371e19e1cf880a0b",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "670afae9b9a5ced690f1c77f84d95065d61bb1a142e34d03d80af4fea5df7cad",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "a55e5242ec370d0f88ae0d8acd38b7e7c5360d7d25db47716ce8a3f55a8f990a",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "2a310e48d924a041cd136a7b74037edf4275df7328356152e9dee9e05901ccf5",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "f08bdde76bc92071d7884af97fb233ca7153191a11d64cc4a62a93a276de617a",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "b679c7130c664a9b9c75c75e1be94b7fc77f3c5f53a88348e0a75bf22f458fb4",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "991ad10168ecdc1feab8024ec6a6844148cceea504337d104d28919b0317cf3c",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "09a881e395473f603d03b66592d2d11b50540d313fb262e06d2c81b039ce7a80",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "7b8b197200b31364a82e2f0d9244680e3c130ca214307a22b25fb88c03fdf26a",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "9af6baa3e7a32e04ca9f8714116928b176693a2334544034e9795679dd613087",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "3abd8b03cd9b1a24aafa03fde4804ca435cb56712de1aaabd68f4bd71b76699e",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "d6960f1de5499c616c8492680993fb3723e5b782be058e7b8f20c5440120f3d0",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "ff89c08f1e852f6bf9bc6fb3c090f92f8f47447b96939262f4f11e39f23b5cc9",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "70791b2b5514a988401ac6fee6af1edd6a4ae8703533a9f39fe88be5a13c0abe",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "b5d11b1c58e1e61858437c1bfbf26bee61af742ce22290c460013994041c5457",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "d482f8a303527f84018370fae41b3661fb5112fedd525cfae926966539106457",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "b600add497ccfb441978bd7435035bc132bc38682c6bd4083389b2a7a5effe90",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "d20c713572c3dfa557790cbf96c13c76550b47f57fb1c3d5bfebb96ac0e6e39e",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "8e754e9bd824395ce1b92c8104b2d1a378cc48b4d0649a113605eac70d9ff299",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "6f749849996e49d807cd5d7996e19bfb8c9f39140ce3d850404e92c7970dbc3c",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "04abc3a18e8e0322a93cc7c781f334ec83d43948ecd165fb20c35dd70fb16e27",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "7193e42891bbe4f304eb4b8d01f8cc821ebf78085c0fb9e057dc47a6592dbf00",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "1cf5c8832b0f42cc27df9e03a80d8073f36e08c26f84ed12b37e7f5a2a184800",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "3fdd6f8b92212c3d778157cf9f8c2129e5007199963b858eda69a5164ceb959c",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "fdf5e53265f02b6fda45b775fa9845c0202f92d324c08050c9afb37be963ac18",
+        "classification": "declaration",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Owning fields, Schema, identity, storage path, transport/SDK protocol values, errors and explicit implementation defaults are declared before methods."
+      },
+      {
+        "id": "88248421eeee1a0e246e20fe995d8aae61bc0f8bbce7326e233b634a0110ff08",
+        "classification": "non_contract",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Algorithmic loop until the separately declared SDK end cursor; not a retry/limit policy."
+      },
+      {
+        "id": "b793aa88bd3551c60236cde2ec0e6947fc712a5744f4c2d77d3d594ce105185d",
+        "classification": "non_contract",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Local exception accumulator for preserving the caller error through context cleanup, not missing stored evidence or a policy default."
+      },
+      {
+        "id": "6e26b38b163c116fbb7acb6abe9486ac0718045c47f6e06c1d1beeda3ee3f06b",
+        "classification": "non_contract",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Local exception accumulator for preserving the caller error through context cleanup, not missing stored evidence or a policy default."
+      },
+      {
+        "id": "f6223eafe1759e5799d281d0e740f4f52452ebc4fcc3b07151783fe71adb054d",
+        "classification": "non_contract",
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "reason": "Local exception accumulator for preserving the caller error through context cleanup, not missing stored evidence or a policy default."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MCPConnector / MCPSDK / MCP errors",
+        "declaration": "llm/providers/mcp.py",
+        "consumers": [
+          "llm/components/mcp/component.py",
+          "llm/components/mcp/data.py",
+          "llm/providers/mcp.py",
+          "llm/engines/agents.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_mcp_runtime.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_tool_declarations.py",
+          "tests/hub/test_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/mcp/README.md",
+    "sha256": "54d0ae7dddc82a18c1789514430da119ddee987f9b9de551b628d8bdb66737cf",
+    "reason": "Read complete package map, stored definition example, explicit preparation/selection, SDK and authority/lifetime guidance. Documented canonical values/repository and required-evidence rejection without changing paths/JSON/revision or claiming Agent whole-file completion. Examples remain independent explicit requests.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "MCP documentation",
+        "declaration": "llm/components/mcp/README.md",
+        "consumers": [
+          "llm/components/mcp/component.py",
+          "llm/components/mcp/data.py",
+          "llm/providers/mcp.py",
+          "llm/engines/agents.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_mcp_runtime.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_tool_declarations.py",
           "tests/hub/test_components.py"
         ],
         "complete": true

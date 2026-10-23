@@ -64,6 +64,61 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
         await project.agents.acreate({"engine": "loop", "tools": ["remote_echo"]}, identifier="loop")
         return app, project, await project.sessions.acreate(agent_ids=sorted(await project.agents.alist())), data
 
+    async def test_incomplete_discovery_evidence_cannot_restore_defaults_or_connect(self):
+        from copy import deepcopy
+        app, project, session, data = await self.setup_app()
+        component = app.project_manager.components.get("mcp")
+        path = component.root(project.data) / "catalogs/server.json"
+        original = json.loads(path.read_bytes())
+        corruptions = []
+        for key in ("version", "connector", "tools"):
+            value = deepcopy(original)
+            del value[key]
+            corruptions.append(value)
+        for key in ("name", "description", "parameters", "contract", "classification"):
+            value = deepcopy(original)
+            del value["tools"][0][key]
+            corruptions.append(value)
+        for key in original["tools"][0]["contract"]:
+            value = deepcopy(original)
+            del value["tools"][0]["contract"][key]
+            corruptions.append(value)
+        for classification in ({}, {"category": "remote.call"}, {"category": "remote.call", "risk_scheme": "test"}):
+            value = deepcopy(original)
+            value["tools"][0]["classification"] = classification
+            corruptions.append(value)
+        for value in corruptions:
+            with self.subTest(value=value):
+                damaged = json.dumps(value).encode()
+                path.write_bytes(damaged)
+                with self.assertRaises((TypeError, ValueError)):
+                    await data.alist_tools("server")
+                with self.assertRaises((TypeError, ValueError)):
+                    await data._async_call(data._tools)
+                self.assertEqual(path.read_bytes(), damaged)
+                self.assertEqual(self.connections, ["open", "close"])
+                self.assertEqual(self.calls, [])
+                self.assertEqual(self.model.requests, [])
+        path.write_text(json.dumps(original))
+        self.assertEqual(await data.alist_tools("server"), original["tools"])
+
+    async def test_discovery_views_preserve_wire_shape_and_do_not_mutate_storage(self):
+        app, project, session, data = await self.setup_app()
+        component = app.project_manager.components.get("mcp")
+        path = component.root(project.data) / "catalogs/server.json"
+        original = path.read_bytes()
+        tools = await data.alist_tools("server")
+        self.assertEqual(tools[0], {"name": "echo", "description": "echo", "parameters": self.schema,
+            "contract": {"revision": "1", "effect": "unknown", "isolation": "none",
+                         "approval_required": True, "operation_key_required": False, "retry_fields": []},
+            "classification": None})
+        tools[0]["parameters"]["properties"].clear()
+        tools[0]["contract"]["approval_required"] = False
+        self.assertEqual(path.read_bytes(), original)
+        self.assertEqual(await data.alist_tools("server"), json.loads(original)["tools"])
+        self.assertEqual(self.connections, ["open", "close"])
+        self.assertEqual(self.calls, [])
+
     async def test_approval_before_connection_and_explicit_resume_exactly_once(self):
         app, project, session, data = await self.setup_app()
         self.assertEqual(self.connections, ["open", "close"])

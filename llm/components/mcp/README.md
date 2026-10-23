@@ -8,7 +8,9 @@ MCP 연결 정의와 발견한 Tool 목록을 Project 데이터로 관리합니�
 | --- | --- |
 | [__init__.py](__init__.py) | MCPComponent 공개 import입니다. |
 | [component.py](component.py) | transport별 schema, connector 주입과 런타임 capability를 정의합니다. |
-| [data.py](data.py) | 명시적 Tool 발견, 발견 스냅샷, 선택한 원격 Tool의 실행 연결입니다. |
+| [records.py](records.py) | 정의·선택 Schema, 발견 기록·실행 binding·런타임 연결의 타입과 Reader/Writer입니다. |
+| [catalogs.py](catalogs.py) | 발견 기록의 경로와 원자적 파일 저장을 소유합니다. |
+| [data.py](data.py) | 명시적 발견, 정의·connector 최신성 검사와 선택한 원격 Tool의 실행 연결입니다. |
 
 ## 정의 저장 예
 
@@ -61,6 +63,17 @@ ToolExecutor의 승인 이후에 열립니다. 연결 정의 또는 connector re
 서버 annotations는 승인 선언이 아니며, 표준 어댑터는 approval decision을 요구합니다.
 Project 정책의 자동 승인도 receipt를 저장하며 실행에는 명시적 resume이 필요합니다.
 신뢰한 호스트만 `contract(name, remote_definition)` callback으로 실제 계약을 선언합니다.
+
+정의·설정 필드는 MCPDefinition/MCPConfiguration이 선언하며, Agent와 SDK 어댑터는
+런타임 연결과 전송용 Projection을 사용합니다. SDK 인자·직렬화 옵션·오류 단계는 어댑터가
+소유합니다. 인증 사본만 전송에 반영하고 원본 정의·저장 설정의 생략 상태는 보존합니다.
+
+발견 기록은 MCPCatalog/MCPToolSnapshot의 완전한 현재 형식으로 읽습니다. version,
+connector, tools 및 각 Tool의 contract/classification 필드는 필수이며, classification의
+명시적 null과 필드 소실을 구분합니다. 저장된 classification 객체의 필수 필드가 빠져도
+새 선언용 기본값으로 복원하지 않습니다. 손상된 기록의 조회·선택은 연결 전에 실패하고
+파일을 자동 복구하지 않습니다. 정상 저장 JSON, 경로, binding hash와 공개 반환 모양은
+유지합니다. 메모리 타입을 별도 정의나 실행 기록으로 중복 저장하지 않습니다.
 
 MCP 2 전환의 구현 revision은 `MCPComponent.REVISION`이 소유합니다. 이전 revision의 발견
 catalog·승인 binding은 stale로 거부하며 자동 변환하지 않습니다. Agent의 `resources.mcp`

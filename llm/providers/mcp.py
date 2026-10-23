@@ -5,31 +5,66 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from copy import deepcopy
 import inspect
 import math
+from dataclasses import dataclass
+from enum import StrEnum
+
+from llm.components.mcp.records import MCPDefinition, MCPTransport
 
 from llm.core.tool_contracts import ToolContract
 from llm.components.tools.registry import Tool, ToolRegistry
 from llm.errors import CodedError
-from llm.core.contracts import Diagnostic
+from llm.core.contracts import Diagnostic, JsonValue
 from llm.services.runtime.tools import ToolExecutionError
 from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
+class MCPStage(StrEnum):
+    INITIALIZE = "initialize"
+    DISCOVER = "discover"
+    CLOSE = "close"
+
+
+@dataclass(frozen=True, slots=True)
+class MCPConnectionDetails(JsonValue):
+    stage: str
+    exception_type: str
+
+
+@dataclass(frozen=True, slots=True)
+class MCPToolDetails(JsonValue):
+    effect: str
+    retryable: bool = False
+
+
 class MCPConnectionError(CodedError, RuntimeError):
     code = "mcp_connection_failed"
+    MESSAGE = "MCP {stage} failed"
 
     def __init__(self, stage, error):
-        super().__init__(f"MCP {stage} failed")
-        self.diagnostic = Diagnostic(self.code, str(self), details={"stage": stage,
-            "exception_type": type(error).__name__})
+        super().__init__(self.MESSAGE.format(stage=stage))
+        self.diagnostic = Diagnostic(self.code, str(self), details=MCPConnectionDetails(stage, type(error).__name__).to_dict())
         self.__cause__ = error
 
 
 class MCPToolError(ToolExecutionError):
     code = "mcp_tool_failed"
+    TRANSPORT_FAILED = "MCP Tool transport failed; remote effects are uncertain"
+    REMOTE_FAILED = "MCP server reported a Tool error; remote effects are uncertain"
 
     @property
     def diagnostic(self):
-        return Diagnostic(self.code, str(self), details={"effect": self.effect, "retryable": False})
+        return Diagnostic(self.code, str(self), details=MCPToolDetails(self.effect).to_dict())
+
+
+class MCPSDK:
+    MODULE = "mcp"
+    ERRLOG = "errlog"
+    READ_TIMEOUT = "read_timeout_seconds"
+    PAGINATION = "params"
+    STREAM_COUNT = 2
+    END_CURSOR = None
+    EMPTY_DESCRIPTION = ""
+    DUMP = dict(mode="json", by_alias=True, exclude_none=True)
 
 
 class MCPConnector:
@@ -45,88 +80,94 @@ class MCPConnector:
         revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE,
         approval_required=True, operation_key_required=False, retry_fields=())
 
-    def __init__(self, *, credentials=None, contract=None, timeout_seconds=None, errlog=None):
-        if credentials is not None and not callable(credentials) or contract is not None and not callable(contract):
-            raise TypeError("MCP credentials/contract must be callable")
-        if timeout_seconds is not None and (type(timeout_seconds) not in (int, float)
-                or not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
-            raise ValueError("MCP timeout_seconds must be positive and finite")
+    INVALID_CALLBACK = "MCP credentials/contract must be callable"
+    INVALID_TIMEOUT = "MCP timeout_seconds must be positive and finite"
+    UNSUPPORTED_TRANSPORT = "MCPConnector supports stdio and streamable_http; inject another connector for other transports"
+    INVALID_CONTRACT = "MCP contract callback must return ToolContract"
+    REPEATED_CURSOR = "MCP server repeated a discovery cursor"
+    MINIMUM_TIMEOUT = 0
+    NO_CREDENTIALS = None
+    NO_CONTRACT = None
+    NO_TIMEOUT = None
+    NO_ERRLOG = None
+
+    def __init__(self, *, credentials=NO_CREDENTIALS, contract=NO_CONTRACT, timeout_seconds=NO_TIMEOUT, errlog=NO_ERRLOG):
+        if credentials is not self.NO_CREDENTIALS and not callable(credentials) or contract is not self.NO_CONTRACT and not callable(contract):
+            raise TypeError(self.INVALID_CALLBACK)
+        if timeout_seconds is not self.NO_TIMEOUT and (type(timeout_seconds) not in (int, float)
+                or not math.isfinite(timeout_seconds) or timeout_seconds <= self.MINIMUM_TIMEOUT):
+            raise ValueError(self.INVALID_TIMEOUT)
         self.credentials, self.contract = credentials, contract
         self.timeout_seconds, self.errlog = timeout_seconds, errlog
 
     async def _connect(self, stack, definition):
         # 무거운 SDK 초기화와 선택 의존성 오류를 실행 경계에 한정한다.
         import importlib
-        sdk = await asyncio.to_thread(importlib.import_module, "mcp")
-        transport = definition["transport"]
-        if self.credentials is not None:
-            supplied = self.credentials(deepcopy(definition))
+        sdk = await asyncio.to_thread(importlib.import_module, MCPSDK.MODULE)
+        definition = MCPDefinition(definition)
+        transport = definition.transport
+        if self.credentials is not self.NO_CREDENTIALS:
+            supplied = self.credentials(definition.to_dict())
             supplied = await supplied if inspect.isawaitable(supplied) else supplied
-            allowed = {"env"} if transport == "stdio" else {"headers"}
-            if not isinstance(supplied, dict) or set(supplied) - allowed:
-                raise ValueError("MCP credentials may supply only transport authentication fields")
-            for key, values in supplied.items():
-                if not isinstance(values, dict) or any(not isinstance(k, str) or not isinstance(v, str) for k, v in values.items()):
-                    raise ValueError("MCP credentials must be string mappings")
-                definition[key] = {**definition.get(key, {}), **values}
-        if transport == "stdio":
+            definition = definition.with_credentials(supplied)
+        if transport == MCPTransport.STDIO:
             from mcp.client.stdio import stdio_client
-            params = sdk.StdioServerParameters(**{key: definition[key] for key in ("command", "args", "env") if key in definition})
-            streams = await stack.enter_async_context(stdio_client(params, **({"errlog": self.errlog} if self.errlog is not None else {})))
-        elif transport == "streamable_http":
+            params = sdk.StdioServerParameters(**definition.stdio_parameters())
+            streams = await stack.enter_async_context(stdio_client(params, **({MCPSDK.ERRLOG: self.errlog} if self.errlog is not self.NO_ERRLOG else {})))
+        elif transport == MCPTransport.STREAMABLE_HTTP:
             import httpx2
             from mcp.client.streamable_http import streamable_http_client
             # The connector owns its explicit timeout. None means no additional
             # deadline; do not inherit the SDK factory's 30/300 second defaults.
             client = await stack.enter_async_context(httpx2.AsyncClient(
-                headers=definition.get("headers"), timeout=self.timeout_seconds))
+                headers=definition.headers, timeout=self.timeout_seconds))
             streams = await stack.enter_async_context(
-                streamable_http_client(definition["url"], http_client=client))
+                streamable_http_client(definition.url, http_client=client))
         else:
-            raise ValueError("MCPConnector supports stdio and streamable_http; inject another connector for other transports")
-        session = await stack.enter_async_context(sdk.ClientSession(*streams[:2],
-            **({"read_timeout_seconds": self.timeout_seconds} if self.timeout_seconds is not None else {})))
+            raise ValueError(self.UNSUPPORTED_TRANSPORT)
+        session = await stack.enter_async_context(sdk.ClientSession(*streams[:MCPSDK.STREAM_COUNT],
+            **({MCPSDK.READ_TIMEOUT: self.timeout_seconds} if self.timeout_seconds is not self.NO_TIMEOUT else {})))
         await session.initialize()
         return session
 
     async def _discover(self, session):
         from mcp.types import PaginatedRequestParams
-        registry, cursor, seen = ToolRegistry(), None, set()
+        registry, cursor, seen = ToolRegistry(), MCPSDK.END_CURSOR, set()
         while True:
             page = await session.list_tools(
-                **({"params": PaginatedRequestParams(cursor=cursor)} if cursor is not None else {}))
+                **({MCPSDK.PAGINATION: PaginatedRequestParams(cursor=cursor)} if cursor is not MCPSDK.END_CURSOR else {}))
             for item in page.tools:
-                contract = (self.contract(item.name, item.model_dump(mode="json", by_alias=True, exclude_none=True))
-                            if self.contract is not None else self.REMOTE_CONTRACT)
+                contract = (self.contract(item.name, item.model_dump(**MCPSDK.DUMP))
+                            if self.contract is not self.NO_CONTRACT else self.REMOTE_CONTRACT)
                 if not isinstance(contract, ToolContract):
-                    raise TypeError("MCP contract callback must return ToolContract")
+                    raise TypeError(self.INVALID_CONTRACT)
                 async def invoke(arguments, name=item.name):
                     try:
                         result = await session.call_tool(name, arguments=deepcopy(arguments))
                     except asyncio.CancelledError:
                         raise
                     except Exception as error:
-                        raise MCPToolError("MCP Tool transport failed; remote effects are uncertain") from error
+                        raise MCPToolError(MCPToolError.TRANSPORT_FAILED) from error
                     if result.is_error:
-                        raise MCPToolError("MCP server reported a Tool error; remote effects are uncertain")
-                    return result.model_dump(mode="json", by_alias=True, exclude_none=True)
-                registry.register(Tool(item.name, item.description or "", item.input_schema, invoke, contract=contract))
+                        raise MCPToolError(MCPToolError.REMOTE_FAILED)
+                    return result.model_dump(**MCPSDK.DUMP)
+                registry.register(Tool(item.name, item.description or MCPSDK.EMPTY_DESCRIPTION, item.input_schema, invoke, contract=contract))
             cursor = page.next_cursor
-            if cursor is None:
+            if cursor is MCPSDK.END_CURSOR:
                 return registry
             if cursor in seen:
-                raise ValueError("MCP server repeated a discovery cursor")
+                raise ValueError(self.REPEATED_CURSOR)
             seen.add(cursor)
 
     @asynccontextmanager
     async def __call__(self, definition):
-        failure, stage = None, "initialize"
+        failure, stage = None, MCPStage.INITIALIZE
         try:
             async with AsyncExitStack() as stack:
                 try:
                     async with asyncio.timeout(self.timeout_seconds):
                         session = await self._connect(stack, deepcopy(definition))
-                        stage = "discover"
+                        stage = MCPStage.DISCOVER
                         registry = await self._discover(session)
                 except Exception as error:
                     failure = MCPConnectionError(stage, error)
@@ -139,6 +180,6 @@ class MCPConnector:
                         failure = error
         except BaseException as error:
             if failure is None:
-                failure = MCPConnectionError("close", error) if isinstance(error, Exception) else error
+                failure = MCPConnectionError(MCPStage.CLOSE, error) if isinstance(error, Exception) else error
         if failure is not None:
             raise failure

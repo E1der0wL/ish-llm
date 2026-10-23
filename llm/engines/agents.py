@@ -16,6 +16,7 @@ from contextlib import AsyncExitStack, aclosing, nullcontext
 from copy import deepcopy
 from llm.components.skills.records import SkillRecord
 from llm.components.prompts.records import PromptDefinition
+from llm.components.mcp.records import MCPRuntime
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -125,10 +126,9 @@ class AgentExecution:
         mcp = {}
         for server, aliases in resources.get("mcp", {}).items():
             source, definition = self._record(context.capabilities, "mcp", server)
-            if not callable(source.get("connector")):
-                raise ValueError(f"MCP connector is unavailable: {server}")
+            runtime = MCPRuntime.selected(source, server)
             mcp[server] = {"definition": deepcopy(definition), "aliases": deepcopy(aliases),
-                           "revision": source["revision"]}
+                           "revision": runtime.revision}
         names = list(profile.get("tools", []))
         if resources.get("rag"):
             if not context.capabilities.get("rag"):
@@ -150,7 +150,7 @@ class AgentExecution:
     async def connect_resources(self, resources, context, tools, stack):
         for server, resource in resources["mcp"].items():
             source, _ = self._record(context.capabilities, "mcp", server)
-            remote = await stack.enter_async_context(source["connector"](deepcopy(resource["definition"])))
+            remote = await stack.enter_async_context(MCPRuntime.selected(source, server).connector(deepcopy(resource["definition"])))
             if not isinstance(remote, ToolRegistry):
                 raise TypeError("MCP connector must provide a ToolRegistry")
             for alias, name in resource["aliases"].items():

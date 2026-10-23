@@ -132,6 +132,10 @@ streamable_http/sse는 HTTP(S) url이 필수다. args는 문자열 배열이고 
 `aprepare(server_id)`로 발견 목록을 저장하고 `config.tools`에서 `{alias: {server, tool}}`을
 명시하면 일반 Engine의 tools capability에도 연결된다. 미설정 서버/Tool은 자동 선택하지 않는다.
 Tool 실행은 공통 승인 경계를 거치며 발견 스냅샷은 연결 정의·connector revision에 묶인다.
+정의·선택 Schema와 발견 기록의 정규 선언은 MCP의 records 모듈에 있다. 필수 발견 증거와
+저장된 classification 필드를 잃은 기록은 정상 기본값으로 복원하지 않는다. Data는 타입으로
+소비하고 경로·파일 I/O는 MCPCatalogRepository에 위임한다. Agent는 MCPRuntime, SDK
+어댑터는 MCPDefinition의 전송 Projection을 사용하며 저장 형식·권한·재시도 정책은 유지한다.
 [상세 API](../../llm/components/mcp/README.md)를 참고한다.
 
 RAG records API는 **metadata만** 저장하며 색인하지 않는다. 실제 문서는
