@@ -1167,3 +1167,42 @@ incomplete 계약 2개로 전수 완료는 계속 차단된다.
 
 이 소단계는 Level 2이며 전체 회귀는 다음 Tool 선택/관련 소비자와 묶은 현재 통합 Level 3에서
 수행한다. 현재 IPC·패키지 변경은 이미 통과한 290c576 전체/원격 결과에 승계하지 않는다.
+
+
+## Tool 활성화 선택과 실제 소비 경로 (2026-10-23)
+
+[선택 계약](tool-selection.md)의 필드 metadata에서 Schema와 layout, Reader를 파생했다.
+ToolData의 잠긴 add/remove/replace, Python/builtin Component, Hub 관리/생성 기본값이 같은
+Owner를 사용한다. 기존 목록의 순서와 유일성·생략/빈 배열/null·원본 사본·정책 envelope를
+보존한다. Component의 중복 검증은 동일 Schema에 위임했고 package 존재/잠금/수명/CAS/
+트랜잭션/승인 binding은 그대로다. Hub 기본 선택은 계속 명시적인 Application 선택이다.
+
+Schema 어휘에 enum/uniqueItems만 추가했으며 공통 Schema의 나머지 AST는 동일하다.
+이전 eb00e14의 두 Component Schema 직렬화가 일치하고 126개 검증 결과 및 오류 순서도
+동일했다. 초기 실제 선택 CRUD/builtin smoke는 38개, 새 Owner 포함 smoke는 41개 pass,
+exit 0이었다. 공식 집중 실행과 중복 합산하지 않는다.
+
+- `whole-tool-selection-01`: 발견/시작/pass 161/161/161, exit 0, 101.514572초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-selection-01/llm.json --modules tests.llm.test_tool_selection tests.llm.test_tool_data tests.llm.test_builtin_tools tests.llm.test_tool_constraints tests.llm.test_settings_contract tests.llm.test_tool_packages tests.llm.test_tool_workers tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `0c5b3a7f6378552e6d70cb7754d0a25a7f0baaa8332eba5bc85cd8dd8c1edd89`, input `29b77531021068751011e33b936cd0fdccf4cb7774d1ef5451aaa55ca0d8684f`.
+
+- `whole-tool-selection-hub-01`: 발견/시작/pass 36/36/36, exit 0, 183.153139초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-tool-selection-hub-01/hub.json --modules tests.hub.test_defaults tests.hub.test_bootstrap tests.hub.test_interaction_updates tests.hub.test_question_tools tests.hub.test_resource_tools tests.hub.test_tool_history`.
+  source `0c5b3a7f6378552e6d70cb7754d0a25a7f0baaa8332eba5bc85cd8dd8c1edd89`, input `29b77531021068751011e33b936cd0fdccf4cb7774d1ef5451aaa55ca0d8684f`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. LLM은 실제 선택 CRUD,
+builtin·인자 제약·설정 계약·패키지/worker와 승인 저장·예산 삭제·효과·Checkpoint·RAG·수명
+안전성이다. Hub는 기본값/초기화·관리 UI·승인·실제 Resource Tool·재개 영수증 경로다.
+로컬 Python 3.12.14/Clang과 고정 host/의존성·namespace/X11은 동일했다.
+
+기존 정적 근거 32건을 재검토했다. 두 Component layout의 enabled 리터럴 후보는 정규 필드
+참조로 전환돼 사라졌으며 기존 검토를 `removed-findings.json`에 보존했다. 새 후보는 없다.
+`tool-selection-auxiliary/results.json`의 정적 S1–S7 145건·문서·R3·SDK·양 suite 환경은 모두
+exit 0이다. Schema 전수 검토의 기존 분류를 동일 AST 발생에 연결하고 새 선언 2개만 추가했으며,
+그 공통 계약의 기존 incomplete 상태는 유지했다.
+현재 456개 파일, 미검토 406개, 미분류 30325개,
+incomplete 계약 2개로 전체 완료를 선언하지 않는다.
+
+이 소단계는 Level 2다. IPC·패키지·활성화 선택을 묶은 현재 통합 소스로 다음 Level 3를
+실행한다. 이후에도 나머지 제품 파일의 선언/Reader/Writer/소비 연결과 정확한 SHA 원격 CI
+확인을 계속하며, 앞선 소단계 통과를 전체 완료로 대체하지 않는다.

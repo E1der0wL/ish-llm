@@ -5,6 +5,7 @@ import asyncio
 
 from llm.core.models import ConversationStorage, ProjectConfig
 from llm.services.schema import ProjectConfiguration
+from llm.components.tools.selection import ToolSelection
 from llm.components.rag.prompts import ExtractionFailurePolicy
 from llm.components.rag.search import SearchMethod, SearchExpansion, RelationRanking
 
@@ -70,9 +71,11 @@ async def create_project(backend, title, *, config, components, conversation_sto
         builtin = backend.project_manager.components.get("builtin_tools")
         if isinstance(builtin, HubBuiltinTools):
             parameters = project_config.parameter_targets.component("builtin_tools")
-            values = parameters.config
-            values.setdefault("enabled", builtin.select_tools())
-            project_config.set_component_parameters("builtin_tools", parameters.with_config(values).to_dict())
+            defaults = builtin.select_tools()
+            selection = ToolSelection.read(parameters.config, scope=builtin.name)
+            if not selection.configured:
+                selection = ToolSelection.selected(defaults, scope=builtin.name)
+            project_config.set_component_parameters("builtin_tools", parameters.with_config(selection.to_dict()).to_dict())
     engines = ProjectConfiguration.engine_parameter_schemas(backend.describe_project_config())
     if "system_prompt" in engines.get("loop", {}).get("properties", {}).get("config", {}).get("properties", {}):
         parameters = project_config.parameter_targets.engine("loop")

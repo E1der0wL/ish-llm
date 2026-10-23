@@ -1,13 +1,11 @@
 """Project-owned Python Tool 패키지와 활성화 선택. 실행 수명은 기존 ToolExecutor가 소유한다."""
 
-from llm.core.implementation_parameters import ImplementationParameters
-
 from copy import deepcopy
-from typing import Sequence
 from llm.components.base import Component, validate_name
 from llm.core.parameters import ParameterLayout
 from .registry import ToolRegistry
 from .data import ToolData
+from .selection import ToolSelection
 from .packages import ToolPaths, read_package, write_package, delete_package, load_tool
 
 
@@ -16,26 +14,11 @@ class ToolComponent(Component):
     directory = ToolPaths.COMPONENT
     capabilities = ("tools",)
     data_class = ToolData
-    parameter_layout = ParameterLayout(config=("enabled",))
-
-    @staticmethod
-    def _selection_names(names: Sequence[str]) -> list[str]:
-        if isinstance(names, (str, bytes)) or not isinstance(names, Sequence):
-            raise ValueError("Tool names must be a sequence")
-        return [validate_name(name) for name in names]
+    parameter_layout = ParameterLayout(config=(ToolSelection.enabled.__name__,))
+    SELECTION_DESCRIPTION = "Run에 노출할 Project Python Tool 이름"
 
     def describe_config(self):
-        from llm.core.schema import object_schema
-        return self.parameter_layout.schema(object_schema({"enabled": {"type": "array", "items": {"type": "string"},
-            "uniqueItems": True, "description": "Run에 노출할 Project Python Tool 이름"}}))
-
-    def validate_config(self, configuration):
-        super().validate_config(configuration)
-        names = ImplementationParameters.read(configuration).config.get("enabled", [])
-        if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
-            raise ValueError("Enabled tools must be a list of names")
-        if len(set(names)) != len(names):
-            raise ValueError("Duplicate enabled tool")
+        return self.parameter_layout.schema(ToolSelection.schema(description=self.SELECTION_DESCRIPTION))
 
     def get_config(self, project):
         data = deepcopy(project.config.parameter_targets.component(self.name).to_dict())
@@ -54,7 +37,7 @@ class ToolComponent(Component):
             paths.inventory()
 
     def enabled(self, project):
-        return self._options(project).get("enabled", [])
+        return ToolSelection.read(self._options(project), scope=self.name).names
 
     def create(self, project, data, *, identifier=None):
         paths = ToolPaths.for_project(project)

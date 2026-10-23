@@ -9,6 +9,8 @@ from .json_data import JsonObject, JsonPointer
 
 class SchemaKeyword:
     TYPE = "type"
+    ENUM = "enum"
+    UNIQUE_ITEMS = "uniqueItems"
     DESCRIPTION = "description"
     TITLE = "title"
     PROPERTIES = "properties"

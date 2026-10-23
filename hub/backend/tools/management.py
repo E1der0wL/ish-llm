@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.components.tools.package_values import ToolPackageSource
+from llm.components.tools.selection import ToolSelection
 
 import ast
 import asyncio
@@ -57,7 +58,8 @@ class ToolManagement:
         if self.builtin is not None and self.builtin.name in self.record.components:
             settings = await self.project.components.aget(self.builtin.name)
             snapshot = await settings.asnapshot()
-            selected = ImplementationParameters.read(snapshot["data"]).config.get("enabled", [])
+            selected = ToolSelection.read(ImplementationParameters.read(snapshot["data"]).config,
+                                          scope=self.builtin.name).names
             for name in self.builtin.toolkit.registry.names():
                 tool = self.builtin.toolkit.registry.get(name)
                 entries.append({"name": "builtin:" + name, "label": name, "builtin": True,
@@ -103,10 +105,12 @@ class ToolManagement:
         current = await settings.asnapshot()
         if current["version"] != expected_version:
             raise ValueError("Tool settings changed; reload the list")
-        values = current["data"]
-        enabled = values.setdefault("config", {}).setdefault("enabled", [])
-        enabled.remove(name) if name in enabled else enabled.append(name)
-        await settings.aconfigure(values, expected_version=expected_version)
+        parameters = ImplementationParameters.read(current["data"])
+        selection = ToolSelection.read(parameters.config, scope=self.builtin.name)
+        selection = (selection.remove((name,), scope=self.builtin.name) if name in selection.names else
+                     selection.add((name,), scope=self.builtin.name))
+        await settings.aconfigure(parameters.with_config(selection.to_dict()).to_dict(),
+                                  expected_version=expected_version)
         return await self.list()
 
     async def open_path(self, argument: str) -> str:

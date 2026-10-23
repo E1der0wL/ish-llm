@@ -5,12 +5,23 @@ Locked Project access to tool selection and the common component CRUD API."""
 from typing import Sequence
 
 from llm.services.lifecycle.components import ComponentData
+from llm.core.implementation_parameters import ImplementationParameters
+from .selection import ToolSelection
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import async_method
 
 
 class ToolData(ComponentData):
     """Python Tool package CRUD와 명시적인 dependency 준비/활성화."""
+
+    PREPARE_DURING_EXECUTION = "Tool dependencies cannot be prepared from a running execution"
+
+    def _selection(self):
+        parameters = ImplementationParameters.read(self.get_config())
+        return parameters, ToolSelection.read(parameters.config, scope=self.name)
+
+    def _save_selection(self, parameters, selection):
+        self.configure(parameters.with_config(selection.to_dict()).to_dict())
 
     @workspace_locked
     def enabled(self) -> list[str]:
@@ -22,35 +33,29 @@ class ToolData(ComponentData):
     def enable(self, *names: str) -> None:
         """Add names once, preserving existing selection and other configuration."""
         project, component = self._current()
-        names = component._selection_names(names)
+        names = ToolSelection.identifiers(names)
         for name in names:
             component.load(project, name)
-        configuration = self.get_config()
-        configuration.setdefault("config", {})
-        configuration["config"]["enabled"] = list(dict.fromkeys(configuration["config"].get("enabled", []) + names))
-        self.configure(configuration)
+        parameters, selection = self._selection()
+        self._save_selection(parameters, selection.add(names, scope=self.name))
 
     @workspace_locked
     def disable(self, *names: str) -> None:
         """Remove selected names; already disabled names are harmless."""
-        _, component = self._current()
-        names = component._selection_names(names)
-        configuration = self.get_config()
-        configuration.setdefault("config", {})
-        configuration["config"]["enabled"] = [name for name in configuration["config"].get("enabled", []) if name not in names]
-        self.configure(configuration)
+        self._current()
+        names = ToolSelection.identifiers(names)
+        parameters, selection = self._selection()
+        self._save_selection(parameters, selection.remove(names, scope=self.name))
 
     @workspace_locked
     def set_enabled(self, names: Sequence[str]) -> None:
         """Replace selection, preserving all other component configuration."""
-        _, component = self._current()
-        configuration = self.get_config()
-        configuration.setdefault("config", {})
-        configuration["config"]["enabled"] = component._selection_names(names)
-        project, _ = self._current()
-        for name in configuration["config"]["enabled"]:
+        project, component = self._current()
+        parameters, _ = self._selection()
+        names = ToolSelection.identifiers(names)
+        for name in names:
             component.load(project, name)
-        self.configure(configuration)
+        self._save_selection(parameters, ToolSelection.selected(names, scope=self.name))
 
     @workspace_locked
     def prepare(self, identifier: str) -> dict:
@@ -58,7 +63,7 @@ class ToolData(ComponentData):
         from llm.services.runtime.tools import current_tool_call
         from llm.services.runtime.usage import current_usage
         if current_tool_call() is not None or current_usage() is not None:
-            raise RuntimeError("Tool dependencies cannot be prepared from a running execution")
+            raise RuntimeError(self.PREPARE_DURING_EXECUTION)
         project, component = self._current()
         return component.prepare(project, identifier)
 
