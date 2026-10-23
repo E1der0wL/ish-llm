@@ -1,6 +1,6 @@
 """Agent 업무 정의를 등록 엔진에 연결한다. 모든 실행은 부모 Run 안에서 관찰된다."""
 
-from llm.core.checkpoints import CheckpointOperation
+from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
 from llm.core.continuations import ResumeRecord
 
@@ -353,7 +353,7 @@ class AgentExecution:
                     allowed_tools=tools.names(), max_calls=policy.get("max_tool_calls"))
                 if node.context.checkpoint:
                     # 완료된 자식 노드를 재사용해도 Agent의 호출 예산/필수 Tool 이력은 보존한다.
-                    scope.restore(self._checkpoint_usage(node.context.checkpoint["records"],
+                    scope.restore(self._checkpoint_usage(CheckpointRecords.from_checkpoint(node.context.checkpoint).records,
                                                          node.checkpoint_key, getattr(engine, "checkpoint_name", None)))
                 await node.record_usage(scope.checkpoint())
                 message = next(item for item in node.context.messages if item.id == node.context.run.input_message_id)
@@ -381,7 +381,7 @@ class AgentExecution:
                         node_id=node.node_id, node_path=node.node_path))
                 bridge = None
                 if self.checkpoint_engine(node.definition, node.context) is not None:
-                    records = deepcopy(node.context.checkpoint["records"]) if node.context.checkpoint else {}
+                    records = deepcopy(CheckpointRecords.from_checkpoint(node.context.checkpoint).records) if node.context.checkpoint else {}
                     bridge = EngineCheckpointScope(node.checkpoint_key, engine.checkpoint_name, records,
                                                    parent_name=getattr(node, "checkpoint_name", "graph"))
                     context = bridge.context(context)
@@ -398,9 +398,10 @@ class AgentExecution:
                         else:
                             raise ValueError("Agent engines cannot own Workflow checkpoint lifecycle")
                         receipt = event.checkpoint or event
-                        metadata = deepcopy(receipt.metadata)
-                        metadata["value"].setdefault(self.USAGE_FIELD, {})[node.checkpoint_key] = scope.checkpoint()
-                        receipt = replace(receipt, metadata=metadata)
+                        write = CheckpointWrite(receipt.metadata)
+                        value = write.record.value
+                        value.setdefault(self.USAGE_FIELD, {})[node.checkpoint_key] = scope.checkpoint()
+                        receipt = replace(receipt, metadata=write.with_record(value).to_dict())
                         event = replace(event, checkpoint=receipt) if event.checkpoint is not None else receipt
                     if event.type == EngineEventType.PAUSED:
                         if bridge is None:
@@ -500,7 +501,7 @@ class AgentInvocation:
             scope = context.tool_scope.child(allowed_tools=(*tools.names(), *aliases),
                                              max_calls=policy.get("max_tool_calls"))
             if context.checkpoint is not None:
-                scope.restore_checkpoint(context.checkpoint["records"])
+                scope.restore_checkpoint(CheckpointRecords.from_checkpoint(context.checkpoint).records)
             self.engine = self.selection.compose_instructions(self.engine, self.resources, context)
             capabilities = dict(context.capabilities)
             if "tools" in capabilities:
@@ -587,7 +588,7 @@ class AgentDelegation:
     def validate_selection(self, arguments, context, *, request_key, checkpoint_name):
         owner = json.dumps([request_key, "agent", arguments["agent_id"]], separators=(",", ":"))
         self.runtime.validate_selection({"agent": arguments["agent_id"]}, context, owner=owner,
-            records=(context.checkpoint or {}).get("records", {}), checkpoint_name=checkpoint_name, wrapped_graph=True)
+            records=CheckpointRecords.records_or_empty(context.checkpoint), checkpoint_name=checkpoint_name, wrapped_graph=True)
 
     def additional_capabilities(self, capabilities):
         return ("agents",)
@@ -603,7 +604,7 @@ class AgentDelegation:
         # 지시는 다음 부모 completion 경계에서 소비한다. 취소/예산/승인은 계속 공유한다.
         context = replace(context, steering=None)
         owner = json.dumps([request_key, "agent", arguments["agent_id"]], separators=(",", ":"))
-        records = deepcopy((context.checkpoint or {}).get("records", {}))
+        records = deepcopy(CheckpointRecords.records_or_empty(context.checkpoint))
         definition = {"agent": arguments["agent_id"]}
         context = self.runtime.prepare_context(definition, context)
         self.runtime.validate(definition, context)
@@ -625,8 +626,7 @@ class AgentDelegation:
         async def record_usage(usage):
             value = {"node_type": "agent_container", "status": CheckpointStatus.STARTED, "container": True,
                 "requires_retry": False, "agent_binding": binding, AgentExecution.USAGE_FIELD: {owner: usage}}
-            await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": checkpoint_name,
-                "operation": CheckpointOperation.RECORD, "key": owner, "value": value}))
+            await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(checkpoint_name, owner, value).to_dict()))
 
         async def invoke_graph(engine, child, inputs, forward):
             bridge = EngineCheckpointScope(owner, engine.checkpoint_name, records, parent_name=checkpoint_name)

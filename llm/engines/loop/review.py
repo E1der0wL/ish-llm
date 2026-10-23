@@ -1,4 +1,6 @@
 """Loop-owned final review receipts; checkpoint storage keeps its existing owner."""
+
+from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
 from copy import deepcopy
 import json
 import re
@@ -19,7 +21,7 @@ class LoopReview:
         self.validate_contract(self.contract)
         if checkpoint is not None:
             self.validate(checkpoint)
-            if checkpoint["header"].get("review") != self.contract:
+            if CheckpointContent.from_checkpoint(checkpoint).header.get("review") != self.contract:
                 raise ValueError("Original final review policy or reviewer revision changed")
 
     @property
@@ -45,7 +47,7 @@ class LoopReview:
 
     @classmethod
     def validate(cls, checkpoint):
-        header, records = checkpoint["header"], checkpoint["records"]
+        header, records = CheckpointContent.from_checkpoint(checkpoint).header, CheckpointRecords.from_checkpoint(checkpoint).records
         review_keys = {key for key in records if key.startswith(("review:", "review_attempt:"))}
         if "review" not in header:
             if review_keys or any("review_observation" in record for record in records.values()):
@@ -105,10 +107,10 @@ class LoopReview:
     @classmethod
     def require_resume(cls, checkpoint):
         cls.validate(checkpoint)
-        contract = checkpoint["header"].get("review")
+        contract = CheckpointContent.from_checkpoint(checkpoint).header.get("review")
         if contract is None:
             return
-        records = checkpoint["records"]
+        records = CheckpointRecords.from_checkpoint(checkpoint).records
         decisions = [value for key, value in records.items() if key.startswith("review:")]
         if any(value["action"] == ReviewAction.BLOCK for value in decisions):
             raise ValueError("Blocked final review cannot be resumed")

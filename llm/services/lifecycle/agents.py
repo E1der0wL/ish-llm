@@ -5,6 +5,8 @@ the Agent manager. Repository methods never execute an Engine or activate a
 Component. Every mutation validates the complete existing inventory first.
 """
 
+from llm.core.checkpoint_records import CheckpointRecords
+
 import hashlib
 import json
 import asyncio
@@ -282,7 +284,7 @@ class AgentManager:
                 for name in checkpoints.names(run):
                     checkpoint = checkpoints.load(run, name)
                     if any(identifier in AgentExecution.referenced_agents(record)
-                           for record in checkpoint["records"].values()):
+                           for record in CheckpointRecords.from_checkpoint(checkpoint).records.values()):
                         raise ValueError("Agent is referenced by a Checkpoint")
             if identifier in session.agent_ids:
                 raise ValueError("Agent is referenced by Session participation")

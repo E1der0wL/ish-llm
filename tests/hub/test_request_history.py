@@ -1,5 +1,7 @@
 """Durable attempts stay at their logical position; UI actions honor selection."""
 
+from llm.core.models import Message
+
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
@@ -198,7 +200,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
     async def test_backend_denial_cannot_be_overridden_by_empty_steps(self):
         from hub.backend.history import TurnHistory
         from hub.locales import Language
-        request = SimpleNamespace(id="u", role="user", run_id=None, metadata={},
+        request = Message(id="u", role="user", run_id=None, metadata={},
                                   status="committed", content="request", created_at="")
         run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="failed", metadata={})
         handle = SimpleNamespace(aget_data=AsyncMock(return_value=run))
@@ -221,7 +223,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         from hub.locales import Language
         for action in ("resume", "restart"):
             with self.subTest(action=action):
-                request = SimpleNamespace(id="u", role="user", run_id=None, metadata={},
+                request = Message(id="u", role="user", run_id=None, metadata={},
                                           status="committed", content="request", created_at="")
                 run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="failed", metadata={})
                 plan = SimpleNamespace(can_resume=action == "resume", can_restart=action == "restart",
@@ -246,7 +248,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
     async def test_revision_conflict_replans_once_before_safe_admission(self):
         from hub.backend.history import TurnHistory
         from hub.locales import Language
-        request = SimpleNamespace(id="u", role="user", run_id=None, metadata={}, status="committed", content="work")
+        request = Message(id="u", role="user", run_id=None, metadata={}, status="committed", content="work")
         run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="interrupted", metadata={})
         plans = [SimpleNamespace(can_resume=True, can_restart=False, blockers=[], revision=version) for version in ("old", "new")]
         api = SimpleNamespace(astatus=AsyncMock(return_value=SimpleNamespace(active_runs=[], queued_count=0)),

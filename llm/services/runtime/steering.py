@@ -1,5 +1,7 @@
 """추가 지시의 메시지/체크포인트 연결. 호출자는 저장 잠금과 트랜잭션을 소유한다."""
 
+from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
+
 from llm.core.checkpoints import CheckpointOperation, CheckpointConversation
 
 from llm.core.continuations import ResumeRecord
@@ -125,7 +127,7 @@ def finish_instructions(store: Conversation, run_id: str, reason: str, *, target
 def instruction_records(checkpoint):
     """직접/중첩 체크포인트의 공통 input 기록. 메시지 본문은 복제하지 않는다."""
     from llm.core.checkpoints import unwrap_record
-    for key, record in checkpoint["records"].items():
+    for key, record in CheckpointRecords.from_checkpoint(checkpoint).records.items():
         payload, scope = unwrap_record(record)
         if InstructionCheckpoint.is_record(payload):
             payload = InstructionCheckpoint.read(payload)
@@ -290,7 +292,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
             and envelope["engine_scope"] != target["scope"]):
         raise ValueError("Instruction checkpoint target mismatch")
     if operation == "select":
-        if key in checkpoint["records"]:
+        if key in CheckpointRecords.from_checkpoint(checkpoint).records:
             raise ValueError("Instruction boundary already selected")
         pending = [m for m in instructions(store, run.id, pending=True)
                    if any(t.get("execution_id", t["id"]) == identifier and t["status"] == InstructionStatus.PENDING
@@ -307,8 +309,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
             record = {**deepcopy(envelope), "payload": record}
         ToolExecutionScope.validate_usage([tool_usage])
         record[ToolExecutionScope.CHECKPOINT_FIELD] = deepcopy(tool_usage)
-        repository.record_checkpoint(run, EngineEvent(EngineEventType.CHECKPOINT, metadata={
-            "name": name, "operation": CheckpointOperation.RECORD, "key": key, "value": record}))
+        repository.record_checkpoint(run, EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(name, key, record).to_dict()))
         return tuple(messages), []
     if operation == "apply":
         record = dict(instruction_records(checkpoint))[key]

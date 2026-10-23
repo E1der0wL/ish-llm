@@ -1,8 +1,8 @@
 """Engine 간에 공유하는 Tool 호출기. 실행 인자·결과·실패를 Step 이벤트로 보고한다."""
 
-from llm.core.models import StepKind
+from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
-from llm.core.checkpoints import CheckpointOperation
+from llm.core.models import StepKind
 
 from llm.core.continuations import ResumeRecord
 
@@ -382,7 +382,7 @@ class ToolExecutor:
                 or request_key.startswith("@tool-retry:")):
             raise ToolInvocationError("Tool request_key must be nonempty and outside the reserved retry namespace")
         key = "@tool-retry:" + request_key if request_key is not None else None
-        saved = ((getattr(context, "checkpoint", None) or {}).get("records", {}).get(key, {}))
+        saved = CheckpointRecords.records_or_empty(getattr(context, "checkpoint", None)).get(key, {})
         if not saved:
             return {"original": deepcopy(arguments), "arguments": deepcopy(arguments),
                     "attempt": 0, "repairs": 0, "failures": [], "uncertain": False,
@@ -413,9 +413,8 @@ class ToolExecutor:
         name = (metadata or {}).get("checkpoint_name")
         if name is None or request_key is None:
             return None
-        return EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": CheckpointOperation.RECORD,
-            "key": "@tool-retry:" + request_key, "value": {"status": CheckpointStatus.COMPLETED.value, "node_type": "tool_retry",
-            "container": True, "retry": deepcopy(state)}})
+        return EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(name, "@tool-retry:" + request_key, {"status": CheckpointStatus.COMPLETED.value, "node_type": "tool_retry",
+            "container": True, "retry": deepcopy(state)}).to_dict())
 
     def _operation_call(self, call, scope, tool):
         """수정 인자의 business key도 원래 공개 계약으로 재계산한다. 충돌은 원장이 거부한다."""
@@ -433,7 +432,7 @@ class ToolExecutor:
 
     def _request_state(self, tool, arguments, context, decision, request_key, classification):
         """권한을 부여하지 않고 기존 체크포인트 연결만 검증한다. 계측 여부와 무관하다."""
-        records = (getattr(context, "checkpoint", None) or {}).get("records", {})
+        records = CheckpointRecords.records_or_empty(getattr(context, "checkpoint", None))
         run = getattr(context, "run", None)
         decisions = getattr(run, "metadata", {}).get(ResumeRecord.KEY, {}).get(ResumeRecord.DECISIONS, {})
         previous = records.get(request_key, {})
@@ -735,13 +734,12 @@ class ToolExecutor:
             if context is None or not request_key or not name:
                 raise ToolInvocationError("Selected Tool execution binding requires a durable checkpoint")
             key = "@tool-binding:" + request_key
-            saved = (context.checkpoint or {}).get("records", {}).get(key)
+            saved = CheckpointRecords.records_or_empty(context.checkpoint).get(key)
             if saved is not None and saved.get("selection") != selected:
                 raise ToolInvocationError("Selected Tool execution configuration changed")
             # Selection is durable before ASK, authorization, or any Tool effect.
-            yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": CheckpointOperation.RECORD, "key": key,
-                "value": {"node_type": "tool_binding", "status": CheckpointStatus.COMPLETED.value, "container": True, "selection": selected,
-                          "request_key": request_key, "checkpoint_name": name}})
+            yield EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(name, key, {"node_type": "tool_binding", "status": CheckpointStatus.COMPLETED.value, "container": True, "selection": selected,
+                          "request_key": request_key, "checkpoint_name": name}).to_dict())
         decision, resumed = self._request_state(tool, arguments, context, decision, request_key, classification)
         if scope is not None and request_key is not None:
             invocation = json.dumps([getattr(context, "checkpoint_scope", None), request_key])

@@ -1,6 +1,10 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
+from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
+
 from llm.core.checkpoints import CheckpointConversation
+from llm.core.checkpoint_records import (CheckpointDeclarations, CheckpointDeletion, CheckpointInteractions,
+    CheckpointWrite)
 
 from llm.core.models import StepErrorCode
 
@@ -9,8 +13,6 @@ from llm.core.contracts import ActivityEventType, ProjectActivityEvent
 from llm.core.plans import PlanBlockerCode
 
 from llm.core.models import ResourceKind
-
-from llm.core.checkpoints import CheckpointOperation
 
 from llm.core.continuations import RestartRecord, ResumeRecord
 
@@ -147,13 +149,13 @@ class RunRepository:
     def _interaction_requests(self, run, interactions, resolve):
         deleted = CheckpointRepository().deletion(run)
         if deleted is not None:
-            return [InteractionRequest.from_dict(raw) for raw in deleted["interactions"]]
-        names = run.metadata.get("checkpoints", []) or ([run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]] if ResumeRecord.KEY in run.metadata else [])
+            return list(deleted.interactions)
+        names = CheckpointDeclarations.reference_names(run.metadata)
         requests = []
         for name in names:
-            values = interactions.requests({**resolve(run, name), "name": name}, run)
+            values = interactions.requests(CheckpointInteractions.from_snapshot(resolve(run, name), name), run)
             values = interactions.effective(run, values)
-            if any(v.binding.get("checkpoint") != name for v in values):
+            if any(v.checkpoint_binding.checkpoint != name for v in values):
                 raise ValueError("Interaction checkpoint binding mismatch")
             requests.extend(values)
         if len({v.id for v in requests}) != len(requests):
@@ -182,8 +184,7 @@ class RunRepository:
                 continue
             if self.resume_abandoned(run):
                 continue
-            names = run.metadata.get("checkpoints", ()) or (
-                [run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]] if ResumeRecord.KEY in run.metadata else ())
+            names = CheckpointDeclarations.reference_names(run.metadata)
             protected, checkpoints = set(), []
             for name in names:
                 checkpoint = resolve(run, name)
@@ -207,7 +208,7 @@ class RunRepository:
                 break
             except FileNotFoundError:
                 descriptor = selected.metadata.get(ResumeRecord.KEY)
-                if not descriptor or name in selected.metadata.get("checkpoints", ()):
+                if not descriptor or name in CheckpointDeclarations.read(selected.metadata).names:
                     raise
                 if descriptor[ResumeRecord.CHECKPOINT] != name:
                     raise ValueError("Resume checkpoint name mismatch")
@@ -416,14 +417,12 @@ class RunRepository:
 
     def record_checkpoint(self, run: Run, event: EngineEvent) -> None:
         interactions = InteractionRepository()
-        name = event.metadata["name"]
-        initialize = event.metadata["operation"] == CheckpointOperation.INITIALIZE
-        records = (event.metadata.get("records", {}) if initialize else
-                   {event.metadata["key"]: event.metadata["value"]})
-        requests = interactions.requests({"name": name, "records": records}, run)
+        write = CheckpointWrite(event.metadata)
+        name, initialize = write.name, write.initialize
+        requests = interactions.requests(write.interactions(), run)
         previous = []
         if requests and not initialize:
-            previous = interactions.requests({**self.checkpoint(run, name), "name": name}, run)
+            previous = interactions.requests(CheckpointInteractions.from_snapshot(self.checkpoint(run, name), name), run)
         known = {request.id for request in previous}
         for request in requests:
             interactions.publish(run, request,
@@ -437,13 +436,13 @@ class RunRepository:
         """Preserve control evidence even if the later checkpoint copy fails."""
         source = self.load(session, run.metadata[ResumeRecord.KEY][ResumeRecord.SOURCE_RUN])
         InteractionRepository().inherit(source, run,
-            {**checkpoint, "name": run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]})
+            CheckpointInteractions.from_snapshot(checkpoint, ResumeRecord.checkpoint_name(run.metadata)))
 
     def instructions(self, session, run, store):
         """본문은 선택한 ConversationStore에서 읽는다. 복제 저장소를 만들지 않는다."""
         inherited = set()
         if "steering" in run.metadata:
-            for name in run.metadata.get("checkpoints", ()):
+            for name in CheckpointDeclarations.read(run.metadata).names:
                 inherited.update(checkpoint_messages(store, self.checkpoint(run, name)))
         values = [(m.id, RunInstruction.from_message(m)) for m in store.list() if is_instruction(m)]
         return [value for identifier, value in values if identifier in inherited or value.run_id == run.id]
@@ -504,9 +503,9 @@ class RunRepository:
 
     def resume_abandoned(self, run: Run) -> bool:
         """서비스가 기록한 재개 포기만 해석한다. 손상된 기록은 보호 해제로 추측하지 않는다."""
-        if "resume_abandonment" not in run.metadata:
+        if ResumeAbandonment.read(run.metadata) is None:
             return False
-        ResumeAbandonment.from_dict(run.metadata["resume_abandonment"])
+        ResumeAbandonment.require(run.metadata)
         if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
             raise ValueError("Invalid resume abandonment record")
         return True
@@ -522,7 +521,7 @@ class RunRepository:
         self.require_resume(run)
         if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
             raise ValueError("Only an inactive resumable Run can be abandoned")
-        run.metadata["resume_abandonment"] = ResumeAbandonment.for_request(now(), request_id).to_dict()
+        ResumeAbandonment.for_request(now(), request_id).store(run.metadata)
         self.save(run)
 
     def checkpoint_plan(self, session, run, store, *, attached=False):
@@ -531,8 +530,7 @@ class RunRepository:
         source = ResourceRef(ResourceKind.RUN, run.id, project_id=session.project_id, session_id=session.id, run_id=run.id)
         abandoned = self.resume_abandoned(run)
         deleted = CheckpointRepository().deletion(run)
-        names = run.metadata.get("checkpoints", []) or (
-            [run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT]] if ResumeRecord.KEY in run.metadata and deleted is None else [])
+        names = CheckpointDeclarations.reference_names(run.metadata)
         # 손상된 계보/참조는 삭제 허가로 바뀌지 않는다.
         runs = self.list(session)
         resolve = self._checkpoint_reader(session, runs)
@@ -559,7 +557,7 @@ class RunRepository:
             if other.id == run.id or other.id not in descendants:
                 continue
             retired = CheckpointRepository().deletion(other) is not None
-            if (not retired and not other.metadata.get("checkpoints")
+            if (not retired and not CheckpointDeclarations.read(other.metadata).names
                     or other.status not in (RunStatus.COMPLETED, RunStatus.CANCELLED) and not self.resume_abandoned(other)):
                 block("resume_reference", f"Run {other.id} still requires its resume lineage")
         if any(ResumeRecord.source_id(m.metadata) == run.id
@@ -572,7 +570,7 @@ class RunRepository:
         with self._interaction_scope(session, run, resolve):
             self.interaction_requests(session, run)
             responses = self.interaction_responses(session, run)
-        files = tree_snapshot(run.paths.state / "checkpoints")
+        files = tree_snapshot(CheckpointRepository().root_path(run))
         interaction_files = tree_snapshot(run.paths.state / "interactions")
         abandon = list(common)
         if abandoned or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
@@ -631,11 +629,11 @@ class RunRepository:
         current = Run.from_record(read_domain_record(run.paths.record), run.paths)
         if (current.id, current.session_id, current.engine) != (run.id, run.session_id, run.engine):
             raise ValueError("Checkpoint Run ownership mismatch")
-        return CheckpointRepository().load(current, select_checkpoint(current.metadata.get("checkpoints", []), name))
+        return CheckpointRepository().load(current, select_checkpoint(CheckpointDeclarations.read(current.metadata).names, name))
 
     def resolve_checkpoint(self, session: Session, run: Run, name: str | None = None) -> dict:
         from llm.core.checkpoints import select_checkpoint
-        names = run.metadata.get("checkpoints", [])
+        names = CheckpointDeclarations.read(run.metadata).names
         if name is None and not names and ResumeRecord.KEY in run.metadata:
             # An explicit durable reference exists even if its initial copy failed.
             # _resolve_checkpoint still verifies lineage, digest and initialization.
@@ -1118,7 +1116,7 @@ class RunManager:
         if not name or not callable(getattr(strategy, "validate_resume", None)):
             raise ValueError("Engine does not support checkpoint resume")
         checkpoint = self.repository.resolve_checkpoint(runtime.session, source, name)
-        ToolExecutionScope.checkpoint_usage(checkpoint["records"])
+        ToolExecutionScope.checkpoint_usage(CheckpointRecords.from_checkpoint(checkpoint).records)
         decisions, receipts, retry_nodes = self.repository.interaction_decisions(
             runtime.session, source, checkpoint, decisions, retry_nodes=retry_nodes, confirm=True)
         strategy.validate_resume(checkpoint, retry_nodes=retry_nodes, **({"decisions": decisions} if decisions else {}))
@@ -1165,15 +1163,15 @@ class RunManager:
             state = ResumeState.CORRUPT
             with self.repository._interaction_scope(session, source):
                 checkpoint = self.repository.resolve_checkpoint(session, source, strategy.checkpoint_name)
-                ToolExecutionScope.checkpoint_usage(checkpoint["records"])
-                reused = [k for k, v in checkpoint["records"].items() if v.get("status") == CheckpointStatus.COMPLETED.value]
+                ToolExecutionScope.checkpoint_usage(CheckpointRecords.from_checkpoint(checkpoint).records)
+                reused = [k for k, v in CheckpointRecords.from_checkpoint(checkpoint).records.items() if v.get("status") == CheckpointStatus.COMPLETED.value]
                 state = ResumeState.VALID
                 self.repository.require_resume(source)
                 state = ResumeState.MISSING
                 self._validate_checkpoint_input(store, checkpoint, source.input_message_id, messages=messages)
                 state = ResumeState.VALID
                 views = self.repository.interaction_views(session, source, store, link=link)
-                retries = [v.request.binding["key"] for v in views if v.request.binding.get("target") == InteractionRepository.RETRY_NODES_TARGET]
+                retries = [v.request.checkpoint_binding.required_key for v in views if v.request.checkpoint_binding.target == InteractionRepository.RETRY_NODES_TARGET]
                 if any(v.status in (InteractionView.PENDING, InteractionView.DENIED, InteractionView.EXPIRED,
                                     InteractionView.CANCELLED, InteractionView.SUBMITTED, InteractionView.UNAVAILABLE) for v in views):
                     blockers.append(Diagnostic(PlanBlockerCode.INTERACTION_REQUIRED, "Resolve pending interactions before execution", source=ref))
@@ -1185,7 +1183,7 @@ class RunManager:
             state = ResumeState.CORRUPT
             blockers.append(Diagnostic.from_exception(error, code=error.code, source=ref))
         except FileNotFoundError as error:
-            state = (ResumeState.MISSING if source.metadata.get("checkpoints") or ResumeRecord.KEY in source.metadata else
+            state = (ResumeState.MISSING if CheckpointDeclarations.read(source.metadata).names or ResumeRecord.KEY in source.metadata else
                      ResumeState.NOT_CREATED if source.metadata.get("execution_started") is False else ResumeState.UNKNOWN)
             blockers.append(Diagnostic.from_exception(error, code="checkpoint_" + state, source=ref))
         except (ValueError, KeyError, RuntimeError, AttributeError) as error:
@@ -1196,7 +1194,7 @@ class RunManager:
         # Only a service-persisted pre-dispatch state proves an invocation never
         # started. Missing Steps/checkpoints, including custom Engines, prove nothing.
         if (source.metadata.get("execution_started") is not False or source.metadata.get(ResumeRecord.KEY)
-                or source.metadata.get("checkpoints") or source.metadata.get("checkpoint_deletion")
+                or CheckpointDeclarations.read(source.metadata).names or CheckpointDeletion.read(source.metadata)
                 or self.repository.resume_abandoned(source) or source.agent_id != agent_id
                 or source.status not in (RunStatus.FAILED, RunStatus.INTERRUPTED)
                 or self.steps.list(source)):
@@ -1490,7 +1488,7 @@ class RunManager:
         tool_scope = ToolExecutionScope(self.tool_runtime, policy=run.metadata["policies"].get("tools", {}), retry=retries,
               operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         if checkpoint:
-            tool_scope.restore_checkpoint(checkpoint["records"])
+            tool_scope.restore_checkpoint(CheckpointRecords.from_checkpoint(checkpoint).records)
         for name in values.get("tools", ToolRegistry()).names():
             tool_scope.validate(values["tools"].get(name))
         inbox = (SteeringInbox(history=checkpoint_messages(store, checkpoint) if checkpoint else {})
@@ -1575,9 +1573,7 @@ class RunManager:
                 await self._io.run(self.repository.inherit_interactions, runtime.session, run, checkpoint)
                 # 실행 설정 검증이 실패해도 재개 시도의 원본 체크포인트는 남긴다.
                 await self._io.run(self.repository.record_checkpoint, run,
-                    EngineEvent(EngineEventType.CHECKPOINT, metadata={
-                        "name": run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT], "operation": CheckpointOperation.INITIALIZE,
-                        "header": checkpoint["header"], "records": checkpoint["records"]}))
+                    EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.initialize_event(run.metadata[ResumeRecord.KEY][ResumeRecord.CHECKPOINT], CheckpointContent.from_checkpoint(checkpoint).header, CheckpointRecords.from_checkpoint(checkpoint).records).to_dict()))
             context = await self._io.run(self._context, runtime, run, policies, engine=engine)
             await self._io.run(self._bind_execution, run, engine)
             if context.checkpoint is not None and context.steering is not None:
@@ -1597,15 +1593,17 @@ class RunManager:
                 if paused:
                     raise ValueError("Engine emitted events after pause")
                 event, change = outputs.accept(event, active_steps, has_result="output" in run.metadata)
-                if event.type == EngineEventType.CHECKPOINT and event.metadata.get("operation") == CheckpointOperation.RECORD:
+                if event.type == EngineEventType.CHECKPOINT and CheckpointWrite(event.metadata).is_record:
                     # Run 전체 예산은 서비스 스코프가 소유한다. Engine payload를 해석하지 않고
                     # 같은 durable 저장 경계에 스냅샷을 붙여 명시적 재개가 예산을 초기화하지 않게 한다.
-                    event = replace(event, metadata={**event.metadata,
-                        "value": context.tool_scope.checkpoint_record(event.metadata["value"])})
+                    write = CheckpointWrite(event.metadata)
+                    event = replace(event, metadata=write.with_record(
+                        context.tool_scope.checkpoint_record(write.record.value)).to_dict())
                 if event.checkpoint is not None:
                     receipt = event.checkpoint
-                    event = replace(event, checkpoint=replace(receipt, metadata={**receipt.metadata,
-                        "value": context.tool_scope.checkpoint_record(receipt.metadata["value"])}))
+                    write = CheckpointWrite(receipt.metadata)
+                    event = replace(event, checkpoint=replace(receipt, metadata=write.with_record(
+                        context.tool_scope.checkpoint_record(write.record.value)).to_dict()))
                 value = event.delta if event.type == EngineEventType.TEXT_DELTA else event.output
                 if event.type == EngineEventType.STEERING:
                     if context.steering is None:

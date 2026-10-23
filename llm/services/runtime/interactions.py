@@ -9,9 +9,10 @@ from datetime import datetime
 
 from llm.core.interactions import (
     InteractionOption, InteractionRequest, InteractionResponse, InteractionStatus, InteractionView,
-    approval_request, same_interaction_value,
+    approval_request, same_interaction_value, InteractionBinding,
 )
 from llm.core.checkpoints import CheckpointStatus
+from llm.core.checkpoint_records import CheckpointInteractions, CheckpointStep
 from llm.core.models import RunStatus, ProjectConfig, Run
 from llm.services.infrastructure.storage import atomic_json, child, read_json
 
@@ -134,9 +135,9 @@ class InteractionRepository:
 
     def inherit(self, source, run, checkpoint):
         """Copy existing approval evidence when creating a distinct resume Run."""
-        originals = {r.binding["key"]: r for r in self.requests(checkpoint, source)}
+        originals = {r.checkpoint_binding.required_key: r for r in self.requests(checkpoint, source)}
         for request in self.requests(checkpoint, run):
-            original = originals[request.binding["key"]]
+            original = originals[request.checkpoint_binding.required_key]
             if request.id != original.id:
                 self.effective(source, [original])
                 # An uncertain operation in a new attempt needs its own retry
@@ -167,24 +168,25 @@ class InteractionRepository:
                 previous.clear()
             self._envelopes = previous
 
-    def requests(self, checkpoint: dict, run: Run) -> list[InteractionRequest]:
+    def requests(self, checkpoint: CheckpointInteractions, run: Run) -> list[InteractionRequest]:
         values = []
         ids = set()
-        for key, record in checkpoint["records"].items():
-            if record.get("status") == CheckpointStatus.STARTED and record.get("requires_retry"):
+        for key, record in checkpoint.records.items():
+            step = CheckpointStep(record)
+            if step.status == CheckpointStatus.STARTED and step.requires_retry:
                 request = approval_request("결과가 불확실한 작업 재실행", category=self.RETRY_CATEGORY,
                     source={"run_id": run.id, "session_id": run.session_id}, action={"checkpoint_record": deepcopy(record)})
                 # The same node can start a distinct attempt after resume. Its
                 # prior evidence must not be overwritten under the same ID.
-                identity = hashlib.sha256(json.dumps([run.id, checkpoint.get("name"), key, record],
+                identity = hashlib.sha256(json.dumps([run.id, checkpoint.name, key, record],
                     sort_keys=True, allow_nan=False).encode()).hexdigest()[:InteractionRequest.ID_LENGTH]
                 request = replace(request, id=identity, created_at=run.created_at,
-                    binding={"checkpoint": checkpoint.get("name", ""), "key": key, "target": InteractionRepository.RETRY_NODES_TARGET})
-            elif record.get("status") == CheckpointStatus.WAITING and "interaction" in record:
-                request = InteractionRequest.from_dict(record["interaction"])
+                    binding=InteractionBinding.for_retry(checkpoint.name, key, self.RETRY_NODES_TARGET).to_dict())
+            elif step.status == CheckpointStatus.WAITING and step.has_interaction:
+                request = step.interaction
             else:
                 continue
-            if request.binding.get("key") != key or request.id in ids:
+            if request.checkpoint_binding.key != key or request.id in ids:
                 raise ValueError("Interaction checkpoint identity mismatch")
             ids.add(request.id)
             values.append(request)
@@ -216,7 +218,7 @@ class InteractionRepository:
                 if data["replacement"] is None:
                     break
                 replacement = InteractionRequest.from_dict(data["replacement"])
-                if replacement.binding != request.binding or replacement.action != request.action:
+                if replacement.checkpoint_binding != request.checkpoint_binding or replacement.action != request.action:
                     raise ValueError("Renewal cannot change the execution target")
                 request = replacement
             result.append(request)
@@ -290,9 +292,9 @@ class InteractionRepository:
         receipts = []
         retries = list(retry_nodes)
         for request in requests:
-            key = request.binding["key"]
+            key = request.checkpoint_binding.required_key
             response = stored.get(request.id)
-            if request.binding.get("target") == InteractionRepository.RETRY_NODES_TARGET:
+            if request.checkpoint_binding.target == InteractionRepository.RETRY_NODES_TARGET:
                 if response is None and key in retries:
                     response = request.respond("approve")
                     receipts.append(response)

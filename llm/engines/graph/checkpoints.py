@@ -1,5 +1,7 @@
 """자식 Engine의 로컬 체크포인트를 부모 Workflow 실행 위치에 연결한다. 파일은 쓰지 않는다."""
 
+from llm.core.checkpoint_records import CheckpointWrite
+
 from llm.core.checkpoints import CheckpointOperation
 
 from llm.core.continuations import ResumeRecord
@@ -62,8 +64,8 @@ class EngineCheckpointScope:
             parent = InteractionRequest.from_dict(record["interaction"])
             child = InteractionRequest.from_dict(payload["interaction"])
             expected = self._bind(child, local)
-            if (key != self.key(local) or child.binding.get("checkpoint") != self.name
-                    or child.binding.get("key") != local or parent.fingerprint != expected.fingerprint):
+            if (key != self.key(local) or child.checkpoint_binding.checkpoint != self.name
+                    or child.checkpoint_binding.key != local or parent.fingerprint != expected.fingerprint):
                 raise ValueError("Child interaction does not match its checkpoint scope")
             # 부모의 승인 값 모양을 가정하지 않고 같은 선택지 ID를 자식의 원래 값으로 복원한다.
             # 수명/갱신/응답 영수증은 서비스가 검증한다. 여기서 원본 요청을 다시 승인하지 않는다.
@@ -79,20 +81,21 @@ class EngineCheckpointScope:
     def wrap(self, event):
         if event.checkpoint is not None:
             return replace(event, checkpoint=self.wrap(event.checkpoint))
-        data = event.metadata
-        if data.get("name") != self.name:
+        write = CheckpointWrite(event.metadata)
+        if write.name_or_none != self.name:
             raise ValueError("Child Engine checkpoint name mismatch")
-        if data["operation"] == CheckpointOperation.INITIALIZE:
-            if self.snapshot() is not None or data.get("records"):
+        if write.operation == CheckpointOperation.INITIALIZE:
+            if self.snapshot() is not None or write.initial_records:
                 raise ValueError("Child checkpoint initialization must be empty and unique")
-            local, payload = self.HEADER_KEY, data["header"]
+            local, payload = self.HEADER_KEY, write.initial_header
             status, container = CheckpointStatus.COMPLETED, True
-        elif data["operation"] == CheckpointOperation.RECORD:
-            if self.snapshot() is None or data["key"] == self.HEADER_KEY:
+        elif write.operation == CheckpointOperation.RECORD:
+            entry = write.record
+            if self.snapshot() is None or entry.key == self.HEADER_KEY:
                 raise ValueError("Initialize child checkpoint before records")
-            local, payload = data["key"], data["value"]
+            local, payload = entry.key, entry.value
             from llm.core.checkpoints import checkpoint_lifecycle
-            status, container = checkpoint_lifecycle(payload, data.get("lifecycle"))
+            status, container = checkpoint_lifecycle(payload, write.lifecycle)
         else:
             raise ValueError("Unsupported child checkpoint operation")
         value = CheckpointEnvelope.attach(build_envelope(engine_scope=self.owner, checkpoint_name=self.name, local_key=local,
@@ -106,12 +109,12 @@ class EngineCheckpointScope:
         if "interaction" in payload:
             request = self._bind(InteractionRequest.from_dict(payload["interaction"]), local)
             value["interaction"] = request.to_dict()
-        return EngineEvent(EngineEventType.CHECKPOINT, interaction=request, metadata={"name": self.parent_name, "operation": CheckpointOperation.RECORD,
-                          "key": self.key(local), "value": value})
+        return EngineEvent(EngineEventType.CHECKPOINT, interaction=request, metadata=CheckpointWrite.record_event(self.parent_name, self.key(local), value).to_dict())
 
     def accepted(self, event):
         event = event.checkpoint or event
-        self.records[event.metadata["key"]] = deepcopy(event.metadata["value"])
+        entry = CheckpointWrite(event.metadata).record
+        self.records[entry.key] = entry.value
 
     def wrap_instruction(self, event):
         """입력 선택/반영도 같은 부모 저장 ACK를 사용한다. 본문은 여기에 저장하지 않는다."""

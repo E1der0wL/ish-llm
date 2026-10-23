@@ -1,5 +1,7 @@
 """Backend reads primitive observations once; UI chooses language and glyphs."""
 
+from llm.core.models import Message
+
 from dataclasses import asdict, replace
 import json
 from types import SimpleNamespace as NS
@@ -28,7 +30,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
             metadata={"completions": [
                 asdict(CompletionResult(id="c1", started_at=start + "01+00:00", reasoning_content="Inspect files")),
                 asdict(CompletionResult(id="c2", started_at=start + "09+00:00", reasoning_content="Now verify"))]})
-        record = NS(id="a", role="assistant", content="Partial", status="streaming", created_at="", run_id="r", metadata={})
+        record = Message(id="a", role="assistant", content="Partial", status="streaming", created_at="", run_id="r", metadata={})
         steps = tuple(NS(id=f"t{i}", name=f"tool_{i}", status="completed", kind="tool", started_at=start + f"0{i+2}+00:00") for i in range(7))
         for reader in (SnapshotReader(), SnapshotReader()):
             messages = await reader.messages(None, [record], latest=run, latest_steps=steps)
@@ -38,7 +40,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         run = NS(id="r", status="running", started_at=None, ended_at=None,
                  metadata={"completions": [asdict(CompletionResult(reasoning_content="First")),
                      asdict(CompletionResult(reasoning_content="Second"))]})
-        record = NS(id="a", role="assistant", content="Partial answer", status="streaming",
+        record = Message(id="a", role="assistant", content="Partial answer", status="streaming",
                     created_at="", run_id="r", metadata={})
         reader = SnapshotReader()
         steps = (NS(id="t1", name="file_read", status="completed", kind="tool"),
@@ -59,7 +61,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
                  ended_at=None, error=None, metadata={"completions": [asdict(CompletionResult(reasoning_content="Summary", model="test/model"))]})
         handle = NS(id="r", aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=[NS(name="LLM", status="running", kind="llm")])))
         status = NS(status="running", queued_count=2, active_runs=[NS(run_id="r", agent_id="assistant")])
-        message = NS(id="m", role="assistant", content="", status="streaming", created_at=run.started_at, run_id="r", metadata={})
+        message = Message(id="m", role="assistant", content="", status="streaming", created_at=run.started_at, run_id="r", metadata={})
         session = NS(aget_data=AsyncMock(return_value=record), aconversation=AsyncMock(return_value=[message]),
                      run=NS(astatus=AsyncMock(return_value=status), alist=AsyncMock(side_effect=lambda *, query: [] if query.status == "paused" else [handle]), aload=AsyncMock()))
         project = NS(aget_data=AsyncMock(return_value=NS(id="p", title="Project", config={}, components=["tools"], conversation_storage="file")),

@@ -4,13 +4,15 @@
 상태 채널에는 JSON만 전달하고 런타임 객체를 저장 형식에 노출하지 않는다.
 """
 
+from llm.core.checkpoint_records import CheckpointWrite
+
+from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
+
 from llm.core.checkpoints import CheckpointConversation
 
 from llm.components.workflows.graph import ControlNodeType, ConditionOperator, LoopLimit
 
 from .checkpoints import GRAPH_CHECKPOINT_FORMAT, GRAPH_CHECKPOINT_NAME
-
-from llm.core.checkpoints import CheckpointOperation
 
 from llm.core.continuations import ResumeRecord
 
@@ -211,15 +213,14 @@ class _WorkflowRuntime:
         # 제어용 gate도 super-step을 사용한다. 실제 예산은 모든 하위 그래프가 공유한다.
         self.invoke_options = {} if engine.max_steps is None else {"recursion_limit": engine.max_steps * 3 + 10}
         self.records = parent.records if parent is not None else (
-            deepcopy(context.checkpoint["records"]) if context.checkpoint else {})
+            deepcopy(CheckpointRecords.from_checkpoint(context.checkpoint).records) if context.checkpoint else {})
         self.resuming = context.checkpoint is not None
         self.routes = parent.routes if parent is not None else {r.key: r for r in routes}
         self.root_workflow = parent.root_workflow if parent is not None else engine.workflow
 
     async def _record(self, key, value, *, completed=None):
         interaction = InteractionRequest.from_dict(value["interaction"]) if "interaction" in value else None
-        event = EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata={
-            "name": GRAPH_CHECKPOINT_NAME, "operation": CheckpointOperation.RECORD, "key": key, "value": value})
+        event = EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata=CheckpointWrite.record_event(GRAPH_CHECKPOINT_NAME, key, value).to_dict())
         await self.emit(replace(completed, checkpoint=event) if completed is not None else event)
         self.records[key] = deepcopy(value)
 
@@ -443,8 +444,9 @@ class _WorkflowRuntime:
                         "node_checkpoint_key": key, "node_path": path, **event.metadata})
                 await self.emit(event)
                 receipt = event.checkpoint or event
-                if receipt.type == EngineEventType.CHECKPOINT and receipt.metadata.get("operation") == CheckpointOperation.RECORD:
-                    self.records[receipt.metadata["key"]] = deepcopy(receipt.metadata["value"])
+                if receipt.type == EngineEventType.CHECKPOINT and CheckpointWrite(receipt.metadata).is_record:
+                    entry = CheckpointWrite(receipt.metadata).record
+                    self.records[entry.key] = entry.value
 
             async def invoke_graph(engine, child_context, child_inputs, emit):
                 if nested is None or engine.workflow != nested.workflow:
@@ -758,7 +760,7 @@ class GraphEngine:
 
     def validate_selections(self, context):
         _, prepared = self._prepare(context)
-        self._validate_selections(context, prepared, (context.checkpoint or {}).get("records", {}))
+        self._validate_selections(context, prepared, CheckpointRecords.records_or_empty(context.checkpoint))
 
     @classmethod
     def _deadline(cls, value) -> None:
@@ -959,7 +961,7 @@ class GraphEngine:
 
     def validate_resume(self, checkpoint: dict, *, retry_nodes=(), context=None, decisions=None) -> None:
         """결과가 불확실한 처리 노드를 누락/중복 없이 명시적으로 승인해야 한다."""
-        header, records = checkpoint["header"], checkpoint["records"]
+        header, records = CheckpointContent.from_checkpoint(checkpoint).header, CheckpointRecords.from_checkpoint(checkpoint).records
         decisions = decisions or {}
         Component.serialize(decisions)
         if not isinstance(decisions, dict):
@@ -1023,10 +1025,10 @@ class GraphEngine:
         routes = self._instruction_routes(context, graph) if context.steering is not None else ()
         binding = self._binding(context, graph, prepared)
         if context.checkpoint is not None:
-            self._validate_selections(context, prepared, context.checkpoint["records"])
+            self._validate_selections(context, prepared, CheckpointRecords.from_checkpoint(context.checkpoint).records)
             self.validate_resume(context.checkpoint, retry_nodes=context.run.metadata[ResumeRecord.KEY][ResumeRecord.RETRY_NODES],
                                  decisions=context.run.metadata[ResumeRecord.KEY].get(ResumeRecord.DECISIONS))
-            header = deepcopy(context.checkpoint["header"])
+            header = deepcopy(CheckpointContent.from_checkpoint(context.checkpoint).header)
             if binding != header["binding"]:
                 raise GraphExecutionError("Workflow, Agent, Tool or execution configuration changed; start a new request")
         else:
@@ -1052,8 +1054,7 @@ class GraphEngine:
 
         async def produce():
             if context.checkpoint is None:
-                await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": GRAPH_CHECKPOINT_NAME,
-                    "operation": CheckpointOperation.INITIALIZE, "header": header, "records": {}}))
+                await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.initialize_event(GRAPH_CHECKPOINT_NAME, header, {}).to_dict()))
             async with aclosing(BaseEngine.declare_instruction_routes(context, routes)) as events:
                 async for event in events:
                     await emit(event)

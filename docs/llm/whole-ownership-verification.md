@@ -135,3 +135,90 @@ NameError 때문에 목표 장애 주입 지점에 도달하지 못했다. impor
 new/stale/outstanding/error 0), `check_budget_mutation`(`conversation-mutation-01.log`, 실제 효과
 Assertion 검출), `check_docs`(`conversation-docs-01.json`)가 모두 exit 0이다. 전체 회귀는
 Checkpoint 소비 경로를 포함하는 다음 통합 게이트에서 수행하며 아직 Push하지 않는다.
+
+## Checkpoint 저장·이벤트·승인 연결
+
+대화·Session 설정 소단계는 `d7f6d84`로 로컬 커밋했다. 후속 변경은 공통 저장 외피의
+`CheckpointManifest`·`CheckpointSnapshot`·`CheckpointRecord`, Run의 선언/삭제 증거,
+`CheckpointWrite` 이벤트와 `InteractionBinding`이다. 필드는 해당 타입 또는 Owner 선언에서
+정의하고 Repository·Run·Engine·Tool·승인·복구·보존·Agent 삭제 소비자가 속성/API로 읽는다.
+Engine 고유 header/record payload는 해당 Engine이 계속 소유하며 저장 형식을 새로 만들지 않는다.
+
+Manifest와 개별 record는 **읽은 원본 JSON**의 digest를 검사한다. 필수 header/records 누락을
+빈 데이터로 복원하지 않으며 초기 실행의 checkpoint 자체 부재만 허용한다. 초기화 이벤트의
+records 생략/명시 빈 객체 차이를 보존한다. 삭제 기록의 승인 사본은 조회 증거이며 재개 권한이
+아니다. 선언·revision 동반 증거, 저장 ACK 순서, 중첩 Agent/Run Tool 예산 영수증 부착,
+승인 fingerprint·갱신 binding·실제 효과 횟수와 장애 주입 Assertion을 유지했다.
+
+독립 시험은 저장 wire·버전의 정확한 정수 타입·필수 필드·identity·사본·원본 불변성·선택 값
+동일성·삭제된 승인 연결·이벤트 생략 상태·예산 증거를 확인한다. 직접 소비자 검증은 다음과 같다.
+각 실행은 별도 결과이며 합쳐서 전체 회귀로 표현하지 않는다.
+
+| 실행 | 발견/실행/pass | failure/error/skip/xfail/xpass/누락/중복 | Exit |
+|---|---|---|---|
+| whole-checkpoint-01 | 99/99/99 | 모두 0 | 0 |
+| whole-checkpoint-02 | 162/162/162 | 모두 0 | 0 |
+| whole-checkpoint-consumers-03 | 200/200/200 | 모두 0 | 0 |
+| whole-checkpoint-writers-04 | 201/201/201 | 모두 0 | 0 |
+
+재현 명령·소스와 환경 증거:
+
+- `whole-checkpoint-01`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-checkpoint-01 tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_interaction_storage tests.llm.test_graph_checkpoints tests.llm.test_agent_execution tests.llm.test_loop_steering`.
+  source `5048691894dcfbd9ffd5c955e0af38ff1efb289864d61e32bfa08f0b157152ad` 전후 동일.
+  input `3e5591aa6bcdfbd453826217c8295001077e087c7484d9d50e24a773458a9943` 전후 동일.
+- `whole-checkpoint-02`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-checkpoint-02 tests.llm.test_checkpoint_values tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_interaction_storage tests.llm.test_graph_checkpoints tests.llm.test_agent_execution tests.llm.test_loop_steering tests.llm.test_turn_deletion tests.llm.test_conversation_turns tests.llm.test_history_retention_integrity tests.llm.test_service_extensions`.
+  source `d702ed6e7692064f5e96521e86d237144eb43502ff951d75529a598dbb303bf9` 전후 동일.
+  input `edd0b073d1fa99de1033f05c05978831ac977900ca681b5b23f487e7d9943d6a` 전후 동일.
+- `whole-checkpoint-consumers-03`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-checkpoint-consumers-03 tests.llm.test_checkpoint_values tests.llm.test_common_boundaries tests.llm.test_engine_steering tests.llm.test_agent_execution tests.llm.test_nested_graph tests.llm.test_loop_steering tests.llm.test_graph_checkpoints tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_history_retention_integrity tests.llm.test_agent_storage tests.llm.test_execution_boundaries`.
+  source `2e184f102e1a83ced3512955563dd894f545de7b086a46a5f6302ad99bbdf774` 전후 동일.
+  input `086eb2f80c7a55bdd59520442857dfe8f7a59907a906a0dce88a619f514be5ec` 전후 동일.
+- `whole-checkpoint-writers-04`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-checkpoint-writers-04 tests.llm.test_checkpoint_values tests.llm.test_common_boundaries tests.llm.test_engine_steering tests.llm.test_agent_execution tests.llm.test_nested_graph tests.llm.test_loop_steering tests.llm.test_graph_checkpoints tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_history_retention_integrity tests.llm.test_agent_storage tests.llm.test_execution_boundaries`.
+  source `0f1020f3983d42db045ba4ca44ee3035bc315f9b5f988976f599ebe0a4879c8d` 전후 동일.
+  input `ba87f2c7761e78d7ae7c01e7b79cac30bcceaaf4dad3e713fcdd7f40eab301f6` 전후 동일.
+
+최종 201개 집중 시험 이후 사용하지 않는 import만 제거했다. 정적 S4는 새 저장 Owner의 버전
+검증 두 곳과 영향받는 기존 근거 40건을 개별 재검토했다. 전수 inventory는 444개 파일,
+31,994개 후보가 아직 미분류다. 이 수치는 위반 수나 완료 수가 아니다.
+사용량·대화·Checkpoint의 통합 상태에 대해 다음 Level 3에서 전체 LLM/Hub·정적·R3·문서·
+실환경을 검증한다. 이 소단계 및 앞선 로컬 결과만으로 원격 CI나 전체 전수 작업 완료를 선언하지 않는다.
+
+## 사용량·대화·Checkpoint 묶음: 전체 게이트와 Hub 시험 대역 보정
+
+`TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group1-l3`
+로 실제 namespace 실행 환경에서 두 전체 suite를 실행했다. 실행 전후 source
+`a0f55075fccf28a26a1efb1f27257a8338776a3ce8f750bf026fc6e5c449bf53`, input
+`b5967292ef441cf78a4dc10dd3d0547204af0b23d972d7234568228dd1bed99d`가 각각 동일하다.
+
+| Suite | 발견/실행/pass | 실패 ID / failure / error | Skip·xfail·xpass·누락·중복 | Exit |
+|---|---|---|---|---|
+| LLM 전체 | 2334/2334/2334 | 0 / 0 / 0 | 모두 0 | 0 |
+| Hub 전체 | 586/586/576 | 10 / 0 / 14 | 모두 0 | 1 |
+
+Hub 오류는 `test_message_timing`, `test_snapshot_projection`, `test_request_history`의
+Message 대역 10곳이 `SimpleNamespace`여서 `conversation_deleted` 속성을 제공하지 않은
+것이다. Conversation 공개 반환 계약의 실제 `Message` 생성자로 교체했다. 제품 소스는
+변경하지 않았고 전체 Assertion AST가 변경 전후 동일함을 확인했다. Backend 거부·CAS 충돌·
+새 요청으로 우회 금지와 타이밍/표시 Assertion을 보존했다. 이 실패는 전체 게이트 실패로 기록한다.
+
+보정 후 `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py hub whole-hub-message-fixtures-01 tests.hub.test_message_timing tests.hub.test_snapshot_projection tests.hub.test_request_history`
+는 22/22/22, exit 0이다. Hub 실행에는 위 전체 환경 변수를 동일하게 적용했다.
+변경된 시험 근거를 참조하는 `ChatMessage`·`TraceItem`·`SessionView`의 정적 근거 3건도
+재검토했다. `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-hub-fixture-guards-01 tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`
+는 15/15/15, exit 0이다. 두 집중 실행 모두 failure/error/skip/xfail/xpass/누락/중복 0,
+source `2747f1ba3367773a49066d6f412c58d6cab1be42fe3c3b62a924ca3de92c2750` 전후 동일하다.
+각 입력 hash는 Hub `49730680f603ddf512c7d0c53f96e8a0a3982bc263ee6f2c42a0f49ebf1295f0`,
+LLM `559eeaeb6087a874debdb69f9c19df2b0c03475fc07d5b1caad209bff3e7d7b9`로 각각 전후 동일하다.
+
+`group1-reuse-proof.json`은 원래 전체 실행과 보정 Hub 실행 사이의 차이가 위 Hub 시험 3개와
+정적 검토 fixture뿐임을 확인한다. 제품·LLM 시험 소스/발견 수·의존성·호스트·환경은 동일하다.
+영향받는 검토 fixture 시험은 위와 같이 다시 실행했고 LLM 전체 결과는 나머지 동일 범위의
+증거로 재사용한다. 이들을 하나의 새로운 전체 LLM 실행으로 합산하지 않는다.
+
+보조 검증: S1–S7 `checkpoint-static-02.json` 146개 검토/new·stale·outstanding·error 0,
+문서 `checkpoint-docs-01.json`, R3 `checkpoint-mutation-01.log`, 실제 환경 `group1-env.json`,
+실제 SDK 오프라인 진단 `group1-providers.json` 모두 exit 0. R3의 의도적 mutation은 실제 효과
+Assertion 두 개가 실패하여 검출됐다. 검사를 통과한 제품 결함과 혼동하지 않는다.
+
+Checkpoint 소단계와 Hub 대역 보정을 로컬 커밋으로 보존하고 그 SHA를 고정한 검증 디렉터리에서
+Hub 전체를 재실행한다. 통합 게이트는 아직 완료가 아니며 원격 Push/CI도 아직 하지 않았다.
+상위 전수 작업은 이어서 진행한다. 이전 전체·집중 로그와 실패 증거를 삭제하지 않는다.

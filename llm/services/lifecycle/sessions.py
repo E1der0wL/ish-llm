@@ -23,6 +23,7 @@ from llm.core.configuration import UNSET
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.plans import TurnDeletionPlan
+from llm.core.checkpoints import ResumeAbandonment
 from llm.services.history.conversation import Conversation, ProjectConversations, conversation_store
 from llm.services.history.context import ConversationContextBuilder
 from llm.services.lifecycle.access import ProjectAccess
@@ -541,7 +542,7 @@ class SessionManager:
         require_checkpoint_plan(plan, expected_revision, action="abandon")
         self.run_repository.abandon_resume(run)
         activity_event(self._owner(current), run, ActivityEventType.RUN_RESUME_ABANDONED,
-            time=run.metadata["resume_abandonment"]["abandoned_at"], status=run.status)
+            time=ResumeAbandonment.require(run.metadata).abandoned_at, status=run.status)
 
     @workspace_locked
     def delete_checkpoints(self, session: Session, run_id: str, *, expected_revision):
@@ -571,7 +572,7 @@ class SessionManager:
         for run in runs:
             self.run_repository.abandon_resume(run, request_id)
             activity_event(self._owner(current), run, ActivityEventType.RUN_RESUME_ABANDONED,
-                time=run.metadata["resume_abandonment"]["abandoned_at"], status=run.status)
+                time=ResumeAbandonment.require(run.metadata).abandoned_at, status=run.status)
         for message in group:
             store.update_metadata(message.id, Message.deletion_metadata())
         log_event(current.paths.logs, "conversation.deleted", entity_id=request_id, count=len(group))

@@ -30,6 +30,10 @@ class ResumeRecord(RunLink):
     PARTIAL_OUTPUT = "partial_output"
 
     @classmethod
+    def checkpoint_name(cls, metadata):
+        return metadata[cls.KEY][cls.CHECKPOINT] if cls.KEY in metadata else None
+
+    @classmethod
     def create(cls, source_id, checkpoint, digest, retry_nodes, decisions, *, partial_output=False):
         value = {cls.SOURCE_RUN: source_id, cls.CHECKPOINT: checkpoint, cls.DIGEST: digest,
                  cls.RETRY_NODES: list(retry_nodes), cls.DECISIONS: deepcopy(decisions)}

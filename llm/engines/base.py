@@ -5,6 +5,7 @@ Engine contract, Step event lifecycle, and adapter-owned model streaming."""
 from llm.core.models import ResourceKind, StepKind
 
 from llm.core.checkpoints import CheckpointOperation
+from llm.core.checkpoint_records import CheckpointWrite
 
 from llm.core.models import StepErrorCode
 
@@ -85,7 +86,7 @@ class EngineEvent:
         if self.checkpoint is not None and (self.type != EngineEventType.STEP_COMPLETED
                 or not isinstance(self.checkpoint, EngineEvent)
                 or self.checkpoint.type != EngineEventType.CHECKPOINT
-                or self.checkpoint.metadata.get("operation") != CheckpointOperation.RECORD
+                or not CheckpointWrite(self.checkpoint.metadata).is_record
                 or self.checkpoint.checkpoint is not None):
             raise ValueError("A Step completion can attach one checkpoint record")
         # Step 상태 표시를 공통 계약으로 제공한다. 실제 상태 전이는 서비스가 수행한다.

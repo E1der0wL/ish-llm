@@ -189,6 +189,7 @@ def unwrap_record(record):
 class ResumeAbandonment(JsonValue):
     """재개 권한의 영구 포기. 실행 취소나 파일 삭제, 외부 효과 취소가 아니다."""
 
+    KEY: ClassVar[str] = "resume_abandonment"
     INVALID: ClassVar[str] = "Invalid resume abandonment record"
     INVALID_TIME: ClassVar[str] = "Abandonment time requires a timezone"
     MISSING_REQUEST: ClassVar[str] = "Conversation abandonment requires request_id"
@@ -212,6 +213,17 @@ class ResumeAbandonment(JsonValue):
     def for_request(cls, abandoned_at, request_id):
         reason = ResumeAbandonmentReason.CONVERSATION_DELETED if request_id is not None else ResumeAbandonmentReason.EXPLICIT
         return cls(abandoned_at, reason, request_id)
+
+    @classmethod
+    def read(cls, metadata):
+        return cls.from_dict(metadata[cls.KEY]) if cls.KEY in metadata else None
+
+    @classmethod
+    def require(cls, metadata):
+        return cls.from_dict(metadata[cls.KEY])
+
+    def store(self, metadata):
+        metadata[self.KEY] = self.to_dict()
 
 
 def require_checkpoint_plan(plan: CheckpointPlan, expected_revision: str, *, action: str) -> None:

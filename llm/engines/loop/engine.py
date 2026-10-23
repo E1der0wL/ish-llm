@@ -2,11 +2,13 @@
 
 A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
+from llm.core.checkpoint_records import CheckpointWrite
+
+from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
+
 from llm.core.checkpoints import CheckpointConversation
 
 from llm.core.models import ResourceKind, StepKind
-
-from llm.core.checkpoints import CheckpointOperation
 
 from llm.core.continuations import ResumeRecord
 
@@ -94,11 +96,11 @@ class LoopEngine(BaseEngine):
 
     def validate_resume(self, checkpoint, *, retry_nodes=(), context=None, decisions=None):
         """완료 Tool은 재사용하고 효과가 불확실한 Tool만 명시적 재실행 승인을 받는다."""
-        if checkpoint["header"].get("format") != self.CHECKPOINT_FORMAT:
+        if CheckpointContent.from_checkpoint(checkpoint).header.get("format") != self.CHECKPOINT_FORMAT:
             raise ValueError("Checkpoint does not belong to LoopEngine")
         LoopReview.require_resume(checkpoint)
         uncertain = set()
-        for key, value in checkpoint["records"].items():
+        for key, value in CheckpointRecords.from_checkpoint(checkpoint).records.items():
             if key.startswith("iteration:"):
                 ModelResponse.from_dict(value["response"])
             if key.startswith("steering:"):
@@ -111,27 +113,26 @@ class LoopEngine(BaseEngine):
                     uncertain.add(key)
         if len(set(retry_nodes)) != len(retry_nodes) or set(retry_nodes) != uncertain:
             raise ValueError(f"Explicit retry_nodes must match uncertain Tool keys: {sorted(uncertain)}")
-        if context is not None and checkpoint["header"]["binding"] != self._binding(context):
+        if context is not None and CheckpointContent.from_checkpoint(checkpoint).header["binding"] != self._binding(context):
             raise ValueError("Loop configuration or Tool definitions changed; start a new request")
         if context is not None:
             context.tools.validate_selections(replace(context, checkpoint=checkpoint))
         decisions = {} if decisions is None else decisions
         if not isinstance(decisions, dict):
             raise TypeError("Loop decisions must be an object")
-        waiting = {key for key, value in checkpoint["records"].items() if value["status"] == CheckpointStatus.WAITING}
+        waiting = {key for key, value in CheckpointRecords.from_checkpoint(checkpoint).records.items() if value["status"] == CheckpointStatus.WAITING}
         if set(decisions) - waiting:
             raise ValueError("Loop decisions require waiting checkpoint keys")
         if waiting - decisions.keys():
             raise ValueError(f"Tool approval decisions required: {sorted(waiting)}")
         for key in waiting:
-            saved = checkpoint["records"][key]
+            saved = CheckpointRecords.from_checkpoint(checkpoint).records[key]
             if "interaction" in saved:
                 InteractionRequest.from_dict(saved["interaction"]).select_decision(decisions[key])
 
     def _record(self, key, value):
         interaction = InteractionRequest.from_dict(value["interaction"]) if "interaction" in value else None
-        return EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata={"name": LoopEngine.checkpoint_name, "operation": CheckpointOperation.RECORD,
-                                                               "key": key, "value": deepcopy(value)})
+        return EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata=CheckpointWrite.record_event(LoopEngine.checkpoint_name, key, deepcopy(value)).to_dict())
 
     parameter_layout = ParameterLayout(
         config=("completion", "system_prompt", "buffer_size"),
@@ -298,17 +299,16 @@ class LoopEngine(BaseEngine):
             self.validate_resume(context.checkpoint,
                 retry_nodes=context.run.metadata.get(ResumeRecord.KEY, {}).get(ResumeRecord.RETRY_NODES, ()),
                 decisions=context.run.metadata.get(ResumeRecord.KEY, {}).get(ResumeRecord.DECISIONS))
-            if context.checkpoint["header"]["binding"] != self._resume_binding:
+            if CheckpointContent.from_checkpoint(context.checkpoint).header["binding"] != self._resume_binding:
                 raise ValueError("Loop configuration or Tool definitions changed; start a new request")
         reviewers = review_identities(context.capabilities.get("completion_processors", ())) if self.final_review is not None else []
         review = LoopReview(reviewers, self.final_review, context.checkpoint) if reviewers else None
-        if review is None and context.checkpoint is not None and "review" in context.checkpoint["header"]:
+        if review is None and context.checkpoint is not None and "review" in CheckpointContent.from_checkpoint(context.checkpoint).header:
             raise ValueError("Final review cannot be disabled during Resume")
         if (context.output_step_id is None or context.checkpoint_scope is not None) and context.checkpoint is None:
-            yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": LoopEngine.checkpoint_name, "operation": CheckpointOperation.INITIALIZE,
-                "header": {"format": self.CHECKPOINT_FORMAT, "binding": self._resume_binding,
+            yield EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.initialize_event(LoopEngine.checkpoint_name, {"format": self.CHECKPOINT_FORMAT, "binding": self._resume_binding,
                            **CheckpointConversation(tuple(m.id for m in context.messages), context.run.input_message_id).to_dict(),
-                           **({"review": review.contract} if review is not None else {})}})
+                           **({"review": review.contract} if review is not None else {})}).to_dict())
         async with aclosing(self.open_instructions(context)) as events:
             async for event in events:
                 yield event
@@ -337,7 +337,7 @@ class LoopEngine(BaseEngine):
         seen_call_ids: set[str] = set()
         continuations = 0
         durable = context.output_step_id is None or context.checkpoint_scope is not None
-        records = deepcopy(context.checkpoint["records"]) if durable and context.checkpoint else {}
+        records = deepcopy(CheckpointRecords.from_checkpoint(context.checkpoint).records) if durable and context.checkpoint else {}
         inbox = context.steering
         for iteration in count(1):
             if self.max_iterations is not None and iteration > self.max_iterations:

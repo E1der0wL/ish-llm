@@ -12,6 +12,85 @@ from .models import ProjectConfig, new_id, now
 from .schema import checked_schema
 
 
+@dataclass(frozen=True, init=False)
+class InteractionBinding:
+    """Typed view of the common checkpoint binding, preserving opaque extensions."""
+
+    INVALID = "Interaction source/action/binding must be objects"
+    SELECTED = True
+
+    class Field(StrEnum):
+        CHECKPOINT = "checkpoint"
+        KEY = "key"
+        INPUT_KEY = "input_key"
+        SELECTION = "selection"
+        TARGET = "target"
+
+    _value: dict
+
+    def __init__(self, value):
+        if not isinstance(value, dict):
+            raise TypeError(self.INVALID)
+        ProjectConfig.validate_json(value)
+        object.__setattr__(self, "_value", deepcopy(value))
+
+    @classmethod
+    def for_checkpoint(cls, checkpoint, key, *, input_key, selection):
+        value = {cls.Field.CHECKPOINT: checkpoint, cls.Field.KEY: key, cls.Field.INPUT_KEY: input_key}
+        if selection:
+            value[cls.Field.SELECTION] = cls.SELECTED
+        return cls(value)
+
+    @classmethod
+    def for_retry(cls, checkpoint, key, target):
+        return cls({cls.Field.CHECKPOINT: checkpoint, cls.Field.KEY: key, cls.Field.TARGET: target})
+
+    @property
+    def checkpoint(self):
+        return self._value.get(self.Field.CHECKPOINT)
+
+    @property
+    def key(self):
+        return self._value.get(self.Field.KEY)
+
+    @property
+    def required_key(self):
+        return self._value[self.Field.KEY]
+
+    @property
+    def input_key(self):
+        return self._value.get(self.Field.INPUT_KEY)
+
+    @property
+    def selection(self):
+        return self._value.get(self.Field.SELECTION) is self.SELECTED
+
+    @property
+    def target(self):
+        return self._value.get(self.Field.TARGET)
+
+    def to_dict(self):
+        return deepcopy(self._value)
+
+
+@dataclass(frozen=True, slots=True)
+class InteractionSelection:
+    """Explicit selection wire value, distinct from the selected action's value."""
+
+    INVALID: ClassVar[str] = "Interaction selection requires option_id and value"
+    option_id: str
+    value: Any
+
+    @classmethod
+    def from_dict(cls, value):
+        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
+            raise ValueError(cls.INVALID)
+        return cls(**deepcopy(value))
+
+    def to_dict(self):
+        return asdict(self)
+
+
 class InteractionStatus(StrEnum):
     PENDING = "pending"
     ANSWERED = "answered"
@@ -167,6 +246,10 @@ class InteractionRequest:
     def fingerprint(self) -> str:
         return hashlib.sha256(json.dumps(self.to_dict(), ensure_ascii=False, sort_keys=True).encode()).hexdigest()
 
+    @property
+    def checkpoint_binding(self):
+        return InteractionBinding(self.binding)
+
     def to_dict(self) -> dict:
         value = asdict(self)
         value["options"] = [asdict(o) for o in self.options]
@@ -185,8 +268,8 @@ class InteractionRequest:
              input_key: Optional[str] = None, selection: bool = False) -> "InteractionRequest":
         """Engine의 재개 형식은 선택지 값으로 표현한다. UI는 이 값을 해석할 필요가 없다."""
         options = tuple(replace(o, value={decision_key: o.value}) if decision_key and type(o.value) is bool else o for o in self.options)
-        return replace(self, options=options, binding={"checkpoint": checkpoint, "key": key, "input_key": input_key,
-                       **({"selection": True} if selection else {})})
+        return replace(self, options=options, binding=InteractionBinding.for_checkpoint(
+            checkpoint, key, input_key=input_key, selection=selection).to_dict())
 
     def decision_for(self, option_id: str, *, value: Any = None) -> Any:
         """선택지와 입력의 순수 형식 변환. 요청 수명/응답 지문 검증이나 승인을 대신하지 않는다."""
@@ -206,16 +289,16 @@ class InteractionRequest:
         if value is not None:
             if self.input_schema is None:
                 raise ValueError("Interaction does not accept input")
-            if self.binding.get("selection") is True:
+            if self.checkpoint_binding.selection:
                 return {"option_id": option.id, "value": deepcopy(value)}
-            key = self.binding.get("input_key")
+            key = self.checkpoint_binding.input_key
             if key:
                 if not isinstance(decision, dict) or key in decision:
                     raise ValueError("Interaction input cannot replace the selected decision")
                 decision[key] = deepcopy(value)
             else:
                 decision = deepcopy(value)
-        return {"option_id": option.id, "value": None} if self.binding.get("selection") is True else decision
+        return InteractionSelection(option.id, None).to_dict() if self.checkpoint_binding.selection else decision
 
     def select_decision(self, decision: Any, *, confirm_empty: bool = False) -> tuple[InteractionOption, Any]:
         """재개 값을 유일한 선택지와 추가 입력으로 분리한다. 누락 응답은 호출자가 구분한다.
@@ -224,13 +307,12 @@ class InteractionRequest:
         choice에는 적용하지 않는다. 반환값은 사본이며 응답 영수증을 생성하지 않는다.
         """
         ProjectConfig.validate_json({"decision": decision})
-        if self.binding.get("selection") is True:
-            if not isinstance(decision, dict) or decision.keys() != {"option_id", "value"}:
-                raise ValueError("Interaction selection requires option_id and value")
-            self.decision_for(decision["option_id"], value=decision["value"])
-            return deepcopy(next(o for o in self.options if o.id == decision["option_id"])), deepcopy(decision["value"])
+        if self.checkpoint_binding.selection:
+            selected = InteractionSelection.from_dict(decision)
+            self.decision_for(selected.option_id, value=selected.value)
+            return deepcopy(next(o for o in self.options if o.id == selected.option_id)), deepcopy(selected.value)
         value = deepcopy(decision)
-        input_key = self.binding.get("input_key")
+        input_key = self.checkpoint_binding.input_key
         supplied = value.pop(input_key, None) if input_key and isinstance(value, dict) else None
         if confirm_empty and self.kind == InteractionRequest.KIND_CONFIRMATION and value == {}:
             options = [o for o in self.options if o.effect == InteractionOption.EFFECT_APPROVE]

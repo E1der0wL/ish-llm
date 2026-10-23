@@ -1,5 +1,8 @@
 """도메인 참조 검사와 명시적 복구. 실행을 재생하지 않고 저장 상태만 정리한다."""
 
+from llm.core.checkpoint_records import CheckpointDeclarations
+from llm.core.checkpoints import CheckpointConversation
+
 from llm.core.models import ResourceKind
 
 from llm.core.results import OutputVisibility
@@ -36,7 +39,7 @@ def recover_session(sessions, repository, steps, session, store):
         if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
             instruction_targets(run)
         if "steering" in run.metadata and run.status != RunStatus.COMPLETED:
-            for name in run.metadata.get("checkpoints", []):
+            for name in CheckpointDeclarations.read(run.metadata).names:
                 # 여기서는 형식을 검사한다. memory 대화의 정상적인 재시작 소실은
                 # Session 시작을 막지 않으며 메시지 존재 검사는 명시적 재개가 소유한다.
                 list(instruction_records(repository.checkpoint(run, name)))
@@ -140,10 +143,10 @@ class ProjectRecovery:
                     signatures.extend(record(s) for s in steps)
                     if any(s.status in (StepStatus.RUNNING, StepStatus.PENDING) for s in steps):
                         issue("stale_step", session=session.id, run=run.id, repairable=True)
-                    for name in run.metadata.get("checkpoints", []):
+                    for name in CheckpointDeclarations.read(run.metadata).names:
                         checkpoint = self.runs.checkpoint(run, name)
                         signatures.append(checkpoint)
-                        checkpoint_ids = list(checkpoint["header"].get("message_ids", []))
+                        checkpoint_ids = list(CheckpointConversation.from_checkpoint(checkpoint).message_ids)
                         if "steering" in run.metadata:
                             from llm.services.runtime.steering import instruction_records
                             checkpoint_ids.extend(mid for _, value in instruction_records(checkpoint) for mid in value.message_ids)

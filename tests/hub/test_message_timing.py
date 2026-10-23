@@ -1,5 +1,7 @@
 """Assistant timing follows its Run, including live and missing history."""
 
+from llm.core.models import Message
+
 from datetime import datetime, timezone
 from dataclasses import asdict
 from llm.core.results import CompletionResult
@@ -33,7 +35,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
         run = SimpleNamespace(id="1" * 32, status="failed", started_at="2026-10-18T00:00:02+00:00",
                               ended_at="2026-10-18T00:00:08+00:00", metadata={"completions": []})
         request = admitted_user("2026-10-18T00:00:00+00:00", run_id="1" * 32)
-        response = SimpleNamespace(id="a", role="assistant", content="", status="failed", run_id="1" * 32,
+        response = Message(id="a", role="assistant", content="", status="failed", run_id="1" * 32,
                                    created_at="2026-10-18T00:00:02+00:00", metadata={})
         for _ in range(2):
             messages = await runtime.snapshot_reader.messages(None, [request, response], latest=run)
@@ -45,7 +47,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
         run = SimpleNamespace(id="1" * 32, status="completed", started_at="2026-10-11T00:00:04+00:00",
             ended_at="2026-10-11T00:00:06+00:00", metadata={"completions": []})
         request = admitted_user("2026-10-11T00:00:00+00:00", run_id="1" * 32)
-        response = SimpleNamespace(id="a", role="assistant", content="A", status="completed", run_id="1" * 32, metadata={})
+        response = Message(id="a", role="assistant", content="A", status="completed", run_id="1" * 32, metadata={})
         messages = await runtime.snapshot_reader.messages(None, [request, response], latest=run)
         self.assertEqual(messages[-1].elapsed_seconds, 6)
         # Run execution timing stays independent of presentation timing.
@@ -60,7 +62,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
         session = SimpleNamespace(run=SimpleNamespace(aload=AsyncMock(
             return_value=SimpleNamespace(aget_data=read, steps=SimpleNamespace(alist=AsyncMock(return_value=[]))))))
         request = admitted_user("2026-10-04T00:00:00+00:00", content="Question")
-        response = SimpleNamespace(id="assistant", role="assistant", content="Answer", status="streaming",
+        response = Message(id="assistant", role="assistant", content="Answer", status="streaming",
                                    created_at=request.created_at, run_id=run.id, metadata={})
         with patch("hub.backend.observability.snapshot.datetime", wraps=datetime) as clock:
             clock.now.return_value = datetime(2026, 10, 4, 0, 1, 2, tzinfo=timezone.utc)
@@ -94,7 +96,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(await runtime.snapshot_reader.run_display(session, "no-end"), ("", None))
                 session.run.aload.side_effect = FileNotFoundError
                 self.assertEqual(await runtime.snapshot_reader.run_display(session, "removed"), ("", None))
-                message = SimpleNamespace(id="clone", role="assistant", content="Copied", status="completed",
+                message = Message(id="clone", role="assistant", content="Copied", status="completed",
                                           created_at="2026-10-04T00:00:00+00:00", run_id=None, metadata={})
                 result = (await runtime.snapshot_reader.messages(session, [message]))[0]
                 self.assertIsNone(result.elapsed_seconds)

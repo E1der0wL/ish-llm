@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 import json
 from llm.core.contracts import ResourceRef
 from llm.core.results import CompletionRecords
+from llm.core.checkpoint_records import CheckpointDeclarations
+from llm.core.checkpoints import CheckpointConversation
 from llm.core.plans import RetentionPlan, RetentionUnit
 from llm.core.models import ConversationStorage, MessageStatus, now, new_id, RunStatus, ProjectConfig
 from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links, tree_snapshot, child
@@ -94,10 +96,10 @@ class HistoryRetention:
                 if source:
                     keep.add(source)
                 if run.status != RunStatus.COMPLETED:
-                    for name in run.metadata.get("checkpoints", []):
+                    for name in CheckpointDeclarations.read(run.metadata).names:
                         checkpoint = self.manager.sessions.run_repository.checkpoint(run, name)
                         sources.append(checkpoint)
-                        protected_messages.update(checkpoint["header"].get("message_ids", []))
+                        protected_messages.update(CheckpointConversation.from_checkpoint(checkpoint).message_ids)
                         if "steering" in run.metadata:
                             from llm.services.runtime.steering import instruction_records
                             protected_messages.update(mid for _, value in instruction_records(checkpoint) for mid in value.message_ids)
