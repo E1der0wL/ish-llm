@@ -43104,8 +43104,8 @@
   },
   {
     "path": "llm/components/goals/records.py",
-    "sha256": "e1df4602f5a361135f08901a13d6a8e904d9ec994544d43030754117af6c0cb0",
-    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path.",
+    "sha256": "49830fa737c5fb02a3f2cd0b8f16562e7a35df6d7ee1f6a0cbe63146f12c5e93",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path. Followed the MemoryData consumer discovered during whole Memory audit: GoalContextReference.for_summary owns its exact four-field optional subset in canonical field order with deepcopies. Component selection references GoalDefinition.COMPONENT. Goal context/version data remain reference data, never Goal or Run authority.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -43241,61 +43241,61 @@
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "6c0bbfc4aab3adb386bf4ecfcc7988a5e4edf69d8c163f49b1bbb38dbfcfdf55",
+        "id": "48f59a79c7ff790ae44da2222c07f7214522373861fbdcfd409da851a7128a36",
         "classification": "declaration",
         "owner": "GoalCloneOrigin",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "c328cb484e7ab151a69ecd576dac670156dffa05aee2704828912a49689ff793",
+        "id": "8df64a4e1f92515648d0632109c13d13609de4446ec9bead239d9c746010ae32",
         "classification": "declaration",
         "owner": "GoalCloneOrigin",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "06e5b056f43d8fc71ff9265904071d9d6cc254b84396c1f1ca927e88b781a8ee",
+        "id": "9c2ab988443924e750fc00dc843ff9b36254f4fbc7fdb8e82ada735ee16dc2a3",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "377079bee940d7fbc7a74ada88d63a6c04d330284593e0cb8caffd00e4b5bf9a",
+        "id": "1aaf5866e17013f9e49953ee9ac39f5e2d5de39f9d082f9b538a071a1632384f",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "e22335596fa536d5bfbde7143dc681e649b12514c1cd6380c09fa36c25e8a079",
+        "id": "50fa2a2356ace5b938115ba37a2b6c6810bb15b40235d079978af5ed25480110",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "77d7200a1570f2a0e871afebaa0273abc9990e02b524b009b354dd47c3fc7700",
+        "id": "aac1c96dba642f818a49a0a3b963de31c527e16efcfc4a9daa6aaabbdcaedf3d",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "e28cd78777348250b06395465e4cb5a1cf7ee264b80d8521227e0a6baf8326ad",
+        "id": "36fcad04faf3be2e8574be8d76d1cc11a216e70858ea2e7d1c4fdd85f013da9d",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "cf7bb743478134d7d187bebaea9468972d9f1c3b6463176ee119a79332f331db",
+        "id": "40a07b0ef5acf959ded726c907ea6c9a2918edc862e0c6723848c3d6d334c044",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "cfd0abab6cce2950a8d3e240f49dd32a4e76091ca47f0fb8dc99791ef23ae2ac",
+        "id": "d5e5dca7155122799b349c5265639c43a3ab82a006ea3e5e8acafbc8b15acef4",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "9cf64bb11ff69e9857d7f0e4e2335b615c398e6872bbc7e205b28e4ed21e9551",
+        "id": "8619063a57686930abea2a009aeb245f9041a00846af0ab2afd57af88744e052",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
@@ -43318,6 +43318,19 @@
           "tests/llm/test_refinement.py",
           "tests/llm/test_lifecycle_deletion_integrity.py",
           "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "GoalContextReference summary projection / GoalDefinition Component identity",
+        "declaration": "llm/components/goals/records.py",
+        "consumers": [
+          "llm/components/memory/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_work_state.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_memory_processing.py"
         ],
         "complete": true
       }
@@ -43751,6 +43764,75 @@
           "tests/llm/test_memory_processing.py",
           "tests/llm/test_memory_compaction_integrity.py",
           "tests/llm/test_refinement.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/snapshot.py",
+    "sha256": "20050a98a66470caf8d6eb323a46f3a5d4b53c2a4c19e838272971c047d8ba7f",
+    "reason": "Read the complete transient Snapshot Owner and every MemoryData/MemorySession consumer. create preserves original five-field insertion order and value identity; required properties are lazy [] reads, optional Goal presence is tested before related fields, and select_goals/summary mutate only the original owned mapping in original order. No defaults, validation, copying, policy calculation, persistence or execution permission is introduced. Old/new producer/check/publish callback traces and five consumer-body structural comparisons preserve short-circuit behavior and missing-field failure; actual summary/extraction/Goal-change and safety tests cover the integration.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6a6d378216a45fda51f7b40bfb84c6903d6e97e02371d47e11376d650b3c0a44",
+        "classification": "declaration",
+        "owner": "MemoryProcessingSnapshot.Field",
+        "reason": "Canonical transient Memory processing observation field; all producers/readers/updaters use its Owner view or projection."
+      },
+      {
+        "id": "eaaa8ab9df6b73f0119a0efe50466ace1ab7d761be0909c739118d19db02d735",
+        "classification": "declaration",
+        "owner": "MemoryProcessingSnapshot.Field",
+        "reason": "Canonical transient Memory processing observation field; all producers/readers/updaters use its Owner view or projection."
+      },
+      {
+        "id": "f1db62e2ee92ca2113ff5b7cf6bb13fdad7737ea7bf385442f982af21bccfa7e",
+        "classification": "declaration",
+        "owner": "MemoryProcessingSnapshot.Field",
+        "reason": "Canonical transient Memory processing observation field; all producers/readers/updaters use its Owner view or projection."
+      },
+      {
+        "id": "9c800494407b7db45dc432a5b5c376065c5b6951961aab6365da18be5bbc3077",
+        "classification": "declaration",
+        "owner": "MemoryProcessingSnapshot.Field",
+        "reason": "Canonical transient Memory processing observation field; all producers/readers/updaters use its Owner view or projection."
+      },
+      {
+        "id": "1b06c02b696a2aca03b71f67aae902cbcb773198af39ffe6fd9a1f3c2041512b",
+        "classification": "declaration",
+        "owner": "MemoryProcessingSnapshot.Field",
+        "reason": "Canonical transient Memory processing observation field; all producers/readers/updaters use its Owner view or projection."
+      },
+      {
+        "id": "9b2f468d2e3949a94305f959208f7bfbb9a31077f76ccfe67920c62bc46be3b6",
+        "classification": "declaration",
+        "owner": "MemoryProcessingSnapshot.Field",
+        "reason": "Canonical transient Memory processing observation field; all producers/readers/updaters use its Owner view or projection."
+      },
+      {
+        "id": "ea4c8ccac37be7bc420490e587a241add1d66c14f7f110dd59d8a3c3ee7f1dfe",
+        "classification": "declaration",
+        "owner": "MemoryProcessingSnapshot.Field",
+        "reason": "Canonical transient Memory processing observation field; all producers/readers/updaters use its Owner view or projection."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryProcessingSnapshot",
+        "declaration": "llm/components/memory/snapshot.py",
+        "consumers": [
+          "llm/components/memory/data.py",
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_work_state.py",
+          "tests/llm/test_memory_summary_integrity.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_context.py"
         ],
         "complete": true
       }

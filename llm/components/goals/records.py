@@ -129,11 +129,16 @@ class GoalDefinition:
 class GoalContextReference:
     GOAL_ID = "goal_id"
     VERSION = "version"
+    SUMMARY_FIELDS = (GOAL_ID, VERSION, GoalDefinition.Field.OBJECTIVE, GoalDefinition.Field.SUCCESS_CRITERIA)
 
     @classmethod
     def project(cls, identifier, value):
         return {cls.GOAL_ID: identifier, cls.VERSION: revision_token(value),
                 **{name: deepcopy(value[name]) for name in GoalDefinition.CONTEXT_FIELDS if name in value}}
+
+    @classmethod
+    def for_summary(cls, value):
+        return {name: deepcopy(value[name]) for name in cls.SUMMARY_FIELDS if name in value}
 
 
 class GoalCloneOrigin:

@@ -1,6 +1,8 @@
 """Project 수명 검사와 잠금 아래에서 Memory API와 비동기 API를 제공한다."""
 
 from llm.core.editable_snapshot import EditableSnapshot
+from llm.components.goals.records import GoalContextReference, GoalDefinition
+from .snapshot import MemoryProcessingSnapshot
 
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
@@ -21,10 +23,10 @@ class MemoryData(ComponentData):
     @workspace_locked
     def _processing_snapshot(self, session_id, *, include_records=True):
         project, component = self._current()
-        return {"identity": component.identity(project), "configuration": component.get_config(project),
-                "has_search": component.search_fn is not None or component._options(project).get("search_strategy") is not None,
-                "records": component.list(project, include_deleted=True, session_id=session_id) if include_records else {},
-                "summary": component.summary(project, session_id)}
+        return MemoryProcessingSnapshot.create(identity=component.identity(project), configuration=component.get_config(project),
+                has_search=component.search_fn is not None or component._options(project).get("search_strategy") is not None,
+                records=component.list(project, include_deleted=True, session_id=session_id) if include_records else {},
+                summary=component.summary(project, session_id))
 
     @workspace_locked
     def _extraction_prompt(self, identifier):
@@ -37,8 +39,9 @@ class MemoryData(ComponentData):
                 "version": snapshot.version, "source": identifier}
 
     def _check_snapshot(self, project, component, snapshot):
-        if (component.identity(project) != snapshot["identity"] or
-                component.get_config(project) != snapshot["configuration"]):
+        selected = MemoryProcessingSnapshot(snapshot)
+        if (component.identity(project) != selected.identity or
+                component.get_config(project) != selected.configuration):
             from .component import MemoryConflictError
             raise MemoryConflictError("Memory configuration or storage changed during processing")
 
@@ -47,18 +50,18 @@ class MemoryData(ComponentData):
         """명시된 Goal만 참조한다. Goal의 소유권과 버전 검사는 GoalData에 남긴다."""
         if not identifiers:
             return []
-        refs = self.related("goals").context_references(session_id, identifiers=identifiers)
-        return [{key: deepcopy(ref[key]) for key in ("goal_id", "version", "objective", "success_criteria") if key in ref}
-                for ref in refs]
+        refs = self.related(GoalDefinition.COMPONENT).context_references(session_id, identifiers=identifiers)
+        return [GoalContextReference.for_summary(ref) for ref in refs]
 
     @workspace_locked
     def _publish_summary(self, snapshot, record, *, session_id, source):
         project, component = self._current()
         self._check_snapshot(project, component, snapshot)
-        if "goal_references" in snapshot and self._goal_references(session_id, snapshot["goal_ids"]) != snapshot["goal_references"]:
+        selected = MemoryProcessingSnapshot(snapshot)
+        if selected.has_goal_references and self._goal_references(session_id, selected.goal_ids) != selected.goal_references:
             from .component import MemoryConflictError
             raise MemoryConflictError("Goal changed during summary processing")
-        prior = snapshot["summary"]
+        prior = selected.summary
         record = {**deepcopy(record), "source": deepcopy(source)}
         return component.publish_summary(project, session_id, record, expected_revision=prior["revision"] if prior else 0,
                                          expected_generation=prior["generation"] if prior else None)
@@ -70,13 +73,14 @@ class MemoryData(ComponentData):
         project, component = self._current()
         self._check_snapshot(project, component, snapshot)
         records = component.list(project, include_deleted=True, session_id=session_id)
+        selected = MemoryProcessingSnapshot(snapshot)
         # 모든 참조를 쓰기 전에 검사한다. 모델에게 다른 Session의 ID/버전을 선택하게 하지 않는다.
         for candidate in candidates:
             for ref in candidate.get("replaces", []):
-                if ref["id"] not in snapshot["records"] or ref["id"] not in records:
+                if ref["id"] not in selected.records or ref["id"] not in records:
                     raise MemoryConflictError("Consolidation reference is unavailable")
                 if ((ref["generation"], ref["revision"]) != (records[ref["id"]]["generation"], records[ref["id"]]["revision"]) or
-                        records[ref["id"]] != snapshot["records"][ref["id"]]):
+                        records[ref["id"]] != selected.records[ref["id"]]):
                     raise MemoryConflictError("Consolidation reference changed")
         keys = {(r["scope"], r.get("session_id"), content_key(r["content"])) for r in records.values()}
         created = []

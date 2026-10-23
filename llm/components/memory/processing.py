@@ -2,6 +2,7 @@
 
 from llm.core.implementation_parameters import ImplementationParameters
 from .work_state import WorkState, WorkStateMetadata, WorkStateProvenance
+from .snapshot import MemoryProcessingSnapshot
 
 from llm.core.models import RunErrorCode
 from llm.core.results import OutputVisibility
@@ -395,7 +396,7 @@ class MemorySession(CompletionSession):
     async def _summarize(self, result, source):
         valid = self._history()
         signatures = [self._signature(message) for message in valid]
-        cached = self.snapshot["summary"]
+        cached = MemoryProcessingSnapshot(self.snapshot).summary
         # Keep the established fingerprint input stable across Python API renames.
         profile = digest({"format": 5, "settings": self.config, "goals": self.goal_references})
         previous, covered = "", 0
@@ -491,7 +492,7 @@ class MemorySession(CompletionSession):
             record["metadata"]["sources"] = sources
         self.summary_record = await self.data._async_call(self.data._publish_summary, self.snapshot,
             record, session_id=self.context.session.id, source=source)
-        self.snapshot["summary"] = self.summary_record
+        MemoryProcessingSnapshot(self.snapshot).summary = self.summary_record
         self.covered = covered
         result.update(covered=covered, generation=self.summary_record["generation"], revision=self.summary_record["revision"], summary_id=self.summary_record["id"],
                       summary=text, source_range=deepcopy(record["metadata"]))
@@ -500,7 +501,7 @@ class MemorySession(CompletionSession):
         from .component import MemoryComponent
         current = self.recall_query or next((m.content for m in self.context.messages if m.id == self.context.run.input_message_id), "")
         if current.strip():
-            config = ImplementationParameters.read(self.snapshot["configuration"]).policy
+            config = ImplementationParameters.read(MemoryProcessingSnapshot(self.snapshot).configuration).policy
             limit = self.config["recall_limit"]
             if config.get("max_search_results") is not None:
                 limit = min(limit, config["max_search_results"])
@@ -587,7 +588,8 @@ class MemorySession(CompletionSession):
     async def _extract(self, messages, response, result, source):
         from .component import MemoryComponent
         snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.session.id)
-        if snapshot["identity"] != self.snapshot["identity"] or snapshot["configuration"] != self.snapshot["configuration"]:
+        observed, admitted = MemoryProcessingSnapshot(snapshot), MemoryProcessingSnapshot(self.snapshot)
+        if observed.identity != admitted.identity or observed.configuration != admitted.configuration:
             raise ValueError("Memory changed before extraction")
         # 모델 입력도 제한하며 오래된 대화/큰 Tool 원본을 다시 전송하지 않는다.
         latest = next((m.text for m in reversed(messages) if m.role == ModelRole.USER), "")
@@ -595,9 +597,9 @@ class MemorySession(CompletionSession):
         existing = []
         # 검색을 선택한 경우에만 관련도 순서를 쓴다. 추출 자체는 검색에 의존하지 않는다.
         ranked = (await self.data.asearch(latest, status=MemoryComponent.ALL, limit=self.config.get("recall_limit"),
-                  session_id=self.context.session.id) if latest.strip() and snapshot["has_search"] else [])
+                  session_id=self.context.session.id) if latest.strip() and observed.has_search else [])
         ordered = {item["memory"]["id"]: item["memory"] for item in ranked}
-        ordered.update({key: snapshot["records"][key] for key in sorted(snapshot["records"]) if key not in ordered})
+        ordered.update({key: observed.records[key] for key in sorted(observed.records) if key not in ordered})
         for record in ordered.values():
             if record["deleted"] or record["kind"] == "conversation_summary":
                 continue
@@ -644,7 +646,7 @@ class MemorySession(CompletionSession):
     async def prepare(self, request):
         if not self.prepared:
             self.snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.session.id, include_records=False)
-            self.config = resolve_processing_config(self.snapshot["configuration"], token_counter=self.processor.token_counter, completion_adapter=self.processor.completion_adapter)
+            self.config = resolve_processing_config(MemoryProcessingSnapshot(self.snapshot).configuration, token_counter=self.processor.token_counter, completion_adapter=self.processor.completion_adapter)
             if self.config.get("extract"):
                 self.extraction_prompt = await self.data._async_call(
                     self.data._extraction_prompt, self.config.get("extract_prompt_id"))
@@ -658,7 +660,7 @@ class MemorySession(CompletionSession):
                 self.did_summarize, self.summary_record, self.covered = False, None, 0
                 self.active_summaries, self.active_partial = {}, None
             self.goal_references = refs
-            self.snapshot.update(goal_ids=ids, goal_references=self.goal_references)
+            MemoryProcessingSnapshot(self.snapshot).select_goals(ids, self.goal_references)
         if summarizing and not self.did_summarize:
             self.summary_due = await self._threshold(request, sum(len(m.content) for m in self._history()))
             self.did_summarize = True

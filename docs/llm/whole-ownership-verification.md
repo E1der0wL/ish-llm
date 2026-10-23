@@ -3833,3 +3833,59 @@ f4eb0385a1f221c7d02514ffe14888ffecb2807f의
 (f4eb038→6b2a10a). 원격 조회에서 main 94229cb865374d99f20ec48c5e48269488041a4e와
 backend bb0946257ab6bcabb9a3ef04d3d854e5333b07d5가 그대로임을 확인했다. 이 Push의
 원격 CI는 아직 완료 확인 전이다. 뒤의 Goal/Memory 로컬 커밋과 현재 변경은 포함하지 않았다.
+
+
+## llm Memory 처리 Snapshot과 Goal 소비자 closure
+
+기준 145bdb1 이후 MemoryProcessingSnapshot이 처리 시 관측한 identity/configuration/
+검색 가능 여부/records/summary와 선택한 Goal 참조의 필드·Reader·Projection·갱신을 소유한다.
+MemoryData 생산/충돌 검사/요약 공개/후보 검증과 MemorySession 요약·회상·추출·준비 소비자를
+연결했다. 필수 필드는 지연된 [] 조회이고 선택적인 Goal 참조 존재를 먼저 검사한다.
+원래 객체 공유·필드 순서·mutation·short-circuit/외부 callback 순서가 그대로다.
+이 객체는 메모리상의 관측값이며 영속 데이터·새 정책·실행 권한이 아니다.
+
+Memory 전수 조사에서 찾은 Goal 참조 소비자도 연결했다. GoalContextReference.for_summary는
+기존 4개 필드만 존재 여부/순서/사본을 보존하여 투영하고, Component 선택은
+GoalDefinition.COMPONENT를 사용한다. 기존 Goal 파일 전수 검토 기록에 실제 Memory 소비자와
+검증을 추가했다. MemoryData와 Processing의 다른 미검토 필드까지 완료로 표시하지 않는다.
+
+### 검증과 소스 구분
+
+초기 `python -m unittest tests.llm.test_goals tests.llm.test_work_state` 12개 pass/20.348초/exit 0.
+후속 local view 변수 정리 뒤 집중 실행했다. 외부
+`PYTHONPATH=. python /workspace/llm-clean-resume/whole-ownership/memory-snapshot-closure-draft/equivalence.py`
+exit 0: Snapshot Writer callback 18, 필수 지연 필드 49, 선택 필드 존재 7, 충돌 검사
+short-circuit 10, 공개/Goal binding 순서와 누락 16, Goal 투영 16, mutation 순서 3,
+Goal Component 선택/실패 16개가 이전 구현과 같다. 5개 소비자 함수 body도 Owner 조회/
+Projection을 해석한 후 AST가 동일하다.
+
+- `whole-memory-snapshot-01`: 발견/시작/pass 115/115/115, exit 0, 268.992957초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-snapshot-01/llm.json --modules tests.llm.test_goals tests.llm.test_work_state tests.llm.test_memory_processing tests.llm.test_memory_summary_integrity tests.llm.test_memory_compaction_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `b307558b937648de0cf5a7e2aab6b28406d219468fc8af060a3083d6c75ee970`, input `6463d116393a8f8738ce01d34d453026daaffecb162fa0964ab998ea0ef99284`.
+
+- `whole-memory-snapshot-hub-01`: 발견/시작/pass 11/11/11, exit 0, 14.185125초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-memory-snapshot-hub-01/hub.json --modules tests.hub.test_memory_manager tests.hub.test_context tests.hub.test_history_retention`. source `b307558b937648de0cf5a7e2aab6b28406d219468fc8af060a3083d6c75ee970`, input `6463d116393a8f8738ce01d34d453026daaffecb162fa0964ab998ea0ef99284`.
+
+- `whole-memory-goal-consumer-01`: 발견/시작/pass 12/12/12, exit 0, 18.940923초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-goal-consumer-01/llm.json --modules tests.llm.test_goals tests.llm.test_work_state`. source `3ac5b7583985ca9d6127a97cbeb8582b8d9c90ee3a9a4a1dd8871e5e3035ecdf`, input `577653702fef0c711bbbfda7986478daf6163e18840af65650a28f769552e91d`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+Python 3.12.14/Clang, Host d833790, 같은 의존성·실제 namespace/X11 환경이다.
+첫 두 실행 후 MemoryData의 `related("goals")`만 같은 값의 정규 선언 참조로 연결했다.
+마지막 실행은 이 최종 소스에서 Goal/WorkState의 실제 선택·문맥·수정·동시 변경 경로를
+추가 검증한 별도 결과다. 두 소스 간 제품 차이는 그 파일 하나이며 해당 선언 참조를 해석하면
+모듈 AST가 같음을 확인했다. 나머지 제품/시험/fixture·환경·의존성·발견 목록은 동일하다.
+앞선 결과를 최종 소스의 하나의 전체 실행으로 표현하지 않는다.
+
+영향 범위는 Snapshot 생성·변경 감지·요약/추출 공개·후보 참조·Goal 범위/버전과 원본 보존,
+승인·예산·효과·Checkpoint/RAG·수명 무결성이다. Hub 관리·문맥·보관도 직접 소비자로 검사했다.
+Snapshot의 7개 후보는 모두 필드 Owner 선언이고 구현부 후보가 없다. 정적 finding 118개는
+동일하며 바뀐 의존 근거와 Goal records의 실제 소비자/필드 위치만 갱신했다.
+`python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`
+16개 pass/3.155초/exit 0과 `python /workspace/llm-clean-resume/whole-ownership/auxiliary.py memory-snapshot-auxiliary`의
+S1–S7·문서·R3 mutation·SDK·LLM/Hub 환경 6개가 각각 exit 0이다. 최종 문서/diff도 검사한다.
+
+현재 전체 506개 중 미검토 283, 미분류 21419, incomplete 4; stale/위반/감사 오류 0이다.
+
+Level 2 완료다. 선언 참조/필드 접근/Projection과 호출 순서 동등성 및 직접 안전성/소비자
+검증으로 영향을 제한하여 이 소단계의 전체 회귀는 유예했다. SummaryStorage·WorkState와
+함께 gate29에서 현재 통합 소스를 전체 검증한다. llm/ 잔여 항목이 계속 우선이며 Hub 구현은
+그 이후다. gate28(fdb50ee)은 현재 Memory 변경을 포함하지 않는다. 원격 6b2a10a의
+[CI 40023218986](https://github.com/E1der0wL/ish-llm/actions/runs/40023218986)는 진행 중이며
+실제 필수 job/artifact 완료를 확인하기 전에는 통과로 선언하지 않는다.
