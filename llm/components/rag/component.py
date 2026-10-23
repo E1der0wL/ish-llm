@@ -32,7 +32,7 @@ from .files import copy_file
 from llm.core.configuration import resolve_config, require_config
 from llm.core.models import ProjectConfig
 from llm.core.json_data import JsonObject
-from llm.core.contracts import Diagnostic, ResourceRef
+from llm.core.contracts import Diagnostic, DiagnosticSeverity, ResourceRef
 from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, metadata_schema
 from llm.providers.requests import provider_schema, error_code
@@ -777,7 +777,7 @@ class RAGComponent(DefinitionComponent):
                             ProviderErrorCode.RATE_LIMIT.value, ProviderErrorCode.EMPTY_RESPONSE.value, ProviderErrorCode.INVALID_RESPONSE.value)):
                         raise
                     document["graph_complete"] = False
-                    document["graph_diagnostics"].append(diagnostic("graph_incomplete", severity="warning",
+                    document["graph_diagnostics"].append(diagnostic("graph_incomplete", severity=DiagnosticSeverity.WARNING.value,
                         batch_offset=offset, cause=code if code != ProviderErrorCode.FAILED.value else "graph_validation_failed").to_dict())
                     continue
                 finally:

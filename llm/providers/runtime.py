@@ -1,6 +1,7 @@
 """공급자 초기화·진단의 단일 경계. 숨은 SDK 기본 재시도는 항상 끈다."""
 
-from llm.core.contracts import ErrorReason
+from llm.core.contracts import ErrorReason, DiagnosticSeverity
+from .diagnostic_values import ProviderRequestFailure
 
 import importlib
 import json
@@ -309,7 +310,7 @@ def diagnostic_scope(callback):
         _observer.reset(token)
 
 
-def diagnostic(code, *, severity="info", **details):
+def diagnostic(code, *, severity=DiagnosticSeverity.INFO.value, **details):
     from llm.core.contracts import Diagnostic
     event = Diagnostic(code, code.replace("_", " "), severity=severity,
                        details={**(_source.get() or {}), **details})
@@ -362,7 +363,7 @@ def diagnostic_failure(error, *, operation, stage, **details):
                         "context window exceeded", "exceeds the context", "exceeds context",
                         "context window limit", "too many tokens", "prompt is too long")) else None)
                     if reason:
-                        request_failure = {"reason": reason, "cause_index": len(chain), "status_code": status}
+                        request_failure = ProviderRequestFailure(reason, len(chain), status)
                 http_seen = True
             if isinstance(current, OSError) and type(current.errno) is int:
                 entry["errno"] = current.errno
@@ -379,8 +380,8 @@ def diagnostic_failure(error, *, operation, stage, **details):
                                         "function": code.co_name})
                 trace = trace.tb_next
             chain.append(entry)
-        return diagnostic(error_code(error), severity="error", operation=operation, boundary="provider",
-                          **({"request_failure": request_failure} if request_failure else {}),
+        return diagnostic(error_code(error), severity=DiagnosticSeverity.ERROR.value, operation=operation, boundary="provider",
+                          **(request_failure.details() if request_failure else {}),
                           stage=stage, exceptions=chain, sdk_versions=_sdk_versions(), **details)
     except Exception:
         # 파일/observer/예외 객체가 고장나도 원래 실패와 cleanup 순서를 보존한다.

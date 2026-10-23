@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 485,
-    "unreviewed_files": 320,
+    "files": 486,
+    "unreviewed_files": 318,
     "stale_files": 0,
-    "unclassified": 24432,
+    "unclassified": 24277,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 322,
+    "unreviewed_dynamic_paths": 320,
     "unreadable_files": 0,
-    "candidates": 28945,
+    "candidates": 28940,
     "issues": 0
   },
   "files": [
@@ -1594,8 +1594,8 @@
     {
       "path": "llm/components/rag/component.py",
       "status": "unreviewed",
-      "sha256": "69b5eefaf73556da31cba8b2f60dde1f9b624e80811a277aa894137e4d711fed",
-      "candidates": 952
+      "sha256": "8b4a734b0ce12cff86f90c951d118fec5ce57c76628b03ca1f2a84f858b8f125",
+      "candidates": 951
     },
     {
       "path": "llm/components/rag/data.py",
@@ -2139,9 +2139,9 @@
     },
     {
       "path": "llm/core/contracts.py",
-      "status": "unreviewed",
-      "sha256": "09e219351fb2bdb3d681e35009d258930f54bdd314d0c36f497ac7576db5d61f",
-      "candidates": 139
+      "status": "reviewed",
+      "sha256": "3d55d7a60a25f3471660b8393139c205a16a016d6da0b18b7256831e8bb450f9",
+      "candidates": 136
     },
     {
       "path": "llm/core/definition_snapshot.py",
@@ -2151,9 +2151,9 @@
     },
     {
       "path": "llm/core/diagnostics.py",
-      "status": "unreviewed",
-      "sha256": "4d85a6b65d78f4ab139d025f92639424e570ec3b17387ce33b9686bf18d7dcab",
-      "candidates": 11
+      "status": "reviewed",
+      "sha256": "06ac5f4f90de206c86b6fd82631c952392125fd05482f6bdf464fabd15ba0f9e",
+      "candidates": 6
     },
     {
       "path": "llm/core/editable_snapshot.py",
@@ -2486,6 +2486,12 @@
       "candidates": 11
     },
     {
+      "path": "llm/providers/diagnostic_values.py",
+      "status": "reviewed",
+      "sha256": "6c79f1488a2c349e56b7ca4700afd55ceffed7c7c11b448afac945efbea2afb5",
+      "candidates": 8
+    },
+    {
       "path": "llm/providers/embeddings.py",
       "status": "reviewed",
       "sha256": "abb66c4c028ea067dab1fc83cbb10c42aed626df5773fd620733bd7bbbb97d41",
@@ -2536,8 +2542,8 @@
     {
       "path": "llm/providers/runtime.py",
       "status": "unreviewed",
-      "sha256": "771c8d06432b4390e5892b05f6f2aefd65ec7962fdf20d7e8d8e02631de2afe0",
-      "candidates": 250
+      "sha256": "9394cf82678164f82cc7bc2b5af1dbb3d258b7bbca7eeac4b27ffca5effe4be3",
+      "candidates": 244
     },
     {
       "path": "llm/providers/schema.py",
@@ -2548,8 +2554,8 @@
     {
       "path": "llm/providers/streaming.py",
       "status": "unreviewed",
-      "sha256": "371f013f451e4020d44f85e3693eaa22eef8c050b9bf009e22bbc306eddc1b6d",
-      "candidates": 27
+      "sha256": "106a9deb2bc9b8b043034ac97b975b09baf6b7e7197f94e63842690c77bb650e",
+      "candidates": 29
     },
     {
       "path": "llm/providers/wire_codec.py",

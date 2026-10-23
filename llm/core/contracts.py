@@ -7,15 +7,33 @@ from enum import Enum, StrEnum
 import math
 from pathlib import Path
 from types import UnionType
-from typing import Any, Optional, Union, get_args, get_origin, get_type_hints
+from typing import Any, ClassVar, Optional, Union, get_args, get_origin, get_type_hints
 
 from .models import ResourceKind, RunStatus, StepStatus
 from llm.core.json_data import JsonObject
 from llm.errors import exception_chain, stable_error_code, get_error_attribute
 
 
+class JsonValueError:
+    UNION = "Value does not match the declared JSON type"
+    NULL = "Expected null"
+    ARRAY = "Expected an array"
+    TUPLE = "Tuple length does not match the declared JSON type"
+    OBJECT = "Expected an object"
+    PATH = "Expected a path string"
+    DATA = "Expected a data object"
+    UNKNOWN_FIELDS = "Unknown data fields: {fields}"
+    INVALID_VALUE = "Invalid {kind} value"
+    UNSUPPORTED = "Unsupported data type: {kind}"
+
+
+class DiagnosticObservation:
+    CONTEXT_NAME = "llm_diagnostic_reads"
+    ATTRIBUTE = "diagnostic"
+
+
 # Observation-local recursion guard; no exception/Component type is privileged.
-_diagnostic_reads = ContextVar("llm_diagnostic_reads", default=())
+_diagnostic_reads = ContextVar(DiagnosticObservation.CONTEXT_NAME, default=())
 
 
 def _encode(value):
@@ -42,44 +60,44 @@ def _decode(kind, value):
                 return _decode(candidate, value)
             except (TypeError, ValueError):
                 pass
-        raise ValueError("Value does not match the declared JSON type")
+        raise ValueError(JsonValueError.UNION)
     if kind is type(None):
         if value is not None:
-            raise ValueError("Expected null")
+            raise ValueError(JsonValueError.NULL)
         return None
     if origin in (list, tuple) or kind in (list, tuple):
         if not isinstance(value, list):
-            raise ValueError("Expected an array")
+            raise ValueError(JsonValueError.ARRAY)
         if origin is tuple and args and args[-1] is not Ellipsis:
             if len(value) != len(args):
-                raise ValueError("Tuple length does not match the declared JSON type")
+                raise ValueError(JsonValueError.TUPLE)
             items = [_decode(item_type, item) for item_type, item in zip(args, value)]
         else:
             items = [_decode(args[0] if args else Any, item) for item in value]
         return tuple(items) if origin is tuple or kind is tuple else items
     if origin is dict or kind is dict:
         if not isinstance(value, dict):
-            raise ValueError("Expected an object")
+            raise ValueError(JsonValueError.OBJECT)
         return {_decode(args[0], k): _decode(args[1], v) for k, v in value.items()} if args else deepcopy(value)
     if kind is Path:
         if not isinstance(value, str):
-            raise ValueError("Expected a path string")
+            raise ValueError(JsonValueError.PATH)
         return Path(value)
     if isinstance(kind, type) and issubclass(kind, Enum):
         return kind(value)
     if is_dataclass(kind):
         if not isinstance(value, dict):
-            raise ValueError("Expected a data object")
+            raise ValueError(JsonValueError.DATA)
         hints = get_type_hints(kind)
         names = {f.name for f in fields(kind) if f.init}
         if value.keys() - names:
-            raise ValueError("Unknown data fields: " + str(sorted(value.keys() - names)))
+            raise ValueError(JsonValueError.UNKNOWN_FIELDS.format(fields=sorted(value.keys() - names)))
         return kind(**{name: _decode(hints[name], item) for name, item in value.items()})
     if kind in (str, int, bool, float):
         if type(value) is not kind and not (kind is float and type(value) is int):
-            raise ValueError("Invalid " + kind.__name__ + " value")
+            raise ValueError(JsonValueError.INVALID_VALUE.format(kind=kind.__name__))
         return value
-    raise TypeError("Unsupported data type: " + str(kind))
+    raise TypeError(JsonValueError.UNSUPPORTED.format(kind=str(kind)))
 
 
 class JsonValue:
@@ -106,6 +124,8 @@ class JsonValue:
 @dataclass(frozen=True, slots=True)
 class ResourceRef(JsonValue):
     """도메인·컴포넌트가 소유한 대상 참조. 참조만으로 접근 권한을 부여하지 않는다."""
+    EMPTY_IDENTITY: ClassVar[str] = "Resource kind and ID must be nonempty"
+
     kind: str
     id: str
     project_id: Optional[str] = None
@@ -118,7 +138,7 @@ class ResourceRef(JsonValue):
     def __post_init__(self):
         JsonValue.__post_init__(self)
         if not self.kind.strip() or not self.id.strip():
-            raise ValueError("Resource kind and ID must be nonempty")
+            raise ValueError(self.EMPTY_IDENTITY)
 
 
 class ErrorCategory(StrEnum):
@@ -187,19 +207,57 @@ class DiagnosticCode(StrEnum):
     EXECUTION_FAILED = "execution_failed"
 
 
+class DiagnosticSeverity(StrEnum):
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+
+
+@dataclass(frozen=True, slots=True)
+class ExceptionType:
+    QUALIFIED_NAME: ClassVar[str] = "{module}.{name}"
+
+    type: str
+
+    @classmethod
+    def from_exception(cls, error):
+        return cls(cls.QUALIFIED_NAME.format(module=type(error).__module__, name=type(error).__qualname__))
+
+    def to_dict(self):
+        return {item.name: getattr(self, item.name) for item in fields(self)}
+
+
+@dataclass(frozen=True, slots=True)
+class DiagnosticExceptionDetails:
+    """Fallback observation payload, serialized once at the Diagnostic boundary."""
+
+    NO_BOUNDARY: ClassVar[None] = None
+
+    exceptions: list[ExceptionType]
+    boundary: Any = NO_BOUNDARY
+
+    def to_dict(self):
+        value = {DiagnosticExceptionDetails.exceptions.__name__: [item.to_dict() for item in self.exceptions]}
+        if self.boundary is not self.NO_BOUNDARY:
+            value[DiagnosticExceptionDetails.boundary.__name__] = self.boundary
+        return value
+
+
 @dataclass(frozen=True, slots=True)
 class Diagnostic(JsonValue):
     """설명 가능한 진단. severity나 code는 재시도·복구·승인 권한이 아니다."""
+    INVALID: ClassVar[str] = "Invalid diagnostic code or severity"
+
     code: str
     message: str
-    severity: str = "error"
+    severity: str = DiagnosticSeverity.ERROR.value
     source: Optional[ResourceRef] = None
     details: dict = field(default_factory=dict)
 
     def __post_init__(self):
         JsonValue.__post_init__(self)
-        if not self.code.strip() or self.severity not in ("info", "warning", "error"):
-            raise ValueError("Invalid diagnostic code or severity")
+        if not self.code.strip() or self.severity not in tuple(DiagnosticSeverity):
+            raise ValueError(self.INVALID)
 
     @classmethod
     def from_exception(cls, error: Exception, *, code=DiagnosticCode.EXECUTION_FAILED, source=None, boundary=None):
@@ -215,7 +273,7 @@ class Diagnostic(JsonValue):
             if id(current) not in active:
                 token = _diagnostic_reads.set((*active, id(current)))
                 try:
-                    supplied = get_error_attribute(current, "diagnostic")
+                    supplied = get_error_attribute(current, DiagnosticObservation.ATTRIBUTE)
                 finally:
                     _diagnostic_reads.reset(token)
             # A property may call this converter itself. Re-entry skips only
@@ -223,14 +281,11 @@ class Diagnostic(JsonValue):
             if isinstance(supplied, cls) and (known is None or supplied.code == known):
                 return cls(supplied.code, supplied.message, severity=supplied.severity,
                            source=supplied.source or source, details=supplied.details)
-        details = {"exceptions": [{"type": f"{type(item).__module__}.{type(item).__qualname__}"}
-                                  for item in chain]}
-        if boundary is not None:
-            details["boundary"] = boundary
+        details = DiagnosticExceptionDetails([ExceptionType.from_exception(item) for item in chain], boundary).to_dict()
         if known is not None:
             return cls(known, str(error), source=source, details=details)
         for current in chain:
-            value = get_error_attribute(current, "code")
+            value = get_error_attribute(current, Diagnostic.code.__name__)
             if isinstance(value, str) and value.strip():
                 return cls(str(value), str(error), source=source, details=details)
         return cls(code, str(error), source=source, details=details)
@@ -255,6 +310,22 @@ class ActivityEventType(StrEnum):
 @dataclass(frozen=True, slots=True)
 class ProjectActivityEvent(JsonValue):
     """확정된 lifecycle의 참조만 제공하는 파생 인덱스. 실행·복구의 근거가 아니다."""
+    SEPARATOR: ClassVar[str] = "."
+    RUN_NAME: ClassVar[str] = "{kind}" + SEPARATOR + "{status}"
+    STATES: ClassVar[dict] = {
+        ActivityEventType.RUN_STARTED: RunStatus.RUNNING.value,
+        ActivityEventType.RUN_COMPLETED: RunStatus.COMPLETED.value,
+        ActivityEventType.RUN_FAILED: RunStatus.FAILED.value,
+        ActivityEventType.RUN_INTERRUPTED: RunStatus.INTERRUPTED.value,
+        ActivityEventType.RUN_PAUSED: RunStatus.PAUSED.value,
+        ActivityEventType.STEP_FAILED: StepStatus.FAILED.value,
+    }
+    ABANDONABLE: ClassVar[frozenset] = frozenset((RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED))
+    INVALID_LIFECYCLE: ClassVar[str] = "Invalid activity lifecycle"
+    INVALID_REFERENCE: ClassVar[str] = "Invalid activity ownership reference"
+    MISSING_TIMEZONE: ClassVar[str] = "Activity time requires a timezone"
+    EMPTY_CODE: ClassVar[str] = "Activity code must be nonempty"
+
     time: str
     event: str
     source: ResourceRef
@@ -264,47 +335,50 @@ class ProjectActivityEvent(JsonValue):
     @staticmethod
     def run_event(status):
         """Run log naming; activity validation still selects its allowed events."""
-        return f"{ResourceKind.RUN.value}.{status.value}"
+        return ProjectActivityEvent.RUN_NAME.format(kind=ResourceKind.RUN.value, status=status.value)
 
     def __post_init__(self):
         from datetime import datetime
         JsonValue.__post_init__(self)
-        states = {ActivityEventType.RUN_STARTED: RunStatus.RUNNING.value, ActivityEventType.RUN_COMPLETED: RunStatus.COMPLETED.value,
-                  ActivityEventType.RUN_FAILED: RunStatus.FAILED.value, ActivityEventType.RUN_INTERRUPTED: RunStatus.INTERRUPTED.value,
-                  ActivityEventType.RUN_PAUSED: RunStatus.PAUSED.value, ActivityEventType.STEP_FAILED: StepStatus.FAILED.value}
-        valid = (self.status in {RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED} if self.event == ActivityEventType.RUN_RESUME_ABANDONED
-                 else self.event in states and self.status == states[self.event])
+        valid = (self.status in self.ABANDONABLE if self.event == ActivityEventType.RUN_RESUME_ABANDONED
+                 else self.event in self.STATES and self.status == self.STATES[self.event])
         if not valid:
-            raise ValueError("Invalid activity lifecycle")
+            raise ValueError(self.INVALID_LIFECYCLE)
         ref = self.source
-        kind = self.event.split(".")[0]
+        kind = self.event.split(self.SEPARATOR)[0]
         if (ref.kind != kind or not all((ref.project_id, ref.session_id, ref.run_id))
                 or ref.id != (ref.step_id if kind == ResourceKind.STEP else ref.run_id)
                 or kind == ResourceKind.RUN and ref.step_id is not None
                 or ref.component is not None or ref.version is not None):
-            raise ValueError("Invalid activity ownership reference")
+            raise ValueError(self.INVALID_REFERENCE)
         if datetime.fromisoformat(self.time).utcoffset() is None:
-            raise ValueError("Activity time requires a timezone")
+            raise ValueError(self.MISSING_TIMEZONE)
         if self.code is not None and not self.code.strip():
-            raise ValueError("Activity code must be nonempty")
+            raise ValueError(self.EMPTY_CODE)
 
 
 @dataclass(frozen=True, slots=True)
 class OperationProgress(JsonValue):
     """표시용 진행 정보. total=None은 전체량 미상이며 도메인 상태 전이를 대신하지 않는다."""
+    MINIMUM: ClassVar[int] = 0
+    UNKNOWN: ClassVar[None] = None
+    EMPTY_PHASE: ClassVar[str] = "Progress phase must be nonempty"
+    INVALID_COUNTS: ClassVar[str] = "Progress counts must be finite and nonnegative"
+    INVALID_TOTAL: ClassVar[str] = "Progress requires completed <= total"
+
     source: ResourceRef
     phase: str
-    completed: Optional[float] = None
-    total: Optional[float] = None
+    completed: Optional[float] = UNKNOWN
+    total: Optional[float] = UNKNOWN
     unit: Optional[str] = None
     message: str = ""
 
     def __post_init__(self):
         JsonValue.__post_init__(self)
         if not self.phase.strip():
-            raise ValueError("Progress phase must be nonempty")
+            raise ValueError(self.EMPTY_PHASE)
         for value in (self.completed, self.total):
-            if value is not None and (not math.isfinite(value) or value < 0):
-                raise ValueError("Progress counts must be finite and nonnegative")
-        if self.total is not None and (self.completed is None or self.completed > self.total):
-            raise ValueError("Progress requires completed <= total")
+            if value is not self.UNKNOWN and (not math.isfinite(value) or value < self.MINIMUM):
+                raise ValueError(self.INVALID_COUNTS)
+        if self.total is not self.UNKNOWN and (self.completed is self.UNKNOWN or self.completed > self.total):
+            raise ValueError(self.INVALID_TOTAL)

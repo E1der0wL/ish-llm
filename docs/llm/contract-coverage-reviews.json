@@ -31134,5 +31134,990 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/contracts.py",
+    "sha256": "3d55d7a60a25f3471660b8393139c205a16a016d6da0b18b7256831e8bb450f9",
+    "reason": "Read complete JSON encode/decode, reference/observation/activity/progress declarations and validations. Codec errors, severity and lifecycle/progress values precede methods; fixed fallback exception shape uses declared ExceptionType/DiagnosticExceptionDetails fields. Public JSON and open metadata remain detached and identical. Unknown fields/types, trusted outer code, broken/recursive properties, source ownership, timezone and finite count checks are preserved. The three llm severity consumers reference the enum; read-only classifications and refs grant no execution/recovery authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e7c4fa8eff7403d3bd5fb282861f94179f5ecd5f3dad6d872c227a2a5b7cb9fa",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "359860763d762c16b45c7e492d9a281ca0c6fb0e0cd722bb1e94e367690dcede",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "4c1437f73c0a05645281cf6ad2b128750a2f76c3bdc111ace7af10b5cf78ef20",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "6f62656f3a0951a1727616fd32011d4e3938ecf4d82a01fcb4b66aff225f8db7",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "7644e2ba7862243b23190bb1f3c4292d3674e9f7f4318470273b7f0d27ab610e",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "3adbcf3e731470cfebc14a955354d6faf22aab71ba0af5b75248d271a2f37e36",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "f090f80f79fca75d038bfececd0eb2e250db0798badb3595de2e0ab3b474676f",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "3c6095f0a30a6a853ccbdc5db48095c8eaf8a61da755b37ca71e620f088164ec",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "45f0f9c6abe698297346415afaf254a5f9f71f75f514256cd8ec88bff2597536",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "ecf078b85f4feda4b1188cc73dbefe26fb0b456e4a8b9c5d6e7beea7cc7f699a",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "ffc24efd10cd95825f5427eae4822cc54f507712337f8978c03cb83812e604dd",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "d0e6d277723eab4eccb598c0f05d8ec82506f9b39664dc3cbf7d0a9c3a76e933",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "8f80674582d461f2bc9e787484fdfb22c1ee482db60d9a8b3963d4b7f4fc8ba7",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "6d7104b90f0572e0db4005e6df2e4dc04f0af4ab571c8ec40295446e18508c01",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "dd502c6638def6dc5cc4540bc22a37281f55381217762a46c87b931c5c788413",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "d4b94f2f38a04b2f7995df64284305cb90fe5485f5c47c24416436c9b2a18ac2",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python type-argument/tuple or split-name positional access, not a quota, schema default or independent field declaration."
+      },
+      {
+        "id": "782ec00d2936967a96b376a2974cb1b42ecc5cc2531d4c0cfa6931f6ef774cb8",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python type-argument/tuple or split-name positional access, not a quota, schema default or independent field declaration."
+      },
+      {
+        "id": "aceb9f1386e8339b5f7ed2739a68ab0e50a5fdf1ff0bbaa1df70e71abd4a86d7",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python type-argument/tuple or split-name positional access, not a quota, schema default or independent field declaration."
+      },
+      {
+        "id": "3301d4082975c2b7253753d8c051be52c1f106a88eb4534831b938ba41a59781",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python type-argument/tuple or split-name positional access, not a quota, schema default or independent field declaration."
+      },
+      {
+        "id": "db6d3e30c64ab0ef5816f4c72295429ee6f9fa9e9dcbec69bb3576d18b9a8101",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "b0534a67ec4e8e9f7708585682d5d6133078400e2fd1744fa283a1196af8a7c0",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "03310b78127cee1a5353131228967aaee2c0d59b7f835581a18eaa27275c1487",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "a412b7528138ff20df3a190c1f2caec41969519eca182fd6e95ff379730c7134",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "94e24d112b8d4fb8c7b6505070421f18f648c03124f4ba2f8d25b4a96acc16d5",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "226af631f7955e4a661e26d36716dbc41f295c97611c57df68058bb0c8c54ab8",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "73fcaf83cf2b0380f710d0f74aacb5491caf45534fce76f4966fe19e33f75eb5",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "9139673c8ceb91dd5849855e35f16c691773a75b43a24dd8ef62f28bd34b489a",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "9435710cd839163ed3162f7e475922ada48942d63ae43125b4338085c519fc66",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "34974ec36334b87c07a200bf472bcf3eb2328c2efbea319a57a15b36c547aa3b",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "23f854876ff20dcdac9f5e95160c5f014460039eb5caf6028e5812b976bb79d4",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "37676d479c234341d4eb2be3ec695160367cc7b12b5570a567e99f6b1f759b20",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "2472e4b06375c27871e038618d78f1f61d0152a0a454c2a403156a4b3d2ddce3",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "2a976196bc985f33293cd92857549baaf43b005befefde689ffdcb24d2a0243a",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "3e5c972999cd168224d5efeed98d946758fb3a214a6e1588da078a8f0bd61e70",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "6cd47d7394661b86cc82d2807200771bbb7217a3c9b6d1c25cc09bdc97209362",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "0020a2148cafb4b47e3ec92c017b0590adb72be28d652429b045f6d661eaa4ea",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "d119b766b117524be7d66a3fcd5a7d92321d2b843d3281774b1e3683bb403e05",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "4b5c05162e94f9102325f079fb9bc9b3ff9715905500b6771adb4bb840a65d39",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "8213c4ee91a2b83d5c8948754fefca0106b5f8a1eaa368d38ef739e0a71047ff",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "f6fc322d0e0089ad096e359f136557de0795e1c6e104c3db743d1ea6d8f0f4cf",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "af494c9569327a0231b7cfd440822ba396af8a13c6e234971b6b107102b47f86",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "f52f21ef79485f20ab83ccedd5441054c866bde71146e0f82248b2a85907381b",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "97cd3cbc228dbb8661c89ec65daf1de309c9f6be5e23d158e973ce920746ffc3",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "5080100c9014a4e3ddaf9946abe613c04c3c0b5f9b48ea6aae83e827012072ac",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "7463a75e255aec27db1d84e3d62d7921cec4013481efa9997a4ce5f40da5a5f6",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "858e1101a1ff2a302dc3559b47e48f7349e3383ae0a6dfacb0b42ee15a237aea",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "46c92fd0ac783571d8a0f266756e6ec9410db99067b9bef5883819402550d28b",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "608e782bba9d2f4c174f44219bc0f7c2702cddcef98b7b22d1f5460991b27d31",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "010c57271c4d9470f3f284dc3146ab17feeffc8491ac1f0bf7f50199cd957fc9",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "7032d32e2020b1e93354a5dc0df03caf8801521a6986a6c9348a6fd3f51c82f3",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "f482829f880da4b2e6d62f7c25eb98d63aa1eaa5b78a2ef0dd71bae24b538922",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "b5b1213293bcc1e7a0d39ca1f12a07584c34a8569418c8243690dce1aaae3790",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "56cbc8371b1ef35fc2801788c76bdde58009177fabb6f4183daa791627fb3238",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "195b9061814274dfb742c15edc872b7dea203cc95001e4d60710d24b395dd049",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "94cb1e327909ec1df3cfab0c729036cfb935c5015f50bceb2dc2414e2f9e339d",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "c7645a57c82650f51365d70f63da18362fbb960aaa8cfd7ff990c64766c8b144",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "6b789e7cc69e80f80c2816610cada863ca263cfc22eedae2eef8a2a8dda606ca",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "4e77c666ed44d1d25453c30ae045e5a54e0c32d0364c5cd68b9887c0455d904b",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "d157b483bc6a93ba74b472b8c09a98bf7371bc3de78e07ecddae1db40f259d41",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "35409c9dd3aae0793ff9cbd37cf95d929b51c2775b4cf821cbe9e03b50b22bf1",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "85b3a27a5099fd5d16587242a5a0a0c2617dc66006a0dd4c997782cb600be49e",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "1741db9ce37ecf7e7ba9c1db063fcc6a70c3a2f6b7bfa55c867b3d3e8866c411",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "3bdfb521e9e5306c06bae644895d904b89f82d5bba1b2ceeae11679cd516b35f",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "13f562ddd1ade439cc99b364c3ec68ef5b2b50c10e21be58593ac04ecb77955d",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "bb6d97fd45581a0a37793c4f4148264aabf3e2a2c324208d0587b99e3329eeb6",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "892b455c4eea57e8430cae0ca0a747e53842fbd79d72ac0bf80363118b2af251",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "4d39144482e68c0c63d7862105c53eca51ea2454b6140bdfeb094669d1942ac8",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "6908b61e9f8c97691e8c576d2f3514d9f2ce404da96fd33f0d129293738ccba5",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "bca74df7c1f30bbaaa77533062938cda46f3f0bf09e229cf864ddcacf6c1fd33",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "68ed348b8aaf8e06b4f8a99e0d00e510ef946ad4574d05f01c43b023965e8029",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "854aae544a52966096218c681162637b8627a99ecbfb85719d82c9eb6afa9580",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "184f8c76ee0af949e6ec2b4d9fe0c18ebded2b9f4fbec23f16eba9d5fc16784e",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "fa33b8ac579e609cdb08378d524c3db37e6d4c1ea2f2c18a5e54d7e7eea42528",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "72dff5318228f22109ee5137c28554adb0e8f9e93406a418ea16b10583a216da",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "a91bfb368b4c8e73025ddd3a365b141cbe3d48d842f5a2a0fb5e06a44eebde8c",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "9e9f06d0bc7d67769117c7856fc9b2dc3901ae1b08660bd778cf77f0a5535efd",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "d7cf75f7c35bce8550c57f83a91307130a0bb118d1a9e325b2212fe5d0ec68b3",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "5c998a1ba9bbb885b18236325b8ed7288fd30094af14869f9fc0230995f2c521",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "d666aebae44b6ec30c9065fcbf34bf27752bd7e0d1c6801b62435a08560f1a3d",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "d12f28e4dff25b3cb401df502179c7812c1271a51bb0ec4097cdda41fb06c9eb",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "73a82e07e273417fb17448f5dd0575abcd6fb65dc8664acc3befc55d383cc22a",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "661220778f6c39a145212c676f00269bd0a7a401cfa4842bc340328607c5d303",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "a147b20212f028413e02332a345a5839094b57e7ddc97775a0ee06325c6e13ed",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "1555da2eca63d855e8c1345e4bcc8c94c8b843a31eb849adda106d08dd3869df",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "2828622147cb3f0addaaa0f3e131a427267c055bc7166b05e5c8d71647e9418e",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "9f1a6fed851d4d5f23216e05f625d571c3e91dffe3bc6ef12298a5f25a6e069c",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "c3b8c7165dee7c99f13743a8f58e100ea0f84577560f90a9c20a3e8d309c7bab",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "54fadb7c195583e71c85cc7e095d579d7b2037f0e67588b03686ce42faa83622",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "970533ca405b06c6cc0a507192527a8ebe3c4fbe0e67ed4c46b5ff0b296a39cd",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "41512e9055ffeee575eee6525ecf5b878a0f881049299db8c50fd3b1cc265cdd",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "ea657ed0f4041d1f4a6b665ec71eb6d142616778aba49989b678147d44f746a2",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "1f3698a0a995c16d5581f788d6542f06da75e35c8c2a9f6dd91c3d8eb0939153",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "6a0426a118b867d3635c8b342fac986a90a5f212cad29205a37b67eeacefaae9",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "b0716ad9de4fd4b35a6183d8f855f8f4ef36293692a321d2092acfaf139af0eb",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "c8fcb3de00ce1d0b4d6f4c3e922db101d8f375d9ee6c536b4d0d20ef4836ed68",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "fad097f6d0d8e455fc5817415286f3c9af21296462d1cb7e79ea1bee3bc66aba",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "211d6ef2c43e8a6a352cc4ece17d67961911389ef74180e33133f3e186c980f2",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "9b54e2f12d65f89332c11699d35e1e16a3bb59b2c974a67921b63a9b539f61ec",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "6f4df38c0ac8d46dd59ad7c8c0766cd05c72d334f55722f76e4fcb8d3da7b37f",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "229f0d46459ee5edddbdd8f090881e108357d951b08de83e35e5fc7b67ed0fd0",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "b6a327cb6db8bce21a4d1e8d218510b32a0e2bb08df28b053b8a5fdde00123c0",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "09d17da6ca8002ade31d892de994b64fec2d9313b4350952c8af2737e2846c1e",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "8571a8270cb16f2bafaa3d2d58eaaf54989580bc4ca7c4af76cc21b1ff75f7ac",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "1cad2c30d1519e7bc3ba5506f78ae6d8847885fe4640768b6b51ec7e8e5d5737",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "c0dfc72ee6e0332a923ba931a9a33db90f1ef8bfd70a5e72de6b87bd1595c1df",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "1ba0cfb7829b76f3164afe2b662f01f23da1119a65f269b6cad039cda99bf7f6",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "933efaac1e3b7b0e40da8dcf06341abdfca6fa72df1d97e10bdfb274aa3fb0eb",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "ac784190d9e7c9e619a308a39a40637011952a92bfe24b0a3b01af5e6d5d0c3e",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "2dadff2db7cc296b3d28cd76bbdd8e08067696dd569051732c5e9a203d90827e",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "e151c388fb9f936a87046cf990bbb09736f67bc9a6bc1166d0ff06bb6412666c",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "2bf5e7e5634df548391c4a03f6e6d448ebe87ac11e52f8d3f62ff0855ae58bbb",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "403e6e1e90b33f874dca26d8125c741e1468a9626c19204211a7c528edb6cf58",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "c229f48e70c76a961735571bf858a5e1eb64d7c822cf447d9a1471ce364e0774",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "ac5fd0af550996083685e95afd3ce887c38178c3fd7c383884b27e804e8a5c45",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "779892328c85c610f8a8ab706c2f86db662328c71ee9a940562900a894a78045",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "455a4da92e9e734e6fe854ff91e4f61d0b18b70acf808fb4f6aadf3cbd398b33",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "1e027a56161b50109d1839e3290ed71d31adca50b1295f45b50ca90ae8378ed5",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "11d67732bfd699cbb4397c46bb6240452a713317e557106f1f3d53fe4b54026d",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "2cb3336e885421cd67b2f448b7de47d7614e5ace561f13c517f836604db5ac7f",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "c6e1fda0a5c1d6097bd9b151b24d3941d0857f2fc405b4c853f2286755567026",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "cc8e73db657c7562c9dd8fdc561f693ccfcd8a7fe6717d9d6b60ba5409112eca",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python type-argument/tuple or split-name positional access, not a quota, schema default or independent field declaration."
+      },
+      {
+        "id": "59d6afb0981f94758b80f515fcd69925961a439ca8e6d0cc1aa4eebb92b83d80",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "b30fb1cfa66c01594ea76df267edb6034ca0c7dd0e81b4b06a6dd992d8a0879c",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "e762146c04916e7564d66a547e4f78990938f29b4828c6737e3d070eb79de71e",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "c33e5295dc47a804495350346af4091186a1413aed516ea218be4ff40333f11c",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "e6bd199c8162974aa7b8546c70cc591a8f1c3c4fa5d39516d6e3d21cc24f1080",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python None type/absence for optional observation source, no supplied diagnostic, timezone or nullable reference check. It does not synthesize an execution record or replace evidence; progress unknown and optional payload omission meanings have explicit Owner declarations."
+      },
+      {
+        "id": "c6cef2fc4a6798543e2c2bd5c23c13e73c80ea9e1c3b90d3fd688ac15b7416c4",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "b3bdf6729ff7f34382ff3ea9b4374efa045a6a270e7361e7120fd16a521282e3",
+        "classification": "non_contract",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "bd94294db9112bf43d99c72a8f44d0ab9b21d29dd4e7fd52e9ea4d69f5efb517",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "a2a485a8769027637713a371a26bc16a6f5544c02b007c6636dce681fa10041d",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "78e89162e8de3fa44ff37e4f106bc2cd621bbf4d4dfaaacd246c7bbe4220c9f9",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "1adaad1e9a49a104de3174128cea83ebd1001c08d8f549af0eddf39f65829e1e",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "e1863c9ad56dcf3bc22d0ab018770686dc75c529b47697ee1bb7fb038af458dc",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "702ba1d3c5ae69ce033ea3c50ad15e860c50497e74359b8e48ccb353c0b18e1f",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "726f2c963209ba66a4993d44caaa766eb1270a923ea8aa643bad753f16ab44b4",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "9d7d96fe32fac60ee077d4da420675dbce56e0e09f25e61bcc74e64501bdf9fc",
+        "classification": "declaration",
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
+        "declaration": "llm/core/contracts.py",
+        "consumers": [
+          "llm/core/diagnostics.py",
+          "llm/core/results.py",
+          "llm/engines/base.py",
+          "llm/services/infrastructure/activity.py",
+          "llm/providers/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_observation_values.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_backend_contracts.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_backend_diagnostics.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/diagnostics.py",
+    "sha256": "06ac5f4f90de206c86b6fd82631c952392125fd05482f6bdf464fabd15ba0f9e",
+    "reason": "Read complete declared code classification table and evidence projection. Consumes typed normalized Provider hint/Completion termination observations instead of their raw keys; builds its own fixed response at the Owner. Preserves optional/unknown observations, explicit versus inferred confidence, all open hint fields and existing merge ordering (including an extension code in evidence); Diagnostic source code stays unchanged. No message-text retry classification or execution permission is added.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8b2027aff73388e5a10bd589723cf809f891759f3bb57b9fa6da808e71761743",
+        "classification": "non_contract",
+        "owner": "ErrorClassification / ClassificationEvidence",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "08b9b5385a9b611f0eedb5110ad571970e42fdce2998964af493f6ed02d9e61d",
+        "classification": "non_contract",
+        "owner": "ErrorClassification / ClassificationEvidence",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "4e8f9f3afa3af54486a4121e7e5ef6e9eeed86189a42db3ffa4348ca31435741",
+        "classification": "declaration",
+        "owner": "ErrorClassification / ClassificationEvidence",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "e8b16ba4db07631650508da17ec82e26e073043b3cb49c5ca4062c8b447bd741",
+        "classification": "declaration",
+        "owner": "ErrorClassification / ClassificationEvidence",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "213ba6bd4b854a2f9e04fbe22d0d4d9f135bf8d30e558d8efde4d61f2b3dafe5",
+        "classification": "non_contract",
+        "owner": "ErrorClassification / ClassificationEvidence",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "cea92e5b8e57d7c3483321de4da511c00354d3be6c7e4339b94ff267d8740b55",
+        "classification": "non_contract",
+        "owner": "ErrorClassification / ClassificationEvidence",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ErrorClassification / ClassificationEvidence",
+        "declaration": "llm/core/diagnostics.py",
+        "consumers": [
+          "llm/core/contracts.py",
+          "llm/providers/diagnostic_values.py",
+          "hub/errors/adapters.py"
+        ],
+        "tests": [
+          "tests/llm/test_observation_values.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_backend_contracts.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_backend_diagnostics.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/diagnostic_values.py",
+    "sha256": "6c79f1488a2c349e56b7ca4700afd55ceffed7c7c11b448afac945efbea2afb5",
+    "reason": "Read complete normalized cause-local Writer and recognized-reason Reader. Dataclass fields define reason/cause_index/status_code; optional observation envelope has one declared key. Reader retains partial/extended display evidence and ignores unrecognized reasons exactly as before; it does not default required execution records. Snapshots are detached, unknown keys are preserved, and typed properties are used by classification. Runtime still determines the first HTTP cause and opt-in diagnostics without changing original failure or cleanup.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e207895ac769189be7c12e9f34d3d4b6013c55ed2b3e8aac033b3f6a4cc1978e",
+        "classification": "non_contract",
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "7e755336e28b4c77cca8d85a8975035ec5b417837028baf1a5597f077173f19e",
+        "classification": "non_contract",
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "164ff3cbd71589333fd67355086eede6ac86a0fa385af19c61bb4af45aabd717",
+        "classification": "declaration",
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "11a903b1fcedab3b1f8597cacb055a7cfa578d1558533d84e7acf8cf4adbd988",
+        "classification": "non_contract",
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "394cd668649cc52421943beb65ce0890c321af375b7ab29c296f5fe8db9e2c78",
+        "classification": "non_contract",
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "41aee68cd532235d695f63703ece890c76299d4fa84f986e205d70501f484e4e",
+        "classification": "non_contract",
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+      },
+      {
+        "id": "b1a81351c829477f6f973d65a5be694e28f2215e58d1e725038a6c7fada5dcfe",
+        "classification": "declaration",
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "6d67ef85742e25668770aafa873409500497f1b050ee7480e586cb5741cf78db",
+        "classification": "declaration",
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "declaration": "llm/providers/diagnostic_values.py",
+        "consumers": [
+          "llm/providers/runtime.py",
+          "llm/core/diagnostics.py"
+        ],
+        "tests": [
+          "tests/llm/test_observation_values.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_backend_contracts.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_backend_diagnostics.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -63,6 +63,13 @@ except Exception as error:
 Tool을 재실행하지 않는다. 기존 ToolRuntime·효과 원장·명시적 승인 검사가 계속 실행을 결정한다.
 ResourceRef를 역직렬화한 것만으로 대상 조회·수정 권한을 얻지 않는다. 대상 API가 소유권을 검사한다.
 
+severity의 정규 선언은 `DiagnosticSeverity`이며 공개 직렬화는 기존 문자열을 유지한다.
+공통 예외 대체 관찰은 `ExceptionType`·`DiagnosticExceptionDetails`, 분류 근거는
+`ClassificationEvidence`가 조립한다. Provider의 정규화된 원인 정보는
+`ProviderRequestFailure`·`ProviderRequestHint`, 선택적인 종료 관찰은 `CompletionTermination`이
+읽는다. 이들은 메모리 Projection이며 저장 원본을 추가하지 않는다. 알려지지 않은 관찰과
+확장 details를 유지하며, 부분 진단을 허용하는 것이 필수 실행 영수증의 누락을 허용하지는 않는다.
+
 ProjectActivityEvent의 source는 해당 Run/Step의 소유권 참조다. project/session/run identity와
 event 종류에 맞는 id/step_id를 요구하며 component·version은 허용하지 않는다. 이 version 검사는
 저장 형식 버전의 지원 여부 비교가 아니다. 활동 기록은 확정된 lifecycle의 파생 관찰이며

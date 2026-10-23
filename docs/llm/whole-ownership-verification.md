@@ -2422,3 +2422,39 @@ Provider 및 LLM/Hub 실환경 6개 게이트도 exit 0이다. main 94229cb 및 
 bb09462 보존과 이전 CI 완료를 확인한 뒤 정확한 8ae9aa6을 refactor/llm-clean에 Push했다.
 이 문서 작성 시 원격 필수 CI는 아직 통과 확인 전이다. 이후 Skill 문서/재시도 선언 변경은
 gate18에 포함되지 않으며 이 결과를 현재 통합 소스 전체 통과로 승계하지 않는다.
+
+
+## llm 공통 JSON·진단·활동 관찰 Owner (2026-10-23)
+
+JsonValue 오류·DiagnosticSeverity·활동 상태 대응/참조 검사·진행량 제약을 Owner 선언으로
+연결했다. ExceptionType/DiagnosticExceptionDetails와 ClassificationEvidence가 기존
+고정 응답을 직렬화한다. ProviderRequestFailure/Hint와 CompletionTermination은 정규화된
+선택 관찰을 타입으로 제공한다. 분류기는 SDK나 내부 진단 key를 직접 해석하지 않는다.
+llm의 severity 소비자만 연결했으며 Hub 제품 파일은 변경하지 않았다.
+
+코드/원인 체인의 외부 신뢰 순서·재귀 방지·깨진 관찰자 격리, 열린 details와 확장 hint,
+부분 관찰의 생략·증거 merge 순서, 기존 JSON/문구/명시 null/부동소수점·참조·timezone
+검증을 유지한다. 관찰 필드가 부족하다는 사실로 실행 영수증을 복구하지 않는다. 진단과
+분류는 권한·retry·Resume의 원본이 아니며 실제 실행 경계는 변경하지 않았다.
+
+82370d4 대비 decode 289개, dataclass 6개, 진단 60개, 진행량 84개, 활동 192개,
+원인 체인 32개, 오류 분류 1,386개가 같은 결과 또는 정확한 예외 종류/문구를 낸다.
+새 독립 시험 3개는 fallback wire·빈/생략 boundary·열린 사본·Provider 필드·부분/확장 hint·
+unknown 종료 관찰과 비권한 성격을 확인한다. 최종 smoke 56개 pass/exit 0(19.018초)다.
+
+- `whole-core-observations-01`: 발견/시작/pass 160/160/160, exit 0, 58.260187초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-core-observations-01/llm.json --modules tests.llm.test_observation_values tests.llm.test_contracts tests.llm.test_backend_contracts tests.llm.test_execution_boundaries tests.llm.test_project_activity tests.llm.test_provider_diagnostics tests.llm.test_error_boundaries tests.llm.test_common_boundaries tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `308016269a15a5ba1207c044d2cc58407725e346ef42a7dcba1adcf50db9fbfd`, input `16b968d5c9627bcafccee1ec77e85c2670173e1e3f25e3da3c7d8fbc45b5c803`.
+
+- `whole-core-observations-hub-01`: 발견/시작/pass 44/44/44, exit 0, 160.791574초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-core-observations-hub-01/hub.json --modules tests.hub.test_error_contract tests.hub.test_provider_activity tests.hub.test_activity tests.hub.test_provider_recovery tests.hub.test_backend_diagnostics`. source `308016269a15a5ba1207c044d2cc58407725e346ef42a7dcba1adcf50db9fbfd`, input `16b968d5c9627bcafccee1ec77e85c2670173e1e3f25e3da3c7d8fbc45b5c803`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. Python3.12.14/
+Clang·고정 Host/의존성·namespace/X11을 유지했다. 안전성·실행·예외·활동·Provider·Hub 직접
+소비자가 포함되며 기존 효과·실패 Assertion은 그대로다. 문서의 Owner 연결은 집중 실행 후
+갱신하고 별도 문서 검사를 수행했다. 정적 119개 동일, 바뀐 의존 검토 20개만 갱신했다.
+정적·문서·R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다.
+
+전체 읽기/소비 연결을 확인한 3개 Owner 파일만 검토 완료했다. Provider runtime/streaming과
+RAG 파일은 이번 관찰 경로만 바뀌었으므로 전체 완료로 기록하지 않는다. 현재 486개 중
+미검토 318, 미분류 24277, incomplete 2개다.
+공통 JsonValue의 넓은 영향 때문에 이 단계까지 고정한 gate19 전체 LLM/Hub·정적·문서·R3·
+환경 검증으로 승격한다. 통과 전 전체 검증 완료/Push로 기록하지 않는다. 진행 중인 8ae9aa6
+원격 CI는 이전 소스에만 적용한다. 이후 작업도 llm/ 우선, Hub 추가 구현은 이후라는 순서를 지킨다.

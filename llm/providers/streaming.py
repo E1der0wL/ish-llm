@@ -1,6 +1,8 @@
 """Normalized streaming observations; adapters own SDK chunks and final messages."""
 
-from typing import Protocol, Iterator, AsyncIterator
+from typing import Any, Protocol, Iterator, AsyncIterator
+from copy import deepcopy
+from dataclasses import dataclass
 from enum import StrEnum
 
 from llm.errors import CodedError
@@ -13,6 +15,21 @@ class CompletionErrorCode(StrEnum):
     OUTPUT_LIMIT = "completion_output_limit"
     TOOL_LIMIT = "completion_tool_limit"
     ARGUMENT_LIMIT = "completion_argument_limit"
+
+
+@dataclass(frozen=True, slots=True)
+class CompletionTermination:
+    """Optional normalized diagnostic observation; unknown values remain opaque."""
+
+    termination: Any
+
+    @classmethod
+    def from_details(cls, details):
+        return cls(deepcopy(details.get(cls.termination.__name__)))
+
+    @property
+    def output_limited(self):
+        return self.termination == model_protocol.StopReason.OUTPUT_LIMIT
 
 
 class CompletionError(CodedError, ValueError):
