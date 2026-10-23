@@ -4,6 +4,11 @@ from copy import deepcopy
 from jsonschema import Draft202012Validator
 from llm.core.json_data import JsonObject
 from llm.core.policies import ArgumentConstraint, ConstraintMode
+from llm.core.schema import SchemaKeyword, SchemaInput
+
+
+class ConstraintError:
+    UNDECLARED_PARAMETER = "Constraint requires a declared Tool parameter: {name}"
 
 
 def constrained_parameters(schema: dict, fields: dict) -> dict:
@@ -12,24 +17,22 @@ def constrained_parameters(schema: dict, fields: dict) -> dict:
     validator = Draft202012Validator(schema)
     for name, value in fields.items():
         rule = ArgumentConstraint(value)
-        original = schema.get("properties", {}).get(name)
-        if original is None:
-            raise ValueError(f"Constraint requires a declared Tool parameter: {name}")
+        original = schema.get(SchemaKeyword.PROPERTIES, {}).get(name)
+        if original is SchemaInput.UNSPECIFIED:
+            raise ValueError(ConstraintError.UNDECLARED_PARAMETER.format(name=name))
         for choice in rule.choices:
             validator.evolve(schema=original).validate(choice)
         # allOf keeps enum, exclusive bounds, $ref, conditional and type constraints intact.
-        result["properties"][name] = {"allOf": [deepcopy(original), rule.value_schema()]}
+        result[SchemaKeyword.PROPERTIES][name] = {SchemaKeyword.ALL_OF: [deepcopy(original), rule.value_schema()]}
         # Omission must not escape to a handler/component's unconstrained default.
         # Only fixed owns an explicit replacement value; other modes require input.
-        if rule.mode != ConstraintMode.FIXED and name not in result.get("required", []):
-            result.setdefault("required", []).append(name)
+        if rule.mode != ConstraintMode.FIXED and name not in result.get(SchemaKeyword.REQUIRED, []):
+            result.setdefault(SchemaKeyword.REQUIRED, []).append(name)
     return result
 
 
 def constrained_arguments(schema: dict, values: dict, fields: dict) -> dict:
     JsonObject.validate(values)
-    if not isinstance(values, dict):
-        raise ValueError("Tool arguments must be an object")
     result = deepcopy(values)
     for key, value in fields.items():
         rule = ArgumentConstraint(value)

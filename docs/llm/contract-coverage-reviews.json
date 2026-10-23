@@ -4856,5 +4856,214 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/tools/decorator.py",
+    "sha256": "98431ec1c0e976033b30df735ad92ae0fde2eafbe38f20f1a35bea2281d47cff",
+    "reason": "Read the entire metadata declaration/attachment/contract/definition Owner and all attribute accesses, including independent tests. Attribute names have one declaration; strict uses ToolDefinition field identity; options remain MappingProxy, contract identity and original-function return are preserved. Validation and late options consumption occur in the same order. No alternate execution or legacy Reader exists.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a176432411c04f26c23079a700f58f2ba630c319e2b822f9d1a32fd91ae86005",
+        "classification": "declaration",
+        "owner": "ToolMetadata",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "7720fe0eca94a948d93a95dd7d6766cd2b013240e1671baf461ecc1d5036d68f",
+        "classification": "declaration",
+        "owner": "ToolMetadata",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "a3a9a387ed4dc3f35791cf96bd11d0cc684469cb87b00ddcb13a68153f199ce8",
+        "classification": "declaration",
+        "owner": "ToolMetadata",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "407e2ead3598046f2120825543ef43ecea869a8a8771938cdf88202256d2f00a",
+        "classification": "declaration",
+        "owner": "ToolMetadata",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "336e484d2c9fd7b239f93e33c44e37e7d3e70dd98f219a0c86dfc80bf97a3bb0",
+        "classification": "declaration",
+        "owner": "ToolMetadata",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "fbc492c8e7c94ef256ab8e21570470903bc578ffee82ac090f6d84c6b8a9de0a",
+        "classification": "declaration",
+        "owner": "ToolMetadata",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "b5522f6a151d00fcb9f05328cb655ce418f7b4a1e74bdeceb6626fd177b868fb",
+        "classification": "declaration",
+        "owner": "ToolMetadata",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolMetadata",
+        "declaration": "llm/components/tools/decorator.py",
+        "consumers": [
+          "llm/components/tools/function.py",
+          "llm/components/tools/__init__.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_declarations.py",
+          "tests/llm/test_tool_packages.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/function.py",
+    "sha256": "4b4f5af992376b4a5622a8f9ea21d0bf1fc91930fcf6f84343ce745c204aba1b",
+    "reason": "Read the entire annotation grammar and signature-to-Schema flow and its worker/direct consumers. Scalars/union/Annotated/literal/container grammar remain; tuple indices only select typing arguments. Existing Schema keyword/object construction and ToolMetadata own fixed wire names. Python signature alone supplies defaults, and JSON/original Schema validation retains exact values. ToolRegistry final validation and original function invocation remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b36591d9920c2a64721f7b0a9a0a57cb63fa6e6ebc1cfc91700837ac80f6ef47",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "3df414d620c503c5b8c1d14a2801c1b5578a6d9fdb4c7b03377f968fba892ff1",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "745032f2739e18ac9b1b59a8cd5bd1c810f2fef2db97ec12cc407efda407f207",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "597cc961d6906da146d33954c66d2106bf188c229147bb5655698acf72ba4c63",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "a24332a49afcbdd34568c99fae0df753ea8161335d6d5b4c8796f5dd7d45af43",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "b9c5001502006e81afbb779f99d38a15093f5ec68eec5d8dbc6a2f74f83a64a3",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "52d222a0c6e474863db91ac7e872be4c31a352209a0aed0c44ed7455633057d2",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "61394bc471b1ba09a66b8a3549f3c84dbd9a721a3ca11efa45d260c6410f5608",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "9a0b81716672af361c1963880657f35a9a26e68aae03b222d3ba5e4108c051dd",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "a54120627b231f85b57517f7f5f3b91f0b87bac05a333bdc1b2cfd20ce0332e4",
+        "classification": "declaration",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "a6eff321ef0c8e07283f791697823957e6404d9bb151d8bb6889fb4cf76e97f0",
+        "classification": "non_contract",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Positional access to typing.get_args for Annotated/list/key-value parameters; this is a Python tuple index, not a persisted field, policy default or missing-record fallback."
+      },
+      {
+        "id": "c8c8c7c8cf2d68f32de63aff8127a4fa258c9e018fe69c10464fd400320e30fc",
+        "classification": "non_contract",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Positional access to typing.get_args for Annotated/list/key-value parameters; this is a Python tuple index, not a persisted field, policy default or missing-record fallback."
+      },
+      {
+        "id": "adb8fd4c2b746077fbca17b6fa63a6218cc337fa722b34c945b08b639dba662e",
+        "classification": "non_contract",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Positional access to typing.get_args for Annotated/list/key-value parameters; this is a Python tuple index, not a persisted field, policy default or missing-record fallback."
+      },
+      {
+        "id": "b9914630dc280a29133ee92fde2afca3254365f63f323af6bab385ebdf569dc5",
+        "classification": "non_contract",
+        "owner": "FunctionAnnotations and Tool function construction",
+        "reason": "Positional access to typing.get_args for Annotated/list/key-value parameters; this is a Python tuple index, not a persisted field, policy default or missing-record fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FunctionAnnotations and Tool function construction",
+        "declaration": "llm/components/tools/function.py",
+        "consumers": [
+          "llm/components/tools/_worker.py",
+          "llm/components/tools/__init__.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_tool_declarations.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/constraints.py",
+    "sha256": "353eebe0d47ea20fa16d5e96dc9e1cccfb56055df295e476827b131945b0453f",
+    "reason": "Read both complete Schema and argument projections and ArgumentConstraint mode/choices/value_schema. Only dynamic parameter maps and JSON Schema grammar remain dictionaries; keywords come from their Owner. Original Schema conjunction and required-input guard remain. The fixed-mode branch selects the sole Owner-validated choice. Removed only the unreachable object-type check after JsonObject.validate; original errors for malformed JSON inputs remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "32c628e4451ffb7e3d8b0a2c24871c674fcf5690e8c7be6a220a13bfd9eeb336",
+        "classification": "declaration",
+        "owner": "Tool constraint Schema projection",
+        "reason": "Owner declares its own metadata attribute vocabulary, allowed annotation types/arity, explicit-presence sentinel and diagnostics before implementation."
+      },
+      {
+        "id": "98d1202428e5c2fff647782ddb7c318fa463aa166b21952b478f176c311a5fbc",
+        "classification": "non_contract",
+        "owner": "Tool constraint Schema projection",
+        "reason": "Selects the sole choice after the explicit FIXED mode check; ArgumentConstraint.choices owns validation and produces exactly one value. The index is algorithmic access, not a default choice invented by the consumer."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Tool constraint Schema projection",
+        "declaration": "llm/components/tools/constraints.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_tool_advice.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

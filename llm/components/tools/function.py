@@ -9,72 +9,82 @@ from pydantic import TypeAdapter
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 from llm.core.json_data import JsonObject
-from llm.core.model_protocol import ToolDefinition
-from llm.core.tool_contracts import ToolContract
+from llm.core.schema import SchemaKeyword, SchemaInput, object_schema
+from .decorator import ToolMetadata
 from .registry import Tool, ToolRegistry
 
 
-def _supported(annotation):
-    origin, args = typing.get_origin(annotation), typing.get_args(annotation)
-    if annotation in (str, int, float, bool, type(None)):
-        return
-    if origin is typing.Annotated:
-        _supported(args[0])
-        return
-    if origin in (typing.Union, getattr(types, "UnionType", typing.Union)):
-        for item in args:
-            _supported(item)
-        return
-    if origin is typing.Literal and args and all(type(v) in (str, int, float, bool, type(None)) for v in args):
-        JsonObject.validate({"values": list(args)})
-        return
-    if origin is list and len(args) == 1:
-        _supported(args[0])
-        return
-    if origin is dict and len(args) == 2 and args[0] is str:
-        _supported(args[1])
-        return
-    raise ValueError("Unsupported Tool parameter annotation")
+class FunctionAnnotations:
+    SCALARS = (str, int, float, bool, type(None))
+    UNIONS = (typing.Union, types.UnionType)
+    LIST_ARITY = 1
+    DICT_ARITY = 2
+    INCLUDE_EXTRAS = True
+    UNSUPPORTED = "Unsupported Tool parameter annotation"
+    ASYNC_REQUIRED = "Tool requires async main()"
+    DESCRIPTION_REQUIRED = "Tool main() requires a nonempty docstring"
+    PARAMETER_KIND = "Tool parameters cannot be positional-only, *args or **kwargs"
+    ANNOTATION_REQUIRED = "Tool parameters require annotations"
+    INVALID_DEFAULT = "Tool parameter default does not satisfy its annotation: {name}"
+
+    @classmethod
+    def check(cls, annotation):
+        origin, args = typing.get_origin(annotation), typing.get_args(annotation)
+        if annotation in cls.SCALARS:
+            return
+        if origin is typing.Annotated:
+            cls.check(args[0])
+            return
+        if origin in cls.UNIONS:
+            for item in args:
+                cls.check(item)
+            return
+        if origin is typing.Literal and args and all(type(v) in cls.SCALARS for v in args):
+            JsonObject.validate({SchemaKeyword.ENUM: list(args)})
+            return
+        if origin is list and len(args) == cls.LIST_ARITY:
+            cls.check(args[0])
+            return
+        if origin is dict and len(args) == cls.DICT_ARITY and args[0] is str:
+            cls.check(args[1])
+            return
+        raise ValueError(cls.UNSUPPORTED)
 
 
 def function_tool(name, main) -> Tool:
     """출력은 기존 ToolExecutor가 검증한다. 입력은 선언한 JSON 타입을 엄격하게 반영한다."""
     if not inspect.iscoroutinefunction(main):
-        raise ValueError("Tool requires async main()")
-    contract = getattr(main, "__tool_contract__", None)
-    if not isinstance(contract, ToolContract):
-        raise ValueError("Tool main() requires @tool metadata")
+        raise ValueError(FunctionAnnotations.ASYNC_REQUIRED)
+    contract = ToolMetadata.contract(main)
     description = inspect.getdoc(main)
     if not description:
-        raise ValueError("Tool main() requires a nonempty docstring")
-    hints = typing.get_type_hints(main, include_extras=True)
+        raise ValueError(FunctionAnnotations.DESCRIPTION_REQUIRED)
+    hints = typing.get_type_hints(main, include_extras=FunctionAnnotations.INCLUDE_EXTRAS)
     properties, required = {}, []
     for key, parameter in inspect.signature(main).parameters.items():
         if parameter.kind not in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY):
-            raise ValueError("Tool parameters cannot be positional-only, *args or **kwargs")
+            raise ValueError(FunctionAnnotations.PARAMETER_KIND)
         if key not in hints:
-            raise ValueError("Tool parameters require annotations")
-        _supported(hints[key])
+            raise ValueError(FunctionAnnotations.ANNOTATION_REQUIRED)
+        FunctionAnnotations.check(hints[key])
         schema = TypeAdapter(hints[key]).json_schema()
         # 호출 기본값은 signature만 소유한다. Annotated의 default로 호출 의미를 바꾸지 않는다.
-        schema.pop("default", None)
+        schema.pop(SchemaKeyword.DEFAULT, SchemaInput.UNSPECIFIED)
         if parameter.default is inspect.Parameter.empty:
             required.append(key)
         else:
-            JsonObject.validate({"default": parameter.default})
+            JsonObject.validate({SchemaKeyword.DEFAULT: parameter.default})
             # 실제 Python 기본값을 변환 없이 provider에 공개하는 동일 schema로 검증한다.
             try:
                 Draft202012Validator(schema).validate(parameter.default)
             except ValidationError as error:
-                raise ValueError(
-                    f"Tool parameter default does not satisfy its annotation: {key}"
-                ) from error
-            schema["default"] = deepcopy(parameter.default)
+                raise ValueError(FunctionAnnotations.INVALID_DEFAULT.format(name=key)) from error
+            schema[SchemaKeyword.DEFAULT] = deepcopy(parameter.default)
         properties[key] = schema
-    parameters = {"type": "object", "properties": properties, "required": required, "additionalProperties": False}
+    parameters = object_schema(properties, **{SchemaKeyword.REQUIRED: required})
     async def handler(arguments):
         return await main(**arguments)
-    definition = ToolDefinition(name, description, parameters, **getattr(main, "__tool_options__", {}))
+    definition = ToolMetadata.definition(main, name, description, parameters)
     value = Tool(name, description, parameters, handler, definition, contract=contract)
     ToolRegistry((value,))
     return value

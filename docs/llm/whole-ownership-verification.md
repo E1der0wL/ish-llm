@@ -1422,3 +1422,41 @@ incomplete 계약 2개로 전체 완료는 계속 차단된다.
 이 소단계는 Level 2다. 실행 문맥 시험 수정과 편집 snapshot·공통 참조·패키지 경계를 모두
 포함한 고정 현재 소스에서 다음 전체 Level 3를 실행한다. 성공 후 작업 브랜치에 Push하고
 그 정확한 SHA의 실제 원격 CI를 확인한다. 이후 미전환 전체 범위도 계속 진행한다.
+
+
+## Python Tool 함수 메타데이터·인자 Schema·제약 (2026-10-23)
+
+[함수 선언 계약](tool-function-contract.md)에 따라 decorator attribute는 ToolMetadata, 허용
+타입 문법과 진단은 FunctionAnnotations, Schema 어휘는 기존 SchemaKeyword가 소유한다.
+strict 필드는 ToolDefinition 선언을 참조하고 함수 소비자가 metadata dict를 반복 해석하지
+않는다. 원래 함수 identity·ToolContract·options 불변성·strict 생략/false/true와 signature
+기본값의 정확한 JSON/Schema 검증을 유지했다.
+
+인자 제약은 기존 ArgumentConstraint를 그대로 사용해 allOf 교집합과 필수 입력을 만든다.
+fixed만 유일한 명시 선택값을 채우며 원래 Schema와 입력은 보호한다. JsonObject가 보장하는
+객체 타입의 도달 불가능한 중복 검사만 제거했다. 초기 선언/제약/패키지 smoke 48개는
+pass/exit 0이며 아래 공식 실행과 중복 합산하지 않는다.
+
+- `whole-tool-signature-01`: 발견/시작/pass 136/136/136, exit 0, 113.078686초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-signature-01/llm.json --modules tests.llm.test_tool_declarations tests.llm.test_tool_constraints tests.llm.test_tool_packages tests.llm.test_tool_package_integrity tests.llm.test_tool_workers tests.llm.test_agent_execution tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `e0da74d83463ccf4d1377af9504aa6d8e03a64d5ce9191dfcaec08a1fc2912d9`, input `f544bc2ac8eb2d7dcc674921298bc36fcedebf13de18ffb748da5f55aa1f982f`.
+
+- `whole-tool-signature-hub-01`: 발견/시작/pass 21/21/21, exit 0, 56.419639초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-tool-signature-hub-01/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_question_tools tests.hub.test_tool_advice`.
+  source `e0da74d83463ccf4d1377af9504aa6d8e03a64d5ce9191dfcaec08a1fc2912d9`, input `f544bc2ac8eb2d7dcc674921298bc36fcedebf13de18ffb748da5f55aa1f982f`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. LLM은 독립 wire,
+잘못된 타입/기본값·원본 Schema·실제 패키지/worker·Agent 및 승인·예산 삭제·효과·Checkpoint·
+RAG·수명 안전성, Hub는 실제 Tool 관리·질문 승인·인자 수정 경로를 확인했다. 전후 manifest가
+같고 Python 3.12.14/Clang·고정 Host·의존성·namespace/X11은 이전 환경과 동일하다.
+
+정적 발생 및 기존 분류의 의존 변경은 0건이며 모든 구현과 실제 소비를 검토한 세 파일만
+전수 판정을 추가했다. 남은 실행 리터럴 후보는 typing 인자 tuple 또는 fixed의 단일 값에
+접근하는 순수 인덱스다. 감사 자체 시험 16개는 pass/exit 0이며 tool-signature-auxiliary의
+S1–S7 145건·문서·R3·SDK·양 suite 환경도 각각 exit 0이다.
+현재 462개 파일, 미검토 400개, 미분류 30109개,
+incomplete 계약 2개로 전체 완료를 선언하지 않는다.
+
+이 소단계는 Level 2다. 9adb2b3의 실행 중인 전체 게이트에는 이 변경이 포함되지 않는다.
+남은 Tool 등록/실행 binding 계약과 관련 소비자를 묶어 다음 현재 통합 Level 3를 진행한다.
+전체 대상의 미전환 항목과 정확한 SHA 원격 CI까지 계속 확인한다.

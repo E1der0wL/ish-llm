@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 462,
-    "unreviewed_files": 403,
+    "unreviewed_files": 400,
     "stale_files": 0,
-    "unclassified": 30154,
+    "unclassified": 30109,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 405,
+    "unreviewed_dynamic_paths": 402,
     "unreadable_files": 0,
-    "candidates": 30766,
+    "candidates": 30744,
     "issues": 0
   },
   "files": [
@@ -1851,9 +1851,9 @@
     },
     {
       "path": "llm/components/tools/constraints.py",
-      "status": "unreviewed",
-      "sha256": "987cb4e15b7f1ce9f308b98c38b85e329c0367f0b04c582c727ecc2db99e3d5f",
-      "candidates": 9
+      "status": "reviewed",
+      "sha256": "353eebe0d47ea20fa16d5e96dc9e1cccfb56055df295e476827b131945b0453f",
+      "candidates": 2
     },
     {
       "path": "llm/components/tools/data.py",
@@ -1863,15 +1863,15 @@
     },
     {
       "path": "llm/components/tools/decorator.py",
-      "status": "unreviewed",
-      "sha256": "36af1b8ebc944e58fd660bb4e64cb0b963ffa67fe53d4a5f8b084e4e3c4514e4",
-      "candidates": 5
+      "status": "reviewed",
+      "sha256": "98431ec1c0e976033b30df735ad92ae0fde2eafbe38f20f1a35bea2281d47cff",
+      "candidates": 7
     },
     {
       "path": "llm/components/tools/function.py",
-      "status": "unreviewed",
-      "sha256": "e1f2269493d51a3a28f69ee01472bfe5ba7fd4ef3eb1de8982d58ce369862d5a",
-      "candidates": 31
+      "status": "reviewed",
+      "sha256": "4b4f5af992376b4a5622a8f9ea21d0bf1fc91930fcf6f84343ce745c204aba1b",
+      "candidates": 14
     },
     {
       "path": "llm/components/tools/package_values.py",
