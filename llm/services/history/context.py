@@ -105,6 +105,7 @@ class ConversationContextBuilder:
 
     def for_clone(self, messages: list[Message]) -> list[Message]:
         from llm.services.runtime.requests import RequestAdmission
+        from llm.services.runtime.transfer_values import TransferReceipt
         messages = [m for m in messages if not m.conversation_deleted]
         for message in messages:
             if is_instruction(message):
@@ -114,9 +115,8 @@ class ConversationContextBuilder:
                     for message in snapshot]
         for message in snapshot:
             message.run_id = None
-            if "transfer" in message.metadata:
-                value = message.metadata.pop("transfer")
-                message.metadata["cloned_transfer"] = {"id": value["id"], "revision": value["revision"]}
+            if TransferReceipt.present(message.metadata):
+                message.metadata = TransferReceipt.clone_metadata(message.metadata)
             if message.status == MessageStatus.QUEUED:
                 if is_instruction(message):
                     value = InstructionMessageRecord.from_message(message)

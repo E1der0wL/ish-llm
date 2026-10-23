@@ -40,8 +40,8 @@ class TransferCrashTests(unittest.IsolatedAsyncioTestCase):
             target = await project.sessions.aload(case["target_id"])
             if boundary in ("target_input", "source_receipt", "target_receipt"):
                 self.assertEqual(await target.aconversation(), [])
-                self.assertEqual(TransferLedger.read(source.data)["outgoing"], {})
-                self.assertEqual(TransferLedger.read(target.data)["incoming"], {})
+                self.assertEqual(TransferLedger.read(source.data).to_dict()["outgoing"], {})
+                self.assertEqual(TransferLedger.read(target.data).to_dict()["incoming"], {})
             handle = await source.exchange.send(target.id, "once", recipients=["a"], key="same")
             result = await handle.wait(timeout=15)
             self.assertEqual(len(result["requests"]), 1)

@@ -386,3 +386,90 @@ S1–S7은 변경된 근거 13건을 재검토한 후 146건, new/stale/outstand
 이 구간은 Level 2 로컬 완료다. 전송/후속 구간과 묶은 현재 통합 소스에서 다음 Level 3를 수행한다.
 앞선 `967f6dd` SHA에서 실행 중인 전체 게이트는 이 새 요청 접수 변경의 전체 통과 증거로 재사용하지 않는다.
 문서 검사는 `python -m tests.llm.check_docs --output /workspace/llm-clean-resume/whole-ownership/admission-docs-01.json`으로 exit 0이었다.
+
+## 묶음 2의 전체 게이트와 원격 Push
+
+검증 전용 checkout `/workspace/ish-llm-group2-validation`의 정확한
+`967f6dd933f201232ef2d1896687a7f4b62415df`에서 `whole-owners-group2-l3`를 실행했다.
+LLM 2,344/2,344, Hub 586/586 모두 pass/exit 0이며 Failure/Error/Skip/xfail/xpass/누락/추가/중복은
+모두 0이다. 전체 LLM은 1,246.60초, 전체 Hub는 1,070.62초였다. 두 suite가 같은 고정 소스에서
+실행됐고 source `1837b72cc45d7b089ae3d1372eaf8eb3d75f1ef4df59407abbf1cdc6b2b338c4`,
+input `9c4f9ecfdfa62c84304792075bd2172ca5f8960fb7685f05f7cee8cd93695bcd`는 전후 동일했다.
+Python/host는 앞서 기록한 Clang 3.12.14 및 `d833790959a76ac457fdeea3f21a6bea1eecfe12`다.
+
+실제 명령은 해당 checkout에서 `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group2-l3/llm.json` 및
+같은 명령의 `--suite hub --output /workspace/llm-clean-resume/b/whole-owners-group2-l3/hub.json`이다.
+감독 명령 `python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group2-l3`도 exit 0.
+`TERM=xterm-256color`, LiteLLM local cost map/production, 기존 Xvfb/xclip 경로를 적용했다.
+실제 bwrap namespace 검증이 가능한 동일 호스트 권한에서 실행했다.
+
+같은 SHA의 `group2-auxiliary/`에 S1–S7(146개 검토, 잔여 0), 문서, R3 실제 효과 Mutation,
+실제 SDK offline transport 검사를 보존했으며 각각 exit 0이다. 환경 검사 최초 명령의 잘못된
+`--require-runtime` 인자는 실행 전 CLI에서 exit 2였다(`environment.log`, `results.json`).
+정확한 `--host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --suite llm|hub --output <suite-environment.json>`으로
+환경/격리 검사를 다시 실행해 둘 다 exit 0을 확인했다(`environment-results.json`).
+첫 명령을 성공으로 간주하거나 시험 Skip으로 집계하지 않는다.
+
+원격 main `94229cb865374d99f20ec48c5e48269488041a4e`, refactor/llm-backend
+`bb0946257ab6bcabb9a3ef04d3d854e5333b07d5`, 작업 브랜치의 기존
+`3a32fa0706d5669e9f0e395a04eb40da66655fca`를 먼저 확인했다.
+`git push origin 967f6dd933f201232ef2d1896687a7f4b62415df:refs/heads/refactor/llm-clean`이 exit 0으로
+완료됐다. main/이전 브랜치/Draft PR #1은 변경하지 않았다.
+[해당 SHA의 원격 실행](https://github.com/E1der0wL/ish-llm/actions/runs/39901306599)은 현재 두 필수
+Job의 전체 회귀가 진행 중이다. 아직 원격 성공을 선언하지 않으며 후속 결과를 별도 기록한다.
+새 요청 접수 및 전송 변경은 위 SHA 이후 작업으로, 이 전체 게이트의 완료 증거에 포함하지 않는다.
+
+## 세션 전송 영수증·원장·조회 경로
+
+`runtime/transfer_values.py`가 Source/Intent/Receipt/Inventory, action/direction, deadline,
+content digest/idempotency identity, 권한 callback 및 공개 조회 Projection을 소유한다.
+`runtime/transfers.py`는 검증된 속성·변경 API를 사용해 권한·접수·조회·취소·재개를 조정하고,
+TransferLedger가 파일 I/O를 소유한다. SessionRepository 주입 경계는 기존 JSON/CAS를 유지한다.
+원래 revision을 가진 변경 입력은 커밋된 원장이 아니며 Writer만 새 revision을 만든다.
+원장 Reader는 원본 또는 필수 필드가 없으면 실패한다. 원래 source/target/Message의 트랜잭션,
+ACK 뒤 큐 등록, idempotency·만료·Resume·승인·누적 사용량·효과 보장은 그대로다.
+
+Run metadata 복사와 Conversation clone도 Receipt Owner로 이동했다. Resume/restart의 원본
+Run ID는 RunLink.require_source_id로 필수 증거를 읽으며 누락 시 fallback을 사용하지 않는다.
+공개 snapshot은 원래 JSON이고 내부 취소/재개는 typed Run view를 사용한다. 인가 callback에
+전달하는 접수 전 Intent를 완료된 영수증으로 해석하지 않는다. [현행 계약](session-transfers.md)에
+Owner와 직렬화 경계를 명시했다.
+
+첫 집중 검증 `whole-transfer-01`은 71개 중 70개 pass, error 1이었다. 만료 시간을 주입하는 기존
+시험이 이전 module 함수 경로를 patch해서 AttributeError가 발생했다. 실제 새 Owner의
+TransferDeadline.remaining으로 patch 대상을 바꾸고 세 Resume 경로 모두 clock 검사를 거쳤음을
+추가 단언했다. 원래 승인/예산/효과 횟수/저장 보존 단언은 유지했다. 원래 두 시험 파일의 Assertion
+125개를 AST로 비교했고 직렬화 경계 외에는 유지됐으며 새 단언 1개만 추가했다(`transfer-assertions.json`).
+새 test_transfer_values는 독립 wire/null, 불변 중첩 증거, 원래 CAS revision, 누락/다른 소유자,
+권한/clone Projection, exact version type을 검증한다.
+
+| 실행 | 발견/실행/pass | Failure / Error / Skip | xfail·xpass·누락·추가·중복 | Exit |
+|---|---|---|---|---|
+| whole-transfer-01 | 71/71/70 | 0 / 1 / 0 | 모두 0 | 1 |
+| whole-transfer-02 | 76/76/76 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-transfer-safety-03 | 173/173/173 | 0 / 0 / 0 | 모두 0 | 0 |
+
+각 실행의 실제 명령과 source/input hash:
+
+- `whole-transfer-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-transfer-01/llm.json --modules tests.llm.test_cross_session_requests tests.llm.test_cross_session_crash tests.llm.test_repositories tests.llm.test_conversation_turns tests.llm.test_multi_agent tests.llm.test_multi_agent_parallel tests.llm.test_multi_agent_crash`.
+  source `c8f9971463a779220625be3c720b73b116ce4f2cb969eb269af332fc0d6ecb19`, input `e60bf3411002fcd4e1adb5e669b36204a2b2824933204044dcffca423c1ddc88` 각각 전후 동일.
+- `whole-transfer-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-transfer-02/llm.json --modules tests.llm.test_transfer_values tests.llm.test_cross_session_requests tests.llm.test_cross_session_crash tests.llm.test_repositories tests.llm.test_conversation_turns tests.llm.test_multi_agent tests.llm.test_multi_agent_parallel tests.llm.test_multi_agent_crash`.
+  source `92f7be3255dadb17b8e2a98fb14965e3b702584cd308c7276d942bbf845aa3b7`, input `fbab812474de608d1aab30271740515dd8c4478ea1a7b8939ae2567a205e2b46` 각각 전후 동일.
+- `whole-transfer-safety-03`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-transfer-safety-03/llm.json --modules tests.llm.test_transfer_values tests.llm.test_cross_session_requests tests.llm.test_cross_session_crash tests.llm.test_repositories tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_runtime_reliability tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `e116c7bf0d6cec7e9712dc39c176db18200e3a7ab9aed50fa66e5689dedfbd91`, input `c4193ae85fe01b80764fda8d76e4c5ca091824470f94a92859644123f9598bfa` 각각 전후 동일.
+
+집중 범위는 전송·실제 프로세스 중단/ACK·Repository 주입·대화/복제·다중 Agent/병렬 실행이다.
+최종 안전성 범위는 전송·CAS·승인·예산 삭제·Tool 효과·Checkpoint·RAG·수명/삭제·트랜잭션·
+런타임 장애·정적 감사·전수 inventory다. 환경은 위와 같다. 다른 source의 결과를 하나의 전체
+실행으로 합산하지 않는다. 직접 Hub 소비자의 공개 JSON은 보존했고 다음 묶음의 전체 Hub에서 검증한다.
+
+`transfer-auxiliary.json`의 실제 명령에서 S1–S7·R3·문서가 각각 exit 0이다. 변경된 개별 감사 근거
+13건을 재검토했다. 새 S4 한 건은 JsonValue의 exact int 검증이 Owner의 version 비교보다 먼저
+실행됨을 확인하고 bool/float/null/string/다른 int 거부 시험에 연결했다. 총 147건의 개별 검토,
+new/stale/outstanding/error 0이며 Reader에 중복 타입 검증이나 호환 경로를 추가하지 않았다.
+R3는 실제 효과 횟수 단언 두 개로 mutation을 검출했다.
+
+전송 두 파일의 전체 내용·동적 callback/patch·실제 소비자를 검토해 후보 115개를 개별 분류했다.
+전수 inventory는 448개 파일, 418개 미검토 파일, 31,307개 미분류 후보다. 이는 전수 완료가 아니다.
+이 소단계는 Level 2 완료이며, 요청 접수와 전송을 묶은 고정 SHA에서 전체 LLM/Hub 및 필수 보조
+검증을 실행한다. 전체 성공 전 새 소단계를 원격 완료로 기록하거나 Push하지 않는다.

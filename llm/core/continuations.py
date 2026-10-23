@@ -16,6 +16,11 @@ class RunLink:
         return metadata.get(cls.KEY, {}).get(cls.SOURCE_RUN)
 
     @classmethod
+    def require_source_id(cls, metadata):
+        """Read an existing lineage witness without an absent-field fallback."""
+        return metadata[cls.KEY][cls.SOURCE_RUN]
+
+    @classmethod
     def remove(cls, metadata):
         """Used on detached clone context, never to delete execution evidence."""
         metadata.pop(cls.KEY, None)

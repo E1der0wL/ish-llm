@@ -108,14 +108,13 @@ class SessionRepository:
     def read_transfers(self, session):
         """Required current ledger, owned by the selected Session Repository."""
         from llm.services.runtime.transfers import TransferLedger
-        return TransferLedger.read(session)
+        return TransferLedger.read(session).to_dict()
 
     def write_transfers(self, session, value):
         """Replace under workspace transaction/CAS; never initialize on update."""
         from llm.services.runtime.transfers import TransferLedger
         current = self.read_transfers(session)
-        if value.get("revision") != current["revision"]:
-            raise ValueError("Transfer ledger changed; reload its original revision")
+        TransferLedger.validate(session, current).require_update(value)
         TransferLedger.write(session, value)
 
     # 공개 API

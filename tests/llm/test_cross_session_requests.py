@@ -235,7 +235,7 @@ class CrossSessionTests(unittest.IsolatedAsyncioTestCase):
         source = self.source.data
         path = TransferLedger.path(source)
         original = path.read_bytes()
-        ledger = TransferLedger.read(source)
+        ledger = TransferLedger.read(source).to_dict()
         ledger["outgoing"].clear()
         with self.app.project_manager.ownership.scope():
             TransferLedger.write(source, ledger)
@@ -267,7 +267,7 @@ class CrossSessionTests(unittest.IsolatedAsyncioTestCase):
         messages = await clone.aconversation()
         self.assertTrue(any("cloned_transfer" in m.metadata for m in messages))
         self.assertFalse(any("transfer" in m.metadata for m in messages))
-        self.assertEqual(TransferLedger.read(clone.data)["incoming"], {})
+        self.assertEqual(TransferLedger.read(clone.data).to_dict()["incoming"], {})
         await clone.run.start()
         await clone.run.wait_idle()
         self.assertEqual(self.effects_read(), ["a"])
@@ -282,8 +282,8 @@ class CrossSessionTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(TransferLedger, "write", side_effect=fail), self.assertRaises(OSError):
             await self.send()
         self.assertEqual(await self.target.aconversation(), [])
-        self.assertEqual(TransferLedger.read(self.source.data)["outgoing"], {})
-        self.assertEqual(TransferLedger.read(self.target.data)["incoming"], {})
+        self.assertEqual(TransferLedger.read(self.source.data).to_dict()["outgoing"], {})
+        self.assertEqual(TransferLedger.read(self.target.data).to_dict()["incoming"], {})
         self.assertEqual(self.effects_read(), [])
         await (await self.send()).wait(timeout=10)
         self.assertEqual(self.effects_read(), ["a"])
@@ -376,12 +376,14 @@ class CrossSessionTests(unittest.IsolatedAsyncioTestCase):
         interaction, = await run.ainteractions(pending_only=True)
         await run.arespond(interaction.respond("approve"))
         # The durable deadline is unchanged; only the clock crossing is injected.
-        with patch("llm.services.runtime.transfers.remaining", side_effect=TransferExpired("expired")):
+        with patch("llm.services.runtime.transfer_values.TransferDeadline.remaining",
+                   side_effect=TransferExpired("expired")) as clock:
             for operation in (lambda: handle.resume(run.id, agent_id="loop"),
                               lambda: target.run.resume(run.id, agent_id="loop")):
                 with self.assertRaises(ValueError):
                     await operation()
             self.assertFalse((await target.run.resume_plan(run.id, agent_id="loop")).can_resume)
+            self.assertGreaterEqual(clock.call_count, 3, "Expiry was not checked on every resume path")
         self.assertEqual(len(await target.run.alist()), 1)
         self.assertEqual(len(model.requests), 1)
         self.assertEqual(self.effects_read(), [])
@@ -422,7 +424,7 @@ class CrossSessionTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(recipients=recipients), self.assertRaises((ValueError, TypeError)):
                 await self.source.exchange.send(self.target.id, "no", recipients=recipients, key="bad")
         self.assertEqual(await self.target.aconversation(), [])
-        self.assertEqual(TransferLedger.read(self.source.data)["outgoing"], {})
+        self.assertEqual(TransferLedger.read(self.source.data).to_dict()["outgoing"], {})
         self.assertEqual(self.effects_read(), [])
 
     async def test_schema_fields_versions_and_cross_owner_evidence_are_required(self):
@@ -440,9 +442,9 @@ class CrossSessionTests(unittest.IsolatedAsyncioTestCase):
             candidate["revision"] = revision_token({k: v for k, v in candidate.items() if k != "revision"})
             with self.subTest(version=version), self.assertRaises(ValueError):
                 TransferReceipt.read(candidate)
-        self.assertEqual(TransferReceipt.read(value), value)
+        self.assertEqual(TransferReceipt.read(value).to_dict(), value)
         with self.assertRaises(ValueError):
-            TransferLedger.validate(self.target.data, TransferLedger.read(self.source.data))
+            TransferLedger.validate(self.target.data, TransferLedger.read(self.source.data).to_dict())
 
     async def test_memory_storage_cannot_claim_durable_transport(self):
         await self.setup_app()

@@ -630,5 +630,757 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/services/runtime/transfers.py",
+    "sha256": "6bf41b67f34d1747ffad1e1db6825c6c1bc494eef7bf0f2469f033ee3fcf243d",
+    "reason": "Read the entire transfer Owner and every product, repository extension, callback, fault injection and raw-wire consumer. Intent/source/receipt/inventory and observation schemas have single declarations and typed internal consumers; JSON appears only at authorization, storage, clone and facade boundaries. Source/target receipts, exact history/Run witnesses, original CAS revision, deadline, idempotency, no-replay, transaction/ACK and actual effects assertions are retained. Declaration-only classification is occurrence-specific; neighboring modules are not approved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "03615ec83b280e50d07af4a86445c7ae4d9b3ea97e1264be5480d6300f4a8e17",
+        "classification": "declaration",
+        "owner": "TransferLedger",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "8c0c05114600a23d9740abc9405e643896ff0076c560d95873a5c2281ac9a411",
+        "classification": "declaration",
+        "owner": "TransferLedger",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "86b9722de91df8e982cd99d347dead050393f2a4831631dbde6f3d245f7a3d46",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "1a4ffdd2fd9514cac496ded6cdeb104f48b00d924270237276e2c50322abfc74",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "16b5bc1bf8f3dab68f69644df42d355e518fb2c96731fb2b309f452f37dc96e9",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "0beefb2cbe32a2e67148079c5d46d046a12d30188cfe641c3e2904f209940a7f",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "de2153b898056fc947ca6fb09699854149559b5d4421d2d428d9adb55edfbafd",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "814206116d82c5ac7e4a16a689f532727ee7365529b066e75ac488389b424f98",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "e9d249fc865a2d37472b5f5ad761dd94af9270afae7a50d22d93c86c44842ffc",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "082c0577cd12e305a3638d589ac3efe3085ec2137170f33e1bcce82f35c9cb98",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "cf7d6cc887c07a92d735ee509c1107553e7cdbe4c42886c15d6a12ba18dcddeb",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "9276e02e20b799b34d1314459e0574ab048aca67f9e417934d94d906cf19517b",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "b689f5af866aa3f77132e1f43c83603a665629c936f5d208002a052793bb075c",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "a79f6526382742d740addb6338d6835a0347bed023357dddbde84347604ec8d7",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "3a44e9587ee1972cdf74ab2ce90dfef489c71c977fc382228d27e906335b0b80",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "7b6f200eb435d2cb669019a93ff756e8254eb79953e5eba6ba56f0f1973b30f2",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "2c62e9a1436ea070ab7b71fdd5cf9dd5870c1d92286cbdf0f94a5bca7f593916",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "29dcf983cebd3494d19f4407d764c888fb001e6d9d389411588e43fb7753a118",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "935f2c493ed675030dc0bd3fd1a5641587d747167f59d508a6389b7055166858",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "86f42fe62703e7fb562fd31c2e428097fcf8423efce1c268afe0d5afdf4a5d2c",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "a251b1ae8c62ba7ef1d9a8d50087d9666bee1afb2b47052ad42e7c88019057f7",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "18dfefe162987c758a54cf12aeacdbe235ae8b6b6b633207c8cbf6237647d597",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "360d95bb4d68f81f7d66627e6da3382182d12cdae4fada960e175ac010f9a99a",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "a8b6c785c229a824e7b623489a533458b64ecb1a562dc86355f40360d497dcae",
+        "classification": "declaration",
+        "owner": "TransferRecords",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "26a63e44c7c198bcfdd02c97ae1ea8098508cf4d97fc7ee83afa04ddf39327c1",
+        "classification": "declaration",
+        "owner": "TransferAdmission",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "da66d754efeced637041edd32c98645b7c8323bfd46b5549a71728e5fd99b2c7",
+        "classification": "declaration",
+        "owner": "TransferAdmission",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "113327f529cc6b69e9b02b049b21bc053e689909596722173fa9dc21e5779032",
+        "classification": "declaration",
+        "owner": "TransferAdmission",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "15c6fcfb448e6afdda913136e96fb11c3e0630395fc7c5b81ed7343dca9b45a8",
+        "classification": "declaration",
+        "owner": "TransferAdmission",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "145b9e5b3598091d6b500c6e3e613e79d8644647c35c5446ccfe5099a06a7dfb",
+        "classification": "declaration",
+        "owner": "TransferHandle",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "3a7d6d94c45c15c1405b98cf42edfb04a550f95b969fd9c90796170b575dee06",
+        "classification": "declaration",
+        "owner": "TransferHandle",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "b2cc75f93dd1cb1db5cfe7e142b652967330216e2d09cc8b29fea796e83639f0",
+        "classification": "declaration",
+        "owner": "TransferHandle",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "0038ecb6a21b5f6d8d5dc63a4e7722edadda67957df9175fbfe401052714fbde",
+        "classification": "declaration",
+        "owner": "TransferHandle",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "801e9413d13fe4ab6971345b93253fd70f01ce2920789da45668e8680720f110",
+        "classification": "non_contract",
+        "owner": "Cancellation boolean reduction",
+        "reason": "Identity value for OR-reducing actual cancel operation results, including an empty collection. It does not declare a Run status, grant cancellation permission or change a saved record."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Transfer value Owners / TransferLedger / TransferRecords / TransferAdmission / SessionExchange / TransferHandle",
+        "declaration": [
+          "llm/services/runtime/transfer_values.py",
+          "llm/services/runtime/transfers.py"
+        ],
+        "consumers": [
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/context.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/llm/test_transfer_values.py",
+          "tests/llm/test_cross_session_requests.py",
+          "tests/llm/test_cross_session_crash.py",
+          "tests/llm/test_repositories.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/transfer_values.py",
+    "sha256": "10bf63d6c2c9d361cdcbf6cc7b8adf15e0695883cc1cc48fd23f8ca68ff3fd0d",
+    "reason": "Read the entire transfer Owner and every product, repository extension, callback, fault injection and raw-wire consumer. Intent/source/receipt/inventory and observation schemas have single declarations and typed internal consumers; JSON appears only at authorization, storage, clone and facade boundaries. Source/target receipts, exact history/Run witnesses, original CAS revision, deadline, idempotency, no-replay, transaction/ACK and actual effects assertions are retained. Declaration-only classification is occurrence-specific; neighboring modules are not approved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7cb7b99f94242408411a41177d79002da1ba49ee1f0bc73ddeccce5d89745d3e",
+        "classification": "declaration",
+        "owner": "TransferExpired",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "9387ca36166929d548e37325d1606be5b9901ca6fd992456795e883814ba9687",
+        "classification": "declaration",
+        "owner": "TransferDenied",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "07ded6e9cdde0b4ca8d2114730fe5f3d871a5acb2d33fd4ee2bd0a67cea043e1",
+        "classification": "declaration",
+        "owner": "TransferAction",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "1ed9b92198c02823bc67978fb8dfe72db29f1948a85be61be3b81accd20caa67",
+        "classification": "declaration",
+        "owner": "TransferAction",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "ea18f94477d4522cc614ad366d9b23f1ef28c6cf91c295f892bf3ab045280462",
+        "classification": "declaration",
+        "owner": "TransferAction",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "32aa13a92bd784271704a742a050b026db5e123585302f36a5959c9bfa7ed4e9",
+        "classification": "declaration",
+        "owner": "TransferAction",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "e89c9928605f6a78914cbce93ee44e21885748b64e934f95a106d714083ca20f",
+        "classification": "declaration",
+        "owner": "TransferAction",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "62bace8bf8f20d9ee654579c6aa7a997d41bfcf5aa2e9f28869bad8631df17fc",
+        "classification": "declaration",
+        "owner": "TransferAction",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "a515f8d4a9347d8905f34c23ab94c6c4e8700ad13169211d72e62c7fff17843b",
+        "classification": "declaration",
+        "owner": "TransferDirection",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "7e756091fae8061faab995ad1c9103ac8121c48ca6b6e8a3318a5eb669e5e174",
+        "classification": "declaration",
+        "owner": "TransferDirection",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "f57fbaebaad230f63139ce13aa9fad23a77e8c21858ef93ac749c93b06f51b54",
+        "classification": "declaration",
+        "owner": "TransferDeadline",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "5709713a5dee9ad72c8f34fc7b2251a94dec7c2bb319e9a2730ffc0f1721e476",
+        "classification": "declaration",
+        "owner": "TransferDeadline",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "c3f39e0ba526106bd841a8bec6f36fd25fdf53b87bf83f3d08eb58eb10669a6c",
+        "classification": "declaration",
+        "owner": "TransferDeadline",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "474cda2bcfa81154ee1ce5c9a5e6b32dd76b15edd7d155a5c082d776e4d616e4",
+        "classification": "declaration",
+        "owner": "TransferDeadline",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "50416cb4f56c73c312432837d789d04cdffbbb9917a00589b7d9a538db67dd59",
+        "classification": "declaration",
+        "owner": "TransferDeadline",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "92a9ba5cfbd307b1042e27346bbdab4f795f710dcc231a10369478e3463c0a83",
+        "classification": "declaration",
+        "owner": "TransferDeadline",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "a2a5faf619fef6941f986b8cb3f15152cad320afb2f827cef58f0f76fc353a01",
+        "classification": "non_contract",
+        "owner": "datetime.utcoffset protocol",
+        "reason": "Python datetime returns None for a naive timestamp. The Owner tests this external protocol result and rejects it; it does not supply a time zone, timeout or stored default."
+      },
+      {
+        "id": "2ee7d87605f869588b2ad7c7fb3d9c05dd31ea3b1792b5fcdab82f9959ca1de7",
+        "classification": "declaration",
+        "owner": "TransferIdentity",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "8fd5904c361e2b5cb53dae92e34efbc3dcc7e6de0db51d181d92f08d7dab73af",
+        "classification": "declaration",
+        "owner": "TransferContent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "7bf0e4bedbbdd1b050be2d8b4a251b22866fa282ae22e30edb9b200b9b96437c",
+        "classification": "declaration",
+        "owner": "TransferContent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "7c368375ea134ebdef3181c9e239c541b61f681fa000cf2cf9c009c566ac35ad",
+        "classification": "declaration",
+        "owner": "TransferContent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "24e528b097d70c04169a1e1ca5211d56115387a574dd207becc5c071a2063997",
+        "classification": "declaration",
+        "owner": "TransferContent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "ea32b52562e01ef8c472d2ba471fc3954dd4d2d8a2c43affb55860d66848af35",
+        "classification": "declaration",
+        "owner": "TransferContent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "c43171285aad85eb64397b14477ea8b3dd25dcf3d4160a224538de698b23c380",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "0d3e72873cb663428554a5f533361f5c0a15fe4e3ad45d3d7737afd851617f92",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "9202c182775538bbfeb80d31edcbaf8abd54af483f27e0f42515033661d86c42",
+        "classification": "declaration",
+        "owner": "TransferSource",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "818ceb141796affc4534ccf3e382e1c91c0439fbe0f6b6374dc1909ee4512ee4",
+        "classification": "declaration",
+        "owner": "TransferSource",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "970f95f8f66be19f74f0b966ce1e7b104b41b565a6ff9591742b6db1e87bad89",
+        "classification": "declaration",
+        "owner": "TransferSource",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "12901747de6eaf6b6563f2bff0b655e15f3edb5c6d1bc9d7fc7cb180ec38a83f",
+        "classification": "declaration",
+        "owner": "TransferSource",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "b50446bdee80ddd56e8e9684a66ddd3f679b30d8c7b941c955e67d33f9dec752",
+        "classification": "declaration",
+        "owner": "TransferSource",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "aab01ff9b8a4369a1def0cfa64bbb00839d89da130306c4eb19cfd3a69a310c3",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "6df77dcdc5b82a76d4b9e215771f9c955830e7b4fe273066fee49a2fac44ef9c",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "81aa65e7b15ec8e3c66dbd4cb24c9bb943506bfb2ae40e8d47f26aea019f4bab",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "e67e2a88e4a78a7f7c63f7ef2495f156e576931b7e1e1593f823f2c6596d5cc6",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "782a49bdd8ec5bba99943aa71ca79d5a07f5b02ebb4b2b58b83c907c9f607be8",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "00b684a23ffa9de52dacf460315fe9db238ae58d123914c6008ee70202fae9b3",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "dfabd75fed686e853f20022781a84e00bd1f69e3f37a156d36aa59bb76e0871f",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "1c80c650f5aef7a4173280a658dcfc966c3219501f8b03adeee7f8c8a602e914",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "e70d04e0a3992d72b80febcc841be89bff36083214afd3a10ac6143ba12af70a",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "4c2e17ea244f20e442242c1001ff849a58652f3a77b57fdd9939341e96e552e3",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "2cd2d721c79fb25649e18927ae5a40ff11e2d9122ad45ef7972996f9b3cd74eb",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "68ee2024a2df2bb61f9e1917ff80327993fad2d2d3e4763a9615052d5ccf8e00",
+        "classification": "declaration",
+        "owner": "TransferIntent",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "730719a1dde6c2962fd244279a82e5900f1ac12ca5faa777981ef01626c724a4",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "9c77d507cfa5764613a4e3f228bfe224aa1cd859fcf5a98da48eb337e8036a21",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "d3870e50eb91b3b17a31b0ad98f4d39ff1cfce74d2d290a9ea5a9fa94d0973a1",
+        "classification": "declaration",
+        "owner": "TransferReceipt",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "d541a6a7c7fe8eb6af5cef87aace70a6c6cd5e459a7d23673f4eb8d74347369c",
+        "classification": "declaration",
+        "owner": "TransferReceipt",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "b71aa0f6ccaea494fc161a95386a16bc9b9084e82cbde5625271fa959440e2be",
+        "classification": "declaration",
+        "owner": "TransferReceipt",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "925fa0c4979b9a8b832ef9a57570e88ff2b2d3128afef773de88b23353d7a92c",
+        "classification": "declaration",
+        "owner": "TransferReceipt",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "46f6d7a70f4d211c14759f839fe07ff2d4ed4a7ede7ef211d50a82170d9c1485",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "5256eb0d8e3f25ad050413eb0397abfaa4db52f3611edf70a36cfe3456f1ed31",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "0d7e8abbd95f1b3101c053ae21390dd08419f476f4452a3aee395e61cea73a88",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "46a6cf72eaf8ff25c9902b65918454d91fb886c1c4627b9bbc7aac0b93ef449a",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "f58190183bf1fbb2710fa4b1be32450a623d6973d8223ea361508b3ca13eb88a",
+        "classification": "declaration",
+        "owner": "TransferAuthorization",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "7b824aba5fe28f9b0081451ae5a47f0761ef835b5a4133d5352f729c89659b58",
+        "classification": "declaration",
+        "owner": "TransferAuthorization",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "f1fe9da65fb53efc2c93e7016258a66fb49bacb9111729a64a3c6f744a913816",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "22085ef15c8a83902dd800c48789ce768160d6f4e789997479db13fbd408f4ae",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "157713ac19f1daef1a4b36e5ff9e2e175a0ed337f31c5000e00c4f3b76f57395",
+        "classification": "declaration",
+        "owner": "TransferSessionView",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "83a42f8c3349f17dc033317b3f07a9db3816f200b9cb36881dc1891e83858979",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "e7163567ec77bfc88501860f455f609af6668a1e7526eef1fe71ab508f0a45bc",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "a610a2d2c9bfeb232bfeda7a099fc8c686347260498b09c1e410bc3f16724ed2",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "eba7fb129b5f51c9ebc5597c5d54b2b42e5fc595c522750655b045a9dbca2547",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "852940eaa2279e32e4438d6d26a97b5ba6ef5e4eb4c15d1127b5d7ad0a9463ca",
+        "classification": "declaration",
+        "owner": "TransferRunView",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "af72484151cbecd398b36ea9c4f28dd17ef4b0ed6b4c7b6974911bf3663a3d96",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "ee55c0576743617b0e3c5b6b6ecd30d77a97f09a0951a9224edcf744a429a881",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "11db61684a99bdc59635e1bd0f3220478f691402b11b5f266ffaaab7f2b54ad7",
+        "classification": "declaration",
+        "owner": "TransferRequestView",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "f99fc4d041a1ac741aa002ed2f444a45d0fe4d9f4942aefa15068cafe124fc58",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "be0a7557369f52bcecd19fad15ace4e5198378f09009330a1ac4e387d5cc8a65",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "7907aaf05727201ec459b751f01a078962102f13df9883d7e9112d1218be2f51",
+        "classification": "declaration",
+        "owner": "TransferSnapshot",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "081472456240c4ebcde6883b0d6ea433e5fa1ed5eb3a114e526c69e87d48d04b",
+        "classification": "declaration",
+        "owner": "TransferSnapshot",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "400fcb9e1f256850cbe9a81477706d40adea4d68e7ec9da55644dce940cad3df",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "86c6b754c1925a8e84eda82854480bd5150bc6508e835f0a6cd6fc0125fcb35a",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "2d5a58f28e29057af53f6aff9bef12e90197f4a2bc358d59e9b7b521fbce5c96",
+        "classification": "non_contract",
+        "owner": "Python dataclass storage",
+        "reason": "Class declaration decorator chooses frozen slots and, for the private inventory snapshot, validating factory construction. This is language-level class generation, not a persisted field or execution policy literal."
+      },
+      {
+        "id": "2403cbfb3a0f79265d08f44c8c4c047cef4435405f988f474888397f21b34834",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "747eb1d8702a5fc7ce22c06518faaf31ba1d8a95987ae727a9d2f748e7c94ac2",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "f7d770f8b320605f53611b782a4590fcfa193b2a606cb636090d0b8d13e40864",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "0013bab18152afa7bc3784c9527c444e4b178ea5005ca017ba719b9777786ea8",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "2a2048203574d4e9c241a9bef61765fc6e139a107a0a357b21e60a34b3119a40",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "8ab6c0d7c816febf546a0c7b1eece70eaf145396fcab7346bd7fccb1ac8ba324",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "53ada69f7df0ada23909d5313fb4f983fc1814e58eff6fc04b9db6fcf0acd809",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "ba10f368590f1182f488078fb3e42325614e4247b9014577a9dc285f276e8e20",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "345dfaa465acc6a0d7873e8a968c638a430931dcbc22b78a7140956bd47f07cb",
+        "classification": "declaration",
+        "owner": "TransferInventory",
+        "reason": "Canonical field/type, action, direction, version, identifier format, default, error or file declaration at its sole owning class before execution methods; consumers use types and Owner APIs."
+      },
+      {
+        "id": "527471b5f63cc1f65e2913bc6eb668e8ee035128d0415e2328b6ebe3ca335109",
+        "classification": "non_contract",
+        "owner": "Python dict.pop removal result",
+        "reason": "Ignored removal result in the creation/update Writer before assigning the new digest; no missing Reader evidence is replaced. Repository CAS remains separate and requires the original revision."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Transfer value Owners / TransferLedger / TransferRecords / TransferAdmission / SessionExchange / TransferHandle",
+        "declaration": [
+          "llm/services/runtime/transfer_values.py",
+          "llm/services/runtime/transfers.py"
+        ],
+        "consumers": [
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/context.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/llm/test_transfer_values.py",
+          "tests/llm/test_cross_session_requests.py",
+          "tests/llm/test_cross_session_crash.py",
+          "tests/llm/test_repositories.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

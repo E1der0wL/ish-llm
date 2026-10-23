@@ -6,108 +6,28 @@ capability. Neither transport nor recovery retries execution.
 
 from llm.core.continuations import RestartRecord, ResumeRecord
 
-from copy import deepcopy
 from datetime import datetime, timezone
-import hashlib
 import inspect
-from pathlib import Path
 
-from llm.core.models import ConversationStorage, MessageRole, MessageStatus, ProjectConfig, RunStatus, SessionStatus
-from llm.errors import CodedError
+from llm.core.models import ConversationStorage, MessageRole, MessageStatus, SessionStatus
 from llm.services.infrastructure.storage import (
-    atomic_json, async_method, child, drain_on_cancel, read_json, reject_links, revision_token,
+    atomic_json, async_method, drain_on_cancel, read_json, reject_links,
 )
 from llm.services.runtime.requests import RequestAdmission
 
-
-class TransferExpired(CodedError, ValueError):
-    code = "transfer_expired"
-
-
-class TransferDenied(CodedError, PermissionError):
-    code = "transfer_denied"
-
-
-def deadline_value(value):
-    if value is None:
-        return None
-    if not isinstance(value, str):
-        raise TypeError("Transfer deadline must be timezone-aware ISO text")
-    stamp = datetime.fromisoformat(value)
-    if stamp.utcoffset() is None:
-        raise ValueError("Transfer deadline requires a timezone")
-    return stamp.astimezone(timezone.utc).isoformat()
-
-
-def remaining(value):
-    if value is None:
-        return None
-    seconds = (datetime.fromisoformat(value) - datetime.now(timezone.utc)).total_seconds()
-    if seconds <= 0:
-        raise TransferExpired("Session transfer deadline expired")
-    return seconds
-
-
-def transfer_id(project_id, session_id, key):
-    if not isinstance(key, str) or not key.strip():
-        raise ValueError("Transfer idempotency key must be nonempty text")
-    return revision_token([project_id, session_id, key])
-
-
-def content_digest(content):
-    if not isinstance(content, str):
-        raise TypeError("Transfer content must be text")
-    return hashlib.sha256(content.encode()).hexdigest()
-
-
-class TransferReceipt:
-    SCHEMA_VERSION = 1
-    FIELDS = frozenset(("schema_version", "id", "source", "target_session_id", "recipients",
-        "key", "content_digest", "deadline", "chain", "target_message_id", "accepted_at", "revision"))
-
-    @classmethod
-    def read(cls, value):
-        if (not isinstance(value, dict) or value.keys() != cls.FIELDS
-                or type(value["schema_version"]) is not int or value["schema_version"] != cls.SCHEMA_VERSION):
-            raise ValueError("Transfer requires every current receipt field")
-        ProjectConfig.validate_json(value)
-        source = value["source"]
-        if not isinstance(source, dict) or source.keys() != {"project_id", "session_id", "run_id", "agent_id", "message_id"}:
-            raise ValueError("Transfer source requires complete identity")
-        for identifier in (source["project_id"], source["session_id"], value["target_session_id"], value["target_message_id"]):
-            child(Path("."), identifier)
-        if source["run_id"] is None:
-            if source["agent_id"] is not None or source["message_id"] is not None:
-                raise ValueError("Host source cannot claim a Run identity")
-        else:
-            child(Path("."), source["run_id"])
-            child(Path("."), source["message_id"])
-            RequestAdmission.identifiers([source["agent_id"]])
-        if value["recipients"] != RequestAdmission.identifiers(value["recipients"]):
-            raise ValueError("Transfer recipients must be canonical")
-        chain = value["chain"]
-        if (not isinstance(chain, list) or len(chain) < 2 or any(not isinstance(v, str) for v in chain)
-                or len(set(chain)) != len(chain) or chain[-2:] != [source["session_id"], value["target_session_id"]]):
-            raise ValueError("Transfer cycle or inconsistent lineage")
-        for identifier in chain:
-            child(Path("."), identifier)
-        for name in ("deadline", "accepted_at"):
-            if value[name] != deadline_value(value[name]):
-                raise ValueError("Transfer timestamps must be canonical UTC")
-        if value["accepted_at"] is None or value["id"] != transfer_id(source["project_id"], source["session_id"], value["key"]):
-            raise ValueError("Transfer identity mismatch")
-        digest = value["content_digest"]
-        if not isinstance(digest, str) or len(digest) != 64 or any(v not in "0123456789abcdef" for v in digest):
-            raise ValueError("Invalid transfer content digest")
-        if value["revision"] != revision_token({k: v for k, v in value.items() if k != "revision"}):
-            raise ValueError("Transfer receipt revision mismatch")
-        return deepcopy(value)
+from llm.services.runtime.transfer_values import (
+    TransferAction, TransferAuthorization, TransferContent, TransferDeadline, TransferDenied,
+    TransferDirection, TransferExpired, TransferIdentity, TransferIntent, TransferInventory,
+    TransferReceipt, TransferRequestView, TransferResultView, TransferRunView, TransferSessionView,
+    TransferSnapshot, TransferSource,
+)
 
 
 class TransferLedger:
-    """Required inventory, initialized only by creation; reads never repair it."""
-    SCHEMA_VERSION = 1
+    """Required inventory storage; creation and CAS updates retain separate boundaries."""
+
     FILE = "transfers.json"
+    ALREADY_EXISTS = "Transfer ledger already exists"
 
     @classmethod
     def path(cls, session):
@@ -115,42 +35,23 @@ class TransferLedger:
 
     @classmethod
     def empty(cls, session):
-        """Creation-only document for any Repository; never a reader fallback."""
-        value = {"schema_version": cls.SCHEMA_VERSION, "project_id": session.project_id,
-                 "session_id": session.id, "outgoing": {}, "incoming": {}}
-        value["revision"] = revision_token(value)
-        return cls.validate(session, value)
+        """Creation-only Repository document; never a reader fallback."""
+        return TransferInventory.empty(project_id=session.project_id, session_id=session.id).to_dict()
 
     @classmethod
     def initialize(cls, session):
         if cls.path(session).exists():
-            raise ValueError("Transfer ledger already exists")
+            raise ValueError(cls.ALREADY_EXISTS)
         cls.write(session, cls.empty(session))
 
     @classmethod
     def write(cls, session, value):
-        value = deepcopy(value)
-        value.pop("revision", None)
-        value["revision"] = revision_token(value)
-        cls.validate(session, value)
-        atomic_json(cls.path(session), value)
+        committed = TransferInventory.committed(value, project_id=session.project_id, session_id=session.id)
+        atomic_json(cls.path(session), committed.to_dict())
 
     @classmethod
     def validate(cls, session, value):
-        if (not isinstance(value, dict) or value.keys() != {"schema_version", "project_id", "session_id", "outgoing", "incoming", "revision"}
-                or type(value["schema_version"]) is not int or value["schema_version"] != cls.SCHEMA_VERSION
-                or (value["project_id"], value["session_id"]) != (session.project_id, session.id)
-                or value["revision"] != revision_token({k: v for k, v in value.items() if k != "revision"})):
-            raise ValueError("Transfer ledger ownership, fields or revision mismatch")
-        for direction in ("outgoing", "incoming"):
-            if not isinstance(value[direction], dict):
-                raise ValueError("Transfer inventory must be an object")
-            for identifier, raw in value[direction].items():
-                receipt = TransferReceipt.read(raw)
-                owner = receipt["source"]["session_id"] if direction == "outgoing" else receipt["target_session_id"]
-                if identifier != receipt["id"] or owner != session.id or receipt["source"]["project_id"] != session.project_id:
-                    raise ValueError("Transfer inventory entry belongs to another owner")
-        return deepcopy(value)
+        return TransferInventory.read(value, project_id=session.project_id, session_id=session.id)
 
     @classmethod
     def read(cls, session):
@@ -158,31 +59,54 @@ class TransferLedger:
 
 
 class TransferRecords:
-    def __init__(self, sessions, authorize=None):
-        if authorize is not None and not callable(authorize):
-            raise TypeError("Transfer authorizer must be callable")
+    NO_AUTHORIZER = None
+    LIVE_STORAGE = False
+    INCLUDE_DELETED = True
+    PORTABLE_HISTORY = True
+
+    INVALID_AUTHORIZER = "Transfer authorizer must be callable"
+    CROSS_PROJECT = "Transfer cannot cross Project ownership"
+    DELETED_SESSION = "Transfer requires live Sessions"
+    INVALID_AUTHORIZATION_RESULT = "Transfer authorizer must return a literal boolean synchronously"
+    DENIED_ACTION = "Session transfer denied: "
+    CONTINUATION_CYCLE = "Transfer continuation cycle"
+    ORIGINAL_MESSAGE_MISMATCH = "Transfer original Message identity mismatch"
+    LOST_PROVENANCE = "Transfer continuation lost its original provenance"
+    DUPLICATE_RECEIPT = "Duplicate transfer receipt"
+    INVENTORY_MISMATCH = "Transfer source and target inventories disagree"
+    TARGET_MISMATCH = "Transfer target differs from the accepted request"
+    SOURCE_MISMATCH = "Transfer source Run identity changed"
+    ANCESTRY_MISMATCH = "Transfer ancestry differs from its stored source"
+    MISSING_RECEIPT = "Transfer input has no matching receipt"
+    RUN_EVIDENCE_MISMATCH = "Run lost its original transfer evidence"
+    PROTECTED_HISTORY = "Session history is required by a retained transfer receipt"
+    MISSING_ORIGIN = "Transfer origin is missing or belongs to another Session"
+    INPUT_MISMATCH = "Run transport differs from its input"
+
+    def __init__(self, sessions, authorize=NO_AUTHORIZER):
+        if authorize is not self.NO_AUTHORIZER and not callable(authorize):
+            raise TypeError(TransferRecords.INVALID_AUTHORIZER)
         self.sessions, self.authorize = sessions, authorize
 
     def ledger(self, session):
         return TransferLedger.validate(session, self.sessions.repository.read_transfers(session))
 
-    def access(self, project, source, target, action, value=None):
+    def access(self, project, source, target, action, value=TransferAuthorization.ABSENT_RECEIPT):
         project = self.sessions.require_project(project)
         source, target = (self.sessions.load(project, s.id) for s in (source, target))
         if source.project_id != project.id or target.project_id != project.id:
-            raise TransferDenied("Transfer cannot cross Project ownership")
+            raise TransferDenied(TransferRecords.CROSS_PROJECT)
         if source.status == SessionStatus.DELETED or target.status == SessionStatus.DELETED:
-            raise TransferDenied("Transfer requires live Sessions")
-        if self.authorize is not None:
-            allowed = self.authorize({"action": action, "project_id": project.id,
-                "source_session_id": source.id, "target_session_id": target.id,
-                "receipt": deepcopy(value)})
+            raise TransferDenied(TransferRecords.DELETED_SESSION)
+        if self.authorize is not self.NO_AUTHORIZER:
+            allowed = self.authorize(TransferAuthorization(action, project.id, source.id, target.id,
+                value.to_dict() if value is not TransferReceipt.ABSENT else TransferAuthorization.ABSENT_RECEIPT).to_dict())
             if inspect.iscoroutine(allowed):
                 allowed.close()
             if type(allowed) is not bool:
-                raise TypeError("Transfer authorizer must return a literal boolean synchronously")
+                raise TypeError(TransferRecords.INVALID_AUTHORIZATION_RESULT)
             if not allowed:
-                raise TransferDenied("Session transfer denied: " + action)
+                raise TransferDenied(TransferRecords.DENIED_ACTION + action)
         return project, source, target
 
     @staticmethod
@@ -191,120 +115,125 @@ class TransferRecords:
         visited, descendants = set(), []
         while ResumeRecord.KEY in message.metadata or RestartRecord.KEY in message.metadata:
             if message.id in visited:
-                raise ValueError("Transfer continuation cycle")
+                raise ValueError(TransferRecords.CONTINUATION_CYCLE)
             visited.add(message.id)
             descendants.append(message)
-            link = message.metadata[ResumeRecord.KEY] if ResumeRecord.KEY in message.metadata else message.metadata[RestartRecord.KEY]
-            message = messages[runs[link["run_id"]].input_message_id]
-        origin = message.metadata.get("transfer")
-        if origin is not None:
-            origin = TransferReceipt.read(origin)
-            if origin["target_message_id"] != message.id:
-                raise ValueError("Transfer original Message identity mismatch")
-        if any(m.metadata.get("transfer") != origin for m in descendants):
-            raise ValueError("Transfer continuation lost its original provenance")
+            source_id = (ResumeRecord.require_source_id(message.metadata) if ResumeRecord.KEY in message.metadata
+                         else RestartRecord.require_source_id(message.metadata))
+            message = messages[runs[source_id].input_message_id]
+        origin = TransferReceipt.from_metadata(message.metadata)
+        if origin is not TransferReceipt.ABSENT:
+            if origin.target_message_id != message.id:
+                raise ValueError(TransferRecords.ORIGINAL_MESSAGE_MISMATCH)
+        if any(TransferReceipt.from_metadata(m.metadata) != origin for m in descendants):
+            raise ValueError(TransferRecords.LOST_PROVENANCE)
         return origin
 
-    def validate_project(self, project, *, archive=False):
+    def validate_project(self, project, *, archive=LIVE_STORAGE):
         from llm.services.history.conversation import ConversationStore
         sessions = (self.sessions.repository.read_backup(project) if archive else
-                    self.sessions.repository.list(project, include_deleted=True))
+                    self.sessions.repository.list(project, include_deleted=self.INCLUDE_DELETED))
         owners = {s.id: s for s in sessions}
         ledgers = {s.id: TransferLedger.read(s) if archive else self.ledger(s) for s in sessions}
         values, incoming = {}, {}
         for ledger in ledgers.values():
-            for direction, destination in (("outgoing", values), ("incoming", incoming)):
-                for identifier, value in ledger[direction].items():
+            for direction, destination in ((TransferDirection.OUTGOING, values), (TransferDirection.INCOMING, incoming)):
+                for identifier, value in ledger.entries(direction).items():
                     if identifier in destination:
-                        raise ValueError("Duplicate transfer receipt")
+                        raise ValueError(TransferRecords.DUPLICATE_RECEIPT)
                     destination[identifier] = value
         if values != incoming:
-            raise ValueError("Transfer source and target inventories disagree")
+            raise ValueError(TransferRecords.INVENTORY_MISMATCH)
         stores = {s.id: ConversationStore(s.paths.conversation) if archive else self.sessions.conversations(s) for s in sessions}
         messages = {sid: {m.id: m for m in store.list()} for sid, store in stores.items()}
-        involved = {sid for value in values.values() for sid in (value["source"]["session_id"], value["target_session_id"])}
+        involved = {sid for value in values.values() for sid in (value.source.session_id, value.target_session_id)}
         # A surviving input is also a witness when both inventory entries were lost.
-        involved.update(sid for sid, rows in messages.items() if any("transfer" in m.metadata for m in rows.values()))
+        involved.update(sid for sid, rows in messages.items() if any(TransferReceipt.present(m.metadata) for m in rows.values()))
         runs = {}
         for sid in involved:
             records = (self.sessions.run_repository.read_backup(owners[sid]) if archive else self.sessions.run_repository.list(owners[sid]))
-            RequestAdmission.history(list(messages[sid].values()), records, project_id=project.id, session_id=sid, persistent=True)
+            RequestAdmission.history(list(messages[sid].values()), records, project_id=project.id, session_id=sid, persistent=self.PORTABLE_HISTORY)
             runs[sid] = {run.id: run for run in records}
         for value in values.values():
-            source, target = value["source"]["session_id"], value["target_session_id"]
-            original = messages[target][value["target_message_id"]]
+            source, target = value.source.session_id, value.target_session_id
+            original = messages[target][value.target_message_id]
             admission = RequestAdmission.read(original, project_id=project.id, session_id=target)
-            if (original.metadata.get("transfer") != value or original.conversation_deleted
-                    or content_digest(original.content) != value["content_digest"] or admission.recipients != value["recipients"]):
-                raise ValueError("Transfer target differs from the accepted request")
-            chain = [source]
-            if value["source"]["run_id"] is not None:
-                run = runs[source][value["source"]["run_id"]]
+            if (TransferReceipt.from_metadata(original.metadata) != value or original.conversation_deleted
+                    or TransferContent.digest(original.content) != value.content_digest or tuple(admission.recipients) != value.recipients):
+                raise ValueError(TransferRecords.TARGET_MISMATCH)
+            chain = (source,)
+            if value.source.run_id is not TransferSource.HOST_REFERENCE:
+                run = runs[source][value.source.run_id]
                 message = messages[source][run.input_message_id]
-                if run.agent_id != value["source"]["agent_id"] or message.id != value["source"]["message_id"] or message.conversation_deleted:
-                    raise ValueError("Transfer source Run identity changed")
+                if run.agent_id != value.source.agent_id or message.id != value.source.message_id or message.conversation_deleted:
+                    raise ValueError(TransferRecords.SOURCE_MISMATCH)
                 parent = self.lineage(message, messages[source], runs[source])
-                if parent is not None:
-                    chain = parent["chain"]
-            if value["chain"] != [*chain, target]:
-                raise ValueError("Transfer ancestry differs from its stored source")
+                if parent is not TransferReceipt.ABSENT:
+                    chain = parent.chain
+            if value.chain != (*chain, target):
+                raise ValueError(TransferRecords.ANCESTRY_MISMATCH)
         for sid in involved:
             for message in messages[sid].values():
                 if message.role != MessageRole.USER or not RequestAdmission.present(message):
                     continue
                 value = self.lineage(message, messages[sid], runs[sid])
-                if value is not None and (values.get(value["id"]) != value or value["target_session_id"] != sid):
-                    raise ValueError("Transfer input has no matching receipt")
+                if value is not TransferReceipt.ABSENT and (values.get(value.id) != value or value.target_session_id != sid):
+                    raise ValueError(TransferRecords.MISSING_RECEIPT)
                 for run in RequestAdmission.runs(message, list(runs[sid].values()), project_id=project.id, session_id=sid):
-                    if run.metadata.get("transfer") != value:
-                        raise ValueError("Run lost its original transfer evidence")
-        return deepcopy(values)
+                    if TransferReceipt.from_metadata(run.metadata) != value:
+                        raise ValueError(TransferRecords.RUN_EVIDENCE_MISMATCH)
+        return dict(values)
 
     def validate_session(self, project, session, messages):
         ledger = self.ledger(session)
-        if ledger["incoming"] or ledger["outgoing"] or any("transfer" in m.metadata for m in messages):
+        if ledger.populated or any(TransferReceipt.present(m.metadata) for m in messages):
             self.validate_project(project)
 
     def protected(self, project):
         return {sid for value in self.validate_project(project).values()
-                for sid in (value["source"]["session_id"], value["target_session_id"])}
+                for sid in (value.source.session_id, value.target_session_id)}
 
     def require_unreferenced(self, project, session):
         if session.id in self.protected(project):
-            raise ValueError("Session history is required by a retained transfer receipt")
+            raise ValueError(TransferRecords.PROTECTED_HISTORY)
 
     def origin(self, project, session, message):
-        value = message.metadata.get("transfer")
-        if value is not None:
-            value = TransferReceipt.read(value)
-            if self.validate_project(project).get(value["id"]) != value or value["target_session_id"] != session.id:
-                raise ValueError("Transfer origin is missing or belongs to another Session")
+        value = TransferReceipt.from_metadata(message.metadata)
+        if value is not TransferReceipt.ABSENT:
+            if self.validate_project(project).get(value.id) != value or value.target_session_id != session.id:
+                raise ValueError(TransferRecords.MISSING_ORIGIN)
         return value
 
-    def execution(self, project, session, run, *, action="execute"):
+    def execution(self, project, session, run, *, action=TransferAction.EXECUTE):
         message = self.sessions.conversations(session).get(run.input_message_id)
         self.validate_session(project, session, [message])
-        value = message.metadata.get("transfer")
-        if run.metadata.get("transfer") != value:
-            raise ValueError("Run transport differs from its input")
-        if value is None:
-            return None
-        source = self.sessions.load(project, value["source"]["session_id"])
+        value = TransferReceipt.from_metadata(message.metadata)
+        if TransferReceipt.from_metadata(run.metadata) != value:
+            raise ValueError(TransferRecords.INPUT_MISMATCH)
+        if value is TransferReceipt.ABSENT:
+            return TransferDeadline.ABSENT
+        source = self.sessions.load(project, value.source.session_id)
         self.access(project, source, session, action, value)
-        return remaining(value["deadline"])
+        return TransferDeadline.remaining(value.deadline)
 
     def continuation(self, project, session, run):
-        self.execution(project, session, run, action="resume")
-        return {"transfer": deepcopy(run.metadata["transfer"])} if "transfer" in run.metadata else {}
+        self.execution(project, session, run, action=TransferAction.RESUME)
+        return TransferReceipt.require(run.metadata).metadata() if TransferReceipt.present(run.metadata) else {}
 
 
 class TransferAdmission:
     """Validated intent used only inside RunManager's ordinary admission transaction."""
+
+    PORTABLE_STORAGE_REQUIRED = "Session transfer requires portable file conversation storage"
+    CYCLE = "Session transfer cycle"
+    CONCURRENT_ADMISSION = "Transfer was admitted concurrently"
+    NOT_ACCEPTED = None
+
     def __init__(self, exchange, target_id, content, recipients, key, source_run_id, deadline):
         self.exchange, self.target_id, self.content = exchange, target_id, content
         self.recipients, self.key = RequestAdmission.identifiers(recipients), key
-        self.source_run_id, self.deadline = source_run_id, deadline_value(deadline)
-        content_digest(content)
+        self.source_run_id, self.deadline = source_run_id, TransferDeadline.read(deadline)
+        TransferContent.digest(content)
 
     def prepare(self):
         from llm.services.history.conversation import ConversationStore
@@ -312,50 +241,45 @@ class TransferAdmission:
         project, source = session.project.data, session.data
         target = records.sessions.load(project, self.target_id)
         if project.conversation_storage != ConversationStorage.FILE or any(not isinstance(records.sessions.conversations(s), ConversationStore) for s in (source, target)):
-            raise ValueError("Session transfer requires portable file conversation storage")
+            raise ValueError(TransferAdmission.PORTABLE_STORAGE_REQUIRED)
         values = records.validate_project(project)
-        identity = {"project_id": project.id, "session_id": source.id, "run_id": self.source_run_id,
-                    "agent_id": None, "message_id": None}
-        chain = [source.id]
-        if self.source_run_id is not None:
+        identity = TransferSource.host(project.id, source.id)
+        chain = (source.id,)
+        if self.source_run_id is not TransferSource.HOST_REFERENCE:
             run = records.sessions.run_repository.load(source, self.source_run_id)
             message = records.sessions.conversations(source).get(run.input_message_id)
             RequestAdmission.runs(message, records.sessions.run_repository.list(source), project_id=project.id, session_id=source.id)
-            identity.update(agent_id=run.agent_id, message_id=message.id)
+            identity = TransferSource.from_run(project.id, source.id, run)
             origin = records.origin(project, source, message)
-            if origin is not None:
-                chain = origin["chain"]
+            if origin is not TransferReceipt.ABSENT:
+                chain = origin.chain
         if target.id in chain:
-            raise ValueError("Session transfer cycle")
-        intent = {"schema_version": TransferReceipt.SCHEMA_VERSION, "id": transfer_id(project.id, source.id, self.key),
-            "source": identity, "target_session_id": target.id, "recipients": self.recipients, "key": self.key,
-            "content_digest": content_digest(self.content), "deadline": self.deadline, "chain": [*chain, target.id]}
-        records.access(project, source, target, "send", intent)
+            raise ValueError(TransferAdmission.CYCLE)
+        intent = TransferIntent(TransferIntent.SCHEMA_VERSION,
+            TransferIdentity.create(project.id, source.id, self.key), identity, target.id,
+            tuple(self.recipients), self.key, TransferContent.digest(self.content), self.deadline, (*chain, target.id))
+        records.access(project, source, target, TransferAction.SEND, intent)
         return project, source, target, intent, values
 
     def existing(self):
         _, _, target, intent, values = self.prepare()
-        existing = values.get(intent["id"])
-        if existing is None:
-            return None
-        if any(existing[key] != value for key, value in intent.items()):
-            raise ValueError("Transfer idempotency key conflicts with its original payload")
-        return self.exchange.records.sessions.conversations(target).get(existing["target_message_id"])
+        existing = values.get(intent.id)
+        if existing is self.NOT_ACCEPTED:
+            return self.NOT_ACCEPTED
+        intent.require_same_payload(existing)
+        return self.exchange.records.sessions.conversations(target).get(existing.target_message_id)
 
     def persist(self, message):
         _, source, target, intent, values = self.prepare()
-        if intent["id"] in values:
-            raise ValueError("Transfer was admitted concurrently")
-        remaining(intent["deadline"])
-        value = {**intent, "target_message_id": message.id, "accepted_at": datetime.now(timezone.utc).isoformat()}
-        value["revision"] = revision_token(value)
-        value = TransferReceipt.read(value)
+        if intent.id in values:
+            raise ValueError(TransferAdmission.CONCURRENT_ADMISSION)
+        TransferDeadline.remaining(intent.deadline)
+        value = TransferReceipt.accept(intent, message.id, datetime.now(timezone.utc).isoformat())
         store = self.exchange.records.sessions.conversations(target)
-        store.update_metadata(message.id, {"transfer": value})
-        for owner, direction in ((source, "outgoing"), (target, "incoming")):
+        store.update_metadata(message.id, value.metadata())
+        for owner, direction in ((source, TransferDirection.OUTGOING), (target, TransferDirection.INCOMING)):
             ledger = self.exchange.records.ledger(owner)
-            ledger[direction][value["id"]] = value
-            self.exchange.records.sessions.repository.write_transfers(owner, ledger)
+            self.exchange.records.sessions.repository.write_transfers(owner, ledger.with_receipt(direction, value))
         return store.get(message.id)
 
 
@@ -375,9 +299,9 @@ class SessionExchange:
             self.app._check_open()
             project, source = self.session.project.data, self.session.data
             target = self.records.sessions.load(project, target_session_id)
-            _, _, target = self.records.access(project, source, target, "inspect")
+            _, _, target = self.records.access(project, source, target, TransferAction.INSPECT)
             self.records.validate_project(project)
-            return {"session_id": target.id, "title": target.title, "agent_ids": list(target.agent_ids)}
+            return TransferSessionView(target.id, target.title, tuple(target.agent_ids)).to_dict()
 
     ainspect = async_method(inspect)
 
@@ -388,7 +312,7 @@ class SessionExchange:
 
     aget = async_method(get)
 
-    async def send(self, target_session_id, content, *, recipients, key, source_run_id=None, deadline=None):
+    async def send(self, target_session_id, content, *, recipients, key, source_run_id=TransferSource.HOST_REFERENCE, deadline=TransferDeadline.ABSENT):
         admission = TransferAdmission(self, target_session_id, content, recipients, key, source_run_id, deadline)
         _, _, target, _, _ = await self._async_call(admission.prepare)
         await self.app._manager(target).submit_transfer(admission)
@@ -396,6 +320,11 @@ class SessionExchange:
 
 
 class TransferHandle:
+    UNLIMITED_WAIT = None
+    ALL_RUNS = None
+
+    QUERY_CHANGED = "Transfer changed during query"
+    UNRELATED_RUN = "Run does not belong to this transfer"
     def __init__(self, exchange, key):
         self.exchange, self.key, self.app = exchange, key, exchange.app
 
@@ -405,16 +334,16 @@ class TransferHandle:
     def _current(self, action):
         self.app._check_open()
         project, source = self.exchange.session.project.data, self.exchange.session.data
-        identifier = transfer_id(project.id, source.id, self.key)
+        identifier = TransferIdentity.create(project.id, source.id, self.key)
         # Authorize using source-owned identity before reading target contents.
-        value = self.exchange.records.ledger(source)["outgoing"][identifier]
-        target = self.exchange.records.sessions.load(project, value["target_session_id"])
+        value = self.exchange.records.ledger(source).entries(TransferDirection.OUTGOING)[identifier]
+        target = self.exchange.records.sessions.load(project, value.target_session_id)
         self.exchange.records.access(project, source, target, action, value)
         values = self.exchange.records.validate_project(project)
         if values[identifier] != value:
-            raise ValueError("Transfer changed during query")
+            raise ValueError(TransferHandle.QUERY_CHANGED)
         messages = [m for m in self.exchange.records.sessions.conversations(target).list()
-                    if m.metadata.get("transfer") == value]
+                    if TransferReceipt.from_metadata(m.metadata) == value]
         return value, target, messages
 
     def _snapshot(self, action):
@@ -425,49 +354,48 @@ class TransferHandle:
             store = self.exchange.records.sessions.conversations(target)
             for message in messages:
                 runs = RequestAdmission.runs(message, records, project_id=target.project_id, session_id=target.id)
-                requests.append({"message_id": message.id, "status": str(message.status), "run_ids": [r.id for r in runs]})
+                requests.append(TransferRequestView(message.id, str(message.status), tuple(r.id for r in runs)))
                 for run in runs:
                     response = store.get(run.assistant_message_id)
-                    rows.append({"run_id": run.id, "agent_id": run.agent_id, "status": str(run.status),
-                        "input_message_id": run.input_message_id, "error_code": run.error_code,
-                        "result": {"message_id": response.id, "text": response.content, "status": str(response.status)}})
-            return {"receipt": deepcopy(value), "requests": requests, "runs": rows}
+                    rows.append(TransferRunView(run.id, run.agent_id, str(run.status), run.input_message_id,
+                        run.error_code, TransferResultView(response.id, response.content, str(response.status))))
+            return TransferSnapshot(value, tuple(requests), tuple(rows))
 
     def snapshot(self):
-        return self._snapshot("query")
+        return self._snapshot(TransferAction.QUERY).to_dict()
 
     asnapshot = async_method(snapshot)
 
-    async def wait(self, *, timeout=None):
+    async def wait(self, *, timeout=UNLIMITED_WAIT):
         import asyncio
         async def complete():
-            _, target, messages = await self._async_call(self._current, "query")
+            _, target, messages = await self._async_call(self._current, TransferAction.QUERY)
             for message in messages:
                 if message.status != MessageStatus.CANCELLED:
                     await self.app._manager(target).wait_request(message.id)
             return await self.asnapshot()
         return await asyncio.wait_for(complete(), timeout=timeout)
 
-    async def cancel(self, *, run_id=None):
+    async def cancel(self, *, run_id=ALL_RUNS):
         async def apply():
-            _, target, messages = await self._async_call(self._current, "cancel")
+            _, target, messages = await self._async_call(self._current, TransferAction.CANCEL)
             manager = self.app._manager(target)
-            rows = (await self._async_call(self._snapshot, "cancel"))["runs"]
-            if run_id is not None:
-                if run_id not in {r["run_id"] for r in rows}:
-                    raise ValueError("Run does not belong to this transfer")
+            rows = (await self._async_call(self._snapshot, TransferAction.CANCEL)).runs
+            if run_id is not self.ALL_RUNS:
+                if run_id not in {r.run_id for r in rows}:
+                    raise ValueError(TransferHandle.UNRELATED_RUN)
                 return await manager.cancel_run(run_id)
             changed = False
             for message in messages:
                 changed = await manager.cancel_request(message.id) or changed
-            for row in (await self._async_call(self._snapshot, "cancel"))["runs"]:
-                changed = await manager.cancel_run(row["run_id"]) or changed
+            for row in (await self._async_call(self._snapshot, TransferAction.CANCEL)).runs:
+                changed = await manager.cancel_run(row.run_id) or changed
             return changed
         return await drain_on_cancel(apply())
 
     async def resume(self, run_id, **options):
-        _, target, _ = await self._async_call(self._current, "resume")
-        if run_id not in {r["run_id"] for r in (await self._async_call(self._snapshot, "resume"))["runs"]}:
-            raise ValueError("Run does not belong to this transfer")
+        _, target, _ = await self._async_call(self._current, TransferAction.RESUME)
+        if run_id not in {r.run_id for r in (await self._async_call(self._snapshot, TransferAction.RESUME)).runs}:
+            raise ValueError(TransferHandle.UNRELATED_RUN)
         await self.app._manager(target).resume(run_id, **options)
         return self

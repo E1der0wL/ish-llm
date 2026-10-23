@@ -1323,9 +1323,9 @@ class RunManager:
         # Service dispatch fact, not an effects guarantee after execution.
         # Records without this field remain unknown; never backfill them.
         run.metadata["execution_started"] = False
-        if "transfer" in message.metadata:
-            from llm.services.runtime.transfers import TransferReceipt
-            run.metadata["transfer"] = TransferReceipt.read(message.metadata["transfer"])
+        from llm.services.runtime.transfer_values import TransferReceipt
+        if TransferReceipt.present(message.metadata):
+            run.metadata.update(TransferReceipt.require(message.metadata).metadata())
         if RestartRecord.KEY in message.metadata:
             run.metadata[RestartRecord.KEY] = deepcopy(message.metadata[RestartRecord.KEY])
         if ResumeRecord.KEY in message.metadata:

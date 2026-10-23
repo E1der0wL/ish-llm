@@ -83,3 +83,23 @@ Reader는 원본이 없으면 실패한다. Writer는 전달받은 원래 revisi
 durable 전송을 제공할 수 없다. Service는 주입된 Repository를 파일 경로로 우회하지 않는다.
 Portable archive는 archive 소유 경로의 현재 파일 형식을 직접 검증한다. Component의 독립
 `history_references`는 외부 저장소를 계속 지원하며 실제 retention 경로에서만 Session 전송 참조를 합친다.
+
+## 내부 값과 직렬화 Owner
+
+`runtime/transfer_values.py`의 TransferSource·TransferIntent·TransferReceipt는 출처, 접수 전
+의도, 접수 후 불변 증거를 구분한다. 공통 필드는 Intent에 한 번 선언하고 Receipt가 접수 Message·
+시각·revision을 추가한다. dataclass 필드에서 Reader/Writer를 생성하며 정확한 타입 검증을
+현재 version 비교보다 먼저 수행한다. Receipt Reader는 전달받은 원시 기록의 revision도 검증한다.
+부분 Intent나 clone provenance를 실행 영수증으로 읽지 않는다. 수신자와 chain은 내부 tuple이며
+공개/저장 JSON에서는 기존 배열이다. source의 host 참조 null과 deadline 생략/null 계약은 그대로다.
+
+TransferInventory는 필수 원장의 해석·소유권·revision을, TransferLedger는 실제 파일 I/O를
+소유한다. Service는 typed entry·출처·수신자·변경 API를 사용한다. `with_receipt`는 검증한 새
+내용과 **원래 revision**을 Repository CAS 입력으로 직렬화한다. 이 입력은 아직 커밋된 원장이
+아니다. Repository가 원본 CAS를 확인한 뒤 Writer만 새 revision을 계산한다. Reader는 이를
+대신 계산하거나 누락 필드를 보충하지 않는다. 주입 Repository의 기존 JSON/CAS 계약은 유지한다.
+
+전송 권한 callback과 조회 응답은 TransferAuthorization·TransferSessionView·TransferSnapshot 및
+하위 view의 경계에서 직렬화한다. 취소/재개는 그 내부 속성을 사용하며 공개 JSON을 다시 읽지 않는다.
+deadline·content digest·idempotency identity·action·원장 방향의 선언도 각 Owner에 둔다.
+값 객체 도입은 실행 권한, 재시도, 저장 경로/형식 또는 원장·Message의 트랜잭션 경계를 변경하지 않는다.
