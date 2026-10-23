@@ -152,6 +152,19 @@ Graph의 AgentNode.instruction_engine은 등록 Engine의 `steering_mode=CONSUME
 선언을 유지해야 한다. 경로 열거·반복/분기 해석은 Graph가 소유한다.
 같은 실행 scope를 여러 번 결합하거나 열면 거부한다.
 
+Run 채널의 필수 필드와 검증은 `SteeringChannel`이 소유한다. 일반 채널의 accepting,
+mode, input_message_id, targets, root_opened, routes, bindings, routes_declared는 모두
+필수다. 세 flag는 정확한 boolean이어야 하며 mode·원본 입력 ID·route/target/binding의
+무결성도 조회와 저장 전에 같은 Reader에서 확인한다. 필드 누락을 빈 채널로 복원하지 않는다.
+기존 명시적 Resume의 정확한 `{accepting: false}` 일시 중지 표지만 별도 유효 상태이며,
+숫자 0이나 일부 필드만 남은 손상 레코드는 이 표지로 해석하지 않는다. 거부 시 원본은 보존한다.
+
+Message 수신 영수증의 상태 전이·application·집계는 `InstructionReceipt`와
+`InstructionMessageRecord`, 이벤트와 부분 변경 통지는 `SteeringEventData`와
+`SteeringNotification`이 소유한다. runtime은 이 Owner의 타입·Projection·전이를 호출한다.
+선택 Checkpoint의 Tool 사용량 부착도 `ToolUsageCheckpoint`에 위임하며 저장 ACK 전후의
+효과 순서를 유지한다. 부분 통지의 생략과 빈 목록은 구별한다.
+
 ## Graph 전달과 명시적 재개
 
 Graph는 `FORWARD`다. AgentNode가 호출별 채널을 만들고 체크포인트 bridge를 통해

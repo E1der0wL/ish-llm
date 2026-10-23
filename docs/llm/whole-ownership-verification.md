@@ -2458,3 +2458,45 @@ RAG 파일은 이번 관찰 경로만 바뀌었으므로 전체 완료로 기록
 공통 JsonValue의 넓은 영향 때문에 이 단계까지 고정한 gate19 전체 LLM/Hub·정적·문서·R3·
 환경 검증으로 승격한다. 통과 전 전체 검증 완료/Push로 기록하지 않는다. 진행 중인 8ae9aa6
 원격 CI는 이전 소스에만 적용한다. 이후 작업도 llm/ 우선, Hub 추가 구현은 이후라는 순서를 지킨다.
+
+
+## llm 추가 지시 Owner 전수 정리·필수 채널 무결성 보강 (2026-10-23)
+
+SteeringScope/Target·InstructionCheckpoint, InstructionApplication/Receipt/MessageRecord,
+SteeringChannel/EventData/Notification과 runtime 경계 전체를 읽고 선언·소비·동적 ID 경로를
+대조했다. 필수 필드/상태 집합·미결합/생략·pending 조회·진단은 Owner 선언을 사용한다.
+서비스의 Tool 사용량 부착은 기존 검증을 가진 ToolUsageCheckpoint로 위임했다. 정상 영수증·
+알림·저장 형식·예약/선택/반영·저장 ACK/효과 순서는 유지하며 Hub 제품은 변경하지 않았다.
+
+ea1a441의 일반 Run 채널은 필수 필드가 누락돼도 일부 조회가 성공했고 정확한 boolean 대신
+truthy 값과 Resume 표지의 숫자 0을 허용했다. 기존 data-lifecycle의 누락/손상 거부 계약에 따라
+Reader/저장 전 검증을 보강했다. 8개 필드·3개 flag·mode·원본 입력 ID와 기존 target/route/binding
+검증을 모든 투영 이전에 수행한다. 기존의 정확한 accepting=false 단독 Resume 표지는 유지한다.
+누락을 복구하지 않으며 새로운 저장 형식이나 호환 경로는 없다.
+
+수정 전 독립 시험 2개에서 실패 Assertion 41개/exit 1을 보존했다(missing-fields-before.log).
+실제 Run 파일의 각 필드를 손상시키는 추가 시험은 조회·예약 거부, 원본 바이트 불변, 지시/모델
+효과 0을 확인한다. 시험만 원본 fixture를 복원한 뒤 정상 예약은 모델 1회·지시 반영 1회다.
+기존 중복 scope 시험은 불완전 fixture를 정상 전체 필드로 보강하고 정확한 기존 오류 문구까지
+확인해 다른 누락 오류로 가려지지 않게 했다. 원래 안전성 Assertion은 유지했다.
+
+정상 동작 비교는 ea1a441 대비 checkpoint 42, receipt 68, channel snapshot 18,
+notification 6, Tool 사용량 부착 16개에서 결과/예외·원본 사본이 동일하다. 비교 스크립트의
+초기 fixture가 중복 scope를 구성해 실패한 로그도 보존하고, 서로 다른 정상 수신 대상으로
+바로잡아 비교했다. 제품 검증을 완화하지 않았다. 집중 전 smoke 91개 pass/exit 0(53.933초),
+실제 파일/중복 scope 2개 pass/exit 0(1.634초)이며 이후 mode/input 시험까지 엄격 실행에 포함했다.
+
+- `whole-steering-closure-01`: 발견/시작/pass 172/172/172, exit 0, 114.844182초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-steering-closure-01/llm.json --modules tests.llm.test_steering_values tests.llm.test_instruction_values tests.llm.test_instruction_reservations tests.llm.test_loop_steering tests.llm.test_engine_steering tests.llm.test_checkpoint_values tests.llm.test_graph_checkpoints tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `5feae868604c9e3505a79ac689ab4c3ddd93ac4c5b90bdb10768e107a13aabfe`, input `ee0393b083668c32d2e067e16ec6d644925ece43fa06d23fe0a2c35174828338`.
+
+- `whole-steering-closure-hub-01`: 발견/시작/pass 33/33/33, exit 0, 128.416747초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-steering-closure-hub-01/hub.json --modules tests.hub.test_features tests.hub.test_approval_continuation tests.hub.test_provider_recovery`. source `5feae868604c9e3505a79ac689ab4c3ddd93ac4c5b90bdb10768e107a13aabfe`, input `ee0393b083668c32d2e067e16ec6d644925ece43fa06d23fe0a2c35174828338`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. Python 3.12.14/
+Clang·Host d833790·고정 의존성·namespace/X11 환경을 유지했다. 직접 Engine/Graph/Loop·
+Checkpoint/승인·예산·효과·RAG·수명주기 및 Hub 실제 소비자를 검증했다. 정적 발생 119개 동일,
+바뀐 의존 검토 26개만 갱신했다. 정적·문서·R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다.
+
+5개 파일의 전체 검토와 동적 경로를 기록했다. 현재 486개 중 미검토 313,
+미분류 24072, incomplete 2개다. 이 수치는 전수 완료가 아니다.
+발견한 필수 상태 무결성 문제 때문에 이 수정본은 Level 3 gate20으로 승격한다. 실행 중이던
+이전 ea1a441 gate19는 끝까지 실행하되 이 결함 수정이 없으므로 해당 SHA의 Push를 보류한다.
+현재 수정본 전체 회귀 통과 후에만 Push하며 원격 정확한 SHA 결과도 별도 확인한다.

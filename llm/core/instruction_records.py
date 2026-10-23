@@ -18,10 +18,11 @@ class InstructionApplication:
         TIME = "time"
         STEP_ID = "step_id"
 
+    REQUIRED_TEXT = (Field.RUN_ID, Field.BOUNDARY, Field.TARGET_ID, Field.TIME)
+
     def __init__(self, value):
         if (not isinstance(value, dict)
-                or any(not _text(value.get(key)) for key in (self.Field.RUN_ID, self.Field.BOUNDARY,
-                                                           self.Field.TARGET_ID, self.Field.TIME))
+                or any(not _text(value.get(key)) for key in self.REQUIRED_TEXT)
                 or self.Field.STEP_ID not in value
                 or value[self.Field.STEP_ID] is not None and not _text(value[self.Field.STEP_ID])):
             raise InstructionDataError(self.INVALID)
@@ -72,6 +73,9 @@ class InstructionReceipt:
         EXECUTION_ID = "execution_id"
         REASON = "reason"
 
+    STATUSES = (InstructionStatus.PENDING, InstructionStatus.APPLIED, InstructionStatus.UNAPPLIED)
+    UNBOUND = None
+
     def __init__(self, value):
         self._value = deepcopy(value)
         self._validate()
@@ -80,7 +84,7 @@ class InstructionReceipt:
         value = self._value
         if (not isinstance(value, dict) or not _text(value.get(self.Field.ID)) or self.Field.SCOPE not in value
                 or value[self.Field.SCOPE] is not None and not _text(value[self.Field.SCOPE])
-                or value.get(self.Field.STATUS) not in (InstructionStatus.PENDING, InstructionStatus.APPLIED, InstructionStatus.UNAPPLIED)
+                or value.get(self.Field.STATUS) not in self.STATUSES
                 or not isinstance(value.get(self.Field.APPLICATIONS), list)):
             raise InstructionDataError(self.INVALID_FIELDS)
         if self.reserved:
@@ -104,9 +108,9 @@ class InstructionReceipt:
 
     @classmethod
     def reserve(cls, identifier, route):
-        return cls({cls.Field.ID: identifier, cls.Field.SCOPE: None,
+        return cls({cls.Field.ID: identifier, cls.Field.SCOPE: cls.UNBOUND,
                     cls.Field.STATUS: InstructionStatus.PENDING, cls.Field.APPLICATIONS: [],
-                    cls.Field.RESERVATION: route.to_dict(), cls.Field.EXECUTION_ID: None})
+                    cls.Field.RESERVATION: route.to_dict(), cls.Field.EXECUTION_ID: cls.UNBOUND})
 
     @property
     def id(self):
@@ -230,9 +234,11 @@ class InstructionMessageRecord:
         APPLICATIONS = "applications"
         REASON = "reason"
 
+    REQUIRED_TEXT = (Field.RUN_ID, Field.INPUT_MESSAGE_ID)
+
     def __init__(self, value):
         if (not isinstance(value, dict)
-                or any(not _text(value.get(key)) for key in (self.Field.RUN_ID, self.Field.INPUT_MESSAGE_ID))):
+                or any(not _text(value.get(key)) for key in self.REQUIRED_TEXT)):
             raise InstructionDataError(self.INVALID_OWNER)
         raw = value.get(self.Field.TARGETS)
         if not isinstance(raw, list) or not raw:

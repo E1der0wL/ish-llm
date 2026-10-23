@@ -3,6 +3,7 @@
 from copy import deepcopy
 from dataclasses import dataclass, fields
 from enum import StrEnum
+from typing import ClassVar
 
 from llm.core.json_data import JsonObject
 from .steering import SteeringTarget, SteeringRoute, RunInstruction
@@ -128,16 +129,18 @@ class SteeringEventData:
 class SteeringNotification:
     """Partial change notification: omitted collections do not mean empty state."""
 
-    instructions: tuple[RunInstruction, ...] | None = None
-    targets: tuple[SteeringTarget, ...] | None = None
-    routes: tuple[SteeringRoute, ...] | None = None
+    OMITTED: ClassVar[None] = None
+
+    instructions: tuple[RunInstruction, ...] | None = OMITTED
+    targets: tuple[SteeringTarget, ...] | None = OMITTED
+    routes: tuple[SteeringRoute, ...] | None = OMITTED
 
     def __post_init__(self):
         for item in fields(self):
             values = getattr(self, item.name)
-            if values is not None:
+            if values is not self.OMITTED:
                 object.__setattr__(self, item.name, deepcopy(tuple(values)))
 
     def to_dict(self):
         return {item.name: [value.to_dict() for value in getattr(self, item.name)]
-                for item in fields(self) if getattr(self, item.name) is not None}
+                for item in fields(self) if getattr(self, item.name) is not self.OMITTED}

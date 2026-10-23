@@ -4,7 +4,7 @@ from copy import deepcopy
 import json
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Optional
+from typing import ClassVar, Optional
 
 from .contracts import JsonValue
 from .models import Message, MessageRole, MessageStatus
@@ -12,6 +12,10 @@ from llm.errors import CodedError
 
 
 INSTRUCTION_INPUT_STATUS = "input"
+
+
+class SteeringScope:
+    ROOT = None
 
 
 class InstructionDataError(ValueError, CodedError):
@@ -28,7 +32,7 @@ def _text(value):
     return isinstance(value, str) and bool(value.strip())
 
 
-@dataclass(frozen=True, init=False)
+@dataclass(frozen=True, slots=True, init=False)
 class InstructionCheckpoint:
     """The instruction payload owner, including its scope and original message IDs."""
 
@@ -57,13 +61,13 @@ class InstructionCheckpoint:
     def read(cls, value):
         if (not cls.is_record(value) or value.get(cls.Field.STATUS) != INSTRUCTION_INPUT_STATUS
                 or cls.Field.TARGET_SCOPE not in value
-                or value[cls.Field.TARGET_SCOPE] is not None and not _text(value[cls.Field.TARGET_SCOPE])):
+                or value[cls.Field.TARGET_SCOPE] is not SteeringScope.ROOT and not _text(value[cls.Field.TARGET_SCOPE])):
             raise InstructionDataError(cls.INVALID_IDENTITY)
         ids = value.get(cls.Field.MESSAGE_IDS)
         if not isinstance(ids, list) or any(not _text(v) for v in ids) or len(set(ids)) != len(ids):
             raise InstructionDataError(cls.INVALID_MESSAGES)
         result = object.__new__(cls)
-        object.__setattr__(result, "_value", deepcopy(value))
+        object.__setattr__(result, cls._value.__name__, deepcopy(value))
         return result
 
     @property
@@ -139,15 +143,16 @@ class SteeringTarget(JsonValue):
 
     INVALID_STATE = "target identity/state"
     INVALID_DESCRIPTOR = "target descriptor"
+    CLOSED: ClassVar[bool] = False
 
     id: str
     run_id: str
     engine: str
     mode: SteeringMode
-    scope: Optional[str] = None
+    scope: Optional[str] = SteeringScope.ROOT
     node_id: Optional[str] = None
     node_path: Optional[str] = None
-    accepting: bool = False
+    accepting: bool = CLOSED
     reason: Optional[str] = None
 
     def __post_init__(self):

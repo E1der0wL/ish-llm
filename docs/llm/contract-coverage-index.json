@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 486,
-    "unreviewed_files": 318,
+    "unreviewed_files": 313,
     "stale_files": 0,
-    "unclassified": 24277,
+    "unclassified": 24072,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 320,
+    "unreviewed_dynamic_paths": 315,
     "unreadable_files": 0,
-    "candidates": 28940,
+    "candidates": 28932,
     "issues": 0
   },
   "files": [
@@ -2175,9 +2175,9 @@
     },
     {
       "path": "llm/core/instruction_records.py",
-      "status": "unreviewed",
-      "sha256": "e3e4ba4d935deb8c81823d5d5743c4a0de12f2f40af3dc1dd30160211ebde898",
-      "candidates": 60
+      "status": "reviewed",
+      "sha256": "a8876ce6b8f88a37f119264c24a85b453685af3913089e4a6ee0f671c7c9550e",
+      "candidates": 59
     },
     {
       "path": "llm/core/interactions.py",
@@ -2253,21 +2253,21 @@
     },
     {
       "path": "llm/core/steering.py",
-      "status": "unreviewed",
-      "sha256": "fe0fb12d023fa7ac222e0487e451f8eed3734b3c8eb26eb4fbc5016253dfe802",
-      "candidates": 47
+      "status": "reviewed",
+      "sha256": "1ad27b0103faa488cc756fbaeaa6f306d8a5c8fcba937e084f7e0c2dcff613c4",
+      "candidates": 46
     },
     {
       "path": "llm/core/steering_channel.py",
-      "status": "unreviewed",
-      "sha256": "e9ad950801470f88fd85e907afcc6a432e60b087c8bde4a59142a7e2a6e8a497",
-      "candidates": 33
+      "status": "reviewed",
+      "sha256": "f0ed1fde7721b9b83a576794111a487ac532d38ea9a79d7e00652ccd2bf07223",
+      "candidates": 34
     },
     {
       "path": "llm/core/steering_events.py",
-      "status": "unreviewed",
-      "sha256": "e5d995e8c3041863f4f8221f6b78b67794f49849767e36ea7b9386157b4c5d60",
-      "candidates": 36
+      "status": "reviewed",
+      "sha256": "78e72743f3adecdf11fd34ff51efcac14955ad33eb1f3f3704c39c8137154229",
+      "candidates": 33
     },
     {
       "path": "llm/core/tool_codes.py",
@@ -2889,9 +2889,9 @@
     },
     {
       "path": "llm/services/runtime/steering.py",
-      "status": "unreviewed",
-      "sha256": "40e8f6b9a9f4f93b79a206df9d2945548ea7466f0eb67eb5a19bed3ee2f30588",
-      "candidates": 29
+      "status": "reviewed",
+      "sha256": "5499f73f40d2c655b2f6f71422133b1c119669f1d8947ef92b4ecd07b4fc6157",
+      "candidates": 25
     },
     {
       "path": "llm/services/runtime/tool_context.py",

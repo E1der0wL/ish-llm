@@ -15,6 +15,8 @@ class SteeringChannel:
     CLOSED = False
     UNDECLARED = False
     DECLARED = True
+    ANY_MODE = False
+    CONSUMING_ONLY = True
     INVALID = "run reservation channel"
     INVALID_ROUTES = "run reservation routes"
     INVALID_ROUTE = "run reservation route"
@@ -40,12 +42,33 @@ class SteeringChannel:
         ROUTES_DECLARED = "routes_declared"
         UNAPPLIED_REASON = "unapplied_reason"
 
+    REQUIRED = frozenset((Field.ACCEPTING, Field.MODE, Field.INPUT_MESSAGE_ID, Field.TARGETS,
+                          Field.ROOT_OPENED, Field.ROUTES, Field.BINDINGS, Field.ROUTES_DECLARED))
+    FLAGS = (Field.ACCEPTING, Field.ROOT_OPENED, Field.ROUTES_DECLARED)
+
     def __init__(self, value, run):
         if not isinstance(value, dict):
             raise InstructionDataError(self.INVALID)
         self._value = deepcopy(value)
         self._run_id = run.id
         self._resuming = ResumeRecord.present(run.metadata)
+        self._validate()
+
+    @property
+    def _suspended(self):
+        return (self._resuming and self._value.keys() == {self.Field.ACCEPTING}
+                and self._value[self.Field.ACCEPTING] is self.CLOSED)
+
+    def _validate(self):
+        if self._suspended:
+            return
+        if (not self.REQUIRED <= self._value.keys()
+                or any(type(self._value[key]) is not bool for key in self.FLAGS)
+                or self._value[self.Field.MODE] not in tuple(SteeringMode)
+                or not isinstance(self._value[self.Field.INPUT_MESSAGE_ID], str)
+                or not self._value[self.Field.INPUT_MESSAGE_ID].strip()):
+            raise InstructionDataError(self.INVALID)
+        self.targets
 
     @classmethod
     def initial(cls, run, mode, input_message_id):
@@ -77,6 +100,7 @@ class SteeringChannel:
     def store(self, run):
         if run.id != self._run_id:
             raise InstructionDataError(self.INVALID_OWNERSHIP)
+        self._validate()
         run.metadata[self.KEY] = self.to_dict()
 
     def to_dict(self):
@@ -96,7 +120,9 @@ class SteeringChannel:
 
     @property
     def routes(self):
-        raw = self._value.get(self.Field.ROUTES, {})
+        if self._suspended:
+            return {}
+        raw = self._value[self.Field.ROUTES]
         if not isinstance(raw, dict):
             raise InstructionDataError(self.INVALID_ROUTES)
         result = {}
@@ -108,7 +134,7 @@ class SteeringChannel:
             if route.key != key:
                 raise InstructionDataError(self.INVALID_ROUTE_KEY)
             result[key] = route
-        bindings = self._value.get(self.Field.BINDINGS, {})
+        bindings = self._value[self.Field.BINDINGS]
         if not isinstance(bindings, dict) or any(not isinstance(key, str) or not key
                 or not isinstance(value, str) or value not in result for key, value in bindings.items()):
             raise InstructionDataError(self.INVALID_BINDINGS)
@@ -116,7 +142,7 @@ class SteeringChannel:
 
     @property
     def targets(self):
-        if self._resuming and self._value == {self.Field.ACCEPTING: self.CLOSED}:
+        if self._suspended:
             return {}
         raw = self._value.get(self.Field.TARGETS)
         if not isinstance(raw, dict):
@@ -158,7 +184,7 @@ class SteeringChannel:
         if identifier == self.ROOT:
             self._value[self.Field.ROOT_OPENED] = self.DECLARED
 
-    def target(self, identifier, *, consuming=False):
+    def target(self, identifier, *, consuming=ANY_MODE):
         target = self.targets[identifier]
         if target.reason is not None:
             raise ValueError(self.TARGET_CLOSED)

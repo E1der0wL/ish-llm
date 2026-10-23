@@ -32119,5 +32119,1335 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/steering.py",
+    "sha256": "1ad27b0103faa488cc756fbaeaa6f306d8a5c8fcba937e084f7e0c2dcff613c4",
+    "reason": "Read complete checkpoint payload, route/target declarations, mode/status enums and public instruction projection. Required checkpoint fields, detached extensions and unique original message IDs stay at their Reader. Root scope/accepting values and stable diagnostics are declared before methods; private storage assignment uses its own slot. Public registration intentionally omits reason, and Message projections delegate to InstructionMessageRecord. No control permission is inferred from views.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cc03edd0b01244635694751f1e0697b077dd18927aad379a2e10ac1b7730bf6c",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "afafe02c526d0f2e13f572ef1940e0c2294c754e3c3171a21b8e80cb0dd239d7",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "0f259388e8b10775f303059669ec7e239300256374601e45cecfb44642c04e01",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "9d9b19928d7802beb50784057547c3532b9a794b2b7accd57d80143d47b446e0",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7b98bd78c3444b989b16465c2fb2d7fb6d3bc01c79e59e703b91e8ee5981b4e4",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "48bdd380fdbf4579b1c10406bcfd71e3b48819b6a3d0e0bd6c82d6b74824da74",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "c63a7e00390d1e01ae06284d73ff46446d6054d96bb81a1aa0d9054b26dd5d5d",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "d6a77b8bc7f8c11f6d1d2137d85c7a416cc4700438c84814b9d58f966cafe5ea",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "4328801f7f065010c1064506a9ea76db173415e4e4a6a7b492dd46cf1497d142",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "ebe04c2c8f0ab7797ea5d34b02d0ae4a48e81220cea1c8c83a3fd7eb4a42ea21",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "10acff4d35638b22d489137e80726e2d1438e79b0686cdc495f70b7e6ecd8154",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "6f53162149548c29c4624cb578c24cdd49f6a3c0f794e3320fc21cc3ec4ef50d",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "18d324f4d91b2aee70aa8d5f69ac46f55a07dec3c9a87a9e38f8ec76d50c433b",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "f4ee4d993d18731e60eb59fe976856900a6d1007d597b7ae63cba049f5fe0b00",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7c2933a42d8275c2d30ef553a96c5a388bf209035db5d34589d26e67e5673af8",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "fa16bcd1e63b9fd55ab9f58167d7302b5d01cfb564430c9d01b5e317c395b1c3",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "4987c2e55660d693700a8af483c6a72718bc40581a1e607072580f20dee8715c",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "43060570b4c123db5fd825fe71c07e3e0d9b5b8f7dde39ae16892b089af6e6cc",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "5230803c55976919161b8ace202aae90f10c1fdfe153bf03260090ab494fe144",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "2ea5bd197e4365a2828936768327c12231d04a31a4a3d662dcf5f2b4756fdcb3",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7d25ae2572d51a7b0d9796eeb7ea1f11e3a8144fe6be0f1a1e2893c431f1bdd3",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b55209eaf39eb9b233d40a14dbfee4e3ecad4a31291c70629ab6e49dbef9f2bf",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "d3ab20987c08f84b9fe7553767460d81fed08baf933efc656271461133c0318c",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "a179bd91f8c8aa5a4d9d21e41ba0258c2b4507b98e327cc75b956ce9db605b3d",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7adec89280a2dc9cb294259d46adedfadf381eea93b70f7ef6f1089e0c2685a7",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "ef6fec007ad905f711fdea3e84fedef7fdf24daa2943996e4c3ce4b173e25b35",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "f49306dc72d539e425fd9b5a8b2c6500d3d0cace045a12e47e62f14429c88f0b",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "5aa39c4f046ae5e824c6548d7e143f24ebaa1330c36966d4b848f807346fc466",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "1357c5f2ca6b84f10a9d002ab724853e36f81e7d540c3350539c7e6430e9435a",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7c5ab23b3b37e9d742f7331707a1253455d69b9887c7a9e63cd27e37763480ef",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7b39c35b4650322b69314e448318194d320c838ef134350dd6928ab482edec1b",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "aa00a2125a76dc2666134a16831e28001e305f783035cf3dbb064e19d53b10a7",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "11754e12739859e338d25290cae57b69434c206cd036b612e3a2ca5d33e32471",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "cece4c9bb5fd90df001ad0846474f923a7ee45eddd388ebf189e23c37f60e5df",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b3e6c63198405888b341308c3731433fb073cca4baccd037d1fb95a8d03982a1",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7e7624effdebaf35ad4a57a6fd148f5c1ef4e238e8558f56a1400f1ae26206ac",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "6b5d495aa730d2a3bd257edc6256c75c74192dbba5fd1231f384b6790b7f2859",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "74f691944631c320766509cbe74a8592d7c94c7ea104b5baa4320b061d7acdda",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "3e64d82705ee2b864d20b69205ddcaf6bc10e72f2a586d5a42768311d5fdd1fd",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "87fe19b5f6eb4bf1dfb3c25ead3aa72bd8061b3d3f03e416ada01e0392160fcc",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "a57f762d1d94a38459818c317fa8bff7e172475c4abdc47c3e5dee5e3ea3ccea",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python forward type annotation or variadic tuple annotation; not a wire key or execution discriminator."
+      },
+      {
+        "id": "b0ab6fe34ddff116545ae239900f210d4fb35920895211fb2712193adc114813",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "2410e15d27b4c9e736578fac510fb526e797df423cbb5e3714513c9374dd2e53",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "62e8bca4a0ecc54e4e3511c01d80729ad21d7f1492a51708f3806aa1ec886396",
+        "classification": "declaration",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "e7e44faba450270d81645e29f7c5bf0286bf7374fbf30cbf139cd345ce378067",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "4151bf7c05f63ee0ba6e786f32ae765b05bfb3a1f1e40bfa6ba4e11062bac247",
+        "classification": "non_contract",
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "reason": "Python forward type annotation or variadic tuple annotation; not a wire key or execution discriminator."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
+        "declaration": "llm/core/steering.py",
+        "consumers": [
+          "llm/core/instruction_records.py",
+          "llm/core/steering_channel.py",
+          "llm/services/runtime/steering.py",
+          "llm/engines/base.py"
+        ],
+        "tests": [
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/instruction_records.py",
+    "sha256": "a8876ce6b8f88a37f119264c24a85b453685af3913089e4a6ee0f671c7c9550e",
+    "reason": "Read complete receipt transition and Message aggregation owners. Required text/status sets and unbound serialization are declared once. Reader checks target identities/scopes, application ownership and aggregate state; Writer intentionally omits the empty initial aggregate application projection, but every recipient application list remains required and is the evidence source. Reserved versus active receipts retain distinct Resume consumption semantics. Runtime uses typed transitions and public projections; it does not reconstruct fields or receipt states.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7983669c2e22db3da525c7353469eddaf1e64708d7060e55cd5eff90a868357d",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "80f5025549e6c446a2a9a857ef89e145b2e1ca95a0dbde97aef6210373c34bdf",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "c518a8be7291ac5a028a6db861ed32c0d31ec424f2fa2d3c853e667c0dd9a492",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "8a5b9342a62458649012822480c7d940f913bef6c52d8fca1646b194eaba68a5",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "fcf1e9b1360f228197d8c0a74a2aa3fee9e7c7ff0054e7980b5a80d8992ba970",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "fd1cf5275bdb413246bae513fdedacb0df0afea609274fe160d23b6c615347e0",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "893397add492d74352051abf4c750984e92862280b445558858a13e736872378",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "769b41aea0c48f294638b8f97bedddc0e611c9cd93edd2612d7004bb408f95f8",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "37ac11eb743ddf60d7e5281e40bee4e7f3ef8295245707cec67094097219e480",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "ed93c082dc88ab4ddd9494f526e1f2230d83b2938c4b1fca8875cff9a02fcfb2",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "4517477ab574fba3471f79ae8bda4cc2fb868f569805c8f6efc2e10171b509c8",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "6623a61df707413d4d1ff29d7d9974ac69ae8fed0076c13b73adc8c4532074ad",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "6fe1bcdceae97dedd5a24189eda0e05d29487d3fdc1c841a0015bd466dc1a643",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "28e4b4df13635ecfd70e8decdf3a9b771f20865d9a6d0bdfcfb78d72d5b0d619",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "77664defe04add4a5b57795d21e9d139fc9abce7a11f92f629ff72f6e127b0ad",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "fc049c209e8f6285889a65dbfd8829ee5f4d7503497ec90023b69fc7fb423987",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7641b7c6f5a95497f9e39427f9a9f8c3b1fafd063e7b174565c640a9bd8908f8",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "2b67e491bea919012dece7c14b247f110a8c7c9d03bb868d0dcfcc39f2676b26",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "1628c57d056e2ae02caf3ae76c6edc9bff53405e2d582b7bd9ace4edd4bd5fc5",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "333e67177958275e03ac4a79788721c0c5d1aa40d548617204a5c0127d6177f4",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "4fbd11a3627030267e9b13d10d67c637de27dba49ef758de8f92b553dff72478",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "e71bd98117f3acba365c098405d00f496ddea4c35e61748077401a99cc5f4086",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "3fc225f3e087ea2e8394bb075a2d324eb217fb0d4d96522a47ce76a5247e3a50",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "51b7df762abd4deee234d37e441010f101396578bc5f0cfd7073459fc8b8688c",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "667025775fc0f027adc20bc089bff2d329c7464f01b45de4dd357cf91e66deb2",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "44648f6f559d560e0eb8312a188c025da343eb206260d08f66ff912320a29ca3",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "79030d2dc6ee2f4a59f53c3abad3dd524061a10f2334ecdb74d8809c5279a41c",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "0b7bc839c168b060b4f33f44567a686a476e8b7765ca30cff1c6d5484ee57509",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "392ed77d0e5852e8d2abf1f003690a90ec729b81dd30a67316bf5670ee99f568",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "c7ccd4b40185adee2273fdd7ae00311b0c93b11fad3b2f8112ad6f4a7d2eac88",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "f0fd311df43c4d2cf954fd9bbe6a6ffe9d6b35a24375c8a0e8c2a33fce8dd607",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "1d70f864e59a60b3a65cd9a728ef4dd643c6a36f751e850666bc721d9d48621d",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "654efa8f24c01d0eb61c5471ca1fa9bfbc99057b1fc91ec3ba8fed37feef5105",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "56a48df6b1e0bb781a34f754728f6da4fec79c9afe5e6c02557293c08b92804e",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "9dd607894e873a15159831528d31e3817593cdcc7ea39353b1b5759b7cdaae06",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "aeed8281213abb1128fd899befc7685c771a94644e627bb1640f868ea7b252b9",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "e461f367b6a3c17f302528d4d237925d410494dafb7f468beb15cfb691cad3d4",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "43826b1d9ac80d49b08123d789b66a7a68fc69bd1b77fde064fc994bfa547db2",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "9ccc01c928fd2d1884603dcf3f29bd5ec05ea05825cc7e244c1db4a21b30eabc",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "3c767aab9bc3ae9d501bf4be749c455baec182e50f80c0ba06195c9e6d748ff3",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "c127be92141409d9edd571bc3cc701f2221755f37e205c2f5c97a8a769687bcb",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "f87bffb1e13b89aff45962fc0f2e74c63091b7eacecfbf04971570090586fa2a",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "8bddfd5724563575c5a0728f5503de981515713d5d1a3962620ce194cc9e00e4",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "3556566cd4efdf80aea11cb81d8bfa958ffb5599777264721853ea0edb76e6f1",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "08be2a39fa545b87970bf2e42a0bf46b534cb4a30b377677b39c992c5109c836",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "36843a4361e7c85e518f9046d87afe5b8bec7f78462116c931bf66ccd2769870",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "77a87417e6fb619761749a0ec075cc0af225a1a2ca6a4467155fd61e13803974",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "c2820bedbb2cec2bb54d6cb533fc8ca85e37015359ecbc90597aee2551e6dd16",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "6fb0d9dad136bb2a7de6e112079864617a0ac075242ef120e520b63dc1fa9a15",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b824798e908edd0542ccd62c3fbd1c890140223ef4ed7a36833982e802916027",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "614ec6efc6df5ce3f340add33fed9cde3525574ee1f1574500c3582f2041a5ec",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "de776a8d06053de01406d6f23d60b6176c53ce1c36325c48c2819c079fc1b921",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "735867ca966993795b766064ec7801a4e0db46a1a08e1bc3e95d34334dad9bf9",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "d4b907c1400c57263e9cf6b0fd4f86281ce40ba0fe844d7a86fe058c7e6b29eb",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "752814aa74b2e7f9291ab24cfd955d1378405f3455da1673ae15b6fac031c947",
+        "classification": "declaration",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "4a4516c7d18d15dd009f2443eef5ab0b447272a7dc7ab068439063c377e1a839",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "536d227a79dd4b39e7f96fd954f407550b8ff567e960164c0b92a432d13f95b6",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "74608a13dff177efbb5c4cdc63ad961c0e987626bbe80684d6eeb7e1c461f482",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "First already-validated recipient supplies the existing aggregate reason; positional indexing, not independent policy or schema declaration."
+      },
+      {
+        "id": "beb48463a535177cd95493cf601a3cab85b227da377929714ba3b1ceb6d49fe4",
+        "classification": "non_contract",
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InstructionApplication / InstructionReceipt / InstructionMessageRecord",
+        "declaration": "llm/core/instruction_records.py",
+        "consumers": [
+          "llm/core/steering.py",
+          "llm/services/runtime/steering.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/steering_channel.py",
+    "sha256": "f0ed1fde7721b9b83a576794111a487ac532d38ea9a79d7e00652ccd2bf07223",
+    "reason": "Read full Run channel, Writer, Reader, binding/registration and close transitions. Identified preexisting missing-field/default integrity gap and reproduced 41 failed assertions before repair. Require all eight normal fields, exact boolean flags, known mode/nonempty original input and valid target/route/binding ownership before every projection and store. Only exact accepting=False suspended shape on explicit Resume is allowed; numeric zero is rejected. No file/schema migration, compatibility reader, missing-container repair or effect order change. Dynamic target/route keys are validated identities; source is copied and stored only after validation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cdc33f9776f498d72817330f453f7979c9c22b6f405e9246cc3d267817a3f8cd",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "80bb0b80a2aef9a158af6fd87da60473abcbcce4c8f16cf27b083ce25e8ea520",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "bb1bcdb5dcebe56fe0c18298836304aa07b2bf41323daea695d3e61e25b76fbd",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b93d6e42ba94eda4e8e34e4697c4da9ad5ba716202fda30b070c881f40bfdfa1",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "9b85db4f2943bb8f744720e3593ce8588202a9aeaeccb2d255476fb4466a5f8b",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "576fa25290e96ab39889484ac6daf2369ce4a756580c3221cf0f923a3ffeac5b",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "3a5a2ce675e692fa619e4348c80a19b71cd3e6b7ea60d4ca604054d457331f93",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "40c1a4fab3a0cdb391415c71aa430c156214903f4b5c2b6bb577f85d380308b1",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "dbdfe6a86ccbda06c481dfbf79ed89f04a28f24e9fb80be26550fb394f348359",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "cad69754f402b6feb6a1e31570ea0333ada9038d1cd27b86215343926d975d6b",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7ae83606535a33685f142e68e0c5cd324dd384f7ebfa47fcc5e9239632e1a8ec",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "0671bd15061206b46016de2113dec8cd23fbb5b318a72514ab6b10d3841eae5d",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "18ed9512bb6d64290182ad62b425cde7b69551490a9b9cd6ee785262649ef09f",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "9c8873be08b9e7f4d848a12e84e31b4cf7f49d16ad80aff0687cc702c98493a8",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "1e8c74d9f770a47cbb2af4da4907b6c35873d9d06098841221f08a8ed07c997a",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "44e3c7e43d5841d1b56d00b7e6cc76dc5d6b9b581edb8b3d7f30f4762f06100a",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "c8dcad88bfed04332fc57a695b48968a63b84e9b8041f82d6020f55dc8e9ef02",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "a4a86cef518bcfcced0f7554cb7d2e7554c12a7aee071ac429ccfadc54da0598",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "48d321d9c5093bb482881d854812f3bcfb8927686de1ac30edc77ce207f95445",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7024afb1d548ee6965cd081123c3990db94172b2e91eaa7859fdfbcc04b816b9",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "228e519172310186fca115e3fa9681f1df00819048ccc6a373860636e6a445be",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "243c7815cde35b59494a398bb336eec3485617556d328c9b2105010809a2ffca",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b9598d802d0b12332ce2c47940f18229a1cfad491af4336cb3c1458feaff9783",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "e9eaaaf15581fe415b4372dd0b382726fefcdea6775b2ad3647d4b5612fad0ee",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "d08033d9c936a23a666c7b429ea604a45726e74fd3dee70c535690b9e315bd9e",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "60af2ca8fafa1a2c2c48b78e794ee88c4822edfd36af6dc026cc30eaf9a34be0",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "81f7c26aa92d33970255435e412e3d27d42790118e296a88716a409278d47745",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "33a21908d34d029d2280c5e60e22dbcf80d6df306fd873ab1102e501fe17043b",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "d526cfac06bee6aea04eebb3d5805da505712542358e271e754a60abe889ed04",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "750fe7bb9a1899ceafe09e00733a4780d1c4830ff861f1055fc20326f582f88b",
+        "classification": "declaration",
+        "owner": "SteeringChannel",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b5c3df316fe703efaf2cd169144d2d627624872b3acf6835271535bced76d28c",
+        "classification": "non_contract",
+        "owner": "SteeringChannel",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "0eae12b6381e9efbc05ef63762229a032af60923ecb0a70b5b4cd16b8e8fb24c",
+        "classification": "non_contract",
+        "owner": "SteeringChannel",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "2dbe6ec6e47bff59d949394481fbca3c902a04621368796c740cc8fb673d3119",
+        "classification": "non_contract",
+        "owner": "SteeringChannel",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "db2e4e5181e7bf460ef533474cab18aaf2a4f72ea68778e2bc6636ff6a83b5fb",
+        "classification": "non_contract",
+        "owner": "SteeringChannel",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SteeringChannel",
+        "declaration": "llm/core/steering_channel.py",
+        "consumers": [
+          "llm/services/runtime/steering.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/recovery.py"
+        ],
+        "tests": [
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/steering_events.py",
+    "sha256": "78e72743f3adecdf11fd34ff51efcac14955ad33eb1f3f3704c39c8137154229",
+    "reason": "Read complete event request fields, scoped copying and partial notifications. Single event field enum and typed properties preserve arbitrary JSON extensions and operation-specific mandatory access. Notification dataclass declares fields/omission sentinel and derives serialization from fields, preserving absent versus present empty collections. Event requests are not persistence acknowledgements; live channel/receipt validation stays at the serialized service boundary.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0015dbd9c9a5958957a8d537695ec070e066f25cf845930a663ff87dcb6c7d68",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "cf27c62fcde07f5cdd923b9bb4510334a23abf5898fa37db02db6ac8344e09ad",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "095f4a6fde478365a52675979fcfdfc03b1d87800f61c24c52d83123215e9c13",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "630e9b1bec69757d990ac007cc31ee6e7a1c10c2f25d541d7fc6db3669e98cad",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "daaab1c0d9489f6a099cb8baed4053f33e63790190f09b2800a4cab9fc179754",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "190465c2f21c5a9e00ddca0134d9b906de159fd50ff8c6e53a50d954fdf3b07d",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "421f3e2050212e4cb0ac0ede3a971c804205a326e1f13362f7b72418755d4ea4",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "88821885a031dc0d2863eb5fb5f8349baf53dd7f2e3187529b1b14522495b9cf",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "26fc77c997aa04d0924ac1df31f4d14205c15a8921661dc0176565e0cde12d8a",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "32cf354ab999a54fbeae3b43dcf0f9d405ac9d68725766b42221c99dfcd3b898",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "ef3ff3b9fc7aa16829a7a41ff75542e7875c69a46f33ecaea7bc85e9b9c9f14c",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "61282782dd1f6c4fc1307745904c27f53e00b87a00687c78fd51f2e37152e7cd",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b2a8302394ea8e216e1b7dcea5628da8a51a6364f445decc19d05f612f522e5e",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "a35fb44e59186155ec919e62c692b167dfd94577b4f915dbf7a6b1751a4de0d0",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7224f18ca018059c8d4e5fdc9bef283099a1b829d71099f9b2e81a7bf5f24364",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "5e841ce328673f0cf05a0ebc0fc925bfb2353e29e74c0417d7a6c3241b50b917",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b48991737a382fdefffff4c44f2d4ab41f02ea390a8e41ce2a14bd283af82875",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "2a108c174f4ebc135587a55050c329a110c7a9bea50211304975c26e1aab7d8e",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "a3dfd6af018ca96d0d94f2f28f96d3aea985f17609a4a271961efa2b5dd7ea43",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "a28998ee8db5ef4d816a987888811428924bcfbba368578da778beb57aaae98c",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "432070dd075f11cde1aca03ca16282d2c0ac4b66b08de264fdf4aeb0a110ce34",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "bb8a964ea4c6c516c74bc64883ac5da717c56cadc212db9e72069e0d3efcb356",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "8bb14f41762a6d3922e01cf10242f1781934505c43aa55a5a389fa077c8459c5",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "de75634565998254a06073e98077fa3dba0b703184421145973f26b96359c609",
+        "classification": "non_contract",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "a466a7760a3e171a441649cf63e779a06a6c77e67c27fee906f132fc161f206d",
+        "classification": "non_contract",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
+      },
+      {
+        "id": "98aa9ebd194d42e4370cef40b307615811edc99b88a25cd26386ffc01c719748",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "dc1554ed4106964c4bbe5ae649c76ba1b09f6e8cca280a984200361379cc98d5",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "7d93a172f9e0003746a6556dfc8d04baa7e8f9674a09295e8539d6eb6d517971",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "d494df69a7956a52f81817488cfc7a892c9e0da71eecd3a80be8ae2d478799b6",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "8af131c969a662a5b31a330f30fed18eec016de78cf058fde778ea757a3ef269",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "b92e030f27d51f61f2cdce52614e2b2079a3a6be4b21879f9d8a3e50761bfda2",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "2808a980ab20a06aecc2928df23b5a511056139af1e3062f4dccd97ac8e3f7b7",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "8d945500d6ec956b8a1f8401b0105be545d4c4a88ad62bca736031a6ee00468a",
+        "classification": "declaration",
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SteeringOperation / SteeringReason / SteeringEventData / SteeringNotification",
+        "declaration": "llm/core/steering_events.py",
+        "consumers": [
+          "llm/engines/base.py",
+          "llm/engines/graph/engine.py",
+          "llm/services/runtime/steering.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/steering.py",
+    "sha256": "5499f73f40d2c655b2f6f71422133b1c119669f1d8947ef92b4ecd07b4fc6157",
+    "reason": "Read full query/admission/finish, direct/nested checkpoint references, Resume filtering and route-bind/open/select/apply/close orchestration. Uses typed Owners rather than dictionary field interpretation; errors and pending filter values are declared before functions. Tool usage attachment delegates its existing validating Owner. Current message/channel validation and storage ACK ordering are retained; selected receipt alone is not consumption evidence, unapplied reservations are filtered only in the new Run copy, originals remain intact. No effect or authority is produced by read projections.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "93a10b536ad12adfb62683a7b52c1edde496a27e20ea65397367e4a03d340e67",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "eeeb2a8e9d3c8afcad5295220c46a06d4acd5eaa5348ab9d7cc315f3de595a25",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "9f7b5f9e9b71e02c6a58b25288cf224ea1e324d996651f2f63bea435ad292476",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "fa5d3b0a05962f089200c6471deaaf5a03f473d76d4182b69bc97f3a09eab604",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "2225feacbbe05c44d08e3c4ae28f2762de167fe341b7641a30c00794644d599b",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "39c186e64e443df985e0d22cd18b20792e52d01cd10fc9b70b98faaf0823c749",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "6602632e1760e31bbce0166b8b60e15df5d18dc70bd443ba552b7df2304d03d4",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "a020b3d868dba020ebd580c5b4f067a82636547839f0509d12d48b88f3f7154f",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "4e5d4b55d5331006771fe7b5c67e4bfa914ddda0b7d831adcea7f140266c4f1f",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "1343dc9e92b4618aeb01a1490ea136fa228d786ce3c03f47d418ac084b39c907",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "591f1c0cd2f2ed5e07ecf973cff212c1ffa9611059736253ece078a5efb1c357",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "2dd17fff2a43687fd9e1927ccfae32d5e5a37c3ff9c5415660a24c0526ce7781",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "cc3614f456d50c6e853ca217456bc33e56919c2570420c2532a3c4cbcafa55c7",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "608817dee5d3410c745a234ecc5e69976ce782c2aef124e17dce8a18e769c98f",
+        "classification": "declaration",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
+      },
+      {
+        "id": "94e86aa856b78b4d4c9b642fb88b589f89e5b98a07cf3f06d87e271cb717809b",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "e36b6ee260bb9ce587a2003094dbc75ae8b39094ba8f80bb462d4975224e543b",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "b041e4e4809ad50121764e0bb4e9c7940f639583e8ed0f4796fda5d127b14d41",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "7837b8f4fc0688cc2796f9a2693ebbf3d9aa318ec484e9f0c1795bbcca5cf790",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "c593406d05d9c24eb7e8a2f85efe95e6edf65c7d9786871e8d86b720209dc600",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "1b50be0c3d18c70fb1c77c50fe5c9f84f16c3b1a534e335a8cf6c2721a15941d",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python forward type annotation or variadic tuple annotation; not a wire key or execution discriminator."
+      },
+      {
+        "id": "23489e330a373ed4214a32c613091e42bbeb03adc74bd8b9a0aec5df959f093f",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "bba04b16dfbdbc5aaf5b793dc09917c0b38d1b6adb3ebd61b731a4a2962674e2",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "189dc9980a83a18a2a9a9b5d5846062943edab82cb97b7452803be57664e6321",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "01743af564e788fb5a3ada12b4c98e9ccbed2d532659e82ea54bd9eca4f6da43",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      },
+      {
+        "id": "beab2a8c94fc11ceda2d15abab989aba314d49ef12d02fea3e692c0f3606d11a",
+        "classification": "non_contract",
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InstructionQuery / InstructionBoundaryError / steering boundary orchestration",
+        "declaration": "llm/services/runtime/steering.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/checkpoints.py",
+          "llm/services/history/recovery.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -42,6 +42,46 @@ class SteeringValueTests(unittest.TestCase):
                 SteeringChannel.require(run).targets
             self.assertEqual(run.metadata["steering"], value)
 
+    def test_every_full_channel_field_is_required_before_any_projection(self):
+        run = self.run_value()
+        complete = SteeringChannel.initial(run, SteeringMode.FORWARD, 'input').to_dict()
+        for missing in complete:
+            value = {key: item for key, item in complete.items() if key != missing}
+            run.metadata['steering'] = deepcopy(value)
+            for projection in ('routes', 'targets', 'accepting'):
+                with self.subTest(missing=missing, projection=projection), self.assertRaises(InstructionDataError):
+                    getattr(SteeringChannel.require(run), projection)
+                self.assertEqual(run.metadata['steering'], value)
+
+    def test_channel_flags_and_suspended_marker_are_not_truthy_defaults(self):
+        run = self.run_value()
+        complete = SteeringChannel.initial(run, SteeringMode.FORWARD, 'input').to_dict()
+        for name in ('accepting', 'root_opened', 'routes_declared'):
+            for invalid in (None, 0, 1, 'false', []):
+                value = {**deepcopy(complete), name: invalid}
+                run.metadata['steering'] = deepcopy(value)
+                with self.subTest(name=name, invalid=invalid), self.assertRaises(InstructionDataError):
+                    SteeringChannel.require(run).routes
+                self.assertEqual(run.metadata['steering'], value)
+        run = self.run_value(resume=True)
+        for value in ({'accepting': 0}, {'accepting': None}, {'accepting': False, 'targets': {}}):
+            run.metadata['steering'] = deepcopy(value)
+            with self.subTest(suspended=value), self.assertRaises(InstructionDataError):
+                SteeringChannel.require(run).routes
+            self.assertEqual(run.metadata['steering'], value)
+
+    def test_channel_mode_and_original_input_are_validated_before_projection(self):
+        run = self.run_value()
+        complete = SteeringChannel.initial(run, SteeringMode.FORWARD, 'input').to_dict()
+        for name, values in (('mode', (None, False, 1, '', 'unknown', [], {})),
+                             ('input_message_id', (None, False, 1, '', '  ', [], {}))):
+            for invalid in values:
+                value = {**deepcopy(complete), name: invalid}
+                run.metadata['steering'] = deepcopy(value)
+                with self.subTest(name=name, invalid=invalid), self.assertRaises(InstructionDataError):
+                    SteeringChannel.require(run).accepting
+                self.assertEqual(run.metadata['steering'], value)
+
     def test_route_binding_cannot_be_repeated_or_cross_execution_ownership(self):
         run = self.run_value()
         channel = SteeringChannel.initial(run, SteeringMode.FORWARD, "input")

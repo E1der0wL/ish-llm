@@ -285,13 +285,50 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         from llm.engines.base import EngineEvent
         target = SteeringTarget("a", "run", "loop", SteeringMode.CONSUME, scope='["work"]', accepting=True)
         run = SimpleNamespace(id="run", metadata={"steering": {
-            "targets": {"a": target.to_dict()}, "root_opened": False, "accepting": True}})
+            "targets": {"a": target.to_dict()}, "root_opened": False, "accepting": True,
+            "mode": "forward", "input_message_id": "input", "routes": {}, "bindings": {},
+            "routes_declared": False}})
         event = EngineEvent(EngineEventType.STEERING, metadata={"operation": "open", "target_id": "b",
             "target": {**target.to_dict(), "id": "b"}})
         before = deepcopy(run.metadata)
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "Invalid instruction target registration"):
             steering_boundary(None, run, None, event, tool_usage=None)
         self.assertEqual(run.metadata, before)
+
+    async def test_missing_run_channel_evidence_blocks_admission_without_repair_or_effects(self):
+        from llm.core.steering import InstructionDataError
+        from llm.services.infrastructure.storage import atomic_domain_json, record as stored_record
+
+        model = Model([chunk('done', finish='stop')], gate=False)
+        routes = await self.gated({'writer': model})
+        original = await self.run.aget_data()
+        before = original.paths.record.read_bytes()
+        for missing in ('accepting', 'mode', 'input_message_id', 'targets', 'root_opened',
+                        'routes', 'bindings', 'routes_declared'):
+            broken = deepcopy(original)
+            del broken.metadata['steering'][missing]
+            await self.app._storage_call(atomic_domain_json, original.paths.record, stored_record(broken))
+            damaged = original.paths.record.read_bytes()
+            try:
+                with self.subTest(missing=missing), self.assertRaises(InstructionDataError):
+                    await self.run.ainstruction_routes()
+                with self.subTest(admission=missing), self.assertRaises(InstructionDataError):
+                    await self.reserve(routes)
+                self.assertEqual(original.paths.record.read_bytes(), damaged)
+                self.assertEqual(await self.run.ainstructions(), [])
+                self.assertEqual(model.requests, [])
+            finally:
+                # Only the test restores its fixture; the Backend must leave damage intact.
+                await self.app._storage_call(atomic_domain_json, original.paths.record, stored_record(original))
+            self.assertEqual(original.paths.record.read_bytes(), before)
+        await self.reserve(routes)
+        self.gate_release.set()
+        run = await self.completed()
+        self.assertEqual(len(model.requests), 1)
+        self.assertEqual(self.contents(model).count('one shot'), 1)
+        instruction, = await run.ainstructions()
+        self.assertEqual(instruction.status, 'applied')
+        self.assertEqual(len(instruction.applications), 1)
 
     async def test_invalid_route_or_duplicate_is_atomic_rejection(self):
         routes = await self.gated({"writer": Model([chunk("done", finish="stop")], gate=False)})

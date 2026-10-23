@@ -5,21 +5,35 @@ from llm.core.instruction_records import InstructionMessageRecord, InstructionRe
 from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringReason
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
-from llm.core.checkpoints import CheckpointOperation, CheckpointConversation, CheckpointEnvelope
+from llm.core.checkpoints import CheckpointConversation, CheckpointEnvelope
 
-from llm.core.continuations import ResumeRecord
+from llm.core.tool_usage_records import ToolUsageCheckpoint
 
-from copy import deepcopy
-
-from llm.core.models import Message, MessageRole, MessageStatus, now, new_id
-from llm.core.steering import (InstructionStatus, is_instruction, RunInstruction, SteeringTarget, SteeringMode,
+from llm.core.models import Message, MessageStatus, now, new_id
+from llm.core.steering import (InstructionStatus, is_instruction, RunInstruction, SteeringTarget,
                                InstructionDataError, InstructionCheckpoint, SteeringRoute)
 from llm.services.history.conversation import Conversation
 from llm.services.query import Query
-from llm.services.runtime.tools import ToolExecutionScope
 
 
+class InstructionQuery:
+    ALL = False
+    PENDING = True
 
+
+class InstructionBoundaryError:
+    DISTINCT_ROUTES = "Choose distinct reservation routes"
+    INVALID_ROUTE = "Reservation route is not a consuming Agent in this Run snapshot"
+    SCOPE_MISMATCH = "checkpoint scope mismatch"
+    REPEATED_MESSAGE = "repeated checkpoint message"
+    MISSING_MESSAGE = "checkpoint message is unavailable"
+    MESSAGE_OWNER = "checkpoint message ownership mismatch"
+    INVALID_BOUNDARY = "Invalid instruction boundary"
+    CHECKPOINT_TARGET = "Instruction checkpoint target mismatch"
+    SELECTED = "Instruction boundary already selected"
+    NOT_APPLIED = "Apply the selected instruction boundary before selecting again"
+    APPLICATION_TARGET = "Instruction application target mismatch"
+    UNKNOWN_OPERATION = "Unknown instruction operation"
 
 
 def instruction_routes(run) -> list[SteeringRoute]:
@@ -32,13 +46,13 @@ def reservation_receipts(run, routes):
     """접수 전체를 검증한 뒤 반환한다. 실행 중 대상 ID와 예약 ID는 별개다."""
     available = {route.key: route for route in instruction_routes(run)}
     if not routes or len({r.key for r in routes}) != len(routes):
-        raise ValueError("Choose distinct reservation routes")
+        raise ValueError(InstructionBoundaryError.DISTINCT_ROUTES)
     if any(available.get(route.key) != route for route in routes):
-        raise ValueError("Reservation route is not a consuming Agent in this Run snapshot")
+        raise ValueError(InstructionBoundaryError.INVALID_ROUTE)
     return [InstructionReceipt.reserve(new_id(), route) for route in routes]
 
 
-def instructions(store: Conversation, run_id: str, *, pending: bool = False) -> list[Message]:
+def instructions(store: Conversation, run_id: str, *, pending: bool = InstructionQuery.ALL) -> list[Message]:
     # 접수/종료 경계에서는 대기 메시지만 복사한다. 긴 대화 본문을 매 반복 복사하지 않는다.
     query = Query(status=MessageStatus.QUEUED) if pending else None
     result = []
@@ -65,7 +79,7 @@ def _save_instruction(store, message, value: InstructionMessageRecord):
 def finish_instructions(store: Conversation, run_id: str, reason: str, *, target_id=None) -> list[RunInstruction]:
     """Close pending recipients without replaying them as ordinary requests."""
     changed = []
-    for message in instructions(store, run_id, pending=True):
+    for message in instructions(store, run_id, pending=InstructionQuery.PENDING):
         value = InstructionMessageRecord.from_message(message)
         targets = value.targets
         if any(target.pending_for(target_id) for target in targets):
@@ -83,7 +97,7 @@ def instruction_records(checkpoint):
         if InstructionCheckpoint.is_record(payload):
             payload = InstructionCheckpoint.read(payload)
             if scope is not None and payload.target_scope != scope:
-                raise InstructionDataError("checkpoint scope mismatch")
+                raise InstructionDataError(InstructionBoundaryError.SCOPE_MISMATCH)
             yield key, payload
 
 
@@ -96,16 +110,16 @@ def checkpoint_messages(store: Conversation, checkpoint: dict) -> dict[str, Mess
         for identifier in ids:
             identity = (record.target_scope, identifier)
             if identity in seen:
-                raise InstructionDataError("repeated checkpoint message")
+                raise InstructionDataError(InstructionBoundaryError.REPEATED_MESSAGE)
             seen.add(identity)
             try:
                 message = store.get(identifier)
             except KeyError as error:
-                raise InstructionDataError("checkpoint message is unavailable") from error
+                raise InstructionDataError(InstructionBoundaryError.MISSING_MESSAGE) from error
             value = InstructionMessageRecord.from_message(message)
             if (value.input_message_id != CheckpointConversation.from_checkpoint(checkpoint).input_message_id
                     or not any(target.scope == record.target_scope for target in value.targets)):
-                raise InstructionDataError("checkpoint message ownership mismatch")
+                raise InstructionDataError(InstructionBoundaryError.MESSAGE_OWNER)
             result[identifier] = message
     return result
 
@@ -167,7 +181,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         route, scope = data.route, data.scope
         channel.bind_route(route, scope)
         changed = []
-        for message in instructions(store, run.id, pending=True):
+        for message in instructions(store, run.id, pending=InstructionQuery.PENDING):
             value = InstructionMessageRecord.from_message(message)
             targets = value.targets
             if any(receipt.waiting_for_route(route) for receipt in targets):
@@ -181,7 +195,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         target = data.target
         channel.register(identifier, target)
         changed = []
-        for message in instructions(store, run.id, pending=True):
+        for message in instructions(store, run.id, pending=InstructionQuery.PENDING):
             value = InstructionMessageRecord.from_message(message)
             targets = value.targets
             if any(receipt.waiting_for_target(target) for receipt in targets):
@@ -201,19 +215,19 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
 
     if operation == SteeringOperation.CLOSE:
         return (), close(data.required_reason)
-    channel.target(identifier, consuming=True)
+    channel.target(identifier, consuming=SteeringChannel.CONSUMING_ONLY)
     name, key = data.checkpoint, data.boundary
     if not isinstance(key, str) or not key:
-        raise ValueError("Invalid instruction boundary")
+        raise ValueError(InstructionBoundaryError.INVALID_BOUNDARY)
     checkpoint = repository.checkpoint(run, name)
     envelope = data.envelope
     if (envelope is None and target.scope is not None or envelope is not None
             and CheckpointEnvelope.from_dict(envelope).engine_scope != target.scope):
-        raise ValueError("Instruction checkpoint target mismatch")
+        raise ValueError(InstructionBoundaryError.CHECKPOINT_TARGET)
     if operation == SteeringOperation.SELECT:
         if key in CheckpointRecords.from_checkpoint(checkpoint).records:
-            raise ValueError("Instruction boundary already selected")
-        pending = [m for m in instructions(store, run.id, pending=True)
+            raise ValueError(InstructionBoundaryError.SELECTED)
+        pending = [m for m in instructions(store, run.id, pending=InstructionQuery.PENDING)
                    if any(target.pending_for(identifier) for target in InstructionMessageRecord.from_message(m).targets)]
         messages = pending if data.allow_continue else []
         if data.final and not messages:
@@ -221,20 +235,19 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         selected = {mid for _, value in instruction_records(checkpoint) if value.target_scope == target.scope
                     for mid in value.message_ids}
         if selected.intersection(m.id for m in messages):
-            raise ValueError("Apply the selected instruction boundary before selecting again")
+            raise ValueError(InstructionBoundaryError.NOT_APPLIED)
         record = InstructionCheckpoint.create(target.scope, (m.id for m in messages)).to_dict()
         if envelope is not None:
             record = CheckpointEnvelope.attach(envelope, record)
-        ToolExecutionScope.validate_usage([tool_usage])
-        record[ToolExecutionScope.CHECKPOINT_FIELD] = deepcopy(tool_usage)
+        record = ToolUsageCheckpoint.attach(record, tool_usage)
         repository.record_checkpoint(run, EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(name, key, record).to_dict()))
         return tuple(messages), []
     if operation == SteeringOperation.APPLY:
         record = dict(instruction_records(checkpoint))[key]
         if record.target_scope != target.scope:
-            raise ValueError("Instruction application target mismatch")
+            raise ValueError(InstructionBoundaryError.APPLICATION_TARGET)
         history = checkpoint_messages(store, checkpoint)
         messages = tuple(history[i] for i in record.message_ids)
         return messages, apply_instructions(store, messages, run.id, key, event.step_id,
                                             target=target, details=data.details)
-    raise ValueError("Unknown instruction operation")
+    raise ValueError(InstructionBoundaryError.UNKNOWN_OPERATION)
