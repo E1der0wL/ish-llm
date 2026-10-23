@@ -6,6 +6,8 @@ from llm.engines.base import EngineContextBinding
 
 
 class RunAgentResolver:
+    CHANGED_DEFINITION = "Agent definition changed since request admission"
+
     def __init__(self, engines, repository):
         self.engines, self.repository = engines, repository
 
@@ -15,7 +17,7 @@ class RunAgentResolver:
     def current(self, project, binding):
         binding = AgentBinding.read(binding.to_dict())
         if binding.project_id != project.id or self.selected(project, binding.agent_id) != binding:
-            raise ValueError("Agent definition changed since request admission")
+            raise ValueError(self.CHANGED_DEFINITION)
         return binding
 
     def strategy(self, binding, *, request_context=UNSET):

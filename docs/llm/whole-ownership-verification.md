@@ -2082,3 +2082,44 @@ Python 3.12.14/Clang·고정 Host·의존성·namespace/X11 환경은 유지했�
 미전환은 완료로 승격하지 않았다. 현재 479개 파일, 미검토 379개,
 미분류 28051개, incomplete 2개로 전체 완료는 차단된다.
 후속 전체 범위 정리와 정확한 Push SHA의 원격 CI 확인을 계속한다.
+
+
+## 공개 namespace·작은 단일 책임 모듈 감사 (2026-10-23)
+
+18개 공개 package namespace를 전부 읽고, 7fc8404의 독립 공개 선언과 71개 이름의 순서·중복
+부재·실제 접근 가능성을 대조했다. Component와 RAG의 지연 import 분기는 앞의 export 그룹
+선언을 사용한다. 선언을 확장하면 이전 전체 AST와 같으며 import 시점·미지 이름 AttributeError는
+그대로다. 나머지 public-only 모듈은 기존 import/__all__ 선언이며 별도 필드 해석·실행 정책이 없다.
+__all__은 해당 공개 namespace의 정규 선언으로 분류했고 리터럴이라는 이유로 비계약 처리하지 않았다.
+
+Linux 진입 조건·RunAgentResolver의 changed-definition·RerankModel 결과 오류 문구를 각
+Owner 선언부로 옮겼다. 선언 확장 후 세 모듈 전체 AST가 같고 Linux/darwin/win32/linux2의
+네 값에서 이전 판정·문구가 같다. AgentBinding과 EngineContextBinding의 실제 선택/현재성/
+request context 검증은 그대로다. Rerank는 typed Adapter 결과와 범위만 검사하고 SDK 필드를
+해석하지 않는다. public export·지연 import·API identity·worker 직렬화 기존 시험을 재사용했다.
+
+변경 없는 WorkflowData 전체도 검토했다. workspace 잠금과 현재 Component 검증 아래
+WorkflowGraph의 Reader/validator를 호출하고 별도 정책을 만들지 않는다. DailyUsage 전체는
+UsageReceipt를 읽는 UI 날짜별 관측으로, unknown을 알려진 token으로 바꾸거나 quota 근거로
+사용하지 않는다. 둘 다 기존 Owner API를 이미 사용하는 파일이므로 불필요하게 재작성하지 않았다.
+
+- `whole-public-exports-01`: 발견/시작/pass 120/120/120, exit 0, 66.636703초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-public-exports-01/llm.json --modules tests.llm.test_components tests.llm.test_rag_models tests.llm.test_plugin tests.llm.test_agent_execution tests.llm.test_graph_agent_contract tests.llm.test_agent_workflow tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `8e3047d7602e15350d2f65cc6f56acd98f224d52ee875a49f05b013e8f96a069`, input `4459aa76664b00b3e02516fa4ef89e4d9cbf14320183f008f59602ca4b7eb727`.
+
+- `whole-public-exports-hub-01`: 발견/시작/pass 8/8/8, exit 0, 4.244082초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-public-exports-hub-01/hub.json --modules tests.hub.test_plugin tests.hub.test_component_catalog tests.hub.test_usage_definitions_system`. source `8e3047d7602e15350d2f65cc6f56acd98f224d52ee875a49f05b013e8f96a069`, input `53439d648f652b63ad9f4a6b53a26c515d0f605a2ef961de2a2d1577137125ef`.
+
+- `whole-public-exports-layout-01`: 발견/시작/pass 1/1/1, exit 0, 2.442988초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-public-exports-layout-01/llm.json --modules tests.llm.test_engine_layout`. source `8e3047d7602e15350d2f65cc6f56acd98f224d52ee875a49f05b013e8f96a069`, input `4459aa76664b00b3e02516fa4ef89e4d9cbf14320183f008f59602ca4b7eb727`.
+
+각 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 전후 manifest가 같다.
+Python 3.12.14/Clang, 고정 Host·의존성·namespace/X11 환경은 같다. 실제 import 경로·Plugin·
+Component·Agent/Graph·저장·승인·예산·효과·Checkpoint·RAG·삭제 및 Hub 관측의 Level 2다.
+공개 이름 재선언 제거·동일 진단 이동만 변경했고 전체 회귀는 후속 관련 검증 게이트에 묶는다.
+진행 중인 고정 7fc8404 gate16에 이 변경이 들어갔다고 표현하지 않는다.
+
+변경된 Agent resolver를 참조하는 정적 근거 4개만 갱신했으며 발생은 144개 그대로다.
+23개 파일의 실제 전체 코드·동적 export/소비 경로를 검토했다. 첫 감사 자체 시험은 공개 package
+3개의 consumer 연결 누락을 검출했다. 실제 상대 import와 기존 Application API import 시험을
+연결해 보강했고 검사 규칙은 바꾸지 않았다. 실패 로그는 보존했다. 최종 감사 16개 pass/exit 0,
+정적·문서·R3 mutation·SDK·양 환경은 각각 exit 0이다.
+현재 479개 파일 중 미검토 356, 미분류 27962, incomplete
+2개이며 전체 완료는 계속 차단된다. 나머지 제품 코드·assets 및 마지막
+현재 SHA의 통합 회귀·원격 필수 CI까지 작업을 계속한다.

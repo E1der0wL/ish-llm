@@ -2,8 +2,11 @@
 
 import sys
 
+SUPPORTED_PLATFORM = "linux"
+UNSUPPORTED_PLATFORM = "ish llm supports Linux only; run it on Linux or WSL2"
+
 
 def require_linux() -> None:
     """영속 데이터 변경이나 프로세스 생성 전에 지원 OS를 확인한다."""
-    if sys.platform != "linux":
-        raise RuntimeError("ish llm supports Linux only; run it on Linux or WSL2")
+    if sys.platform != SUPPORTED_PLATFORM:
+        raise RuntimeError(UNSUPPORTED_PLATFORM)

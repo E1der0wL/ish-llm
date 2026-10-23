@@ -5,11 +5,12 @@ from .embedding import EmbeddingModel
 from .rerank import RerankModel
 from .extraction import TripleExtractor
 
-__all__ = ["RAGJobStatus", "RAGComponent", "RAGConflictError", "EmbeddingModel", "RerankModel", "TripleExtractor"]
+_COMPONENT_EXPORTS = ("RAGComponent", "RAGConflictError")
+__all__ = ["RAGJobStatus", *_COMPONENT_EXPORTS, "EmbeddingModel", "RerankModel", "TripleExtractor"]
 
 
 def __getattr__(name):
-    if name in ("RAGComponent", "RAGConflictError"):
+    if name in _COMPONENT_EXPORTS:
         from . import component
         return getattr(component, name)
     raise AttributeError(name)

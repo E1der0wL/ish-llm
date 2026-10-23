@@ -14737,5 +14737,1141 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/ui/output/__init__.py",
+    "sha256": "3c0a35705661d42115b4951eb08edea23736e5f1151077a73576a50cbb18488c",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation. Direct relative UI imports and public application-facing import examples in the existing tests are explicitly linked; package namespaces need not be internally reimported to constitute a supported public API.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9da87d1c921a3413ced15233fc5d2c3ac8c7e48ea0f114f7e7217df918377aab",
+        "classification": "declaration",
+        "owner": "hub.ui.output public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "47b5149b38cb69ddce2c39ca8a3b32882667a4124704b2f0b723e46a48216786",
+        "classification": "declaration",
+        "owner": "hub.ui.output public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "d740d03b59bee66b82a9f95beeb64002bb5f5cc1d1a0013fb1d2115072965f82",
+        "classification": "declaration",
+        "owner": "hub.ui.output public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "be0e78af0599fe34440c623244c0bb37a348bea2b652ed023f02b599e5a0c805",
+        "classification": "declaration",
+        "owner": "hub.ui.output public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "44b9af6e043f497fe7130ee734193bb31ce74557dc4df3a4d0ebfec5115da39d",
+        "classification": "declaration",
+        "owner": "hub.ui.output public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "db8098341551354dce730abd6336368393313a479d57f76320cc1757a498b0ef",
+        "classification": "declaration",
+        "owner": "hub.ui.output public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "91c26b2efe46650ac29c2c051e31fe408d1cabd6eb321ff2a9f9ff96c6320f4c",
+        "classification": "declaration",
+        "owner": "hub.ui.output public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "ad47f44e0b0dd3bb77b50588b7dd6c8cc439ee406edbfa5e54b75b65cabb619d",
+        "classification": "declaration",
+        "owner": "hub.ui.output public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "hub.ui.output public namespace",
+        "declaration": "hub/ui/output/__init__.py",
+        "consumers": [
+          "hub/widget/output/loop.py",
+          "hub/widget/transcript/message_cache.py",
+          "hub/widget/transcript/conversation.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/__init__.py",
+    "sha256": "3b775546bb6714e4b6d374d8615bca48dc2f01b4db7e8ecf72b12d8549934be7",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation. Direct relative UI imports and public application-facing import examples in the existing tests are explicitly linked; package namespaces need not be internally reimported to constitute a supported public API.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "500cfe2ff040ac09b5a3a784e7e90bd7b0354351687bfdbc885599e176729f68",
+        "classification": "declaration",
+        "owner": "llm.components public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "13927ae369f5c30e5078b9b57dc1fdf119f86325c39c573c8351fff7ea42954d",
+        "classification": "declaration",
+        "owner": "llm.components public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "bafc45f1b1dea18bdad8472443d845008a0b4599220e35221c00c2199380f674",
+        "classification": "declaration",
+        "owner": "llm.components public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components public namespace",
+        "declaration": "llm/components/__init__.py",
+        "consumers": [
+          "tests/llm/test_backend.py",
+          "tests/llm/test_tool_data.py",
+          "tests/llm/test_components.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/data/__init__.py",
+    "sha256": "ba821378d5dcb95c81303f1c82fc3674b64e6f843e517abe28f53bfc179dfa87",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fae634960af6adb6f178a78afc653ee8115eccaa85640e91b959ed4ec993d8f7",
+        "classification": "declaration",
+        "owner": "llm.components.data public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.data public namespace",
+        "declaration": "llm/components/data/__init__.py",
+        "consumers": [
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/goals/__init__.py",
+    "sha256": "9fdcee4bc1f87c954de6ee3a6d70092280430454411109bdf8bfc5269667c2cf",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c78f23a19f40c7dc25597356e2d894a04abe67ff893aa2511c1ee60ec8fdd292",
+        "classification": "declaration",
+        "owner": "llm.components.goals public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "1132a6d13ffd3035483de2fbc5dde0eafe543d89ecd0aed821c7429bf4e9138c",
+        "classification": "declaration",
+        "owner": "llm.components.goals public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.goals public namespace",
+        "declaration": "llm/components/goals/__init__.py",
+        "consumers": [
+          "hub/backend/tools/resources.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/mcp/__init__.py",
+    "sha256": "9dffd8d4a7e0f392f43af002e3cd8831c919007b9cb74114835b0c94aed2b168",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c145cb902b9609642453fd714c80410f97e817ba1f42e40d219734e43cf6924e",
+        "classification": "declaration",
+        "owner": "llm.components.mcp public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.mcp public namespace",
+        "declaration": "llm/components/mcp/__init__.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/__init__.py",
+    "sha256": "5b7b7098c70af94ffe6378a923199924c056cf708bd234bbe388d0bd37ac8305",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "40fae45edb22012ef3888baf26f1d69bdb8aac9f6b0085d6f98bc998f4b65f98",
+        "classification": "declaration",
+        "owner": "llm.components.memory public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "f3889da52b024c1cc3d791d3f5bf344701e543ce6f3e0e9f30d4d5483e6ded21",
+        "classification": "declaration",
+        "owner": "llm.components.memory public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "99b7b8f0c607fec836d909c0aef97ea439020f56cae9d9057b06e1b3f4074074",
+        "classification": "declaration",
+        "owner": "llm.components.memory public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.memory public namespace",
+        "declaration": "llm/components/memory/__init__.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "hub/ui/error_presentation.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/prompts/__init__.py",
+    "sha256": "77884144a830485679b79a1a761ac6bebbbeffaddbd5bf94c7f729a266ae6c88",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5fc12f58e353aee79474e3561cb85ee1de02a2630ffcb3df661dfb1b13a4ec76",
+        "classification": "declaration",
+        "owner": "llm.components.prompts public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.prompts public namespace",
+        "declaration": "llm/components/prompts/__init__.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/__init__.py",
+    "sha256": "ff84433db7339ebf75dac74c1889f03cbc4803d66695913d386a18d744e2dfe3",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "781f5bcc69cfa5421cb9fe72cccb8b0086e1b66a5e13346d015795084e28c85d",
+        "classification": "declaration",
+        "owner": "llm.components.rag public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "eb675970e6129bec41c1fc7fad5cbdd1fabea91bc036553d0a647187803fc9eb",
+        "classification": "declaration",
+        "owner": "llm.components.rag public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "ee8af9c7f96c6f5074b5a871f9ce03a105537f0dbcd22ee9944c3fab32d82bd9",
+        "classification": "declaration",
+        "owner": "llm.components.rag public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "7fb39d80e73d5607a59e8a948f6e1525553fc8f7d2a7eca9c3ffb7b1368079ac",
+        "classification": "declaration",
+        "owner": "llm.components.rag public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "5959fb33a8f66e6344171572101c51131e485452844adb72c45e8babeeefd82e",
+        "classification": "declaration",
+        "owner": "llm.components.rag public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "c48638bb6aca4c9302cb320240e41ceae83858fcc01f4bbd176e009a744b6083",
+        "classification": "declaration",
+        "owner": "llm.components.rag public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.rag public namespace",
+        "declaration": "llm/components/rag/__init__.py",
+        "consumers": [
+          "hub/backend/tools/resources.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/refinement/__init__.py",
+    "sha256": "e6d14304c1b2c3ad9a440e5f8b75ed058ba700a0ca874004627393b5b6024eb2",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0293fec5ac8f56b7b2c4a728f0b35b3c63105719f156e2fa49830506893580b1",
+        "classification": "declaration",
+        "owner": "llm.components.refinement public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "edf7d4c7e7a7e9228c9aa5cadde48d775c8fc180a83e8ec44a861422924b97e7",
+        "classification": "declaration",
+        "owner": "llm.components.refinement public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.refinement public namespace",
+        "declaration": "llm/components/refinement/__init__.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/__init__.py",
+    "sha256": "76c06afe05d70112747eba68e253226cba361ec23117daf10b626e0db7ad804f",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "61ae1169dc19e4f714175d62c6683a0d858eb104382c801c491f1790fc07e35b",
+        "classification": "declaration",
+        "owner": "llm.components.skills public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "88d5d62ef76d40c8cf031d3d6ab6b1707bf35b71501d1b4f9540f61cda4b1314",
+        "classification": "declaration",
+        "owner": "llm.components.skills public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "be999817f35e3d82ad30f8c77ef59ebb76da59ce2e8f4c8f66bcddb02656d345",
+        "classification": "declaration",
+        "owner": "llm.components.skills public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "a934955b89fd65e3107eed69e2a7e3e4f4913297b72b491f975815ad5927ffd9",
+        "classification": "declaration",
+        "owner": "llm.components.skills public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.skills public namespace",
+        "declaration": "llm/components/skills/__init__.py",
+        "consumers": [
+          "hub/backend/project/record_management.py",
+          "hub/backend/tools/skills.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/__init__.py",
+    "sha256": "65c464206176e64d118709c953770ef797b126599b875700adb17e166c63032d",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "45afa3f866e645740c90ed6d4ad6a3b2789545e8e8148b7fcee456b9d109c2b5",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "7416f55ca6ac8a3846b7f45a9d7acd32cd5ab4dbb7d030854dea35cbffad260c",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "9973f52d80c1ef01227e988aa1ea16e840b667d5f003fce374d93373e5c424fa",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "a5cd2ee31de6446cabf648f4c08ea92e27eaef537a86539baa006d38187a69a5",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "9ecededa8d38912b170d896f35201f7ab867f782485e4f0f656a8fc28fdafa38",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "3cb8662c9bbc4dd4fc1680466105f7d75eb8e4b52503562ff53d30474f27649c",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "bac56a20cd8ce282d4750aa7a83380b928223e3e137aec69acae8373b2f9318b",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "1463d566f45d2fedb05adbf04e7d4ad30877825573f663590e21ac4f2bec2104",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "4420e2e0870793c69e038156e7050b295b41b578b96b0c27916bf0c1628a1905",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "f5d8b1d4088d77f033f4c2417d3cdfacbffc63e8bff5994062bfeeb8b1d89b6f",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.tools public namespace",
+        "declaration": "llm/components/tools/__init__.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/tools/advice.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/paths.py",
+          "hub/backend/tools/resources.py",
+          "hub/backend/tools/skills.py",
+          "llm/components/goals/tools.py",
+          "llm/components/memory/tools.py",
+          "llm/components/refinement/tools.py",
+          "llm/components/skills/tools.py",
+          "llm/components/tools/builtin/component.py",
+          "llm/components/vision/tools.py",
+          "llm/engines/agent_tools.py",
+          "llm/engines/agents.py",
+          "llm/engines/base.py",
+          "llm/llm.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/__init__.py",
+    "sha256": "f9db87015478642777dd19fc58be49844dcc00387c25700bf476bdaee0a80d8b",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "54a3c586ae87fe5f98075ad85c86214bde301d7f6a21014075d6372446e97e6b",
+        "classification": "declaration",
+        "owner": "llm.components.tools.builtin public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "10cd63d935fb0b7b7a06114dbfba8ec1f8db887b3f8218be2f7f30ebd195c09f",
+        "classification": "declaration",
+        "owner": "llm.components.tools.builtin public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "d06d238ed7c54480958d5c72e0e96252b8c6b7fc60bfa1162fdcfbb4a876c71c",
+        "classification": "declaration",
+        "owner": "llm.components.tools.builtin public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "d2e7a082e33ce5741f98075c8d3bd73fdeba5998aed2c6884e9dd5d67546624d",
+        "classification": "declaration",
+        "owner": "llm.components.tools.builtin public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.tools.builtin public namespace",
+        "declaration": "llm/components/tools/builtin/__init__.py",
+        "consumers": [
+          "hub/backend/tools/advice.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/retry.py",
+          "hub/backend/tools/test_workspaces.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/__init__.py",
+    "sha256": "6a69e6bf531290230139eaa540f351ab376f546dca37cf39f7ba16de02edeff5",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5add137c8c22d6df8ce099ba9bad0b5b9462ec8a44b69989014bb1c9aeae62eb",
+        "classification": "declaration",
+        "owner": "llm.components.vision public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "412f86934ce66c7eb1eaadb9f6c5fb5024649583984c91e4d36b5c6e8432c9e4",
+        "classification": "declaration",
+        "owner": "llm.components.vision public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "70d10d9d90bec11b5e6aa49429a95468b6c2981f7faee9067365ddf890ace1a9",
+        "classification": "declaration",
+        "owner": "llm.components.vision public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "f9f502ab2e4e85972d3bbed7e9b270ba73fd3c17280b909382728579547561a3",
+        "classification": "declaration",
+        "owner": "llm.components.vision public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "0fc4bba0af804277a1185ab9e6a5a1fc201f1ea17f229dc5334b3d614607918c",
+        "classification": "declaration",
+        "owner": "llm.components.vision public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "871ac93a0d66616c9008cc7bf5f11da65d7f9f6d177a744cdaf823f11b0fe392",
+        "classification": "declaration",
+        "owner": "llm.components.vision public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.vision public namespace",
+        "declaration": "llm/components/vision/__init__.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/workflows/__init__.py",
+    "sha256": "b758ac966a6b92fb67f395b7dc522fcaac76e7a7af1565ece7b85ba063e74702",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "757c8bdb5cc6a10fc691264842923b6891a415134a0952aed56857641c9c2f97",
+        "classification": "declaration",
+        "owner": "llm.components.workflows public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "5ae89b9e4e12d42e21f3b6cea071cc1836a3285dd8986fbdc966d4e2d05fbba8",
+        "classification": "declaration",
+        "owner": "llm.components.workflows public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "e40f2ef1f90a9ccea493afe33e881af226e3acfbb420e62c64efeac79eefa38b",
+        "classification": "declaration",
+        "owner": "llm.components.workflows public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "f93d53c74973358f7c62dac1766abad88d86425003b32afa17a627046f66bddb",
+        "classification": "declaration",
+        "owner": "llm.components.workflows public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "086f6bb5a89c98ffc37b6ef62fdd8dbf2c610deaf7e38d0baaddb203c0226a00",
+        "classification": "declaration",
+        "owner": "llm.components.workflows public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.components.workflows public namespace",
+        "declaration": "llm/components/workflows/__init__.py",
+        "consumers": [
+          "hub/backend/tools/resources.py",
+          "llm/engines/graph/engine.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/__init__.py",
+    "sha256": "e0ee6174ae273693c80170b4219f2fb27862fcd51b6421951572438e723e8fcf",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation. Direct relative UI imports and public application-facing import examples in the existing tests are explicitly linked; package namespaces need not be internally reimported to constitute a supported public API.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d786281e90bf84f62f2fc8bcde0810647014e99411e462c22e86694c1a4ede2e",
+        "classification": "declaration",
+        "owner": "llm.engines public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "d9b23e6762915f38b4e7aa9c62caeea3ec5f66ed578e09692d3830ff516ce605",
+        "classification": "declaration",
+        "owner": "llm.engines public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "cd6d7be255cb50bee4bda5052af4e699ef3b32335a979e53a1d031dfac762b34",
+        "classification": "declaration",
+        "owner": "llm.engines public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "7cb46c73d19e1bc0322192e753e5aecb7c567fabe52cc2bdcfcd0a05707934e5",
+        "classification": "declaration",
+        "owner": "llm.engines public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "c84b114aa63815bda3d81972dd16a56e71e3e96c07b1664026d82567dbcaf332",
+        "classification": "declaration",
+        "owner": "llm.engines public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "7c41bf30620f0f19c66bfd95f7bc731227c6ff086a40e6df96298a7a5be77573",
+        "classification": "declaration",
+        "owner": "llm.engines public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.engines public namespace",
+        "declaration": "llm/engines/__init__.py",
+        "consumers": [
+          "tests/hub/test_live.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_base_engine.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/__init__.py",
+    "sha256": "a15768cdce728177954f30e06f080a47fd1d317246a345bc907ab5d022b2acbd",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "57abc88b6fe4bf8bf33506edbfdf44cdafd2538029ca2b7ef489b6ce1b550552",
+        "classification": "declaration",
+        "owner": "llm.engines.graph public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "fd59a792ca1eff863eb4b6cb2e97ac23dd53216fe2df5768e76e66a04bbda3c1",
+        "classification": "declaration",
+        "owner": "llm.engines.graph public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "94d21eb2cd89f61066d558e3793a0487e848e5a05eb103559d5128d1b89ae81b",
+        "classification": "declaration",
+        "owner": "llm.engines.graph public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.engines.graph public namespace",
+        "declaration": "llm/engines/graph/__init__.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/loop/__init__.py",
+    "sha256": "28029978d4d77155f026a0e2068fde366f3e11dfa0e5f2b30f31b9c1c7a9abf0",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "48df6f8af028aa20316bee1ebe3c7002d307e669d072a39fc7bcfe5108a0d245",
+        "classification": "declaration",
+        "owner": "llm.engines.loop public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.engines.loop public namespace",
+        "declaration": "llm/engines/loop/__init__.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "hub/backend/execution/engine_selection.py",
+          "hub/backend/execution/provider_recovery.py",
+          "hub/backend/execution/retries.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/policies/__init__.py",
+    "sha256": "6eb24624e8e8097ed8867ca3f0bf108504a7e69b6ca6271b722d616254a447f0",
+    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8e5dde9155bbb93d31b8f5f48a24812c62adc77d4f65fef6838df4c0dfccad49",
+        "classification": "declaration",
+        "owner": "llm.policies public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "f0e4b5d182b6db5d92684a06705499af4001b73da59ae8d428b276d9a5c6f370",
+        "classification": "declaration",
+        "owner": "llm.policies public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "a7bd38c6c66824c18f0006c02c03ea1a891c9f4bae79422c25aa42b6e9af7c8e",
+        "classification": "declaration",
+        "owner": "llm.policies public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "38572e152a74d865ad079e419f8bbd25d48114e497d3b78b80446ff228ee48ad",
+        "classification": "declaration",
+        "owner": "llm.policies public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "bb16f326964a777fef633de45d2e5fcc71d3cf13f3e199816313aeafa184b578",
+        "classification": "declaration",
+        "owner": "llm.policies public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "llm.policies public namespace",
+        "declaration": "llm/policies/__init__.py",
+        "consumers": [
+          "hub/backend/execution/provider_recovery.py",
+          "hub/backend/tools/retry.py",
+          "llm/components/memory/processing.py",
+          "llm/components/processing.py",
+          "llm/components/tools/builtin/workspaces.py",
+          "llm/engines/agents.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py",
+          "llm/llm.py",
+          "llm/providers/litellm.py",
+          "llm/services/infrastructure/linux_sandbox.py",
+          "llm/services/lifecycle/components.py",
+          "llm/services/runtime/operations.py",
+          "llm/services/runtime/policies.py",
+          "llm/services/runtime/processes.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/usage.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_engine_layout.py",
+          "tests/hub/test_plugin.py",
+          "tests/hub/test_component_catalog.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/_platform.py",
+    "sha256": "c33ed1c416a84ed48c71f515026839eda4297161eb07110e0bd61884175450c6",
+    "reason": "Reviewed the entire OS gate and actual CLI/plugin consumers. Platform value and diagnostic are declared once. Four platform cases and expanded full AST preserve success/error before data or process effects. No portability fallback or new supported OS.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4ecc81ddfcdfb8749fb6b959cea24f178da7929682618a5b98bbb49cf85f6b6c",
+        "classification": "declaration",
+        "owner": "Linux entry condition",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "0cbb08720615362790154d6746480797dbbf555acd1e3c9761161e45accc86c2",
+        "classification": "declaration",
+        "owner": "Linux entry condition",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "62dc136286ada381fe1bc9c653b206d50ddd4de4e64381de247942092f604a01",
+        "classification": "non_contract",
+        "owner": "Linux entry condition",
+        "reason": "Python annotation/optional runtime object absence or single-observation count increment; no domain fallback or execution choice."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Linux entry condition",
+        "declaration": "llm/_platform.py",
+        "consumers": [
+          "llm/services/infrastructure/locking.py",
+          "llm/services/runtime/processes.py",
+          "llm/components/tools/builtin/processes.py",
+          "llm/components/tools/builtin/workspaces.py",
+          "llm/components/tools/process.py"
+        ],
+        "tests": [
+          "tests/llm/test_plugin.py",
+          "tests/hub/test_plugin.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/agents.py",
+    "sha256": "a60e45f4f3d3385036fae52e32343b84055cf5e82238aed1b8ae6283e8ffe9f2",
+    "reason": "Reviewed the complete selected/current/strategy/source flow. Typed AgentBinding owns identity/definition parsing; EngineContextBinding owns request context contracts. Only the diagnostic was relocated and full AST is otherwise identical. Current lookup and admission checks remain, with root/Agent/Graph/Resume effects covered.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7c1f8880a8a04b43669715533621fa699c0ee803705760d577da743377975e4a",
+        "classification": "declaration",
+        "owner": "RunAgentResolver",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RunAgentResolver",
+        "declaration": "llm/services/runtime/agents.py",
+        "consumers": [
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_agent_workflow.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/rerank.py",
+    "sha256": "0bef45929991fb46e471bc8393b55075ac8d3ded39a970fa10969e6f275dd10a",
+    "reason": "Reviewed the complete selected Adapter invocation and typed RerankResult/index validation. Open selected provider parameters are copied and forwarded without SDK-specific interpretation. Diagnostics are declared before methods; full AST is identical after expansion. Existing adapter/wire/cancellation and import-isolation tests remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "beb18bc2b7265ed134a70cea0c8fbe623cd058e50a52ceb6f7445c142e3b7335",
+        "classification": "declaration",
+        "owner": "RerankModel",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "d337408f2c6637f04b2e1c03d693a263236176710cbb9a9df81785e9469d069b",
+        "classification": "declaration",
+        "owner": "RerankModel",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "e8cc8beda50af1488b9c17e38d38e180a6fab7a70f2f57b183df0e51d8037cf7",
+        "classification": "non_contract",
+        "owner": "RerankModel",
+        "reason": "Python annotation/optional runtime object absence or single-observation count increment; no domain fallback or execution choice."
+      },
+      {
+        "id": "740004b2cfcb749ce49a10ad4fb7721f673693316588cb462a16f27921d7f7e9",
+        "classification": "non_contract",
+        "owner": "RerankModel",
+        "reason": "Python annotation/optional runtime object absence or single-observation count increment; no domain fallback or execution choice."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RerankModel",
+        "declaration": "llm/components/rag/rerank.py",
+        "consumers": [
+          "llm/components/rag/__init__.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/workflows/data.py",
+    "sha256": "7254a9fa801565ed05d44be52dcf1e8d9802e373f5144bf2d2d0c7e434327c73",
+    "reason": "Reviewed the unchanged complete convenience API. Both methods acquire the existing workspace lock/current Component ownership, delegate graph validation/reading to WorkflowGraph Owner, and preserve async adapters. No duplicated record parsing, field defaults or execution policy.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3cf7ecfde79d57945aba6fd67d4fe560ee9acdcfb75b85c5ea7558a440a3606f",
+        "classification": "non_contract",
+        "owner": "WorkflowData",
+        "reason": "Python annotation/optional runtime object absence or single-observation count increment; no domain fallback or execution choice."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkflowData",
+        "declaration": "llm/components/workflows/data.py",
+        "consumers": [
+          "llm/components/workflows/component.py",
+          "llm/components/workflows/__init__.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_workflow.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/usage.py",
+    "sha256": "61836500c20d9444f03941ed13d835418892c5f35e551b1b1bb1c802fe7e9fc2",
+    "reason": "Reviewed the unchanged complete dated UI projection. UsageReceipt owns counter meaning; dataclass fields own chart shape and arithmetic starts at declared zero. Unknown counts are displayed, never converted to known tokens or used for quota admission. Existing timezone/date sorting and absent display-date behavior remain; no raw field lookup or new ledger.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "68e1883add7be1c5ab67452dd8fa59033888f78bf56ee4f49dd4b6d0e424ac03",
+        "classification": "declaration",
+        "owner": "DailyUsage",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "e257101e4e56944951ae1b78e00b029c5b2095f1ac7aadc435d565ce51d252c1",
+        "classification": "declaration",
+        "owner": "DailyUsage",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "e9ea74e84dc21aa8b4d360655fe127da8eee41a7af6b5dbfc505f218261d4a3a",
+        "classification": "non_contract",
+        "owner": "DailyUsage",
+        "reason": "Python annotation/optional runtime object absence or single-observation count increment; no domain fallback or execution choice."
+      },
+      {
+        "id": "533187ab79cbeaed961eab53808903b15d4c2a675d7457903b1ac7cd31a31330",
+        "classification": "non_contract",
+        "owner": "DailyUsage",
+        "reason": "Python annotation/optional runtime object absence or single-observation count increment; no domain fallback or execution choice."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DailyUsage",
+        "declaration": "hub/backend/project/usage.py",
+        "consumers": [
+          "hub/backend/project/settings.py",
+          "hub/widget/usage_chart.py"
+        ],
+        "tests": [
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

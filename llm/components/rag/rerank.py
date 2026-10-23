@@ -11,6 +11,8 @@ from llm.core.model_protocol import ModelOperation, RerankResult, copy_model
 
 class RerankModel(ModelClient):
     operation = ModelOperation.RERANK
+    INVALID_RESULT = "Rerank adapter must return RerankResult"
+    INVALID_INDEX = "Ranking index is outside the supplied documents"
 
     def __init__(self, *, adapter=None, **params) -> None:
         super().__init__(params, adapter=adapter)
@@ -19,7 +21,7 @@ class RerankModel(ModelClient):
         result = await self.adapter.rerank(query, copy_model(documents),
             {**copy_model(self.params), **copy_model(kwargs)}, self.provider_options, decide=self._retry_decider)
         if not isinstance(result, RerankResult):
-            raise TypeError("Rerank adapter must return RerankResult")
+            raise TypeError(self.INVALID_RESULT)
         if any(row.index >= len(documents) for row in result.rows):
-            raise ValueError("Ranking index is outside the supplied documents")
+            raise ValueError(self.INVALID_INDEX)
         return result
