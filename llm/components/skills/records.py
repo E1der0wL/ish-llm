@@ -98,7 +98,7 @@ class SkillRecord:
     URI = "uri"
     DATA = DataComponent.name
     TOOLS = ToolPaths.COMPONENT
-    TEXT_ENCODING = "utf-8"
+    TEXT_ENCODING = SkillDocument.TEXT_ENCODING
     DIGEST_SCHEMA = SkillLineage.REVISION_SCHEMA
     TARGET_SCHEMA = {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}
     FILE_SCHEMA = SkillFileEvidence.manifest_schema()
@@ -255,13 +255,7 @@ class SkillRecord:
     @classmethod
     def renamed(cls, value, identifier):
         """Explicit fork authoring; only the name changes in the proposed document."""
-        document = cls.document(value)
-        fields = deepcopy(document.frontmatter)
-        fields[SkillDocument.NAME] = identifier
-        name = fields.pop(SkillDocument.NAME)
-        description = fields.pop(SkillDocument.DESCRIPTION)
-        return {**deepcopy(value), cls.MARKDOWN: SkillDocument.compose(
-            name=name, description=description, body=document.body, **fields).text}
+        return {**deepcopy(value), cls.MARKDOWN: cls.document(value).renamed(identifier).text}
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -285,7 +279,7 @@ class SkillSnapshot:
 
     @property
     def description(self):
-        return self._record.parsed_document.frontmatter[SkillDocument.DESCRIPTION]
+        return self._record.parsed_document.description
 
     def to_dict(self):
         return self._record.to_dict()

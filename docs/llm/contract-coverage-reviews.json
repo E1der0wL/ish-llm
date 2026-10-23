@@ -28940,8 +28940,8 @@
   },
   {
     "path": "llm/components/skills/records.py",
-    "sha256": "c85cf24070c11d32ae41075bbc471b3dce5f62500922a5051df2c6f9338448af",
-    "reason": "Reviewed complete Skill Record/Resource/Lineage/Snapshot and its storage builders. Schema and raw Markdown/omission/revision input remain unchanged. Storage now uses typed mandatory catalog/entry readers and Record factories/accessors for all container construction/mutation; no second definition or legacy path exists. Source/files/lineage edits preserve original immutability and declaration semantics. Independent record cases, exact old/new physical tree comparisons, malformed operational evidence and real transaction/rollback/reference/usage/Resume tests close the previously recorded storage consumer gap.",
+    "sha256": "8b05d5230f6a120963dde2c5d8c0443ddb1647bc30910188a0c3b02d0fc88ff8",
+    "reason": "Reviewed complete Skill Record/Resource/Lineage/Snapshot and its storage builders. Schema and raw Markdown/omission/revision input remain unchanged. Storage now uses typed mandatory catalog/entry readers and Record factories/accessors for all container construction/mutation; no second definition or legacy path exists. Source/files/lineage edits preserve original immutability and declaration semantics. Independent record cases, exact old/new physical tree comparisons, malformed operational evidence and real transaction/rollback/reference/usage/Resume tests close the previously recorded storage consumer gap. Document encoding, description and explicit fork rename now delegate to SkillDocument. 28 old/new forks preserve exact composed text, optional metadata and unchanged source objects; no raw frontmatter interpretation remains in Record.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -29120,12 +29120,6 @@
       },
       {
         "id": "5ba00a6f973303cd4437069c85a5b831feea7c214a0c7edf7dbf386a1d60f702",
-        "classification": "declaration",
-        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
-        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
-      },
-      {
-        "id": "727c523efb32f7da13715071f4b6f41ecb62dac624265512651b6090230165de",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
@@ -29449,19 +29443,19 @@
         "reason": "Optional declared lineage/source omission or discard of an explicitly replaced file projection. Required operational containers were already validated by SkillOperationalRecord; absence is never restored as authoritative evidence."
       },
       {
-        "id": "8195ce8238c4a972bc45c8fc7fabd55346e35f0f416112b08f3dd1677684c666",
+        "id": "26825df8fe45136dd422d2dcf5a94ae512cc3f2394eaa1139978c5509e21b00b",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
       },
       {
-        "id": "8f652d74523ba2f1407b2d1a96b4c3b3275d97b45580bacbcf4d10669801cc28",
+        "id": "f2c5d277c0fad16da83aa8a3243ef8f7e6e3e9def7577b8e0c2d23736e2a066d",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
       },
       {
-        "id": "d71933013ddf3d8b0c056d1cc7aaa6a7e75834f9e719d872269c06e7371adf8f",
+        "id": "d5168b480d3b6e4e66387d1924ae813301cb8defbf93bbbe2408e218822bbedf",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
@@ -30063,6 +30057,665 @@
           "tests/llm/test_data_component.py",
           "tests/llm/test_component_storage_integrity.py",
           "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/skills.py",
+    "sha256": "609b297c1adc3b07c63b05ffd6decf24b5572b056eda45d227b76c8afafa3328",
+    "reason": "Read complete parser, strict duplicate-key YAML mapping, name/frontmatter validation, original text/body, summary, description, compose and explicit rename paths. Semantic values/diagnostics precede implementation. Original text is the only definition, optional fields and source metadata retain existing semantics, unsupported/duplicate fields fail. Description/rename consumers use Owner API. Independent old/new valid/invalid and Unicode/CRLF/empty/optional cases match.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b49d33a8b0e08fe84c96368b6d7da8492ca7c029bce76a6909853e82614d1a43",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "70cfb3634befeea67edca753a679ea8b4ec8088b75adb79fb55d1b07524be8ac",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "8ae19ffa8e5116f59275d9d788100492790dbd4863b154c6d140b2f25ad79033",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "2d0c406a86925b5f9d01a7a55dec13e5592f8c405a933316ee327d161aa148aa",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "419cec05ea38268264f8df598ce3613687946064c9e5f2eaf27c1c1b7fc826e4",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "bb112ec5ad3cc5245f2e2156e94f83ea114449639aefa325399965ff62491454",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "ca47d3bb90724ee26cff4bf6bf899b1683bc13696a7ee1cc4c7c28fa346f1355",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "b116472f7ca9bf896af8de51f05458a70857d137750a17fcef4ca41823c51f09",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "e8a3c60d60c4604b09eb71e3b4882beb6f01aaf3ae77fba0980d6f08b7b710dc",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "cd028e1cb3523bb858df0a92fbf17edd3e76cef5cd306a117f1263edbe6d16f3",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "ba893e55ff76eaf055e18298e233dc1af10d5cc182fcd1a4a1f3221dfe96f9b4",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "8697d902056dfa32a9c69cb41d270eeb0f66631ccb95892f55ddf1621d31bc74",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "a91f406e94fd08686fdc041062744ac2f532deb6a770874fd9079de113915997",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "241dae7bb9a2dcc3a40ee618eea77c7d099c9671fe279bc3f9f4f92871b5f577",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Python dataclass immutability/slots decorator, not authority or policy."
+      },
+      {
+        "id": "ccee02f64a32fa0d4c4527ea26baef61b900a12106f1fdf05fc980cf52725084",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "9463de9ac977ea0302a29a868fedf52343e146bd7239706134bfa9360a452158",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "20c2d7e5ef4224e122b451f100b614e5884e290276cb815ae5f525120f9f993f",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "22ba2ed5d77f19c73fb27870cec4cb4231df8dd7ed68835cf46ea8636ef4bf8a",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "873cae892559dab5e6d47300e71c9e3db5d4a35e8ed547480a4dfe3dc89dcaf4",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "8de27d0fd85e5835db065b1aef73e1ca36757d33d45bdbf663199be88b8b26b5",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "9694e838f5219d065c57da9ea65b97e5ffc0b1093a3437360af76e9f103e4f09",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "764ec0382fa5e10d2b499a4cbccfe99fb6c5f7db49a506551824e05f5e117a63",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "70f94a06359e827d408bbe3d83f2cf607efc7134e3687bd140e3f12c57da6441",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "f14a759e7489c150c1ac946253fed8fbaa84e4ee72b656db121af258ae678faf",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "1e02b32a94edb471b2448b3c52d3a66d5a3a6bdac2e04346680670ab9364a824",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "4d504ab6b9349ed186290a775aef1c5805fd3912f31db9ca0ec9b3e0c649e2e7",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "3e40bf3b5bce0a221d2a5b5ceaadcdfa96c9298186b6722705ebea0f4d593c83",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "9a13a974dc6954726fbf63db0e1688e4045bddded75a6bd46de1ccf408b3664f",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "4d26399307a71013459a68a5705ff420f7d06a759642f91178823fee5d4ccd53",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "1bb2b4c212ef164c56e2fcb2ab1a201b77d5e03fe0b3f36e59b936881cf574dc",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "a9d717e8b18cd14a3afa59b2c64b269f853ffae89148568ee9f10259eed31cd0",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "aac626f5635538b507d74a549d9600d5452c3ed11dc5664106648592cd63b695",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "1c2f160752f8ab9c5e2fab366b2055b814673507b292ce262ee8659f6ee285db",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "0c2986d00a0b961e038cc957ce1d7b5bb65c27d22b4bc8f5e258db0c4edc6168",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "ef672413b2f4e8e9ba852f5ea4c0ca57963886d65616a105439147dee886b564",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "5fb2ac14abc02ff1cb9cf1fe5f761efad8f5edc714421847233f0a4654d6f96f",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "d50867a13670aca6a580d894ec64723906eef5434b13f2483e561df50d7d2958",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "502f2357a2ec86b48c3f5ad8b4aa2def861413268fa0156a9b9af7b694440efb",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "dd35c25a9d6d461dd1e2f8509762e32b9d911e8946333ed2f961e6969e412085",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "7688d66c8a2ad007e2d0e158a438a82627fba08b13b8ea74c187b86f7e42615a",
+        "classification": "declaration",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "3ea380d54c7c621d3d2d841ee8f5479915c9f3c97b41af9bc6dbc587800931c3",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Optional caller identity or local delimiter-search absence; required frontmatter is never synthesized and missing delimiter explicitly fails."
+      },
+      {
+        "id": "5e7321048c3427abf487c4467b5085a429612c3eb4c6044e2836e20ab56c8e6f",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "First element of the split line sequence; delimiter content is the declared document protocol."
+      },
+      {
+        "id": "f0f6590c39b57fdf5dffeb8a2e2b18f9c2ad7c7afa6b2ff8940e3aaa7c746075",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Adjacent sequence slicing/iteration past a matched delimiter; no storage/default/limit value is inferred."
+      },
+      {
+        "id": "57503aede6b56af5e031a838930c3caeac7ed091f1d5687d1ddaad151495f080",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Optional caller identity or local delimiter-search absence; required frontmatter is never synthesized and missing delimiter explicitly fails."
+      },
+      {
+        "id": "ac23410719fb4fb2c6ec46a8035cf2c5e5fe5761a0426c7bc728ba455f450b57",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Optional caller identity or local delimiter-search absence; required frontmatter is never synthesized and missing delimiter explicitly fails."
+      },
+      {
+        "id": "60b887e2f6ae1d0880467ba2f4f58622545cbd9c036fc22d9cd42991650ab4e2",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Empty-string join preserves the exact existing line contents and endings; no semantic value or missing field is supplied."
+      },
+      {
+        "id": "5f14b43b1a0164ff2fa5fbdcd4f22b1acbcae87f94457caea32f7966a34cfcbe",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Adjacent sequence slicing/iteration past a matched delimiter; no storage/default/limit value is inferred."
+      },
+      {
+        "id": "3aa1b30fb9ac2ae083056752368205bed2f4e0f57161d059c66ccca62e4f9651",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Empty-string join preserves the exact existing line contents and endings; no semantic value or missing field is supplied."
+      },
+      {
+        "id": "444f03d5490c928d77456955c8216c5a1ca5c63eaa92a33195cc251f28072742",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Adjacent sequence slicing/iteration past a matched delimiter; no storage/default/limit value is inferred."
+      },
+      {
+        "id": "13046e4f427a9ad4be57c75e200383260a2e8812d103f7603b5238bffc171402",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Optional caller identity or local delimiter-search absence; required frontmatter is never synthesized and missing delimiter explicitly fails."
+      },
+      {
+        "id": "336fe64f2783ba690fd691c37c6d8502d29b5c079afd228c0d5d9300ff14c00b",
+        "classification": "non_contract",
+        "owner": "SkillName / SkillDocument",
+        "reason": "Optional caller identity or local delimiter-search absence; required frontmatter is never synthesized and missing delimiter explicitly fails."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SkillName / SkillDocument",
+        "declaration": "llm/core/skills.py",
+        "consumers": [
+          "llm/components/skills/records.py",
+          "llm/components/skills/storage.py",
+          "hub/asset/guides.py",
+          "hub/backend/project/record_management.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/guides.py",
+    "sha256": "5502c3ea2fddc4c501c60eb09ea9b93733db4e6a89d71a22a16ba8b2d349b622",
+    "reason": "Read complete import-time catalog loader and actual default seeding/working-context consumers. Asset paths, text encoding, separator and template version are module declarations. StarterSkillValue names the existing four tuple positions and preserves sequence equality/unpacking. Skill parsing/description use document Owner. All nine asset bytes, seven entry order/text/values and composed prompts equal baseline; real new-Project/coding-tool tests preserve behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e725af70d57d9d8a264d143bb8c158036807247f331f2a43349929b3dff9a536",
+        "classification": "declaration",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "4af2275ea2786c73fcbddce6fd915f06e525121a3ffae3640b2def60e9a208a7",
+        "classification": "declaration",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "c587c40a1c8ad130652549a2486c59ae0d82e6de1f4a3cb38e553bb63a2b6510",
+        "classification": "declaration",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "fd9b7228b84716e21a8c42fdb607f84c1267794c7dd3c04832942a3a8b3aa284",
+        "classification": "declaration",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "ad7147b8662475f5e0c0bd059e0a73364de86f2fc02abb7270cb8e26fba0a0d5",
+        "classification": "declaration",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "5e0a25503bf3ea2842efc9ab03d14cbbcbd4c6af750ffc6233ebe0b2d975ad49",
+        "classification": "declaration",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "597201e9fce684115c0f8297f6ae5b1bd6b457d0608376a58d7fa6861c690cad",
+        "classification": "declaration",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Canonical document field, parser constraint/diagnostic, serialization option or bundled path/template declaration before implementation."
+      },
+      {
+        "id": "9ee59312e7a100763b85949fed25cc3b7fc3178b21bbc30429e9f3bc4d7464a3",
+        "classification": "non_contract",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Python dataclass immutability/slots decorator, not authority or policy."
+      },
+      {
+        "id": "841f6509d0b4171eaa3f40f664fc935887e9203fe7320b940734034faeb0b8a6",
+        "classification": "non_contract",
+        "owner": "Bundled prompt/Skill catalog",
+        "reason": "Python dataclass immutability/slots decorator, not authority or policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Bundled prompt/Skill catalog",
+        "declaration": "hub/asset/guides.py",
+        "consumers": [
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/skills/hub-code-change/SKILL.md",
+    "sha256": "814e4ca119b5671c1dcc6b1bda63d9e174ec55c84a1f07256724efad80cd2878",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/skills/hub-code-change/SKILL.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/skills/hub-create-agent/SKILL.md",
+    "sha256": "b79c2f19c1dddbd67634f453bffdb83da09803248603a8af23739c69747dd511",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/skills/hub-create-agent/SKILL.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/skills/hub-create-rag/SKILL.md",
+    "sha256": "5ec10a4a91a73ad6d14a3b036533c56805c0ce30a7d27dae4c05d72594db76f3",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/skills/hub-create-rag/SKILL.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/skills/hub-create-skill/SKILL.md",
+    "sha256": "e7d0bca7cbdac0ee67dd7b6cd7d5eff3adb3f6fc75cb31ea1d57987208ba276b",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/skills/hub-create-skill/SKILL.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/skills/hub-create-workflow/SKILL.md",
+    "sha256": "3279a5af183dc21fe251a39c5684beb2c638ac3762bdd00b646328a689ef907e",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/skills/hub-create-workflow/SKILL.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/skills/hub-diagnose/SKILL.md",
+    "sha256": "2b04631ddb65de6a1624ec9b5ef08b90bd054ade7bd3dcca6dd085545662b8e8",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/skills/hub-diagnose/SKILL.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/skills/hub-document/SKILL.md",
+    "sha256": "aa3911b7676e1f0ac0bd5c818bbf90b46acc9c2e038f856a2c5910d73ebb36e3",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/skills/hub-document/SKILL.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/prompts/system.md",
+    "sha256": "49c62bc46418fd8c08da0c2a8194a8a548eef9dfc2adb2a635e5f8bb7c459235",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/prompts/system.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/prompts/work-context.md",
+    "sha256": "10613abb66f634b6915d594d1dffc62b16bbaa5fc06d923e807152397ca718a1",
+    "reason": "Read full product guidance and examples, compared unchanged bytes and loader/seeding flow. This asset is the canonical authored guidance text, not an executable field/permission declaration. Literal API/JSON examples remain independent examples; user/project authorization and Backend policy are authoritative. Skills stay reference data, add no authority, and are copied only when seeding a new Project. Template version, native-only SKILL.md format, command names and original content are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Bundled guidance document",
+        "declaration": "hub/asset/prompts/work-context.md",
+        "consumers": [
+          "hub/asset/guides.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py"
         ],
         "complete": true
       }

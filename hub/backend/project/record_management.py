@@ -136,7 +136,7 @@ class SkillManagement(RecordManagement):
             snapshot = EditableSnapshot.read(await self.snapshot(identifier))
             document = SkillRecord.document(snapshot.data)
             entries.append({"name": identifier, "label": document.name,
-                            "description": document.summary()[document.DESCRIPTION],
+                            "description": document.description,
                             "modified": "", "version": snapshot.version})
         return entries
 

@@ -2328,3 +2328,55 @@ exit 0, 감사 자체 16개 pass/exit 0이다. 전체 코드를 읽은 5개 파�
 이번 운영 저장 연결을 포함한 현재 통합 소스를 고정해 gate18 전체 LLM/Hub·정적·문서·R3·
 실환경 검증을 실행한다. 전체 성공 뒤 정확한 SHA만 작업 브랜치에 Push하고 원격 결과를
 확인한다. 기존 main/refactor/llm-backend/Draft PR #1 보호와 전체 잔여 작업을 유지한다.
+
+
+## 표준 Skill 문서 선언·소비 연결 (2026-10-23)
+
+SkillName·SkillDocument·YAML Reader의 이름 제약·구분자·직렬화 옵션·진단을 선언부에 둔다.
+SkillDocument.description·renamed가 설명 조회와 명시적 fork의 frontmatter 해석을 소유한다.
+SkillRecord/Snapshot과 Hub의 기존 설명 소비를 이 API에 연결했다. Skill 원본을 JSON 정의로
+변환해 저장하지 않으며, 선택 필드·본문·누락 의미·검증 규칙은 바꾸지 않는다.
+StarterSkillValue는 기존 4개 tuple 위치를 명명한 NamedTuple이며 값·순서·unpacking은 같고,
+내부 구체 타입만 명시적으로 달라졌다. 기본 문서 경로·인코딩·버전 선언은 loader에 모았다.
+
+8ae9aa6 대비 이름 20개, 파싱 568개, compose 81개, fork 28개의 결과 또는 정확한 예외
+종류/문구가 일치한다. 원본 입력도 그대로다. 전체 내용을 읽은 기본 assets 9개의 바이트,
+7개 Skill의 순서·값·본문, 합성 prompt와 template version 7이 같다. 독립 표준 Fixture와
+원본 보존·장애 복구·사용량·승인·효과·Resume Assertion을 유지했다.
+
+첫 smoke는 35개 중 failure 1/exit 1(38.603초)이었다. 실제 재현 스크립트의 AssertionError
+대신 기본 sandbox의 `bwrap: setting up uid map: Read-only file system`이 발생했다.
+코드/Assertion을 수정하지 않고 기존 허용 namespace 환경에서 strict 검증을 실행했다.
+첫 strict 실행은 LLM 104개/46.518343초, Hub 15개/185.996557초 pass/exit 0이었다.
+이후 발견한 rename/Hub 설명의 실제 소비자를 연결해 다시 검증했다. 그 최초 명령은 모듈의
+`tests.llm.`/`tests.hub.` 접두사를 빠뜨려 양쪽 exit 2, 테스트 미실행으로 기록했다.
+발견된 정확한 모듈 이름으로 고쳤으며 그 실패 로그도 보존한다. 아래가 최종 코드의 결과다.
+
+- `whole-skill-document-03`: 발견/시작/pass 117/117/117, exit 0, 66.045415초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-skill-document-03/llm.json --modules tests.llm.test_agent_skills tests.llm.test_skill_record_values tests.llm.test_skill_state_values tests.llm.test_skill_tools tests.llm.test_skill_references tests.llm.test_skill_packages tests.llm.test_refinement tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `93c160fa4688a7d61d0863a1bfebedd7ae7ed9542e2a63b84bbb1e50aed55c7b`, input `f6172668a76fcc107528de53581c426d24cde11b9eb8e5f4c95cacdcad866020`.
+
+- `whole-skill-document-hub-03`: 발견/시작/pass 28/28/28, exit 0, 221.596599초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-skill-document-hub-03/hub.json --modules tests.hub.test_coding_skill tests.hub.test_defaults tests.hub.test_component_catalog tests.hub.test_resource_tools tests.hub.test_component_managers tests.hub.test_file_root_presence`. source `93c160fa4688a7d61d0863a1bfebedd7ae7ed9542e2a63b84bbb1e50aed55c7b`, input `f6172668a76fcc107528de53581c426d24cde11b9eb8e5f4c95cacdcad866020`.
+
+최종 두 실행의 failure/error/skip/xfail/xpass/누락/추가/중복은 모두 0, 전후 manifest가 같다.
+Python 3.12.14/Clang, 고정 Host d833790과 기존 namespace/X11·의존성을 유지했다.
+정적 발생은 119개로 같으며 실제 바뀐 의존 검토 2개만 갱신했다. 정적·문서·R3·SDK·양 환경
+각 exit 0, 감사 자체 16개 pass/exit 0이다. 완전히 읽은 문서 Owner/loader/assets 11개와
+Record 변경분을 기록했다. Hub 관리 파일은 설명 한 경로만 연결했으므로 전체 완료 처리하지 않는다.
+현재 485개 중 미검토 322, 미분류 24527, incomplete
+2개다. 전체 완료는 계속 차단된다. 문서 우선순위는 집중 검증 후
+갱신했으며 제품/시험은 같고 문서 검사를 별도로 수행했다.
+
+이 소단계는 Level 2다. 문서 파서/선택된 Skill·직접 소비자로 영향이 한정되며, 별도 전체
+회귀는 다음 llm 관련 묶음의 Level 3 gate19에서 수행한다. 실행 중인 8ae9aa6 gate18은
+이 문서 변경 이전 소스의 검증이며 두 결과를 합쳐 현재 전체 통과라고 표현하지 않는다.
+사용자 우선순위에 따라 진행 중 검증은 마치고 이후 llm/ 전수 완료를 먼저 수행한다.
+hub/ 추가 구현은 이후 진행하되 필수 Hub 소비자·전체 회귀와 정확한 SHA의 CI는 유지한다.
+
+## gate17 정확한 Push SHA 원격 CI 확인 (2026-10-23)
+
+81c671a096537dab69fdea1210b2547effb25b49의
+[Actions 39973856496](https://github.com/E1der0wL/ish-llm/actions/runs/39973856496)을
+2026-10-23T15:44:51Z에 확인했다. 필수 contracts(llm), contracts(hub) 모두 success다.
+원격 LLM 2463/2463 pass(2403.257731초), Hub 588/588 pass(1513.886091초)이며
+failure/error/skip/xfail/xpass/누락/추가/중복 0이다. 원격 Python 3.12.14/GCC 13.3.0은
+로컬 Clang 환경과 구분한다. 이 증거는 81c671a에만 적용하며 이후 미Push 소스나 전체
+계약 리팩터링의 완료 증거로 승계하지 않는다.

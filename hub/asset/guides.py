@@ -2,7 +2,27 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import NamedTuple
 from llm.core.skills import SkillDocument
+
+
+ASSET_ROOT = Path(__file__).parent
+PROMPTS_DIRECTORY = "prompts"
+SKILLS_DIRECTORY = "skills"
+WORK_CONTEXT_FILE = "work-context.md"
+SYSTEM_FILE = "system.md"
+PROMPT_ENCODING = "utf-8"
+PROMPT_SEPARATOR = "\n"
+TEMPLATE_VERSION = 7
+WORK_GUIDANCE = (ASSET_ROOT / PROMPTS_DIRECTORY / WORK_CONTEXT_FILE).read_text(encoding=PROMPT_ENCODING)
+SYSTEM_PROMPT = (ASSET_ROOT / PROMPTS_DIRECTORY / SYSTEM_FILE).read_text(encoding=PROMPT_ENCODING) + PROMPT_SEPARATOR + WORK_GUIDANCE
+
+
+class StarterSkillValue(NamedTuple):
+    identifier: str
+    name: str
+    description: str
+    markdown: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,14 +33,11 @@ class StarterSkill:
     def identifier(self):
         return self.directory.name
 
-    def load(self) -> tuple[str, str, str, str]:
-        document = SkillDocument.parse((self.directory / SkillDocument.FILENAME).read_text(encoding="utf-8"),
+    def load(self) -> StarterSkillValue:
+        document = SkillDocument.parse((self.directory / SkillDocument.FILENAME).read_text(encoding=SkillDocument.TEXT_ENCODING),
                                        identifier=self.identifier)
-        return document.name, document.name, document.summary()[SkillDocument.DESCRIPTION], document.text
+        return StarterSkillValue(document.name, document.name, document.description, document.text)
 
 
-WORK_GUIDANCE = Path(__file__).with_name("prompts").joinpath("work-context.md").read_text(encoding="utf-8")
-SYSTEM_PROMPT = Path(__file__).with_name("prompts").joinpath("system.md").read_text(encoding="utf-8") + "\n" + WORK_GUIDANCE
-TEMPLATE_VERSION = 7
-STARTER_SKILLS = tuple(StarterSkill(path) for path in sorted(Path(__file__).with_name("skills").iterdir()) if path.is_dir())
+STARTER_SKILLS = tuple(StarterSkill(path) for path in sorted((ASSET_ROOT / SKILLS_DIRECTORY).iterdir()) if path.is_dir())
 SKILLS = tuple(skill.load() for skill in STARTER_SKILLS)
