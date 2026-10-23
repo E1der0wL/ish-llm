@@ -61,6 +61,7 @@ class Component:
     name: str
     directory: str
     SCHEMA_VERSION = 1
+    RECORDS_DIRECTORY = "records"
     RECORDS_MANIFEST = "records.manifest.json"
     capabilities: tuple[str, ...] = ()
     # 영속 도메인의 정확한 identity 의존성이다. runtime capability와 별개다.
@@ -95,7 +96,7 @@ class Component:
         return path
 
     def _record_path(self, project: Project, identifier: str) -> Path:
-        return self._checked(self.root(project) / "records" / f"{validate_name(identifier)}.json")
+        return self._checked(self.root(project) / self.RECORDS_DIRECTORY / f"{validate_name(identifier)}.json")
 
     @staticmethod
     def serialize(data: dict) -> str:
@@ -196,7 +197,7 @@ class Component:
         atomic_json(root / ModelUsageRecord.MANIFEST, manifest.to_dict())
 
     def _record_files(self, project):
-        root = self._checked(self.root(project) / "records")
+        root = self._checked(self.root(project) / self.RECORDS_DIRECTORY)
         if not root.is_dir():
             raise ValueError("Component records directory is missing")
         paths = {}
@@ -252,7 +253,7 @@ class Component:
             return
         if root.exists():
             raise ValueError("Cannot initialize undeclared Component storage")
-        make_directory(root / "records" if records else root)
+        make_directory(root / self.RECORDS_DIRECTORY if records else root)
         atomic_json(self._usage_root(project) / ModelUsageRecord.MANIFEST,
                     ModelUsageManifest.empty(project_id=project.id, component=self.name).to_dict())
         if record_catalog:

@@ -8,6 +8,7 @@ import shutil
 
 from llm.components.files import FileComponent, FileData, FILE_MANIFEST, file_path
 from llm.components.definitions import DefinitionComponent
+from llm.components.file_manifest import FileManifest
 from llm.core.models import new_id, now
 from llm.core.schema import object_schema, metadata_schema
 from llm.services.infrastructure.locking import workspace_locked
@@ -100,7 +101,7 @@ class DataComponent(FileComponent):
         "title": {"type": "string"},
         "description": {"type": "string"},
         "metadata": metadata_schema(),
-        "files": FILE_MANIFEST,
+        FileManifest.FIELD: FILE_MANIFEST,
     })
 
     def _quarantine_path(self, project, identifier):
@@ -126,7 +127,7 @@ class DataComponent(FileComponent):
         definition = self._definition(project, identifier)
         # The retained definition must independently prevent an empty-package read
         # even if the quarantine receipt and copied tree are subsequently lost.
-        if not definition.get("files"):
+        if not FileManifest(definition).optional:
             raise ValueError("Data quarantine requires declared attachments in the original definition")
         if self._quarantine_path(project, identifier).exists():
             raise ValueError("Data package is already quarantined")

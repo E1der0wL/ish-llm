@@ -1,5 +1,7 @@
 """Project 수명 검사와 잠금 아래에서 Memory API와 비동기 API를 제공한다."""
 
+from llm.components.file_manifest import FileManifest
+
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.components.goals.records import GoalContextReference, GoalDefinition
 from .snapshot import MemoryProcessingSnapshot
@@ -195,7 +197,7 @@ class MemoryData(ComponentData):
         from llm.services.infrastructure.storage import revision_token
         files = self.related(selected.component)
         snapshot = EditableSnapshot.read(files.snapshot(selected.identifier))
-        info = snapshot.data.get("files", {}).get(selected.path)
+        info = FileManifest(snapshot.data).lookup(selected.path)
         if info is CompactionSourceRead.NO_EVIDENCE or revision_token(info) != selected.revision:
             raise ValueError(CompactionSourceRead.STALE_FILE)
         if limit == CompactionSourceRead.VERIFY_ONLY:
@@ -216,11 +218,11 @@ class MemoryData(ComponentData):
         files = self.related(selected.component)
         snapshot = EditableSnapshot.read(files.snapshot(selected.identifier))
         path = CompactionReference.path_for(session_id, identifier)
-        if path in snapshot.data.get("files", {}):
+        if path in FileManifest(snapshot.data).entries:
             raise ValueError("Source file already exists without a summary request")
         snapshot = EditableSnapshot.read(files.write_file(
             selected.identifier, path, text, expected_revision=snapshot.version))
-        reference = CompactionReference.create(destination, path, revision_token(snapshot.data["files"][path]))
+        reference = CompactionReference.create(destination, path, revision_token(FileManifest(snapshot.data).require(path)))
         state = CompactionState.tool_request(identifier=identifier,
             status=Compactions.APPLIED if mode == Compactions.REFERENCE else Compactions.PENDING,
             mode=mode, options=options, reference=reference, tool_call_id=call_id)

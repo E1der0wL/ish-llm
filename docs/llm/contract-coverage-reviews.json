@@ -27584,7 +27584,7 @@
   {
     "path": "llm/components/file_evidence.py",
     "sha256": "935309cf15af5670764ab7722eec48fe7553eea2e8443fa8118aaabd45541b0d",
-    "reason": "Complete file Schema/reader/measurement/writer reviewed, including inherited Skill mode evidence. Field metadata owns digest and byte constraints; Schema/serialization derive fields. Buffer, empty byte count and errors are declared. Full Schema, exact output and multi-buffer bytes match prior source.",
+    "reason": "Complete file Schema/reader/measurement/writer reviewed, including inherited Skill mode evidence. Field metadata owns digest and byte constraints; Schema/serialization derive fields. Buffer, empty byte count and errors are declared. Full Schema, exact output and multi-buffer bytes match prior source. FileManifest now delegates its schema to the unchanged FileEvidence manifest schema; independent wire equality and Data/Skill consumer regression preserve this connection.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -27703,7 +27703,8 @@
         "consumers": [
           "llm/components/files.py",
           "llm/components/skills/data.py",
-          "llm/components/skills/records.py"
+          "llm/components/skills/records.py",
+          "llm/components/file_manifest.py"
         ],
         "tests": [
           "tests/llm/test_typed_contracts.py",
@@ -48031,6 +48032,295 @@
           "tests/hub/test_summary_api.py",
           "tests/hub/test_memory_manager.py",
           "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/file_manifest.py",
+    "sha256": "9f3075150b3751aef73e87c9aea835980fb8e430a35e5ba1ed316d97385f90ee",
+    "reason": "Whole file and actual consumers reviewed. Manifest optional/present/required lookup, mutation/copy and last-entry removal preserve existing absence semantics and strict file evidence. Path validation and storage effects keep exact predicate, CAS, IO, sync and transaction order. Actual Owner-method expansion proves full consumer bodies identical, with independent wire/path/state checks and real fault/process-death regression tests. No new retry, legacy Reader, default evidence or business policy is introduced. Broader Base/Data/Memory consumer files remain separately unreviewed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e4e367610decc72a5afa702c43be246449163fc57a9f6f76f6a70c5002a8578f",
+        "classification": "declaration",
+        "owner": "FileManifest",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "65bd3307f8fe9f5a67ab19191baccf1ca7cf86e1f7405b101182a756796b008a",
+        "classification": "declaration",
+        "owner": "FileManifest",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FileManifest",
+        "declaration": "llm/components/file_manifest.py",
+        "consumers": [
+          "llm/components/files.py",
+          "llm/components/data/component.py",
+          "llm/components/memory/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_large_data.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/files.py",
+    "sha256": "547ba499ee7abcf0e965dc66fbf579a394e5730abe511e4e391c5cf9852efc05",
+    "reason": "Whole file and actual consumers reviewed. Manifest optional/present/required lookup, mutation/copy and last-entry removal preserve existing absence semantics and strict file evidence. Path validation and storage effects keep exact predicate, CAS, IO, sync and transaction order. Actual Owner-method expansion proves full consumer bodies identical, with independent wire/path/state checks and real fault/process-death regression tests. No new retry, legacy Reader, default evidence or business policy is introduced. Broader Base/Data/Memory consumer files remain separately unreviewed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "759d7dd2bdf448b1cd566e057ad5419e30bdb790cbd25cc21704dd2cea5c1722",
+        "classification": "declaration",
+        "owner": "FilePath",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "a70eb27fdd9fd8204db4fb9f4ced536c017b0ebf7ec6f43e13c4fe0b70249317",
+        "classification": "declaration",
+        "owner": "FilePath",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "8b878babb5f7c236de7a9c9b7c49108b16a21765bf96b990bb17a04994e63707",
+        "classification": "declaration",
+        "owner": "FilePath",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "19004a6b42137ebc5e8bfe87b2088dd6b56581d1643a910d1aceef1c7ae22efa",
+        "classification": "declaration",
+        "owner": "FilePath",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "32bb3aa3a01e4254bf349cf556c1e0cf9b14f47c7092120e8da538e8217f0342",
+        "classification": "declaration",
+        "owner": "FilePath",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "da17ec85b7d0d4e1f37e8f6977d3cb5906e104bae8b2bae266608a745199f903",
+        "classification": "declaration",
+        "owner": "FilePath",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "55de933c62429659fdaa7fc21742aeeea842462cdbc0f7070bdf4a083844f9dc",
+        "classification": "declaration",
+        "owner": "FilePath",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "a12499667a5f6abde751b2d242321e675c88fb6da792c1aaafa5cf4f6d3e9cd0",
+        "classification": "declaration",
+        "owner": "FilePath",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "2328bfa8a9b5c9806ca186624bb119a922593cf813ddc8af9f8150b143fc1441",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "da6288d4dbeaf906bc3efd3039734dddf1df1c9b848743617947008ce606e7d5",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "4987ba75f86ec046783f9b9c480413c3ceb82c5c86f383d6ccdcc4b7086c4d4c",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "a8dbf507ef130af49e7a8f8113b36cbd1bb5ce3f17d1e90f8bac2e3b44baacf8",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "0cd835d66f871e026b785caaeff41799db10ef3328a4ddc07265d10fe6cb5363",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "0f3e44bc5eb16d5d5f221211dd02eddc6669d2aac2d31a6f0d97d4d92cc2f158",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "264dbba6cab2cba9452bcfa894f8832498b79a2c457d5f506621a40fa245d85f",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "c8cd41cb93e7132db067ac785d53ee5bb05576458c30c33b7790c4d566abfdf3",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "6ebfc14aef7b17515da1336620cd483bb79f4fee5e709bf863fc01508c6f9dc8",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "950844884c541512513da8e29cb8aef2d256e59596a5624d103622f5bae6c38f",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "4a589cff1cd8eef74b44b67eda6539624a2ebb90cce350f5c3b3dc92c26bec18",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "05ab3696419055b6a11959bd1e1f6e7c7d912f430f6be0406ec30309a0b049dd",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "526608d1baf46a15c9050e8fc8c4b677be564f4b755d447e4a03b0f60798ba7b",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "5b3e3e85492a4990013ec83358a9090a9bd9818b401c85b3e96f7f167e9d5f2b",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "c63b789a647b6e8f26f8bdfbed5c3983ef93054099a7d4c728f1bca6a78ba68b",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "c223d9ff072d4b5f1f069f164b5668a58e722a0a2a4a492d6d4ebb0d5121adb8",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "f0955145b28744ec1544c6a91c990d8b06a70ece3ecf6d858a601f6c7dbe11ff",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "6fc34a41fc15f7c3d0810e9a29fbbad56151ffab814401b1f716de06f8ec70b2",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "5229a33b802a93c58acafcb9fbd3be9dc33a0481340456d174190446b5fa0603",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "d9c40dee2c5511235803c2a9b26f61944ebf4d762b9a88ea73c80093c7802d04",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "53639bab5ba9c0b72e507e2181d98d08dc4d72cc5086ab8c6ac5c6e35c8f9b22",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "1f96e04ea6bb246daa234d6c4a73281f7892f4eb43f672b9ae8d8e04a9ea9fc3",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "6c1b0c2a93cf9f740927e16623f548f3f54735583677992b612cf8aa19c85d45",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "a5f850bd2de865b59c5ce768ad351a8dce7ce53090b7fc7045d94f7d6ce2bc32",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "de612ab9d896ce059e236d3a107a8d94c0cda9dfb5d44127f126877552742314",
+        "classification": "declaration",
+        "owner": "FileComponent",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "3dd72f47febbc4a75b9e6e5e403a40928446606f82784b366b5c074ca9f35730",
+        "classification": "declaration",
+        "owner": "FileData",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      },
+      {
+        "id": "373a8b7efa4ee7637c66948d34bb16c4a7fc7c3f03c057ea98723546ab8f13e0",
+        "classification": "declaration",
+        "owner": "FileData",
+        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FilePath / FileComponent / FileData",
+        "declaration": "llm/components/files.py",
+        "consumers": [
+          "llm/components/data/component.py",
+          "llm/components/memory/data.py",
+          "llm/components/skills/component.py",
+          "llm/components/skills/storage.py"
+        ],
+        "tests": [
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_large_data.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py"
         ],
         "complete": true
       }

@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 520,
-    "unreviewed_files": 278,
+    "files": 521,
+    "unreviewed_files": 277,
     "stale_files": 0,
-    "unclassified": 19638,
+    "unclassified": 19574,
     "violations": 0,
     "incomplete_contracts": 4,
-    "unreviewed_dynamic_paths": 280,
+    "unreviewed_dynamic_paths": 279,
     "unreadable_files": 0,
-    "candidates": 26555,
+    "candidates": 26528,
     "issues": 0
   },
   "files": [
@@ -1354,7 +1354,7 @@
     {
       "path": "llm/components/README.md",
       "status": "unreviewed",
-      "sha256": "d05ea7b4fe5d42e17e66c42126c3749624cdf54dcec32ca006d344ddec7b1025",
+      "sha256": "7e55afadf06501acd802b3e31569afa3f69a04034bee590a5b7292602a9367c6",
       "candidates": 0
     },
     {
@@ -1372,8 +1372,8 @@
     {
       "path": "llm/components/base.py",
       "status": "unreviewed",
-      "sha256": "286f7b97a35140d2169ebdec26b5f181abd7ecfd853a86e6eaa626fd8a19d452",
-      "candidates": 98
+      "sha256": "dc3e62562e5456de58f5349e0d7c205101a92c971c447559d1e339814388663e",
+      "candidates": 96
     },
     {
       "path": "llm/components/data/README.md",
@@ -1390,8 +1390,8 @@
     {
       "path": "llm/components/data/component.py",
       "status": "unreviewed",
-      "sha256": "3b407aef47a9123d684355367449d829439dce5c87bf3ac83f5d30755408f00a",
-      "candidates": 77
+      "sha256": "89ccf2f28de348464483c09951e3245e7bd0c3fe45f02c978d81e6ad6a3408db",
+      "candidates": 75
     },
     {
       "path": "llm/components/definitions.py",
@@ -1406,6 +1406,12 @@
       "candidates": 18
     },
     {
+      "path": "llm/components/file_manifest.py",
+      "status": "reviewed",
+      "sha256": "9f3075150b3751aef73e87c9aea835980fb8e430a35e5ba1ed316d97385f90ee",
+      "candidates": 2
+    },
+    {
       "path": "llm/components/file_ranges.py",
       "status": "reviewed",
       "sha256": "25488f93268a43e81aff8ee174004a45c2c0f07819618ff2589da6fce28c9fcc",
@@ -1413,9 +1419,9 @@
     },
     {
       "path": "llm/components/files.py",
-      "status": "unreviewed",
-      "sha256": "9169ce84053362fc35d8fd5877efc61b617cbb2fd32adaa45485016ae4a71b19",
-      "candidates": 57
+      "status": "reviewed",
+      "sha256": "547ba499ee7abcf0e965dc66fbf579a394e5730abe511e4e391c5cf9852efc05",
+      "candidates": 35
     },
     {
       "path": "llm/components/goals/README.md",
@@ -1576,8 +1582,8 @@
     {
       "path": "llm/components/memory/data.py",
       "status": "unreviewed",
-      "sha256": "6cf416b2956746f6a50db513b6696fc61ffd570a6972bb5bacdae774f2646f9d",
-      "candidates": 79
+      "sha256": "55bec5f1b8f638f2b1c47a5d05468f5485a0455d182cf16ca37dc146c453851e",
+      "candidates": 76
     },
     {
       "path": "llm/components/memory/extraction.py",

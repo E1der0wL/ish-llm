@@ -38,6 +38,7 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [usage.py](usage.py) | Component 모델 영수증의 현재 필드·예약 불변식·상태·manifest 형식을 선언합니다. [사용량 계약](../../docs/llm/model-usage-contract.md)을 따릅니다. |
 | [registry.py](registry.py) | 이름·디렉터리 충돌을 검사하고 선택한 capability를 해석합니다. |
 | [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
+| [file_manifest.py](file_manifest.py) | 패키지 정의의 files 필드·존재/조회/갱신·마지막 항목 삭제와 schema 위임을 소유합니다. 실제 파일 효과와 정책은 해석하지 않습니다. |
 | [files.py](files.py) | Skill/Data 파일 패키지, manifest 검증, 파일과 정의의 원자적 변경입니다. |
 | [processing.py](processing.py) | 모델 입력 변환·응답 관찰을 조합하는 completion processor 계약입니다. |
 | [summarization.py](summarization.py) | 공통 SummaryAnswer 응답·검증과 명시적 입력 예산에 맞춘 분할·점진 요약을 소유합니다. 모델 어댑터를 주입받고 저장소나 실행 수명을 소유하지 않습니다. |

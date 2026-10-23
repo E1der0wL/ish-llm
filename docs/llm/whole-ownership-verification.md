@@ -4310,3 +4310,50 @@ snapshot 계약과 llm/ 전수 작업은 미완료다. hub/ 제품 리팩터링 
 미완료 계약 4, stale/검토 오류 0이다. 정적 finding은 111→112이며 새 비교 한 위치만 검토했다.
 최종 소스의 Level 3·원격 CI는 아직 대기다. 570ecb6 원격 CI는 2026-10-23 23:27 UTC 확인 시
 정확한 head SHA의 LLM/Hub 전체 실행 중이었다.
+
+
+## llm File manifest·경로·소비자 — Level 2
+
+기준 0dd6499. FileManifest가 정의의 files 컨테이너를 소유하고, FileEvidence의 기존 schema를
+위임한다. FileComponent/FileData의 읽기·쓰기·삭제·복제와 Data schema/격리 진입 검사,
+Memory 원문 snapshot 조회가 같은 Owner API를 사용한다. 메타데이터 필드가 없을 때·명시 null·
+빈 manifest를 합치지 않는다. 마지막 파일 삭제 후 필드 자체 제거, 원래 원문 사본, 필수 조회의
+누락 거부를 보존한다. Memory는 같은 snapshot의 evidence/revision을 사용하며 추가 load를
+만드는 API로 대체하지 않았다. Data quarantine receipt의 files는 원본 tree_snapshot 증거이며
+일반 FileEvidence manifest와 다른 형식이다. 이를 억지로 합치거나 저장 형식을 바꾸지 않았다.
+
+FilePath는 기존 상대 POSIX 규칙과 거부 순서를 소유한다. FileComponent/FileData는 경로·모드·
+진단·명시 부재와 임시 정리 제어를 선언한다. 공통 records 디렉터리는 Component가 선언하고
+기존 세 경로 소비자와 FileComponent의 예약/거부 경로가 참조한다. 다른 Component의 경로·
+버전·manifest·사용량 처리는 바꾸지 않는다. Component 전체의 미검토 계약은 그대로 추적한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/file-manifest-draft/proof.py`
+exit 0: 실제 Owner 메서드를 펼쳐 Base 53·File 31·Data 15·MemoryData 42개 함수 본문이
+기준과 동일함을 확인했다. 경로 입력 145·predicate 호출 순서 4·schema wire 순서 1,
+manifest 부재/변경/오류 45·독립 마지막 필드 삭제/중첩 사본 2개도 확인했다. 저장 쓰기·동기화·
+원자 교체·CAS·삭제 참조 검사 순서와 원래 Assertion을 유지한다.
+
+- `whole-file-manifest-l1-01`: discovered/started/pass 15/15/15, exit 0, 2.039605초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-file-manifest-l1-01/llm.json --modules tests.llm.test_data_component tests.llm.test_skill_packages`. source `bb15bc976bcf006be0090b67bb3050f232b18daaf89ef0eb9d20f9146fa9cc1c`, input `b9b7ffcfe090c27d88329e6ad284f2bd005c525aa0dd2ef9c6f1b86cba4d316b`.
+
+- `whole-file-manifest-01`: discovered/started/pass 134/134/134, exit 0, 95.224357초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-file-manifest-01/llm.json --modules tests.llm.test_data_component tests.llm.test_data_quarantine tests.llm.test_skill_packages tests.llm.test_agent_skills tests.llm.test_skill_references tests.llm.test_resource_references tests.llm.test_large_data tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `bb15bc976bcf006be0090b67bb3050f232b18daaf89ef0eb9d20f9146fa9cc1c`, input `b9b7ffcfe090c27d88329e6ad284f2bd005c525aa0dd2ef9c6f1b86cba4d316b`.
+
+- `whole-file-manifest-hub-01`: discovered/started/pass 31/31/31, exit 0, 183.291446초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-file-manifest-hub-01/hub.json --modules tests.hub.test_resource_tools tests.hub.test_summary_api tests.hub.test_provider_recovery tests.hub.test_rag_retention`. source `bb15bc976bcf006be0090b67bb3050f232b18daaf89ef0eb9d20f9146fa9cc1c`, input `b9b7ffcfe090c27d88329e6ad284f2bd005c525aa0dd2ef9c6f1b86cba4d316b`.
+
+모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일.
+Python 3.12.14/Clang·Host d833790·고정 의존성, 실제 namespace가 가능한 셸에서 실행했다.
+L1은 Data/Skill 패키지, Level 2는 실제 파일 CAS/취소/외부 손상, Data 격리/재시작/원본 보존·
+실제 process death, 표준 Skill·참조·Memory 대용량 원문, 공통 승인·예산·효과·Checkpoint·
+RAG·수명 안전성과 직접 Hub API·복구·retention을 포함한다. 기존 테스트는 수정하지 않았다.
+
+정적 finding은 112개로 동일하며 새/소멸 위치는 없다. 기존 검토의 변경된 의존 소스는
+위 전체 함수 동일성·경로/schema 비교와 실제 안전성 시험을 근거로 갱신한다. 새 예외는 없다.
+파일 전체의 선언·typed 소비 연결을 확인했지만 Base·Data 격리·MemoryData 전체와 llm 전수는
+미완료다. 0dd6499의 group32 전체 게이트는 별도 frozen 소스에서 실행 중이며, 이 후속 변경은
+그 게이트에 포함되지 않는다. 현재 이동의 동작/영향 범위가 입증되어 Level 2로 보존하고,
+후속 Data/저장 Owner 변경과 묶어 다음 현재 소스 Level 3를 수행한다.
+
+File 최종 delta: 감사 `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`
+16/16 pass, exit 0, 3.463초. S1–S7 정적·문서 검사 exit 0, R3 mutation exit 0이며 주입한
+한도 누락의 2개 실제 효과 Assertion 실패를 검출했다. FileEvidence의 변경 없는 schema 위임
+소비자에 FileManifest를 연결해 검토 목록에도 기록했다. inventory는 521파일, 미검토 277
+(llm 100/hub 177), 미분류 19,574, 미완료 계약 4, stale/검토 오류 0이다.
