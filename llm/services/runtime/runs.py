@@ -78,7 +78,7 @@ from llm.core.results import CompletionRecords, CompletionResult, EngineOutput, 
 from enum import StrEnum
 from asyncio import timeout
 from llm.policies import ExecutionLimitError
-from llm.services.runtime.policies import ProjectPolicyResolver
+from llm.services.runtime.policies import ProjectPolicyResolver, TokenCounters
 from llm.services.runtime.tools import ToolRuntime, ToolExecutionScope, ToolUsageError
 from llm.services.runtime.operations import OperationRepository, ToolOperations
 from llm.services.runtime.events import EventHandlers, EventContext, EventSubscriptions
@@ -810,7 +810,7 @@ class RunManager:
         data_class = getattr(component, "data_class", None) or ComponentData
         return data_class(self.sessions.project_access, registry, project, name).bind_resources(
             self.sessions, self.steps.repository, agents=self.sessions.agents).bind_model_usage(
-            self.sessions, getattr(self.policy_resolver, "token_counters", {})).bind_runtime(
+            self.sessions, TokenCounters.from_resolver(self.policy_resolver)).bind_runtime(
             runner=self._io.run, access_check=self._check_component_access,
             history_reader=lambda session_id, run_id, step_id, **options: self.results.tool_result(
                 project, session_id, run_id, step_id, steps=self.steps, **options))
@@ -1519,7 +1519,7 @@ class RunManager:
                              tools=values.get(ToolRegistry.CAPABILITY, ToolRegistry()), capabilities=values,
                              checkpoint=checkpoint, resume_outputs=self._partial_outputs(runtime.session, run),
                              tool_scope=tool_scope, pending_work=self.pending_work,
-                             token_counters=dict(getattr(self.policy_resolver, "token_counters", {})), steering=inbox,
+                             token_counters=dict(TokenCounters.from_resolver(self.policy_resolver)), steering=inbox,
                              capability_resolver=resolve_selected)
         context = engine.prepare_context(context)
         if ResumeRecord.present(run.metadata):
@@ -1554,7 +1554,7 @@ class RunManager:
         try:
             async with guard:
                 usage_policy = UsagePolicy.from_run(run)
-                counter = getattr(self.policy_resolver, "token_counters", {}).get(usage_policy.counter)
+                counter = TokenCounters.from_resolver(self.policy_resolver).get(usage_policy.counter)
                 source = UsageSource(runtime.project.id, runtime.session.id, run.id)
                 with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent, **source.to_dict(), engine=run.engine, diagnostics=self.provider_diagnostics), self.provider_calls.scope(), UsageScope(usage_policy, counter, source).scope():
                     await self._consume(runtime, run, policies)

@@ -1,5 +1,6 @@
 """등록 객체가 선언한 Project 편집 스키마를 조합한다. 저장 파일이나 모델은 읽지 않는다."""
 
+from llm.services.runtime.policies import TokenCounters
 from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
 from llm.core.json_data import JsonPointer
 
@@ -11,7 +12,7 @@ from llm.core.configuration import resolve_component_config
 from llm.core.models import ConversationStorage, ProjectConfig
 from llm.core.configuration_targets import ParameterTargets
 from llm.core.policies import PolicySection, UsagePolicy
-from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema, schema_nodes, SchemaKeyword
+from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema, schema_nodes, SchemaKeyword, SchemaExtension, SchemaResource, SchemaBoolean
 
 
 @dataclass(slots=True)
@@ -219,15 +220,15 @@ def describe_project_config(app, components=None):
     # 선언한 런타임 자원의 선택지만 보강한다. 정책값이나 Engine별 기본값은 생성하지 않는다.
     def resources(spec):
         for node in schema_nodes(spec):
-            if node.get("x-resource") == "token_counters":
-                names = sorted(getattr(app.policy_resolver, "token_counters", {}))
+            if node.get(SchemaExtension.RESOURCE) == SchemaResource.TOKEN_COUNTERS:
+                names = sorted(TokenCounters.from_resolver(app.policy_resolver))
                 # A UI availability projection may narrow, never replace the owner's enum.
-                if "enum" in node:
-                    names = [name for name in names if name in node["enum"]]
+                if SchemaKeyword.ENUM in node:
+                    names = [name for name in names if name in node[SchemaKeyword.ENUM]]
                 if names:
-                    node["enum"] = names
+                    node[SchemaKeyword.ENUM] = names
                 else:
-                    node["allOf"] = [*node.get("allOf", []), False]
+                    node[SchemaKeyword.ALL_OF] = [*node.get(SchemaKeyword.ALL_OF, []), SchemaBoolean.REJECT]
 
     engines, engine_catalog = {}, {}
     for name in app.engines.names():
@@ -243,7 +244,7 @@ def describe_project_config(app, components=None):
         engines[key] = {"allOf": [engines[key], spec]} if key in engines else spec
         engine_catalog[name] = EngineConfigurationKey(key).to_dict()
     policies = ProjectConfig.describe_policies()
-    names = sorted(getattr(app.policy_resolver, "token_counters", {}))
+    names = sorted(TokenCounters.from_resolver(app.policy_resolver))
     if names:
         policies["properties"][PolicySection.USAGE] = UsagePolicy.schema(counters=names)
     # 비활성 컴포넌트의 설정도 보관할 수 있지만 선택 전에는 초기화/실행하지 않는다.

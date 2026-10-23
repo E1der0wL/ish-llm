@@ -19,8 +19,14 @@ def positive_seconds(value, name):
 
 class TokenCounters:
     DEFAULT = "model_default"
+    REGISTRY_ATTRIBUTE = "token_counters"
     INVALID_MAPPING = "Token counters must be a mapping or None"
     INVALID_ENTRY = "Token counters require nonempty names and callable implementations"
+
+    @classmethod
+    def from_resolver(cls, resolver):
+        """Observe registered resources without constructing a policy or a default registry."""
+        return getattr(resolver, cls.REGISTRY_ATTRIBUTE, {})
 
     @classmethod
     def build(cls, selected=None):

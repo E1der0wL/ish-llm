@@ -13,9 +13,11 @@ Project 설정 저장·상속, Run/Step 수명, 승인, 재시도 실행을 중�
 
 ```python
 from llm.policies import CompletionPolicy
+from llm.core.implementation_parameters import ImplementationParameters
 
 # 구현체가 자신의 policy.completion을 해석하고 호스트 계산기와 연결합니다.
-policy = CompletionPolicy.from_config(configuration.get("policy", {}).get("completion"), counters)
+parameters = ImplementationParameters.read(configuration)
+policy = CompletionPolicy.from_config(parameters.policy.get(CompletionPolicy.NAME), counters)
 if policy is not None:
     request = policy.prepare(request)
 ```
@@ -25,8 +27,12 @@ if policy is not None:
 예산을 넘으면 `context_budget_exceeded`를 발생시킵니다. SDK의 출력 토큰 제한을 설정하지 않습니다.
 
 공용으로 옮길 기준은 실제 여러 계층에서 재사용할 수 있고 저장·실행 수명에 독립적인가입니다.
-RunPolicy와 ToolRuntime는 해당 실행 서비스에 남습니다. Component 전용 처리 정책은 그
+RunPolicy 선언은 core/policies.py에, 정책 집행과 ToolRuntime는 해당 실행 서비스에 둡니다. Component 전용 처리 정책은 그
 Component에 둡니다. 설정 소유권과 상속 순서는 [공통 설정 계약](../CONFIGURATION.md)을 따릅니다.
+
+입력 선택 필드와 제약은 CompletionPolicy가, 공개 Schema 문법과 등록 자원 표시는
+core/schema.py가 소유합니다. 생략된 설정·명시적 null·0을 원본에 합치거나 복원하지
+않습니다. 계산기에 전달할 요청은 분리 복사하되 주입 client의 identity는 보존합니다.
 
 재시도 선택기와 적용 단위는 [재시도 계약](../../docs/llm/retry.md)을 참고합니다. 정책이 없으면
 추가 시도를 하지 않으며 오류/효과 판단·승인·영속 기록은 각 실행 소유자에 남습니다.

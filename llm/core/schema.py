@@ -74,6 +74,11 @@ class SchemaExtension:
     HOST_OVERRIDE = "x-host-override"
     HOST_FIXED = True
     NARROWING = "x-narrowing"
+    RESOURCE = "x-resource"
+
+
+class SchemaResource:
+    TOKEN_COUNTERS = "token_counters"
 
 
 class OpenSchemaKind:

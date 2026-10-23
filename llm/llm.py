@@ -76,7 +76,7 @@ from llm.components.vision import VisionComponent, VisionData, TesseractBackend
 from llm.components.base import ProjectComponent
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunEvent, RunManager, RunErrorCode, RunRequestError
-from llm.services.runtime.policies import RunPolicy, ProjectPolicyResolver
+from llm.services.runtime.policies import RunPolicy, ProjectPolicyResolver, TokenCounters
 from llm.services.runtime.tools import ToolRuntime, ToolCall, ToolExecutionError, ToolApprovalRequired
 from llm.policies.retry import RetryDecision, RetryFailure, RetryPolicy
 from llm.services.runtime.processes import ProcessToolRunner
@@ -779,7 +779,7 @@ class LargeLanguageModel:
                      VisionComponent(), GoalComponent(), RefinementComponent()] if components is None else components
         self.project_manager, self.run_repository, self.step_manager = self.services.build(
             self.workspace, available, engines=self.engines)
-        self.project_manager.usage_counters = dict(getattr(self.policy_resolver, "token_counters", {}))
+        self.project_manager.usage_counters = dict(TokenCounters.from_resolver(self.policy_resolver))
         self.events = EventSubscriptions()
         from llm.services.infrastructure.observability import Observability, ObservabilityView
         self._observability = Observability(sink=self.services.observability_sink)

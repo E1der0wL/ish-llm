@@ -2372,8 +2372,8 @@
   },
   {
     "path": "llm/core/schema.py",
-    "sha256": "5e606ec75aebae1902966b9aacc9c8651eb3227958bfaa336bbd3870506f6463",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete.",
+    "sha256": "8a9480cc44670e0cd86152f910183a6b6d5df652a6fd255cd346e2bd00ba32f7",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete.",
     "dynamic_paths_reviewed": false,
     "decisions": [
       {
@@ -2719,151 +2719,163 @@
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "57462a92bd842d905f2317accbcc3bdb6d642732ddfbeee342cff2858b78f0ea",
+        "id": "105b70c523ac6c83aae3a968f768fc49b1fbbd60a5be29e6c791e5350724f405",
+        "classification": "declaration",
+        "owner": "SchemaExtension / SchemaResource",
+        "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
+      },
+      {
+        "id": "0c4fe247038f14a12e495622c9b7cd1a0fec70ce6b460f695fda87a98d2bc3c1",
+        "classification": "declaration",
+        "owner": "SchemaExtension / SchemaResource",
+        "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
+      },
+      {
+        "id": "61e98fb80be5851d31bad8c7765202fc2f4dc8a2e9f7fe3b066792e386f406cc",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d58dab84213684eeb61e980dbda2452a059b99750603ebf30d217bd513b2d555",
+        "id": "fb3718208d8c519d81b2e615123188acdad7bc05e8417016533af09c2d32b912",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e04efef1b5ea6d2c4fb3ff2fdc22a1c873d4a37fd39b5ec793a63a37237927a6",
+        "id": "9b5ff3c694dadf315a4a7df4aaeb39b9098f56b5672a997d3a2197e8682b57af",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c96647cf656504628e370196a8da4577b0be0665922242349b0ba305b0dae746",
+        "id": "52805a8b136535bb6c3c07008ce4d50bff81501eba0e9215fab594b627e4f363",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8b4125db1527c8d4edff9eb5c6b50c5a744150942f005138dc9025ebb315274b",
+        "id": "70fcb0288566945e7b01dec99ee5d318ea0e5bb9dc436535d0161c20bd05cde2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3318876ea0937dd84b6bdaae255bcf629dab16d0459edbf906cace18d3d4e816",
+        "id": "31e84c4dfea33c163559cc1d0f21233e835999fb68880fd7ccbba438cdb976a3",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "59e099145fe77f01696337917d4798af980a19c7b2d4ec49a41c4131642f9a54",
+        "id": "c5c97ed592983abdddfc8a207c3d45a9476b58d0e576180d8bcc74142fb9f043",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "0d0224f94f9954791e002814be1b91352c943fb95324261ee5a9c064970bbd63",
+        "id": "d9a4670253b54ac22d363b4633e5e26d539210952f11c474ac26759ff5775b02",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "eed110067119005c447f3a4f8c756f065ac345a6ca80f43c8617e893a18e43a6",
+        "id": "3596cbb9914c710093aaed0f32ba6d5d3fac7c0afeecfa95639b6ed2d1604732",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "6c92908c37b6fd53dd9f1c0c8d1ba1b2a932c778c74b8c0a394645a3b6c8ee6e",
+        "id": "daa8a041fc8f2ad781b0d6f747ee9031e815f22eea801d1bc7aec001dce402a5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "dd4d9462695674649b4f7b9129f9ccdc72cd0cba9528bdb5f696f7d29ebb57fc",
+        "id": "c83cc03cbfe5b3e34e441b6f71b131fdc4c4de3cf1f522191874be0383333e08",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "06d003cd1c842b41957a5fc8b80b6db4737e510d46e593777eff3d8f809adf51",
+        "id": "399e99ff8da1189229c9d4d53a76baffcb32116916bfc6ebabeecc43aa9d19e7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d44c80aaa6082fc1e8ce06cb97ee659a4b56cdf6c8c64f1eb1b427c958c034af",
+        "id": "fd2183873d0298e216e7d5596c8e66d57fee89d07abed80f97cdfae2f90ea778",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "142c6c568c7d76db267b5458f95eb7ac3799e991c130d79320f26ff893b1685f",
+        "id": "9f3485cfeaeeb70ab65d0e45482a99d8652dfd417e9ccffe7e54cb73e621895d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "66b77acdac458ab2fed554c47b7ea5d2be608b4f2a7441e8f2872ec9107903d1",
+        "id": "c5024802b25d6a7ae6a84ea253efdadc963f175b2324bcd3d13d20dcae00f598",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e2afc09b70ad12550847cf8bd581ee5ab46c8ab89ceb0924a85c873e121f310c",
+        "id": "15c7b8d27df9f64e95d5284b9c3a039f175d8053a708a6a386fc6a90fb89c9dc",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fc3d8882b56cc049067b6d246532af57435d1bab6bdc092b9507404b66c2ba84",
+        "id": "c8d94380deb544f2459d97302958595d1f96e8789bfbb640a16c92dc8385ad48",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "330e4556ce6fe9a16e274978180d49f4068b024e01f8118a208a952e2e41ffd3",
+        "id": "84dc3904a275d92ed37fa1ab6af4a11c05c2000770b32694b8584f1780576ea7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "71dae1ee42ed163dc53c78f3498b1bc66143e4c1036e33e97a92d1ed2595fe7b",
+        "id": "cbff292b293ee4cf1a1f668b87325d490887945622be7721880bf8a2fe1aca0d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1d179d3f2d13a71ec14b5dbcac9102260d03ac2efc0b4efb19bcdbcda59cfe77",
+        "id": "1c110a8ef7e22603efe1302859602bd36ac2ad6ebbca8bd656795d28ed978da9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7acd3083983d2d0dea689c1b52bb0d85f408c5d48490c4c952f569cdef6d9a3b",
+        "id": "7651501feefb9a444e824a948aa9f5ca902713c582085468009dbc0d9bfec4d9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2e994066fd1dcb4f27eb203642caf68fbab046e336d775d4f3f1a354a9f7f30b",
+        "id": "57fde1696b3bc39e2546ba7359cd963606c22cfa4f17e584ef69087c04d12727",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "88515144fb871c4ef68980314d6a639cf7205878ba88bfc3e2a46d2b3a79c6a0",
+        "id": "cef901bb80384bf35673796d946c9091fe0db14a28640221f940ee49d2e06e1a",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f42b031fc1c0c6b18ba83cc7cd5a21d2ce814207ac10b8254e8506e894e936e8",
+        "id": "3ab3370d8a20757f7564e8b92ba052204845707388c4d0bfd4114a64db73218a",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
       },
       {
-        "id": "49ce8dca3dbebc12cb9365494d75515c9ce6dd6a39b47b17f1574637ec7b8ba3",
+        "id": "a949764255b22c73bc9a45663989f56bfb135f501cec11d7b5ba636f2a5d1615",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
@@ -14642,8 +14654,8 @@
   },
   {
     "path": "llm/services/runtime/policies.py",
-    "sha256": "37b4f2d177f33b7bc49618de85834984a120cc0cc7cbcd4eda34b66d4877da2b",
-    "reason": "Reviewed complete explicit policy resolution and callback duration validation. Registration identity and exact mapping/callable validation live in TokenCounters; ProjectManager delegates the same default map. Selected overrides remain explicit and detached. Context and Run observations consume their Owner APIs; unregistered quota counters fail before queue admission. No policy or token ceiling is invented.",
+    "sha256": "442b3c5a14c325c893f5d13ba4bad1644a448197c13bdd20862321479db0c413",
+    "reason": "Reviewed complete explicit policy resolution and callback duration validation. Registration identity and exact mapping/callable validation live in TokenCounters; ProjectManager delegates the same default map. Selected overrides remain explicit and detached. Context and Run observations consume their Owner APIs; unregistered quota counters fail before queue admission. No policy or token ceiling is invented. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -14671,43 +14683,49 @@
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "2339ef6af3ecf97299608138f3d651aea7eaf5f4ddedcae2ceab61d17c95c09e",
+        "id": "9d3b9b9e73fac7cc5ccf6c2e5a5a7ed61120aa9fffecdc27c00a289fb93a0d87",
+        "classification": "declaration",
+        "owner": "TokenCounters",
+        "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
+      },
+      {
+        "id": "2b896f648a165e6b20b2e9f3d6462891ca2ebf52484989567d294be0d15c66df",
         "classification": "declaration",
         "owner": "ProjectPolicyResolver / TokenCounters",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "46a299810b049ad6a30f919427331e4a434819412ac59c3961236ac64f7dd3ff",
+        "id": "40b8443ae0b4e380d1a7dcaf9697733601500063fd092fc2d473874125ff3cdb",
         "classification": "declaration",
         "owner": "ProjectPolicyResolver / TokenCounters",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "1b7194b32372ab351354261f6ff876fbd47ae3b72e99d5843ad5bb11ba1b564c",
+        "id": "ac659b3bd98ede2a42dec03b7e29e0904beaccc41e7db572ff2ce0440d2d248c",
         "classification": "non_contract",
         "owner": "ProjectPolicyResolver / TokenCounters",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "3c1560aaf41de35360ff740cebc32f860a28fb71e9d02c631231508504552a9b",
+        "id": "d308415c1bcab4700511c7c55af42c51cf8a0fa1e3de112f2f6afc6841eb86da",
         "classification": "non_contract",
         "owner": "ProjectPolicyResolver / TokenCounters",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "12b2fc06d3938771fdb5104d1d4fea44f9264b4a6aebcfac8db1738f1cb386e4",
+        "id": "17419289f3d4bf3346c27cd63cbbcd19e8d37a2099a6a591d8a68fea0fa737e9",
         "classification": "non_contract",
         "owner": "ProjectPolicyResolver / TokenCounters",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "228069e9bd1fb96000d47269792da024af343a3a63f3e003ef98c193c14fa4bf",
+        "id": "72af7c67e8b7a336a93d4772182df341cea6852e8dbcdc7833a62c79e6d6a951",
         "classification": "declaration",
         "owner": "ProjectPolicyResolver / TokenCounters",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "dbf0721f44e67fcaad20d09400839663ec269dd62530e1ca92644d8fa8842320",
+        "id": "eb135cf25d8fdb5890851708109a5f9582964844d60cd383cc228812735a8b23",
         "classification": "non_contract",
         "owner": "ProjectPolicyResolver / TokenCounters",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
@@ -14721,7 +14739,8 @@
           "llm/services/lifecycle/projects.py",
           "llm/services/runtime/events.py",
           "llm/services/runtime/runs.py",
-          "llm/llm.py"
+          "llm/llm.py",
+          "llm/services/schema.py"
         ],
         "tests": [
           "tests/llm/test_policy_values.py",
@@ -37780,6 +37799,311 @@
           "tests/llm/test_reasoning_observations.py",
           "tests/llm/test_completion_processing.py",
           "tests/hub/test_provider_recovery.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/policies/completion.py",
+    "sha256": "bf0e2ec7abf8296459b422b298fc35a3d0d2702688fc65cd59eb741c20b2a585",
+    "reason": "Read the complete selected input-policy Schema/validator/resolution and turn selection implementation. The same Owner now declares fields, diagnostic strings, reserve/count boundaries and pinned roles. Nullable configuration, noninteger rejection, explicit reserve validation and unavailable-counter failure are unchanged. A selected counter receives detached full requests; original runtime handles retain identity. System/developer and current request/tool exchange stay intact; only older whole turns are removed with the same binary-search calls and final consistency check. No stored conversation mutation, generated SDK output limit or shared usage-quota override is introduced. Actual Loop/Graph/processing/usage and Hub Schema consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c0473565e3a7b4150b274adbe05cb946621eb6a543a74fc06470ac1ad4b38cff",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "b2eab8c5b4aff9c9a3fb95268216536883f452bdc7aa4339718f174958bc5af4",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "433ce12366b7c6336407b1005eca98ada446dc59d861a65dd63d33c0c75d5055",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "9294cbf81576261cf3ce3fed6ec323415c88ea5074deb0d65c0ef2f4f48066f8",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "ad59d562b5157420a0a9b6bd59fe8d512bad56d0a23f6c85c966a32acdbe7411",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "f52da9b8c6854ffbf46c20601db3cb02a546e6fb2c1da2c0fd979c5773cb945a",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "ec55005a75181b0af610d16c717e564f49316a38192d7126717a973d6fc98eb1",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "53b90736e18145d71f2e990d21b2c46b3252abc3fb4aba7f380b9f07d4e1ad9e",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "6268f7c5a656d15da3be30d58b283a67150d3d4197335b4d4d0ada1776077f54",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "f6a5312f0bca318139e58ea2f79f8f5fc5b0356aa50e7b7ab8a40323ca8db435",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "c03df9a7e935fb9a2ce592a4f5acbac67ae362975a8f4e819b73bf00af576eb3",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "17ee2722c4922c0ab4edf3a9d0597959d37af48d24b7b9953e675824cf98dc5a",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "4c5d17b7a4266a63e671eac49296442f06b55797cc5b527b66121238b69bf986",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "b7a1dba3cb526a519b755dc58304125857d93ee4ed531f05770691ca7df38367",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "7a5d2ba23983f570f3fb96aa91c4dccd7fd709768ba7312aade9bdbab7f0de74",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "883b505acfb82de93ea764223c8a83a8c75ecdd6d0ebdca812eef81b42975b3d",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "c7da90e0c8a4f577f1ad67b1b7c80a48b3a0921853bfaceea5a7bff43dd415b8",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "42811fc37965d7ed512858a70821e3b6d78ba90e2dd9e68b17a4e8c5f406a22a",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "e867fb4c8e53a616b304e1b2ca1d0b269c30ce7755b8df281bde4e3e8e9201bd",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "23ae0c3e716224335f7b7fb3c87c839bae3c468c349ba5b036a09e8434af061e",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "6ecb54a645e7c61feff812ba6d9e21ef3e2147b4ef3c2e7e53d7a17d819a2084",
+        "classification": "declaration",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
+      },
+      {
+        "id": "fdcf7f1ec6b3671eb840e09b9872e50e9dafede30f404fd7b03161f01f63da82",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "1023d28cd7b2833e1c1f9ed8b05532441f22eaf65d159ca76a940ffa2a8c500f",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "95814354c32198c46269221ad71507f2d8e968ce1ada38379099f80d0edc1757",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "62b010d4e1aa40c9d46929b2fef43301687a65e905cb22e07de930767bd537d4",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "ee8016937e71c1ea22f3065a6aec911636ff8e4cabb49dd929a9027e87e672c8",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "c7f989c4cf61e2faa71f483827976c75e732544fb374bfd550d069799e000928",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "81496173b6cb88645bafdea9026dcdeb4b270c60945f2253a84b2d1725ecc157",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "1ace44fa7fdc19d8694df798a7a1642d838df3c1c171256f94f379096171f1b0",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "1f8630cc3d407bdfb27f789995112bbe741c61d20433da46ec06c4cc459c9ff3",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "4465afec0122bf58634e1b6816ea4fac89bc8a9b299602c38d387d4c6b21e668",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "245f1555bdbb27d59d6bd84a94633bd32b3ad889985efa3cdcd4bcdbf5a7ae7c",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      },
+      {
+        "id": "569d78f62f86436a6a9e1be086117a23f3e36b9b7eb4fc774efadb68f3a3e314",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      },
+      {
+        "id": "8794b10369534b5e8ce86bf748b9eaf6028f42d6f9359450475958162eaab094",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      },
+      {
+        "id": "cb1bf0527d5b478313b6b442daa886b5a728603472a2dc14deb972f54c5dd621",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      },
+      {
+        "id": "3645e5e03a5b3252cce228fd8c671a2749ae235513407ded28265eceaad30b71",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "69fa00aeb2ceafa88e93de493ab83e8918a073e61d5f9cb94acafec0913430a8",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      },
+      {
+        "id": "18aa106a7ceadafd42d6f4504172d85860ee883d4cf7740a548e72577085c804",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
+      },
+      {
+        "id": "9a34e0726ea9b5fbe8fb13a38846b29dcc643c6271b19dd1c4c894a933375d08",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      },
+      {
+        "id": "cbc49f34de462c5ff0ac3d7b998df76bdabca70e5a264f6b6b2462e62535134f",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      },
+      {
+        "id": "8e4dbb901ca227b1dc4b2c0aaab0cf3691d24941a034a01f065e7c27095c8c50",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      },
+      {
+        "id": "eb72fbb2490853886ddb23f0101ba77746892ec12b50b146c40e727f48a862db",
+        "classification": "non_contract",
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompletionPolicy / CompletionPolicy.Field",
+        "declaration": "llm/policies/completion.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/components/processing.py",
+          "llm/services/schema.py",
+          "llm/services/runtime/runs.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/llm/test_policy_ownership.py",
+          "tests/llm/test_project_policies.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_work_state.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_settings.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/policies/README.md",
+    "sha256": "df319b275a5814782aa11c1f4bf9d73583370810ccac55c9f07411768f2d5180",
+    "reason": "Read complete policy package guidance and all exported algorithms. Example now consumes ImplementationParameters and the CompletionPolicy owner name instead of reproducing envelope keys. Corrected RunPolicy declaration location; explicit-only selection, whole-turn preservation, separate usage quota and runtime handle identity agree with the verified code. This README defines no executable literals, dynamic lookup, schema or second policy source.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Policy package documentation",
+        "declaration": "llm/policies/README.md",
+        "consumers": [
+          "llm/policies/completion.py",
+          "llm/policies/retry.py",
+          "llm/policies/usage.py"
+        ],
+        "tests": [
+          "tests/llm/test_policy_ownership.py",
+          "tests/llm/test_runtime_reliability.py"
         ],
         "complete": true
       }

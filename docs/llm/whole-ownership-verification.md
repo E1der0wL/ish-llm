@@ -2680,3 +2680,44 @@ input `07f180f382f93ce228d3c6f797a8a63c4a8a0781112ad8b0d944eb4772af9407`의
 않았다. [원격 run 39991128573](https://github.com/E1der0wL/ish-llm/actions/runs/39991128573)은
 2026-10-23T17:06:30Z 두 필수 Job 실행 중이다. 원격 통과는 아직 선언하지 않는다.
 7931e27 gate21은 별도 동결 소스에서 계속 실행 중이다.
+
+
+## llm 입력 선택 정책·등록 계산기 경계 (2026-10-23)
+
+CompletionPolicy 전체의 설정 필드/Schema/제약/진단과 pinned role을 Owner 선언으로 통일했다.
+SchemaExtension.RESOURCE/SchemaResource는 기존 자원 표시를 선언한다. TokenCounters의
+등록 관찰 API를 LLM 초기화·Run/Component 사용량·EngineContext·설정 UI가 함께 사용한다.
+기존 callback identity, 소비자의 dict 사본, absent attribute의 빈 관찰과 명시적 None을
+그대로 보존한다. 새로운 기본 registry나 정책을 생성하지 않는다.
+
+입력 선택은 기존 config/policy Owner의 검증을 유지하며 생략·null·0을 원본에 합치지 않는다.
+시스템/개발자 지시와 현재 Tool 교환을 보존하고 과거 턴만 제거한다. 토큰 계산기의 요청
+변경은 실제 요청에 반영되지 않으며 주입 client identity는 유지한다. 이 정리는 SDK 출력
+제한이나 retry를 추가하지 않고 Run/Project usage 예약·승인·Resume 계약을 변경하지 않는다.
+UI의 등록 계산기 선택은 기존 Owner enum을 좁히며 빈 교집합은 allOf false를 유지한다.
+
+5fbc9c0 대비 Schema와 JSON 순서 각 1개, validate/from_config 각 560개, 비객체 입력 8개,
+직접 생성 50개, 턴 선택·계산기 호출 trace 784개, 잘못된 계수 7개, runtime identity 2개와
+registry 관찰 5개를 비교했다. LLM/Run 소비자 2개는 조회 API를 펼친 AST가 이전과 동일하다.
+결과·정확한 예외·원본 보존이 일치한다. 외부 비교 스크립트의 초기 모델 fixture 두 오류
+(없는 text_part 및 tuple 대신 list)는 해당 로그에 보존하고 올바른 현재 모델 값으로
+수정했다. 제품 시험 실패나 안전성 제외는 아니다. 최종 비교 exit 0, 초기 제품 smoke
+38개 pass/exit 0(10.764초)다. 기존 제품 시험·효과 횟수 assertion은 변경하지 않았다.
+
+- `whole-completion-policy-closure-01`: 발견/시작/pass 184/184/184, exit 0, 267.490760초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-completion-policy-closure-01/llm.json --modules tests.llm.test_policy_ownership tests.llm.test_project_policies tests.llm.test_completion_processing tests.llm.test_settings_contract tests.llm.test_runtime_reliability tests.llm.test_work_state tests.llm.test_memory_processing tests.llm.test_policy_consumers tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `d26f7811d2876197428b8db97396d4511c056123a4d1c008d2c348fd5d6be297`, input `d015a3f863351d7ee24da19874fe7adeb4ab3559054f3dd6f857f5cb16b380cd`.
+
+- `whole-completion-policy-closure-hub-01`: 발견/시작/pass 31/31/31, exit 0, 54.254610초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-completion-policy-closure-hub-01/hub.json --modules tests.hub.test_settings tests.hub.test_settings_editor tests.hub.test_settings_project_flow tests.hub.test_settings_restart tests.hub.test_engine_output`. source `d26f7811d2876197428b8db97396d4511c056123a4d1c008d2c348fd5d6be297`, input `d015a3f863351d7ee24da19874fe7adeb4ab3559054f3dd6f857f5cb16b380cd`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. Python 3.12.14/
+Clang·Host d833790·동일 의존성·실제 namespace/X11 환경이다. 입력 정책/설정/긴 대화/
+실제 Loop·Graph·Memory 소비자와 핵심 무결성·예산·승인·효과·재개 시험 및 Hub 설정/
+재시작 소비자를 선정했다. 정적 117개 동일, 변경된 의존 검토 39개만 갱신했다. 정적·문서·
+R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다. 정책 코드와 README를 전체 완료로
+기록하고 기존 Schema/runtime 정책 검토만 갱신했다. 나머지 LLM/Run/Schema 소비자는
+바뀐 경계만 확인했으므로 파일 전체 완료 처리하지 않는다. 현재 487개 중 미검토
+303, 미분류 23183, incomplete 2개다.
+
+Level 2 완료다. 앞 모델 프로토콜 소단계와 현재 통합 소스로 묶어 gate22 전체 LLM/Hub,
+정적·문서·R3·SDK·실환경을 실행한다. 정확한 SHA의 로컬 전체 성공 후 작업 브랜치에
+Push하고 원격 CI 실제 결과를 별도 확인한다. 이전 gate21/20과 이번 결과를 합쳐 하나의
+전체 실행으로 표현하지 않는다. llm/ 전체 완료까지 Hub 제품 변경은 보류한다.

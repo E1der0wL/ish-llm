@@ -35,6 +35,16 @@ Graph의 각 Agent Engine은 선택한 Engine의 설정 계약을 사용한다. 
 timeout/model을 이름 일치로 방송하지 않는다. 별도 `parameter_key`를 명시한 Engine만
 그 설정을 공유한다.
 
+CompletionPolicy는 입력 선택 설정의 필드·제약·진단을 선언하고 같은 Schema로 검증한다.
+생략한 설정은 원본에 생성하지 않는다. 기존 reserve 기본 계산 0은 실행용 선택기에만
+적용하며 SDK 출력 한도로 전달하지 않는다. 전체 요청을 계수하고 과거 턴만 제거하며
+시스템/개발자 지시와 현재 요청·Tool 교환은 보존한다. 공통 usage 예산은 별도 계약이다.
+
+SchemaExtension.RESOURCE와 SchemaResource가 등록 자원 표시를 소유한다. UI는 등록된
+counter와 Owner의 enum의 교집합만 제공하며, 사용할 수 없으면 기존 allOf false로
+거부한다. TokenCounters.from_resolver는 공유 계산기를 관찰할 뿐 새 계산기·정책을
+생성하지 않는다. 각 소비자의 기존 사본/identity 경계와 미등록 counter 거부를 유지한다.
+
 RAG는 `aconfigure`에 명시된 분할·동시성·검색·모델 옵션을 해석한다. provider native 옵션은
 생략 시 라이브러리에 맡긴다. 필요한 알고리즘 설정이 없으면 작업 시작 시 오류다.
 준비/검색 중 유효 설정 변경은 충돌로 거부하며 예전 모델의 벡터를 잘못 재사용하지 않는다.
