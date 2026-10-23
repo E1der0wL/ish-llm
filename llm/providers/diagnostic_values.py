@@ -50,3 +50,49 @@ class ProviderRequestHint:
 
     def to_dict(self):
         return deepcopy(self._value)
+
+
+class ProviderRetryObservation:
+    RECOVERY_REJECTED = "completion_recovery_rejected"
+    RECOVERY = "completion_recovery"
+    STOPPED = "provider_retry_stopped"
+    RETRY = "provider_retry"
+    RESPONSE_VALIDATION = "response_validation"
+    DEADLINE = "deadline"
+    PROPOSAL_FAILED = "proposal_failed"
+    EXCEEDED_DELAY = "retry_after_exceeds_max_delay"
+
+
+class ProviderDiagnosticText:
+    CODE_SEPARATOR = "_"
+    WORD_SEPARATOR = " "
+
+    @classmethod
+    def describe(cls, code):
+        return code.replace(cls.CODE_SEPARATOR, cls.WORD_SEPARATOR)
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderAttempt:
+    """One-based observation index; never a configured retry default or limit."""
+
+    ORDINAL_INCREMENT: ClassVar[int] = 1
+
+    call_id: str
+    attempt: int
+
+    @classmethod
+    def from_index(cls, call_id, index):
+        return cls(call_id, index + cls.ORDINAL_INCREMENT)
+
+    @property
+    def next_attempt(self):
+        return self.attempt + self.ORDINAL_INCREMENT
+
+    def details(self, request_details):
+        # Adapter observations keep the original final merge precedence.
+        return {self.__class__.call_id.__name__: self.call_id,
+                self.__class__.attempt.__name__: self.attempt, **request_details}
+
+    def next_details(self, details):
+        return {**details, self.__class__.attempt.__name__: self.next_attempt}

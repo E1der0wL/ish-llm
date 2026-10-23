@@ -2,6 +2,8 @@
 
 Adapt synchronous LiteLLM streaming without blocking the application's loop."""
 
+from llm.providers.diagnostic_values import ProviderDiagnosticText
+
 from llm.providers.streaming import CompletionErrorCode
 
 from .codes import ProviderErrorCode
@@ -338,7 +340,7 @@ async def stream_completion(
                 # 확장 함수의 미분류 내부 오류는 engine_failed로 남긴다. 알려진 transport 오류만 분류한다.
                 if code == ProviderErrorCode.FAILED.value and completion_fn is not completion:
                     code = None
-                raise StreamError(code.replace("_", " ") if code else str(value),
+                raise StreamError(ProviderDiagnosticText.describe(code) if code else str(value),
                                   code=code, diagnostic=failure_diagnostic) from value
             yield value
     finally:

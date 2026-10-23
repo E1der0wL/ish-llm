@@ -32206,8 +32206,8 @@
   },
   {
     "path": "llm/providers/diagnostic_values.py",
-    "sha256": "6c79f1488a2c349e56b7ca4700afd55ceffed7c7c11b448afac945efbea2afb5",
-    "reason": "Read complete normalized cause-local Writer and recognized-reason Reader. Dataclass fields define reason/cause_index/status_code; optional observation envelope has one declared key. Reader retains partial/extended display evidence and ignores unrecognized reasons exactly as before; it does not default required execution records. Snapshots are detached, unknown keys are preserved, and typed properties are used by classification. Runtime still determines the first HTTP cause and opt-in diagnostics without changing original failure or cleanup.",
+    "sha256": "0defc3708ae3fb46d5108132557db9f094d3c0175d36ce21b034debb692ff38c",
+    "reason": "Read complete normalized cause-local Writer and recognized-reason Reader. Dataclass fields define reason/cause_index/status_code; optional observation envelope has one declared key. Reader retains partial/extended display evidence and ignores unrecognized reasons exactly as before; it does not default required execution records. Snapshots are detached, unknown keys are preserved, and typed properties are used by classification. Runtime still determines the first HTTP cause and opt-in diagnostics without changing original failure or cleanup. ProviderRetryObservation/Text and ProviderAttempt own shared retry diagnostics and transient attempt fields. Actual Base/requests/RAG consumers use the declarations. Text conversion retains exact replace behavior; opaque Adapter details keep their original final-merge precedence; subsequent attempt replaces only the declared attempt field. No SDK wire interpretation or retry authorization.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -32257,6 +32257,84 @@
         "classification": "declaration",
         "owner": "ProviderRequestFailure / ProviderRequestHint",
         "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "d864c883db1d6268a0f829bcd01ad7fab463c6033fb6b08e87933f4094993ce4",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "dacd60aea8576e8bc65928a5ce56a546701afa7691e61dc431ff2a3f04aa82a7",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "c6f6b98e3d6d1ab460124b47025521d86df1dda4d4fa70d0c8f1421da9a52a58",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "4ac84ede6fa6534f513b6c602f3a11752cbaf9a7b16a089f4f98a338c593d430",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "897304293dbb1985cf9414ca06e596759dfbdb4f4687097c3174609008a03fac",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "7ff4f0f01d1476235511cfe3b68f3dc1193ce4f8baa8390ce372de9fb94e542a",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "d9af45a37b41b782a2dd5ecc8108b9cf1b199e0c9b1755886c2aa185a4544a75",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "6d8f7ac76c18092550745807f52b1d7568b249bd20add1e034768f9cdb48cd8f",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "d681742d43de3a1eb08906849e783f6f3279db376bd588d377747188ad4484da",
+        "classification": "declaration",
+        "owner": "ProviderDiagnosticText",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "5af50b96db66cd5809d8ab66240464d521eec56842fb7bf85dc25a1cb392c865",
+        "classification": "declaration",
+        "owner": "ProviderDiagnosticText",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "a87909cb45a3aca069d0911b0f5ef6a78667b5a2c70cb2f713e43f1ece3c3058",
+        "classification": "non_contract",
+        "owner": "ProviderAttempt",
+        "reason": "Frozen slots Python dataclass layout for transient observation fields, not execution authority."
+      },
+      {
+        "id": "c5c184f3f5e81b96138c82a5c6d123bb5fde3bfa4f905ad35a3dbdd6047494ba",
+        "classification": "non_contract",
+        "owner": "ProviderAttempt",
+        "reason": "Frozen slots Python dataclass layout for transient observation fields, not execution authority."
+      },
+      {
+        "id": "2cf3b7536337c72d6923b1d805398debf213376f442bdd755ff30a9bdeeeea77",
+        "classification": "declaration",
+        "owner": "ProviderAttempt",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
       }
     ],
     "contracts": [
@@ -32274,6 +32352,26 @@
           "tests/llm/test_project_activity.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/hub/test_backend_diagnostics.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ProviderRetryObservation / ProviderDiagnosticText / ProviderAttempt",
+        "declaration": "llm/providers/diagnostic_values.py",
+        "consumers": [
+          "llm/engines/base.py",
+          "llm/providers/requests.py",
+          "llm/providers/runtime.py",
+          "llm/providers/litellm.py",
+          "llm/components/rag/ingestion.py",
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_extraction_repair.py"
         ],
         "complete": true
       }
@@ -34998,8 +35096,8 @@
   },
   {
     "path": "llm/core/results.py",
-    "sha256": "788299f90d78eeab39b85470b1a2c819ee1ad25925fe15267c7ee8bc369a5a3a",
-    "reason": "Read complete output/delta/reference and Completion receipt/container/result implementation. Dataclass fields define wire; Owner validation reads slot-derived names, required fields remain mandatory, and enum/constraint/default/diagnostic declarations precede implementation. Completion container uses typed identities and Owner validation, preserving finalization, live stored list updates, immutable reservation ID/Step/start/tokens, retained unknown usage and terminal end evidence. Output copies open JSON, preserves identity/sequence/final behavior; query result delegates stored observation fields and TokenUsage aggregation. No additional persisted result or authority is created. Agent output review: the existing None data default moves to OutputContract.NO_DATA and has_data exposes its original identity check. AgentOutputValue preserves the distinct absent field versus explicitly parsed JSON null; all EngineOutput fields, JSON validation, copy, identity and finalization remain unchanged.",
+    "sha256": "45aadbf4733c35a64e7554151094b12728101bac0b1653bc2cc90bb808d8702d",
+    "reason": "Read complete output/delta/reference and Completion receipt/container/result implementation. Dataclass fields define wire; Owner validation reads slot-derived names, required fields remain mandatory, and enum/constraint/default/diagnostic declarations precede implementation. Completion container uses typed identities and Owner validation, preserving finalization, live stored list updates, immutable reservation ID/Step/start/tokens, retained unknown usage and terminal end evidence. Output copies open JSON, preserves identity/sequence/final behavior; query result delegates stored observation fields and TokenUsage aggregation. No additional persisted result or authority is created. Agent output review: the existing None data default moves to OutputContract.NO_DATA and has_data exposes its original identity check. AgentOutputValue preserves the distinct absent field versus explicitly parsed JSON null; all EngineOutput fields, JSON validation, copy, identity and finalization remain unchanged. CompletionResult now also owns partial/final normalized observations using its declared slot names. Original field read/merge/reasoning order, deep copies, received-but-undrained unknown usage and drained-before-finish evidence are preserved across 45 old/new decoder traces. Stored fields and record validation remain identical.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -35369,217 +35467,235 @@
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "b1b18a6665577aac64dca1d79320b0c923a745ff86f870ca8fe21d98f0982370",
+        "id": "08a1a363cc8cc597adf0842934aac8857ea100aa73c556138bf643f230cc74c2",
+        "classification": "declaration",
+        "owner": "CompletionResult",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "6e66fba862d9602dcbfcd738637f56dcc57b4ba924d05eb32ebdd53cef582852",
+        "classification": "declaration",
+        "owner": "CompletionResult",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "64e53378dd46107dfe1aa0900cda33f225edf0723fc3c4ee3e80c2db1f7bc091",
+        "classification": "declaration",
+        "owner": "CompletionResult",
+        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+      },
+      {
+        "id": "0adbc2ee691cf77cd284f1daf9d7b9e15cd7894daf6a92272ef3bf362864c690",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "1dba0e2e9ee9240237b147300f6cf2440fdbf123c8e3ba02e09310d391584453",
+        "id": "421f7e6fc4a309fdbc8f8d3228f9596435425fad326a6aeb9161784c853f7f6d",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "06014e2d63ea6da9e936c8c00cb2c9af0c8e8790907493a8effb5f05b4edb93d",
+        "id": "5cd8688518f8cb52b8f91cd8934f24d9da163bec7daab746e4df71e963f1e3f0",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "3e548b5762f9edb36a4f0dab357334f2ff810413f5619c69e39dbad7bb6712c4",
+        "id": "05bf60bd08d9ae8cc81290cfded1f8d9eb9020075be80f106e5e245d9e50cdcc",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "3edc0c0ea88fc658f49bd50787641f88897b61d37e5da46f8ad2c4325e759c42",
+        "id": "0a08d3f25fe714b729e62bf90cc55736ce39367cf1267997e13295e18bc98179",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "a7aa9f8b61e5e85ead7c544eef55496b023065fefe98b9f37bb7d9daba7610bb",
+        "id": "3a5d0776d53d73968a66168f523c87688c167366a7b1a4f4542b9941ed4d900a",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "78c50793ef0faa74da4ed1565b5c5cde39af5e1272d4267b70b631e3adc0a8c1",
+        "id": "fe2a64fd2cabbe9fb24b1dac39c6348a5d70e53ec77e37c0dbbec5e86e1078e8",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "ff793e51169d515b1aa4c6ed149bdb18074a6d6c5e8ac374df78919a52092837",
+        "id": "9eceae79e6a7ad16164c8acbb2dffd6eeffdd52dc986685930efbf30ac878acc",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "893ba609bc7117101110f4702f489010de6b087d04ee87b1a43baa743d81e2fd",
+        "id": "06d610ffcca516618e95cb96a63cc530e3a2d62961c66cad0ee0c44634b43819",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "70d022bf530840416f4f403688799403d004b671c558ac6f4394fee4f2ba2ff5",
+        "id": "cf070731577ca3c1268864fc02ffbb5afab26a425db526c99cf06f5ec6ba6a24",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "df84496f8d089be8b13ae32235f41ba4ddf96399c3c5d749556abe29d699b6f2",
+        "id": "0e30147fc662744766142007b4d9b9ebadf60595ed9eb5d5227a1e6d675631f6",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "e22a0153094641264da26636f84259b63d1336abf55c374d8dbcff89f517c274",
+        "id": "bceb1077b368b4a4d9f53ba4dba0a0e6e003eafe4f2e62295aca642f71d8582a",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "3a49634dd8976381fb555999696c01e3606901220dcf905bdfdb3edd96f448d1",
+        "id": "bf15db785da9b971b910f92e3abdd13752128d364f0db8c40b9e45c3c65c7065",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "287a48377c815c5a210f5f013e5a3f3558b5a0cb6373c945e32a3469f2678d90",
+        "id": "d5220e020ab04ab704431d4e7f5fc5157dbf7facca8e616bbc21f592eb83708c",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "eb6e7350007d3537bc7f33e27cdc5b74b57feb3dc055b5b2b62442132c5d0b29",
+        "id": "d210bf0958f8251fd00dad0254fd2398b5fcf2df6e98bb19873ce51030ce9993",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "8d429a37b43071a585643b21696eb36361423b54009c3a7fee98e231f9017265",
+        "id": "0086bb8f08bc021139d07815216e596e300654d1fccec882f320d01e359e61a0",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "488e314124664d18d09586a60841efcdf308596a3cbaad2f40e9d75045262242",
+        "id": "6a9bc23d04c70ed494e138e87ca1fe1e056596bd1680ae116618eded7058a0d2",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "8447f853e026752ebc5e56813db16ecd07cfd50cbee110fb8729ce19362e80ab",
+        "id": "39ba2eb4791237cd3bc4abfa28a6e8b991b5d5e7f85a014e9e1c3403d8ae5eb2",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "8dd0f35e57ecea1cfab306866e391a0e145ec5de912ebae1a9e21187f0770b6c",
+        "id": "712c599c0ff524135ababf0fadae3095173fca76ea991ebf463690479e2aa586",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python forward type annotation, not a protocol field, discriminator or dynamic reflection key."
       },
       {
-        "id": "428419bb17085b2bf526af0782a52619272c87fe63dd795523366bb33ee7bdfa",
+        "id": "afdf1c159728d7a038974a8fdeb7fbe3e75a80d125c50273a2e169f586e41393",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "e7a43f8767c2f6687320f152dd148e5a23fcd79836727b2e12a8da77d3c798bb",
+        "id": "c0df10818c907c26a70cbebf1f6a56eb0edb1d091ced3be41ed005932271b285",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "2af3475d58d90cab51d07d0e709c8556239fb6d333d507140e33dfc27e11e549",
+        "id": "91f0bc8121154140e7b4ec60fcf1466c3a7e3a621893a425b2177e9031b72c4f",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "5cf52493897725c496d760381162a060001b0b2d4b6386abd7838e11c10334ba",
+        "id": "153c412c9ba32e9c174b0d1c90087c0cb21c84d35e499d3eefd9a06d8f6c6194",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "8df00fc0ccc73e24edef7c3139d719b6d1d4745ee69c05f6c1ce3922cb4b6411",
+        "id": "c4bd9ba6b66dce92b708d9ee7c6633e7e0d0193c5a310c8559c1aacf6857a106",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "33f6341fb46f7d5eb9086ee7c529fad507edab232839f3c5d5479e7efada18db",
+        "id": "538774f7f97d3ec85b5faa32d6f24f56905ab056a3ccec7b5a25918aee8cf9aa",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "f46583c706edcdc5566cb146c0e891da4fbef69b1928616a6c83358b2722422b",
+        "id": "3d8e8a258331fe9bae7c7acd12a07b30015565c614d5d6750bfb9b9fa6ec2e3e",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "76528f28382128320a6568e913fe752c543e677cf066048b41e60b3d7950fe60",
+        "id": "e58cb7a3cb70bfecaf0c9ff91e30342826a05e03695fc5b486eff225fe709387",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "c5fbd7d448c22a46618a84662cb3b27af502da74831315ae9d835b0e5ba57b5c",
+        "id": "8f098107f7d5e55b4c768ecf9065f9fd728a7ed36497139e0d93169b2715d3aa",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
       },
       {
-        "id": "1aaf4e974de24412d2a5cf399a9856b426bdc47299b5b891575c5a247dee2aa8",
+        "id": "2f529aad17d50e1b79fddbc9fffc92d39bd4c13dd3ddda03f34ff43417eb0704",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "eebdf0c187f29143b878a27bac97de97f9e4ba9148d873711ee6de0ff5a072e2",
+        "id": "2395bef4e38dd2997ccab7609abd92b29859998494dfe72f44252eb7d1c42e84",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "5011c58bdc731e8cbfa827ebabff7e099e76cee2747dcf124ae562efe7c01997",
+        "id": "2364a08de9f55d97806f308b7202e4380f6354addc4c48a2d411c8676461e34c",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "206b0c60e0c404c2f7678429299607e7869d7aa76359aaaa2cf45b2c79a95e3e",
+        "id": "b5dd983e9f6c547c2fd076af4ee076de31ef6029bf27c9d4ad16f5f58447944d",
         "classification": "declaration",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
       },
       {
-        "id": "08578cdb7757763f3295d43934ea0a1549f3f99b1355cc182645076d076e4512",
+        "id": "c2933bc7b25bdabf7c8dcb483ef425dde82829b9ac598a6e4a6ea4aac7eae205",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python forward type annotation, not a protocol field, discriminator or dynamic reflection key."
       },
       {
-        "id": "bcd5fb709a6e0067d6fa862de9270bfe1913f26adfb3891c3c4ff3c96e939d08",
+        "id": "70153bd6eadc319a6c869c2751330b1c54edc41c9a0e073e23b105aa8497525d",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "93612ec1f93b250456b8ef91296ffd0a55b50985a01e56835a2d1a23ec50c375",
+        "id": "1f6ffcdb5803edc3287c44b77d01fea7cb4efb64c4f30551dc1ea982a5c6fd94",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
       },
       {
-        "id": "b3c1c51350cb6b5afd8736518c40ad335b8865031dd243892857cc1e8535cc40",
+        "id": "1272410bf6c0672e3b0fc040efed2f5327fd4140c8775218df890474769b9485",
         "classification": "non_contract",
         "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
         "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
@@ -35607,6 +35723,20 @@
           "tests/llm/test_main_domain_optimization.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "CompletionResult normalized stream observations",
+        "declaration": "llm/core/results.py",
+        "consumers": [
+          "llm/engines/base.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -42260,6 +42390,414 @@
           "tests/llm/test_provider_diagnostics.py",
           "tests/llm/test_rag_extraction_repair.py",
           "tests/llm/test_rag_retry_presence.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/base.py",
+    "sha256": "cbacacaa4a09a72d256578badfe2e6eed107376398f31aaa1d1cd82a77664e12",
+    "reason": "Read the complete Engine Protocol and BaseEngine: Host Agent binding, instruction route/selection and persisted ACK, delegated Tool execution, constructor/Step validation, output binding and fail-fast diagnostics, explicit Provider retry/deadline/recovery, normalized streaming observations, synchronous factory/unbound Host method reuse, operation execution/cancellation/close and final publication. Twenty non-stream method ASTs match after resolving declarations; 45 real old/new decoder paths match yields, receipts, errors and cleanup. Every semantic literal is declared or consumed through its Owner; four remaining implementation candidates are Python annotations/control syntax. Partial input prevents retry, application recovery cannot renew deadlines, no new SDK/default or usage evidence is manufactured.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "10d5b638caa95764eb9dbdee27d1894681c4390048a2ed718f057308ba484bc5",
+        "classification": "declaration",
+        "owner": "llm.engines.base._OutputValue",
+        "reason": "Module-owned TypeVar name declaration before BaseEngine; this name identifies the Python output type parameter, not persisted metadata or execution policy."
+      },
+      {
+        "id": "58e0719cf4e02992d7f69298e39080ea06b492aa481a3de1a7ef711e5c848517",
+        "classification": "non_contract",
+        "owner": "Engine.execute",
+        "reason": "Python Protocol method body, not runtime contract data."
+      },
+      {
+        "id": "c7520fb37a1f6a43f1dc73f93da01e3c699ef23ac102863b261243ecf195d393",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "63db420bf0fbb2cd25c3fac84f2b58c57318dd42ec6e700b5409749ec24479d3",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "8feea5c1b43e55a1a606e94f700d3db10fa209adb66254896d5c2f5dcb75b926",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "448c939a6f2c2406b362bef1cae7ccf176bcf7d04d14d88836634f43a8cee57c",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "181c5fb01125dae19499f1e71598e46fa842d66e0c1e3d52751caf38a2f8536b",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "6d51d1e54f36ccf877dfab56946b4d8d778e1c6de224f377ac2d36c14fae9ccf",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "faa7ac076f130f984c785d4b54f587509731d1b09a8ff85ca9380a79e426f08e",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "1f9e78b549f5dc5b081bb15c15764e9a19c5afc638dbd16fb4d612fc26d59a99",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "1e7c3305e403bc3840f4a918a59ec3ea19077abb7845f727e2d7eeb3b2a52070",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "c96e475a1c5d03d9bcb86c98302bfd1b3b43f4aa3d73249e60dde14a977e3e20",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "339cf62c728973a6909f2e8372c6556cd48f7cdc4ee16a2213f1801f6d53fad4",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "9bd6e08fdbd4a6b8fa04df429f563493634fea82b2f6e30d1632077fda8b51bf",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "0939b8150f6b50e85e5c03055e0cd14e069f4b387aa9709f90a424269b19b088",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "5fded02aad8243beea0699d7c284958a31d1fabc0994311fb292eba00dd506ad",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "a8cbfb3c64d2bd43b39531b5006ab13c624aceece0222083c10c48693a4938ea",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "e2a2b90da0e4b788338a78d1422b1e6aede1049a3bb696189b238cc9e211241e",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "a198554fa912ecc7d26faca0ca23aa595ffd3819fda24c22ad49a2da78b656c5",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "394753cdd9a55763184a23e0d641808d9f1445b0b65a909d7511ae9ce805495a",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "807c8a220714a769ff9c7e68eb15015c7eab5ea0f7fd7bfb1b72bf95db3d9b33",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "19d86df5d120bf9eb48b95c797c8c0c67fa4f9b2ae04c73a978a45b4ce5acb4b",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "ed4db25d67ccbc95c7df395be41dc62ced292751abe77b4c3c93907d836ed818",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "21c18f467ccac8d3aae914173efd0463e47bfdca29a14e6b86ae952e9be5dc5b",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "cf0f68c28d046326ac8a974d3ee68094f73eb79b29bcbbabac7948a244562729",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "826da884c4b7dc5f9e05e16ef31e4d865139a24ac0916a21f7059d6d38f0318f",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "f84a95734d82616d5ff1443e6faabb0941afb8e14bde88858719990ef96140ec",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "b5abe2c26a5fd1ab78cf26422bc2030fa4ce11540bf88790b1cf8a9f9260de41",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "2a8f32158c7b73f32fff8cc2b4d6de154514e4a31b1fe9d40a54722d3b065fe4",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "0d16c2083bfa87d8f454d973f53dcbd7f05ca0a2f9181cccd981941898387c8e",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "da683e77661c600f49661fb0ac772f7d13f5489359cabe7e3add5b82f913551e",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "6280fdea117a4051113d78c50f1c20a76b720e2f5bf952647c0ccf4dfeef7907",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "fb89048813afae6da59e3905185ec6cf6eab8226ac8b474434167bb40554375e",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "f4cbe1bffd6e6454acad7365babf67a7c213a0c10b7b54a7f72017293e3dcd56",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "ce3beb39faf86fb5d16f0e53d293394f62e430b0610baa1fb119fbefa9aa2d10",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "73faa5a0f55677bd1eda29b1de010a8911284405ed833b1d02b678818c2e6f84",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "694a5e03098aa83eaf3c91cedc132992b5795f1fe01a28336539a95c8d4e2372",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "a876a9c4db7c3ba4c032239256470c1f0890f93f89c119a5112863e80920e0c4",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "0e10cf9c2833ee55f55b77c919f0173e737e70db86d31c0255e43fcf723c220d",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "b6f0c19cffc3e2caf1c80ced5e9212a48abf14cb1c1cd0c04cf5229ff08b8a88",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "5bc775deb70d9675f04011b87a32e3b9ff4f17f5716dafe56ccd23cffce0454c",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "6f36facca44003f0725de17db3e8b87da31b92b7c3e37b9a15fdecb8c949e55b",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "5da9318078bed614681ee099dd26a9a604778075c120136b584f2f1075fdd5e7",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "00dce57fbe6a0e6bd90de15780fc7185e2d7c206a420b6f4b1ccf84f2de56c14",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "6c7b446528f1486a760dd9e7917ffe7c972681e33fa4bcad3139cad384396764",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "b41e1240713d48f079d2f1d1de7f327b7922a0267b946096fd0faf221093e074",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "635a3f517ee78ddb87a887e50b998395222fe21924c1890da035417c15ef627b",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "abcf1e4b821931331cd448ce97a373268cb7d37bb5668fe0b620e076288a59b2",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "6f7158362d1196fec71e044c288921b149455f3bc574e8730f04ba494af00400",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "8f8861ea94c08d1baa8eca3cd8cb7c24d40841adc149660056b2f36335f33e0d",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "339a899e950979b51870938fe5d8ddfa65b5311bc34ed7b4d2b65723923a8f52",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "4cb56b036fb29d3641ab9907b6df5f15d5977b37a25c0f4b0c15b15c3bb1a4d4",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "5f3ec534dbb8e27176eff8b6438c4057732de5ee3f395fd64ee65992ae36d494",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "1f5d99d24035cb7957e4793d2afc695541f3593f342e7fbe7ca33c9bd1934979",
+        "classification": "non_contract",
+        "owner": "BaseEngine.__init__",
+        "reason": "Python no-result constructor return annotation."
+      },
+      {
+        "id": "a2a0b28532a3c77d33fe285c830a1cdebccfbb093c6552ed85fd2c081f49d27d",
+        "classification": "non_contract",
+        "owner": "BaseEngine.stream_completion",
+        "reason": "Iterator-draining control loop exits at StopAsyncIteration/error; not a program policy or stored discriminator."
+      },
+      {
+        "id": "6b6dd15b6d3a9dddcc3f5951bff9ab9a373844732c823eff35be8a0dbdc14ed7",
+        "classification": "non_contract",
+        "owner": "BaseEngine._execute",
+        "reason": "Iterator-draining control loop exits at StopAsyncIteration/error; not a program policy or stored discriminator."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "BaseEngine",
+        "declaration": "llm/engines/base.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_base_engine.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_policy_ownership.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_completion_review_crash.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/completion_state.py",
+    "sha256": "1e2fcb4be5b205249f6d636f35a20bc63e442a33c73e967c2832de72e00aa889",
+    "reason": "Read complete transient per-attempt reception state. Every chunk marks received before decoder work, even an empty or invalid chunk; the outer retry gate consumes the same field. No persisted record, policy default, usage reset or compatibility mapping.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6800431ca99b0dea0384aa998f0b0fd15c2274632142c5e5a2c328244db137b7",
+        "classification": "non_contract",
+        "owner": "CompletionProgress",
+        "reason": "Python slots dataclass layout for per-attempt reception evidence."
+      },
+      {
+        "id": "c9a5bc8b3f2bc15ee90859760924ae7ea8e3a10efcbba79371fad25a4cdf5e02",
+        "classification": "declaration",
+        "owner": "CompletionProgress",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      },
+      {
+        "id": "2c238a9c1c9fcb961ffee65ff7e90169afdceb2b5e6073d6940c7595a8458951",
+        "classification": "declaration",
+        "owner": "CompletionProgress",
+        "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompletionProgress",
+        "declaration": "llm/engines/completion_state.py",
+        "consumers": [
+          "llm/engines/base.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_retry.py"
         ],
         "complete": true
       }

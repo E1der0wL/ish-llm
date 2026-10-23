@@ -1,5 +1,7 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
+from llm.providers.diagnostic_values import ProviderRetryObservation
+
 from llm.components.tools.registry import ToolRegistry
 
 from llm.core.implementation_parameters import ImplementationParameters
@@ -739,7 +741,7 @@ class RAGComponent(DefinitionComponent):
         if policy != ExtractionFailurePolicy.DISABLED.value:
             await extraction_progress()
         def observe_extraction(event):
-            if event.code == "provider_retry":
+            if event.code == ProviderRetryObservation.RETRY:
                 document["ingestion"]["provider_retries"] += 1
         for offset in (range(0, len(document["chunks"]), self.extraction_batch_size) if policy != ExtractionFailurePolicy.DISABLED.value else ()):
             batch = document["chunks"][offset:offset + self.extraction_batch_size]

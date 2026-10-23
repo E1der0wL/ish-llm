@@ -1,5 +1,7 @@
 """공급자 초기화·진단의 단일 경계. 숨은 SDK 기본 재시도는 항상 끈다."""
 
+from llm.providers.diagnostic_values import ProviderDiagnosticText
+
 from llm.core.contracts import ErrorReason, DiagnosticSeverity
 from .diagnostic_values import ProviderRequestFailure
 
@@ -312,7 +314,7 @@ def diagnostic_scope(callback):
 
 def diagnostic(code, *, severity=DiagnosticSeverity.INFO.value, **details):
     from llm.core.contracts import Diagnostic
-    event = Diagnostic(code, code.replace("_", " "), severity=severity,
+    event = Diagnostic(code, ProviderDiagnosticText.describe(code), severity=severity,
                        details={**(_source.get() or {}), **details})
     try:
         configure_logging()

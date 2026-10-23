@@ -1,5 +1,7 @@
 """RAG 준비 단계의 제한된 청크 병렬 처리·캐시·진행 관찰. 세대 공개와 Job 소유권은 기존 서비스에 둔다."""
 
+from llm.providers.diagnostic_values import ProviderRetryObservation
+
 import asyncio
 import hashlib
 import threading
@@ -131,7 +133,7 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
     started, telemetry_lock = time.monotonic(), asyncio.Lock()
 
     def observe(event):
-        if event.code == "provider_retry":
+        if event.code == ProviderRetryObservation.RETRY:
             stats["provider_retries"] += 1
 
     async def publish():

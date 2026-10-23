@@ -3497,3 +3497,75 @@ Level 2 완료다. 이 설정 이동은 Schema·검증·조회 동등성과 소�
 제한했고 실제 재시도 알고리즘과 SDK 전송 규칙은 바꾸지 않았다. 다음 Base completion 관련
 closure와 gate27 전체 회귀로 통합한다. 실행 중인 gate26은 고정된 f4eb038만 대상으로 하며
 이번 변경을 포함하지 않는다. 전체 검증·정확한 SHA 원격 CI 조건과 llm/ 우선순위를 유지한다.
+
+
+## llm BaseEngine 실행·스트림 계약 전수 closure
+
+기준 2129b6b 이후 BaseEngine 전체를 검토했다. Step 생성·추가 지시·출력 연결·실행/종료의
+고정 진단, API 기본값, buffer/time bound, 직렬화 선택은 구현 앞 선언에 둔다. OutputContract,
+DiagnosticObservation, ErrorReason, ExceptionType, ModelOperation 및 ProviderOptions의 기존
+Owner를 참조하며 같은 의미를 다시 선언하지 않는다. 정적/상속 없는 Host helper 재사용은
+BaseEngine 선언을 직접 참조하여 Host 객체에 내부 상수를 요구하지 않는다.
+
+CompletionProgress는 한 시도의 수신 여부만 소유한다. 모든 chunk는 decoder 호출 전에
+수신됐다고 표시하며 빈/잘못된 chunk도 이후 재시도를 허용하지 않는다. CompletionResult가
+정규 CompletionUpdate/ModelResponse의 identity·usage·reasoning 병합을 소유한다. 원래 필드
+조회/변경 순서·사본·관찰 이벤트 발생 조건을 보존한다. 스트림 소진 시점의 usage_complete는
+최종 decoder 검증 전에 기록하며, 중단 시 unknown usage와 예약을 유지한다. 최종 응답 사본은
+성공한 경우에만 호출자 capture에 전달한다. 저장 필드/필수 영수증 검증은 변경하지 않는다.
+
+ProviderRetryObservation/Text/Attempt는 재시도 진단 이름·문구·시도 관찰 필드를 소유한다.
+Base·Provider 요청/SDK 경계와 RAG 진단 소비자를 연결했다. Adapter의 불투명 describe_request
+값은 원래 마지막 병합 우선순위를 유지하고 다음 시도 Projection은 attempt만 교체한다.
+1부터 시작하는 관찰 순번은 설정 기본값이나 재시도 한도가 아니다. RetryPolicy만 실행 시도
+상한을 계산한다. 원래 오류 원인·명시적 recovery·기한·취소·SDK 중첩 방지·사용량 계약을 유지한다.
+
+Base 구현 중 남은 후보 4개는 Protocol 생략 표기, 생성자 None 반환 타입, 두 iterator loop의
+True 구문이다. 계약 리터럴의 예외로 분류한 것이 아니다. 출력 소유권·추가 지시 저장 ACK·
+Tool 위임·Step 최종화·Provider 전송/부분 응답 경계를 전수 확인했다. 다른 Engine/서비스/
+Provider/RAG 파일 전체 완료로 확대하지 않는다.
+
+### 대조·Level 1·2 검증
+
+smoke `python -m unittest tests.llm.test_base_engine tests.llm.test_engine_outputs
+ tests.llm.test_provider_choices tests.llm.test_provider_transport tests.llm.test_provider_runtime
+ tests.llm.test_provider_diagnostics`는 95개 pass, 23.611초, exit 0이다.
+외부 equivalence.py는 선언 참조를 같은 scalar로 환원한 Step/추가 지시 20개 메서드의 AST가
+그대로임을 확인했다. 실제 이전/현재 _stream_completion을 실행하여 decoder 응답/거부/소진/
+중단 45개 조합의 이벤트·영수증·예약·usage_complete·capture·수신 상태·cleanup·오류를 대조했다.
+관찰 attempt/next/순번 각 9개, Provider 진단 문구 4개도 동일하며 exit 0이다. 대조 도구 작성
+중 모듈 표현/AST 참조 환원과 실제 StopReason 이름을 수정했으며 제품 시험 실패는 아니다.
+원래 안전성 Assertion과 실제 HTTP·파일 효과·프로세스 중단 시험을 변경하지 않았다.
+
+- `whole-base-runtime-01`: 발견/시작/pass 412/412/412, exit 0, 219.607707초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-base-runtime-01/llm.json --modules tests.llm.test_base_engine tests.llm.test_engine_layout tests.llm.test_engine_outputs tests.llm.test_engine_steering tests.llm.test_engine_requests tests.llm.test_execution_contexts tests.llm.test_execution_boundaries tests.llm.test_configuration_results tests.llm.test_policy_ownership tests.llm.test_agent_execution tests.llm.test_agent_workflow tests.llm.test_agent_delegation tests.llm.test_nested_graph tests.llm.test_provider_choices tests.llm.test_provider_transport tests.llm.test_provider_runtime tests.llm.test_provider_diagnostics tests.llm.test_common_provider_acceptance tests.llm.test_provider_codec tests.llm.test_model_protocol tests.llm.test_completion_integrity tests.llm.test_completion_processing tests.llm.test_completion_review tests.llm.test_completion_review_crash tests.llm.test_rag_models tests.llm.test_rag_extraction_repair tests.llm.test_usage_ownership tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `590e6b2574c654596942aea6288067e0ff789a92c1853f40200f1aa41467a0db`, input `0c278a0d0b022179eb3e19ef29c811f3008e3e4d3d4c6a15bc4292f14a94c1e4`.
+
+- `whole-base-runtime-safety-01`: 발견/시작/pass 45/45/45, exit 0, 14.626106초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-base-runtime-safety-01/llm.json --modules tests.llm.test_retry tests.llm.test_explicit_configuration`. source `590e6b2574c654596942aea6288067e0ff789a92c1853f40200f1aa41467a0db`, input `0c278a0d0b022179eb3e19ef29c811f3008e3e4d3d4c6a15bc4292f14a94c1e4`.
+
+- `whole-base-runtime-hub-01`: 발견/시작/pass 36/36/36, exit 0, 136.554870초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-base-runtime-hub-01/hub.json --modules tests.hub.test_provider_activity tests.hub.test_retry_observations tests.hub.test_retry_ui tests.hub.test_progress tests.hub.test_agent_graph tests.hub.test_rag_jobs`. source `590e6b2574c654596942aea6288067e0ff789a92c1853f40200f1aa41467a0db`, input `0c278a0d0b022179eb3e19ef29c811f3008e3e4d3d4c6a15bc4292f14a94c1e4`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 source/input 전후 동일이다.
+Python 3.12.14/Clang·Host d833790·동일 의존성·실제 namespace/X11 환경에서 실행했다.
+Base/출력/context·Agent Root/위임/중첩/steering·Provider 실제 HTTP/모델 프로토콜·입력 처리·
+검토와 프로세스 중단·RAG 추출/사용량 및 승인/예산/효과/Checkpoint/삭제/수명 무결성을 선정했다.
+기존 정적 근거의 명시적 Step 기한/저장 ACK/재시도 시험을 별도로 실행했다. Hub는 Provider 활동·
+재시도·progress·Agent/RAG Job의 직접 소비자다. 서로 다른 범위이며 전체 실행으로 합산하지 않는다.
+
+첫 감사 시험은 16개 중 15 pass/1 failure, 3.295초, exit 1이었다. 모듈 TypeVar
+_OutputValue 분류에 Owner 이름이 비어 있어 감사가 거부했다. 해당 Python 타입 선언의
+실제 Owner를 기록하여 수정했고 원래 감사 Assertion은 유지했다. 초기 실패 로그는
+audits-initial-failure.log에 보존한다. 제품 코드나 안전성 기준 변경 없이 감사 16개를 재실행했다.
+
+정적 finding은 115→114다. 기존 S2 timeout 검증/수신 후 재시도 차단 두 식은 동일 의미로
+새 참조/타입을 사용해 ID만 바뀌었으며 원래 근거·시험을 유지했다. S3의 inline 0 한 건은
+BaseEngine.EXPIRED_TIMEOUT 선언으로 제거됐다. 이전 review 원본은 retired-static.json에
+보존하고, 변경된 구현 의존 파일만 갱신했다. 단순 hash 재승인이나 blanket 예외는 없다.
+`python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16개와
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py base-runtime-auxiliary`의
+정적 S1–S7·문서·R3·SDK·양쪽 환경 6개가 각 exit 0이다. 기록 후 최종 문서/diff 검사를 수행한다.
+
+현재 전체 502개 중 미검토 290, 미분류 21797, incomplete 4개이며 stale/위반/감사 오류 0이다. BaseEngine과 CompletionProgress를 전수 검토했고 전체 리팩터링은 미완료다.
+
+Level 2 완료다. ProviderOptions와 이번 Base/관찰 계약을 gate27의 현재 통합 상태에서
+전체 LLM/Hub·정적·R3·문서·실환경으로 검증한다. gate26은 고정 f4eb038에서 별도 실행 중이다.
+전체 성공 SHA만 Push하고 원격 필수 job 및 엄격 집계 artifact를 실제 확인한다.
+llm/의 나머지 Component/Engine/서비스를 계속 진행하고 Hub 구현은 llm/ 완료 이후에 진행한다.

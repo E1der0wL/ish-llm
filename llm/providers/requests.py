@@ -1,5 +1,7 @@
 """안전하게 반복 가능한 비스트리밍 추론 호출의 제한·오류 분류. Tool에는 적용하지 않는다."""
 
+from llm.providers.diagnostic_values import ProviderRetryObservation, ProviderDiagnosticText
+
 from llm.core.model_protocol import copy_model
 
 from .codes import ProviderErrorCode
@@ -27,7 +29,7 @@ class ProviderError(CodedError, RuntimeError):
     def __init__(self, code, *, diagnostic=None):
         self.code = code
         self.diagnostic = diagnostic
-        super().__init__(code.replace("_", " "))
+        super().__init__(ProviderDiagnosticText.describe(code))
 
 
 def error_code(error):
@@ -150,19 +152,19 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
                 from .schema import validate_retry_params
                 async with asyncio.timeout(policy.remaining()):
                     selected = await select_retry(RetryFailure(operation, copy_model(request), code,
-                        code.replace("_", " "), attempt + 1, code in TRANSIENT, tuple(changeable)), decide)
+                        ProviderDiagnosticText.describe(code), attempt + 1, code in TRANSIENT, tuple(changeable)), decide)
                 if selected is None:
                     raise ProviderError(code, diagnostic=failure) from error
                 request = change_arguments(request, selected, allowed=changeable, copy=copy_model,
                     validate=lambda value: validate_retry_params(value, original=request, operation=operation))
                 delay = retry_delay(policy, attempt + 1, error, options)
                 if delay is None:
-                    diagnostic("provider_retry_stopped", operation=operation, attempt=attempt + 1,
-                               call_id=call_id, reason="retry_after_exceeds_max_delay")
+                    diagnostic(ProviderRetryObservation.STOPPED, operation=operation, attempt=attempt + 1,
+                               call_id=call_id, reason=ProviderRetryObservation.EXCEEDED_DELAY)
                     raise ProviderError(code, diagnostic=failure) from error
             except TimeoutError as timeout_error:
                 raise ProviderError(ProviderErrorCode.TIMEOUT.value) from timeout_error
-            diagnostic("provider_retry", operation=operation, attempt=attempt + 2,
+            diagnostic(ProviderRetryObservation.RETRY, operation=operation, attempt=attempt + 2,
                        call_id=call_id, delay_seconds=delay, modified=bool(selected.changes))
             from .observations import record_retry
             record_retry(operation)

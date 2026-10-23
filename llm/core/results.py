@@ -16,7 +16,7 @@ from typing import Any, ClassVar, Optional
 from .contracts import Diagnostic, ResourceRef
 from .models import StepStatus, Run, RunStatus, Step, new_id, now
 from llm.core.json_data import JsonObject
-from .model_protocol import StopReason
+from .model_protocol import StopReason, copy_model
 from .usage import TokenUsage, UsageReceipt
 from .execution_observations import ExecutionObservations
 
@@ -198,6 +198,9 @@ class CompletionResult:
     CHANGED_RESERVATION = "Completion reservation identity changed"
     IMMUTABLE = "Completed model call evidence is immutable"
     LOST_USAGE = "Completion update cannot erase final usage"
+    UNKNOWN_OBSERVATION = None
+    UNCHANGED_OBSERVATION = False
+    CHANGED_OBSERVATION = True
 
     id: str = field(default_factory=new_id)
     step_id: Optional[str] = None
@@ -217,6 +220,41 @@ class CompletionResult:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+    def observe_update(self, update):
+        """Merge normalized partial observations without completing usage evidence."""
+        changed = self.UNCHANGED_OBSERVATION
+        for key in (CompletionResult.response_id.__name__, CompletionResult.model.__name__,
+                    CompletionResult.finish_reason.__name__, CompletionResult.termination.__name__):
+            value = getattr(update, key)
+            if value is not self.UNKNOWN_OBSERVATION and value != getattr(self, key):
+                setattr(self, key, value)
+                changed = self.CHANGED_OBSERVATION
+        if update.usage:
+            usage = {**self.usage, **deepcopy(update.usage)}
+            if usage != self.usage:
+                self.usage = usage
+                changed = self.CHANGED_OBSERVATION
+        if update.reasoning:
+            self.reasoning_content += update.reasoning
+            changed = self.CHANGED_OBSERVATION
+        return changed
+
+    def observe_drained_usage(self):
+        """Only a drained transport reaches this boundary, including a rejected final response."""
+        self.usage_complete = bool(self.usage)
+
+    def observe_response(self, answer):
+        """Merge only present final values; unknown usage remains unknown."""
+        if answer.usage is not self.UNKNOWN_OBSERVATION:
+            self.usage = {**self.usage, **copy_model(answer.usage)}
+        for target, value in ((CompletionResult.response_id.__name__, answer.response_id),
+                              (CompletionResult.model.__name__, answer.model),
+                              (CompletionResult.finish_reason.__name__, answer.raw_finish_reason),
+                              (CompletionResult.termination.__name__, answer.stop)):
+            if value is not self.UNKNOWN_OBSERVATION:
+                setattr(self, target, value)
+        self.observe_drained_usage()
 
     def usage_record(self) -> dict:
         """Detached quota projection; unknown usage and its reservation stay explicit."""
