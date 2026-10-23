@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 471,
+    "files": 473,
     "unreviewed_files": 390,
     "stale_files": 0,
-    "unclassified": 29159,
+    "unclassified": 29072,
     "violations": 0,
     "incomplete_contracts": 2,
     "unreviewed_dynamic_paths": 392,
     "unreadable_files": 0,
-    "candidates": 30472,
+    "candidates": 30445,
     "issues": 0
   },
   "files": [
@@ -1804,7 +1804,7 @@
     {
       "path": "llm/components/tools/builtin/README.md",
       "status": "unreviewed",
-      "sha256": "7a8a44efef3ee5c704d8554b4a56fe84f422c6aa76ab507533742f6760752fa0",
+      "sha256": "f5d68613a8488390508bfd18a0ff8fdf1959c63e6d9969f1d79101100f2f013e",
       "candidates": 0
     },
     {
@@ -1846,7 +1846,7 @@
     {
       "path": "llm/components/tools/builtin/file_values.py",
       "status": "reviewed",
-      "sha256": "8c24d9e8fd4c96ae94785854b22e71abd35d31ac6c3da198f8a3c59ff96e7307",
+      "sha256": "e25046bec94df5b3787a841fdd0cd24d82becc55d122491ceb7e4c9e132bab0d",
       "candidates": 175
     },
     {
@@ -1868,10 +1868,22 @@
       "candidates": 27
     },
     {
+      "path": "llm/components/tools/builtin/workspace_records.py",
+      "status": "reviewed",
+      "sha256": "5708280ba89240add19c6ac2f6f542ec6b3b5a62d1253de18220afb06f5b1ffc",
+      "candidates": 29
+    },
+    {
+      "path": "llm/components/tools/builtin/workspace_repository.py",
+      "status": "reviewed",
+      "sha256": "beaf3da167ba036312f509d97489673d86e87cce426cafe1999e83884c9a3543",
+      "candidates": 31
+    },
+    {
       "path": "llm/components/tools/builtin/workspaces.py",
       "status": "unreviewed",
-      "sha256": "f3f5e3b29d79da0ec5e7264251ddd9f30d8b1353f447c254a335378e29e2d032",
-      "candidates": 139
+      "sha256": "908539c9001dce0b1f3d36a9b8bc500d0bce818168b0c494027c56b8572dd957",
+      "candidates": 52
     },
     {
       "path": "llm/components/tools/component.py",

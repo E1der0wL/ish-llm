@@ -105,10 +105,17 @@ Bubblewrap은 자체 동작으로 실제 작업 디렉터리를 PWD에 넣는다
 
 record는 `storage_version=1`, 소유 Project/공간 ID, 생성 출처 Run/Step, 시각, 선택 파일 목록,
 `ready`만 보관한다. 실행 결과는 기존 Run/Step이 소유한다. record와 lock은 sandbox에 노출하지 않는다.
+`WorkspaceRecord`가 필드·버전·타입·identity·완료 상태의 정규 Owner이며 저장 Reader는 모든
+필드를 요구한다. 생성 API의 `ready=false` 기본값을 손실된 저장 필드의 복원에 사용하지 않는다.
+출처의 session/run/step 값은 null일 수 있지만 세 필드 자체는 필요하다. 시각은 기존 문자열,
+선택 파일은 문자열 목록 계약을 유지한다. 손상된 기록을 정상 기록으로 재작성하거나 삭제하지 않는다.
+`WorkspaceRepository`는 경로·복사·잠금·원자적 게시·명시적 삭제를 담당하며 승인·예산·실행
+정책을 해석하지 않는다. 실행/파일 조회는 검증된 기록의 `require_ready`를 통과해야 한다.
 복사·fsync 후 ready를 원자적으로 게시하며, 중간 실패는 부분 공간을 정리한다.
 강제 종료로 남은 `ready=false` 공간은 조회·명시적 삭제가 가능하고 실행은 거절한다.
 record 생성 전이나 삭제 중에 중단되어 record가 없는 공간도 `reason=missing_record`로
 조회·명시적 삭제가 가능하다. 소유권은 신뢰된 저장소의 Project/공간 경로로 제한하고 실행은 거절한다.
+이 관측은 별도 `MissingWorkspaceRecord`이며 `WorkspaceRecord`로 복원하지 않는다.
 목록은 관측이므로 동시 생성/삭제 항목이 일시적으로 빠질 수 있다.
 생성·삭제 직후 결과 전달 전에 종료되면 효과가 불확실할 수 있어 목록/Step 확인이 필요하다.
 

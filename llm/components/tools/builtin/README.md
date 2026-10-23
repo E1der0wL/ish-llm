@@ -16,7 +16,9 @@
 | [diagnostics.py](diagnostics.py) | Linux 시스템·프로세스·표준 I/O 연결을 읽기 전용으로 조회합니다. |
 | [diagnostic_values.py](diagnostic_values.py) | 진단 Tool의 입력 필드·Schema와 시스템/프로세스 관측 응답을 선언합니다. |
 | [arguments.py](arguments.py) | 내장 Tool 필드 선언에서 입력 조회와 공개 Schema를 파생합니다. |
-| [workspaces.py](workspaces.py) | Project별 테스트 파일 공간의 생성·복사·잠금·명시적 삭제와 sandbox 실행 라우팅을 담당합니다. |
+| [workspaces.py](workspaces.py) | Project Tool 호출·취소 수명과 테스트 공간의 sandbox 실행 라우팅을 담당합니다. |
+| [workspace_repository.py](workspace_repository.py) | 테스트 공간의 경로·복사·잠금·게시·조회·명시적 삭제를 소유합니다. |
+| [workspace_records.py](workspace_records.py) | 소유권 기록·완료 상태와 불완전 공간의 관측을 구분하고 저장 읽기를 검증합니다. |
 
 ## 연결 방법
 

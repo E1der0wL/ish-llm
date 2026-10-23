@@ -7531,6 +7531,26 @@
         "tests/llm/test_execution_contexts.py": "503334f2b3350188f17061fce0de4de49b6c5180629492f09947c7d6b52186c2",
         "tests/llm/test_tool_packages.py": "954d60c8a140f0ddd26e3160dde6a106d38cebaf483846f4dcc3b45b1f5d9c7c"
       }
+    },
+    {
+      "id": "0047a718a08558924779a7fc649e09ff61a6391476c2357f01e5f12262e35c8d:1",
+      "rule": "S4",
+      "owner": "WorkspaceRecord.__post_init__",
+      "reason": "JsonValue exact int decoding runs before the sole supported VERSION comparison and rejects bool/float/null/missing. The stored Reader separately requires every field including ready before decoding. Construction, read and publication share one typed declaration. Independent corrupt-wire tests and real on-disk effect/byte preservation verify no fallback, replay, delete or rewrite after corrupt evidence.",
+      "contracts": [
+        "docs/llm/test-workspaces.md"
+      ],
+      "sources": {
+        "llm/core/contracts.py": "09e219351fb2bdb3d681e35009d258930f54bdd314d0c36f497ac7576db5d61f",
+        "llm/components/tools/builtin/workspace_records.py": "5708280ba89240add19c6ac2f6f542ec6b3b5a62d1253de18220afb06f5b1ffc",
+        "llm/components/tools/builtin/workspace_repository.py": "beaf3da167ba036312f509d97489673d86e87cce426cafe1999e83884c9a3543",
+        "tests/llm/test_workspace_records.py": "bc17bb99ab2f9e04f957cc56246c95d7f0b71de8338fb660f22cfc263849ace3",
+        "docs/llm/test-workspaces.md": "f4854855253318c683d29f51db21ea00c9457271c4a5399adb33b64f556a3c17"
+      },
+      "tests": [
+        "tests.llm.test_workspace_records.WorkspaceRecordTests.test_missing_corrupt_and_foreign_fields_never_become_valid_evidence",
+        "tests.llm.test_workspace_records.WorkspaceCorruptionTests.test_corruption_blocks_execution_reads_and_delete_without_rewriting_evidence"
+      ]
     }
   ]
 }

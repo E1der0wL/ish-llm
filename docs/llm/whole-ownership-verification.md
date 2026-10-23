@@ -1802,3 +1802,43 @@ incomplete 계약 2개로 전체 완료는 계속 차단된다.
 이 결과는 Level 2와 발견된 회귀의 재검증이다. 공유 환경/실행 경계에 영향을 주므로 진단·파일·
 프로세스 변경을 묶은 group13 현재 고정 소스 Level 3를 필수로 수행하고 성공 후 Push한다.
 정확한 SHA CI와 테스트 공간/나머지 등록·전체 미전환 계약을 계속 진행한다.
+
+
+## 테스트 공간 저장·기록 Owner 분리 (2026-10-23)
+
+[테스트 공간 계약](test-workspaces.md)의 경로·복사·잠금·게시·삭제는 WorkspaceRepository,
+저장 필드·버전·타입·identity·ready는 WorkspaceRecord가 소유한다. TestWorkspaces는 공통
+저장 API와 typed 결과를 사용하고 자신의 root/source를 Repository에서 조회한다. FilePathArguments의
+provided_path로 기존 특수 파일 검사를 연결하며 그 메서드 외 file_values 전체 AST는 동일하다.
+
+Reader는 Writer의 정확한 필드 구조와 중첩 타입을 요구한다. 생성 기본값으로 필수 ready를
+복구하지 않고, bool 버전·잘못된 출처/파일 목록·누락/추가 필드·다른 소유자를 거절한다.
+시각/경로에 새로운 형식이나 live source 검증을 추가하지 않는다. 기존 계약의 missing_record는
+별도 불완전 관측으로만 유지하며 실행 증거가 되지 않는다. 복사/no-follow/fsync/게시/취소 회수와
+잠금 수명 순서를 유지하고, 승인·예산·Run/Step 기록·Project 삭제 정책은 이동하거나 변경하지 않는다.
+
+기존 smoke 24개/exit 0(16.535초) 이후 독립 wire·필수 필드·실제 손상 파일·복사/게시 장애 시험을
+추가한 `python -m unittest tests.llm.test_workspace_records tests.llm.test_test_workspaces tests.llm.test_builtin_file_values`는
+29개 pass/exit 0(16.492초)다. 원본 bytes/mode와 잘못된 기록 bytes 보존, 실행 횟수 0, 부분 공간
+회수 및 기존 missing-record 조회/명시 삭제를 확인했다. 원래 효과/승인/중단 Assertion은 유지한다.
+
+- `whole-workspace-storage-01`: 발견/시작/pass 121/121/121, exit 0, 52.566116초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-workspace-storage-01/llm.json --modules tests.llm.test_workspace_records tests.llm.test_test_workspaces tests.llm.test_builtin_file_values tests.llm.test_builtin_tools tests.llm.test_process_group_cleanup tests.llm.test_tool_selection_records tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `f41990b84c4fff396b5ea84f7395c51f7795c3df62aa3a2690aac3cf7e7dec46`, input `9a5238b8b26e5f98e4f3d2c3d1eae3a90e2e57245c9fde24392a212d8028ba95`.
+
+- `whole-workspace-storage-hub-01`: 발견/시작/pass 31/31/31, exit 0, 96.579060초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-workspace-storage-hub-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_tool_advice tests.hub.test_shell_environment tests.hub.test_interaction_updates`. source `f41990b84c4fff396b5ea84f7395c51f7795c3df62aa3a2690aac3cf7e7dec46`, input `9a5238b8b26e5f98e4f3d2c3d1eae3a90e2e57245c9fde24392a212d8028ba95`.
+
+두 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이고 각각 전후 manifest가 같다.
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11을 유지한다. 공통 안전성 및 직접 소비자를
+포함한 Level 2이며 서로 다른 실행을 전체 회귀로 합산하지 않는다.
+
+정적 감사의 새 S4 1건은 정확한 int 검증 이후 Owner 버전 비교다. 최초 미등록 결과를 보존했다.
+새 검토 기록의 owner를 클래스명으로 쓴 탓에 보조 감사가 exit 1로 차단했다. 제품 변경 없이
+실제 발생 위치 WorkspaceRecord.__post_init__로 바로잡은 정적 재검증은 144건/exit 0이다.
+나머지 문서·R3 mutation·SDK·양 suite 환경은 각각 exit 0, 감사 자체 시험 16개도 pass/exit 0이다.
+검사나 안전성 Assertion을 완화하지 않았다. storage-static.log, storage-auxiliary.log,
+storage-static-fixed.log에 원래 실패와 수정 결과를 분리 보존한다.
+
+실제 전체 저장 구현/동적 진입 경로를 검토한 두 새 파일만 전수 판정했다. 현재 473개,
+미검토 390개, 미분류 29072개, incomplete 2개로
+전체 완료는 차단된 상태다. workspaces 실행 입력·Host binding·카탈로그/Hub 소비와 나머지
+전체 대상 전환을 계속한다. 이 저장 소단계는 고정 a12223c의 group13에 포함되지 않는다.
+다음 관련 통합 게이트에서 현재 소스 전체 LLM/Hub Level 3 후 Push/정확한 SHA CI를 확인한다.
