@@ -6,11 +6,12 @@ from copy import deepcopy
 import inspect
 import math
 
-from llm.components.tools.registry import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools.registry import Tool, ToolRegistry
 from llm.errors import CodedError
 from llm.core.contracts import Diagnostic
 from llm.services.runtime.tools import ToolExecutionError
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
 class MCPConnectionError(CodedError, RuntimeError):

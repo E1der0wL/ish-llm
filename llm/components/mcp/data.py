@@ -6,7 +6,8 @@ from copy import deepcopy
 from dataclasses import asdict
 
 from llm.components.base import validate_name
-from llm.components.tools.registry import Tool, ToolContract, ToolClassification, ToolRegistry
+from llm.core.tool_contracts import ToolContract, ToolClassification
+from llm.components.tools.registry import Tool, ToolRegistry
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import atomic_json, read_json, revision_token, async_method

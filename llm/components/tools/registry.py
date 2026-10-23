@@ -4,8 +4,7 @@ Explicitly registered async tools; no automatic shell or filesystem access."""
 
 import json
 import re
-from dataclasses import asdict, dataclass, field, fields, replace
-from enum import StrEnum
+from dataclasses import dataclass, field, replace
 from collections.abc import Awaitable, Callable
 from copy import deepcopy
 from inspect import getattr_static
@@ -13,68 +12,7 @@ from typing import Any, Optional
 
 from jsonschema import Draft202012Validator
 from llm.core.model_protocol import ToolDefinition, copy_model, json_copy
-
-
-@dataclass(frozen=True, slots=True)
-class ToolClassification:
-    """신뢰한 Application/구현체가 제공하는 분류. Tool 인자에서 추측하지 않는다."""
-
-    category: str = "tool.execute"
-    risk_scheme: Optional[str] = None
-    risk: Optional[int] = None
-
-    def __post_init__(self):
-        from llm.core.interactions import validate_risk
-        if not isinstance(self.category, str) or not self.category.strip():
-            raise ValueError("Tool classification category must be nonempty")
-        validate_risk(self.risk_scheme, self.risk)
-
-
-class ToolEffect(StrEnum):
-    READ_ONLY = "read_only"
-    EXTERNAL = "external"
-    UNKNOWN = "unknown"
-
-
-class ToolIsolation(StrEnum):
-    NONE = "none"
-    PROCESS = "process"
-    SANDBOX = "sandbox"
-
-
-@dataclass(frozen=True, slots=True)
-class ToolContract:
-    """신뢰한 개발자의 실행 선언. 모델용 함수 정의나 Project 레코드로 권한을 바꿀 수 없다."""
-    revision: str
-    effect: ToolEffect
-    isolation: ToolIsolation
-    approval_required: bool
-    operation_key_required: bool
-    retry_fields: tuple[str, ...]
-
-    def __post_init__(self):
-        if not isinstance(self.revision, str) or not self.revision:
-            raise ValueError("Tool contract revision is required")
-        object.__setattr__(self, "effect", ToolEffect(self.effect))
-        object.__setattr__(self, "isolation", ToolIsolation(self.isolation))
-        if type(self.approval_required) is not bool or type(self.operation_key_required) is not bool:
-            raise TypeError("Tool contract requirements must be boolean")
-        if (not isinstance(self.retry_fields, tuple) or any(not isinstance(k, str) or not k for k in self.retry_fields)
-                or len(set(self.retry_fields)) != len(self.retry_fields)):
-            raise ValueError("Tool retry_fields must be distinct parameter names")
-
-    def to_dict(self):
-        return {**asdict(self), "effect": self.effect.value, "isolation": self.isolation.value,
-                "retry_fields": list(self.retry_fields)}
-
-    @classmethod
-    def from_dict(cls, value):
-        """Read only a complete current execution declaration."""
-        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
-            raise ValueError("Tool contract requires exactly the current fields")
-        if not isinstance(value["retry_fields"], list):
-            raise TypeError("Stored Tool retry_fields must be an array")
-        return cls(**{**value, "retry_fields": tuple(value["retry_fields"])})
+from llm.core.tool_contracts import ToolClassification, ToolContract, ToolEffect, ToolIsolation
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,7 +70,7 @@ class ToolRegistry:
         contracts = {}
         for name, tool in self._tools.items():
             if tool.classification is not None:
-                contracts[name] = {"classification": asdict(tool.classification)}
+                contracts[name] = {"classification": tool.classification.to_dict()}
             contracts.setdefault(name, {}).update(tool.contract.to_dict())
             # 신뢰한 실행 adapter의 immutable binding도 승인/재개 fingerprint에 포함한다.
             binding = getattr(tool.handler, "execution_binding", None)

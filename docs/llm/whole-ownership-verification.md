@@ -1002,3 +1002,51 @@ incomplete 계약 2개이며 전체 완료는 계속 차단된다.
 이 소단계는 Level 2 통과다. 오류 관측 수정은 실행 중인 8136897 전체 게이트에 포함되지
 않았으므로 그 결과를 재사용해 최종 완료하지 않는다. 다음 관련 Tool 계약 정리와 묶은
 현재 통합 소스의 Level 3 및 정확한 Push SHA 원격 CI까지 계속 진행한다.
+
+
+## 설정 대상 전체 게이트 실패와 Tool 선언 Owner (2026-10-23)
+
+고정 SHA `8136897991d54d4d3d3a49e57e2eff0ced8f9343`의 `whole-owners-group6-l3`는
+LLM 2383/2383/2383 pass, exit 0, 1351.696128초였으나 Hub 586/586/584 pass,
+Failure 0 / Error 2 / Skip 0, exit 1, 1101.192820초로 **실패**했다.
+두 suite의 xfail/xpass·누락/추가/중복은 모두 0이다. 전체 성공이나 Push 근거로 사용하지 않았다.
+source `dae8fa0f05db4114c8c616882aa069fae17f1a6c0c139a8a45d05bc0a779825f`,
+input `cb409a603a74e347180266491d7bea27d90a0d8ef6861878bbe96595e3c822f1`는 전후 동일하다.
+실제 명령/전체 로그/개별 결과는 `/workspace/llm-clean-resume/b/whole-owners-group6-l3`에 보존한다.
+
+실패한 `test_tool_manager_import_list_open_delete_and_validation` 및
+`test_builtin_selection_persists_and_approval_resumes`는 모두
+`hub/backend/tools/management.py`의 ImplementationParameters import가 future import보다
+앞에 놓여 발생한 SyntaxError다. import 순서를 수정하고 전체 제품 Python 파일을 compile했다.
+집중 재검증에는 두 실제 Tool 관리·승인 경로를 모두 포함했다. 기존 Assertion을 제거하지 않았다.
+
+Tool 실행 선언을 [정규 Owner](tool-declaration-owner.md)로 옮겼다. 등록부·공개 package export·
+Application·Component·Provider·Hub의 22개 파일 import는 같은 타입과 기존 import scope를
+유지한다. runtime 승인 판단은 닫힌 ToolContract Reader의 속성을 사용한다. 2,160개 입력에서
+이전 constructor/Reader와 현재 출력·오류가 동일하다. 공개 export의 클래스 identity와 독립
+wire 기대값을 추가 검증했다. 원본 JSON·descriptor 지문·명시 선택·효과 순서는 보존한다.
+
+첫 집중 명령 `whole-tool-contract-01` 및 `whole-tool-contract-hub-01`은 존재하지 않는
+모듈 이름을 포함해 discovery exit 2로 거부됐다. 이를 pass로 집계하지 않았다. 실제 모듈을
+확인한 뒤 아래 명령을 실행했다. 각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 0이다.
+
+- `whole-tool-contract-02`: 발견/시작/pass 121/121/121, exit 0, 94.688318초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-contract-02/llm.json --modules tests.llm.test_tool_declarations tests.llm.test_tool_constraints tests.llm.test_tool_workers tests.llm.test_tool_packages tests.llm.test_agent_execution tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `c2e2a8b6c3a179cac53601d46ac4eb100dc19d4e17b99c2efdf800a97bf030d8`, input `13333852129dfff19282c21c8ea7c9c7d41801012fc066cd8f2256fe88cd2ce8`.
+
+- `whole-tool-contract-hub-02`: 발견/시작/pass 31/31/31, exit 0, 153.863280초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-tool-contract-hub-02/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_question_tools tests.hub.test_tool_advice tests.hub.test_tool_history tests.hub.test_resource_tools`.
+  source `c2e2a8b6c3a179cac53601d46ac4eb100dc19d4e17b99c2efdf800a97bf030d8`, input `13333852129dfff19282c21c8ea7c9c7d41801012fc066cd8f2256fe88cd2ce8`.
+
+LLM은 선언/제약·실제 worker/패키지·Agent 실행·승인 저장·사용량 삭제·효과·Checkpoint·RAG·
+수명 무결성, Hub는 실패했던 Tool 관리·질문 승인·실제 Component 도구·분류 조언·재개 영수증을
+검증했다. 같은 Python 3.12.14/Clang, 고정 host/의존성, 실제 Linux namespace와 X11 환경이다.
+변경된 정적 근거 28건을 개별 재검토하고 동일 ToolContract predicate 1건의 위치를 갱신했다.
+`tool-contract-auxiliary/results.json`의 실제 6개 명령(정적 S1–S7 145건, 문서, R3 Mutation,
+SDK, LLM/Hub 환경)은 모두 exit 0이다. 새 선언 Owner만 전수 검토했으며 주변 파일은 포함하지 않았다.
+현재 파일 453개, 미검토 408개, 미분류 30640개,
+incomplete 계약 2개로 전체 완료는 계속 차단된다.
+
+이 소단계는 Level 2다. 수정된 현재 통합 소스로 Level 3를 새로 실행하며, 앞선 실패와
+다른 실행을 합쳐 하나의 전체 pass로 표현하지 않는다. 성공한 정확한 Push SHA의 CI를 별도로
+확인하고 Tool worker/정책·나머지 제품 전수 작업을 이어간다.

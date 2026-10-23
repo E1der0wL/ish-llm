@@ -8,10 +8,11 @@ from llm.components.goals import GoalComponent
 from llm.components.goals.data import GoalStatus
 from llm.components.rag import RAGComponent
 from llm.components.workflows import WorkflowComponent
-from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
 from llm.services.runtime.tools import current_tool_call
 from ...components import component_spec
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 IDENTIFIER = {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}
 

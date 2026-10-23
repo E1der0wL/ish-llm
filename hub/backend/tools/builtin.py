@@ -7,13 +7,14 @@ from threading import Lock
 import sys
 import shutil
 
-from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
 from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from .test_workspaces import HubTestWorkspaces
 
 from ..interactions.questions import QuestionBroker
 from ...model import QuestionSource
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
 class HubBuiltinTools(BuiltinToolComponent):

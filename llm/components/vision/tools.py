@@ -2,9 +2,10 @@
 
 from llm.core.implementation_parameters import ImplementationParameters
 
-from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
 from .images import operation_schema
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
 def vision_tools(data, binding, backends):

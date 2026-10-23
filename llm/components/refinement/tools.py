@@ -1,8 +1,9 @@
 """분석 Run의 읽기/제안 Tool과 선택적 승인 대상 apply Tool을 연결한다."""
 
-from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
 from .component import TARGET, EVIDENCE, IDENTIFIER, PARENT, RefinementComponent
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
 def refinement_tools(data, *, apply=False, operations=()):

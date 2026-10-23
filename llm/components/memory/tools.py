@@ -2,9 +2,10 @@
 
 from llm.core.implementation_parameters import ImplementationParameters
 
-from llm.components.tools import Tool, ToolRegistry, ToolContract
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
 from llm.core.schema import metadata_schema
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
 READ_CONTRACT = ToolContract(

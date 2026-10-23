@@ -57,7 +57,8 @@ from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine, GraphNodeContext
 from llm.engines.graph.tool import ToolNode
 from llm.engines.graph.agent import AgentNode
-from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
 from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from llm.components.tools.component import ToolComponent
 from llm.core.agents import AgentDefinition

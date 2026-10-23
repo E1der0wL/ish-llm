@@ -7,14 +7,15 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence
 
-from llm.components.tools.registry import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools.registry import Tool, ToolRegistry
 from llm.core.schema import open_schema
 from llm.services.infrastructure.storage import drain_on_cancel
 from .files import FileTools
 from .processes import ProcessTools
 from .diagnostics import DiagnosticTools
 from .workspaces import TestWorkspaces
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
 def schema(properties, required=()):

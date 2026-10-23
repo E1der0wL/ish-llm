@@ -25,7 +25,7 @@ from llm.policies import ExecutionLimitError
 from llm.services.infrastructure.storage import atomic_json, drain_on_cancel, sync_directory
 from llm.services.runtime.processes import ProcessToolRunner, copy_env
 from llm.services.runtime.tools import current_tool_call
-from llm.components.tools.registry import ToolIsolation
+from llm.core.tool_contracts import ToolIsolation
 from .files import FileTools
 
 

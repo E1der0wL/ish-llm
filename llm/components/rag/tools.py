@@ -2,7 +2,8 @@
 
 from llm.core.configuration_views import ConfigurationView
 
-from llm.components.tools.registry import Tool, ToolRegistry, ToolContract, ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolContract, ToolEffect, ToolIsolation
+from llm.components.tools.registry import Tool, ToolRegistry
 from .search import retrieval_schema
 
 

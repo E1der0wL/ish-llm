@@ -2,7 +2,8 @@
 
 Project-owned Python packages and shared runtime Tool contracts."""
 
-from .registry import Tool, ToolContract, ToolClassification, ToolRegistry, ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolContract, ToolClassification, ToolEffect, ToolIsolation
+from .registry import Tool, ToolRegistry
 from .component import ToolComponent, ToolPaths
 from .data import ToolData
 from .decorator import tool

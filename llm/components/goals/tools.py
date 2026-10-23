@@ -1,7 +1,8 @@
 """목표 읽기와 승인 대상 변경 Tool. 실행 권한·영수증은 ToolExecutor가 소유한다."""
 
-from llm.components.tools import Tool, ToolContract, ToolRegistry
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 from .data import GoalStatus
 
 

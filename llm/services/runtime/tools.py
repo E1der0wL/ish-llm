@@ -1,5 +1,7 @@
 """Engine 간에 공유하는 Tool 호출기. 실행 인자·결과·실패를 Step 이벤트로 보고한다."""
 
+from llm.core.tool_contracts import ToolContract
+
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
 from llm.core.models import StepKind
@@ -54,7 +56,7 @@ class ToolCall:
     classification: Optional[dict] = None
 
     def __post_init__(self):
-        from llm.components.tools.registry import ToolContract
+        from llm.core.tool_contracts import ToolContract
         object.__setattr__(self, "contract", ToolContract.from_dict(self.contract).to_dict())
 
 
@@ -290,7 +292,7 @@ class ToolExecutionScope:
         from llm.components.tools.constraints import constrained_parameters
         constrained_parameters(tool.parameters, self.argument_constraints.get(tool.name, {}))
         contract = tool.contract
-        from llm.components.tools.registry import ToolContract, ToolIsolation
+        from llm.core.tool_contracts import ToolContract, ToolIsolation
         if not isinstance(contract, ToolContract):
             raise TypeError("Tool contract must be ToolContract")
         root = self
@@ -341,7 +343,7 @@ class ToolExecutionScope:
                     else:
                         if allowed is not True:
                             raise ExecutionLimitError(RunErrorCode.TOOL_DENIED, f"Tool authorization denied: {call.name}")
-                if decision is not True and call.contract["approval_required"]:
+                if decision is not True and ToolContract.from_dict(call.contract).approval_required:
                     raise ToolApprovalRequired()
         except ToolApprovalRequired:
             self.pending_approvals.append(identity)
@@ -365,7 +367,7 @@ class ToolExecutor:
         self.timeout_seconds, self.max_output_chars = timeout_seconds, max_output_chars
 
     async def _classify(self, tool, arguments, context, scope):
-        from llm.components.tools.registry import ToolClassification
+        from llm.core.tool_contracts import ToolClassification
         classification = tool.classification or ToolClassification()
         if scope is not None and scope.runtime.classify is not None:
             classification = scope.runtime.classify(ToolCall(tool.name, deepcopy(arguments), "",

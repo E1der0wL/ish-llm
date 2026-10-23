@@ -3179,5 +3179,171 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/tool_contracts.py",
+    "sha256": "0987faeb9d5a103ae1ae0def437e2b839acf9edc7243c5c76b7ed1e13f515124",
+    "reason": "Read all declarations, closed Reader/Writer, registration re-export, approval attribute consumption, provider and component declaration imports. Mandatory choices, detached array serialization, enum values, risk validation and public type identity are unchanged. The remaining Tool binding/worker/protocol contracts are not covered by this file review.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6e97c8bdbdf2d1f2eeb46f7bf7141858e4f1bfa6e6d2eb6e9ba63e30ec45a3d6",
+        "classification": "non_contract",
+        "owner": "ToolClassification",
+        "reason": "Frozen/slotted dataclass code generation; not execution authority or wire data."
+      },
+      {
+        "id": "fbe18f6daed0993219aab84cd9f534c0572c0cd6ebd417390d595b0887bc6a82",
+        "classification": "non_contract",
+        "owner": "ToolClassification",
+        "reason": "Frozen/slotted dataclass code generation; not execution authority or wire data."
+      },
+      {
+        "id": "a9e8b99c67ce0a1c93623b5e143d29ef2bd25adc489a0b81fdd7577080312132",
+        "classification": "declaration",
+        "owner": "ToolClassification",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "9e996c30cff0f323348ef0fbce1452a5474367489b2c4abf712b6c183b3da8f7",
+        "classification": "declaration",
+        "owner": "ToolClassification",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "7bb1a2a84cc6c8ccdeabfa82f079e736f91e215633fe4e2029781c68afefd556",
+        "classification": "declaration",
+        "owner": "ToolClassification",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "aa0cf88ed84325aff40b699a53508119a9c8b570d396cc43e2587d5869a619d2",
+        "classification": "declaration",
+        "owner": "ToolClassification",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "22c47d11a5abc1c0f993aaa813af3ec62c7da565a9d7c7b0061591ac14b75711",
+        "classification": "declaration",
+        "owner": "ToolEffect",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "e047e5a356e9f948ccefcbeacde22d21c75cd2a4fedb772ec119ef8b0275567f",
+        "classification": "declaration",
+        "owner": "ToolEffect",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "6ac42696950c24d1170a8a68007ced6aedfe95a2b6f2803e3b2f8d220d19ae08",
+        "classification": "declaration",
+        "owner": "ToolEffect",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "85f80597e4c9007c6f5be45b90a0f4833e978e8d666576aa69388e05270654ff",
+        "classification": "declaration",
+        "owner": "ToolIsolation",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "fdb8d535e6b03e7f8f2c9fad6cc500c5eda7e7f0ffbd1236989f7b24f83812e5",
+        "classification": "declaration",
+        "owner": "ToolIsolation",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "eb707dc07a30d19264ea7ad2aa97fc0e0ba98a0d7475a5a8ad862735a6cda3a5",
+        "classification": "declaration",
+        "owner": "ToolIsolation",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "1fa2d4d20102cec2da79dfa7b1f2adba52295111c61fa3fb61e7a01f8f189a6f",
+        "classification": "non_contract",
+        "owner": "ToolContract",
+        "reason": "Frozen/slotted dataclass code generation; not execution authority or wire data."
+      },
+      {
+        "id": "8e84b515b38ba3f050a42bfd8b241f3461dcd0b6c8d3455e959de193c1f05ec3",
+        "classification": "non_contract",
+        "owner": "ToolContract",
+        "reason": "Frozen/slotted dataclass code generation; not execution authority or wire data."
+      },
+      {
+        "id": "c959f47be973ef8f67c67213e137f1b8125bb0395a49f95f349fb9554c201d4d",
+        "classification": "declaration",
+        "owner": "ToolContract",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "3dcd922a996782eabd1a0dc4eb7ae41da540315aa40bdbc8b3a1b7a91ce8ad42",
+        "classification": "declaration",
+        "owner": "ToolContract",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "e1801323afa870146990e20c23cf255419a4b51252506dd53a43ca17087676b9",
+        "classification": "declaration",
+        "owner": "ToolContract",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "69cda2452802030284ebe9a8bdb9cfc6b985b784a65c2f4e197ed3b8f0b0560f",
+        "classification": "declaration",
+        "owner": "ToolContract",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "0210013bf4323ce58b6aaa2e97de99c9a977bd7669fd59ebb087e485ac65e3b5",
+        "classification": "declaration",
+        "owner": "ToolContract",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      },
+      {
+        "id": "af61c4c9eb536c0d3acca91571f5e160867af9d3a586effe7db13347b3f42202",
+        "classification": "declaration",
+        "owner": "ToolContract",
+        "reason": "Canonical execution effect/isolation/default classification/optional risk/diagnostic in the owning type declaration."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolContract / ToolClassification / ToolEffect / ToolIsolation",
+        "declaration": "llm/core/tool_contracts.py",
+        "consumers": [
+          "hub/backend/tools/advice.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/resources.py",
+          "llm/components/goals/tools.py",
+          "llm/components/mcp/data.py",
+          "llm/components/memory/tools.py",
+          "llm/components/rag/tools.py",
+          "llm/components/refinement/tools.py",
+          "llm/components/skills/tools.py",
+          "llm/components/tools/__init__.py",
+          "llm/components/tools/builtin/catalog.py",
+          "llm/components/tools/builtin/workspaces.py",
+          "llm/components/tools/decorator.py",
+          "llm/components/tools/function.py",
+          "llm/components/tools/process.py",
+          "llm/components/tools/registry.py",
+          "llm/components/vision/tools.py",
+          "llm/engines/agent_tools.py",
+          "llm/llm.py",
+          "llm/providers/mcp.py",
+          "llm/services/runtime/operations.py",
+          "llm/services/runtime/processes.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_declarations.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_operation_integrity.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

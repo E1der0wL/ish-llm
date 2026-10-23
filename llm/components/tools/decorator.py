@@ -1,7 +1,7 @@
 """Python main 함수의 실행 선언. 함수를 감싸거나 이름/스키마를 복제하지 않는다."""
 
 from types import MappingProxyType
-from .registry import ToolContract
+from llm.core.tool_contracts import ToolContract
 
 
 _UNSET = object()

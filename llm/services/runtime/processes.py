@@ -14,7 +14,7 @@ from llm._platform import require_linux
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.policies import ExecutionLimitError
-from llm.components.tools.registry import ToolIsolation
+from llm.core.tool_contracts import ToolIsolation
 
 if TYPE_CHECKING:
     from llm.services.runtime.tools import ToolCall

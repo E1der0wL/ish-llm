@@ -91,7 +91,7 @@ class OperationRecord:
                 raise ValueError(f"Operation requires {name}")
         if self.idempotency_key != operation_token(self.project_id, self.session_id, self.key):
             raise ValueError("Operation identity mismatch")
-        from llm.components.tools.registry import ToolContract
+        from llm.core.tool_contracts import ToolContract
         ToolContract.from_dict(self.contract)
         if not isinstance(self.arguments, dict) or self.request_digest != _request_digest(self.name, self.arguments, self.contract):
             raise ValueError("Operation request digest mismatch")

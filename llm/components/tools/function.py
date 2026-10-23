@@ -10,7 +10,8 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 from llm.core.json_data import JsonObject
 from llm.core.model_protocol import ToolDefinition
-from .registry import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from .registry import Tool, ToolRegistry
 
 
 def _supported(annotation):

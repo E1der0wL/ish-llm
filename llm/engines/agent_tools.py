@@ -1,9 +1,10 @@
 """저장 Agent만 선택하는 위임 Tool. 실행/체크포인트 처리는 공통 Engine runtime에 위임한다."""
 
-from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
 from llm.core.schema import object_schema, field, open_schema
 from llm.engines.agents import AgentExecution, AgentDelegation
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
 def agent_tools(engines):

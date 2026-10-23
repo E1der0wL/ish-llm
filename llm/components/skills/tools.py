@@ -2,9 +2,10 @@
 
 from copy import deepcopy
 
-from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.core.tool_contracts import ToolContract
+from llm.components.tools import Tool, ToolRegistry
 from llm.services.infrastructure.storage import revision_token
-from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.tool_contracts import ToolEffect, ToolIsolation
 from .views import (SkillListRequest, SkillReadRequest, SkillResourceRequest,
                     SkillPage, SkillReadView, SkillFileView)
 from .records import SkillRecord as Record, SkillSnapshot

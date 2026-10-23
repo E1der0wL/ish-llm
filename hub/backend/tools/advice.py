@@ -4,7 +4,8 @@ from copy import deepcopy
 from dataclasses import replace
 from typing import Any
 
-from llm.components.tools import Tool, ToolClassification, ToolRegistry
+from llm.core.tool_contracts import ToolClassification
+from llm.components.tools import Tool, ToolRegistry
 from llm.components.tools.builtin import BuiltinTools
 
 FIELD = "_hub_risk"

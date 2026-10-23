@@ -22,6 +22,20 @@ DECLARATION = {
 
 
 class ToolDeclarationTests(unittest.TestCase):
+    def test_public_exports_share_one_contract_and_wire_identity(self):
+        from llm.core import tool_contracts as owner
+        from llm.components.tools import registry
+        from llm.components import tools
+        for name in ("ToolClassification", "ToolContract", "ToolEffect", "ToolIsolation"):
+            self.assertIs(getattr(registry, name), getattr(owner, name))
+            self.assertIs(getattr(tools, name), getattr(owner, name))
+        stored = {"revision": "explicit-test", "effect": "external", "isolation": "process",
+                  "approval_required": True, "operation_key_required": True, "retry_fields": []}
+        self.assertEqual(owner.ToolContract(**DECLARATION).to_dict(), stored)
+        self.assertEqual(owner.ToolContract.from_dict(stored).to_dict(), stored)
+        self.assertEqual(owner.ToolClassification().to_dict(),
+                         {"category": "tool.execute", "risk_scheme": None, "risk": None})
+
     def test_every_execution_choice_is_required_at_declaration(self):
         for field in DECLARATION:
             candidate = {key: value for key, value in DECLARATION.items() if key != field}
