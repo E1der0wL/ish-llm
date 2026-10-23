@@ -9,10 +9,10 @@ from llm.core.models import RunErrorCode
 import asyncio
 from copy import deepcopy
 from pathlib import Path
-import shutil
 from typing import Mapping, Sequence
 
 from llm._platform import require_linux
+from llm.services.infrastructure.linux_sandbox import LinuxSandbox
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.policies import ExecutionLimitError
 from llm.services.runtime.tools import current_tool_call
@@ -145,7 +145,6 @@ class TestWorkspaces:
 class BuiltinToolRunner:
     """테스트 공간 실행만 sandbox handler로 전달하고 다른 Tool은 기존 경로로 실행한다."""
 
-    SANDBOX_PROGRAM = "bwrap"
     SANDBOX_REQUIRED = "Linux Bubblewrap is required"
     ISOLATION_REQUIRED = "Runner does not satisfy Tool isolation requirements"
     TRUSTED_HANDLER_REQUIRED = "Sandbox Tool requires a trusted TestWorkspaces handler"
@@ -156,7 +155,7 @@ class BuiltinToolRunner:
 
     def validate_tool(self, name, isolation):
         if name == WorkspaceExecuteArguments.NAME and isolation == ToolIsolation.SANDBOX:
-            if shutil.which(self.SANDBOX_PROGRAM) is None:
+            if LinuxSandbox.locate() is None:
                 raise ExecutionLimitError(RunErrorCode.SANDBOX_UNAVAILABLE, self.SANDBOX_REQUIRED)
             return
         if self.fallback is None or not hasattr(self.fallback, BuiltinToolRunner.validate_tool.__name__):

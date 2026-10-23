@@ -93,6 +93,22 @@ max_processes 인자는 제거했다. 합산 제한이 필요하면 별도 cgrou
 원격 요청은 프로세스를 죽여도 취소/롤백되지 않는다. 기존 LiteLLM 스트림 스레드는
 이 Tool runner의 종료 대상이 아니다.
 
+선언과 책임은 다음과 같이 연결한다. `LinuxSandbox`가 Bubblewrap 프로그램/인자·mount 보호
+규칙·대상 환경 배치를 소유하고 `ProcessToolRunner`는 기존 설정 검증·입장·spawn·출력·회수
+수명을 담당한다. 추출된 코드도 원래 runtime/processes.py의 신뢰 경로를 전달받아 보호한다.
+소스 파일 이동을 이유로 보호 대상을 바꾸지 않는다. Builtin runner와 Hub의 설치 여부 조회도
+동일한 프로그램 선언을 사용하며 호출 시점과 실패 시 동작은 그대로다.
+
+`ProcessLaunch`가 부모에서 시작 게이트로 보내는 JSON 필드와 UTF-8 직렬화를 소유한다.
+게이트의 빈 환경은 `ProcessGate.environment()`가 사본으로 제공하고 실제 명령의 선택 환경과
+분리한다. 부모→게이트의 Unicode 표현과 게이트→Tool의 JSON 표현은 기존 설정을 각각 보존한다.
+일반 명령 결과의 decoding·성공 종료 코드는 `ProcessResult`를 참조한다. None payload는
+`ProcessLaunch.NO_PAYLOAD`로 표현하며 명령 stdin EOF의 기존 의미를 유지한다.
+
+선언 이동은 격리 인자·FD 전달·프로세스 생성/종료 순서·메모리/출력/동시 실행 한도나 기본값을
+변경하지 않는다. 기존 인자/예외 동등성, 실제 namespace/loader 환경·중단/출력 폭주·부모 사망과
+원래 안전성 Assertion을 검증하고 공유 경계의 현재 통합 Level 3에 포함한다.
+
 ## 영속 작업 키
 
 빈 공간/선택 파일 사본에서 일반 argv 명령을 실행하려면

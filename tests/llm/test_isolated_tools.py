@@ -269,7 +269,7 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_sandbox_never_falls_back_when_unavailable(self):
         runner = ProcessToolRunner({"worker": [sys.executable, "-c", "print('unsafe')"]}, cwd=self.root, isolation="sandbox", allow_network=False)
-        with patch("llm.services.runtime.processes.shutil.which", return_value=None):
+        with patch("llm.services.infrastructure.linux_sandbox.shutil.which", return_value=None):
             with self.assertRaises(ExecutionLimitError) as raised:
                 await runner(None, self.call)
         self.assertEqual(raised.exception.code, "sandbox_unavailable")
@@ -279,7 +279,7 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
         for enabled in (False, True):
             runner = ProcessToolRunner({"worker": [sys.executable, "-c", "print(1)"]},
                 cwd=self.root, allow_network=enabled, isolation="sandbox")
-            with patch("llm.services.runtime.processes.shutil.which", return_value="/usr/bin/bwrap"):
+            with patch("llm.services.infrastructure.linux_sandbox.shutil.which", return_value="/usr/bin/bwrap"):
                 command = runner._command("worker")
             self.assertEqual("--share-net" in command, enabled)
 

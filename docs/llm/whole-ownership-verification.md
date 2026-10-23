@@ -1911,3 +1911,50 @@ SDK·양 suite 환경 각각 exit 0, 감사 자체 16개 pass/exit 0이다. 전�
 이 결과는 Level 2다. 저장 f43467e와 등록/명령 변경을 묶은 현재 통합 Level 3 gate14를 수행하고
 통과한 정확한 SHA만 Push/원격 CI로 확인한다. 공유 격리 실행기의 나머지 선언과 Hub/다른 도메인의
 미전환 경로를 계속 진행한다. 기존 전체 대상과 최종 완료 조건은 축소하지 않는다.
+
+
+## 공유 격리 실행기의 선언·명령·전송 Owner (2026-10-23)
+
+[격리 계약](process-isolation.md)에 따라 LinuxSandbox가 프로그램 탐색·argv·mount 보호·대상
+환경 배치를 소유하고 ProcessToolRunner는 입장·spawn·출력·회수 수명을 유지한다. 추출 후에도
+원래 runtime/processes.py의 신뢰 경로를 전달하여 보호한다. Builtin runner/Hub 설치 조회가
+동일한 선언을 사용한다. ProcessLaunch.encode는 기존 부모 전송 바이트를, ProcessGate.environment는
+분리된 빈 시작 환경을 제공한다. 일반 출력 decoding과 성공 종료 코드는 ProcessResult를 참조한다.
+
+처음 대규모 문자열 치환과 실제 시험을 묶은 명령은 자동 승인 검토에서 거절됐고 실행되지 않았다.
+이유는 격리·환경·FD·프로세스 종료 변경을 한 명령에 포함한 범위였다. 이를 우회 실행하지 않고
+실행 없는 100개 기존/새 격리 구성의 argv/예외 비교와 전송 3개 byte 비교를 먼저 수행한 뒤,
+명시적인 작은 패치·동등성 증거·시험 명령으로 분리했다. 해당 시험 실행은 이후 승인되어 완료됐다.
+권한·격리 기준을 낮추거나 보호 기능을 비활성화하지 않았다.
+
+작은 경계 패치 직후 `python -m unittest tests.llm.test_isolated_tools tests.llm.test_test_workspaces tests.llm.test_builtin_catalog_values`는
+45개 pass/exit 0(26.145초)다. 최종 소스에서 sandbox 이외 8개 실행기 메서드는 선언/같은 wire API를
+확장하면 원래 AST와 동일했다. `_sandbox`의 100개 경로·mount·환경·network 구성도 기존 argv 또는
+예외 종류/문구와 같았다. FD/새 세션/reader 취소/drain/kill/wait 순서와 기존 한도·기본값은 같다.
+
+새 독립 시험은 실제 실행 환경 배치 인자, 보호 경로 거절, Unicode launch JSON, nonfinite 거절,
+입력/빈 게이트 환경 사본을 검증한다. 실제 환경 누출·namespace·효과·중단·부모 사망은 기존 시험을
+그대로 사용한다. `python -m unittest tests.llm.test_sandbox_contracts tests.llm.test_tool_worker_protocol`도
+7개 pass/exit 0(0.041초)이며 wire.log에 보존한다. 기존 시험 변경은 새 shutil.which Owner로 mock 위치를 옮긴
+세 문자열뿐이고 되돌려 비교하면 전체 시험 AST가 동일하다. worker main도 encode/environment
+API와 선언 추가를 제외한 전체 AST가 동일하다.
+
+- `whole-sandbox-runner-01`: 발견/시작/pass 112/112/112, exit 0, 56.978163초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-sandbox-runner-01/llm.json --modules tests.llm.test_sandbox_contracts tests.llm.test_isolated_tools tests.llm.test_test_workspaces tests.llm.test_builtin_catalog_values tests.llm.test_tool_worker_protocol tests.llm.test_execution_contexts tests.llm.test_linux_platform tests.llm.test_process_group_cleanup tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `75f9b5bef74fe31da7e55961782577373a8b330c847762124c3700c4927405e3`, input `2e5e53e33f7052701ee36c79c270ddb2dc072168eb0b9c704d6320908053ed38`.
+
+- `whole-sandbox-runner-hub-01`: 발견/시작/pass 31/31/31, exit 0, 98.837658초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-sandbox-runner-hub-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_tool_advice tests.hub.test_shell_environment tests.hub.test_interaction_updates`. source `75f9b5bef74fe31da7e55961782577373a8b330c847762124c3700c4927405e3`, input `2e5e53e33f7052701ee36c79c270ddb2dc072168eb0b9c704d6320908053ed38`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이고 전후 manifest가 같다.
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11은 유지했다. 실제 격리·환경·중단·종료와
+승인/예산/효과/Checkpoint/RAG/삭제 및 Hub 소비자를 포함한 Level 2다. 합산 전체 실행으로
+표현하지 않으며 공유 실행 경계 변경은 다음 현재 통합 Level 3의 필수 대상이다.
+
+S1–S7 발생 추가/삭제는 없으며 145건을 유지한다. 기존 109개 검토가 참조하던 세 의존 파일만
+위 worker/fixture/Hub 동등성 근거로 갱신했다. 각 기존 계약 판정은 재사용하며 주변 미전환을
+완료로 승격하지 않는다. 전수 검토 3개를 해당 변경에 맞춰 갱신하고 실제 전체 구현과 소비자를
+확인한 두 파일을 추가했다. 정적·문서·R3·SDK·양 suite 환경 각각 exit 0, 감사 자체 16개 pass/exit 0이다.
+현재 478개 파일, 미검토 385개, 미분류 28696개,
+incomplete 2개로 전체 완료는 계속 차단된다.
+
+이 변경은 고정 1aca201의 gate14에 포함되지 않는다. 그 실행을 수정하지 않고 정확한 SHA 결과를
+별도로 확인한다. 후속 관련 소단계와 현재 통합 gate15를 수행하고 통과 후 작업 브랜치에 Push한다.
+나머지 저장소 전체 대상·동적 소비 경로와 최종 정확한 SHA CI까지 계속 진행한다.

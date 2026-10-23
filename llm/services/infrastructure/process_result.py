@@ -8,6 +8,7 @@ from llm.core.contracts import JsonValue
 class ProcessResult(JsonValue):
     ENCODING = "utf-8"
     ERRORS = "replace"
+    SUCCESS = 0
 
     returncode: int
     stdout: str
@@ -15,5 +16,8 @@ class ProcessResult(JsonValue):
 
     @classmethod
     def decoded(cls, code, stdout, stderr):
-        return cls(code, stdout.decode(cls.ENCODING, errors=cls.ERRORS),
-                   stderr.decode(cls.ENCODING, errors=cls.ERRORS))
+        return cls(code, cls.text(stdout), cls.text(stderr))
+
+    @classmethod
+    def text(cls, value):
+        return value.decode(cls.ENCODING, errors=cls.ERRORS)

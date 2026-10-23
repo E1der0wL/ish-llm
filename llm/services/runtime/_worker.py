@@ -18,6 +18,7 @@ class ProcessLaunch:
 
     NO_PAYLOAD = None
     UNLIMITED_MEMORY = None
+    ENSURE_ASCII = False
 
     argv: list[str]
     cwd: str
@@ -31,6 +32,10 @@ class ProcessLaunch:
 
     def to_dict(self):
         return asdict(self)
+
+    def encode(self):
+        return json.dumps(self.to_dict(), ensure_ascii=self.ENSURE_ASCII,
+            allow_nan=ProcessGate.ALLOW_NON_FINITE).encode(ProcessGate.JSON_ENCODING)
 
 
 class ProcessGate:
@@ -47,6 +52,11 @@ class ProcessGate:
     JSON_ENCODING = "utf-8"
     ENSURE_ASCII = True
     ALLOW_NON_FINITE = False
+    ENVIRONMENT = {}
+
+    @classmethod
+    def environment(cls):
+        return dict(cls.ENVIRONMENT)
 
     @classmethod
     def command(cls, python, parent_pid):

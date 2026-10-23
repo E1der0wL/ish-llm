@@ -3649,123 +3649,129 @@
   },
   {
     "path": "llm/services/runtime/_worker.py",
-    "sha256": "765588a72c2699b72e91c82d0de0c11020ac6606937fc19959743398c25d88b1",
-    "reason": "Read the complete stdlib-only entrypoint and both actual launch paths. The parent retains policy validation; one DTO owns the five mandatory transport fields and detached JSON conversion. Command flags, parent-death prctl values, PID argument, exit classification and JSON encoding are declared before implementation. No user command starts before death-signal/PID checks and stdin receipt.",
+    "sha256": "a315d78a78fbbc21feee526b5105cd91de5cb2a4d8c0956a74fffb2545384f67",
+    "reason": "Read the complete stdlib-only entrypoint and both actual launch paths. The parent retains policy validation; one DTO owns the five mandatory transport fields and detached JSON conversion. Command flags, parent-death prctl values, PID argument, exit classification and JSON encoding are declared before implementation. No user command starts before death-signal/PID checks and stdin receipt. The newly added encode method owns the same parent transport JSON settings and environment returns a detached empty startup map. Removing these two API additions and their declarations leaves the complete prior AST identical. Existing worker execution, parent-death signal, memory limits and child Tool encoding remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "fe193772257016c73fa9987501143e90bd437071065e8b37e9f33f5a0404dfd9",
         "classification": "non_contract",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "d9604c3c58ec29761c2812e6a8b7ac5ad42a9ba2ed4affb0adccfcdab4a0b85b",
         "classification": "non_contract",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "eebcc73d6c7990461ad3ee5595ce24c049ef94905e76e3cfe046687ca9683167",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "2e985de82904c6aca63df4f25574d022939ad3a0e248fb351b8bcc551aad3071",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "e05e99a9e64620ca1383f5c826fe38f53c2fe5f161e15328eea0e96914a57877",
+        "id": "a28f2593d2e3b64d198988c56cbb9db32f2a1f192e9eda2c212cef69369546b1",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "46ea0d2df07f561f295fddff2484b9bc6b24999c1f8a4a59adb67f015632fcb1",
+        "id": "36a2097435ef9c6e13d3a3e74dd731dcf3a6e59f07e5c2ced0b9b66312a0a7d4",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "ef54e2c4bd21a22d70947cd7ef8aa6d9e3d9f7b1b3db01902cc786128d000505",
+        "id": "66e58c001d26267fc28f0c7ff992055e0809baa081779d00aa0e34b9bd587944",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "b8b01012512ca1121569150be53bafe26a90291a109f636afce9b259c2c1cf71",
+        "id": "c1b465d19e97faa2cf0fee0595794f76b9404ad461b3ddf1f0b6e8eadddf4a6d",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "470bf9d1f24293385499860ae6e7b2dd60e6e7f7b7487dfbf169ca097120b95c",
+        "id": "f5673a0b3541c267606617e00c4ad95b917a2f3b0619f372a2abde2b9969616a",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "39bb410aba9f87d958dcda4e99f732c55bf9ba601f63eac9a6bac885776f31fb",
+        "id": "167b96895e658e7d9beef08abc594dc81fc570f568548961eeee824a2fda6b92",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "8ef02f90896d8cf6402fcd31e4ded06f79d9a0e0af8bcc656d1db93fd12c32a8",
+        "id": "9ab621eaf4a3a03673aec863921fa69be8eede117046c82e50649f8a6d12a6a5",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "afdf131788c4429b4b9e5e5c57fcb195b3ba21978714cbce59672b6a3daa746a",
+        "id": "b06aa4a1db9cfe82436afd30cb0109a9410111f9358330b670842c0e602a432e",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "258eb6c1a970ec24584a0a099adbf0db79919f77b11eb42af3397fcff834f733",
+        "id": "4b8fa3cd6b389b58ca5b835f73ac86b673a2fb1989b380a549dbf12612b12c9b",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "0b75e29550d5aaf1bc1373515639e28d1f921930038f12cf49f07027a49ebb42",
+        "id": "c86b627c16cd844dee9c1561f2715e267521e9a8af7547622ac21484191f7a32",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "04e101679bf7e42ba9d93a3a431c374e3583eaac5747802a6b86a4946099dc84",
+        "id": "6ec90b989f36bc45cdc30fe6bcf13fb46cce8d0f83e0885219f31a4e4f1ebec2",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "59951a71920b6a8a7aa79f2af9210f2acd41220da5e886ef99e3bab3b3ac355d",
+        "id": "c6b85784d33870486cd7a73eafafa0059049e30dcddda15892e86059f17118b6",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "dfe819fb6a7f749c93fe40a0e839af33ce23bb42a83ad9e000fad76d7b752606",
+        "id": "7a0e44c234acae84c1d594acc2ef117798ffff6b6121d88b08be994035bbe558",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "2ee22854137e5f3ec3129f237c99861dcf92a55a0e12fc4fe3027cd43b612d86",
+        "id": "1427e2c35c6c7a3b04d04e4027c8aef1fa05d9fc71640c182f8492588db310c0",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "d95cb703d10db93dba11d1db28e8673b784cf6452f17abad4a1d791b91b9a45f",
+        "id": "7819193d1e22ad6d16830987a5c24ce21746025ca144e50ca61edc31253958fa",
         "classification": "declaration",
         "owner": "ProcessLaunch / ProcessGate",
-        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "adbe61a48e58426c273e545e587b42a8d7fcdb2977d581b304d6bf79c96e79e5",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       }
     ],
     "contracts": [
@@ -3779,7 +3785,8 @@
         "tests": [
           "tests/llm/test_tool_worker_protocol.py",
           "tests/llm/test_tool_workers.py",
-          "tests/llm/test_isolated_tools.py"
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_sandbox_contracts.py"
         ],
         "complete": true
       }
@@ -11172,153 +11179,147 @@
   },
   {
     "path": "llm/components/tools/builtin/workspaces.py",
-    "sha256": "8ef642c027ba5c22060a45d029efa9226588cdc29f00223835f3616aa2f15eee",
-    "reason": "Reviewed all Tool entry paths, Host initialization, ownership, active-task lifecycle and fallback dispatch. Inputs are typed selected projections; paths/records/leases delegate to Repository; Host values and execution result use their Owners. Env omission/explicit replacement, trusted handler validation, required sandbox and no fallback remain. Public binding is a detached wire projection; internal binding/runtime use attributes. Actual namespace, lock inheritance, parent death, cleanup, concurrent environments and approval/resume tests cover the boundary.",
+    "sha256": "6c2cb0ecfbb4e94afdc5be8ba8a380dc084b51c5bb233bfb544ac29e0348c622",
+    "reason": "Reviewed all Tool entry paths, Host initialization, ownership, active-task lifecycle and fallback dispatch. Inputs are typed selected projections; paths/records/leases delegate to Repository; Host values and execution result use their Owners. Env omission/explicit replacement, trusted handler validation, required sandbox and no fallback remain. Public binding is a detached wire projection; internal binding/runtime use attributes. Actual namespace, lock inheritance, parent death, cleanup, concurrent environments and approval/resume tests cover the boundary. Sandbox executable lookup now delegates to the sole LinuxSandbox owner. The old duplicated program declaration/import is removed; dispatch, required sandbox error, handler identity, stored ownership, binding and cleanup are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "80b9dec11edc8afb612a74915095f4b358c268fceafe6a0382dd86bb6604deb8",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "803b3bf9cf576313bd48e6453c71ed09b8cf0d17013b5af78fefa7696fdd5303",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "35841d1b024807b062298787533b8feda8bd564d893b79f9cc7e6abb10a638a0",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "232ba534eb5600cf0952ada1c0e3e6caa4e990fee96ffde796defce8f4c61d94",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "3ac105caec144e157e8fe49cc83e2183e188186d1291f3ce6c9d2710f5f36307",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "c2c8f630c1a23d74b800efd9540d01f24f8f26a6cdc2447deef7690428d424b7",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "7aede1ee9e4a32b534ea5489304cce37fbf179629dddff12d996cab1620a2f1f",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "2c0033847ad73a2b03dfaf95142a41d8cca0cc505e6ebd0563057662b2795e74",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "03e54e7dd41fdb3214e4f41a92df93daf9903f94b6a94ec15489da45b019d72b",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "8d586cf9ff5b10b5db0c0c6755a2c0d442fb4a3517ac94f3db4d2a32acf070ce",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "06f725a9e7a57606f1fda0a4403bc312ec5e745df622fe05d8448c6096a74472",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "fca5d8c38a88958bc447c88d5947a95a90a960e952762fc4a8d374343c8bdddf",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "a85f221a904604c566f280c5fa76204e9daa81e19ba559ba62f4eaabbc6d8eed",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "51c6706dac978922ffe16411e53a84b88c4da2ab77bc8e8902f771e0e24faa9f",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "2de97227b3948ff3d562f6913b40b93befd67ee8c4fd17f05907392d2ab6189b",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
-        "id": "2ec232717aa907b62d7a7523ec65d31d2b92d814003366ccb0033a6ea62a36c0",
+        "id": "550c3d2bfcf30c101279aa39213dca45546695281f85bcda45a425e16ab5a051",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "0606a6e40493c6b46a822c3af14ca188f88077faf090e08d195cead4e4a150f5",
+        "id": "fb833056167babb1c8c189619c3c8adc104e8adb9231bd86bf1d1374cfa75a26",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "528d1443b34cd35c8f9c7f89412a42a910d83af05db213b19985c65d470d187a",
+        "id": "bd8043d0e0d12b7fc3ec739969b59391fdbb3178456d2723e35cf4bc350ef6c9",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "4d8b5222cf214add083d3c836ce2da6ad2b40aa92faf2f660c11048dd9d532f8",
+        "id": "819850093c95e7a02ba33f074389bd61253a6008f1fd82bf815d24824acafc78",
         "classification": "declaration",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
-        "id": "70d89b9b3df8df022f08305c0ca012d9968cca16699c79b9f43227d6abd63841",
-        "classification": "declaration",
-        "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
-      },
-      {
-        "id": "4fe3063524587fa85a445d337e3439cade9dfc431be8b54f54632717ec0f244e",
+        "id": "4e75fd70c28cfc965ef7843a8ac1a1dbabfb02671958bfcceb7ba464dc39e0b5",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
-        "id": "26bca36ad025bf56aec60c6f9013280eadb9b2005313fa6113d723771ef82ea3",
+        "id": "5e40c4abd770a865dac496da43b4d10b9893ea30968fd22623ec5ede692c566f",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
-        "id": "eaac9d864b53140f7f58dda3eeb9b52e44d84b12320fde438ac862288c73c44f",
+        "id": "a6299bb85f190f798d8af23d461ff803c57c7fbce17559fc2e403f013662d56e",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
-        "id": "53744da3f8eec21ac3f6189c6c35b611c140f5743f4c62eade0d84e8c97f6dcf",
+        "id": "a5138cc4963e08fe1e42fe07df171006a0fd1a8184becf8621a34c63934dc92a",
         "classification": "non_contract",
         "owner": "TestWorkspaces and BuiltinToolRunner",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       }
     ],
     "contracts": [
@@ -11336,7 +11337,8 @@
           "tests/llm/test_test_workspaces.py",
           "tests/llm/test_isolated_tools.py",
           "tests/hub/test_shell_environment.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_sandbox_contracts.py"
         ],
         "complete": true
       }
@@ -11774,33 +11776,39 @@
   },
   {
     "path": "llm/services/infrastructure/process_result.py",
-    "sha256": "df5e57fc7768d2f9c0d9eaccfa07585adb71c4affedd4a43239e63f8f9ec80a8",
-    "reason": "Reviewed complete command-result fields, UTF-8 replacement decoding and serialization. This is general command output; arbitrary JSON Tool results remain separate. Independent negative returncode/invalid-byte expectations and real stdout/stderr/exit tests pass.",
+    "sha256": "0da35cacf7c2d601b38f238aa0bdccdf7138d6495f19a1a26353dcb950f53d29",
+    "reason": "Reviewed complete command-result fields, UTF-8 replacement decoding and serialization. This is general command output; arbitrary JSON Tool results remain separate. Independent negative returncode/invalid-byte expectations and real stdout/stderr/exit tests pass. Decoded stream text uses the same shared text method; UTF-8/replacement values and output wire are unchanged. Success return code is now explicitly declared and consumed by registered Tool execution. Independent negative exit/invalid-byte and real Tool process failures remain covered.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "ec03f85e1ad773d5f849aba8ddfcbe4343dd19406e7a740a650e73b9d3096637",
         "classification": "non_contract",
         "owner": "ProcessResult",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "370510c21f29aada3e73afde9d0b4145a4bf262b2c2d73ea57df458b8baa4ea7",
         "classification": "non_contract",
         "owner": "ProcessResult",
-        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
       },
       {
         "id": "dd638c6955643fc730a5972c28211dc54da0147c7b63781afdd8330276befa9a",
         "classification": "declaration",
         "owner": "ProcessResult",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       },
       {
         "id": "f5e44c5eb0c2dc77e8dea8418e4fb3cae05c77001cc8628178763734a6ca07c3",
         "classification": "declaration",
         "owner": "ProcessResult",
-        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "c3b4e250724044a14d4a8083c8d9d467f5b34055f679edf97b341da6d1665752",
+        "classification": "declaration",
+        "owner": "ProcessResult",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
       }
     ],
     "contracts": [
@@ -11817,7 +11825,8 @@
           "tests/llm/test_test_workspaces.py",
           "tests/llm/test_isolated_tools.py",
           "tests/hub/test_shell_environment.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_sandbox_contracts.py"
         ],
         "complete": true
       }
@@ -11880,6 +11889,554 @@
           "tests/llm/test_isolated_tools.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/linux_sandbox.py",
+    "sha256": "96ccc4c8c9baf79632708a21676b93fca0f5cd098ab5e3fa02c8042bd79974f1",
+    "reason": "Reviewed the complete Bubblewrap command construction, lookup, root/special-filesystem protection, explicit network sharing, read-only mounts and target environment placement. The original runtime runner path remains protected even after extraction. One hundred old/new cases preserve exact argv or exception class/message, and actual namespaces/host-file/network/loader/parent-death tests execute. This Owner creates no approval or implicit fallback.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "070f554aba05d99a48b3083c064a83ee5a153c3cac7027a00b0e8467ae017980",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "582eeff7addcbd550b09edbd575995600652480ecfca7c79fdb36e5fbe43b072",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "bc42c769eee873e5466478a9fdc8cb7c60c3fc80511ecaf576e14271e1366181",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "2890e3fcd5f3a6b83c8ccd5193b27c24a591d6ed890d174b39f220706222d586",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "80c81b3023ff8e54e3812b11776d8c43285343b8f68a84e1ef942438fcdeea2f",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "4c31fcd11432b0878035ceb4dfb52c29b6b514270971cc7d7a34c03f50b1ef59",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "e07347e4e6881b5d97058d43b254714baecc4adf0eba0a11d4ba9c7396acc0c5",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "ba70224a219b788bb943cc99a62adb9e2c2b33c17d741baf00209e259419586f",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "e395b96f21fdebf01a4a5d360b00aa118b9947590bccb0220aff160bcc841f0e",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "0fb5f8624d9fec618876bc831458815f4807a4ba06442a13413099d2f42db6bd",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "0931dd7429c63ec95f40adf1dd687bcd28947dc3a69848894fd31b8035293bca",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "c2c68e42bac34724bbbb081cd1efcde4546000aca8271a11593dbd7c9a116e20",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "049bdbe750ddc02adccd082bc3be8261cac0a3fc198b1ba54f5176839ceaaef2",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "b168ad3e9619bf34716c77957ae750c825c468b4f609bf016c97bb6f1dcd7968",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "d765b3332a1b8a9fead91a6b6cea37a97585842cec7c4535f2ffcfc166eb41ac",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "b62704804e428e2e508878aaa8b8fb003a8808371a3bfa9aa049332bc4660b6b",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "f029e24b6657511a4de8df667a42ec500dd274eb80b34ec31a5b87ef8d0229ba",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "0a8b34b82fb0c9eaf6456e6cd2c2a3be2ac8db795c00f584dba2e87e37e0152d",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "94694e51cb0ce0a42f3ea93f60c12ff5f73840c0e3bc04669b3940607c617704",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "3d436cec6462f91031529a6429d9b0a8ca2acefcca3ceb5032825c04a7fda5a7",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "e031d3c35d37717faa9d795825b0a88d0503ad6d20ea90b9723c1b89b8c959ad",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "a7b1293144b5488dbe41acc4fdb219a37bda67cf09c9926f19ef58139531b563",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "00cccd97d2bd80d54fd2afcd11f5d47f2cf28daa7708d4729328d05aaf500eb0",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "17b03118dce1b7c7a9847d80990f6ed775fa8602c0dc901d2969b5a00e0ce771",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "d2c4b234f45f27eb40a2314a69fd12be984b22975c7776734db2e1d9db94fa05",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "0335c780d65e87f4ce3470684c537cc33976d43acb97f545feec8a816bf8cbb8",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "18903d3848c85598b9f043b38a694d0d569a7d005f4aafd6f05c5923563b5f1a",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "6710d4afbb42597fef9f5c698eb045dee3bedb4e0be89de8eae432c0a2d14891",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "ebf3b5cd75c5ac7dfb87b51b4236679a523ceb879242b9ecbbd462c421fc851b",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "a4ff8aa040e393bbca5758bcaa900359a0520ee99fa15240865691a444385551",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "041509c66da397045792ab085f81f4ff4799b062b6771f512034362020893f86",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "8cdb22705f97742a2af888653a3749a0671949e7d5fd68e7cbfd0a4b7d1fe2c8",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "2aef3ed680983d2873bf25c9aa40e66a22262323feccbc34a6297c30e4339901",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "a0103e5207c944e396b679d7dfbf70f657c0b353bcdca29bd1e3897b604f4b8d",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "687bba86c9638a932f11b6b7b75a9ae6c90cc9a327832fb935c200f78597f984",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "016571c36b7d8e0d553f37d53346272e72b1713e7845e8f539622e54fad031fa",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "816afa58593f60fde4309958fbd3ae4260a0573875c47152dbe5054ec64df2db",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "c6dc0b5065754cc3688f1f0165f7c7506ede1ffee67381076b5f15ae8a39763b",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "8e4954ba37f98faf567cdd19f2dedb67aa5b6d59f0e2e65e16f015c95b8b3ccd",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "897ab7667278f74d7d67060d3aee70354de9b9fb3becec623598f29c0478dcd6",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "78ccfa9d1564fa8ed4ce18983cefa312780bde99f32845517b198146aec1e22b",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "71fcdd183dd5cc11f2ae395d40bdc5274081685b865e66ec23ca8077fe824c4d",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "3cfd25206c5d6cdde6d2321da2017b896a1b1537c36dcf4e816fd18b840445a5",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "edae57b0adbf61169dad5656b33d89b74b6a43fbb4f027697be41b514b386165",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "02deedc218dab84a270343f5b5b0cf4d55c153f7ede2de566cfddd4cb93cac2a",
+        "classification": "declaration",
+        "owner": "LinuxSandbox",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LinuxSandbox",
+        "declaration": "llm/services/infrastructure/linux_sandbox.py",
+        "consumers": [
+          "llm/services/runtime/processes.py",
+          "llm/components/tools/builtin/workspaces.py",
+          "hub/backend/tools/builtin.py"
+        ],
+        "tests": [
+          "tests/llm/test_sandbox_contracts.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_process_group_cleanup.py",
+          "tests/hub/test_shell_environment.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/processes.py",
+    "sha256": "f7793f4bb34729e4c08f7025697e79caf2d2548a6b73cf40ac5ae54a1254f09e",
+    "reason": "Reviewed entire constructor, registered/generic command dispatch, event-loop admission, launch/pipe byte counting, cancellation/cleanup and result paths. The original eight methods are AST-identical after expanding declared references and exact wire/text APIs; sandbox construction delegates to the separately compared Owner. ProcessLaunch owns the transport, ProcessGate its empty startup environment, and ProcessResult the general output/exit semantics. No FD/start-session/drain/kill/wait ordering or implicit limit changed. JSON Tool payload stays opaque; fixed launch/result records use typed Owners.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6f0076f7f63e6f0cd86ffdc56b9db76cb918dd100c2aa97947dda16df2045862",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "d2498bc1eff789ed1537deb942dda59683a105709f86d733e5daa56c56687213",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "4c801fc19189d3c856daecb62e57ca6ff4844d465a0dc19611d1ea7fb7441a14",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "d730a8864c3985e4dee1b7c6017ef1d6aee8e4ea52a1194d55244057ad42200a",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "2022663ef460392b69c384666063a840289103835b5cb52989e66f4956c9f462",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "9b8921df913e04685066ee8f15a93ed77e1dc395b8309c216a2a01313e7db4c5",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "aa11797634a201801bd76002f4e5dbbd4c6854b50d8e96310fe3b66714327527",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "483cc4a017641c15fff78f3293c88d0d951255d85aee6cd4b28e6407a32a5b2a",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "721c31dccdc8452faaf201a87ac71c35e3fe0486a0d408ee7e3d6e458dda909f",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "ebebd55610c0845d1c396e4accf7267b414c31db4df97799d4cb42a209ddda9e",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "d65962dedfb93d4f62d24de7e5a446adbea956a0ed8f06c56f68c71b65036c9d",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "bb6826fc778c2750142e0007f28bd42980b1c8a031378d2c539a83c24dcc3c75",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "c651328fafe048424029e5561da80d9a2b0cd37052e5c8a30d3abaf0132511bf",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "29f0dd03a5a44fa4540fd8105f16103b76e5d3bd7c42f84cfc13c9ca3614221f",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "befca9c48156f8c3885c4f26f10e0b3b8a81424b28b69e055d6ea033348707ff",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "7cee52d9b33c7277d5bf04d8a94574821f67a869e11c91b10805fe509a8afbab",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "448b941bd9bf22e7ef84ae0c4836b4ed944a24b44d09b31d00dc47eb3fda7bb4",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "0e64b4a68ecceb43dc9f068351387fcfbbd0fd434ff35e026c5b5532c0d3b5de",
+        "classification": "declaration",
+        "owner": "ProcessToolRunner",
+        "reason": "Owner declaration of defaults, command/protocol/IO values, protection rules, fields or diagnostics before implementation."
+      },
+      {
+        "id": "7a7901546188a34982f698402f58f091478ed2bbe6165579cbcc3089ba54d57a",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "f30f2b9f8d38f3e1bbe66024db45a10eeea32f32f250c4a6b34edd4d7b19c4ee",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "371bba1a91ab7c41be0c4a7ee3e636e0590d4b28553e9836a905dbe184b5eccf",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "f08ab44a68ddecb22c40aaea71a6d6b3bf4d7e794273d4fedf23579b1088c832",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "e574e3bd6be9097df890381a5d48b4139f7022a0a502e6dc7a5726bc984ba12a",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "daac994ccb5689dbac8dcc63b5615138d2f4a1be0bde20bf189d2fc2787a1cf9",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "1506176e9dc7c02c9dfd417f96f68d243b76b58688cb3f9d0268fcc150a5c93b",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "d85d04e782b3c9b033e5571d37a9668107a6a4d4755a77fe87d1b915596bcd35",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "830650aa27e7e28da18af1569f85f838e3f6db0afb87d54add5254a089ff7ae7",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "85a9d41028b9aecc42aa64fe2c9986e4cd3c545267b9f55286df6240fec08e6f",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "aa739a0c2d11d177418dc1e52c36ee32834f63a6a78e193f8655836b6de7e034",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "33be0f157d08479eafe8efcaac18cd8eceb613e24e2702e7e39eddea9bb7b441",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "2d97d3692a1492762ef088951a3ae04806e123ff0ed73ca660a7dfd52058939d",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "2c3a4c10bc5071b9b034a3d12101eea101c6c19f7b9affb574e37f4343cfd010",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "a1045ba14b8a5c9f2c679906f218a742d05df1d7f8150e61023fc6e504b8f853",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "22ddfa7dcc593e9a1dd5f197b41e8f58967a754a8b097b0b70c86228b1bdb956",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "575cba7e8e7cb8f75c62c6b04a4872a2739c1c2c2b79c0bf22ea1d369287eca6",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "5811b8af7baccb45d88b1ab77a000eb206508e9f6b4f2bce7272360f536a5972",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      },
+      {
+        "id": "16932b5c33b207e0ade9977143d2b0d492d13506a6bd6175206a038e7440a39d",
+        "classification": "non_contract",
+        "owner": "ProcessToolRunner",
+        "reason": "Python dataclass option/forward type annotation, local resource absence, loop condition, byte-concatenation identity or byte-count accumulator. No permission, persisted fallback or domain policy is inferred."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProcessToolRunner",
+        "declaration": "llm/services/runtime/processes.py",
+        "consumers": [
+          "llm/components/tools/builtin/workspace_values.py",
+          "llm/services/composition.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_sandbox_contracts.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_process_group_cleanup.py",
+          "tests/hub/test_shell_environment.py"
         ],
         "complete": true
       }

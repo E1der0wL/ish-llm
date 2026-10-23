@@ -154,7 +154,7 @@ print(json.dumps({{'secret':pathlib.Path({str(secret)!r}).exists(),
     async def test_missing_bwrap_never_executes_on_host(self):
         with self.owner():
             identifier = await self.create()
-            with patch("llm.services.runtime.processes.shutil.which", return_value=None), self.assertRaises(ExecutionLimitError):
+            with patch("llm.services.infrastructure.linux_sandbox.shutil.which", return_value=None), self.assertRaises(ExecutionLimitError):
                 await self.spaces({"workspace_id": identifier, "argv": self.python("open('unsafe','w').write('bad')")})
             self.assertFalse((self.files(identifier) / "unsafe").exists())
 

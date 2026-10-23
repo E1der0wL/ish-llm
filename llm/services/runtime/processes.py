@@ -5,7 +5,6 @@ import asyncio
 import json
 import os
 from pathlib import Path
-import shutil
 import sys
 from typing import Any, Mapping, Optional, Sequence, TYPE_CHECKING, Union
 
@@ -14,6 +13,7 @@ from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.process_environment import ProcessEnvironment
 from llm.services.infrastructure.process_result import ProcessResult
 from llm.services.infrastructure.process_command import ProcessCommand
+from llm.services.infrastructure.linux_sandbox import LinuxSandbox
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.policies import ExecutionLimitError
 from llm.core.tool_contracts import ToolIsolation
@@ -35,82 +35,83 @@ class ProcessToolRunner:
     cwd는 전용 작업 디렉토리로 지정하고 workspace 메타데이터 디렉토리를 노출하지 않는다.
     """
 
+    UNCONFIGURED = None
+    NO_READ_ONLY_MOUNTS = ()
+    NO_INHERITED_FDS = ()
+    DEFAULT_ENVIRONMENT = {}
+    MIN_LIMIT = 1
+    STRICT_PATHS = True
+    ISOLATIONS = (ToolIsolation.SANDBOX, ToolIsolation.PROCESS)
+    INVALID_ISOLATION = "Choose sandbox or process"
+    INVALID_NETWORK = "allow_network must be boolean"
+    INVALID_LIMIT = "Process limits must be positive integers"
+    INVALID_COMMANDS = "Commands require named argv lists with absolute executables"
+    INVALID_CWD = "Process cwd must be a directory"
+    UNKNOWN_COMMAND = "No process command registered for Tool: {name}"
+    READ_CHUNK_BYTES = 8192
+    OUTPUT_LIMIT = "Tool process output limit exceeded"
+    NEW_SESSION = True
+    COLLECT_CLEANUP_ERRORS = True
+    PROCESS_FAILURE = "Tool process exited with {code}: {stderr}"
+    INVALID_RESPONSE = "Tool process must return one UTF-8 JSON value"
+    WRONG_LOOP = "Use ProcessToolRunner on its original event loop"
+    ISOLATION_REQUIRED = "Runner does not satisfy Tool isolation requirements"
+    SANDBOX_REQUIRED = "Bubblewrap is required"
+
     def __init__(self, commands: Mapping[str, Sequence[str]], *, cwd: Union[str, Path],
-                 isolation: str, env: Optional[Mapping[str, str]] = None,
-                 read_only_paths: Sequence[Union[str, Path]] = (),
-                 max_output_bytes: Optional[int] = None, memory_bytes: Optional[int] = None,
-                 max_concurrency: Optional[int] = None,
-                 allow_network: Optional[bool] = None,
-                 python_executable: Optional[Union[str, Path]] = None):
+                 isolation: str, env: Optional[Mapping[str, str]] = UNCONFIGURED,
+                 read_only_paths: Sequence[Union[str, Path]] = NO_READ_ONLY_MOUNTS,
+                 max_output_bytes: Optional[int] = UNCONFIGURED, memory_bytes: Optional[int] = UNCONFIGURED,
+                 max_concurrency: Optional[int] = UNCONFIGURED,
+                 allow_network: Optional[bool] = UNCONFIGURED,
+                 python_executable: Optional[Union[str, Path]] = UNCONFIGURED):
         require_linux()
-        if isolation not in (ToolIsolation.SANDBOX, ToolIsolation.PROCESS):
-            raise ValueError("Choose sandbox or process")
+        if isolation not in self.ISOLATIONS:
+            raise ValueError(self.INVALID_ISOLATION)
         if isolation == ToolIsolation.SANDBOX and type(allow_network) is not bool:
-            raise ValueError("allow_network must be boolean")
+            raise ValueError(self.INVALID_NETWORK)
         for value in (max_output_bytes, memory_bytes, max_concurrency):
-            if value is not None and (type(value) is not int or value < 1):
-                raise ValueError("Process limits must be positive integers")
+            if value is not None and (type(value) is not int or value < self.MIN_LIMIT):
+                raise ValueError(self.INVALID_LIMIT)
         self.commands = {}
         for name, argv in commands.items():
             if not isinstance(name, str) or not name or not ProcessCommand.valid(argv):
-                raise ValueError("Commands require named argv lists with absolute executables")
+                raise ValueError(self.INVALID_COMMANDS)
             self.commands[name] = tuple(argv)
-        self.cwd = Path(cwd).resolve(strict=True)
+        self.cwd = Path(cwd).resolve(strict=self.STRICT_PATHS)
         if not self.cwd.is_dir():
-            raise ValueError("Process cwd must be a directory")
-        self.isolation, self.env = isolation, copy_env({} if env is None else env)
+            raise ValueError(self.INVALID_CWD)
+        self.isolation, self.env = isolation, copy_env(self.DEFAULT_ENVIRONMENT if env is None else env)
         self.allow_network = allow_network
-        self.read_only_paths = tuple(Path(path).resolve(strict=True) for path in read_only_paths)
+        self.read_only_paths = tuple(Path(path).resolve(strict=self.STRICT_PATHS) for path in read_only_paths)
         self.max_output_bytes = max_output_bytes
         self.memory_bytes = memory_bytes
         self.max_concurrency = max_concurrency
-        self.python = str(Path(python_executable or sys.executable).resolve(strict=True))
+        self.python = str(Path(python_executable or sys.executable).resolve(strict=self.STRICT_PATHS))
         self._loop, self._slots = None, None
 
     def _command(self, name):
         try:
             command = list(self.commands[name])
         except KeyError:
-            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, f"No process command registered for Tool: {name}") from None
+            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, self.UNKNOWN_COMMAND.format(name=name)) from None
         return self._sandbox(command)
 
     def _sandbox(self, command):
         if self.isolation == ToolIsolation.PROCESS:
             return command
-        bwrap = shutil.which("bwrap")
-        if not bwrap:
-            raise ExecutionLimitError(RunErrorCode.SANDBOX_UNAVAILABLE, "Linux Bubblewrap is required; no unsandboxed fallback is allowed")
-        args = [bwrap, "--unshare-all", "--unshare-user", "--die-with-parent", "--new-session",
-                "--cap-drop", "ALL", "--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp"]
-        if self.allow_network:
-            args += ["--share-net"]
-        for path in ("/usr", "/bin", "/lib", "/lib64"):
-            if Path(path).exists():
-                args += ["--ro-bind", path, path]
-        for path in self.read_only_paths:
-            if path == Path("/") or any(root in (path, *path.parents) for root in (Path("/proc"), Path("/dev"), Path("/sys"))):
-                raise ValueError("Cannot expose a whole host or special filesystem")
-            args += ["--ro-bind", str(path), str(path)]
-        if str(self.cwd) in ("/", "/usr", "/bin", "/lib", "/lib64", "/proc", "/dev", "/tmp", "/var", "/run", "/home", "/etc", "/sys"):
-            raise ValueError("Sandbox workdir must be a dedicated directory")
-        for protected in (Path(self.python), Path(__file__).resolve()):
-            if self.cwd in (protected, *protected.parents):
-                raise ValueError("Sandbox workdir cannot contain the trusted runner or Python runtime")
-        # 대상의 loader/shell 환경은 namespace 구성 후에만 적용한다.
-        # Python 시작 게이트와 bwrap 자체에는 이 환경을 전달하지 않는다.
-        args += ["--clearenv"]
-        for key, value in self.env.items():
-            args += ["--setenv", key, value]
-        args += ["--bind", str(self.cwd), str(self.cwd), "--chdir", str(self.cwd), "--", *command]
-        return args
+        return LinuxSandbox.command(command, cwd=self.cwd, python=self.python,
+            read_only_paths=self.read_only_paths, env=self.env, allow_network=self.allow_network,
+            trusted_runner=Path(__file__).resolve())
 
-    async def _launch(self, command, input_value, *, pass_fds=()):
-        env = {} if self.isolation == ToolIsolation.SANDBOX else copy_env(self.env)
+    async def _launch(self, command, input_value, *, pass_fds=NO_INHERITED_FDS):
+        env = ProcessGate.environment() if self.isolation == ToolIsolation.SANDBOX else copy_env(self.env)
         data = ProcessLaunch(command, str(self.cwd), env, input_value, self.memory_bytes)
-        payload = json.dumps(data.to_dict(), ensure_ascii=False, allow_nan=False).encode("utf-8")
+        payload = data.encode()
         pending = asyncio.create_task(asyncio.create_subprocess_exec(
             *ProcessGate.command(self.python, os.getpid()), stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, env={}, start_new_session=True,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            env=ProcessGate.environment(), start_new_session=self.NEW_SESSION,
             pass_fds=pass_fds))
         process, readers = None, []
         try:
@@ -121,12 +122,12 @@ class ProcessToolRunner:
                 nonlocal total
                 chunks = []
                 while True:
-                    chunk = await stream.read(8192)
+                    chunk = await stream.read(self.READ_CHUNK_BYTES)
                     if not chunk:
                         return b"".join(chunks)
                     total += len(chunk)
                     if self.max_output_bytes is not None and total > self.max_output_bytes:
-                        raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, "Tool process output limit exceeded")
+                        raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, self.OUTPUT_LIMIT)
                     chunks.append(chunk)
 
             readers = [asyncio.create_task(read(process.stdout)), asyncio.create_task(read(process.stderr))]
@@ -144,9 +145,9 @@ class ProcessToolRunner:
                     process = await pending
                 for reader in readers:
                     reader.cancel()
-                await asyncio.gather(*readers, return_exceptions=True)
+                await asyncio.gather(*readers, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
                 async def discard(stream):
-                    while await stream.read(8192):
+                    while await stream.read(self.READ_CHUNK_BYTES):
                         pass
                 # 출력 한도 초과로 reader가 멈췄어도 OS 파이프를 비워 wait의 EOF를 진행시킨다.
                 drains = [asyncio.create_task(discard(stream)) for stream in (process.stdout, process.stderr)]
@@ -156,29 +157,30 @@ class ProcessToolRunner:
                 finally:
                     for drain in drains:
                         drain.cancel()
-                    await asyncio.gather(*drains, return_exceptions=True)
+                    await asyncio.gather(*drains, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
                 if process.stdin is not None:
                     process.stdin.close()
             await drain_on_cancel(cleanup())
 
     async def _execute(self, call):
         code, stdout, stderr = await self._launch(self._command(call.name), call.to_dict())
-        if code != 0:
-            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, f"Tool process exited with {code}: {stderr.decode('utf-8', errors='replace')}")
+        if code != ProcessResult.SUCCESS:
+            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED,
+                self.PROCESS_FAILURE.format(code=code, stderr=ProcessResult.text(stderr)))
         try:
-            return json.loads(stdout.decode("utf-8"))
+            return json.loads(stdout.decode(ProcessGate.JSON_ENCODING))
         except (ValueError, UnicodeError) as error:
-            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, "Tool process must return one UTF-8 JSON value") from error
+            raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, self.INVALID_RESPONSE) from error
 
     def _admission(self):
         loop = asyncio.get_running_loop()
         if self._loop is None:
             self._loop, self._slots = loop, None if self.max_concurrency is None else asyncio.Semaphore(self.max_concurrency)
         if self._loop is not loop:
-            raise RuntimeError("Use ProcessToolRunner on its original event loop")
+            raise RuntimeError(self.WRONG_LOOP)
         return self._slots
 
-    async def execute(self, argv: Sequence[str], *, pass_fds: Sequence[int] = ()) -> dict:
+    async def execute(self, argv: Sequence[str], *, pass_fds: Sequence[int] = NO_INHERITED_FDS) -> dict:
         """일반 명령의 출력과 종료 코드를 반환한다. 격리·회수는 JSON Tool 경로와 같다.
 
         pass_fds는 호스트 수명 잠금이다. 시작 게이트만 상속하며 사용자 명령에는 전달하지 않는다.
@@ -186,7 +188,8 @@ class ProcessToolRunner:
         ProcessCommand.validate(argv)
         slots = self._admission()
         async def invoke():
-            code, stdout, stderr = await self._launch(self._sandbox(list(argv)), None, pass_fds=tuple(pass_fds))
+            code, stdout, stderr = await self._launch(self._sandbox(list(argv)), ProcessLaunch.NO_PAYLOAD,
+                                                    pass_fds=tuple(pass_fds))
             return ProcessResult.decoded(code, stdout, stderr).to_dict()
         if slots is None:
             return await invoke()
@@ -196,9 +199,9 @@ class ProcessToolRunner:
     def validate_tool(self, name, isolation):
         """실행 계약이 요구하는 격리 수준과 등록 명령을 사전 검증한다."""
         if name not in self.commands or isolation == ToolIsolation.SANDBOX and self.isolation != ToolIsolation.SANDBOX:
-            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Runner does not satisfy Tool isolation requirements")
-        if self.isolation == ToolIsolation.SANDBOX and shutil.which("bwrap") is None:
-            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, "Bubblewrap is required")
+            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, self.ISOLATION_REQUIRED)
+        if self.isolation == ToolIsolation.SANDBOX and LinuxSandbox.locate() is None:
+            raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, self.SANDBOX_REQUIRED)
 
     async def __call__(self, tool: Any, call: "ToolCall") -> Any:
         """큐 대기도 timeout에 포함한다. 호출별 프로세스 그룹은 완료·실패·취소 시 회수한다."""

@@ -19,7 +19,7 @@ capability를 구성합니다. RunManager는 Workflow ID의 의미를 해석하�
 | [steering.py](steering.py) | 추가 지시의 대상 등록·마감, 메시지·중첩 체크포인트 참조, 대상별 반영 기록을 연결합니다. |
 | [tools.py](tools.py) | ToolExecutor와 Tool 실행 범위. 승인, 실행, 재시도, 결과·Step 이벤트를 담당합니다. |
 | [operations.py](operations.py) | Session 범위 Tool operation 원장과 완료 결과 재사용·불확실 효과 조정입니다. |
-| [processes.py](processes.py) | 명시적으로 선택한 ProcessToolRunner와 process/sandbox 실행을 관리합니다. |
+| [processes.py](processes.py) | 명시적으로 선택한 ProcessToolRunner의 입장·실행·출력·취소 수명을 관리하며 격리 인자는 LinuxSandbox에 위임합니다. |
 | [_worker.py](_worker.py) | ProcessToolRunner의 내부 child 진입점입니다. 공개 Engine이나 UI 실행 파일이 아닙니다. |
 | [policies.py](policies.py) | 공통 정책을 ContextPolicy/RunPolicy로 해석하고 usage 계산기 등록을 확인합니다. 모델별 입력 정책·재시도는 생성하지 않습니다. |
 | [output.py](output.py) | 출력 델타의 저장 batching, 최종 출력과 조회 journal을 관리합니다. |

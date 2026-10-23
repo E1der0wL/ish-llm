@@ -15,6 +15,11 @@
 | [observability.py](observability.py) | 누적 운영 통계와 기존 owner 상태를 모은 조회 스냅샷입니다. |
 | [activity.py](activity.py) | Project 단위 activity/event 참조 인덱스입니다. Run/Step 원본을 대체하지 않습니다. |
 | [processes.py](processes.py) | Linux process group, parent-death gate와 종료·회수의 공통 처리입니다. |
+| [process_state.py](process_state.py) | /proc의 PID·시작 identity·종료 상태를 읽습니다. |
+| [process_environment.py](process_environment.py) | 명시 자식 환경의 검증·사본·공개 Schema를 소유합니다. |
+| [process_command.py](process_command.py) | 격리 명령의 절대 executable·argv 판별을 공유합니다. |
+| [process_result.py](process_result.py) | 명령 종료 코드·출력의 decoding과 결과 직렬화를 담당합니다. |
+| [linux_sandbox.py](linux_sandbox.py) | Bubblewrap 인자·보호 경로·mount·명시 환경 배치를 소유합니다. |
 | [backups.py](backups.py) | Project 백업 manifest, 무결성 확인, 복원 경계를 담당합니다. |
 | [OBSERVABILITY.md](OBSERVABILITY.md) | 누적 통계의 의미, UI 조회와 계측 위치를 설명합니다. |
 | [ACTIVITY.md](ACTIVITY.md) | Project activity 목록의 저장·조회·복구 계약을 설명합니다. |

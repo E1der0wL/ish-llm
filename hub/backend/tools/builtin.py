@@ -1,6 +1,7 @@
 """Host lifecycle and Project selection for llm's built-in Tool collection."""
 
 from llm.components.tools.builtin.workspace_values import WorkspaceExecuteArguments
+from llm.services.infrastructure.linux_sandbox import LinuxSandbox
 
 from llm.components.processing import COMPLETION_PROCESSORS
 
@@ -9,7 +10,6 @@ from dataclasses import replace
 from pathlib import Path
 from threading import Lock
 import sys
-import shutil
 
 from llm.core.tool_contracts import ToolContract
 from llm.components.tools import Tool, ToolRegistry
@@ -115,7 +115,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         # 선택된 Tool은 Run 시작 전에 검증된다. 사용할 수 없는 선택적 sandbox가
         # 일반 대화까지 막지 않도록 최초 preset에서만 설치 여부를 반영한다.
         return [name for name in self.toolkit.registry.names()
-                if name != WorkspaceExecuteArguments.NAME or shutil.which("bwrap") is not None]
+                if name != WorkspaceExecuteArguments.NAME or LinuxSandbox.locate() is not None]
 
     def resolve(self, project, capability):
         if capability == COMPLETION_PROCESSORS:
