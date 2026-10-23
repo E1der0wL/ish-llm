@@ -1491,8 +1491,8 @@ class RunManager:
               operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         if checkpoint:
             tool_scope.restore_checkpoint(CheckpointRecords.from_checkpoint(checkpoint).records)
-        for name in values.get("tools", ToolRegistry()).names():
-            tool_scope.validate(values["tools"].get(name))
+        for name in values.get(ToolRegistry.CAPABILITY, ToolRegistry()).names():
+            tool_scope.validate(values[ToolRegistry.CAPABILITY].get(name))
         inbox = (SteeringInbox(history=checkpoint_messages(store, checkpoint) if checkpoint else {})
                  if SteeringChannel.present(run.metadata) else None)
         if inbox is not None:
@@ -1513,7 +1513,7 @@ class RunManager:
                 capability_cache.update(resolved)
             return {name: capability_cache[name] for name in names}
         context = EngineContext(project, deepcopy(runtime.session), deepcopy(run), history,
-                             tools=values.get("tools", ToolRegistry()), capabilities=values,
+                             tools=values.get(ToolRegistry.CAPABILITY, ToolRegistry()), capabilities=values,
                              checkpoint=checkpoint, resume_outputs=self._partial_outputs(runtime.session, run),
                              tool_scope=tool_scope, pending_work=self.pending_work,
                              token_counters=dict(getattr(self.policy_resolver, "token_counters", {})), steering=inbox,

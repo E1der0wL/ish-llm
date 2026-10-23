@@ -1,5 +1,7 @@
 """GraphEngine의 tool 노드를 공통 ToolExecutor에 연결한다."""
 
+from llm.components.tools.registry import ToolRegistry
+
 import json
 
 from contextlib import aclosing
@@ -12,7 +14,7 @@ from .engine import _GraphPause
 class ToolNode:
     """Workflow inputs 매핑, 정적 arguments 또는 state의 arguments_key를 실행 인자로 쓴다."""
 
-    required_capabilities = ("tools",)
+    required_capabilities = (ToolRegistry.CAPABILITY,)
     resumable_container = True
 
     def checkpoint_engine(self, definition, context):
@@ -20,7 +22,7 @@ class ToolNode:
         return handler if getattr(handler, "resumable_container", False) is True else None
 
     def additional_capabilities(self, definition, capabilities):
-        tools = capabilities.get("tools")
+        tools = capabilities.get(ToolRegistry.CAPABILITY)
         if tools is None:
             return ()
         handler = tools.get(definition["tool"]).handler

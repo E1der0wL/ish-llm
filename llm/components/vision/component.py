@@ -1,5 +1,7 @@
 """Project 소유 이미지 자료와 명시적 Vision 설정. 이미지/변환 자료는 불변이며 메타데이터만 편집한다."""
 
+from llm.components.tools.registry import ToolRegistry
+
 from llm.core.model_protocol import ModelOperation
 
 from copy import deepcopy
@@ -24,7 +26,7 @@ class VisionComponent(Component):
     FORMAT_VERSION = 1
     name = "vision"
     directory = "vision"
-    capabilities = ("vision", "tools")
+    capabilities = ("vision", ToolRegistry.CAPABILITY)
     parameter_layout = ParameterLayout(config=("completion",), policy=("provider", "limits"),
         paths={"ocr.backend": "config.ocr.backend", "ocr.backends": "config.ocr.backends",
                "ocr.timeout": "policy.ocr.timeout"})
@@ -186,7 +188,7 @@ class VisionComponent(Component):
         data = data_factory(self.name)
         if capability == "vision":
             return data
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             from .tools import vision_tools
             return vision_tools(data, self.binding(project), tuple(self.ocr_backends))
         return super().resolve_runtime(project, capability, data_factory=data_factory)

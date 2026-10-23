@@ -12,7 +12,7 @@ from llm.services.infrastructure.storage import revision_token
 class BuiltinToolComponent(Component):
     """Toolkit 수명은 호스트의 async with가 소유하고, 선택 목록은 ProjectConfig가 소유한다."""
 
-    capabilities = ("tools",)
+    capabilities = (ToolRegistry.CAPABILITY,)
     parameter_layout = ParameterLayout(config=(ToolSelection.enabled.__name__,))
 
     def __init__(self, toolkit, *, name: str):
@@ -23,7 +23,7 @@ class BuiltinToolComponent(Component):
         return self.parameter_layout.schema(ToolSelection.schema(choices=self.toolkit.registry.names()))
 
     def resolve(self, project, capability):
-        if capability != "tools":
+        if capability != ToolRegistry.CAPABILITY:
             return super().resolve(project, capability)
         if self.toolkit.closed:
             raise RuntimeError("BuiltinTools is closed")

@@ -1,5 +1,7 @@
 """제안은 실행 기록의 참조 데이터다. 자동 모델 호출이나 Run 수명은 소유하지 않는다."""
 
+from llm.components.tools.registry import ToolRegistry
+
 from llm.core.resource_references import ResourceTarget, StoredResourceReference
 from llm.core.agents import AgentDefinition
 
@@ -43,7 +45,7 @@ STORED_EVALUATION = object_schema({**EVALUATION["properties"], "source": SOURCE,
 
 class RefinementComponent(DefinitionComponent):
     name = directory = "refinement"
-    capabilities = ("refinement", "tools")
+    capabilities = ("refinement", ToolRegistry.CAPABILITY)
     data_class = RefinementData
     schema = object_schema({
         "target": TARGET, "operation": {"enum": ["update", "create", "fork", "bind_skills"]},
@@ -118,7 +120,7 @@ class RefinementComponent(DefinitionComponent):
         data = data_factory(self.name)
         if capability == "refinement":
             return data
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             from .tools import refinement_tools
             policy = ImplementationParameters.read(self.get_config(project)).policy
             return refinement_tools(data, apply=policy.get("apply_tools") is True,

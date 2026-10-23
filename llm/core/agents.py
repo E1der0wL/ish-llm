@@ -24,6 +24,7 @@ class AgentDefinition:
     """A selected Engine is required; application descriptions remain optional."""
 
     REFERENCE_COMPONENT = "agents"
+    CAPABILITY = REFERENCE_COMPONENT
     ENGINE_FIELD = "engine"
 
     schema = {

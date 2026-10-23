@@ -12,10 +12,16 @@ from .packages import ToolPaths, read_package, write_package, delete_package, lo
 class ToolComponent(Component):
     name = ToolPaths.COMPONENT
     directory = ToolPaths.COMPONENT
-    capabilities = ("tools",)
+    capabilities = (ToolRegistry.CAPABILITY,)
     data_class = ToolData
     parameter_layout = ParameterLayout(config=(ToolSelection.enabled.__name__,))
     SELECTION_DESCRIPTION = "Run에 노출할 Project Python Tool 이름"
+    DUPLICATE_PACKAGE = "Tool package already exists"
+    ENABLED_PACKAGE = "Disable the tool before deleting its package"
+    NO_IDENTIFIER = None
+    DEFINITION_RECORDS = False
+    RECORD_CATALOG = False
+    PREPARE_DEPENDENCIES = True
 
     def describe_config(self):
         return self.parameter_layout.schema(ToolSelection.schema(description=self.SELECTION_DESCRIPTION))
@@ -29,7 +35,7 @@ class ToolComponent(Component):
     def initialize(self, project):
         self.get_config(project)
         created = self.name not in project.initialized_components
-        self._initialize_storage(project, records=False, record_catalog=False)
+        self._initialize_storage(project, records=self.DEFINITION_RECORDS, record_catalog=self.RECORD_CATALOG)
         paths = ToolPaths(self.root(project), project.id)
         if created:
             paths.initialize()
@@ -39,11 +45,11 @@ class ToolComponent(Component):
     def enabled(self, project):
         return ToolSelection.read(self._options(project), scope=self.name).names
 
-    def create(self, project, data, *, identifier=None):
+    def create(self, project, data, *, identifier=NO_IDENTIFIER):
         paths = ToolPaths.for_project(project)
         validate_name(identifier)
         if paths.package(identifier).exists():
-            raise FileExistsError("Tool package already exists")
+            raise FileExistsError(self.DUPLICATE_PACKAGE)
         write_package(paths, identifier, data)
         return identifier
 
@@ -61,19 +67,19 @@ class ToolComponent(Component):
 
     def delete(self, project, identifier):
         if identifier in self.enabled(project):
-            raise ValueError("Disable the tool before deleting its package")
+            raise ValueError(self.ENABLED_PACKAGE)
         self.load(project, identifier)
         paths = ToolPaths.for_project(project)
         delete_package(paths, identifier)
 
     def prepare(self, project, identifier):
-        value = load_tool(project, identifier, prepare=True)
+        value = load_tool(project, identifier, prepare=self.PREPARE_DEPENDENCIES)
         return ToolRegistry((value,)).definitions()[0]
 
     def resolve_tools(self, project):
         return ToolRegistry(tuple(load_tool(project, name) for name in self.enabled(project)))
 
     def resolve(self, project, capability):
-        if capability != "tools":
+        if capability != ToolRegistry.CAPABILITY:
             return super().resolve(project, capability)
         return self.resolve_tools(project)

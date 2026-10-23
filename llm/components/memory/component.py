@@ -1,5 +1,8 @@
 """기억의 현재 값·출처·수정 이력을 한 JSON 파일로 원자적으로 저장한다."""
 
+from llm.components.processing import COMPLETION_PROCESSORS
+from llm.components.tools.registry import ToolRegistry
+
 from llm.core.resource_references import StoredResourceReference
 
 from copy import deepcopy
@@ -46,7 +49,7 @@ class MemoryComponent(Component):
     OPERATIONS = (CREATE, SAVE, UPDATE, DELETE, RESTORE)
     HISTORY_FIELDS = frozenset(("revision", "operation", "at", "source", "data"))
     HISTORY_IDENTITY = ("id", "generation", "created_at", "source", "scope", "session_id")
-    capabilities = ("memory", "tools", "completion_processors")
+    capabilities = ("memory", ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
     data_class = MemoryData
     parameter_layout = ParameterLayout(
         config=("cache_records", "search_status", "search_limit", "search_strategy", "min_score"),
@@ -509,7 +512,7 @@ class MemoryComponent(Component):
         raise ValueError("Memory capabilities require a lifecycle-bound component data factory")
 
     def resolve_runtime(self, project, capability, *, data_factory):
-        if capability == "completion_processors":
+        if capability == COMPLETION_PROCESSORS:
             from .processing import resolve_processing_config
             data = data_factory(self.name)
             config = resolve_processing_config(data.get_config(), token_counter=self.token_counter, completion_adapter=self.completion_adapter)
@@ -524,7 +527,7 @@ class MemoryComponent(Component):
                                    priority=config.get("priority", MemoryProcessor.UNCONFIGURED_PRIORITY))
         if capability == "memory":
             return data_factory(self.name)
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             from .tools import memory_tools
             return memory_tools(data_factory(self.name))
         return self.resolve(project, capability)

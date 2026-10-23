@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 465,
-    "unreviewed_files": 399,
+    "unreviewed_files": 397,
     "stale_files": 0,
-    "unclassified": 29999,
+    "unclassified": 29903,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 401,
+    "unreviewed_dynamic_paths": 399,
     "unreadable_files": 0,
-    "candidates": 30712,
+    "candidates": 30643,
     "issues": 0
   },
   "files": [
@@ -148,8 +148,8 @@
     {
       "path": "hub/backend/execution/environment.py",
       "status": "unreviewed",
-      "sha256": "63bbfe7ad361553f876927220f2e2b539c3e465cf46c0d619fbec4e21d9bcbd8",
-      "candidates": 48
+      "sha256": "f3cc41cf91e08ced30413f4b5ba37f4970cb4b0aefb26626fe558c9fb6bee06d",
+      "candidates": 43
     },
     {
       "path": "hub/backend/execution/followup.py",
@@ -406,8 +406,8 @@
     {
       "path": "hub/backend/tools/builtin.py",
       "status": "unreviewed",
-      "sha256": "8016575f07e74fd72bd6dfbfacd9e4d79682d394e892c9f45b28fb65635a9444",
-      "candidates": 89
+      "sha256": "9f56b55ecd2171ff0a472e5fbcadf144a3678e08f7518b2ba254e6c7b2e6bbc0",
+      "candidates": 83
     },
     {
       "path": "hub/backend/tools/management.py",
@@ -436,8 +436,8 @@
     {
       "path": "hub/backend/tools/resources.py",
       "status": "unreviewed",
-      "sha256": "07681e6f50b82e278456bd040e4a2077845d1580ef8f51ad624c573bbc9557db",
-      "candidates": 158
+      "sha256": "897d6371d701c3afa26d251d23c7f517f465f280bdd7a7c04f4f95cc9edc30e5",
+      "candidates": 152
     },
     {
       "path": "hub/backend/tools/retry.py",
@@ -454,8 +454,8 @@
     {
       "path": "hub/backend/tools/skills.py",
       "status": "unreviewed",
-      "sha256": "9a5626a5105395c696f162e9519d5ff2d831fac87837c69f8a899449d7e0e86c",
-      "candidates": 5
+      "sha256": "a8699ee32d5230cc72ab8c6da820f8d58077cfbc28e9ff9fec9c04171f3df045",
+      "candidates": 3
     },
     {
       "path": "hub/backend/tools/test_workspaces.py",
@@ -1408,8 +1408,8 @@
     {
       "path": "llm/components/goals/component.py",
       "status": "unreviewed",
-      "sha256": "0c7835e171497fe84afe9369011933d31ed18327ca728bc39744547218c696b3",
-      "candidates": 109
+      "sha256": "d196ce6b4b4da3b9c7103c709637fc0ac0a62aa4a3ce2c01640de068a233baa3",
+      "candidates": 105
     },
     {
       "path": "llm/components/goals/data.py",
@@ -1444,8 +1444,8 @@
     {
       "path": "llm/components/mcp/component.py",
       "status": "unreviewed",
-      "sha256": "5ba543ede3f8d17d7935a751013f0d9be30b698ae896e8d9cfab41897d6892a4",
-      "candidates": 74
+      "sha256": "c81a4313604985d3338f897a2aaf80487c91142a6af7531ee0b58fc31895ad94",
+      "candidates": 72
     },
     {
       "path": "llm/components/mcp/data.py",
@@ -1474,8 +1474,8 @@
     {
       "path": "llm/components/memory/component.py",
       "status": "unreviewed",
-      "sha256": "a28e4cd36ee181dc0b769d39267c98caf4aed44438f13349e91c80759a4e45a4",
-      "candidates": 464
+      "sha256": "33d14009a6ca186751be0dd180b5ddcf2bdb04520cc76d18991ae32e094f6715",
+      "candidates": 460
     },
     {
       "path": "llm/components/memory/consolidation.py",
@@ -1522,8 +1522,8 @@
     {
       "path": "llm/components/processing.py",
       "status": "unreviewed",
-      "sha256": "b3052545af9aaa5a2dccf7805fc3b0d4dedc8bb2b1221865e7065f766932a4ed",
-      "candidates": 124
+      "sha256": "220e4f47e4a1cebe91073b98076ca0d49a5ad35783371aef17838019ceb5fe62",
+      "candidates": 125
     },
     {
       "path": "llm/components/prompts/README.md",
@@ -1570,8 +1570,8 @@
     {
       "path": "llm/components/rag/component.py",
       "status": "unreviewed",
-      "sha256": "10aad2679af587d0728421a1dffa41672c96e8044674a83063d9a49b0d60af24",
-      "candidates": 955
+      "sha256": "69b5eefaf73556da31cba8b2f60dde1f9b624e80811a277aa894137e4d711fed",
+      "candidates": 952
     },
     {
       "path": "llm/components/rag/data.py",
@@ -1684,8 +1684,8 @@
     {
       "path": "llm/components/refinement/component.py",
       "status": "unreviewed",
-      "sha256": "1394a74b681cc0198ffd8c326d133dadbf6e8e7cfa9809f1da59aecbb098a02d",
-      "candidates": 245
+      "sha256": "94744e5a8f859d909cd10d727cc3b36db52920156b3ed8b5dc01e12fae57892e",
+      "candidates": 243
     },
     {
       "path": "llm/components/refinement/data.py",
@@ -1732,8 +1732,8 @@
     {
       "path": "llm/components/skills/component.py",
       "status": "unreviewed",
-      "sha256": "2c136c4358c7b587c151c4271b19a27ea7f67bfd37664b4ec975bdbe434fc546",
-      "candidates": 15
+      "sha256": "93e5db56f41aaf952f6428d9890389668aec5e4ef90dc9ce1cd7c01b4f41f1d1",
+      "candidates": 12
     },
     {
       "path": "llm/components/skills/data.py",
@@ -1822,8 +1822,8 @@
     {
       "path": "llm/components/tools/builtin/component.py",
       "status": "unreviewed",
-      "sha256": "5cf65e1550bd79a6f7b6650bef6bec5b3e299614649341aa1eceec430b976422",
-      "candidates": 5
+      "sha256": "e341006f5081c2e6cd34b9f11eb94e8a0960cfd1ced6a723be85ead0b041daaf",
+      "candidates": 3
     },
     {
       "path": "llm/components/tools/builtin/diagnostics.py",
@@ -1851,9 +1851,9 @@
     },
     {
       "path": "llm/components/tools/component.py",
-      "status": "unreviewed",
-      "sha256": "ee7359d34f063b86f6582d3e919213fc0c7f847ec0d4d5b20a8efef7dfc291d2",
-      "candidates": 11
+      "status": "reviewed",
+      "sha256": "272cdd13b4eefd603d2e618a1c1c2e93bfe39d75303b97f0e93aec7a2b4872de",
+      "candidates": 9
     },
     {
       "path": "llm/components/tools/constraints.py",
@@ -1900,14 +1900,14 @@
     {
       "path": "llm/components/tools/registry.py",
       "status": "reviewed",
-      "sha256": "f2fab7163e9e47b7ca3924b7efa2f73b97d0dd51dbc2fbab7128373a4632a0b3",
-      "candidates": 33
+      "sha256": "dfda34647a6fe926b4dcded2d1f4582b7f096bea98298525b4e40908d9ca47d8",
+      "candidates": 34
     },
     {
       "path": "llm/components/tools/resolver.py",
-      "status": "unreviewed",
-      "sha256": "e67847a49e94fc83bc0e6ea26a6bb1ceae4e5d0f601e65f05c3bedefe242a0d3",
-      "candidates": 19
+      "status": "reviewed",
+      "sha256": "953b6e3dc36551ca75ef851610eeac269db5e2f96dbcdea342e1f2c199495870",
+      "candidates": 12
     },
     {
       "path": "llm/components/tools/selection.py",
@@ -1942,8 +1942,8 @@
     {
       "path": "llm/components/vision/component.py",
       "status": "unreviewed",
-      "sha256": "66be652cf2cfd5330e23419cd144d773fdc8c0470bd6cd8ef476ecd7e3a0fe5d",
-      "candidates": 138
+      "sha256": "3003cfc19f8722566a8bfd397dd87220565b97669d24eeb48175652f7e8ff450",
+      "candidates": 136
     },
     {
       "path": "llm/components/vision/data.py",
@@ -2014,13 +2014,13 @@
     {
       "path": "llm/core/agent_views.py",
       "status": "reviewed",
-      "sha256": "1c85fc282440c9f7641e583527bb11d2a806577944bcd88feb37e967b8048fbe",
-      "candidates": 8
+      "sha256": "e98a7480d91e34bdaa2df16fc54f48414f73b464002a848f71e0f7d250404b18",
+      "candidates": 13
     },
     {
       "path": "llm/core/agents.py",
       "status": "unreviewed",
-      "sha256": "9109a701e6eb2edae74b5c347af2bd2f38c07f05bb2b6e2eeafbcacf33d12811",
+      "sha256": "7478cd412bf903540dde47ea9be699e1ed167f9ac2611270def6eaba5bf123ae",
       "candidates": 188
     },
     {
@@ -2248,8 +2248,8 @@
     {
       "path": "llm/engines/agents.py",
       "status": "unreviewed",
-      "sha256": "4fee501fb2a80f56a96cee570ee7b4e3dd773031d85207c1d877e88f0631abcd",
-      "candidates": 375
+      "sha256": "2c9bcbfabccdc844ce1c2fea0980a116c6a75b59f4fd65a739a9b3997b7e4d83",
+      "candidates": 360
     },
     {
       "path": "llm/engines/base.py",
@@ -2290,8 +2290,8 @@
     {
       "path": "llm/engines/graph/tool.py",
       "status": "unreviewed",
-      "sha256": "58c36c733627c3251e77a2dfde9b0794288d15d27eb29b28f33ad19545268d0b",
-      "candidates": 54
+      "sha256": "ee03526c237f2e037c99a8438918bef46a6484dd77b455d1b7767c57d58f4563",
+      "candidates": 52
     },
     {
       "path": "llm/engines/loop/README.md",
@@ -2308,8 +2308,8 @@
     {
       "path": "llm/engines/loop/engine.py",
       "status": "unreviewed",
-      "sha256": "bd277cfb1f222fea6eedce66ee63307cfc60ccedc2550356c50bde8a07b819f6",
-      "candidates": 315
+      "sha256": "38cd88b73a3567266960b9ed05bb5a76e194eb70637600af56adb3eb347532a2",
+      "candidates": 309
     },
     {
       "path": "llm/engines/loop/review.py",
@@ -2758,8 +2758,8 @@
     {
       "path": "llm/services/runtime/runs.py",
       "status": "unreviewed",
-      "sha256": "658746f859b79b072571d6de8397f1bd7166ea44fa70c0c63d0b7eef4e794970",
-      "candidates": 516
+      "sha256": "bc17e6dc692417a5ddd76dde2178ec8f121c2cf9a52f1fd7d9db32bc1e39ac4c",
+      "candidates": 513
     },
     {
       "path": "llm/services/runtime/steering.py",

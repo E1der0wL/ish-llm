@@ -1,5 +1,7 @@
 """Bind host execution context without changing llm's Engine or Tool APIs."""
 
+from llm.components.processing import COMPLETION_PROCESSORS
+
 from llm.core.model_protocol import ModelMessage
 
 from contextlib import aclosing
@@ -112,15 +114,15 @@ class EnvironmentEngine:
         if self.environment is None:
             return context
         tools, capabilities = context.tools, dict(context.capabilities)
-        if "tools" in capabilities and self.builtins is not None and self.builtins.name in context.project.components:
+        if ToolRegistry.CAPABILITY in capabilities and self.builtins is not None and self.builtins.name in context.project.components:
             registry = self.builtins.resolve_environment(context.project, self.environment)
             # Preserve imported tools and Agent selections; never enable extra tools.
             tools = ToolRegistry(tuple(registry.get(name) if name in registry.names() else context.tools.get(name)
                                        for name in context.tools.names()))
-            capabilities["tools"] = tools
-        if "completion_processors" in capabilities:
-            capabilities["completion_processors"] = (
-                *capabilities["completion_processors"], EnvironmentProcessor(self.environment.cwd))
+            capabilities[ToolRegistry.CAPABILITY] = tools
+        if COMPLETION_PROCESSORS in capabilities:
+            capabilities[COMPLETION_PROCESSORS] = (
+                *capabilities[COMPLETION_PROCESSORS], EnvironmentProcessor(self.environment.cwd))
         return replace(context, tools=tools, capabilities=capabilities)
 
     async def execute(self, context):

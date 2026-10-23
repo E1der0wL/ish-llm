@@ -37,6 +37,9 @@ from .graph.engine import _GraphPause
 from .graph.checkpoints import EngineCheckpointScope
 
 
+from llm.core.agent_views import AgentDefinitions
+
+
 class AgentExecution:
     """저장된 업무를 Graph 노드로 실행한다.
 
@@ -46,7 +49,7 @@ class AgentExecution:
     입력은 노드의 inputs, 출력은 {text, data?}이며 Agent schema도 이 계약에 적용한다.
     """
 
-    required_capabilities = ("agents", "tools")
+    required_capabilities = (AgentDefinition.CAPABILITY, ToolRegistry.CAPABILITY)
     # Graph 모드의 준비/매핑은 외부 효과를 수행하지 않고 자식 작업만 조율한다.
     resumable_container = True
     selection_binding = True
@@ -98,7 +101,7 @@ class AgentExecution:
         identifier = definition.get("agent")
         if not isinstance(identifier, str) or not identifier:
             raise ValueError("Agent node requires an agent ID")
-        profile = deepcopy(self._record(capabilities, "agents", identifier)[1])
+        profile = AgentDefinitions.selected(capabilities.get(AgentDefinition.CAPABILITY, ()), identifier)
         AgentDefinition.validate(identifier, profile)
         return profile
 
@@ -279,7 +282,7 @@ class AgentExecution:
 
     def prepare_context(self, definition, context):
         """Request only the selected Agent's public capabilities, before approval/effects."""
-        context = context.with_capabilities(("agents",))
+        context = context.with_capabilities((AgentDefinition.CAPABILITY,))
         engine = self._engine(self._profile(definition, context.capabilities))
         context = context.with_capabilities(self.additional_capabilities(definition, context.capabilities))
         discover = getattr(engine, "additional_capabilities", None)
@@ -362,14 +365,14 @@ class AgentExecution:
                 message = replace(message, content=json.dumps(inputs, ensure_ascii=False, allow_nan=False))
                 # 부모 Run과 예산은 유지하며 기록/임시 상태와 선택 capability만 분리한다.
                 capabilities = {
-                    name: node.context.capabilities[name] for name in required_capabilities(engine) if name != "tools"}
-                if "tools" in required_capabilities(engine):
-                    capabilities["tools"] = tools
+                    name: node.context.capabilities[name] for name in required_capabilities(engine) if name != ToolRegistry.CAPABILITY}
+                if ToolRegistry.CAPABILITY in required_capabilities(engine):
+                    capabilities[ToolRegistry.CAPABILITY] = tools
                 discover = getattr(engine, "additional_capabilities", None)
                 if callable(discover):
                     # 부모가 이미 승인/해석한 capability만 전달한다. 새 resource를 만들지 않는다.
-                    for name in discover({**node.context.capabilities, "tools": tools}):
-                        if name in node.context.capabilities and name != "tools":
+                    for name in discover({**node.context.capabilities, ToolRegistry.CAPABILITY: tools}):
+                        if name in node.context.capabilities and name != ToolRegistry.CAPABILITY:
                             capabilities[name] = node.context.capabilities[name]
                 visibility = (OutputVisibility.USER if node.definition.get("emit_text", False)
                               and node.context.output_visibility == OutputVisibility.USER else OutputVisibility.INTERNAL)
@@ -489,7 +492,7 @@ class AgentInvocation:
         return tuple(dict.fromkeys((*required_capabilities(self.engine),
             *(name for name in ("skills", "mcp", "rag") if resources.get(name)),
             *(("prompts",) if resources.get("prompt") else ()),
-            *(("tools",) if self.profile.get("tools") or resources.get("mcp") or resources.get("rag") else ()))))
+            *((ToolRegistry.CAPABILITY,) if self.profile.get("tools") or resources.get("mcp") or resources.get("rag") else ()))))
 
     def additional_capabilities(self, capabilities):
         discover = getattr(self.engine, "additional_capabilities", None)
@@ -506,8 +509,8 @@ class AgentInvocation:
                 scope.restore_checkpoint(CheckpointRecords.from_checkpoint(context.checkpoint).records)
             self.engine = self.selection.compose_instructions(self.engine, self.resources, context)
             capabilities = dict(context.capabilities)
-            if "tools" in capabilities:
-                capabilities["tools"] = tools
+            if ToolRegistry.CAPABILITY in capabilities:
+                capabilities[ToolRegistry.CAPABILITY] = tools
             context = replace(context, tools=tools, capabilities=capabilities, tool_scope=scope)
             if "input_schema" in self.profile:
                 message = next(item for item in context.messages if item.id == context.run.input_message_id)
@@ -573,7 +576,7 @@ class AgentDelegation:
     등록된 Host 핸들러에만 이 이벤트 계약을 제공하며 Project Python source는 받지 않는다.
     """
 
-    required_capabilities = ("agents",)
+    required_capabilities = (AgentDefinition.CAPABILITY,)
     resumable_container = True
 
     def __init__(self, runtime):
@@ -593,7 +596,7 @@ class AgentDelegation:
             records=CheckpointRecords.records_or_empty(context.checkpoint), checkpoint_name=checkpoint_name, wrapped_graph=True)
 
     def additional_capabilities(self, capabilities):
-        return ("agents",)
+        return (AgentDefinition.CAPABILITY,)
 
     async def __call__(self, arguments):
         raise ValueError("agent_run requires the Engine ToolExecutor event contract")

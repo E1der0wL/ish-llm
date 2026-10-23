@@ -1,5 +1,7 @@
 """Hub authoring tools use selected component handles, never storage paths."""
 
+from llm.components.processing import COMPLETION_PROCESSORS
+
 from .resource_views import CreatedResource
 
 from llm.core.implementation_parameters import ImplementationParameters
@@ -75,7 +77,7 @@ def authoring_tools(data, name, definition_schema, *, discover=True, schema_exte
 
 
 class HubWorkflowComponent(WorkflowComponent):
-    capabilities = (*WorkflowComponent.capabilities, "tools")
+    capabilities = (*WorkflowComponent.capabilities, ToolRegistry.CAPABILITY)
 
     def __init__(self, *, handlers=None):
         self._handler_schemas = {
@@ -83,21 +85,21 @@ class HubWorkflowComponent(WorkflowComponent):
             for name, handler in (handlers or {}).items()}
 
     def resolve_runtime(self, project, capability, *, data_factory):
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             return ToolRegistry(tuple(authoring_tools(data_factory(self.name), self.name, self.schema,
                 schema_extensions={"x-hub-action-handlers": self._handler_schemas})))
         return super().resolve_runtime(project, capability, data_factory=data_factory)
 
 
 class HubRAGComponent(RAGComponent):
-    capabilities = (*RAGComponent.capabilities, "completion_processors")
+    capabilities = (*RAGComponent.capabilities, COMPLETION_PROCESSORS)
 
     def resolve_runtime(self, project, capability, *, data_factory):
-        if capability == "completion_processors":
+        if capability == COMPLETION_PROCESSORS:
             from ..execution.rag_catalog import RAGCatalogProcessor
             return RAGCatalogProcessor(data_factory(self.name))
         registry = super().resolve_runtime(project, capability, data_factory=data_factory)
-        if capability != "tools":
+        if capability != ToolRegistry.CAPABILITY:
             return registry
         data = data_factory(self.name)
 
@@ -123,7 +125,7 @@ class HubRAGComponent(RAGComponent):
 class HubGoalComponent(GoalComponent):
     def resolve_runtime(self, project, capability, *, data_factory):
         registry = super().resolve_runtime(project, capability, data_factory=data_factory)
-        if capability != "tools" or not ImplementationParameters.read(self.get_config(project)).policy.get("write_tools"):
+        if capability != ToolRegistry.CAPABILITY or not ImplementationParameters.read(self.get_config(project)).policy.get("write_tools"):
             return registry
         data = data_factory(self.name)
 

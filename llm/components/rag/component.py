@@ -1,5 +1,7 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
+from llm.components.tools.registry import ToolRegistry
+
 from llm.core.implementation_parameters import ImplementationParameters
 
 from llm.core.configuration_views import ConfigurationView
@@ -67,7 +69,7 @@ class RAGComponent(DefinitionComponent):
 
     name = "rag"
     directory = "rag"
-    capabilities = ("rag", "tools")
+    capabilities = ("rag", ToolRegistry.CAPABILITY)
     data_class = RAGData
     # 일반 record CRUD는 Application 메모만 보관한다. 문서 색인은 document API가 소유한다.
     schema = object_schema({"metadata": metadata_schema()})
@@ -466,13 +468,13 @@ class RAGComponent(DefinitionComponent):
                 raise ValueError("RAG backup requires matching vector and graph generation")
 
     def resolve(self, project, capability):
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             raise ValueError("Search tools require a lifecycle-bound component data factory")
         return super().resolve(project, capability)
 
     def resolve_runtime(self, project, capability, *, data_factory):
         """프로젝트가 선택한 컴포넌트의 검색 Tool을 별도 설정 없이 제공한다."""
-        if capability != "tools":
+        if capability != ToolRegistry.CAPABILITY:
             return self.resolve(project, capability)
         from .tools import search_tools
         return search_tools(data_factory(self.name))

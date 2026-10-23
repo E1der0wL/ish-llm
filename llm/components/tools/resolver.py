@@ -2,6 +2,10 @@
 
 Adapt generic component exports to one Run's tool snapshot."""
 
+from llm.core.agents import AgentDefinition
+from llm.core.agent_views import AgentDefinitions
+from llm.components.processing import COMPLETION_PROCESSORS
+
 from typing import Protocol
 from llm.core.models import Project
 from llm.components.registry import ComponentRegistry
@@ -21,7 +25,12 @@ class CapabilityResolver(Protocol):
 
 
 class ComponentToolResolver:
-    def __init__(self, components: ComponentRegistry, *, data_factory=None, agents=None, engines=None) -> None:
+    UNBOUND = None
+    INVALID_TOOL_EXPORT = "Tool capability must export a ToolRegistry"
+    UNBOUND_AGENT_DOMAIN = "Agent domain is not bound"
+    UNAVAILABLE_CAPABILITY = "Required capability unavailable: {name}"
+
+    def __init__(self, components: ComponentRegistry, *, data_factory=UNBOUND, agents=UNBOUND, engines=UNBOUND) -> None:
         self.components = components
         self.data_factory = data_factory
         self.agents, self.engines = agents, engines
@@ -36,9 +45,9 @@ class ComponentToolResolver:
     def resolve_tools(self, project: Project) -> ToolRegistry:
         """전달된 Project 사본의 설정을 사용한다. 서비스 호출자는 최신 Project를 전달한다."""
         tools = ToolRegistry()
-        for exported in self.components.resolve(project, "tools", data_factory=self.data_factory):
+        for exported in self.components.resolve(project, ToolRegistry.CAPABILITY, data_factory=self.data_factory):
             if not isinstance(exported, ToolRegistry):
-                raise TypeError("Tool capability must export a ToolRegistry")
+                raise TypeError(self.INVALID_TOOL_EXPORT)
             tools.extend(exported)
         if self.agents is not None:
             from llm.engines.agent_tools import agent_tools
@@ -49,18 +58,18 @@ class ComponentToolResolver:
         """명시적으로 요청한 기능만 구성한다. 일반 기능은 제공자별 값의 튜플이다."""
         values = {}
         for name in names:
-            if name == "tools":
+            if name == ToolRegistry.CAPABILITY:
                 values[name] = self.resolve_tools(project)
-            elif name == "agents":
+            elif name == AgentDefinition.CAPABILITY:
                 if self.agents is None:
-                    raise ValueError("Agent domain is not bound")
-                values[name] = ({"records": self.agents.list(project)},)
+                    raise ValueError(self.UNBOUND_AGENT_DOMAIN)
+                values[name] = (AgentDefinitions(self.agents.list(project)).to_dict(),)
             else:
                 exports = self.components.resolve(project, name, data_factory=self.data_factory)
                 # 처리기 컬렉션은 제공자가 없어도 유효하다. 개별 도메인 이름을 알지 않는다.
-                if name == "completion_processors":
+                if name == COMPLETION_PROCESSORS:
                     exports = ordered_processors(exports)
                 elif not exports:
-                    raise ValueError(f"Required capability unavailable: {name}")
+                    raise ValueError(self.UNAVAILABLE_CAPABILITY.format(name=name))
                 values[name] = exports
         return values

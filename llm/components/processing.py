@@ -15,6 +15,9 @@ from asyncio import timeout
 from llm.core.contracts import Diagnostic, ResourceRef
 
 
+COMPLETION_PROCESSORS = "completion_processors"
+
+
 @dataclass(frozen=True, slots=True)
 class CompletionRecovery:
     """Application input-repair proposal boundary; editable indexes are not authority."""

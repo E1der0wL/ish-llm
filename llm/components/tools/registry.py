@@ -37,6 +37,7 @@ class Tool:
 
 # 런타임 함수와 인자 Schema를 등록한다. 저장된 Tool 선택과 분리된다.
 class ToolRegistry:
+    CAPABILITY = "tools"
     NAME_PATTERN = r"[A-Za-z0-9_-]{1,64}"
     INVALID_CLASSIFICATION = "Tool classification must be ToolClassification"
     INVALID_NAME = "Invalid or duplicate tool name"

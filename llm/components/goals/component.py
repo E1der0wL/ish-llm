@@ -1,5 +1,8 @@
 """목표와 진행 상태를 저장한다. Run은 소유하지 않고 참조만 한다."""
 
+from llm.components.processing import COMPLETION_PROCESSORS
+from llm.components.tools.registry import ToolRegistry
+
 from llm.core.implementation_parameters import ImplementationParameters
 
 from copy import deepcopy
@@ -10,7 +13,7 @@ from .data import GoalData, GoalStatus
 
 class GoalComponent(DefinitionComponent):
     name = directory = "goals"
-    capabilities = ("goals", "tools", "completion_processors")
+    capabilities = ("goals", ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
     data_class = GoalData
     schema = object_schema({
         "title": field("string", minLength=1), "objective": field("string", minLength=1),
@@ -61,10 +64,10 @@ class GoalComponent(DefinitionComponent):
         data = data_factory(self.name)
         if capability == "goals":
             return data
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             from .tools import goal_tools
             return goal_tools(data, write=ImplementationParameters.read(self.get_config(project)).policy.get("write_tools") is True)
-        if capability == "completion_processors":
+        if capability == COMPLETION_PROCESSORS:
             from .processing import GoalProcessor
             return GoalProcessor(data, self.get_config(project))
         return super().resolve_runtime(project, capability, data_factory=data_factory)

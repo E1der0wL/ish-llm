@@ -5,6 +5,33 @@ from dataclasses import dataclass
 
 from .agents import AgentDefinition
 from .contracts import JsonValue
+from .json_data import JsonObject
+
+
+@dataclass(frozen=True, slots=True)
+class AgentDefinitions(JsonValue):
+    """Agent capability projection; selected definition validation stays with its domain."""
+
+    UNIQUE_SELECTION = "{capability}/{identifier} must resolve to exactly one definition"
+    SINGLE_DEFINITION = 1
+
+    records: dict
+
+    def __post_init__(self):
+        JsonObject.validate(self.records)
+        JsonValue.__post_init__(self)
+
+    @classmethod
+    def from_source(cls, source):
+        return cls(source[cls.records.__name__])
+
+    @classmethod
+    def selected(cls, sources, identifier):
+        candidates = [export.records[identifier] for source in sources
+                      for export in (cls.from_source(source),) if identifier in export.records]
+        if len(candidates) != cls.SINGLE_DEFINITION:
+            raise ValueError(cls.UNIQUE_SELECTION.format(capability=AgentDefinition.CAPABILITY, identifier=identifier))
+        return deepcopy(candidates[0])
 
 
 @dataclass(frozen=True, slots=True)

@@ -2,6 +2,9 @@
 
 A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
+from llm.components.processing import COMPLETION_PROCESSORS
+from llm.components.tools.registry import ToolRegistry
+
 from llm.core.implementation_parameters import ImplementationParameters
 
 from llm.core.configuration_views import ConfigurationView
@@ -53,7 +56,7 @@ from llm.providers.requests import provider_schema, resolve_provider_options
 class LoopEngine(BaseEngine):
     """Common-model completion/Tool loop with a selected runtime adapter."""
 
-    required_capabilities = ("tools", "completion_processors")
+    required_capabilities = (ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
     checkpoint_name = "loop"
     CHECKPOINT_FORMAT = "loop-iterations-v2"
     steering_mode = SteeringMode.CONSUME
@@ -61,7 +64,7 @@ class LoopEngine(BaseEngine):
     def additional_capabilities(self, capabilities):
         """선택 Tool의 공개 runtime dependency 선언만 전달한다."""
         names = []
-        tools = capabilities.get("tools")
+        tools = capabilities.get(ToolRegistry.CAPABILITY)
         for name in tools.names() if tools is not None else ():
             handler = tools.get(name).handler
             if getattr(handler, "resumable_container", False) is not True:
@@ -91,7 +94,7 @@ class LoopEngine(BaseEngine):
                          **context.tools.execution_binding(context.tool_scope.binding() if context.tool_scope else None)})
         policy = ImplementationParameters.read(ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values).policy.get("final_review")
         if ReviewPolicy.read(policy) is not None:
-            values["final_reviewers"] = review_identities(context.capabilities.get("completion_processors", ()))
+            values["final_reviewers"] = review_identities(context.capabilities.get(COMPLETION_PROCESSORS, ()))
         return hashlib.sha256(json.dumps(values, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
 
     def bind_execution(self, context):
@@ -306,7 +309,7 @@ class LoopEngine(BaseEngine):
                 decisions=continuation.decisions if continuation is not None else None)
             if CheckpointContent.from_checkpoint(context.checkpoint).header["binding"] != self._resume_binding:
                 raise ValueError("Loop configuration or Tool definitions changed; start a new request")
-        reviewers = review_identities(context.capabilities.get("completion_processors", ())) if self.final_review is not None else []
+        reviewers = review_identities(context.capabilities.get(COMPLETION_PROCESSORS, ())) if self.final_review is not None else []
         review = LoopReview(reviewers, self.final_review, context.checkpoint) if reviewers else None
         if review is None and context.checkpoint is not None and "review" in CheckpointContent.from_checkpoint(context.checkpoint).header:
             raise ValueError("Final review cannot be disabled during Resume")
@@ -319,7 +322,7 @@ class LoopEngine(BaseEngine):
                 yield event
         # 도메인별 정책/저장은 처리기가 소유한다. 각 호출의 세션은 다른 Run/Agent와 공유하지 않는다.
         processor_context = replace(context, output_visibility=OutputVisibility.INTERNAL) if review is not None else context
-        async with CompletionPipeline(context.capabilities.get("completion_processors", ()), processor_context,
+        async with CompletionPipeline(context.capabilities.get(COMPLETION_PROCESSORS, ()), processor_context,
                 validate_parameters=self.completion_adapter.validate_processing, review_policy=self.final_review) as processors:
             if processors.reviewers != reviewers:
                 raise ValueError("Reviewer registration changed before execution")

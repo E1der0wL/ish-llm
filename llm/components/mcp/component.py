@@ -1,5 +1,7 @@
 """MCP 서버 연결 정의를 저장한다. 프로세스 시작과 네트워크 연결은 실행 어댑터의 책임이다."""
 
+from llm.components.tools.registry import ToolRegistry
+
 from llm.components.definitions import DefinitionComponent
 from llm.core.schema import metadata_schema, object_schema, implementation_schema, field
 from .data import MCPData
@@ -10,7 +12,7 @@ class MCPComponent(DefinitionComponent):
 
     name = "mcp"
     directory = "mcp"
-    capabilities = ("mcp", "tools")
+    capabilities = ("mcp", ToolRegistry.CAPABILITY)
     data_class = MCPData
     REVISION = "2"
     schema = {
@@ -46,7 +48,7 @@ class MCPComponent(DefinitionComponent):
         self.connector, self.revision = connector, revision
 
     def resolve_runtime(self, project, capability, *, data_factory):
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             return data_factory(self.name)._tools()
         result = self.resolve(project, capability)
         if capability == "mcp":

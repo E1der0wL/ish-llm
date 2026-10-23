@@ -4224,57 +4224,87 @@
   },
   {
     "path": "llm/core/agent_views.py",
-    "sha256": "1c85fc282440c9f7641e583527bb11d2a806577944bcd88feb37e967b8048fbe",
-    "reason": "Read all fields, factory, Reader, properties and Writer. Projection delegates current identifier/definition and revision checks to AgentDefinition, protects nested copies, and retains public AgentRepository snapshot dispatch. No storage envelope or execution binding fallback exists. Read the added AgentDependency projection and its Skill impact/dependency consumers. Fields are a distinct public response shape; only the current validated AgentSnapshot supplies its values, with no authority or storage.",
+    "sha256": "e98a7480d91e34bdaa2df16fc54f48414f73b464002a848f71e0f7d250404b18",
+    "reason": "Read all fields, factory, Reader, properties and Writer. Projection delegates current identifier/definition and revision checks to AgentDefinition, protects nested copies, and retains public AgentRepository snapshot dispatch. No storage envelope or execution binding fallback exists. Read the added AgentDependency projection and its Skill impact/dependency consumers. Fields are a distinct public response shape; only the current validated AgentSnapshot supplies its values, with no authority or storage. Capability follow-up: canonical identifiers do not close extension names. Agent capability records are projected and selected through AgentDefinitions, while selected domain validation and detached snapshots remain.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "9c5d93d9de9135484227bb25b1207e4d46ea9904f25901b865f8599adab93014",
+        "id": "c6cb1a92c907159168317059f8b4cdfa2afa9d40676c91a7cb08d3df5d9ff8b0",
+        "classification": "non_contract",
+        "owner": "AgentDefinitions",
+        "reason": "Dataclass generation flag or positional access after exactly-one selection validation; no default definition or authority is created."
+      },
+      {
+        "id": "c58e711e7d4938e944bba58705cddfb9bfb8a42ef6e07ea2ba55d10bbeb2abf8",
+        "classification": "non_contract",
+        "owner": "AgentDefinitions",
+        "reason": "Dataclass generation flag or positional access after exactly-one selection validation; no default definition or authority is created."
+      },
+      {
+        "id": "8e6a0fea406cb7e66b362a0bdba2173aee4062d16473eed8f6f9c5d2ddaf3fbf",
+        "classification": "declaration",
+        "owner": "AgentDefinitions",
+        "reason": "Canonical capability identity or Agent definition selection cardinality/diagnostic in its Owner declaration."
+      },
+      {
+        "id": "3fed73801673f65327a8da302b9c9c0ac1f574fe7ecf62527c3045b452fbf219",
+        "classification": "declaration",
+        "owner": "AgentDefinitions",
+        "reason": "Canonical capability identity or Agent definition selection cardinality/diagnostic in its Owner declaration."
+      },
+      {
+        "id": "86f40f3112a3e273a1390b2afde27945a018e00f552ac6916f25a91171438103",
+        "classification": "non_contract",
+        "owner": "AgentDefinitions",
+        "reason": "Dataclass generation flag or positional access after exactly-one selection validation; no default definition or authority is created."
+      },
+      {
+        "id": "1ddc960a0a2ce1afd862550279f736dd94c757f35207a79a8ac04acb55fd6b04",
+        "classification": "non_contract",
+        "owner": "AgentDependency",
+        "reason": "Dataclass generation flags for frozen/slots are Python class mechanics, not business policy defaults or wire values."
+      },
+      {
+        "id": "655b8f380e7d85093eba2b73a1ae2ad72c773e299f02ae7c8601aa4438b286a2",
+        "classification": "non_contract",
+        "owner": "AgentDependency",
+        "reason": "Dataclass generation flags for frozen/slots are Python class mechanics, not business policy defaults or wire values."
+      },
+      {
+        "id": "94a17e6b7680eccb5c83461b31c47d86b8de5b87873852c55f1a1d0cf1368b65",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "2e1b7269668c6f840df223cb4f9c20f534c34987d5257eb68a761b062cb5a300",
+        "id": "304f7e0934e74ef93a2c28d267d26e6bd11ed55e79b71e09e45f2a093903384b",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "36f645abda2bacec5ac75b6f08bbba8267f42631e0bf8f2595505ee549488a21",
+        "id": "e74367a708ad9e6f900176cf0a84ca16aa2626b9c454aa619cff1b06ce323ec7",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "e9345599dcafcfba635006a64cb7038c6dc4104b8b69072f400108359972fdeb",
+        "id": "20e43e87c627a050cd0feb6f51d492e0b89c35e75fb9fdaadec86d7268f8e9d6",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "2a23cc15065d74844b8aa962faf0e4213da95d528f992c125a37ef57cc18ea21",
+        "id": "d5341c611ccf8e09f7264ce03f5bd7c89ba0aa816da86cec04f36ddadf51680e",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "34cff155a880672ab053376b12fa9758dd70096804f06b3644d1345359297c19",
+        "id": "7329d3eaf2160a18ebef0cbc1ddb41c525d6fa80c48af10d6fe4eeda2979ba03",
         "classification": "declaration",
         "owner": "AgentSnapshot",
         "reason": "Owner declares its diagnostic before methods."
-      },
-      {
-        "id": "c37165b4d931e277ca2e7ed7cd96183db26205a67409cf3cf2c94b0b2934abf2",
-        "classification": "non_contract",
-        "owner": "AgentDependency",
-        "reason": "Dataclass generation flags for frozen/slots are Python class mechanics, not business policy defaults or wire values."
-      },
-      {
-        "id": "c1aa7320a1386c4958bd2dbcfef1ba42f6ba1242b55415c8811803b85c7d98c1",
-        "classification": "non_contract",
-        "owner": "AgentDependency",
-        "reason": "Dataclass generation flags for frozen/slots are Python class mechanics, not business policy defaults or wire values."
       }
     ],
     "contracts": [
@@ -4303,6 +4333,19 @@
         "tests": [
           "tests/llm/test_skill_references.py",
           "tests/llm/test_agent_resource_integrity.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "AgentDefinitions",
+        "declaration": "llm/core/agent_views.py",
+        "consumers": [
+          "llm/components/tools/resolver.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_capability_owners.py",
+          "tests/llm/test_agent_delegation.py"
         ],
         "complete": true
       }
@@ -5292,8 +5335,8 @@
   },
   {
     "path": "llm/components/tools/registry.py",
-    "sha256": "f2fab7163e9e47b7ca3924b7efa2f73b97d0dd51dbc2fbab7128373a4632a0b3",
-    "reason": "Reviewed the whole registration/selection/prepare file and its function, worker, MCP, builtin and Engine consumers. Registry owns registration name restrictions and errors; object Schema shape comes from ToolDefinition and Schema vocabulary from SchemaKeyword. Typed binding Owners serialize fixed output; selected records use mandatory validated Reader properties. Opaque name maps remain dictionaries. Public overrides, handler identity, constraint validation, source copies and authority order are preserved.",
+    "sha256": "dfda34647a6fe926b4dcded2d1f4582b7f096bea98298525b4e40908d9ca47d8",
+    "reason": "Reviewed the whole registration/selection/prepare file and its function, worker, MCP, builtin and Engine consumers. Registry owns registration name restrictions and errors; object Schema shape comes from ToolDefinition and Schema vocabulary from SchemaKeyword. Typed binding Owners serialize fixed output; selected records use mandatory validated Reader properties. Opaque name maps remain dictionaries. Public overrides, handler identity, constraint validation, source copies and authority order are preserved. Capability follow-up: canonical identifiers do not close extension names. Agent capability records are projected and selected through AgentDefinitions, while selected domain validation and detached snapshots remain.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -5333,163 +5376,169 @@
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "2ec5b8f14a212b2e08e237fd93aa35140165921d7d8a37915347bd2718bd51b4",
+        "id": "b95a1903581b1f53593c042c005d8a696e350311056d4e9852706d50e435f207",
+        "classification": "declaration",
+        "owner": "ToolRegistry",
+        "reason": "Canonical capability identity or Agent definition selection cardinality/diagnostic in its Owner declaration."
+      },
+      {
+        "id": "cc8e8eb5687183c4b8eea099c0ba2ed742897c5872e8e94fcaf31a653073cfef",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "2435041a018fae05aadcbd18eecf745f49ea6ce792aad52e01813557ace9b545",
+        "id": "aa5be3cf2d03e7ee9cacc71fee4079e6f7c68cde852b16d1a6259e2e5b999aab",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "be61132559a76b0b1f234b52c62b95a0c861cc66e17ccb0c881190ccbd83f63b",
+        "id": "15e3118e09771aa4f8c9f7e1261e16e0c9772c73f1ed8c1f92919bfac45ea1b5",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "d48db93e8eac2af1e35ac204589df487c89b0ac6ab9014c9bebfe91f66489b13",
+        "id": "58f5793860e8006175547c07685a4b76cb00228f0bc59eac9da0d35241370b8f",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "21fa67aa7a3a39a0169fadc171712a4433af7eb0d8b92800b79856c358c73105",
+        "id": "d2573488f8d4e4e6c95ac95df64b71a6aac41cca51731b21595f8f11f7e75c5f",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "43f6f6e829853d37cdbb985a9d45079cbc056af084f0aad1263900e7333608b5",
+        "id": "bffa0a3002f80a315de22e41f72b58fc655ba4b146af264d15c6cf4ed3cf4190",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "4af6244a42b461eac062ec93d2d57fc2b1f21c87dbecf93b05e771fdd6db037f",
+        "id": "09f53095994124d4303f9309b3d6052e99dc2fe5c7233ba8f4dc693be782feca",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "f8dd7a22b50279dc5926dbbdc7d5b76af81392d9db5c3a3c67513ae27def9f83",
+        "id": "53faf4e9a3d385b2913a3c9b37e451ddc27c8cef1dd30b77b8e5a8bf5d82fbd3",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "edf30e7ef1708b8525a074727a1f6f3f90666c4fa7e6f57b4ac6630c7bfcd279",
+        "id": "4b21bc55dbe666c3bbb5a05e7d01970ae880f3765dd268dc454842a06a2b8172",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "0f8974a2b475ad33dfa96469c65931276dd6817fc82a9cf02d1ff6b2f6f9f7ad",
+        "id": "53166876b71a447b191da1f7504015e4ad46d243ee27d47e69ad481c61be6688",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "ae6802a83ba7e33908dcf8cba2ad3efcc66b8817ff709f0f5c9fa68385483ac0",
+        "id": "aa688a67477d01f317df0e37ef3d906644b15a49002cab9b714de7ebadd8e499",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "0ee47f20eda3dd9df7a853836ec40e106f95e765bf341907ec5f993ecb4efcc1",
+        "id": "aeefd3a46ba80bdc16d16520d8065b6a627e59608234a65880ab020daa062aef",
         "classification": "declaration",
         "owner": "Tool and ToolRegistry",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "0b65b0e99827ea258b19bc97ca4342d5bdce1dc117a17de3a7af52e39fb5bd92",
+        "id": "8eba03e6b7ae2f0c7842b10d48c609b94fbc8b42336ccd91a761eff6a2ff6fcc",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "b2d392e2581a729b9a394d1197a17b48129dfa07bc538ba50b3abe718dfc1c54",
+        "id": "637a98a277254730b6c19594083c2221d41e5c3d2eda3960945e9f9b82e68cef",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "aa7e6da727e35bd13b08086c55bbd4d3c4f26a15c3ad1aca746827b6d2e8f53b",
+        "id": "7cf8d1dc9a7de8afe82a1e0dc6c3fa07c8b38de307a6752febbcc500a5897b92",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "6018bd720fa6fc24de67fa1cdc725272a85cd7ccdf9d2e5b775e3cae5f333155",
+        "id": "854ec2c704c41f61828e500288e806ca438e66187af7c61d23351abc9316c9f4",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
       },
       {
-        "id": "c516e3e45040a884bbe5a65a3ce36fa2f564ee127e763347e8e0fd3d458d4a27",
+        "id": "2dcb5d86ff01bd269a4be9faf48745355adb4dd43deeb58dd642f4d0e54fac2a",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
       },
       {
-        "id": "5b5a489e14cfb199f4765710342607ed59d598f87fb97b1e45960804b80e7c0c",
+        "id": "8206f8b3ab93955f240bc34007ce87624914f6932488036c6e931640ed71f72b",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "58016d8a0902938dda5faff1b4293e937e9f9988fa309e31a664c17af54d0fc3",
+        "id": "18f072af1bd4b9148201899b70cf0bed4cd45b6546454047573f7e24244bd5d3",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
       },
       {
-        "id": "9d49fe368c628961a1826d97fe4e0eb7ca0f2ad36ee5ddcc56dd469d4008ccde",
+        "id": "d198e63d9e73e51c770db70454d94a7c28ecee72a18cfd60cfdcc1bce7f23aff",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "170cd699f0aa18df170e417a8eee5aeca60a3d74996aaf6f17a089862d99e26f",
+        "id": "06c6c15c8612beea57634cf5fe01293a1c43adb0947eb1bc4d49f9a573739cdf",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
       },
       {
-        "id": "42690d71a21f295bed96dc36fac2f13221f387c21737e3936be6e89be65c7581",
+        "id": "896601df5c0f991a6a9af7d6dd528cbb1c1501ebe3ac0cebef44491585c1607b",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "6603b04ec81d74fadd8d1b44379c227e1c85d92e4b48264b5cee45a96880372f",
+        "id": "b7993f1186aec5e2ae8e949e287b05b273981c129170072df28bc779377417c9",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "4d866534b73792319de2c2536118c64cce149230a68b31a51b7bbedf2aa6e744",
+        "id": "857e40135ab0db22fcf8c70365bcff8f3f553e6eb21a4ef5acc152dad3213af4",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
       },
       {
-        "id": "9094c2a4d2cf611a1bd33c6514a88c13e7b27789ce3f98da2baa2fa869e9a5eb",
+        "id": "1c9501637cf48a2848a23a0537575bd3d526f64479075154f8f9e8801d71ad0f",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "5f66b820e9b7dd103234019f3ae6b673e33737ab5ac666694a675d0b9f7ddf2b",
+        "id": "ec55603c8bd3b1eea71d85a80d8e0e070f03172950ad4d9ddd9e9f91a3056123",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "9481af1d47a61660fca61e7bba03e7e58ff0e4f9c50c87ba393bc63e85902ef5",
+        "id": "25563b809454874f7a72b16d7f134fc16fe4c1c164ded1d15acc09442ffdf0b1",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
@@ -5632,6 +5681,181 @@
           "tests/llm/test_tool_constraints.py",
           "tests/llm/test_tool_selection_records.py",
           "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/resolver.py",
+    "sha256": "953b6e3dc36551ca75ef851610eeac269db5e2f96dbcdea342e1f2c199495870",
+    "reason": "Reviewed every capability path: tools require and merge ToolRegistry, Agent domain exports use typed records, completion processors retain ordered empty collections, and arbitrary application capability names remain open. Only requested names are resolved; missing required exports fail. Dynamic maps/opaque exports are intentional, not fixed wire records. Storage and model usage stay with Component owners.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "eaf1a022b7b36b77f52ba9e290d4f8bc2ccbfc928507036f0d6700968c9eec5a",
+        "classification": "non_contract",
+        "owner": "ComponentToolResolver",
+        "reason": "Python Protocol/type annotation or identity check for optional dependency absence; no stored default or policy is synthesized."
+      },
+      {
+        "id": "055ed5a325587b9a70480e4f69f82e930366fe5a21198dcedf907bdb36338b28",
+        "classification": "non_contract",
+        "owner": "ComponentToolResolver",
+        "reason": "Python Protocol/type annotation or identity check for optional dependency absence; no stored default or policy is synthesized."
+      },
+      {
+        "id": "88fbbae0eec2a952b0c7ff2c77765a33ad8cb0270a69ce4b8d2331fd89dfeb63",
+        "classification": "non_contract",
+        "owner": "ComponentToolResolver",
+        "reason": "Python Protocol/type annotation or identity check for optional dependency absence; no stored default or policy is synthesized."
+      },
+      {
+        "id": "beffa23b71d531b7babd90ec60a7790fdd2f6ab7887ee71122f598dd11542558",
+        "classification": "declaration",
+        "owner": "ComponentToolResolver",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "0cd6f5d65ad0430eba6a23b0a000b429e16a5b7faafb6833e8e9fc71bff39187",
+        "classification": "declaration",
+        "owner": "ComponentToolResolver",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "c5a82985352613a0a71e975da430964afcec657d042ec3777d8bef0b3372b710",
+        "classification": "declaration",
+        "owner": "ComponentToolResolver",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "72119fdfbfaaed16de5d21729a1e68592305d70862ff16ff8578d9a2866e5a7d",
+        "classification": "declaration",
+        "owner": "ComponentToolResolver",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "622d5acb9460813684006294e6f3535a1bc11763979f0e9586b3a2a16262ee22",
+        "classification": "non_contract",
+        "owner": "ComponentToolResolver",
+        "reason": "Python Protocol/type annotation or identity check for optional dependency absence; no stored default or policy is synthesized."
+      },
+      {
+        "id": "1ababc3b8943c02c476e60b163162afe88c18a80cd535a5527045f399427bfc8",
+        "classification": "non_contract",
+        "owner": "ComponentToolResolver",
+        "reason": "Python Protocol/type annotation or identity check for optional dependency absence; no stored default or policy is synthesized."
+      },
+      {
+        "id": "a638f343cf05ba6ee19730e950baeabd419f898f62de5833c4021d6d54e4f736",
+        "classification": "non_contract",
+        "owner": "ComponentToolResolver",
+        "reason": "Python Protocol/type annotation or identity check for optional dependency absence; no stored default or policy is synthesized."
+      },
+      {
+        "id": "0ce8a5989545c78602e51603eee2d2622c3f200e3a81dbcece43d5cdf637bf41",
+        "classification": "non_contract",
+        "owner": "ComponentToolResolver",
+        "reason": "Python Protocol/type annotation or identity check for optional dependency absence; no stored default or policy is synthesized."
+      },
+      {
+        "id": "0fc2ec7da1850d8a1de12a08d1aa9ea119562bc86a53c26f607b3d2e369ee339",
+        "classification": "non_contract",
+        "owner": "ComponentToolResolver",
+        "reason": "Python Protocol/type annotation or identity check for optional dependency absence; no stored default or policy is synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComponentToolResolver",
+        "declaration": "llm/components/tools/resolver.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/engines/base.py"
+        ],
+        "tests": [
+          "tests/llm/test_capability_owners.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/component.py",
+    "sha256": "272cdd13b4eefd603d2e618a1c1c2e93bfe39d75303b97f0e93aec7a2b4872de",
+    "reason": "Reviewed all configuration/schema, storage initialization, CRUD, prepare and runtime export paths. Configuration uses ToolSelection/ParameterLayout; package paths/readers/writers remain ToolPaths/package APIs. Class declarations own errors/layout flags/explicit prepare; no new default. Inventory and singleton definition tuple indexes are pure selection. Actual lookup/deletion/prepare and source effects are covered.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "039567f5cef7bb1aa34f448f34fa724ebd956ee3af96e8d89ce7ea3b848f07ce",
+        "classification": "declaration",
+        "owner": "ToolComponent",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "61b4415cc63e0eb9e083b96ce7f1bf5dbdfa1b5a582ca177a8cb4972ab54e1f2",
+        "classification": "declaration",
+        "owner": "ToolComponent",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "4b9183252ad0f3f02c2067f9a0eda7864862cb0b2261b1b36782ecb7f48bf1bb",
+        "classification": "declaration",
+        "owner": "ToolComponent",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "63bb84ebfb2c39074d347eeb2a6b7ea4336a86670f2b96616376c67296e2e027",
+        "classification": "declaration",
+        "owner": "ToolComponent",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "98ea2a6ef24db2f518a3765e1f9df029d4f089a104a1509b79dd575f064ba9aa",
+        "classification": "declaration",
+        "owner": "ToolComponent",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "ff176fa1f0343e6999096a693cff5a00d570d3a4ae832793b33925ab6794a51d",
+        "classification": "declaration",
+        "owner": "ToolComponent",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "0b5fefb0f0e57b447b18e7cef41098550d512121c30e6df78f229aa3c9fb27a3",
+        "classification": "declaration",
+        "owner": "ToolComponent",
+        "reason": "Owner declaration of diagnostics, optional dependency/identifier absence and unchanged package layout/prepare choices."
+      },
+      {
+        "id": "454ab2ce1131547a82a2b9f809f33dfe983b0db4df4fd7340dce48a49e944bdc",
+        "classification": "non_contract",
+        "owner": "ToolComponent",
+        "reason": "Positional access to the documented (manifest, records) inventory or the sole definition from an explicitly singleton registry; not a wire key or fallback."
+      },
+      {
+        "id": "e8f44a5bf4ed2cb1218b65c718ccfcdcf6a78e7acfb8c383ac14572c989a76be",
+        "classification": "non_contract",
+        "owner": "ToolComponent",
+        "reason": "Positional access to the documented (manifest, records) inventory or the sole definition from an explicitly singleton registry; not a wire key or fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolComponent",
+        "declaration": "llm/components/tools/component.py",
+        "consumers": [
+          "llm/components/tools/data.py",
+          "llm/components/tools/resolver.py",
+          "hub/backend/tools/builtin.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_data.py",
+          "tests/llm/test_tool_selection.py",
+          "tests/llm/test_tool_packages.py"
         ],
         "complete": true
       }

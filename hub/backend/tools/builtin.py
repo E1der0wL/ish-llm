@@ -1,5 +1,7 @@
 """Host lifecycle and Project selection for llm's built-in Tool collection."""
 
+from llm.components.processing import COMPLETION_PROCESSORS
+
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
@@ -18,7 +20,7 @@ from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
 
 class HubBuiltinTools(BuiltinToolComponent):
-    capabilities = ("tools", "completion_processors")
+    capabilities = (ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
 
     def __init__(self, file_root=None, *, test_root=None):
         file_root = str(file_root) if isinstance(file_root, str) else file_root
@@ -93,7 +95,7 @@ class HubBuiltinTools(BuiltinToolComponent):
             if key not in self.toolkits:
                 self.toolkits[key] = self._create(environment.cwd, dict(environment.variables))
             toolkit = self.toolkits[key]
-        registry = BuiltinToolComponent(toolkit, name=self.name).resolve(project, "tools")
+        registry = BuiltinToolComponent(toolkit, name=self.name).resolve(project, ToolRegistry.CAPABILITY)
         # All defaults that can alter effects participate in approval binding.
         return ToolRegistry(tuple(replace(tool, contract=replace(tool.contract,
             revision=revision_token({"contract": tool.contract.revision, "shell": identity})))
@@ -114,10 +116,10 @@ class HubBuiltinTools(BuiltinToolComponent):
                 if name != "test_workspace_execute" or shutil.which("bwrap") is not None]
 
     def resolve(self, project, capability):
-        if capability == "completion_processors":
+        if capability == COMPLETION_PROCESSORS:
             from ..execution.completion import FollowupProcessor
             return FollowupProcessor()
-        if capability != "tools":
+        if capability != ToolRegistry.CAPABILITY:
             return super().resolve(project, capability)
         toolkit = self.for_project(project)
         if toolkit.closed:
@@ -141,7 +143,7 @@ class HubBuiltinTools(BuiltinToolComponent):
 
     def resolve_runtime(self, project, capability, *, data_factory):
         registry = self.resolve(project, capability)
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             from llm.core.agents import AgentDefinition
             from .resources import authoring_tools
             for item in authoring_tools(data_factory(self.name).agents(), "agents", AgentDefinition.schema):

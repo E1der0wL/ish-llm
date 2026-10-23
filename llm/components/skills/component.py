@@ -1,5 +1,7 @@
 """Standard Skill capability adapter; native storage and record meaning have Owners."""
 
+from llm.components.tools.registry import ToolRegistry
+
 from llm.core.resource_references import ResourceTarget, StoredResourceReference
 
 from copy import deepcopy
@@ -15,7 +17,7 @@ from .data import SkillData
 
 class SkillComponent(DefinitionComponent):
     name = directory = "skills"
-    capabilities = ("skills", "tools")
+    capabilities = ("skills", ToolRegistry.CAPABILITY)
     data_class = SkillData
     schema = Record.SCHEMA
 
@@ -93,7 +95,7 @@ class SkillComponent(DefinitionComponent):
         data = data_factory(self.name)
         for identifier in self.list(project):
             data.validate_references(identifier)
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             from .tools import skill_tools
             from .views import SkillResourceRequest
             registry = self.resolve(project, capability)
@@ -113,7 +115,7 @@ class SkillComponent(DefinitionComponent):
         return refs
 
     def resolve(self, project, capability):
-        if capability == "tools":
+        if capability == ToolRegistry.CAPABILITY:
             from .tools import skill_tools
             self.get_config(project)
             return skill_tools(self.list(project))

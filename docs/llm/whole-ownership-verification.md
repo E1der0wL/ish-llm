@@ -1546,3 +1546,40 @@ Registry와 새 binding Owner 파일만 전수 판정을 추가했다. 모델 �
 이 소단계의 집중/관련/필수 안전성 결과를 보존하고 Tool 함수·선택/공통 사용량·등록 변경을
 묶어 고정 현재 SHA의 전체 Level 3를 진행한다. 통과 후에만 작업 브랜치에 Push하며 정확한 SHA
 원격 CI 결과를 실제 확인한다. 전체 미전환 범위는 계속 진행한다.
+
+
+## Component capability 선언·Agent 정의 export 연결 (2026-10-23)
+
+[capability 계약](capability-owners.md)에 따라 ToolRegistry·모델 처리 모듈·AgentDefinition의
+선언을 Component/Engine/Run/Hub 72곳에서 참조한다. 최초 순수 참조 치환 21개 파일은 추가
+선언/import를 제외하고 정규 값을 펼친 AST가 원본과 동일했다. 이후 AgentDefinitions의
+필수 records Writer/Reader·선택을 연결하고 ToolComponent의 기존 layout/prepare 값과 진단을
+선언부로 옮겼다. 공개 확장 capability 이름·요청한 기능만 구성·처리기 순서·저장/준비/효과
+시점은 유지한다. 다른 도메인의 정의 export와 전체 파일 미전환은 별도로 남는다.
+
+기존 처리/Component/Agent smoke 46개는 30.905초, Agent export/ToolData/선택 smoke 21개는
+12.462초, 새 독립 이름·열린 확장·요청-only·wire·사본·누락/중복/비JSON 시험 3개는 0.001초에
+모두 pass/exit 0이었다. 아래 공식 실행과 중복 합산하지 않는다.
+
+- `whole-capability-01`: 발견/시작/pass 195/195/195, exit 0, 113.161556초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-capability-01/llm.json --modules tests.llm.test_capability_owners tests.llm.test_components tests.llm.test_completion_processing tests.llm.test_memory_processing_config tests.llm.test_goals tests.llm.test_refinement tests.llm.test_vision tests.llm.test_agent_delegation tests.llm.test_agent_resource_integrity tests.llm.test_rag_components tests.llm.test_tool_data tests.llm.test_tool_selection tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `e092c21991251cd99b24753c3363c342ed0311a0c2bf61480814a58c3fd075d5`, input `e8a4804cdb20d11c4fd25ff220c668d614f582e0982c58edb18be99b81ab5f07`.
+
+- `whole-capability-hub-01`: 발견/시작/pass 16/16/16, exit 0, 126.442180초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-capability-hub-01/hub.json --modules tests.hub.test_components tests.hub.test_context tests.hub.test_resource_tools tests.hub.test_agent_graph tests.hub.test_agent_selection`.
+  source `e092c21991251cd99b24753c3363c342ed0311a0c2bf61480814a58c3fd075d5`, input `e8a4804cdb20d11c4fd25ff220c668d614f582e0982c58edb18be99b81ab5f07`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. LLM은 Component/처리기·
+Memory·Goal·Refinement·Vision·RAG·Agent·Tool 구성 및 필수 승인·예산·효과·Checkpoint·삭제
+안전성, Hub는 Component/환경/관리 Tool·Agent 선택 경로를 검증했다. 각 실행 전후 manifest가
+같으며 Python 3.12.14/Clang·고정 Host·의존성·namespace/X11은 이전 환경과 동일하다.
+
+정적 발생 추가/삭제는 없다. 변경 의존 근거 38건과 기존 두 파일의 전수 판정을 재검토했고
+Resolver/ToolComponent 두 파일만 새 전수 판정을 추가했다. 감사 자체 시험 16개 및
+capability-auxiliary의 S1–S7 145건·문서·R3·SDK·양 suite 환경은 각각 pass/exit 0이다.
+현재 465개 파일, 미검토 397개, 미분류 29903개,
+incomplete 계약 2개이며 전체 완료는 여전히 차단된다.
+
+이 소단계는 Level 2다. 실행 중인 고정 SHA 93794a2의 group11 전체 회귀에는 이 후속 변경이
+포함되지 않는다. 다음 현재 통합 Level 3에 포함하고 성공 후 Push/정확한 SHA CI를 확인한다.
+남은 실제 worker 경계와 Tool/다른 도메인의 고정 구조·리터럴 전환도 계속 진행한다.
