@@ -94,13 +94,27 @@ class SelectionRecordTests(unittest.TestCase):
 
         registry = ToolRegistry([Tool("selected", "test", {"type": "object"}, Handler(),
                                       contract=TEST_CONTRACT)])
-        registry.validate_selections(SimpleNamespace(checkpoint=None))
-        registry.validate_selections(SimpleNamespace(checkpoint={"records": {"@tool-binding:call": STORED}}))
+        def context(checkpoint):
+            return EngineContext(SimpleNamespace(id="p"), SimpleNamespace(id="s"),
+                                 SimpleNamespace(id="r"), (), checkpoint=checkpoint)
+        registry.validate_selections(context(None))
+        registry.validate_selections(context({"records": {"@tool-binding:call": STORED}}))
         for checkpoint in ({}, {"records": {"@tool-binding:other": STORED}},
                            {"records": {"@tool-binding:call": {k: v for k, v in STORED.items()
                                                                  if k != "node_type"}}}):
             with self.subTest(checkpoint=checkpoint), self.assertRaises((KeyError, TypeError, ValueError)):
-                registry.validate_selections(SimpleNamespace(checkpoint=checkpoint))
+                registry.validate_selections(context(checkpoint))
+
+    def test_nested_payload_uses_outer_usage_without_duplicate_storage(self):
+        root = EngineContext(SimpleNamespace(id="p"), SimpleNamespace(id="s"), SimpleNamespace(id="r"), ())
+        nested = EngineContext(root.project, root.session, root.run, (), checkpoint_scope="child")
+        self.assertEqual(nested.read_tool_binding(PAYLOAD).to_dict(), PAYLOAD)
+        with self.assertRaises(ToolUsageError):
+            root.read_tool_binding(PAYLOAD)
+        with self.assertRaises(ToolUsageError):
+            ToolUsageCheckpoint.read_records({"envelope": PAYLOAD})
+        with self.assertRaises((TypeError, ValueError)):
+            nested.read_tool_binding({k: v for k, v in PAYLOAD.items() if k != "selection"})
 
 
 class SelectionEffectTests(unittest.IsolatedAsyncioTestCase):

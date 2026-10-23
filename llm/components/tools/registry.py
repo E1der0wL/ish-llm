@@ -102,7 +102,7 @@ class ToolRegistry:
         for key, value in CheckpointRecords.records_or_empty(context.checkpoint).items():
             if not ToolBindingRecord.is_entry(key, value):
                 continue
-            record = ToolBindingRecord.from_checkpoint(value)
+            record = context.read_tool_binding(value)
             record.require_key(key)
             selected = record.selection
             handler = self.get(selected.tool).handler

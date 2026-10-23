@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import sys
+from llm.services.infrastructure.process_state import ProcessStat
 
 
 class DiagnosticTools:
@@ -15,14 +16,7 @@ class DiagnosticTools:
 
     @staticmethod
     def _stat(pid):
-        raw = (Path("/proc") / str(pid) / "stat").read_text()
-        # comm에는 공백과 괄호가 들어갈 수 있다. 마지막 ')' 뒤부터 필드 3이다.
-        left, right = raw.index("("), raw.rindex(")")
-        fields = raw[right + 2:].split()
-        return {"pid": int(raw[:left].strip()), "name": raw[left + 1:right], "state": fields[0],
-                "ppid": int(fields[1]), "process_group": int(fields[2]), "session": int(fields[3]),
-                "tty_number": int(fields[4]), "foreground_process_group": int(fields[5]),
-                "start_ticks": int(fields[19])}
+        return ProcessStat.read(pid).to_dict()
 
     def system(self, arguments):
         """작업 루트의 디스크와 커널/메모리 상태를 반환한다. 환경변수 전체를 수집하지 않는다."""

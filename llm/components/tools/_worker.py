@@ -8,6 +8,22 @@ import sys
 import types
 
 
+class ProjectToolWorker:
+    MODULE_PREFIX = "_ish_llm_tool_"
+    CODE_MODE = "exec"
+    ENTRY_FUNCTION = "main"
+    ENTRYPOINT = "__main__"
+    ABSENT_FUNCTION = None
+    SOURCE_CHANGED = "Tool package changed after resolution; resolve again"
+    DESCRIPTOR_CHANGED = "Tool descriptor changed after inspection"
+    STDOUT_FD = 1
+    STDERR_FD = 2
+    PROTOCOL_MODE = "wb"
+    PLUGIN_ROOT_ARGUMENT = 1
+    PLUGIN_ROOT_PRIORITY = 0
+    SHARED_LIB_PRIORITY = 1
+
+
 def load(request):
     from llm.components.tools.function import function_tool
     from llm.components.tools.packages import ToolPaths, read_package
@@ -17,13 +33,13 @@ def load(request):
     data = ToolPackageSource.read(read_package(ToolPaths(source.parent.parent, request.project_id), request.tool_name))
     if (fingerprint(data.source) != request.source_hash or
             fingerprint(data.requirements_text) != request.requirements_hash):
-        raise ValueError("Tool package changed after resolution; resolve again")
-    identity = "_ish_llm_tool_" + request.source_hash
+        raise ValueError(ProjectToolWorker.SOURCE_CHANGED)
+    identity = ProjectToolWorker.MODULE_PREFIX + request.source_hash
     module = types.ModuleType(identity)
     module.__file__ = str(source)
     sys.modules[identity] = module
-    exec(compile(data.source, str(source), "exec"), module.__dict__)
-    return function_tool(request.tool_name, getattr(module, "main", None))
+    exec(compile(data.source, str(source), ProjectToolWorker.CODE_MODE), module.__dict__)
+    return function_tool(request.tool_name, getattr(module, ProjectToolWorker.ENTRY_FUNCTION, ProjectToolWorker.ABSENT_FUNCTION))
 
 
 async def dispatch(request):
@@ -42,11 +58,11 @@ async def dispatch(request):
             # 같은 source라도 import 시 동적으로 만든 default/contract가 바뀌면
             # 승인받은 descriptor와 다른 함수를 실행하지 않는다.
             if descriptor_fingerprint(descriptor) != request.descriptor_hash:
-                raise ValueError("Tool descriptor changed after inspection")
+                raise ValueError(ProjectToolWorker.DESCRIPTOR_CHANGED)
             # 읽기 전용 호출 출처/idempotency snapshot만 전달한다. 실행 scope/원장 owner는 부모다.
             from llm.services.runtime.tools import ToolCall
             from llm.services.runtime.tool_context import ToolCallContext
-            call = ToolCall(**request.call) if request.call is not None else None
+            call = ToolCall.from_dict(request.call) if request.call is not None else None
             with ToolCallContext.scope(call):
                 value = await tool.handler(request.arguments)
         else:
@@ -72,18 +88,18 @@ async def dispatch(request):
 def main():
     request = json.load(sys.stdin)
     # fd 1/2 출력(os.write 포함)은 capture pipe만 사용한다. protocol은 별도 fd다.
-    protocol = os.fdopen(os.dup(1), "wb")
-    os.dup2(2, 1)
-    sys.path.insert(0, sys.argv[1])
-    from llm.core.tool_worker import ToolWorkerRequest
+    protocol = os.fdopen(os.dup(ProjectToolWorker.STDOUT_FD), ProjectToolWorker.PROTOCOL_MODE)
+    os.dup2(ProjectToolWorker.STDERR_FD, ProjectToolWorker.STDOUT_FD)
+    sys.path.insert(ProjectToolWorker.PLUGIN_ROOT_PRIORITY, sys.argv[ProjectToolWorker.PLUGIN_ROOT_ARGUMENT])
+    from llm.core.tool_worker import ToolWorkerRequest, ToolWorkerWire
     request = ToolWorkerRequest.read(request)
     if request.plugin_lib:
-        sys.path.insert(1, request.plugin_lib)
+        sys.path.insert(ProjectToolWorker.SHARED_LIB_PRIORITY, request.plugin_lib)
     response = asyncio.run(dispatch(request))
-    protocol.write(json.dumps(response, ensure_ascii=True, allow_nan=False).encode())
+    protocol.write(ToolWorkerWire.encode(response))
     protocol.flush()
     protocol.close()
 
 
-if __name__ == "__main__":
+if __name__ == ProjectToolWorker.ENTRYPOINT:
     main()

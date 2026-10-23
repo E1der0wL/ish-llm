@@ -2,7 +2,6 @@
 
 from llm.core.models import RunErrorCode
 import asyncio
-from dataclasses import asdict
 import json
 import os
 from pathlib import Path
@@ -169,7 +168,7 @@ class ProcessToolRunner:
             await drain_on_cancel(cleanup())
 
     async def _execute(self, call):
-        code, stdout, stderr = await self._launch(self._command(call.name), asdict(call))
+        code, stdout, stderr = await self._launch(self._command(call.name), call.to_dict())
         if code != 0:
             raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, f"Tool process exited with {code}: {stderr.decode('utf-8', errors='replace')}")
         try:

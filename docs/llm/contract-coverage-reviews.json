@@ -3360,234 +3360,258 @@
   },
   {
     "path": "llm/core/tool_worker.py",
-    "sha256": "d3cebca330dfa406c5e8dc3d76e3f03856ae1b0a924cb80e51abd8735b3e38e4",
-    "reason": "Read the whole file, parent encoder/decoder, child bootstrap/load/dispatch and fingerprint consumers. Fixed IPC structures have typed internal values, one field declaration/Reader/Writer and detached inputs; nested Tool definitions delegate to their Owners. Unknown failure classifications are untrusted observations, not default authority. All runtime literal candidates are dataclass generation flags.",
+    "sha256": "59be80961d55d3e47d5b6ca100a2cc7118d7cdd6027c28c325a9ffe27a16a60d",
+    "reason": "Read the whole file, parent encoder/decoder, child bootstrap/load/dispatch and fingerprint consumers. Fixed IPC structures have typed internal values, one field declaration/Reader/Writer and detached inputs; nested Tool definitions delegate to their Owners. Unknown failure classifications are untrusted observations, not default authority. All runtime literal candidates are dataclass generation flags. Wire follow-up: existing protocol AST is unchanged. ToolWorkerWire owns finite ASCII JSON/UTF-8 and canonical descriptor order without changing errors or bytes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "60fe972f13806bf9a24b4ac88243d7b5ee9ffe4d86a23b20a60ef9a04732bb7e",
+        "id": "97df37473ff953ce6646b702e29c16de7f40aa5bcee88158e55e21fe2ea14087",
+        "classification": "declaration",
+        "owner": "ToolWorkerWire",
+        "reason": "Protocol encoding/JSON finiteness/descriptor canonical order declared before serialization methods."
+      },
+      {
+        "id": "cd4c258e9a7cfe86854bfcea3e84fd6b3dd951f366f164217569b3a59ef755f8",
+        "classification": "declaration",
+        "owner": "ToolWorkerWire",
+        "reason": "Protocol encoding/JSON finiteness/descriptor canonical order declared before serialization methods."
+      },
+      {
+        "id": "07e53abf78cb67dcb3e9ef221908760a0aa94c1319296a46e264aed26cb4e418",
+        "classification": "declaration",
+        "owner": "ToolWorkerWire",
+        "reason": "Protocol encoding/JSON finiteness/descriptor canonical order declared before serialization methods."
+      },
+      {
+        "id": "7209f095e009a7ffeed9b17751e5764c9b63fa6a9cc8dd6b7b25ad728be63e0f",
+        "classification": "declaration",
+        "owner": "ToolWorkerWire",
+        "reason": "Protocol encoding/JSON finiteness/descriptor canonical order declared before serialization methods."
+      },
+      {
+        "id": "08090b591b4ca2ab463b89c0aa46e766a059c23845b07d92894cab5e9aba10a7",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "28fef601a142e70b0a1ddd6efdb48359d3e61979f8f84429f935db2cbe9ef563",
+        "id": "5cdf7e8143e738e4733b4ba1702cf8401fd6b037161da820b5b23949c4d248e9",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "1ccb77c30ad061466e73d558563a3d054472f8afaa9d2b7bc4041f4ace15ea12",
+        "id": "80d124c910ef9123977ca8b3a85f4d092f7821b1c37103adffb22a8600ef4bdb",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "e5377dd6a4bbb4ac6fcae1948d42bca0462d452e84c0a346bd7e267e574991e3",
+        "id": "c585171bc94e06c511984557e159ec6ffee368b5ec307a3d16e87e37d60b9848",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "e0aa38b58c4d7c733ba2099595b14c870f6891f6411fa3590911415c75df5396",
+        "id": "e97682ff0a401fa408a0ba3a216bb6484cc87bb1399e3cb631539adae7085c42",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "1ec432a90eee32b68e6c8523114f0dbc7641912e1aa256023c12d14536c10338",
+        "id": "ee3b501c1078391bade8edb094b098dc92c634c9a4f6c9e70b0d084444628a8d",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "c197518138ac0ed64d699bb574249514eac873deeeb8d276a310ab7b2b6e1a4e",
+        "id": "2bb552b428b07b4154d93a4bd803198149a2e460ba1ce4627137c4a30c69efd6",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "56adcce0b2cd78cdb5a9624b283b80b9577f894e8d54cbb5804bac1eaae097e0",
+        "id": "b5e49ddb451d608635176f3eadf1337db2aedf8c306539a6a7702f1f9f21b807",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "d91395d81c27ea15eb7591becd1002e3f89e54f0bd318895056fca61d60513f3",
+        "id": "14b5ac140289d6bf35f8f145bbf0bf10c282055396de351abed01ee453be3d13",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "c53edd6e7ed388ac2c84705ae57dfbddb6795657410f1bbfb186db70fc342d9e",
+        "id": "dd75c35e36a43352a6b2ddd027113725f1f2e7a41a47f7dc45149e665e455f4a",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "f32a5c16c4abe1ea123b3ec9e273961c28fad69a7b94767b136b501ea48d9302",
+        "id": "59f6af187e6fef0b30554b8e0d3230ec7a165de5ddc74ce97f7508e929cbc82b",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "127195b50c6b7c95e10c991e4142f3b9fe49f0ec65846bddb437735933168d96",
+        "id": "125565ad88daa61887e06824444b7fb7fcf0f410298fe66df4c1241041445994",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "2aad239b9d51016eb5663b7e55e3a2a0ba756ba600d3a01688817c9e0e7b37d8",
+        "id": "0ab154d304bcc106ac9aa952e6cc3eda522ffc0c1c359fd5a378c17a375611b6",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "ef9f46c9658616d5bb5b9197f04afdd62ddd8fbb93b3f96cc3d774f0ec851000",
+        "id": "ce367c2dc63fd289f78f6ab9e8b364ff532c597fcb187d57e609b2c182211872",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "d70fda7bb2c242cf6bfc5e7c1878410fc065c7fa29250fca0b85241b6cdcfd95",
+        "id": "8bac86de99b51ffd874fe558b88e1a9aefa8bd93441463440aad7915511ebb65",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "c1f790da5e4c3af112e86927e1ebfc80902c0167af139ef54ced4493b88e39b6",
+        "id": "9cc41a5d38cd749521528b0d5211c482855758624f9eaa325a3f39ecd899864b",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "33960b16173e7a6a06d29e8cc89c567e38c12c43a7e26f9d5a616088949d2f44",
+        "id": "e2be51fe54ccc13996c272cc5c35245e77d061ddd3bd0481c3d0b42e7f481be3",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "af132b6d28c282e931730e7b6926eeee6549cea56bb2ad437d7bac367ca9e592",
+        "id": "f603cdd968485c052479fa12a390f9abf39ce5c5ad56052c7588e94dbba376e1",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "40ec354e3049a7f8e33b26dbb038d867637b9b8ca7419a196866b4be9d39e8c9",
+        "id": "ecf4048362665048208e5b87f7372439a919c1f8813abacea3c7c5cfc0871c9c",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "024b783fe89bfbfb1be8267f75c8b5af808a328b705ea6753748c41412cddcd7",
+        "id": "7694a60b785052c45a9a3e807c126f164d0b8abf775c09619a0f55dbace176eb",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "1f41f1bd2caf6bc857f4b19235279fcb2268605a44c959d60da456bf7d42c69c",
+        "id": "e34450e590efc284bc7740870d891d7c8768d8c188c7fa99d813a3d85d3270e4",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "941651dbd44d83d004730ce7b2504ff5499934dd83e19bfb488793ca903fe545",
+        "id": "bbf07b98fe3d95311fdd6da9492487948d29ecd75e1a2b35fc34f191dff4a40c",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "4c10797983dd99ac00c1d419dafd4cebc905a2f8f5d72065b72bde4922532dbf",
+        "id": "81a7d5e66debe80e19317962a4d0c5d6d01ceb11ee22fa3935a3dd926446866d",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "bb081add899150f6b710beefde015f37dd6728c1e52eee1c568894cdb8448474",
+        "id": "815b24e2b6def8c06cfaf812d3daef3722f475a3d558803082dd4c2be346b896",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "1fa3f537e473891a23914c9ec3b1937df57b578047996be1101652778f7850cb",
+        "id": "ed7f2aa7c82d4d643e92564261ca27eead132dfec6dc1bf5b2900ce765f3999f",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "d8828217481f97915a52a5e61ffe40fa314b731450526042f09da3c1ca89804d",
+        "id": "e30d2bd05cef078c16c83aa8e827faa1aecc2521b5db367fc85279c228be604b",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "64badffaf0cc46bfeae017d595e3a630050c8794a386f482d0a3419ca998b5d6",
+        "id": "aeefa1b825f754e5f669bfdb8ed8e9429c721454e5b95fd1d741f0134c65c0b4",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "1eda2fb74ccfe9363708dfe00dc52c7759314383d4b3ab7a10cfeaad47959416",
+        "id": "12b8b597cf3556a9fd1083194c0b9718749fa3efab748f71450f2456111cf968",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "53fc5c79553324664b81a13b7aeb777c9014e951b1176948a5e06b64ba760cb8",
+        "id": "c13a434364c93782a612a5a249872a3051a73969b165e3507f257189c6539c0b",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "cee3cf198306c2111a608f5e6d4ab5ee8d8397d8841d9b923f5c47840b9ea067",
+        "id": "48c5912255cb7be5c8380b0a70ef61bb0ac27c41fca9f7514b06595257a5b6b1",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "2b182e331ca5fa794a2fb7cf2708877c3fbcb49b982bd48908d0d01c981b6236",
+        "id": "fbce3b581f129d5e0672562f83b6b1019995be48f2fc9b0758bd63d60c8bb54d",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "c8124291c218cecc47ea764c5fe2ae50aab39e576ee0687cbf8edb9433c98da7",
+        "id": "9de1c2c62e7f8d34689c33fa4a9d3bb085635e2abf7590f86ebf76f88d9d01db",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "67b87919a286ec2fdca99667fea26b46964fc2cd5e34381a3b68c563d9eb04ff",
+        "id": "187330dd2952caa4a9c1516dce421415060c2239ebb3124e539c5f63c08922e0",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "1cbf03f6be1fa29e6eb6e1b96bfda847b9367c5bf2a1841d838d6d539198a785",
+        "id": "895b874ab81f3bf53d603569c8ab1427a2f6c96626b078931ee970e641a27fa6",
         "classification": "non_contract",
         "owner": "Tool interpreter protocol values",
         "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
       },
       {
-        "id": "3b9b82393a668f0d2edd6c9c91df4cdb6cb5511a00313c087b25f896c62788a4",
+        "id": "919c95ab2ad6201c4ab5032dbb07c0ce122757dcdc8368727f1d8304db4fe322",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "d5f8845a2c437d761c22afcf8ca3d131163ffe4bae14f702e19e347a8012fd3f",
+        "id": "3fcf62ba4ef1c3f4d195b17972670ab6b9f6cff09dd0aa7723337cd4fd9aa8e2",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "586d0e713766f2db749d04f819e29eaf7f7d2e6833b2c0f041089f9a8489e5bb",
+        "id": "e0369c0ecb397d739cabd99305255f1b3dcba066a0f786ea9cc4336d50c87659",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "3878d1422d704e26ab61b6a8b368a728937b1ee02a310937cfdcf1eadf3fa0bc",
+        "id": "129e2d2d095f0bebcba67f75438f9b83c4e0033e8e5411c353ffc1e641332cc4",
         "classification": "declaration",
         "owner": "Tool interpreter protocol values",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
@@ -3605,6 +3629,19 @@
           "tests/llm/test_tool_worker_protocol.py",
           "tests/llm/test_tool_workers.py",
           "tests/llm/test_tool_package_integrity.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolWorkerWire",
+        "declaration": "llm/core/tool_worker.py",
+        "consumers": [
+          "llm/components/tools/_worker.py",
+          "llm/components/tools/process.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_tool_worker_protocol.py"
         ],
         "complete": true
       }
@@ -5335,8 +5372,8 @@
   },
   {
     "path": "llm/components/tools/registry.py",
-    "sha256": "dfda34647a6fe926b4dcded2d1f4582b7f096bea98298525b4e40908d9ca47d8",
-    "reason": "Reviewed the whole registration/selection/prepare file and its function, worker, MCP, builtin and Engine consumers. Registry owns registration name restrictions and errors; object Schema shape comes from ToolDefinition and Schema vocabulary from SchemaKeyword. Typed binding Owners serialize fixed output; selected records use mandatory validated Reader properties. Opaque name maps remain dictionaries. Public overrides, handler identity, constraint validation, source copies and authority order are preserved. Capability follow-up: canonical identifiers do not close extension names. Agent capability records are projected and selected through AgentDefinitions, while selected domain validation and detached snapshots remain.",
+    "sha256": "13dd2b0efbc99a9cc605e32012634b5375c51f90d0a5d7f187eecdfd3632b278",
+    "reason": "Reviewed the whole registration/selection/prepare file and its function, worker, MCP, builtin and Engine consumers. Registry owns registration name restrictions and errors; object Schema shape comes from ToolDefinition and Schema vocabulary from SchemaKeyword. Typed binding Owners serialize fixed output; selected records use mandatory validated Reader properties. Opaque name maps remain dictionaries. Public overrides, handler identity, constraint validation, source copies and authority order are preserved. Capability follow-up: canonical identifiers do not close extension names. Agent capability records are projected and selected through AgentDefinitions, while selected domain validation and detached snapshots remain. Context boundary follow-up: EngineContext selects root stored-record versus scoped payload reading. Root usage remains mandatory and nested outer usage is not copied into child payload. Key/identity/selection checks are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -5856,6 +5893,586 @@
           "tests/llm/test_tool_data.py",
           "tests/llm/test_tool_selection.py",
           "tests/llm/test_tool_packages.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/process_state.py",
+    "sha256": "2a5dbb386aa3b664fa1db80ee58abd16ec21d77b89eb4e0ce6880d562c84b81f",
+    "reason": "Reviewed the complete /proc stat codec, identity and terminal observation. Field positions are metadata on one dataclass; read and diagnostics serialization share it. Parentheses/spaces, malformed observations and exact PID/start identity are covered. This observes owned process state without authorizing execution.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1e72948f4f0a993b90c85775c5a798709998f9b0796975730851cd59f49739cb",
+        "classification": "non_contract",
+        "owner": "ProcessStat",
+        "reason": "Python dataclass generation flags; fields and kernel/wire values are declared separately."
+      },
+      {
+        "id": "26d9bd36f9d64101f6b7af224e87f33ff5cc9605c5f71ede763e73d519071a41",
+        "classification": "non_contract",
+        "owner": "ProcessStat",
+        "reason": "Python dataclass generation flags; fields and kernel/wire values are declared separately."
+      },
+      {
+        "id": "0b6c4e1eff432c1e13494672f109ef40ed2eed34eea79aea1260fe416b70b41b",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "6dad9c6956a057cb4c4505a7688cb915bf46095d193678e20536a584ac59cf88",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "a91f839b7e69dee537ec7c05cb7b0f670f7a55fe58060fd0f594b900eb778c21",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "cae115fa6d00eed959e75df6f3f5ff68232a43fff90ff704b30cae56fc6f6607",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "0d779e12c1a9a43da7bf7dbe491bb2edb54e694fee725f6c500794fabe381778",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "d62dc4d1c9d1616e96893c9211f25734570cd1485c09cf83d772b2cfd572ce38",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "252540078d00b638857cf78e1a77298d60a01b01f1b2db7b545f1446ed5444b1",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "c0ddb77a9878044af52e5b0472ee65c8b1dfc34c41593a0afab30b22af9683c4",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "238332e30b5d47b143d5637498a8efb723a6a350c248cbaa7899267708462b17",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "c9a88c4d7020804464d81217c24105655f008b2f6c1e7a470ff0dc549010bfe3",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "e0d993caabd19db6d23a7ecce473875e31a3d2cc1d182b37eaa682ddc69dd62d",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "c4a1ca70938dde81e5b4bff00c6a61bd9b3cc0574029fd506e87bc3113f03a18",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "31b03fb93f63bff1b391afbc677d3aa66a340de954ab141887aa31fd392ca0d2",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "ea739b577cd29216b903a4d0923e0724b233c6dfcf26c15b6c61c4a7020fa139",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "c4feafe092a54a23afec31559f1dee9c120b7bc3088a30a4a86b7f686e47360b",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "7c4769e4f6171c4eb29aebc0a2637430ca5e8050f28b645480eca0ebc6532517",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "913414d36522284b50b334a97f5ab0df6593a66ce4a8f6181a9a79ca2a454b23",
+        "classification": "declaration",
+        "owner": "ProcessStat",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProcessStat",
+        "declaration": "llm/services/infrastructure/process_state.py",
+        "consumers": [
+          "llm/services/infrastructure/processes.py",
+          "llm/components/tools/builtin/diagnostics.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_process_group_cleanup.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/processes.py",
+    "sha256": "b7bddbd318fb60526d8c06d7fe0698b87085e1bcc1bff233dcb202c2e6f0c38d",
+    "reason": "Reviewed all cancellation registration/locking and group kill/wait paths. Cancellation callbacks retain same registration/finally behavior. Before/after group observations include PID/start identity; one original group SIGKILL is always attempted even if pre-observation fails. Only disappearance, changed identity/group or terminal state ends waiting. Explicit deadline includes descendant wait; no deadline is invented. Unreadable evidence raises. Real child failure injection proves leader wait alone is insufficient.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bae3344cc8892f5a49b8404f58828b10b6ae6878ef7ae4f454c013670c1db719",
+        "classification": "declaration",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "6be60c8e15d6ffb4a66b9cc631e44c0f8934d4c4321710d46626c94f344ea85b",
+        "classification": "declaration",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "fd3f96faab40221e94cbce10df1d40781ddf7a7a908776d46528bf012b8224fa",
+        "classification": "declaration",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "45b6bc06bf719d1fd4062c6889be298fc0412ca5960e22222075ff64b2b28b22",
+        "classification": "declaration",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "b8611c86568e865da9f1ea110eb7950b6db9039aa8a839685707a786a3cb6775",
+        "classification": "declaration",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "ba1547dc8ff012047e91e1d2e7048ebf7a07d314314bdbf83c2b3d45cb264e11",
+        "classification": "declaration",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "119a25f37a84de9fb1087411dc52047d8f0e2b7066b284834cd70bdff5d0697d",
+        "classification": "declaration",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "dd1549cc4eb47299130da6923b03805a586ea1a297c25898bf8e6b3392023be3",
+        "classification": "declaration",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "7469cd95c7e9378aa20718fa709a9a0f353c8550bb4f0b88884bc76a6a6545b1",
+        "classification": "non_contract",
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProcessGroupExit and ProcessCancellation",
+        "declaration": "llm/services/infrastructure/processes.py",
+        "consumers": [
+          "llm/components/tools/process.py",
+          "llm/services/runtime/processes.py",
+          "llm/components/tools/builtin/processes.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_process_group_cleanup.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/_worker.py",
+    "sha256": "7731e51ade80ad2188bc3169c352ace29cd07bb5b984f2242ee9f941bfd3d8d8",
+    "reason": "Reviewed entire standalone bootstrap and dispatch: constants own file descriptors, argv/path priority, module identity, compile mode and diagnostics. Imports still wait for root bootstrap. Typed request/response/descriptor and ToolCall own conversion. Source and dynamic descriptor checks happen before handler use; original error taxonomy and cancellation propagation remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f04a4e60425f95e5f01d21ac6d385e682bfcaf388283e70cfd1039d4493f51e1",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "8639e4765193642c5d2d4b807b277266598643aac1762b5a537067c268f1f8fd",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "a7e0da1ac19c5796ea40ba6844b3f0a2ee29874d7f569015f6ef5d343dcd853e",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "8efc54703a804f720a6c146d94b05e4f01491defba50767a2ee073dc0f422849",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "a528df0c08fb5aefeefb2f792c97ecb7f341d96e7019972da0ac74b5ac3aab67",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "1e668805d4ef6bd125f86d6d7658d80d998fcf8b8b27524fb7e6b3fe15eca5dd",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "6b5e09e4df30aef39f00769913362129b845405efbbe22fc8c3ffdcd1ca92225",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "27571362d9a193ca1dbff9abdf0c4fd3c20a94a49ede503f8bbc48a3e5fbdb22",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "9cd8187ae20528193efea29a9d72393d9790bfee620b4a31a0cf187a2bee0449",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "18bd0cf7276968b477fae4c2f0b673e0ad16776f5ad7b177029e3c24c6b62f2e",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "16e0877ae7f8c724766013d3b9abb030dddefb99c3f7e44fc0184ffb72ca2d82",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "f774ad76924096d8bc1622d9dbece326cf9433a4f9fc556589090c63836e91b8",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "a72d285864ec639d2854c8d63ae0d0b9c3ab2457aa38045bde06065cc6a5824b",
+        "classification": "declaration",
+        "owner": "ProjectToolWorker",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "ff8a0707a95b6fb7b00bbfb7e7c94d4986c8d504375a2b424b25ec85c2874053",
+        "classification": "non_contract",
+        "owner": "ProjectToolWorker",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "2d90d746dd60f48d74d886a34ac6f0a7c62db969d81203a8884f53fd6f773049",
+        "classification": "non_contract",
+        "owner": "ProjectToolWorker",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectToolWorker",
+        "declaration": "llm/components/tools/_worker.py",
+        "consumers": [
+          "llm/components/tools/process.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_process_group_cleanup.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/process.py",
+    "sha256": "e071dd29dece5b42791c7e9894ecbc9b9144399ac44874664a3772ec19121e70",
+    "reason": "Reviewed entire spawn/read/reap/cleanup/inspection path and every call of public fingerprint/worker invocation. Original finite IPC/capture sizes, minimal environment, new process group and synchronous inspection thread are declared. Source digest is the existing package Owner; descriptor/response wire and outer launch use their own Owners. Cancellation, concurrent stdout/stderr draining and child reaping are unchanged. Typed descriptor/response/source/call values avoid raw field interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2a793ffafcbdfb16f01309a7ad281b6cc9da94c155e57d23fd9240e3482ee06a",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "73ba5bf4ed5bd43dcb1f17d131ee607e6758a21e0953d758c00660d8d4128975",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "d0d68d9c5aac523529c8e3c522fc51241ac1f82fe7e5dca3bbae6fbf3894cfc2",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "c7f316dae5e724685816ddbc82b8e36de74a502d0e86f31c7474d311d96052b8",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "88abf489b61484646283fc5bbafdbc330df020cb967ec72121ebf39e04c64646",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "336946ff1b2cc4122aa98acd3bf3af6f4ead09415f1b700a9e223a78a8b4fff3",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "8fa552c6e4429d0c9ff2537f5c6de22fe56686539024c9b1935eea3ad8bfd2df",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "4884c5fb93131262482c69bf1dc6c9d4ef9215b64f008a665dd6eb8edcff68ca",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "0253a4d1ac02aea58c79b17fb6665ebc0eb4cb6de6a481104bc7d1a674af907e",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "532e662849d3b4ffb5628653d62ae482ecd10d3b12c039c30603d933f25d6d95",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "0fcb118d2069389bea6d06d34951f8ccd5facbfd48240dc4fddc5da07b836dc5",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "35c409b777a452fd1791f1ac5182cb0bbeaeae32843d6159ba5fcb9fef7aa76a",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "47d8739edb3d4c9a6cf64829ff6e88fb1c6fdbd19dc1d7b47a1c5fed30d41b24",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "99455a8dd06130aecab2b3a449a79ea581732404eb2714e0fd702106b9f595b5",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "ebffbaa6c6ad3512f98cc46926403c4ea6a3fd7f18e464745365305efb51189b",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "bf43d41868bb5c921f491f4029adecebc21aa9c0a3b89b05bf86fe1459dea758",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "7e9b40d3c9fe5cf43e143917ea2a176e17da3615cde2c7c47efbde2429098258",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "77f1ebf41330b8e780b149ed6779f408c10f627dd2fb1c84f598cae727191c4f",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "4608182a0b37c45360b4f3f261c2bbe9bd82978eb0cb110accefee44803e81d0",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "d741beb9a6b18818f3aebe93d5d1fc36c5865c4febb6b07bb5db96bc71fc9a4f",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "3db2af03b73903fc9aa93f3d73a4170cd539f3d7f63dda91bffeed77d0471a75",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "6413e06eeb29e64efc4a7dfc9e48cfcb21399c59f7f163339e85bf0a62691687",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "cf0853c186d401eb7b9bacbd4f3119a94d5bbaa56939c69dc2601bcab661cc03",
+        "classification": "declaration",
+        "owner": "Project Tool process transport",
+        "reason": "Owning process/child boundary declares bootstrap, IO sizing/lifetime flags, absence, and diagnostics before implementation."
+      },
+      {
+        "id": "38c4401ae6698671cdab4254a62f47482a784a5e07d3b8dbf0407ba9eea9de06",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "4c6f4c18185ce5a9f82c887ddad15d5aaaa6b19b5259350894a3fe360e793d6e",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "768b3bf963cac2e3eb469f054066093d10b3856482b40901875a13a51ad2a125",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "5458207ca40da190765ab9ffcf6db8f58ee660298aa2390764a8ee86417a517d",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "f15726d1ba73792ae54136dd0aa316820f49c478aa7935584dd5de4bfefbd8d6",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "1b6ac6525f6a1214e769e1978ffea85c926004ea85af52e4306b951982c6af3e",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "c55d7708a206fb044b50210d5095863ec1f6be09d3f5a529df98d72d7cc38be7",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "666ee3b808a0e05031378c70cdc42aff2da794b904816b442f322da3bdc529b8",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "732eeae4d403a634f0df7b918087628b088701714877e4fadaa1a174cd08e20e",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "2640d0640d48279d0802a0e967241612b7e6c498d1e9e63032e8003d7bf42a36",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "84ff87c081094cae7a7428e18dab1a4baaf5db68151023181b31c87d411a85bb",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "1cbf18b3c2329fc87b66ccc76d3387e8915b8a245d216b6c6c375efee5e6cf23",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "cc8022395493d1db8a6c41505fe17646d7a5fa1352c26843f95b96b3b40a1667",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      },
+      {
+        "id": "d5af73af2317be396aa1cbf003a939173018195e498d5d55a94997ea579545d0",
+        "classification": "non_contract",
+        "owner": "Project Tool process transport",
+        "reason": "Local process/reference absence, once-only spawn bookkeeping, byte accumulator identity/count, exception-chain suppression or loop control. These are algorithmic state; no execution policy, persisted record fallback or authority value is introduced."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Project Tool process transport",
+        "declaration": "llm/components/tools/process.py",
+        "consumers": [
+          "llm/components/tools/packages.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_process_group_cleanup.py"
         ],
         "complete": true
       }

@@ -176,6 +176,12 @@ class EngineContext:
     # Service-owned, Run-local capability lookup; not persisted and never expands Tool authority.
     capability_resolver: Optional[Callable] = None
 
+    def read_tool_binding(self, value):
+        """Nested snapshots contain Engine payload; service usage stays on the outer envelope."""
+        from llm.core.tool_selection_records import ToolBindingRecord
+        return (ToolBindingRecord.from_checkpoint(value) if self.checkpoint_scope is None
+                else ToolBindingRecord.read(value))
+
     def with_capabilities(self, names, *, expansion=None):
         """Resolve explicitly selected implementation requirements through the owning service."""
         if not isinstance(names, tuple) or any(not isinstance(name, str) or not name for name in names):

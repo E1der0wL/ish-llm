@@ -1583,3 +1583,73 @@ incomplete 계약 2개이며 전체 완료는 여전히 차단된다.
 이 소단계는 Level 2다. 실행 중인 고정 SHA 93794a2의 group11 전체 회귀에는 이 후속 변경이
 포함되지 않는다. 다음 현재 통합 Level 3에 포함하고 성공 후 Push/정확한 SHA CI를 확인한다.
 남은 실제 worker 경계와 Tool/다른 도메인의 고정 구조·리터럴 전환도 계속 진행한다.
+
+
+## 9adb2b3 원격 CI 확인과 후속 group11 실패 (2026-10-23)
+
+정확한 SHA `9adb2b307be395a86c0fbca5c84359e158878449`의 [원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39937635858)를 10:48:05 UTC에 실제 확인했다. 두 필수 job과 모든 필수 step이 success다. LLM 2408/2408/2408 pass(1907.160639초), Hub 586/586/586 pass(1041.305127초)이며 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. 원격 Python 3.12.14/GCC와 로컬 Python 3.12.14/Clang은 별도 환경 증거다. 이 성공은 후속 변경의 증거가 아니다.
+
+후속 Tool 선택·등록 변경을 포함한 group11은 실패했으므로 Push하지 않았다.
+고정 SHA `93794a2c8afd9964f16eaa2fe35ca929a8a9a2b1`, 전후 source/input manifest 동일.
+
+- llm: 발견/시작/pass 2418/2418/2417, exit 1, 1425.661172초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group11-l3/llm.json`.
+
+- hub: 발견/시작/pass 586/586/586, exit 0, 1132.951928초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group11-l3/hub.json`.
+
+source `a6dd621ce748a7aa3b2294d3c2c90b07faa0e52217329bf8bff5f89417c079db`, input `9d1b45e4079715bb6a97e804b95660ce3385eafd95610e66e046270acca6f0f6`.
+LLM failure 1/error 0, Hub failure/error 0이며 나머지 엄격 집계는 0이다.
+실패는 `SelectedAgentTests.test_completed_nested_selection_is_checked_before_resume`다.
+변경된 nested Agent 정의를 거부하는 기존 Assertion보다 먼저 Tool usage 누락 오류가 발생했다.
+EngineCheckpointScope는 바깥 envelope에서 분리한 payload를 반환하는데, 새 선택 Reader가
+그 payload에도 공통 사용량을 요구했다. 사용량의 실제 저장 위치를 보존하며 EngineContext가
+루트/중첩 범위에 맞는 같은 Owner의 Reader를 연결하도록 수정했다. 루트 필수 사용량과 바깥
+서비스/Agent 증거 검사는 유지하고 중복 저장·누락 기본값 복원은 도입하지 않았다.
+group11-auxiliary의 정적·문서·R3·SDK·양 suite 환경 exit 0은 전체 실패를 상쇄하지 않는다.
+
+## Worker 전송 Owner·자식 종료 확인·중첩 증거 경계 (2026-10-23)
+
+[worker 경계](tool-worker-boundary.md)와 [선택 증거](tool-selection-evidence.md)를 적용했다.
+ProjectToolWorker가 bootstrap/FD/진입점 선언, ToolWorkerWire가 전송 직렬화, ToolCall이 호출
+snapshot 변환을 소유한다. 기존 digest Owner를 직접 재사용한다. 기존 protocol Reader/Writer의
+AST는 동일하며 54개 값/오류 사례의 wire·canonical text·digest가 이전 구현과 일치했다.
+
+최초 worker 집중 실행의 실패도 보존한다.
+
+- `whole-worker-boundary-01`: 발견/시작/pass 139/139/138, exit 1, 119.275375초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-worker-boundary-01/llm.json --modules tests.llm.test_tool_workers tests.llm.test_tool_worker_protocol tests.llm.test_tool_packages tests.llm.test_tool_package_integrity tests.llm.test_isolated_tools tests.llm.test_execution_contexts tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `9f08da01e897c7bedb03c5a1ee861e12cb0a847e637298ede4e2484337cea446`, input `f8e7184a4745497aa68ea11eea21bdfb1b68e229a2633b2ac8b078fd21d3508d`.
+
+- `whole-worker-boundary-hub-01`: 발견/시작/pass 27/27/27, exit 0, 118.937168초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-worker-boundary-hub-01/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_question_tools tests.hub.test_tool_retry`. source `9f08da01e897c7bedb03c5a1ee861e12cb0a847e637298ede4e2484337cea446`, input `0b73e6b9836f509df58ca2c418c2d45e8b998b8c50a8d0655aac0c3955e262b7`.
+
+LLM failure 1/error 0은 기존 `WorkerTests.test_cancellation_reaps_worker_and_descendant`다.
+부모만 wait한 기존 공통 회수 helper가 실제 자식의 종료 전에 반환했다. 실제 자식을 살려 둔
+장애 주입 2개로 수정 전 failure 2/error 0/exit 1을 재현했다. ProcessGroupExit는 SIGKILL 전후
+그룹 구성원을 관측하고 PID/start_ticks identity로 종료를 확인하며 기존 명시 cleanup deadline을
+전체 대기에 적용한다. ProcessStat의 단일 Reader를 진단 Tool도 사용한다. 원래 취소 Assertion과
+파일 효과 검사를 유지했다. PID 재사용·그룹 이탈·종료 상태·읽기 실패도 시험한다.
+
+보강 후 `python -m unittest tests.llm.test_process_group_cleanup tests.llm.test_tool_workers.WorkerTests.test_cancellation_reaps_worker_and_descendant tests.llm.test_isolated_tools`는 22개 pass/exit 0(11.256초), 확장한 process observation 4개는 pass/exit 0(0.240초)다. 중첩 수정 후 `python -m unittest tests.llm.test_extension_contracts tests.llm.test_tool_selection_records tests.llm.test_current_contracts`는 43개 pass/exit 0(17.040초)다. Python은 아래 공식 실행과 같은 절대 경로다. 초기에 실행한 smoke 19개 pass와 이 진단 실행들을 아래 결과에 합산하지 않는다.
+
+최종 고정 소스 집중/관련 안전성 검증:
+
+- `whole-worker-boundary-02`: 발견/시작/pass 248/248/248, exit 0, 154.831860초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-worker-boundary-02/llm.json --modules tests.llm.test_process_group_cleanup tests.llm.test_tool_workers tests.llm.test_tool_worker_protocol tests.llm.test_tool_packages tests.llm.test_tool_package_integrity tests.llm.test_isolated_tools tests.llm.test_execution_contexts tests.llm.test_builtin_tools tests.llm.test_vision tests.llm.test_extension_contracts tests.llm.test_tool_selection_records tests.llm.test_agent_delegation tests.llm.test_current_contracts tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `d2b83addcfacf8cc2965e58d3a8c05a2dfeb739a5f43e5fdbd6e0e343387cda5`, input `c0cce19bdc8401ae10b56d8d2b85446d5be1ae8d74e58423983669ec9afe2684`.
+
+- `whole-worker-boundary-hub-02`: 발견/시작/pass 39/39/39, exit 0, 137.558394초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-worker-boundary-hub-02/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_question_tools tests.hub.test_tool_retry tests.hub.test_shell_environment tests.hub.test_agent_graph`.
+  source `d2b83addcfacf8cc2965e58d3a8c05a2dfeb739a5f43e5fdbd6e0e343387cda5`, input `c0cce19bdc8401ae10b56d8d2b85446d5be1ae8d74e58423983669ec9afe2684`.
+
+최종 두 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이고 전후 manifest가 같다.
+실제 fresh worker/격리/취소/자식 회수·파일 효과·승인/예산·영수증/Checkpoint·중첩 Agent·RAG·삭제
+및 Hub의 승인/Tool/Agent 소비자를 포함했다. Python 3.12.14/Clang·고정 Host·의존성·namespace/X11을
+유지했다. 초기 실패와 서로 다른 소스 실행을 통합 성공으로 합산하지 않는다.
+
+정적 발생은 inspection thread 선언 이동 1건 제거, 추가 0건이다. 기존 의존 근거 110건과
+두 기존 전수 파일을 실제 변경 경계/AST에 따라 재검토하고 worker/parent transport/process state/
+group cleanup 네 파일을 새 전수 검토했다. 감사 자체 시험 16개는 pass/exit 0(3.078초),
+worker-boundary-auxiliary의 S1–S7 144건·문서·R3·SDK·양 suite 환경도 각각 exit 0이다.
+현재 466개 파일, 미검토 394개, 미분류 29813개,
+incomplete 계약 2개이며 전체 완료는 계속 차단된다.
+
+현재 증거는 Level 2와 실패 수정 집중 검증이다. 공유 회수/중첩 증거에 영향을 주므로 다음
+group12 고정 현재 소스 Level 3를 필수로 수행하고 성공 뒤에만 Push한다. 정확한 SHA 원격 CI와
+남은 전체 Owner/고정 구조 전환도 계속 진행한다.

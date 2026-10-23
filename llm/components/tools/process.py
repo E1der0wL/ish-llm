@@ -4,8 +4,6 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import nullcontext
 from contextvars import copy_context
-from dataclasses import asdict
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -17,23 +15,26 @@ from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.services.runtime._worker import ProcessGate, ProcessLaunch
 from .registry import Tool, ToolRegistry
+from .package_values import ToolPackageDigests
 from llm.core.tool_codes import ToolErrorCode
 from llm.core.tool_worker import (ToolWorkerRequest, ToolWorkerResponse, ToolWorkerOperation,
-    ToolWorkerDescriptor, ToolWorkerFailureKind, ToolWorkerProtocolError)
+    ToolWorkerDescriptor, ToolWorkerFailureKind, ToolWorkerProtocolError, ToolWorkerWire)
 
 # IPC/capture의 유한 메모리 계약이다. 출력은 자르지 않고 한도 초과 시 실패한다.
 PROTOCOL_BYTES = 8 * 1024 * 1024
 CAPTURE_BYTES = 1024 * 1024
 READ_BYTES = 8192
 REAP_INTERVAL_SECONDS = 0.02
-WIRE_ENCODING = "utf-8"
-WIRE_ENSURE_ASCII = True
-WIRE_ALLOW_NON_FINITE = False
 PLUGIN_ROOT_DEPTH = 3
 WORKER_FILENAME = "_worker.py"
 INTERPRETER_ARGUMENTS = ("-I",)
 INTERPRETER_ENVIRONMENT = {"LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"}
 NORMAL_EXIT = 0
+NEW_PROCESS_GROUP = True
+COLLECT_CLEANUP_ERRORS = True
+INSPECTION_THREADS = 1
+NO_SHARED_LIBRARY = None
+fingerprint = ToolPackageDigests.digest
 
 
 class WorkerError(CodedError, RuntimeError):
@@ -57,12 +58,8 @@ class RemoteToolError(CodedError, RuntimeError):
         self.code = code
 
 
-def fingerprint(text):
-    return hashlib.sha256(text.encode(WIRE_ENCODING)).hexdigest()
-
-
 def descriptor_fingerprint(value):
-    return fingerprint(json.dumps(value, sort_keys=True, ensure_ascii=WIRE_ENSURE_ASCII, allow_nan=WIRE_ALLOW_NON_FINITE))
+    return fingerprint(ToolWorkerWire.canonical(value))
 
 
 def _decode(payload, operation):
@@ -86,7 +83,7 @@ def _decode(payload, operation):
     if error.kind == ToolWorkerFailureKind.CODED and isinstance(error.code, str) and error.code.strip():
         raise RemoteToolError(error.code, error.message)
     if error.kind == ToolWorkerFailureKind.UNKNOWN:
-        raise ToolExecutionError(error.message, effect=ToolExecutionError.UNCERTAIN_EFFECT, retryable=False)
+        raise ToolExecutionError(error.message, effect=ToolExecutionError.UNCERTAIN_EFFECT)
     raise WorkerError(ToolErrorCode.WORKER_PROTOCOL, ToolWorkerProtocolError.UNKNOWN_ERROR)
 
 async def invoke_worker(request):
@@ -130,7 +127,7 @@ async def _invoke_worker(request):
     pending = asyncio.create_task(asyncio.create_subprocess_exec(
         *ProcessGate.command(sys.executable, os.getpid()),
         stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE, env=env, start_new_session=True))
+        stderr=asyncio.subprocess.PIPE, env=env, start_new_session=NEW_PROCESS_GROUP))
     process, readers = None, []
     spawned = False
     def note_spawn():
@@ -155,7 +152,8 @@ async def _invoke_worker(request):
 
         readers = [asyncio.create_task(read(process.stdout, PROTOCOL_BYTES)),
                    asyncio.create_task(read(process.stderr, CAPTURE_BYTES))]
-        process.stdin.write(json.dumps(data.to_dict(), ensure_ascii=WIRE_ENSURE_ASCII, allow_nan=WIRE_ALLOW_NON_FINITE).encode())
+        process.stdin.write(json.dumps(data.to_dict(), ensure_ascii=ProcessGate.ENSURE_ASCII,
+                                       allow_nan=ProcessGate.ALLOW_NON_FINITE).encode(ProcessGate.JSON_ENCODING))
         await process.stdin.drain()
         process.stdin.close()
         # Reap the leader before waiting for pipe EOF: children may still hold the pipes.
@@ -189,7 +187,7 @@ async def _invoke_worker(request):
             note_spawn()
             for reader in readers:
                 reader.cancel()
-            await asyncio.gather(*readers, return_exceptions=True)
+            await asyncio.gather(*readers, return_exceptions=COLLECT_CLEANUP_ERRORS)
             async def discard(stream):
                 while await stream.read(READ_BYTES):
                     pass
@@ -201,7 +199,7 @@ async def _invoke_worker(request):
             finally:
                 for task in drains:
                     task.cancel()
-                await asyncio.gather(*drains, return_exceptions=True)
+                await asyncio.gather(*drains, return_exceptions=COLLECT_CLEANUP_ERRORS)
                 process.stdin.close()
         await drain_on_cancel(cleanup())
 
@@ -219,10 +217,10 @@ class ProjectToolHandler:
         from llm.services.runtime.tools import current_tool_call
         call = current_tool_call()
         return await invoke_worker(self._request.execute(self._descriptor_hash, arguments,
-                                    asdict(call) if call is not None else None))
+                                    call.to_dict() if call is not None else None))
 
 
-def inspect_tool(project, name, data, plugin_lib=None):
+def inspect_tool(project, name, data, plugin_lib=NO_SHARED_LIBRARY):
     from .packages import ToolPaths
     from .package_values import ToolPackageSource
     data = ToolPackageSource.read(data)
@@ -237,7 +235,7 @@ def inspect_tool(project, name, data, plugin_lib=None):
         descriptor = run()
     else:
         # 동기 API를 직접 호출한 경우에도 backend loop에서 source를 실행하지 않는다.
-        with ThreadPoolExecutor(max_workers=1) as executor:
+        with ThreadPoolExecutor(max_workers=INSPECTION_THREADS) as executor:
             descriptor = executor.submit(copy_context().run, run).result()
     try:
         value = ToolWorkerDescriptor.read(descriptor, name=name)

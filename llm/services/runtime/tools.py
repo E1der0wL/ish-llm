@@ -60,7 +60,14 @@ class ToolCall:
 
     def __post_init__(self):
         from llm.core.tool_contracts import ToolContract
-        object.__setattr__(self, "contract", ToolContract.from_dict(self.contract).to_dict())
+        object.__setattr__(self, ToolCall.contract.__name__, ToolContract.from_dict(self.contract).to_dict())
+
+    def to_dict(self):
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, value):
+        return cls(**value)
 
 
 
@@ -707,7 +714,7 @@ class ToolExecutor:
             key = ToolBindingRecord.key_for(request_key)
             saved = CheckpointRecords.records_or_empty(context.checkpoint).get(key)
             if saved is not None:
-                saved = ToolBindingRecord.from_checkpoint(saved)
+                saved = context.read_tool_binding(saved)
                 saved.require_key(key)
                 saved.require_checkpoint(name)
                 if saved.selection != selected:

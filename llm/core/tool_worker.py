@@ -5,11 +5,29 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import asdict, dataclass, fields
 from enum import StrEnum
+import json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .model_protocol import ToolDefinition
     from .tool_contracts import ToolContract
+
+
+class ToolWorkerWire:
+    ENCODING = "utf-8"
+    ENSURE_ASCII = True
+    ALLOW_NON_FINITE = False
+    CANONICAL_ORDER = True
+
+    @classmethod
+    def encode(cls, value):
+        return json.dumps(value, ensure_ascii=cls.ENSURE_ASCII,
+                          allow_nan=cls.ALLOW_NON_FINITE).encode(cls.ENCODING)
+
+    @classmethod
+    def canonical(cls, value):
+        return json.dumps(value, sort_keys=cls.CANONICAL_ORDER,
+                          ensure_ascii=cls.ENSURE_ASCII, allow_nan=cls.ALLOW_NON_FINITE)
 
 
 class ToolWorkerOperation(StrEnum):

@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 465,
-    "unreviewed_files": 397,
+    "files": 466,
+    "unreviewed_files": 394,
     "stale_files": 0,
-    "unclassified": 29903,
+    "unclassified": 29813,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 399,
+    "unreviewed_dynamic_paths": 396,
     "unreadable_files": 0,
-    "candidates": 30643,
+    "candidates": 30637,
     "issues": 0
   },
   "files": [
@@ -1791,9 +1791,9 @@
     },
     {
       "path": "llm/components/tools/_worker.py",
-      "status": "unreviewed",
-      "sha256": "fbab3692dbd9666bcd795aebfcb81aa43e3628c659eeab416cbf7258680ee24e",
-      "candidates": 18
+      "status": "reviewed",
+      "sha256": "7731e51ade80ad2188bc3169c352ace29cd07bb5b984f2242ee9f941bfd3d8d8",
+      "candidates": 15
     },
     {
       "path": "llm/components/tools/bindings.py",
@@ -1828,8 +1828,8 @@
     {
       "path": "llm/components/tools/builtin/diagnostics.py",
       "status": "unreviewed",
-      "sha256": "bcf56e0f47315c407f03ae0a81c5ce43da612eded166b56ea31a7f235ec00d37",
-      "candidates": 96
+      "sha256": "a0d20a47f0f0296085619c8a01c6797fc1f28f51ea21393a07a434fce31992b9",
+      "candidates": 74
     },
     {
       "path": "llm/components/tools/builtin/files.py",
@@ -1893,14 +1893,14 @@
     },
     {
       "path": "llm/components/tools/process.py",
-      "status": "unreviewed",
-      "sha256": "19a05c156c5cba9ccd6cf3ac43f45d906b4a05f7e3167b56f1451e720afb83c2",
-      "candidates": 43
+      "status": "reviewed",
+      "sha256": "e071dd29dece5b42791c7e9894ecbc9b9144399ac44874664a3772ec19121e70",
+      "candidates": 37
     },
     {
       "path": "llm/components/tools/registry.py",
       "status": "reviewed",
-      "sha256": "dfda34647a6fe926b4dcded2d1f4582b7f096bea98298525b4e40908d9ca47d8",
+      "sha256": "13dd2b0efbc99a9cc605e32012634b5375c51f90d0a5d7f187eecdfd3632b278",
       "candidates": 34
     },
     {
@@ -2212,8 +2212,8 @@
     {
       "path": "llm/core/tool_worker.py",
       "status": "reviewed",
-      "sha256": "d3cebca330dfa406c5e8dc3d76e3f03856ae1b0a924cb80e51abd8735b3e38e4",
-      "candidates": 38
+      "sha256": "59be80961d55d3e47d5b6ca100a2cc7118d7cdd6027c28c325a9ffe27a16a60d",
+      "candidates": 42
     },
     {
       "path": "llm/core/usage.py",
@@ -2254,8 +2254,8 @@
     {
       "path": "llm/engines/base.py",
       "status": "unreviewed",
-      "sha256": "b87dadafb6d5b29ef887e9da9c923dc6ff98aa97d5194153243b034e50b9d2cc",
-      "candidates": 291
+      "sha256": "d4a2a7e6e296b671c7e4457d164f8d23ef700f6f52f605c36b3022ad0dce5cf0",
+      "candidates": 292
     },
     {
       "path": "llm/engines/graph/README.md",
@@ -2594,10 +2594,16 @@
       "candidates": 66
     },
     {
+      "path": "llm/services/infrastructure/process_state.py",
+      "status": "reviewed",
+      "sha256": "2a5dbb386aa3b664fa1db80ee58abd16ec21d77b89eb4e0ce6880d562c84b81f",
+      "candidates": 19
+    },
+    {
       "path": "llm/services/infrastructure/processes.py",
-      "status": "unreviewed",
-      "sha256": "19dce8da3ad7551c5690d539f084d04f740008880ff6faf9a34beb6cd50d6bcf",
-      "candidates": 7
+      "status": "reviewed",
+      "sha256": "b7bddbd318fb60526d8c06d7fe0698b87085e1bcc1bff233dcb202c2e6f0c38d",
+      "candidates": 9
     },
     {
       "path": "llm/services/infrastructure/storage.py",
@@ -2746,7 +2752,7 @@
     {
       "path": "llm/services/runtime/processes.py",
       "status": "unreviewed",
-      "sha256": "c4a1fea5b955a2300ae305b95cf33383fa2b1667ac057242d2410bd332c0e8a5",
+      "sha256": "78fefd2247c601618a0bd08238f571c61afadf40a19a88ce02bfa244ac1e3f87",
       "candidates": 119
     },
     {
@@ -2776,8 +2782,8 @@
     {
       "path": "llm/services/runtime/tools.py",
       "status": "unreviewed",
-      "sha256": "01910bc9adb18edc5f3feb0e8e8ab17126e1e98a9c7499c09499848eadf51c71",
-      "candidates": 481
+      "sha256": "a2f51ce43030d3dbf2cc71a1339eb0d327415e18d8040c220d4177df2f66d6ef",
+      "candidates": 480
     },
     {
       "path": "llm/services/runtime/transfer_values.py",

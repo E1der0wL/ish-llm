@@ -16,7 +16,7 @@ ToolUsageCheckpoint가 runtime_tool_usage의 부착·필수 읽기·검증된 pa
 ToolExecutionScope는 정책과 실제 사용량 변경을 계속 소유하고 저장 검증만 이 Owner에 위임한다.
 이전 공개 Scope API와 ToolUsageError는 같은 구현으로 연결되며 이중 Reader를 만들지 않는다.
 
-저장된 선택 기록 Reader는 공통 사용량을 먼저 검증한 뒤 자신의 payload를 읽는다. projection은
+루트 저장 선택 기록 Reader는 공통 사용량을 먼저 검증한 뒤 자신의 payload를 읽는다. projection은
 원본 기록을 수정하거나 사용량을 버리는 저장 형식이 아니다. 새 기록은 기존 서비스 쓰기 경계에서
 현재 사용량을 함께 저장한다. 최신 revision/calls 복원, 승인 예약·호출 identity와 호출 한도는
 유지된다. 전체 복원 입력의 검증이 끝나기 전 실행 중 scope를 변경하지 않는다.
@@ -25,3 +25,8 @@ ToolExecutionScope는 정책과 실제 사용량 변경을 계속 소유하고 �
 시험에서는 손상된 선택을 재개할 때 Checkpoint 이벤트·승인 호출·파일 효과·사용량 변경이 모두
 0이고 입력 기록이 보존됨을 확인한다. 기존 중첩 Agent 승인/재개·효과 재실행 방지·R3 시험과
 전체 통합 게이트를 유지하며 결과는 [누적 기록](whole-ownership-verification.md)에 남긴다.
+
+EngineContext가 루트 저장 기록과 EngineCheckpointScope의 중첩 payload 경계를 구분한다.
+중첩 snapshot은 바깥 envelope에서 꺼낸 Engine payload이므로 ToolBindingRecord.read로 읽는다.
+바깥 공통/Agent 사용량은 기존 서비스·Agent Reader가 필수 검증하며, 내부 선택 payload에도
+동일 사용량을 중복 저장하도록 요구하지 않는다. 중첩의 필수 선택/state/identity 검증은 유지한다.
