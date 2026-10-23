@@ -84,6 +84,17 @@ AgentRecord, AgentCatalog, AgentBinding은 각자의 버전·필수 필드·iden
 정의 필드 접근은 같은 Owner 선언/Projection/API로 이행해야 하며, 현재 단계별 현황은
 [전체 소유권 검증](whole-ownership-verification.md)과 coverage index에 별도로 기록한다.
 
+AgentRepository의 내부 목록은 AgentInventory의 catalog/records로 전달한다. Repository만
+파일 구조·직렬화·무결성 목록을 해석하며, AgentManager는 정의/참조 Owner와 공개 저장
+API를 사용한다. 조회 응답은 AgentDescription, AgentRevision, AgentPrompt가 직렬화한다.
+프롬프트 미설정·명시적 null·빈 문자열을 구분하고 수정 결과의 subsequent_runs 의미를
+보존한다. 새 영속 사본이나 호환 Reader를 만들지 않는다.
+
+AgentReferenceReader는 Engine/Component/handler가 제공하는 참조 hook을 찾기만 한다.
+각 호출자는 기존 인자·결과 계약을 지키며 참조 조회로 자원을 활성화하거나 실행하지 않는다.
+Step의 Agent 선택은 AgentExecution이 읽는다. 삭제 검사는 비활성 자원·대기 요청·Run·
+Step·Checkpoint와 soft delete한 Session 참여까지 계속 보호한다.
+
 ## 정책과 리소스
 
 | 필드 | 의미 |

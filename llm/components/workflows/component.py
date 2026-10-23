@@ -1,6 +1,6 @@
 """닫힌 Workflow 구조를 검증·저장한다. 실행과 handler별 설정 검증은 GraphEngine의 책임이다."""
 
-from llm.core.resource_references import AgentUse
+from llm.core.resource_references import AgentUse, AgentReferenceReader
 
 from llm.components.workflows.graph import ControlNodeType
 
@@ -51,7 +51,7 @@ class WorkflowComponent(DefinitionComponent):
                     if kind not in handlers:
                         raise ValueError("Agent may be referenced; Workflow handler owner is unavailable")
                     for handler in handlers[kind]:
-                        reader = getattr(handler, "agent_references", None)
+                        reader = AgentReferenceReader.from_owner(handler)
                         if reader is not None:
                             yield from reader(node)
         return [AgentUse(agent, identifier).to_dict()

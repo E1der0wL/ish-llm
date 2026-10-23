@@ -55,6 +55,12 @@ class AgentExecution:
     resumable_container = True
     selection_binding = True
     USAGE_FIELD = "agent_usage"
+    AGENT_ID_FIELD = "agent_id"
+
+    @classmethod
+    def step_agent_id(cls, step):
+        """Read this execution Owner's top-level Step selection for deletion guards."""
+        return step.metadata.get(cls.AGENT_ID_FIELD)
 
     @staticmethod
     def agent_references(node):

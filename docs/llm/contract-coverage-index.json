@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 487,
-    "unreviewed_files": 302,
+    "unreviewed_files": 301,
     "stale_files": 0,
-    "unclassified": 22995,
+    "unclassified": 22914,
     "violations": 0,
     "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 304,
+    "unreviewed_dynamic_paths": 303,
     "unreadable_files": 0,
-    "candidates": 28663,
+    "candidates": 28632,
     "issues": 0
   },
   "files": [
@@ -2062,8 +2062,8 @@
     {
       "path": "llm/components/workflows/component.py",
       "status": "unreviewed",
-      "sha256": "064738920ea732be62831f83e797f1db70b4e891d9ed53554e2ca74bfbf85c84",
-      "candidates": 17
+      "sha256": "16aec6a6f1906de4cf0f04f908ff2b3120fdb3bcffc36a66286d1285bb637680",
+      "candidates": 15
     },
     {
       "path": "llm/components/workflows/data.py",
@@ -2092,8 +2092,8 @@
     {
       "path": "llm/core/agent_views.py",
       "status": "reviewed",
-      "sha256": "e98a7480d91e34bdaa2df16fc54f48414f73b464002a848f71e0f7d250404b18",
-      "candidates": 13
+      "sha256": "ad1fbfd5eac25ff62e7ae213b3726e22e518b5b97e177319058b3c715203685a",
+      "candidates": 21
     },
     {
       "path": "llm/core/agents.py",
@@ -2236,8 +2236,8 @@
     {
       "path": "llm/core/resource_references.py",
       "status": "reviewed",
-      "sha256": "67dddc85577a47cdfbe8f97c90e6b748d20a012b032e0746aaad6a25835df56b",
-      "candidates": 19
+      "sha256": "076591f648690fce54e3fbac4be90601aecb3f6f33ffb718867421a13f0c20dc",
+      "candidates": 21
     },
     {
       "path": "llm/core/results.py",
@@ -2344,8 +2344,8 @@
     {
       "path": "llm/engines/agents.py",
       "status": "unreviewed",
-      "sha256": "509c99a14061b99e67e8b407e6e4b7de11b375af5488d85f9baba32fe4d44871",
-      "candidates": 358
+      "sha256": "be0e0cb57e8015a8079f2b77e00fa7736e075974f9d0cdab3ba85db69f6f2416",
+      "candidates": 359
     },
     {
       "path": "llm/engines/base.py",
@@ -2763,9 +2763,9 @@
     },
     {
       "path": "llm/services/lifecycle/agents.py",
-      "status": "unreviewed",
-      "sha256": "9986e8ba4a12b902b0b5a60da8f7527551e44cdf72e680bfaa64528cac8a44d9",
-      "candidates": 80
+      "status": "reviewed",
+      "sha256": "790fa8b838d54ebcc42f981d3fdb6261538887c07cbe061f3dc09ce2a2cc5c2a",
+      "candidates": 40
     },
     {
       "path": "llm/services/lifecycle/components.py",

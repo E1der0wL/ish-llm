@@ -9,6 +9,13 @@ from .json_data import JsonObject
 
 
 @dataclass(frozen=True, slots=True)
+class AgentDescription(JsonValue):
+    schema: dict
+    storage_version: int
+    engines: list[str]
+
+
+@dataclass(frozen=True, slots=True)
 class AgentDefinitions(JsonValue):
     """Agent capability projection; selected definition validation stays with its domain."""
 
@@ -44,6 +51,33 @@ class AgentDependency(JsonValue):
     @classmethod
     def from_snapshot(cls, snapshot):
         return cls(snapshot.agent_id, snapshot.revision)
+
+
+@dataclass(frozen=True, slots=True)
+class AgentRevision(AgentDependency):
+    SUBSEQUENT_RUNS = "subsequent_runs"
+
+    applies_to: str = SUBSEQUENT_RUNS
+
+
+@dataclass(frozen=True, slots=True)
+class AgentPrompt:
+    """An optional prompt projection preserves omitted versus explicitly null."""
+
+    identity: AgentDependency
+    system_prompt: str | None
+    has_system_prompt: bool
+
+    @classmethod
+    def from_definition(cls, identifier, revision, definition):
+        key = AgentDefinition.Field.SYSTEM_PROMPT
+        return cls(AgentDependency(identifier, revision), definition.get(key), key in definition)
+
+    def to_dict(self):
+        result = self.identity.to_dict()
+        if self.has_system_prompt:
+            result[AgentDefinition.Field.SYSTEM_PROMPT.value] = self.system_prompt
+        return result
 
 
 @dataclass(frozen=True, slots=True)

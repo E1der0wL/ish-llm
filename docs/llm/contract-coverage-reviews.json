@@ -4323,84 +4323,132 @@
   },
   {
     "path": "llm/core/agent_views.py",
-    "sha256": "e98a7480d91e34bdaa2df16fc54f48414f73b464002a848f71e0f7d250404b18",
-    "reason": "Read all fields, factory, Reader, properties and Writer. Projection delegates current identifier/definition and revision checks to AgentDefinition, protects nested copies, and retains public AgentRepository snapshot dispatch. No storage envelope or execution binding fallback exists. Read the added AgentDependency projection and its Skill impact/dependency consumers. Fields are a distinct public response shape; only the current validated AgentSnapshot supplies its values, with no authority or storage. Capability follow-up: canonical identifiers do not close extension names. Agent capability records are projected and selected through AgentDefinitions, while selected domain validation and detached snapshots remain.",
+    "sha256": "ad1fbfd5eac25ff62e7ae213b3726e22e518b5b97e177319058b3c715203685a",
+    "reason": "Read all fields, factory, Reader, properties and Writer. Projection delegates current identifier/definition and revision checks to AgentDefinition, protects nested copies, and retains public AgentRepository snapshot dispatch. No storage envelope or execution binding fallback exists. Read the added AgentDependency projection and its Skill impact/dependency consumers. Fields are a distinct public response shape; only the current validated AgentSnapshot supplies its values, with no authority or storage. Capability follow-up: canonical identifiers do not close extension names. Agent capability records are projected and selected through AgentDefinitions, while selected domain validation and detached snapshots remain. Lifecycle projection review: added typed description/revision and explicit prompt-presence projection without a second record or compatibility Reader. Absent/null/empty prompt, caller identity and detached Schema remain. Shared reference-hook discovery returns the same optional method without interpreting its arguments/results or adding authority. Existing value classes and validation are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "c6cb1a92c907159168317059f8b4cdfa2afa9d40676c91a7cb08d3df5d9ff8b0",
+        "id": "e4cf25835ec13bc13dbdc1aa27e8d8f19d19d43986bfde32002825f4a87ac044",
+        "classification": "non_contract",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Python immutable dataclass layout or absent optional extension hook. This is not a stored field default or reference repair."
+      },
+      {
+        "id": "e250c8e5e886901d1cc7d2b44510305573c1f699d148d296d7ec14e5d9d50809",
+        "classification": "non_contract",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Python immutable dataclass layout or absent optional extension hook. This is not a stored field default or reference repair."
+      },
+      {
+        "id": "897bc86e0274dcfd59292da4a94ca6da9d6367287c18181c7d8336561a919cbd",
         "classification": "non_contract",
         "owner": "AgentDefinitions",
         "reason": "Dataclass generation flag or positional access after exactly-one selection validation; no default definition or authority is created."
       },
       {
-        "id": "c58e711e7d4938e944bba58705cddfb9bfb8a42ef6e07ea2ba55d10bbeb2abf8",
+        "id": "26cab247fcfca58d72bdb260861559bed2cd145ae7ec974a5919d33fce88c4b3",
         "classification": "non_contract",
         "owner": "AgentDefinitions",
         "reason": "Dataclass generation flag or positional access after exactly-one selection validation; no default definition or authority is created."
       },
       {
-        "id": "8e6a0fea406cb7e66b362a0bdba2173aee4062d16473eed8f6f9c5d2ddaf3fbf",
+        "id": "91e0b3ca61c13ee387c702d2cb0846b7577b12c2a6cfe03add70cfd5de31fbf6",
         "classification": "declaration",
         "owner": "AgentDefinitions",
         "reason": "Canonical capability identity or Agent definition selection cardinality/diagnostic in its Owner declaration."
       },
       {
-        "id": "3fed73801673f65327a8da302b9c9c0ac1f574fe7ecf62527c3045b452fbf219",
+        "id": "318bfa8b1bc514dbc94fb77794cc877744a2174521d439d3ed4487179a617e9f",
         "classification": "declaration",
         "owner": "AgentDefinitions",
         "reason": "Canonical capability identity or Agent definition selection cardinality/diagnostic in its Owner declaration."
       },
       {
-        "id": "86f40f3112a3e273a1390b2afde27945a018e00f552ac6916f25a91171438103",
+        "id": "8e08e830a729ce41b942e75fa4f80141a11a2e4eb23f64740d54f9108aea5d10",
         "classification": "non_contract",
         "owner": "AgentDefinitions",
         "reason": "Dataclass generation flag or positional access after exactly-one selection validation; no default definition or authority is created."
       },
       {
-        "id": "1ddc960a0a2ce1afd862550279f736dd94c757f35207a79a8ac04acb55fd6b04",
+        "id": "fa346a466d76c58c606f269b0ad0e96d64c2ad227e3b7acbceda89f65a4c2a4f",
         "classification": "non_contract",
         "owner": "AgentDependency",
         "reason": "Dataclass generation flags for frozen/slots are Python class mechanics, not business policy defaults or wire values."
       },
       {
-        "id": "655b8f380e7d85093eba2b73a1ae2ad72c773e299f02ae7c8601aa4438b286a2",
+        "id": "17a00dc1c6e518a951df0b1e64467f584878605262af9f04353c1d2d4eef253b",
         "classification": "non_contract",
         "owner": "AgentDependency",
         "reason": "Dataclass generation flags for frozen/slots are Python class mechanics, not business policy defaults or wire values."
       },
       {
-        "id": "94a17e6b7680eccb5c83461b31c47d86b8de5b87873852c55f1a1d0cf1368b65",
+        "id": "6ff8c436e0d65a2bf11194abfa55e067d77888066689f92a507a32bfef007e53",
+        "classification": "non_contract",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Python immutable dataclass layout or absent optional extension hook. This is not a stored field default or reference repair."
+      },
+      {
+        "id": "e0e21d0a8f4bc6e4b7e6fa310d9cb680edf1efaffdb677283a96dfc58175c1ab",
+        "classification": "non_contract",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Python immutable dataclass layout or absent optional extension hook. This is not a stored field default or reference repair."
+      },
+      {
+        "id": "18117bea96aac48562d6f82b1d9c5b185b517b60fdb7d40a180355b5a4d910e3",
+        "classification": "declaration",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Existing revision applicability value or reference method name is declared once before implementation."
+      },
+      {
+        "id": "c481364135f6a3d018355fc2e48c8675e2990f1901b48a9bd39dab8ec2291c8f",
+        "classification": "non_contract",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Python immutable dataclass layout or absent optional extension hook. This is not a stored field default or reference repair."
+      },
+      {
+        "id": "ab571b968ab536f29f2020aec62fb45788cad576f45fd642adf1691e14b2d9a1",
+        "classification": "non_contract",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Python immutable dataclass layout or absent optional extension hook. This is not a stored field default or reference repair."
+      },
+      {
+        "id": "efc9743ceed7108b97442796d3ab089c63e047d06b681f0763ecc3a68ca3e1df",
+        "classification": "declaration",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Existing revision applicability value or reference method name is declared once before implementation."
+      },
+      {
+        "id": "7286cab6a76cb182d3695feac2d26459ebd287b48d38a79cce7a746691c284be",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "304f7e0934e74ef93a2c28d267d26e6bd11ed55e79b71e09e45f2a093903384b",
+        "id": "f2b6a410be10b8cf300d29bbfdf1eda4b0efd37ed84267f41fb7ee10a5cdbf98",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "e74367a708ad9e6f900176cf0a84ca16aa2626b9c454aa619cff1b06ce323ec7",
+        "id": "1302f26e3d918aff31f511a5e984936a54cc276c91ca15820c2c6c46dff2a9f2",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "20e43e87c627a050cd0feb6f51d492e0b89c35e75fb9fdaadec86d7268f8e9d6",
+        "id": "c1b1c4d846ea28d2da26f03f86788e071dd9a0a7ea1e57a8a8d464fac39b988e",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "d5341c611ccf8e09f7264ce03f5bd7c89ba0aa816da86cec04f36ddadf51680e",
+        "id": "09b08e6e181af2feb1ce4b5cc36f00c03baa1be9a4444cc0e7e4fd39ee5ac6d9",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "7329d3eaf2160a18ebef0cbc1ddb41c525d6fa80c48af10d6fe4eeda2979ba03",
+        "id": "afa49f3fd8762a40c85faa3a8a1c38cfcba822e1b78dd4e05bfcae1a94fde3f0",
         "classification": "declaration",
         "owner": "AgentSnapshot",
         "reason": "Owner declares its diagnostic before methods."
@@ -4447,6 +4495,20 @@
           "tests/llm/test_agent_delegation.py"
         ],
         "complete": true
+      },
+      {
+        "owner": "AgentDescription / AgentRevision / AgentPrompt",
+        "declaration": "llm/core/agent_views.py",
+        "consumers": [
+          "llm/services/lifecycle/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_resource_references.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "complete": true
       }
     ]
   },
@@ -4486,120 +4548,132 @@
   },
   {
     "path": "llm/core/resource_references.py",
-    "sha256": "67dddc85577a47cdfbe8f97c90e6b748d20a012b032e0746aaad6a25835df56b",
-    "reason": "Read every declaration/Reader/Writer/factory/matcher and all producer/consumer hooks. Required fields cannot be defaulted; component-wide null and absent/null path remain distinct on wire, opaque metadata stays detached and Owner-specific. One matcher preserves 432 current cases and actual malformed/disabled-source deletion tests preserve original files.",
+    "sha256": "076591f648690fce54e3fbac4be90601aecb3f6f33ffb718867421a13f0c20dc",
+    "reason": "Read every declaration/Reader/Writer/factory/matcher and all producer/consumer hooks. Required fields cannot be defaulted; component-wide null and absent/null path remain distinct on wire, opaque metadata stays detached and Owner-specific. One matcher preserves 432 current cases and actual malformed/disabled-source deletion tests preserve original files. Lifecycle projection review: added typed description/revision and explicit prompt-presence projection without a second record or compatibility Reader. Absent/null/empty prompt, caller identity and detached Schema remain. Shared reference-hook discovery returns the same optional method without interpreting its arguments/results or adding authority. Existing value classes and validation are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "e68e25ca99be4fe8f5081ddab0244e891dac430835f0af49015ee03a1db32ac5",
+        "id": "419e46af480080c13ea2f643236773876037283e35865c36404172a0e32a7054",
+        "classification": "declaration",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Existing revision applicability value or reference method name is declared once before implementation."
+      },
+      {
+        "id": "65eef020ecbd573ebe726be9f0bbbdd8e651e8ecbe3acfec70355082a89411a5",
+        "classification": "non_contract",
+        "owner": "Agent view / reference hook Owner",
+        "reason": "Python immutable dataclass layout or absent optional extension hook. This is not a stored field default or reference repair."
+      },
+      {
+        "id": "7595b3f80861ed15dfe22c20230081a1eeaee5c4b873ce43da7794afba9ec975",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "cc0049d11dd929ade91d7fce24d691d46baeffe94fc3d7b1063fd2d1faf7b709",
+        "id": "e0500b609866cee7726ac827a5b159d4ac55086518cea623b28dfad6534ab518",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "39282e48904caac775338c260d56e8e92be32bd5dcc931c538ec5c40dfcba394",
+        "id": "b6884f6a776d8e4d6b8285350bd89284d25c373f62ece45aadd76d72bbb8a002",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "c627344bd16a5a8f443bfd16e57de9640e9b88e92ec77324d5df4b02e4c20478",
+        "id": "7534ea644f20215c3deab58ea4d50a33b6ef2cb883a25bf6461777f08e62f492",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "ac120b0ef69ec5efc4bde07ddfdfd63f548b8df478566e5a3c5311db604db92c",
+        "id": "0c3303a38dc5857c0073b9ad80954b5ee1a6c9e910618bf5b2043c53e75fb5f2",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "72fc76b2ba1bee8672b6a2b5db39ed69fc472dec13dc96d910013caf87f00483",
+        "id": "91215434e41400c5b41e70b8d2151c5ca340414bdd26c4b59d1f894f8bee3d61",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "ea25fe6e66b9d3a44a993f218df4c195ab91f6cb9f2e4a2435057b4fcaff2059",
+        "id": "56131e6b95a703e2515feec508f5f596f5acf117d9ef17a97f700bcda74437c7",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "958df63683d1fe49100a051f4970bda29ac010038e6451abda7566f54a015f93",
+        "id": "12a1384b957dbbcad990ecd9d632386a03010b4cf3054500dc3132a886d0b23d",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "b0d8e0a3995a5a90be17ca2e79fadaa8f0fbfe9131a6c2234879e0217d22842a",
+        "id": "f6ea9b8c61dd78f1781665d5fcab13743efdbd3cf8dc70b6e082a0e20f995a23",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "6e3707ab6e8f4529cb21236cb0d5d9b6225174bd33f720d6c7335f6b3ae54602",
+        "id": "6d37a31ef0ec87f3b2eeb3f4345047ae5eb48a39c97b750822282754340d99e7",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "78a1596d1d3ad46c697eb19c041f493d8951c34ca2d55aa966cd7fbb3048f878",
+        "id": "7d366002d5683bcefc5e48dc360a1008e966850e3614aa912e6f6fc0bcda1636",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "f395a6e0fdc01f3c736d9e54fd9a1724ba7d67f190cb522b7a7cab863c133ef8",
+        "id": "84ed997bd738f9f1b3e522bfe6f515d4b4515c21ca2aae155ea590dfe58f1ce1",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "bc91649bd1b959fe825362283583b13f0ad35235106428bb4ba939095e97ff50",
+        "id": "071291ac913f888e96a172951e5c2c8a39a355a2177ea396b123375c079b0d37",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
       },
       {
-        "id": "6c3904f30bc641e6b389475e50066056b4e94a2d4b2ac1e102c6a7ecbc3ed787",
+        "id": "92105586da867de8efd7b68c08ba7234b05a77fd97de5b657e0b787bdf89f7ac",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "5bccffec01a41ddcc1b8fa6f3dcc4e4a9a4a009ce78cfae174af56c0fd2f6e29",
+        "id": "8a2efdf1bbe66706c92f49dd8150374948a1af28aa53318d074a4213017bece3",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "aeef6665571eceed083e6a6caa6415b05db87d2a47e33c1eb09ecd07fc00b42a",
+        "id": "eee4b9717b68d96c8960dcf8e8e21b3209299e668b22f4fcd3b4b3fc3257147b",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "229937e10178f67fdcd3451e2ffc117387a375f348b026cfa36f4e8510944c49",
+        "id": "159018dd7244ec8b2381206098429b64b0cb0c6afef2d218b96b2a598afebf33",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "3b3d14840a032002b5daa5240375ada92dd4c53dd6ed95f4b915de9860d63066",
+        "id": "4ff6daac6b5feb9fd37832e5cdb697634bceb06b3b447ab42750a2043138988f",
         "classification": "non_contract",
         "owner": "Common resource reference observations",
         "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
       },
       {
-        "id": "e6cef35a79d111f1575fcaba41d517fb8dec40d839df1eb3b062cd0894313ee2",
+        "id": "029b165692bd77e3f73fc1d06ca73d1d5c0c98045495b4cd41108e7a397f7b07",
         "classification": "declaration",
         "owner": "Common resource reference observations",
         "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
@@ -4624,6 +4698,21 @@
           "tests/llm/test_agent_resource_integrity.py",
           "tests/llm/test_skill_references.py",
           "tests/llm/test_memory_compaction_integrity.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "AgentReferenceReader",
+        "declaration": "llm/core/resource_references.py",
+        "consumers": [
+          "llm/services/lifecycle/agents.py",
+          "llm/components/workflows/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_resource_references.py",
+          "tests/hub/test_usage_definitions_system.py"
         ],
         "complete": true
       }
@@ -38682,6 +38771,277 @@
           "tests/llm/test_agent_resource_integrity.py",
           "tests/llm/test_multi_agent_crash.py",
           "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/lifecycle/agents.py",
+    "sha256": "790fa8b838d54ebcc42f981d3fdb6261538887c07cbe061f3dc09ce2a2cc5c2a",
+    "reason": "Read complete Repository/Manager/Handle implementation and its actual typed storage, Engine, resource, Step/Checkpoint and async consumers. AgentInventory replaces positional internal tuples. Repository alone owns directory/manifest/suffix/encoding and delegates record/catalog validation; every mutation checks the complete inventory and preserves lock/transaction boundaries and original bytes on rejection. Manager owns access, Engine selection and lifetime references, uses Owner fields and typed projections, and delegates Step evidence to AgentExecution. Deletion protects retained workflows/components, queued recipients, Run/Step/checkpoint and soft-deleted Session participation. Handle method names derive from the Manager declaration with the same access-before-dynamic-dispatch and event-loop checks. Explicit prompt omission/null/empty and CAS applicability are unchanged. No resource activation, model execution, migration, synthesized evidence or alternate Reader was added.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f51e6c211c25674e88e9313fae502f767f286f5cf019ff56f69d4d64d4b9911a",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python frozen/slots layout for the named internal inventory, never a stored or execution flag."
+      },
+      {
+        "id": "497c16c9787adf6ed8019e67538e93f1d060910c55254b60d88be8c86cc382b3",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python frozen/slots layout for the named internal inventory, never a stored or execution flag."
+      },
+      {
+        "id": "36af2d22d8b52670ff2c45e4a7bbac848adbc746bbe41ad502afef4e7231456d",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "5a22bb5086cc7231578a8bb8bf8e75cd8d7cbc61b8d6dbaa06442965208c2b72",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "9764366ff90c61d3ce99d3fa2faab1d5099db6069e8c9fc1dc46e5f72d3fca51",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "609a1191f36dba1a4bfa295e69384e1b52ad96eec7f2d687d3ec26d39eb78396",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "15a4db930890788152b3f96b8cc2c6597bcb4c09cf9c71ff88f82f3486d72b53",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "c2ea24dee2ee4117fe52db1721749316575cbbcd2baa82608edbe007c6dfadbf",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "7a6d6309e996872632c9afc51a9eaa1615c9d1393a7638ba7eaf02760c93db47",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "238d2b537a2019afcb8a774a2a7ea31b052e2ca74e7dd47dbd3fe6cc196088a3",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "19325c7b9e2b86d21629ac929b28bbd7895eafefa4622cf25965e8f189ab0951",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "6c61fae45bfe1153e0e494d813ee496adda0cd55da07d81368498e3bfc5d7b66",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "e72c972a6e4c3b0427a9c880e52dc291047b9774b3b82d4b48a576daa3ac56ec",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "dd19a58e3dfb90544e0879ab6c8f47ed297bc3d5a9eb6dd6b0d15fb0d99d2587",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "30914848b40f72f916a66e48e90011a630c181a454a100c33c32c5a65f0d9dac",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "c19bed93f6cc049a37fa63c367c9e8b3ae3d2cd4270acba30453c5e53297d5ec",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "1147729993bb31761c748c60d89acafeeb6e570a46fdd3467cceb0712ddc26fa",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "ea867dcc61f547673be821bf2d3ea570759c0c355adb002810896b4fa0b3e70e",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "18e4fe4377999ad75479d119f3c673992b643a582b3acb53c416cf1393905d37",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "dc50c9ba19f9e0378b63408d75bcfecb3c73b297936326271d9ead927a6c7660",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "9ffd5bed6a498ee0b3b98d920d55ed0c15dfcb7ccfdf5671aa5dd5f3a98afcab",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "3fa5e6fc81be22e8838db1abc254a361a17a67a7163669eb0fa45f4c6642a6a8",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "082fabf1e3b927111837a001ac2721130d5436a0de492e2f6ec25ce8f60d5ae9",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "0922f3d0f1bc54fba2822a5941de908d952df7a162808d579f02a1d8c80bd250",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "d8e6734cb4920ed64d20def73ff42569d18284f31c27f45624911e99a5fbbc95",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "c3caa2306eaac6f036de2f67e961fbeafca94edd6dfd1b96161805c6d67ff82f",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "9ffbb9a45bd5d77569c071e1d1d5b74e73cb9060755c44d04ab283908b680405",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "66283835399ee42ae6722c1e518ddc61485d85193c36bf84ecb05be7d4d69581",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "04413690ef2fbd9961e85f783b6c0dc76ca5fd2ca41722b2fea4d1a9d30bca84",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "99a137ab14abfee3ca799e72dd5576dcb8d895d632d8d785484da820df43ec87",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "a56b47b5ae769a7050c020d27e3d3d3bebbb79ea079073e343aa962002a2a317",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "1efb152d60e72c59f89edc4bb352af126eb6ac8dc9730b566a90ce60a95b143c",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "51b37735bf30041e5ff7f21c6904c2163688fb586f60acf843dda3f1b1acda13",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "57808abaef66b0d5be862e9fbd5d8b14b8a243f27e81171031ccfda21ad21536",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "35da66ea559e20cab9d86a25450b92ebc27d6645686b6d6c9360140b6c543540",
+        "classification": "declaration",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Repository paths/encoding/diagnostics, deletion include-retained selection and handle errors are declared before implementation."
+      },
+      {
+        "id": "f604eedd87b2ab8650f0f1dea2687caef536981aec492a0093450cfc8db89985",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "addbaa30a46b0c54ce4515a9223fc12a5c1280237ce16a503fc3dc274db5e66e",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "d390ec7ccb5ed0d676892f61d417e11702b5249e946ec71d234ff7e08d985cdf",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "a640c94c24541657a154d9e76205531cbf940283b968108347fa822e2ca2e61a",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      },
+      {
+        "id": "3c8323a037d98121b0933df583272b0365bdb2641e3ff921e937eee74df280c7",
+        "classification": "non_contract",
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "reason": "Python optional creation identifier, optional hook/runtime loop, or explicit prompt null type check. Required manifests/records are validated before use; no stored evidence is defaulted."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AgentInventory / AgentRepository / AgentManager / AgentHandle",
+        "declaration": "llm/services/lifecycle/agents.py",
+        "consumers": [
+          "llm/llm.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/runtime/agents.py",
+          "llm/services/runtime/requests.py",
+          "llm/services/runtime/transfers.py",
+          "hub/backend/project/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_multi_agent_crash.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/hub/test_agent_selection.py"
         ],
         "complete": true
       }

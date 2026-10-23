@@ -2766,3 +2766,53 @@ Hub 588개(1150.788742초) pass/exit 0, 비성공·누락·추가·중복 각 0�
 보조 검증은 `python /workspace/llm-clean-resume/whole-ownership/auxiliary.py group21-auxiliary`
 이며 보조 6개도 exit 0이다. 앞 Push의 필수 CI와 중복 취소되지 않도록 완료 확인 후 이
 정확한 SHA를 Push한다. 아직 gate21 원격 통과를 선언하지 않는다.
+
+
+## llm Agent 저장·수명·조회 경계 전체 검토 (2026-10-23)
+
+AgentRepository/Manager/Handle 전체를 읽고 내부 inventory를 catalog/records 속성의
+AgentInventory로 바꿨다. Repository의 경로·직렬화·진단과 Manager/Handle의 오류는 선언부에
+모았다. 정의/리소스 키는 AgentDefinition에서 가져오고, 공개 응답은 AgentDescription/
+AgentRevision/AgentPrompt로 직렬화한다. prompt의 생략/null/빈 문자열과 기존 호출자 ID를
+보존하며 별도 영속 사본·호환 Reader를 만들지 않는다. Handle은 Manager 선언에서 메서드
+이름을 가져와 기존 access 검사 뒤에 실제 객체의 override를 호출한다.
+
+Engine/Component/handler의 참조 hook 발견은 AgentReferenceReader로, Step의 최상위
+Agent 선택은 AgentExecution으로 위임했다. 참조 결과의 의미와 호출 인자는 기존 Owner에
+남는다. 저장 목록/hash/identity/CAS·원자적 쓰기 순서·clone·삭제 참조·비활성 Component와
+soft delete Session 보호를 그대로 유지한다. Manager가 Repository 파일을 해석하지 않는다.
+
+76839fd 대비 실제 파일과 공개 API 35개 작업(생성·조회·CAS 충돌·수정·clone·backup·
+필수 manifest 필드/버전/소유자/목록 손상·record 소실·prompt·삭제)의 결과와 전체 바이트가
+일치했다. 손상 원본은 거부 후 그대로 남았다. prompt Projection 4개·revision 4개·설명
+1개·Step Owner 6개·hook 4개·Handle dispatch/access 순서 1개도 일치한다. 최종 외부 대조
+exit 0이다. 초기 smoke 39개 pass/exit 0(7.730초) 후 inventory를 타입으로 정리했고,
+아래 엄격 실행은 최종 소스다. 기존 시험과 안전성 assertion은 변경하지 않았다.
+
+- `whole-agent-lifecycle-closure-01`: 발견/시작/pass 180/180/180, exit 0, 108.170387초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-agent-lifecycle-closure-01/llm.json --modules tests.llm.test_agent_storage tests.llm.test_agent_domain tests.llm.test_agent_execution tests.llm.test_agent_workflow tests.llm.test_agent_resource_integrity tests.llm.test_agent_delegation tests.llm.test_graph_agent_contract tests.llm.test_session_agents tests.llm.test_multi_agent tests.llm.test_multi_agent_parallel tests.llm.test_multi_agent_crash tests.llm.test_resource_references tests.llm.test_backup_owner_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `3f2cb0f98fe6a19d434a8d1b19be674f76475b73808b2cb0971146037ca781e5`, input `b84333897131c8e5c9323c42cacb153817f4071024fc786ce390a9554864c10a`.
+
+- `whole-agent-lifecycle-closure-hub-01`: 발견/시작/pass 12/12/12, exit 0, 27.620741초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-agent-lifecycle-closure-hub-01/hub.json --modules tests.hub.test_agent_selection tests.hub.test_agent_graph tests.hub.test_multi_agent tests.hub.test_usage_definitions_system`. source `3f2cb0f98fe6a19d434a8d1b19be674f76475b73808b2cb0971146037ca781e5`, input `b84333897131c8e5c9323c42cacb153817f4071024fc786ce390a9554864c10a`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. Python 3.12.14/
+Clang·Host d833790·동일 의존성·실제 namespace/X11 환경이다. Agent/Workflow 실제 참조와
+삭제·영속 CAS·중단·병렬·backup 및 핵심 승인/예산/효과/Resume/무결성, Hub 직접 소비자를
+선정했다. 정적 117개 동일, 변경 의존 41개만 갱신했다. 정적·문서·R3·SDK·양 환경 각
+exit 0, 감사 16개 pass/exit 0이다. lifecycle/agents.py 전체 완료와 기존 view/reference
+Owner만 갱신했다. engines/agents.py와 WorkflowComponent는 변경 경계만 검토했으므로
+전체 완료로 표시하지 않는다. 현재 487개 중 미검토 301, 미분류
+22914, incomplete 3개다.
+
+Level 2 완료다. Agent 정의·수명과 관련 실행 소비자 소단계를 묶어 gate23에서 현재 통합
+소스의 전체 LLM/Hub·정적·R3·문서·실환경을 검증한다. Hub 제품은 아직 변경하지 않는다.
+실행 중 acfdda6 gate22는 이 변경 이전 소스의 증거이며 이번 전체 완료로 재사용하지 않는다.
+
+### 정확한 앞선 Push의 원격 CI 결과
+
+b9de4c26cdadf72f5bc8459eadabc10ea9966ac6의 [run 39991128573](https://github.com/E1der0wL/ish-llm/actions/runs/39991128573)을
+2026-10-23T17:32:26Z 확인했다. contracts (llm)/(hub) 두 필수 Job 모두 success이며,
+전체 LLM 2,479개(1963.861646초), Hub 588개(1443.643240초) pass, 실패/오류/skip/
+xfail/xpass/누락/추가/중복 각 0이다. 원격 Python 3.12.14/GCC 13.3.0 환경의 별도 증거다.
+이 결과를 현재 HEAD의 원격 통과로 표현하지 않는다. main/backend ref는 각각
+94229cb865374d99f20ec48c5e48269488041a4e / bb0946257ab6bcabb9a3ef04d3d854e5333b07d5로
+동일하고 Draft PR #1은 변경하지 않았다. 로컬 gate21 전체 성공 SHA 7931e27의 Push와
+원격 CI는 별도로 추적한다.

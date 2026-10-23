@@ -8,6 +8,16 @@ from .contracts import JsonValue
 from .json_data import JsonObject
 
 
+class AgentReferenceReader:
+    """Discover an Owner's reference hook; each caller retains its argument/result contract."""
+
+    METHOD = "agent_references"
+
+    @classmethod
+    def from_owner(cls, owner):
+        return getattr(owner, cls.METHOD, None)
+
+
 @dataclass(frozen=True, slots=True)
 class ResourceTarget(JsonValue):
     WHOLE_COMPONENT: ClassVar[None] = None
