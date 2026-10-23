@@ -43403,5 +43403,157 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/memory/summary_storage.py",
+    "sha256": "48f0d30d268eed7bcfe032c92bf08f400a107c63c07c241f63f07ef0c9d6be38",
+    "reason": "Read all summary manifest and filesystem paths. SummaryManifest owns required keys/identity/strict integer version/revision shape and in-place record/remove projections. SummaryStorage owns links/file inventory/hash checks and physical write/unlink order inside the unchanged Component transaction. SummaryInventory supplies named records while retaining tuple unpacking and value identity. Missing manifest/record, wrong identity/version/revision, links and invalid records fail closed. No new file, normalization, lock, CAS, transaction, storage version or empty-data repair. Compared 96 old/new read/write/delete/failure traces and 7 file failures; actual crash/write fault tests retain old-or-complete-new guarantees.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6280c1c74b9cb5c69578ea0ea4fbd5978ccd9174a71c7b497927e7966b951e88",
+        "classification": "declaration",
+        "owner": "SummaryManifest",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "20baef1fba15864259a2ae6a37d6fef92cdac353b334a996a64957bb89b2ad0b",
+        "classification": "declaration",
+        "owner": "SummaryManifest",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "0c506c3a982b679ba0ea55ebc1fd00f2bbe3df7077685fedf5ef1401c194c418",
+        "classification": "declaration",
+        "owner": "SummaryManifest",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "bbd914ef53e149db32839dea831f12f5da03f272670bafa8eeaac94075cd17a7",
+        "classification": "declaration",
+        "owner": "SummaryManifest",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "5ef370f0d5b3b86deb4764c25c282b1bbfcb0d3960dcec2d512f1c913d7939ab",
+        "classification": "declaration",
+        "owner": "SummaryManifest",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "c06e5eadb90f9585cfa04fb3834c967cba604e2939c3f876ef81c00e8b0fa907",
+        "classification": "declaration",
+        "owner": "SummaryManifest.Field",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "34f7fbe1f061b2d8469f536419a4293ba9a675d328f845afa4291b4862be8df9",
+        "classification": "declaration",
+        "owner": "SummaryManifest.Field",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "15e8cd97f824a62e71a84057a9b190c1842fe3e0b4ea0f9fa2045154d9d7dd51",
+        "classification": "declaration",
+        "owner": "SummaryManifest.Field",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "2c2e778c1f873ed7264b57d9536e4f32a82514310b6ed9a4fd6622c2e2115053",
+        "classification": "declaration",
+        "owner": "SummaryManifest.Field",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "54883cc4daddf303d300d244592f29dc7311d72189113f9653275fe10538b45d",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "c86b7c5b47cab04d6998fd961097aa65842381852a5638b1af242d7493ff7ae3",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "77ca0c145e06ae9492e02980b1b61034429c0aa067670e9002dca89cf2f5dafb",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "0bbf6b4561e29adc3af19dea66ecb265db3b7f867a6b4d8463c548a041d9c040",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "5bb7f2eb0c97de0798cfda7b4c3f5f064704eefa06e0a4591f318566779090cf",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "86e2d6c7ca84efc17b48588b7863949095ee87cbb2f8bef2d5f40827b38a2325",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "e4d2cb4f2ced4f996d60441cd59ffcc2d2e54143ac78adb3b656b8e163ab186b",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "64720f5546850d93e388981a98bdd6d9768b8bbd4c995f24f91355123f08f2dd",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "c15b41e6c428752ad39a66da444bb86517eb01b84d6fe3960520af45bc1bfa25",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "81a29b7e0fc7e18434e37298ab2fe0959c859c52710e8521bc17ada550dde1e4",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "c255ca1dc9d93c3cd07fb1f4bc739c46a807ad8d8bec6173206777e08bdc03de",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      },
+      {
+        "id": "a489db86ba5a3e212bdd44a731b7e61fc5847e6de7636527014e3532a3e55100",
+        "classification": "declaration",
+        "owner": "SummaryStorage",
+        "reason": "Canonical Memory summary manifest identity/shape/version, path/encoding or failure diagnostic is declared before implementation; Reader/Writer and path consumers share these declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SummaryManifest / SummaryInventory / SummaryStorage",
+        "declaration": "llm/components/memory/summary_storage.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_summary_integrity.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

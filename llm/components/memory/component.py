@@ -300,7 +300,7 @@ class MemoryComponent(Component):
             for entry in envelope["history"]:
                 source(entry.get("source"))
         # 요약의 coverage hash는 전체 원본 접두부를 검증한다. 부분 삭제로 이를 깨지 않는다.
-        for value in SummaryStorage(project, self).inventory()[1].values():
+        for value in SummaryStorage(project, self).inventory().records.values():
             sessions.add(value["session_id"])
             source(value.get("source"))
         from .compaction import Compactions

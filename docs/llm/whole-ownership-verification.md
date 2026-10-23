@@ -3704,3 +3704,56 @@ Level 2 완료이며 전체 회귀는 공통 history 참조 closure와 묶은 ga
 실행 중 gate27은 6b2a10a이며 Goal 변경의 검증 증거로 사용하지 않는다. 새 commit은
 전체 게이트 성공 후에만 Push하고 해당 정확한 SHA의 원격 필수 두 job/artifact를 확인한다.
 llm/ 전체 완료 전에는 Hub 구현 변경에 착수하지 않고, Hub 소비자 검증은 계속 유지한다.
+
+
+## llm Memory 요약 저장 Owner closure
+
+기준 fdb50ee 이후 summary_storage.py의 SummaryManifest가 요약 Manifest의 필드·필수
+키 집합·정확한 int 형식 버전·Project/Component identity·revision 형식과 Writer를 소유한다.
+SummaryStorage는 경로·encoding·파일 목록·무결성·저장/삭제 순서를 소유한다.
+SummaryInventory는 manifest/records를 이름으로 노출하며 기존 tuple unpacking과 값 identity를
+유지한다. Component의 history 참조 소비자는 records 속성을 사용한다. 내용 검증은 원래
+Component validator로 위임하며 기존 잠금·CAS·바깥 트랜잭션·파일/Manifest 갱신 순서는 같다.
+
+새 파일·저장 형식·버전·복구 경로·기본값은 없다. 존재 목록과 원본 손상은 여전히 실패한다.
+이 파일의 후보 21개는 모두 Owner 선언부에 있으며 구현부 리터럴 후보는 없다.
+Memory의 다른 기록/정책/processor 전체는 아직 진행 중이다.
+
+### 검증
+
+`python -m unittest tests.llm.test_memory_summary_integrity tests.llm.test_lifecycle_deletion_integrity`
+23개 pass, exit 0, 18.068초. 기존 실패 Assertion과 실제 파일/중단 검증은 변경하지 않았다.
+`PYTHONPATH=. python /workspace/llm-clean-resume/whole-ownership/memory-summary-closure-draft/equivalence.py`
+exit 0: fdb50ee의 실제 파일 읽기/쓰기/삭제·오류 trace와 bytes 96개, 파일 증거 오류 7개,
+공개 저장 선언 3개가 같다. 새 typed inventory의 tuple 동작과 소유 dict identity도 확인했다.
+
+- `whole-memory-summary-01`: 발견/시작/pass 138/138/138, exit 0, 265.948951초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-summary-01/llm.json --modules tests.llm.test_memory_summary_integrity tests.llm.test_memory_compaction_integrity tests.llm.test_memory_processing tests.llm.test_memory_history_integrity tests.llm.test_history_retention_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `685d64fd069bc8da3c001189da03bb6069a7bd1a3e9ebd5f62901303fdbf44cd`, input `441182f2f9d6b7e0699b8970f336bb8fd6c25455baa608ec26860aecff9d1f9f`.
+
+- `whole-memory-summary-hub-01`: 발견/시작/pass 8/8/8, exit 0, 4.904369초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-memory-summary-hub-01/hub.json --modules tests.hub.test_history_retention tests.hub.test_deletion_feedback`. source `685d64fd069bc8da3c001189da03bb6069a7bd1a3e9ebd5f62901303fdbf44cd`, input `441182f2f9d6b7e0699b8970f336bb8fd6c25455baa608ec26860aecff9d1f9f`.
+
+- `whole-memory-summary-workstate-01`: 발견/시작/pass 6/6/6, exit 0, 14.219391초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-summary-workstate-01/llm.json --modules tests.llm.test_work_state`. source `685d64fd069bc8da3c001189da03bb6069a7bd1a3e9ebd5f62901303fdbf44cd`, input `7815a2cb925088eeeeb90389cc32885b54fb80b3317baea3a1e8ec96fc1fde5d`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+Python 3.12.14/Clang, Host d833790, 같은 제품/시험 파일·의존성이다. 주 집중 실행은 실제
+namespace/X11 환경이다. WorkState 추가 실행은 X11 두 환경변수를 설정하지 않아 input
+해시가 다르다. 다른 환경 항목과 소스는 같고 X11을 사용하지 않는 해당 실행을 별도로 기록했다.
+영향 범위는 요약 생성/변경/명시 삭제·compaction·긴 대화 문맥·Goal 버전/구조화 작업 상태·
+보관/참조 삭제와 공통 승인·예산·효과·Checkpoint/RAG·수명 무결성으로 정했다.
+필수 원본/Manifest 소실, identity/버전 손상, 링크/비정규 파일, 실패한 쓰기와 프로세스 중단
+후 원본 또는 완전한 새 상태를 검증했다. 결과 재사용으로 별도 실행을 전체 실행처럼 합치지 않았다.
+
+정적 finding 117→118의 새 S4 하나는 SummaryManifest.read의 expected schema_version
+인자 비교다. 호출자는 canonical 선언의 alias를 전달하며, 비교 전에 정확한 int/필수 키를
+검증한다. 명시한 이 발생 지점만 증거에 고정했고 원시 finding은 유지했다. 기존 finding의
+변경된 두 소스 의존 근거만 갱신했다. `python -m unittest tests.llm.test_architecture_reviews
+ tests.llm.test_contract_coverage` 16개 pass/3.206초/exit 0과 `python /workspace/llm-clean-resume/
+whole-ownership/auxiliary.py memory-summary-auxiliary`의 S1–S7·문서·R3 mutation·SDK·
+LLM/Hub 환경 6개가 각 exit 0이다. 기록 후 최종 문서/diff도 검사한다.
+
+현재 전체 505개 중 미검토 284, 미분류 21494, incomplete 4; stale/위반/감사 오류 0이다.
+
+Level 2 완료다. 저장/검증/트랜잭션 동등성과 실제 장애 통합 시험으로 영향을 제한해 이
+소단계에서는 전체 회귀를 유예했다. 후속 Memory Owner 변경과 묶은 gate29 전체 검증을
+진행한다. 고정 fdb50ee의 gate28은 이번 Memory 변경을 포함하지 않는다. llm/ 잔여 작업을
+계속하며 Hub 구현은 llm/ 완료 이후다. 전체 게이트 성공 후 정확한 SHA만 Push하고 원격 CI의
+필수 두 job·artifact 결과를 실제 확인하기 전에는 원격 통과로 기록하지 않는다.
