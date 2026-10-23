@@ -21,6 +21,10 @@ class TokenUsage:
     UNKNOWN_TOTAL = "Complete usage requires total_tokens"
     MINIMUM_TOKENS = 0
 
+    @classmethod
+    def valid_count(cls, value):
+        return type(value) is int and value >= cls.MINIMUM_TOKENS
+
     def __init__(self, value):
         if not isinstance(value, dict):
             raise TypeError(self.INVALID_OBJECT)
@@ -29,12 +33,12 @@ class TokenUsage:
     @property
     def total_tokens(self):
         value = self._value.get(TokenField.TOTAL)
-        return value if type(value) is int and value >= self.MINIMUM_TOKENS else None
+        return value if self.valid_count(value) else None
 
     def validate(self, *, complete, invalid_count=INVALID_COUNT, unknown_total=UNKNOWN_TOTAL):
         for key in TokenField:
             value = self._value.get(key)
-            if value is not None and (type(value) is not int or value < self.MINIMUM_TOKENS):
+            if value is not None and not self.valid_count(value):
                 raise ValueError(invalid_count)
         if complete and self.total_tokens is None:
             raise ValueError(unknown_total)
@@ -81,6 +85,7 @@ class UsageReceipt:
     """
 
     INVALID_TIME: ClassVar[str] = "Usage period evidence requires a timezone"
+    UNFILTERED: ClassVar[bool] = True
     started_at: str | None
     usage: dict
     usage_complete: bool
@@ -106,7 +111,7 @@ class UsageReceipt:
 
     def in_period(self, seconds, *, at=None):
         if seconds is None:
-            return True
+            return self.UNFILTERED
         clock = datetime.now(timezone.utc) if at is None else at
         started = datetime.fromisoformat(self.started_at)
         if started.utcoffset() is None:
@@ -127,8 +132,8 @@ class UsageCall:
     """Project query projection, preserving each source's public receipt shape."""
 
     SOURCE: ClassVar[str] = "source"
-    SESSION: ClassVar[str] = "session_id"
-    RUN: ClassVar[str] = "run_id"
+    SESSION: ClassVar[str] = UsageSource.session_id.__name__
+    RUN: ClassVar[str] = UsageSource.run_id.__name__
     receipt: UsageReceipt
     _record: dict
 

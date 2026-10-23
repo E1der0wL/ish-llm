@@ -12441,5 +12441,1075 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/usage.py",
+    "sha256": "9977f4e8583acb3efea582b040fcbb93ee5aa33c76b82054d12becfe53666304",
+    "reason": "Reviewed all normalized token observations, verified-receipt projections, source annotations, window selection and aggregate arithmetic. Fixed field declarations use typed attributes; receipt annotation is an explicit public JSON boundary and preserves opaque provider detail. Missing usage remains unknown; projection does not replace mandatory storage Readers. Single count predicate and period clock preserve prior behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5dcc9c70ee5f4a4fd6f7bceae32a2f5adf5317656c89646709f2d0c699e059a6",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "22a419f1d14bc2175053e61500d3bb23e8cfd7e508dc3f7871a756cb06d183ca",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "25cb3bc9ac43c7ae92c91983bd016fe0da298abe902ca7a683474eb815314ee4",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "bc0961df36df3316718dcc6f73580352b75f40d3f9fa7eeb5e4ead4c3cf3c798",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "d29db0e08237e75f9d3ed6554f57b90cfa4f7f2cc7c884e38899c05002cf9f09",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "7bd4da1a88943e51254bc50a2ef18be4a6568c8e1edbc60308b39650dd721ace",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "46138b6ff7010043d2dd348f3019ef25c41063463e2c7abe6fe41d339afebda7",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "cef41b2ef38437bffd0f1fbcc73a843d69590a8323cec159df28426aab440911",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "d15254237cc274ca6ba2df12544faa811df833d5e2cd9d59906e35b63343c59e",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "c0331f51584bf48c832ad6979bd800df709e0a8ad95f997c6485073f43588a9a",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "9199d391de6c5bad82301203da1406a02d0c389b3190bd2efb8b57596c2ab369",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "bdfe1cffc9df35c292500dbcd88d8e0f01c4958055d53d430af19894c431cb66",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "e4963a39993ed3c7b67898c654303dcff75970e5f5d1d2e0aa7625cfafa6ef88",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "c9f4bdf5263c1207b328d6dee48fd27c066973a565381ffd09e1fb226c71f458",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "8d91fb5edaa20f91bf798e59ebad470e464be73af3aec3442133e99831506503",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "9904105c051dba86a40e7bc2795efa0563d79bba032da0c547009245616fedad",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "a34e292d0dcaf13d74c42d28978b25b386e1a4cfeca9c38e1aa0361c7dea9f59",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "2e3874d5f19badf26c2a0914e4efb1036a346a8e6a98af61dcf8734ecc428043",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "694310b397e45662816c4b4c51643312d84deccda1d259a4b7c052cadcca7c1e",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "5439853063cffbb224cd71b5c29db0acb3e02209b0a1f9529380248190dc4ee7",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "452c234d1e895e1be0eec379a9a8d39eedc6710567f1c166a904d82a68d4ce89",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "c949304ed30a231604b6dfb86003d6c078d112b23231db7763f19073597376be",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "2429f1bcff63ef49bc02773a325a832692f48368cce3b76f51bd7aaa839dc838",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "baa56ad92bd691483a381eede4f72640aac258ef106df4a8713a9701ba72edd6",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "2abaeab9a3019204b0e001cad05abdcc10d8b39dc9275eccb69800063bbc606e",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "aea7904de19c226297749efb709c61bd3823d981e00d6b5b3d8e719d65dba2af",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "bfa6fa1a3e6e4d8cd62aa1abfb178ef0ec007ef7655e559deaa842a638a0ec7f",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "c5c3d1ff612c16a2ec153c27abf6451deaa79439adcb05715f3dd85ac3f58e7f",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "3e9b7cf227f96bd2f1000bdb6fb2ebb27021d03556c3c0d21ec932f709cc8295",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "81c6123d59314926ec668a288b991d1806e8a2b661a4c97c3c9ac74345a62fa1",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "49c0dd8fcb5f83b77e41d56fae2850b31e64f09d1f1190a7f1e458b7218f92a1",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "5f67a15645ec0bffea99080abd0742872c7a0e21a22745981d25873bf99993b3",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "6edeb51faef280efa62149128ab523f498c620ccfb2f4ff0de1eacf546f7564c",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "7235d68ae00e8f658ee556ebfb1e58ea84f9331fdaeb7a9a3dbe8f5ce621cd5e",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "73fb481bd1b5e406bc91978b86ff54b53212a62e1a97fb13780dd6b26ebc5ab0",
+        "classification": "declaration",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "9b2cf5bee0d3219f38b3e1ba327594ba9ecbd5d7938a0f55f91b3ea5044d0e01",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "e2184453a8911c87ab31bcf3532937043549a5cf7b8de1679f0f083dca42c560",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "ef760c3101cfaeb16bb730485152ff2cc4045921c5373650f7689a33b1272e9e",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "431287b83d9417e82b6ac64877beb20684f6864f5da6cb39f7b10194e800010b",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "781e8d43314c8a0c1c48d98c8d01f027e65d64f6f0c226d6d113d5c469400400",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "73fc5e175538ae9eb361810adb8bbca167afa6015dfde66e9c4db682c2a0c5ba",
+        "classification": "non_contract",
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TokenUsage / UsageSource / UsageReceipt / UsageCall / UsageSummary",
+        "declaration": "llm/core/usage.py",
+        "consumers": [
+          "llm/components/usage.py",
+          "llm/policies/usage.py",
+          "llm/services/runtime/usage.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_usage_declarations.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/usage.py",
+    "sha256": "fe2e782270f80a2c949eb247e0d394ed83fdbe995ee01b500615504d1a369455",
+    "reason": "Reviewed the complete strict current receipt/manifest Readers, immutable reservation field metadata, terminal transition, wire serialization and filename contract. Missing fields, invalid time/status/owner/revision and changed reservation reject without repair. MappingProxyType remains detached and immutable. All diagnostics precede implementation. Independent 181 receipt/45 manifest cases preserve output or exact errors; original corruption assertions and effect tests remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6ea3997d015ff77bf116a7e93dc5a0e311293bbe2d8e0679b742c88b942c2e1d",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "c019a3f9d5931dbcef4e40b717de533110269cf899a7edb72fe9cbbf3079f802",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "462ec9cfe7703512fcdf40e4a2ada5ce1b1fc5bc2a96744fe83a8b665047e40e",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "2f2537bb51c5745ec99eae745e911bcd2f88d4bdcc8bac9762c40d021d645482",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "716a5f304d7ed607786191c012433404cbcf891f8d55cf7b24bf2272d16c9cc9",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "d6849e5cfabb2f95dd85d2d9d6aa3d9bcbf86442d8555ccd2ef85efd716ed720",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "38d6baaebaacca399914b9fa0347273c7c2985aed6ad5535aab20a49aac04c8f",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "9eaf41f240606d8505ddd461f9b932be8ba3e77bf8c8cb33b83e3eed7ff7de38",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "a004a7223a6cb13037ad324791408c8c2aa6da2461dbea58af70e9c7307bcefa",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "bc2950e2f59b318ee98abf5968ed5350ac1e6b2f87babb8af04e285a2c9ca150",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "f9ca38d5d76eec919013c43b8d69216992578e33619f20ba3be591b556b3cf5d",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "dfd95ac27791a924462754f1c00288583514003f7d10e43107d9e3a8c6e3d0fc",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "0b4bb6ede959c2536961205b35a84e990a30d7997d6d0cfd6663a2041069dda1",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "e2250009c435e1d999e1a4a50a95bf2dc23fc68c8dc8ee20dbfb258b42b91669",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "7d8188142c254f2f6dcd6584e18be75bd32c56222f08dbf4171d1899766fa924",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "a3a6644ea60a088921e3921222a06ba34b95c87b0497eb61c460e92f8f2cf7c2",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "b2d45ca26cedf09127e654fe3f72a8783ecb59dd41e40bfb1e197fb8c64e6102",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "1d8a75b3d24f02a6dff6a1e168c2655dcd2a350f79e7f88123ead3568710034b",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "59b7426cc9f00a2e8a572ddb4c1c66dc40164425a89255661a8f7c68b50cfdbc",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "7270281165866782f32c7a89a487f1fd244ce1ddc2b81554875cff526c3adfb6",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "13eea76d70c8f4e1c431261531a4f34d078e973b6155d3c825f16a7f1c151ed8",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "93f8dadf7cbbf56f468a6213f661dbe30a47ae8ecd7e87d4127e3f07f201c990",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "3758b9b28a9cd27429da870e10505d7d2ecc315829544efeb74da08613c3c7f0",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "5c28ee52a1f34deef13b6596980b5987404f09c7051d4873620baacf1972ee2e",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "ba69630485e927e3609cf6d8df0a44dadf06f6372c6c479ca76093b0d235aa31",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "fe674660dd314ae4972664c8c3e7cd3ad122adbd0695339f38e4ffc22e1811cc",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "78f3b18448e6312b9cbe22929a38b0bbb7c259af30e968a7f3aef66663464db2",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "3722e311d32978a84b2a2b79e282eaaa38ace40cb1ab14b0e9bcb917b01a4e0c",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "98b7ff9eda934a674f61f4fc1f0ab4662418e85349e2f1e955ab9a0907fc14fa",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "428ff3b62ce0dabce9ddd8ae5c1b5885b48e1db23b670fbb62ffbcea297c2370",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "9ba508d671b478f9925aececdd75fa2c3ea8c18df401167bc733994c4fa0089b",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "bf89ab25cb513ce771430fccbfa12ed8f9bdb78d799638f10000de065443c3c5",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "6ef2a6bf8c51a2a998e32bc1705e55fa653bec0f1719adeb7500dbded41e9ab6",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "55fc0d0ce6481892a39b48f6ceef6760dfe52ac24fe7a8af54a2c5f24fd8cee9",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "cece3727b61f9c80398a0de67c930be6f1233e78564480959f990956bd8e21e4",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "cccb7daca6378cbaa83c49a8ba628e1884f08a0c35c5062505fc964616cac108",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "5a223ddf3829c37a0ff475d88e835c9d90f793f539344af2bb22ed349e74ea68",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "3cabd404c9ca97695c0ca033389c26b486bf4c2ff9ececfb5bcade6075f2237f",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "e07553ee856f7f2145b279910adcf36b73907a3e0e24e6851a4cc9f6fa2a4877",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "3db46f0c4519581c1857f98740200904ae9df2be9cbb02c0a2c033f6366705df",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "7b5a304777f7b5997ac7cfa9dac96602677489e8fc5c1d9fd9a617370e2d5fb5",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "13937588c489b24efc49f775d36ad373260da262d10868b06b5694deb2061d2d",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "5d64035af9051b1ee870d34f436844ff92609c08ec21cc25c8ace72697a03985",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "245ad9e7cf42512d8a0cf00c7133e1b0d0cfc290bc2ced06de969e7d9dfc703d",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "2b01d2727b99fbaf774675f9fca4e89685062a399c1bec32acab7ee2c2ebd6db",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "982233c8f5a21e22a1225d8546ea90f9db25a8d50781fde14e1c17dd6707391b",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "89e82d429b0c9da2c337e9f2b9f867977a4ef89b1f839fdd422480751ccc3584",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "fce9a1267b22065f615a3339161866855719ee5264691d3213df3c21f6784f9e",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "fd2049dcd14829d9fa6a1e58f2b744ccd0771d8964d21835b05b4695187bd8a6",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "4916f035cd15d7c6b1f1733dbd18a5756a669b4feb6fed08ae907acfdfa2edd2",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "94d4de6f8511153569c2f11b0dde4bbf1dcbd5f5cf70506b0d3d47f95b84c986",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "999694ff6abb4a4eb79fa41e21c66b05a07eec9017c120c2e7014011d30d3fb8",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "d93f5ce31eb7d0a6ddc56a7f197d0d793b2d9ec597a7da7a1760ddfe08b95d5c",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "49dbcf5002f3d61daf59217ac7c75d0495eaa2a40c2047d681fc78fc36e7d48a",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "164d1a2209a8cdb570421b867083fd256f8595b5e8932d12ab568558f9e22985",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "c13b9983c878f1d5e2ef32388b011083c4902df9f6762e89517e8b2e6cdb1683",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "453280b6dbcadc8a69fd9db375f502aee22eab7a6bbcd595854e007daa0e280d",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "c896821b11ac0cbf072989658c2d3807682be55dfe8179ec1488ffd9901134fa",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "9ab1c678a33af353fc3e3fee5a0ea3da58481e1889d4c5f7cb87c5d987a2e3e7",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "64bdebd71e87e1e4878a5cf1bcca2cbad67b057613975985a71d510cbb7806b6",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "44909086f02fbff5c1b98384d77266e5d53863f2c740cecd259e3626b4f9b68d",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "f8d8fc4879955bdaf196d56834b5ff542bff12aceabcfed30193c96ca73ed06f",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "a83288aea1413549ad70109ee4c9547f6dad94ab852bb81f9815f44050bf9331",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "8db4fb4f963cc33ede9803e7fc29aae251378a08d1d99575b236143b32ba39aa",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "f8942e3827b04cb19fa6692cb4a3e150a57080b753d4f412969ccf1f7d14ecf4",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "33a56dc8a558434ba066432aab9071534d9c51c891b2feaa2b01d6633df5d965",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "100bd56ba6fc94461cc3b104f9dc13cb4ef803b1cb2cccab6e497f2a0a4488cd",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "0a4af4070789266795ebb9562bb79c88f097c5c3e4beee667bd3c2f315fbb9fa",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "b8a7dfaba7ec4774c3cd1c690854b7ceb0424df9743935f3326ed887dd5f3689",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "9863898b89f919228362ca62305609e816a9c9e302ab7fee2e64879a3e7b68bf",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "794d04b4f5541ef5e84f160f1063c7f00acc61d87cdcf39883b31c597ef66ced",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "66d2ad6a8aadac6f02fbeb354043a9e8ea299177df487f7ff5b78635f104a846",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "07c0db21810ae44da85ed3d9ee0cdb8cbcc5e77e164f843b66fb4829a7c7c454",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "e224b1b389a8f5d769eee74b0274df6b39a6d36ca8ea62eafcc4b3167096a595",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "4fc95dc7fbdfe736cd90aedfd5e01e32e60a3bd8357145cadc0bf99fc384595f",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "de587424bf04166253fe478d143d29126df39065d5ee3958a754f5a951c9dacc",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "377d8132deed5cd69b1c1a8b8b1723fac152b565913bef52c8f2a5e14bb7b49b",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "ea2fc3f3aac9c8fc764409a5bf618f5c87585fbef22f3e0dc9b1a50045dbb37d",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "086816cfc51813c4f32c10b73fae20f69c981b87998b757578d68be3e233f61f",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "declaration": "llm/components/usage.py",
+        "consumers": [
+          "llm/components/base.py",
+          "llm/services/runtime/usage.py"
+        ],
+        "tests": [
+          "tests/llm/test_usage_declarations.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/policies/usage.py",
+    "sha256": "d6e8d1dbea11757c09d6ef35589bbd809098078dadd938b4fd2e413318b524a0",
+    "reason": "Reviewed the complete pure policy module and consumers. Typed UsagePolicy/UsageLimit/UsageReceipt own fields and interpretation; admission compares known amounts or preserved reservations and rejects unknown evidence. This module owns decision order and diagnostics. No live budget, stored limit or clock behavior changes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "14b72c84a9b323ca9b22c97a870331bde2873dc6f2843af6642d94fcdbf21b4e",
+        "classification": "declaration",
+        "owner": "quota admission and period selection",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "6965348c218d33eb79e29b8614236e20ca77689bd841740d6ee049b5c0b0afd6",
+        "classification": "declaration",
+        "owner": "quota admission and period selection",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "d6189228e39da3007adcfbba8debe19f4dec01ea879cb3d84fa12a84c2e774b5",
+        "classification": "declaration",
+        "owner": "quota admission and period selection",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "87ff31eef4066af8948eaeec0df511ee8e4882adf38c0a226bbc2145c7c91787",
+        "classification": "non_contract",
+        "owner": "quota admission and period selection",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "f167cb8dee5bd85e83ed195fbb468588a3cd73791b47c4d3b80872c9f0fd4ee4",
+        "classification": "non_contract",
+        "owner": "quota admission and period selection",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "8bf8277973091a4af0994aed1679c5689a708dc84eee464da46b9533033348c2",
+        "classification": "non_contract",
+        "owner": "quota admission and period selection",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "7dd73018fdb61c429a4b85b27baa4570fd80b45186592e4f483f7ddc8fe4a8d7",
+        "classification": "non_contract",
+        "owner": "quota admission and period selection",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "a790898701e83fe63eb857859f77fa31663f21c76b60b1ca675794e0d403617c",
+        "classification": "non_contract",
+        "owner": "quota admission and period selection",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "158ac1b460a87b6e831f12c15f7e562b682ecd4e307688ad0ab5213e57a9127f",
+        "classification": "non_contract",
+        "owner": "quota admission and period selection",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "quota admission and period selection",
+        "declaration": "llm/policies/usage.py",
+        "consumers": [
+          "llm/services/runtime/usage.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_usage_declarations.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/usage.py",
+    "sha256": "01e1990afc7132b30d3fb33ed4b34c131f0a4dc2d39ad5b1f896e2256dab8205",
+    "reason": "Reviewed the entire reservation, projection lookup and component observer flow. Shared count validation runs once in the original thread boundary. Run policy, current ownership, deleted Session evidence, admission/save workspace lock, failure/cancellation receipt handling and unknown reservation protection remain. Owner method declarations identify injected hooks; no fallback Reader or new authorization is introduced. Only unbound component calls use the existing policy projection without Run limits.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e883d7e30794aac0b8484f581214faf17567e4ba93869e6dd1e4a508159a632d",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "fce5da602355a50377b6ff10511303a464be5eca498794d172319b715f8d683e",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "443d687c047df4da5430a6a4eea147e5042673da41d6eab8e370c7e0423366dc",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "47fcf55eef002e0750a9e888bd1056d4963403b6b865e8d3eac1e0c1c49d3f34",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "72e24198cfe9689d181a683832f40ee64e770f55424c8495a962ea113243887d",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "881f1c75cf8eb110f359e201852d6b1eb2b077f342c88be891c5183bf0302c62",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "0508aa270f5c4f5e2f3303e775afbee32944564d6e140a16f5d185f936953267",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "a671ba99ee3ef7582d3b128e87fac830775d5615137ba6a0802e27606dcbc1e9",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "68efbe71f9504a60cba414e75055b8c44402d3085134abc06400bced49533e1b",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "e492c9178cccf77be247c67845591f72f845dc22f81aa3c3a607481822875c31",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "bbde7faa7a2f73062f5e4c35c12fd3e0a8fa75ec678f35d7286cf801840bfc1e",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "5f9dddc91507eab38e9f6eaee16a9aa4b21e93f64be7188a8cc2497fcaf65533",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "6b09f621e09bdf9b0ff05c0af1f1ecaf5bfa1ceab33ef0ec38a43c649ecae3ef",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "c96388d5b8542b58ffc2fa1abef3a73ada7bce300bf2ca93eb820ad85197ab95",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "4bada66de08db5c40b5dd831e70c2b7eb9ca0f8d5b7ec232bc4539d05c3c35ac",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "101770cee097905d4da1fb480c872234615149cba3070ae8bdc78dbf1bb371a9",
+        "classification": "declaration",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "0ea8c20b2c18e682aebae04e1ff1817365c4c1a39ff5ecbb46dd2866f4448df7",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "8689963fe99d6deccf5c6a7293ef22b826997ece2cfdcd0979f644d336106f2e",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "9f8d3ed7858e50afd25cf6b93732a848844620d9573864a2a3abf4167b7f67f1",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "7611f6c3e1584c1e2d0e3a44de3fa85da8859c0c2910a512d120eac76a960f1b",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "32274622442338f760449c73fff552115f8af718ed7917fe01dc482b9fdc757c",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "e460b4ea331ace4a6973a840c0ba02ef25866a543bec47ed7c795cc1c9faf8e1",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "6abf97bb525949888990cf6a5af5228889d11e60adbc0a13ac49525445275f03",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "c6025972972d4c648afb8d98746e62c1fac5d470f8097feb2e67e491690b3d5b",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "5147e4452c44afe622d82eb3d265305fcf30d3dcf2eb1c9f006aff25aead8314",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "4b4790681b3900951dbee9b247cad43560ca2ec37e8bd1d7bf5c471a60ecb8c7",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "cd1b4a68c6419564e3c461366e9ae4af6e3da74c51c0d3993a128227a02c0ca7",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "f2fba6b19dec4f869b4c8bc2a60c24fb04994e5991bf6d038e67c4321ed02986",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "c5ed85b90c3dcab06c114c66557e41b516158de514be37f1c00e5013d56fe99a",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "07a839a22313ba3490144a249e27434d980105e1ce8a95e37b99fd7c28f4c6af",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "6f7f4efad046c4718cfea440777317b387f5f0aa514c992e95ac5508e672b1a3",
+        "classification": "non_contract",
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TokenReservation / UsageScope / ComponentUsage",
+        "declaration": "llm/services/runtime/usage.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/lifecycle/projects.py"
+        ],
+        "tests": [
+          "tests/llm/test_usage_declarations.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

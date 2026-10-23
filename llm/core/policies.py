@@ -1,7 +1,7 @@
 """프로젝트의 명시적 JSON 정책 스키마·검증. 서비스나 실행 객체에는 의존하지 않는다."""
 
 from copy import deepcopy
-from dataclasses import dataclass, field as policy_field, fields
+from dataclasses import dataclass, field as policy_field, fields, replace
 from typing import ClassVar
 from enum import StrEnum
 import json
@@ -60,6 +60,8 @@ def _validate_runtime_policy(value, *, allow_absent=True):
 class UsageLimit:
     """A quota's two explicit ceilings and their public diagnostic labels."""
 
+    UNLIMITED = None
+
     max_calls: int | None
     max_tokens: int | None
     calls_label: str
@@ -67,7 +69,7 @@ class UsageLimit:
 
     @property
     def active(self):
-        return self.max_calls is not None or self.max_tokens is not None
+        return self.max_calls is not self.UNLIMITED or self.max_tokens is not self.UNLIMITED
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,13 +79,13 @@ class UsagePolicy:
     INVALID_COUNTER: ClassVar[str] = "Usage counter must be a nonempty name"
     counter: str | None = policy_field(default=None, metadata={"schema": {
         "type": "string", "description": "누적 토큰 예약 계산기 이름. Engine 입력 선택과 독립적이다", "minLength": 1}})
-    max_calls: int | None = policy_field(default=None, metadata={"schema": {
+    max_calls: int | None = policy_field(default=UsageLimit.UNLIMITED, metadata={"schema": {
         "type": ["integer", "null"], "description": "Run의 누적 모델 호출 상한", "minimum": 1}})
-    max_tokens: int | None = policy_field(default=None, metadata={"schema": {
+    max_tokens: int | None = policy_field(default=UsageLimit.UNLIMITED, metadata={"schema": {
         "type": ["integer", "null"], "description": "Run 토큰 예약 상한", "minimum": 1}})
-    project_max_calls: int | None = policy_field(default=None, metadata={"schema": {
+    project_max_calls: int | None = policy_field(default=UsageLimit.UNLIMITED, metadata={"schema": {
         "type": ["integer", "null"], "description": "Project 기간 내 모델 호출 상한", "minimum": 1}})
-    project_max_tokens: int | None = policy_field(default=None, metadata={"schema": {
+    project_max_tokens: int | None = policy_field(default=UsageLimit.UNLIMITED, metadata={"schema": {
         "type": ["integer", "null"], "description": "Project 기간 내 토큰 예약 상한", "minimum": 1}})
     period_seconds: float | None = policy_field(default=None, metadata={"schema": {
         "type": ["number", "null"], "description": "Project 사용량 집계 기간; null은 전체", "exclusiveMinimum": 0}})
@@ -125,7 +127,11 @@ class UsagePolicy:
 
     @property
     def requires_reservation(self):
-        return self.max_tokens is not None or self.project_max_tokens is not None
+        return self.max_tokens is not UsageLimit.UNLIMITED or self.project_max_tokens is not UsageLimit.UNLIMITED
+
+    def without_run_limits(self):
+        """Unbound Component calls retain Project limits and have no owning Run scope."""
+        return replace(self, max_calls=UsageLimit.UNLIMITED, max_tokens=UsageLimit.UNLIMITED)
 
 
 @dataclass(frozen=True, slots=True)

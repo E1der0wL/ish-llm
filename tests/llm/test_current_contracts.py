@@ -137,12 +137,12 @@ class VersionContracts(unittest.TestCase):
         source.mkdir()
         spaces = TestWorkspaces(self.root / "spaces", source_root=source, allow_network=False)
         call = ToolCall("create", {}, "step", "project", "session", "run", contract=TEST_CONTRACT.to_dict())
-        value = spaces._create(call, [])
+        value = spaces.repository.create(call, []).to_dict()
         identifier = value["workspace_id"]
         directory = self.root / "spaces/project" / identifier
         self.rejects_invalid_versions_without_writing(
             directory / "record.json", "storage_version",
-            lambda: spaces._record(directory, "project", ready=True))
+            lambda: spaces.repository.record(directory, "project", require_ready=True))
 
     def test_vision_current_writer_and_reader(self):
         project = SimpleNamespace(id="fixture", paths=SimpleNamespace(root=self.root), config=ProjectConfig(),

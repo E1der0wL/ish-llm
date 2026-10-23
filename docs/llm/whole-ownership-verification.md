@@ -1958,3 +1958,59 @@ incomplete 2개로 전체 완료는 계속 차단된다.
 이 변경은 고정 1aca201의 gate14에 포함되지 않는다. 그 실행을 수정하지 않고 정확한 SHA 결과를
 별도로 확인한다. 후속 관련 소단계와 현재 통합 gate15를 수행하고 통과 후 작업 브랜치에 Push한다.
 나머지 저장소 전체 대상·동적 소비 경로와 최종 정확한 SHA CI까지 계속 진행한다.
+
+
+## 사용량 선언·예약 검증 단일 소유와 gate14 시험 API 수정 (2026-10-23)
+
+[사용량 계약](model-usage-contract.md)을 현재 Owner에 연결했다. 기존 typed usage 전환을
+재사용하며 TokenUsage의 정확한 nonnegative int 검증, TokenReservation의 한 번 계수,
+ModelUsageRecord의 불변 예약 필드 metadata·filename, UsagePolicy의 unbound Component
+사본 API로 남은 중복을 제거했다. Project 한도·기간·counter, 저장된 Run 정책·예약·누락 영수증
+거절·삭제 보호·workspace 잠금과 실제 호출 순서는 유지한다. 조회 hook은 실제 Owner 메서드를
+참조한다. UsageCall의 Session/Run wire 이름도 UsageSource 필드 선언에서 가져온다.
+
+독립 시험은 불변 필드의 정확한 집합, 기존 JSON 파일명, 원본 설정 사본 보존, 잘못된 counter의
+단일 호출·거절 코드 및 provider 실제 효과 0회·기존 영수증 파일 bytes 불변을 확인했다.
+`python -m unittest tests.llm.test_usage_declarations tests.llm.test_usage_ownership tests.llm.test_component_storage_integrity tests.llm.test_usage_deletion`는
+34개 pass/exit 0(6.779초). a4dc114 기준 receipt 181개·manifest 45개 경우의 wire 또는 예외 종류/문구가
+같다. 이후 source annotation 두 선언만 기존 필드의 __name__ 참조로 바꾸었고 독립 wire 집중 시험을
+추가 실행했다. 기존 큰 base.py/core/policies.py/runtime/runs.py의 변경은 세 파일의 나머지 AST가
+동일함을 확인했으며 파일 전체 전환 완료로 기록하지 않았다.
+
+앞선 고정 1aca201 gate14는 **실패**다. LLM 발견/시작 2450, pass 2449, error 1,
+failure 0, exit 1(1415.037565초); Hub 586/586 pass, exit 0(1121.751748초).
+두 suite의 Skip/xfail/xpass/누락/추가/중복은 0이다. source
+`3bf5f9c23142beefa55cf26e222bd2a9228058ed00cd48c8242b5a3370df579b`, input
+`e9b10155e61b878065b08007f3134ce6ffdeb75027fa9521e04272abf75c6656` 전후가 같다.
+명령은 `python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group14-l3/llm.json`
+및 같은 경로의 `--suite hub --output .../hub.json`이다. 보조 여섯 검사는 각각 exit 0이다.
+
+오류는 `VersionContracts.test_workspace_current_writer_and_reader`가 추출 전의 private
+`TestWorkspaces._create/_record`를 호출한 것이다. 이미 검증한 Repository의 create/record API로
+시험 호출 두 곳만 연결했고 버전 손상·원본 bytes 보존 Assertion은 그대로다. 되돌려 비교하면
+시험 전체 AST가 같다. `python -m unittest tests.llm.test_current_contracts tests.llm.test_workspace_records`는
+25개 pass/exit 0(4.922초). 전체 검색으로 남은 해당 private API 호출이 없음을 확인했다.
+이 수정은 gate14 결과를 성공으로 바꾸지 않는다. 1aca201은 Push하지 않고 현재 통합 gate15를 수행한다.
+
+집중 실행의 실제 명령·소스는 다음과 같다.
+
+- `whole-usage-declarations-01`: 발견/시작/pass 145/145/145, exit 0, 49.096425초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-usage-declarations-01/llm.json --modules tests.llm.test_usage_declarations tests.llm.test_usage_ownership tests.llm.test_usage_deletion tests.llm.test_component_storage_integrity tests.llm.test_project_policies tests.llm.test_policy_ownership tests.llm.test_policy_consumers tests.llm.test_execution_boundaries tests.llm.test_current_contracts tests.llm.test_workspace_records tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `d3f4b2a17d4c60b8c611f1734866c845656ebfa0dbb8e3c7cf8cb884c11ced1e`, input `732da2a334f27b4f30472a8588b6d6766b3b04268f04dbfac0df0be2c78efe99`.
+
+- `whole-usage-declarations-hub-02`: 발견/시작/pass 19/19/19, exit 0, 32.681213초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-usage-declarations-hub-02/hub.json --modules tests.hub.test_usage_definitions_system tests.hub.test_project_authority tests.hub.test_settings`. source `d3f4b2a17d4c60b8c611f1734866c845656ebfa0dbb8e3c7cf8cb884c11ced1e`, input `732da2a334f27b4f30472a8588b6d6766b3b04268f04dbfac0df0be2c78efe99`.
+
+- `whole-usage-projection-01`: 발견/시작/pass 12/12/12, exit 0, 0.085642초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-usage-projection-01/llm.json --modules tests.llm.test_usage_ownership tests.llm.test_usage_declarations`. source `2ff22e74e5c3e341698a4072cdfb941bd37844a7b9f8763459b753aa79c8b951`, input `ba9e67391299c72572ad7ac7b9a74f814ac5c39e5859b6b62c864a429162206a`.
+
+각 성공 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 전후 manifest가 같다.
+선택 범위는 사용량·정책·직접 소비자·저장 손상·승인·예산·실제 효과·Checkpoint·RAG·삭제·Hub
+설정이다. 잘못 지정한 `whole-usage-declarations-hub-01`의 존재하지 않는
+`tests.hub.test_usage_settings` 선택은 exit 2/incomplete로 보존한다. 실제 모듈 목록에서 확인한
+`test_usage_definitions_system`으로 새 실행을 수행했으며 앞선 실패를 성공 집계에 포함하지 않았다.
+Python 3.12.14/Clang, 고정 Host 및 의존성은 유지했다. 서로 다른 소스의 성공을 한 전체 실행으로
+합치지 않는다. 전체 회귀는 공유 경계 변경과 fixture 수정까지 포함한 현재 통합 gate15에 묶는다.
+
+S1–S7 발생은 145개 그대로다. 변경된 7개 의존 파일을 참조하는 검토 31개만 근거를 갱신했다.
+사용량 네 파일은 전체 흐름·동적 경로·소비자 검토를 완료했다. 정적·문서·R3 mutation·SDK·양 suite
+환경 검사는 모두 exit 0, 감사 자체 16개 pass/exit 0(3.159초)이다. 현재 478개 파일 중
+미검토 381, 미분류 28514, incomplete 2개다.
+전수 완료 조건은 그대로이며 잔여 파일·실제 소비자 정리를 계속한다. 이 소단계 완료와 최종 전체
+완료·원격 CI 검증은 별도다. 실패 로그와 새 검증 증거는 덮어쓰지 않았다.

@@ -7,9 +7,11 @@ from llm.policies.errors import ExecutionLimitError
 
 UNKNOWN_USAGE = "Unaccounted calls prevent quota admission"
 EXHAUSTED = "{} exhausted"
+RUN_SCOPE = False
+NO_RUN_ENTRIES = ()
 
 
-def check_admission(policy, reservation, project_entries, run_entries=()):
+def check_admission(policy, reservation, project_entries, run_entries=NO_RUN_ENTRIES):
     """동일 workspace 저장 잠금 안에서 호출한다. 병렬 분기의 예약도 기존 Run 기록에 포함된다."""
     def check(entries, limits):
         maximum = limits.max_calls
@@ -28,7 +30,7 @@ def check_admission(policy, reservation, project_entries, run_entries=()):
         check(period_entries(project_entries, policy), policy.project)
 
 
-def has_limit(policy, *, project=False):
+def has_limit(policy, *, project=RUN_SCOPE):
     """상한이 있는 범위만 과거 영수증을 조회한다. 새 호출 기록 여부와는 무관하다."""
     return (policy.project if project else policy.run).active
 

@@ -8,6 +8,7 @@ Project 설정 저장·상속, Run/Step 수명, 승인, 재시도 실행을 중�
 | `completion.py` | CompletionPolicy. 전체 요청을 계수하고 과거 턴 단위로 입력을 선택합니다. |
 | `errors.py` | 계층에 독립적인 ExecutionLimitError와 안정된 오류 코드입니다. |
 | `retry.py` | RetryPolicy의 횟수·간격·기한 계산, RetryFailure/RetryDecision과 수정 인자 검증입니다. 실행 wrapper는 없습니다. |
+| `usage.py` | 검증된 영수증 Projection의 Run/Project 한도와 동일 기간을 계산합니다. 실제 계수·예약 저장은 runtime이 담당합니다. |
 | `__init__.py` | 위 공통 계약의 공개 import입니다. |
 
 ```python

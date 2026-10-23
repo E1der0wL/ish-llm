@@ -35,7 +35,7 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | --- | --- |
 | [__init__.py](__init__.py) | 공통 Component와 Registry의 공개 import입니다. 개별 종류는 하위 패키지에서 가져옵니다. |
 | [base.py](base.py) | 이름·디렉터리·JSON 직렬화·공통 CRUD·초기화·복제 계약입니다. |
-| [usage.py](usage.py) | Component 모델 영수증의 현재 필드·상태·manifest 형식을 선언합니다. |
+| [usage.py](usage.py) | Component 모델 영수증의 현재 필드·예약 불변식·상태·manifest 형식을 선언합니다. [사용량 계약](../../docs/llm/model-usage-contract.md)을 따릅니다. |
 | [registry.py](registry.py) | 이름·디렉터리 충돌을 검사하고 선택한 capability를 해석합니다. |
 | [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
 | [files.py](files.py) | Skill/Data 파일 패키지, manifest 검증, 파일과 정의의 원자적 변경입니다. |

@@ -84,7 +84,7 @@ from llm.services.runtime.events import EventHandlers, EventContext, EventSubscr
 from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_digest, checkpoint_message_ids
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
-from llm.services.runtime.usage import UsageScope, check_admission, completion_usage
+from llm.services.runtime.usage import UsageScope, check_admission, completion_usage, INCLUDE_DELETED_EVIDENCE
 from llm.core.policies import UsagePolicy, UsageErrorCode
 from llm.core.usage import UsageSource, UsageReceipt, UsageCall
 from llm.services.infrastructure.observability import ObservationKind, ObservationStatus
@@ -1761,7 +1761,8 @@ class RunManager:
                 if not isinstance(auxiliary, list) or any(not isinstance(entry, dict) for entry in auxiliary):
                     raise ExecutionLimitError(UsageErrorCode.CONFIGURATION, "Component usage must be a list of receipts")
             if project_limited:
-                project_entries = completion_usage(self.repository, self.sessions.list(project, include_deleted=True))
+                project_entries = completion_usage(self.repository, self.sessions.list(project,
+                    include_deleted=INCLUDE_DELETED_EVIDENCE))
             run_entries = [UsageReceipt.from_result(result) for result in CompletionRecords.results(run.metadata)]
             run_entries.extend(UsageReceipt.from_record(e) for e in auxiliary if UsageCall.belongs_to_run(e, run.id))
             check_admission(policy, event.completion.reserved_tokens,

@@ -25,22 +25,46 @@ class ModelUsageRecord:
     INVALID_DIAGNOSTIC = "Model error classification requires a code"
     INVALID_TOKEN_COUNT = "Invalid complete model usage token count"
     UNKNOWN_TOTAL = "Invalid complete model usage"
-    schema_version: int
-    id: str
-    project_id: str
-    component: str
-    operation: str
-    model: str | None
-    session_id: str | None
-    run_id: str | None
-    started_at: str
+    FILE_SUFFIX = ".json"
+    RESERVATION = "reservation"
+    REQUIRED_FIELDS = "Component model usage requires all current fields"
+    INVALID_TIME = "Model usage timestamp must be text"
+    TIMEZONE_REQUIRED = "Model usage timestamps require a timezone"
+    INVALID_VERSION = "Invalid component model usage version"
+    RESERVED_ID = "Reserved model usage identity"
+    INVALID_OPERATION = "Invalid component model operation"
+    INVALID_MODEL = "Invalid component model identity"
+    PAIRED_OWNER = "Component model usage requires paired Session and Run ownership"
+    INVALID_USAGE = "Invalid component model usage"
+    UNKNOWN_USAGE = "Unknown component usage must remain an explicit empty object"
+    INVALID_RESERVATION = "Invalid model token reservation"
+    STARTED_EVIDENCE = "Started model usage cannot claim terminal evidence"
+    INVALID_END = "Model usage ended before it started"
+    COMPLETED_EVIDENCE = "Completed model usage cannot claim a failure"
+    FAILED_EVIDENCE = "Failed model usage requires its diagnostic and unknown usage"
+    INVALID_TRANSITION = "Model usage requires a started-to-terminal transition"
+    CHANGED_RESERVATION = "Model usage reservation identity changed"
+
+    schema_version: int = field(metadata={RESERVATION: True})
+    id: str = field(metadata={RESERVATION: True})
+    project_id: str = field(metadata={RESERVATION: True})
+    component: str = field(metadata={RESERVATION: True})
+    operation: str = field(metadata={RESERVATION: True})
+    model: str | None = field(metadata={RESERVATION: True})
+    session_id: str | None = field(metadata={RESERVATION: True})
+    run_id: str | None = field(metadata={RESERVATION: True})
+    started_at: str = field(metadata={RESERVATION: True})
     ended_at: str | None = None
     status: str = ModelUsageStatus.STARTED
     usage: dict = field(default_factory=dict)
     usage_complete: bool = False
-    reserved_tokens: int | None = None
+    reserved_tokens: int | None = field(default=None, metadata={RESERVATION: True})
     error: str | None = None
     diagnostic_code: str | None = None
+
+    @classmethod
+    def filename(cls, identifier):
+        return identifier + cls.FILE_SUFFIX
 
     @classmethod
     def reserve(cls, *, project_id, component, invocation, source, reservation):
@@ -53,7 +77,7 @@ class ModelUsageRecord:
     @classmethod
     def from_dict(cls, value):
         if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
-            raise ValueError("Component model usage requires all current fields")
+            raise ValueError(cls.REQUIRED_FIELDS)
         JsonObject.validate(value)
         return cls(**deepcopy(value))
 
@@ -63,61 +87,60 @@ class ModelUsageRecord:
     @staticmethod
     def timestamp(value):
         if not isinstance(value, str):
-            raise ValueError("Model usage timestamp must be text")
+            raise ValueError(ModelUsageRecord.INVALID_TIME)
         stamp = datetime.fromisoformat(value)
         if stamp.utcoffset() is None:
-            raise ValueError("Model usage timestamps require a timezone")
+            raise ValueError(ModelUsageRecord.TIMEZONE_REQUIRED)
         return stamp
 
     def __post_init__(self):
         from llm.components.base import validate_name
         if type(self.schema_version) is not int or self.schema_version != self.SCHEMA_VERSION:
-            raise ValueError("Invalid component model usage version")
+            raise ValueError(self.INVALID_VERSION)
         for value in (self.id, self.project_id, self.component):
             validate_name(value)
-        if self.id + ".json" == self.MANIFEST:
-            raise ValueError("Reserved model usage identity")
+        if self.filename(self.id) == self.MANIFEST:
+            raise ValueError(self.RESERVED_ID)
         if not isinstance(self.operation, str) or not self.operation.strip():
-            raise ValueError("Invalid component model operation")
+            raise ValueError(self.INVALID_OPERATION)
         if self.model is not None and not isinstance(self.model, str):
-            raise ValueError("Invalid component model identity")
+            raise ValueError(self.INVALID_MODEL)
         if (self.session_id is None) != (self.run_id is None):
-            raise ValueError("Component model usage requires paired Session and Run ownership")
+            raise ValueError(self.PAIRED_OWNER)
         if self.session_id is not None:
             validate_name(self.session_id)
             validate_name(self.run_id)
         status = ModelUsageStatus(self.status)
         started = self.timestamp(self.started_at)
         if type(self.usage_complete) is not bool or not isinstance(self.usage, dict):
-            raise ValueError("Invalid component model usage")
+            raise ValueError(self.INVALID_USAGE)
         TokenUsage(self.usage).validate(complete=self.usage_complete,
             invalid_count=self.INVALID_TOKEN_COUNT, unknown_total=self.UNKNOWN_TOTAL)
         if not self.usage_complete and self.usage:
-            raise ValueError("Unknown component usage must remain an explicit empty object")
-        if self.reserved_tokens is not None and (type(self.reserved_tokens) is not int or self.reserved_tokens < 0):
-            raise ValueError("Invalid model token reservation")
+            raise ValueError(self.UNKNOWN_USAGE)
+        if self.reserved_tokens is not None and not TokenUsage.valid_count(self.reserved_tokens):
+            raise ValueError(self.INVALID_RESERVATION)
         if status == ModelUsageStatus.STARTED:
             if (self.ended_at is not None or self.usage_complete or self.usage
                     or self.error is not None or self.diagnostic_code is not None):
-                raise ValueError("Started model usage cannot claim terminal evidence")
+                raise ValueError(self.STARTED_EVIDENCE)
         else:
             if self.timestamp(self.ended_at) < started:
-                raise ValueError("Model usage ended before it started")
+                raise ValueError(self.INVALID_END)
             if status == ModelUsageStatus.COMPLETED:
                 if self.error is not None or self.diagnostic_code is not None:
-                    raise ValueError("Completed model usage cannot claim a failure")
+                    raise ValueError(self.COMPLETED_EVIDENCE)
             elif (not isinstance(self.error, str) or not self.error
                     or self.diagnostic_code != self.error or self.usage_complete or self.usage):
-                raise ValueError("Failed model usage requires its diagnostic and unknown usage")
+                raise ValueError(self.FAILED_EVIDENCE)
 
     def validate_update(self, previous):
         """Only a current reservation may acquire a terminal result."""
         if previous.status != ModelUsageStatus.STARTED or self.status == ModelUsageStatus.STARTED:
-            raise ValueError("Model usage requires a started-to-terminal transition")
-        for name in ("schema_version", "id", "project_id", "component", "operation", "model",
-                     "session_id", "run_id", "started_at", "reserved_tokens"):
-            if getattr(self, name) != getattr(previous, name):
-                raise ValueError("Model usage reservation identity changed")
+            raise ValueError(self.INVALID_TRANSITION)
+        for item in fields(self):
+            if item.metadata.get(self.RESERVATION) and getattr(self, item.name) != getattr(previous, item.name):
+                raise ValueError(self.CHANGED_RESERVATION)
 
     def finish(self, *, ended_at, usage, diagnostic_code=None):
         """Preserve the reservation while acquiring validated terminal evidence."""
@@ -133,9 +156,16 @@ class ModelUsageRecord:
         return result
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ModelUsageManifest:
     """Required receipt inventory; only explicit initialization may create an empty one."""
+
+    INVALID_VERSION = "Invalid Component model usage manifest version"
+    INVALID_RECORDS = "Invalid Component model usage manifest records"
+    DIGEST_PATTERN = r"[a-f0-9]{64}"
+    INVALID_REVISION = "Invalid Component model usage revision"
+    INVALID_FIELDS = "Invalid Component model usage manifest fields"
+    OWNER_MISMATCH = "Component model usage manifest owner mismatch"
 
     schema_version: int
     project_id: str
@@ -145,17 +175,17 @@ class ModelUsageManifest:
     def __post_init__(self):
         from llm.components.base import validate_name
         if type(self.schema_version) is not int or self.schema_version != ModelUsageRecord.SCHEMA_VERSION:
-            raise ValueError("Invalid Component model usage manifest version")
+            raise ValueError(self.INVALID_VERSION)
         validate_name(self.project_id)
         validate_name(self.component)
         if not isinstance(self.records, (dict, MappingProxyType)):
-            raise ValueError("Invalid Component model usage manifest records")
+            raise ValueError(self.INVALID_RECORDS)
         for identifier, revision in self.records.items():
             validate_name(identifier)
-            if (identifier + ".json" == ModelUsageRecord.MANIFEST or not isinstance(revision, str)
-                    or not re.fullmatch(r"[a-f0-9]{64}", revision)):
-                raise ValueError("Invalid Component model usage revision")
-        object.__setattr__(self, "records", MappingProxyType(dict(self.records)))
+            if (ModelUsageRecord.filename(identifier) == ModelUsageRecord.MANIFEST or not isinstance(revision, str)
+                    or not re.fullmatch(self.DIGEST_PATTERN, revision)):
+                raise ValueError(self.INVALID_REVISION)
+        object.__setattr__(self, type(self).records.__name__, MappingProxyType(dict(self.records)))
 
     @classmethod
     def empty(cls, *, project_id, component):
@@ -164,10 +194,10 @@ class ModelUsageManifest:
     @classmethod
     def from_dict(cls, value, *, project_id, component):
         if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
-            raise ValueError("Invalid Component model usage manifest fields")
+            raise ValueError(cls.INVALID_FIELDS)
         result = cls(**value)
         if result.project_id != project_id or result.component != component:
-            raise ValueError("Component model usage manifest owner mismatch")
+            raise ValueError(cls.OWNER_MISMATCH)
         return result
 
     def with_record(self, identifier, revision):

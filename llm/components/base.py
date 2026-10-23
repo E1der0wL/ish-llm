@@ -154,11 +154,11 @@ class Component:
         manifest = ModelUsageManifest.from_dict(
             read_json(self._checked(root / ModelUsageRecord.MANIFEST)), project_id=project.id, component=self.name)
         actual = {self._checked(path).name for path in root.iterdir()}
-        if actual != {ModelUsageRecord.MANIFEST, *(identifier + ".json" for identifier in manifest.records)}:
+        if actual != {ModelUsageRecord.MANIFEST, *(ModelUsageRecord.filename(identifier) for identifier in manifest.records)}:
             raise ValueError("Component model usage files are missing or undeclared")
         records = {}
         for identifier in sorted(manifest.records):
-            value = read_json(self._checked(root / (identifier + ".json")))
+            value = read_json(self._checked(root / ModelUsageRecord.filename(identifier)))
             record = ModelUsageRecord.from_dict(value)
             if (record.id != identifier or record.component != self.name or record.project_id != project.id
                     or revision_token(value) != manifest.records[identifier]):
@@ -190,7 +190,7 @@ class Component:
         root = self._usage_root(project)
         value = record.to_dict()
         manifest = manifest.with_record(record.id, revision_token(value))
-        atomic_json(root / (record.id + ".json"), value)
+        atomic_json(root / ModelUsageRecord.filename(record.id), value)
         atomic_json(root / ModelUsageRecord.MANIFEST, manifest.to_dict())
 
     def _record_files(self, project):
