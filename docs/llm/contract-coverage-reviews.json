@@ -4074,5 +4074,93 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/services/runtime/tool_context.py",
+    "sha256": "ee19bae6d7686ad7701c6b5c542f24c43e804b355fc049dcd91515ffbe1a1c6e",
+    "reason": "Read every declaration and method and all prior private ContextVar imports/accesses. One Owner declares the original name/absence and provides identical deepcopy lookup, scope entry and finally restoration. Actual parent/child paths and Task/nested/cancel tests verify isolation; there is no new permission or storage interpretation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "21a8e9360d943d80ca08a7366e1facdb5ce2fb0b4787a1257a0ba579f02e0982",
+        "classification": "declaration",
+        "owner": "ToolCallContext",
+        "reason": "Owner declares its own context name/unbound value or preparation diagnostic before implementation."
+      },
+      {
+        "id": "44254fac0ad3c5075c6b1e28c7c1fc990bc2087aa927905bb90280406aa30f52",
+        "classification": "declaration",
+        "owner": "ToolCallContext",
+        "reason": "Owner declares its own context name/unbound value or preparation diagnostic before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolCallContext",
+        "declaration": "llm/services/runtime/tool_context.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/components/tools/_worker.py",
+          "llm/components/tools/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/data.py",
+    "sha256": "50150bafe5020028a764bef87c5f673dccf38e166a740adf3c3b9615a233e863",
+    "reason": "Read every convenience operation, ComponentData inheritance and ToolComponent data_class/registry consumers. Locked CRUD delegates selection/identifier/configuration to their Owners, package existence to Component, and preparation lifetime checks to both context Owners. It reads no storage structure or fixed JSON fields. Failure-preservation/concurrency/stale-handle and actual import-effect tests remain. The only implementation candidates are Python -> None return annotations, not execution state or default values.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6a8339c71a0d09799986f0714e8ea3d11bf1f8f5436d5baa854a4ae8e99bab68",
+        "classification": "declaration",
+        "owner": "ToolData lifecycle orchestration",
+        "reason": "Owner declares its own context name/unbound value or preparation diagnostic before implementation."
+      },
+      {
+        "id": "3ecdbb8a516e57dbe89200b5999cf3fc932d0072c2642a830db9e728e375561b",
+        "classification": "non_contract",
+        "owner": "ToolData lifecycle orchestration",
+        "reason": "The method return annotation -> None describes Python no-result typing; it is not a stored value, default, missing-record fallback or execution-state comparison."
+      },
+      {
+        "id": "ded8ea4c9d853fc24795d742baf0c35381f4cd6d2ad94dbe0dcc9d781c3e4cef",
+        "classification": "non_contract",
+        "owner": "ToolData lifecycle orchestration",
+        "reason": "The method return annotation -> None describes Python no-result typing; it is not a stored value, default, missing-record fallback or execution-state comparison."
+      },
+      {
+        "id": "3ab91527a91965e1a943d677b577ed3a98e8d0c2a86eb3461143a537e612fa3e",
+        "classification": "non_contract",
+        "owner": "ToolData lifecycle orchestration",
+        "reason": "The method return annotation -> None describes Python no-result typing; it is not a stored value, default, missing-record fallback or execution-state comparison."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolData lifecycle orchestration",
+        "declaration": "llm/components/tools/data.py",
+        "consumers": [
+          "llm/components/tools/component.py",
+          "llm/components/registry.py",
+          "llm/services/lifecycle/components.py",
+          "hub/backend/tools/management.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_data.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_tool_packages.py",
+          "tests/hub/test_interaction_updates.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

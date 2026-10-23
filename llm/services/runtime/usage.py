@@ -14,8 +14,6 @@ from llm.core.results import CompletionRecords
 from llm.components.usage import ModelUsageRecord
 from llm.providers.observations import ModelCall
 
-_current = ContextVar("llm_usage_scope", default=None)
-
 INVALID_COUNTER = "Token counter must return a nonnegative integer"
 MISSING_REPOSITORY = "Quota evidence requires a Run repository"
 INACTIVE_OWNER = "Session quota owner is not an active Run"
@@ -25,21 +23,33 @@ MINIMUM_RESERVATION = 0
 
 
 def current_usage():
-    return _current.get()
+    return UsageScope.current()
 
 
 class UsageScope:
+    NAME = "llm_usage_scope"
+    UNBOUND = None
+    _CURRENT = ContextVar(NAME, default=UNBOUND)
+
+    @staticmethod
+    def current():
+        return UsageScope._CURRENT.get()
+
+    @staticmethod
+    def is_bound():
+        return UsageScope._CURRENT.get() is not UsageScope.UNBOUND
+
     def __init__(self, policy, counter, source=None):
         self.policy, self.counter = policy, counter
         self.source = source
 
     @contextmanager
     def scope(self):
-        token = _current.set(self)
+        token = UsageScope._CURRENT.set(self)
         try:
             yield self
         finally:
-            _current.reset(token)
+            UsageScope._CURRENT.reset(token)
 
     async def reservation(self, invocation: ModelCall):
         """토큰 상한 사용 시 입력 계수와 명시적 출력 상한이 필요하다. 누락 사용량은 예약을 유지한다."""

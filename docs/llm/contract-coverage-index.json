@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 456,
-    "unreviewed_files": 406,
+    "files": 457,
+    "unreviewed_files": 405,
     "stale_files": 0,
-    "unclassified": 30325,
+    "unclassified": 30317,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 408,
+    "unreviewed_dynamic_paths": 407,
     "unreadable_files": 0,
-    "candidates": 30848,
+    "candidates": 30846,
     "issues": 0
   },
   "files": [
@@ -1780,7 +1780,7 @@
     {
       "path": "llm/components/tools/_worker.py",
       "status": "unreviewed",
-      "sha256": "d1ab508f2340dc5c8af68d1f6414bcf9e621df5c0676bc90819be1682b68e58b",
+      "sha256": "fbab3692dbd9666bcd795aebfcb81aa43e3628c659eeab416cbf7258680ee24e",
       "candidates": 18
     },
     {
@@ -1845,9 +1845,9 @@
     },
     {
       "path": "llm/components/tools/data.py",
-      "status": "unreviewed",
-      "sha256": "74c7d20fc99c80103e0fb53af41e77d1b2c9d3f0238ae24c3c8486629e5ec636",
-      "candidates": 6
+      "status": "reviewed",
+      "sha256": "50150bafe5020028a764bef87c5f673dccf38e166a740adf3c3b9615a233e863",
+      "candidates": 4
     },
     {
       "path": "llm/components/tools/decorator.py",
@@ -2720,10 +2720,16 @@
       "candidates": 29
     },
     {
+      "path": "llm/services/runtime/tool_context.py",
+      "status": "reviewed",
+      "sha256": "ee19bae6d7686ad7701c6b5c542f24c43e804b355fc049dcd91515ffbe1a1c6e",
+      "candidates": 2
+    },
+    {
       "path": "llm/services/runtime/tools.py",
       "status": "unreviewed",
-      "sha256": "d68dc9b092b056d7cd006601ecea06c496fce6e15355b8ee97f07a34a3059684",
-      "candidates": 523
+      "sha256": "a6da6fbcf38bea36a86ab4663e20652476e7003b73c1736b67cc21c89d92d309",
+      "candidates": 521
     },
     {
       "path": "llm/services/runtime/transfer_values.py",
@@ -2740,7 +2746,7 @@
     {
       "path": "llm/services/runtime/usage.py",
       "status": "unreviewed",
-      "sha256": "4dd4ff23a36755e9884587ba90e28ecafd46cd5cbcd3bd6c7a469033b23cf1a2",
+      "sha256": "16d39ca26bd77a9f355cb2d650587e62631abdc1f216f0f8d40583d54cf1ebaf",
       "candidates": 39
     },
     {

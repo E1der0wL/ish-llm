@@ -60,9 +60,9 @@ class ToolData(ComponentData):
     @workspace_locked
     def prepare(self, identifier: str) -> dict:
         """Host/UI 관리 API. ish 공용 dependency 확인/설치 후 main 계약을 검증한다."""
-        from llm.services.runtime.tools import current_tool_call
-        from llm.services.runtime.usage import current_usage
-        if current_tool_call() is not None or current_usage() is not None:
+        from llm.services.runtime.tool_context import ToolCallContext
+        from llm.services.runtime.usage import UsageScope
+        if ToolCallContext.is_bound() or UsageScope.is_bound():
             raise RuntimeError(self.PREPARE_DURING_EXECUTION)
         project, component = self._current()
         return component.prepare(project, identifier)

@@ -19,7 +19,6 @@ import json
 import math
 import time
 from copy import deepcopy
-from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field, replace
 from typing import Callable, Optional
 
@@ -37,6 +36,7 @@ from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.policies import ExecutionLimitError
 from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
 from llm.services.runtime.operations import operation_token
+from .tool_context import ToolCallContext
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,8 +59,6 @@ class ToolCall:
         from llm.core.tool_contracts import ToolContract
         object.__setattr__(self, "contract", ToolContract.from_dict(self.contract).to_dict())
 
-
-_tool_call = ContextVar("llm_tool_call", default=None)
 
 
 class ToolExecutionError(CodedError, RuntimeError):
@@ -106,7 +104,7 @@ def current_tool_call() -> Optional[ToolCall]:
     기본 핸들러와 같은 문맥에서 실행하는 주입 runner에 제공한다. 별도 프로세스 runner는
     전달받은 ToolCall을 자체 RPC 계약으로 운반해야 한다.
     """
-    return deepcopy(_tool_call.get())
+    return ToolCallContext.current()
 
 
 @dataclass(frozen=True, slots=True)
@@ -591,14 +589,11 @@ class ToolExecutor:
                             value = nested["value"]
                         else:
                             async with timeout(remaining):
-                                token = _tool_call.set(call)
-                                try:
+                                with ToolCallContext.scope(call):
                                     if scope.runtime.runner is None:
                                         value = await tool.handler(deepcopy(arguments))
                                     else:
                                         value = await scope.runtime.runner(tool, deepcopy(call))
-                                finally:
-                                    _tool_call.reset(token)
                         break
                     except Exception as error:
                         uncertain_attempt = uncertain_attempt or not (isinstance(error, ToolExecutionError) and error.effect == ToolExecutionError.NO_EFFECT)

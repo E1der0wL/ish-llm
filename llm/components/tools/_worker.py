@@ -44,13 +44,11 @@ async def dispatch(request):
             if descriptor_fingerprint(descriptor) != request.descriptor_hash:
                 raise ValueError("Tool descriptor changed after inspection")
             # 읽기 전용 호출 출처/idempotency snapshot만 전달한다. 실행 scope/원장 owner는 부모다.
-            from llm.services.runtime.tools import ToolCall, _tool_call
+            from llm.services.runtime.tools import ToolCall
+            from llm.services.runtime.tool_context import ToolCallContext
             call = ToolCall(**request.call) if request.call is not None else None
-            token = _tool_call.set(call)
-            try:
+            with ToolCallContext.scope(call):
                 value = await tool.handler(request.arguments)
-            finally:
-                _tool_call.reset(token)
         else:
             raise ValueError(ToolWorkerProtocolError.UNKNOWN_OPERATION)
         response = ToolWorkerResponse.success(value).to_dict()

@@ -1206,3 +1206,51 @@ incomplete 계약 2개로 전체 완료를 선언하지 않는다.
 이 소단계는 Level 2다. IPC·패키지·활성화 선택을 묶은 현재 통합 소스로 다음 Level 3를
 실행한다. 이후에도 나머지 제품 파일의 선언/Reader/Writer/소비 연결과 정확한 SHA 원격 CI
 확인을 계속하며, 앞선 소단계 통과를 전체 완료로 대체하지 않는다.
+
+
+## 290c576 정확한 SHA 원격 CI 확인
+
+2026-10-23T08:35:34Z 확인에서 [CI 39920714762](https://github.com/E1der0wL/ish-llm/actions/runs/39920714762)의
+head SHA는 `290c57665bf4ef6cef4466dc4ab66d342b7118e0`였고 두 필수 job 및 모든 필수 step이
+실제 success였다. LLM 2387/2387/2387 pass, 1962.161375초;
+Hub 586/586/586 pass, 1373.940361초였다.
+failure/error/skip/xfail/xpass·누락/추가/중복 모두 0이다. 환경·문서·정적 감사·R3 Mutation·
+실제 SDK 진단·실패 포함 증거 보존 step도 실제 결과로 확인했다.
+원격 Python 3.12.14/GCC 13.3.0은 로컬 Clang 환경과 구분한다. 이 증거를 이후 커밋에 승계하지 않는다.
+
+## 실행 문맥 수명과 Tool 준비 제한 (2026-10-23)
+
+[문맥 계약](execution-contexts.md)의 ToolCallContext가 부모/child의 진입·조회·finally 복원을
+소유한다. private ContextVar 직접 접근을 제거했다. 공개 current_tool_call()의 deepcopy와
+UsageScope/current_usage()의 동일 scope/counter 객체 반환은 유지했다. 두 문맥을 하나의
+전역 실행 상태로 합치거나 권한·예산·효과 정책을 추가하지 않았다.
+
+ToolData.prepare는 두 Owner의 존재 판정으로 기존 제한을 적용한다. 실제 import가 파일을
+만드는 fixture로 Tool 문맥만/사용량 문맥만/둘 다 있을 때 효과 0, 문맥 종료 후 명시적 준비의
+실제 효과 발생을 검증했다. 동시 Task 분리·중첩/취소 복원·공개 조회 사본도 신규 검증했다.
+기존 worker/usage/ToolData smoke 30개, 신규 문맥 smoke 4개는 각각 pass/exit 0이었다.
+공식 집중 실행과 중복 합산하지 않는다.
+
+- `whole-execution-context-01`: 발견/시작/pass 153/153/153, exit 0, 118.035729초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-execution-context-01/llm.json --modules tests.llm.test_execution_contexts tests.llm.test_execution_boundaries tests.llm.test_tool_workers tests.llm.test_tool_data tests.llm.test_usage_ownership tests.llm.test_agent_execution tests.llm.test_nested_graph tests.llm.test_component_storage_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `b90770f38d32c4695fa88027baa697ec78b1593047fb924c9a6e40f49a14da41`, input `59db93b471fdc8c8d7184dd88de3b7542dafb25c06e238227db3d0154476b610`.
+
+- `whole-execution-context-hub-01`: 발견/시작/pass 21/21/21, exit 0, 155.073767초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-execution-context-hub-01/hub.json --modules tests.hub.test_question_tools tests.hub.test_resource_tools tests.hub.test_tool_history`.
+  source `b90770f38d32c4695fa88027baa697ec78b1593047fb924c9a6e40f49a14da41`, input `59db93b471fdc8c8d7184dd88de3b7542dafb25c06e238227db3d0154476b610`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. LLM은 실제 worker·ToolData,
+사용량·Agent/중첩 Graph·실행 경계·Component 저장 및 승인·예산 삭제·효과·Checkpoint·RAG·
+수명 안전성, Hub는 질문 승인·Resource Tool·재개 영수증이다. 전후 source/input은 각각
+동일했고 로컬 Python 3.12.14/Clang·고정 host/의존성·namespace/X11을 유지했다.
+
+정적 의존 근거 22건을 재검토했고 발생 추가/삭제는 없다. `execution-context-auxiliary/results.json`의
+정적 S1–S7 145건·문서·R3·SDK·양 suite 환경은 모두 exit 0이다. 전체 내용을 읽고 실제 소비를
+연결한 ToolCallContext 및 ToolData만 전수 판정을 추가했다. ToolData의 남은 None 후보 3개는
+-> None 반환 타입 주석이며 실행 상태 비교/기본값/필수 기록 fallback이 아니다.
+현재 457개 파일, 미검토 405개, 미분류 30317개,
+incomplete 계약 2개로 전체 완료는 계속 차단된다.
+
+이 소단계는 Level 2다. 실행 중인 1e29e66 고정 전체 게이트에는 이번 문맥 변경이 포함되지
+않았으며, 이후 관련 조회/실행 계약과 묶은 현재 통합 Level 3에서 검증한다. 소단계 완료로
+전체 대상 작업을 종료하지 않는다.
