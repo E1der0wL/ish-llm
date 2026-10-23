@@ -1,6 +1,6 @@
 """Session/Run의 UI 조회 스냅샷. 원본 도메인 기록을 추가로 저장하지 않는다."""
 
-from typing import Optional, Union
+from typing import ClassVar, Optional, Union
 from dataclasses import dataclass
 from .contracts import JsonValue
 from .models import Run, SessionStatus
@@ -17,6 +17,9 @@ class ActiveRunView(JsonValue):
 
 @dataclass(frozen=True, slots=True)
 class SessionRuntimeView(JsonValue):
+    MINIMUM_UNFINISHED: ClassVar[int] = 0
+    INVALID_COUNTS: ClassVar[str] = "Invalid runtime queue or unfinished work counts"
+
     session_id: str
     status: SessionStatus
     unfinished_work: int
@@ -26,12 +29,15 @@ class SessionRuntimeView(JsonValue):
 
     def __post_init__(self):
         JsonValue.__post_init__(self)
-        if self.unfinished_work < 0 or self.queued_count < len(self.queued_request_ids):
-            raise ValueError("Invalid runtime queue or unfinished work counts")
+        if self.unfinished_work < self.MINIMUM_UNFINISHED or self.queued_count < len(self.queued_request_ids):
+            raise ValueError(self.INVALID_COUNTS)
 
 
 @dataclass(frozen=True, slots=True)
 class RunView(JsonValue):
+    MINIMUM_CURSOR: ClassVar[int] = 0
+    INVALID_CURSOR: ClassVar[str] = "Run output cursor must be nonnegative"
+
     run: Run
     outputs: list[EngineOutput]
     cursor: int
@@ -39,5 +45,5 @@ class RunView(JsonValue):
 
     def __post_init__(self):
         JsonValue.__post_init__(self)
-        if self.cursor < 0:
-            raise ValueError("Run output cursor must be nonnegative")
+        if self.cursor < self.MINIMUM_CURSOR:
+            raise ValueError(self.INVALID_CURSOR)

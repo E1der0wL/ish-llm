@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
 from dataclasses import dataclass
+from typing import ClassVar
 from collections.abc import Callable
 import asyncio
 import time
@@ -20,6 +21,11 @@ class ModelCall:
     usage fields (including total_tokens when known). No SDK objects are stored.
     These trusted callbacks grant no retry, approval or execution authority.
     """
+    INVALID_OPERATION: ClassVar[str] = "Model call requires an operation"
+    INVALID_MODEL: ClassVar[str] = "Model identity must be text or None"
+    INVALID_CALLBACKS: ClassVar[str] = "Model call requires usage interpretation callbacks"
+    INVALID_INVOCATION: ClassVar[str] = "Model observation requires an adapter-owned ModelCall"
+
     operation: str
     model: str | None
     count_tokens: Callable
@@ -28,11 +34,11 @@ class ModelCall:
 
     def __post_init__(self):
         if not isinstance(self.operation, str) or not self.operation.strip():
-            raise ValueError("Model call requires an operation")
+            raise ValueError(self.INVALID_OPERATION)
         if self.model is not None and not isinstance(self.model, str):
-            raise TypeError("Model identity must be text or None")
+            raise TypeError(self.INVALID_MODEL)
         if not all(callable(fn) for fn in (self.count_tokens, self.read_usage, self.classify_error)):
-            raise TypeError("Model call requires usage interpretation callbacks")
+            raise TypeError(self.INVALID_CALLBACKS)
 
 
 @contextmanager
@@ -46,7 +52,7 @@ def model_observer(callback):
 
 async def observed_call(invocation: ModelCall, request, call):
     if not isinstance(invocation, ModelCall):
-        raise TypeError("Model observation requires an adapter-owned ModelCall")
+        raise TypeError(ModelCall.INVALID_INVOCATION)
     observer = _observer.get()
     async def tracked(**params):
         with provider_attempt(invocation):

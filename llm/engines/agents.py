@@ -1,6 +1,7 @@
 """Agent 업무 정의를 등록 엔진에 연결한다. 모든 실행은 부모 Run 안에서 관찰된다."""
 
 from llm.core.configuration_views import ConfigurationView
+from llm.core.definition_snapshot import DefinitionSnapshot
 
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
@@ -91,8 +92,8 @@ class AgentExecution:
 
     @staticmethod
     def _record(capabilities, capability, identifier):
-        candidates = [(source, source["records"][identifier]) for source in capabilities.get(capability, ())
-                      if identifier in source["records"]]
+        candidates = [(source, DefinitionSnapshot.records_from(source)[identifier]) for source in capabilities.get(capability, ())
+                      if identifier in DefinitionSnapshot.records_from(source)]
         if len(candidates) != 1:
             raise ValueError(f"{capability}/{identifier} must resolve to exactly one definition")
         return candidates[0]

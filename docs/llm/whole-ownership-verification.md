@@ -2171,3 +2171,47 @@ input `6d75597489fd21b9eb297fdecbb33722e4dfb19ea2feae57d83a5207b9c9dfb7` 전후�
 변경하지 않았다. 원격 실행은 [39967504376](https://github.com/E1der0wL/ish-llm/actions/runs/39967504376)이며
 이 문서 기록 시 실제 전체 결과 확인 전이므로 원격 통과로 선언하지 않는다. 공개 namespace
 a3510d8 및 이번 번역 변경은 gate16에 포함되지 않으며 다음 통합 검증 대상이다.
+
+
+## Component 정의 Projection·파일/벡터 증거·관측 값 (2026-10-23)
+
+DefinitionSnapshot의 필드 선언이 Component capability의 configuration/records 외형을 소유한다.
+DefinitionComponent가 이를 생성하고 Agent·Graph는 records Projection을 사용한다. record의
+의미는 각 Component에 남으며 MCP connector/revision 같은 런타임 확장을 복사·제거하지 않는다.
+records 누락은 그대로 실패한다. 관련 없는 configuration을 record 조회의 새 필수 조건으로
+추가하지 않는다. 독립 wire 기대값·확장 객체 identity·누락 거절 시험 2개를 추가했다.
+
+FileEvidence의 측정 buffer·초기 byte 수·진단, vector 무결성 코드·제약, single-embedding
+Adapter wire 이름/정확한 결과 수, 파일 reflink/fallback 경계, ModelCall 진단, Run/Session
+조회 값의 제약, ProjectAccess의 삭제 기본값·진단을 각각의 Owner 선언부로 옮겼다.
+SnapshotCache의 위치 tuple은 CacheEntry 타입으로 바꾸고 같은 byte 집계·LRU·잠금·사본을 유지한다.
+Provider 오류/RAG 상태/Refinement 전이/PendingWork의 전체 기존 선언·소비 경로도 검토했다.
+None은 runtime callback/optional object 부재, 0은 순회·첫 원소 위치에 한해 비계약으로 분류했다.
+정책/파일 byte/상태/제약을 같은 숫자라는 이유로 합치지 않았다.
+
+81c671a 대비 기존 12개 변경 파일은 선언·Projection·CacheEntry 표현을 확장하면 전체 AST가
+같다. 위치 진단 template는 독립 3개 오류로 반환 예외·문구를 대조했다. 임베딩 126개 경우,
+파일 Schema와 3개 실제 byte 측정(다중 buffer 포함), 캐시 1000개 연산의 값/순서/byte가 같다.
+비교 보조 스크립트의 이전 module 상대 import 오류는 package 문맥만 보강해 해결했고 원래
+실패 로그를 보존했다. 제품의 저장 순서·승인·예산·효과·재개 계약은 바꾸지 않았다.
+기존 66개 smoke는 pass/exit 0(24.549초)이며 아래 엄격한 현재 소스 검증으로 보강했다.
+
+- `whole-component-values-01`: 발견/시작/pass 200/200/200, exit 0, 105.806252초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-component-values-01/llm.json --modules tests.llm.test_definition_snapshot tests.llm.test_definition_components tests.llm.test_typed_contracts tests.llm.test_rag_models tests.llm.test_rag_components tests.llm.test_rag_optimization tests.llm.test_common_boundaries tests.llm.test_usage_declarations tests.llm.test_contracts tests.llm.test_graph_agent_contract tests.llm.test_agent_workflow tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `f70e565df603cb00f167a5a0e17fe539f9dd5c5386aace37be7c151cbe47bc94`, input `9765a14ba216db7470247cb73e62855d272de9a6b861b78ade469a214dc64d47`.
+
+- `whole-component-values-hub-01`: 발견/시작/pass 19/19/19, exit 0, 127.757156초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-component-values-hub-01/hub.json --modules tests.hub.test_component_catalog tests.hub.test_resource_tools tests.hub.test_usage_definitions_system tests.hub.test_creation_contracts`. source `f70e565df603cb00f167a5a0e17fe539f9dd5c5386aace37be7c151cbe47bc94`, input `9765a14ba216db7470247cb73e62855d272de9a6b861b78ade469a214dc64d47`.
+
+- `whole-component-lifecycle-01`: 발견/시작/pass 46/46/46, exit 0, 34.192126초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-component-lifecycle-01/llm.json --modules tests.llm.test_refinement tests.llm.test_stability_refinement tests.llm.test_backend_contracts`. source `f70e565df603cb00f167a5a0e17fe539f9dd5c5386aace37be7c151cbe47bc94`, input `9765a14ba216db7470247cb73e62855d272de9a6b861b78ade469a214dc64d47`.
+
+각 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11 환경을 유지했다. Component 정의·파일·
+RAG·Agent/Graph·사용량·관측의 직접 소비자와 승인·예산·효과·Checkpoint·삭제 안전성을
+검증했으며 Refinement 상태/취소/종료도 별도로 보강했다. 독립 실행을 전체 회귀로 합치지 않는다.
+
+정적 발생 118개는 그대로이며 바뀐 의존 증거 5개만 동일성·실제 시험에 따라 갱신했다.
+정적·문서·R3 mutation·SDK·양 환경은 각각 exit 0, 감사 자체 16개 pass/exit 0이다.
+전체 코드·동적 경로를 읽은 14개 파일을 기록했고 주변 Engine/Adapter는 부분 참조 수정만으로
+완료 처리하지 않았다. 현재 483개 파일 중 미검토 340, 미분류
+24869, incomplete 2개다. Skill 내부 운영/참조 구조를 포함한
+잔여는 계속 진행한다. 소단계 Level 2이며 전체 회귀는 후속 관련 게이트에 묶는다.
+진행 중인 81c671a gate17은 이번 변경을 포함하지 않는다. 아직 이번 변경의 Push/원격 통과를
+선언하지 않으며 이후 현재 통합 소스의 전체 검증 성공 뒤에 진행한다.

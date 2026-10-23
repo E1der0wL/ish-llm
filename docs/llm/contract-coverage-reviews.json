@@ -27318,5 +27318,1053 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/definitions.py",
+    "sha256": "151fc993495c0fa2aab61f6ef49c79c8c8dce80b92c17085e96ac796594d2108",
+    "reason": "Complete capability/validation flow delegates record meaning to the selected Component schema. DefinitionSnapshot constructs its two-field envelope; error locations and diagnostics retain old values. No connection or model call occurs.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "925a1d58b9316dac1b1cad3a58cdf5178f6f770d5256724912e48982def74d6d",
+        "classification": "declaration",
+        "owner": "DefinitionComponent",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "ddd02cfe1135ce0ebf6178f69ce77c230bb629bd191e6035f4c47ee92be9a22e",
+        "classification": "declaration",
+        "owner": "DefinitionComponent",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "d8e50d28c8be45a3bfcd0d686c3f6595f2d53a187e3d166014f642b9d3c3fc38",
+        "classification": "declaration",
+        "owner": "DefinitionComponent",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "b4795dfe4d9b4d888d9928fc37f21dc0591572f956a7225af125cf39a901c70d",
+        "classification": "non_contract",
+        "owner": "DefinitionComponent",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "c613bc8bbe378ab261d1ea3126338b911742de7f4c36c8c389cffb5035bfc865",
+        "classification": "non_contract",
+        "owner": "DefinitionComponent",
+        "reason": "First result/vector indexing or local traversal accumulator; declared dimensional, cursor, cache byte and file constraints remain separate."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DefinitionComponent",
+        "declaration": "llm/components/definitions.py",
+        "consumers": [
+          "llm/components/data/component.py",
+          "llm/components/files.py",
+          "llm/components/goals/component.py",
+          "llm/components/mcp/component.py",
+          "llm/components/prompts/component.py",
+          "llm/components/rag/component.py",
+          "llm/components/refinement/component.py",
+          "llm/components/skills/component.py",
+          "llm/components/workflows/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_definition_snapshot.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_agent_workflow.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/definition_snapshot.py",
+    "sha256": "3790a649f5f16c56e65cbfa7d231d848a969848410fc1e36a29d4c0f2268c771",
+    "reason": "Canonical typed capability envelope and record-only projection. The projection requires records but does not require unrelated configuration, strip live connector/revision extensions, copy runtime objects or invent absent records. Direct Agent/Graph consumers use this Owner.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "60a949612f9043f46e52e1500be3c875b317d66ba1b4900fa1fc4cad9efdad0c",
+        "classification": "non_contract",
+        "owner": "DefinitionSnapshot",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "374c57733e2af5365eb4d71a01ae6f90530e15527431b2cda98dd42b6c023845",
+        "classification": "non_contract",
+        "owner": "DefinitionSnapshot",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DefinitionSnapshot",
+        "declaration": "llm/core/definition_snapshot.py",
+        "consumers": [
+          "llm/components/definitions.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py"
+        ],
+        "tests": [
+          "tests/llm/test_definition_snapshot.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_graph_agent_contract.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/file_evidence.py",
+    "sha256": "935309cf15af5670764ab7722eec48fe7553eea2e8443fa8118aaabd45541b0d",
+    "reason": "Complete file Schema/reader/measurement/writer reviewed, including inherited Skill mode evidence. Field metadata owns digest and byte constraints; Schema/serialization derive fields. Buffer, empty byte count and errors are declared. Full Schema, exact output and multi-buffer bytes match prior source.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4dcec1a3f2eb1b979f252299f0ae2d8f3f435d3a5067f7dd90b7f33a47d6bb71",
+        "classification": "non_contract",
+        "owner": "FileEvidence",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "b11c133a3ac1f42fcc1df98e87ffbad25cc9e4d566780883b3cc40d7d430abae",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "73a7e15b9017361112a9e83cdba19601c84c6a3ebb26ca957ac08b6fa9d9b400",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "397b0ef17f54b490dc3771619f8a9bd3e6ef7229dbded08e6a1078e9fabfba7c",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "fc595ca3ac5b66fa4ead3460733e554129fad24e1e4b1c1e2aa9057885a31354",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "09c9554b7258975dcec417a45ee152e77e17512c6fe15fd678d0c86e7bbc69b0",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "3e7139b2323f5f90d172f7f9683c702ea9384d31ce3abe7c46723b695f5ae30b",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "76727b754795ecbdb0a599011f1037e812c9a64321fcb7dd32d7c4d1ae57c0ba",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "199f9f59d7148af891d43fff1fcbdf3da38f6dede6ffbfae26cf055be94bc62e",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "fbe2609d1e38bad7d3bee74aeea56a1273729a7a46fb79e78eef2a13755b9d4e",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "565562eb9772c2b42707e089ad7e4c75859b9d20eb3b1ade3b62929ab02ec11b",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "0fd36b68d6f1c3a7e3276e6ac85656e52324e9d37a36fa2e20d696c300b7d47c",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "c9a58c4be8f6af6613487526b62218f5f809f9aa36a61d5acb5ee3340b71d49c",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "3d7178afd2672d51c67d9d8eec555298b1614576f05cdb5005d5113f4d7ca17d",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "1b9b0433b84e3b95aebc0b6f63f26588cabf99976f25e9ddf98af1a03b0d5f6e",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "8309be68e5b9696adfdd496d13219601245eeb8c2d5c8983672a93a91b161b76",
+        "classification": "declaration",
+        "owner": "FileEvidence",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "4e55ff889455921cadddd31d0daa91550827760b8ef7cef00b6f56fbb579b54e",
+        "classification": "non_contract",
+        "owner": "FileEvidence",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "88dbabef2bcd8100f5ba329921191c1f731f4be163babed0e36d462b508e4cdf",
+        "classification": "non_contract",
+        "owner": "FileEvidence",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FileEvidence",
+        "declaration": "llm/components/file_evidence.py",
+        "consumers": [
+          "llm/components/files.py",
+          "llm/components/skills/data.py",
+          "llm/components/skills/records.py"
+        ],
+        "tests": [
+          "tests/llm/test_typed_contracts.py",
+          "tests/llm/test_rag_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/cache.py",
+    "sha256": "e4d1febbedbd53ee85f5c31a3fda17542aa90bdf8ab0a91642c2911222b9de8f",
+    "reason": "Complete disposable cache reviewed: typed entry replaces positional payload/size; same LRU eviction, byte accounting, limit handling, lock and detached reads. 1000 old/new operations match exact payload, order and count. Cache absence never replaces authoritative generation evidence.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1cb84c54a262e186783ed48a5b4235a6e4a1873c54a6b69c4ed46f0a0bbe7bff",
+        "classification": "non_contract",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "c892c3de2b4d7eadd1b667223e36e0bc5e5f78fb38f0a4ac9730d7f5497a7e1e",
+        "classification": "non_contract",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "3b3a2cd7b9f9e157e4d874034b4e4b41deb698e1706d18246fba5a6c496aab48",
+        "classification": "declaration",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "a79018256a1eb9ac3e978e217fd75c2fac7284efc0fe5b9562000ef4360948f8",
+        "classification": "declaration",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "1139e65b95d90045c5e034f6e17309e4a8eb798b0c36205bd2f681f3812198fe",
+        "classification": "non_contract",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "First result/vector indexing or local traversal accumulator; declared dimensional, cursor, cache byte and file constraints remain separate."
+      },
+      {
+        "id": "1c64569db4f95d19752755ac96969eb5ce506fc59bea690eaa6b6c1bdf921e11",
+        "classification": "non_contract",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "f2903b48b7bb6450ba1cf4450ed83460a168705ac4e3cfafa0ab8525baa75254",
+        "classification": "non_contract",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "815e44a4906e20f8d6bbd3cd3ae1f3e908b4308cb7f61dcd883477c59a74ef53",
+        "classification": "non_contract",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "3fc8a88677b30d4c08beed09adfb38cf73775542c42e9f6335553dd8aaa17db1",
+        "classification": "non_contract",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "f311e243322077d4584209a8e24f661b256e4128ebd0f6e89a607b33efbd7273",
+        "classification": "non_contract",
+        "owner": "SnapshotCache / CacheEntry",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SnapshotCache / CacheEntry",
+        "declaration": "llm/components/rag/cache.py",
+        "consumers": [
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_storage.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/files.py",
+    "sha256": "9171fd4679b40d22390a57133802e53e8ff14fc767ef14bddbd68f4b594f80b7",
+    "reason": "Complete Linux reflink/copy fallback reviewed. Same ioctl, errno allow-list, modes, flush/fsync and copystat order after declaration expansion. Unexpected failures still propagate; actual independent-generation write test remains.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e3837e8f440e2a53d784b2529594cdd9b8db8acb486abfcb7e43a8171f087f83",
+        "classification": "declaration",
+        "owner": "FileClone",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "4f4b5a8f480bbfc8ec4e0a07ce28db1563e864a2bbdddd55f19e41e01774d35c",
+        "classification": "declaration",
+        "owner": "FileClone",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "a02d51a5b7659e8dd5881620b1f4a4cefe0f1b4a12050edcfdb306a190b971ab",
+        "classification": "declaration",
+        "owner": "FileClone",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FileClone",
+        "declaration": "llm/components/rag/files.py",
+        "consumers": [
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_storage.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/embeddings.py",
+    "sha256": "289d1a65a3df4cdedd47407dde3f16b7e408fd83f8aefbd7d5a7097f1f3974e8",
+    "reason": "Complete vector integrity validation reviewed: positive dimensions, equal shape, finite nonzero values and exact numeric type checks. Error vocabulary/constraints declared once; 126 old/new cases preserve returned values or exact exception/code. Pure positional first-vector indexing is not a stored field contract.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1efdd43d851fab224eb18e72c95cfe09123ce80b6c297268fa7711e200af9b3b",
+        "classification": "declaration",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "e9034fc0bb5855a74565c755a16d18ae94d7ff6fac54634ad2339053300d14f8",
+        "classification": "declaration",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "025f86afd8217acc217ca29dad7521214453f59e4466727572df97b6134c6119",
+        "classification": "declaration",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "8605af1cc535082778f8e028917494b4e7b66487a4f1a7a8565f752eccf90d60",
+        "classification": "declaration",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "79a0122c737da331baa9ece0b48c9b9097ffa5473dfe29153d3d452c7c515c8c",
+        "classification": "declaration",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "edfa253eb6b50085f6288e4a21e2c5758905abc6782e8d8f3a3ad5b35566b4bf",
+        "classification": "declaration",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "bf7c0502632cbd1a1ad7196d0f8fb014d84cd558f58edd583118791aad04a5b7",
+        "classification": "declaration",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "26b6e0f74704c7ed86b778800b9a7184fa9cae2a92c448157c7cb9a8fdfa3382",
+        "classification": "declaration",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "6752621bb7de57733014226d6505c2bb8a0687cd14e4a8726d128356e96db935",
+        "classification": "non_contract",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "be199335cfe80d849b70ae361001812694350ff7ff754dfd4b972295beefe1e9",
+        "classification": "non_contract",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "c52f91aa7bd3942cc5ab617e0ce1245381f6893702648a5e06d57a750ff9c275",
+        "classification": "non_contract",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "First result/vector indexing or local traversal accumulator; declared dimensional, cursor, cache byte and file constraints remain separate."
+      },
+      {
+        "id": "2433903afe0d181950f0fde841232e18157add53738af72fedebabf39d9fbaa4",
+        "classification": "non_contract",
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "reason": "First result/vector indexing or local traversal accumulator; declared dimensional, cursor, cache byte and file constraints remain separate."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EmbeddingIntegrityError / validate_vectors",
+        "declaration": "llm/core/embeddings.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/embedding.py",
+          "llm/components/rag/ingestion.py",
+          "llm/components/rag/jobs.py",
+          "llm/core/model_protocol.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_components.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/views.py",
+    "sha256": "2d01462801c490793e2c6cf79063b76c0087b8f7ffbb5d482daff40f42130a5e",
+    "reason": "Complete typed observation fields and count/cursor integrity reviewed. ClassVar declarations are excluded from serialized fields; JSON roundtrip and current public consumers pass. Views grant no mutation, admission or Resume authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "05170268c5087d836a9dcd95aabb9b13cd7163d2a0f7706b5f5684d12176a98a",
+        "classification": "non_contract",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "eec9b8fb35ab67357adb10824df07020fa5d5333adc9e9f540200bd3c3c97b58",
+        "classification": "non_contract",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "cadb1fa824b3901174a4284b22da53fa0eace4b21226b310618e144964b3de85",
+        "classification": "non_contract",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "16e38898ae45b67fa5625334b50e23376b9467c3799e20d4292b90d59043e942",
+        "classification": "non_contract",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "787028e79fd4385394d0e0a254413b2b14d3065bdd1bfb7246e0bab80eee0d20",
+        "classification": "declaration",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "85b33bb27b8b10a73e1224c1ca25af96d34daf3aea118d766ee3ddfac01e3bc9",
+        "classification": "declaration",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "8ca368eb1e87327b599e0a229d4f50fc0615692801458f499a0a62a679b85a1d",
+        "classification": "non_contract",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "8458369e1c1b9dd692f353ed72682861eb768c4996d4d925413919329e5c9c41",
+        "classification": "non_contract",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "ecedecc367666b45c4dda8079affb7afcce957ea3a0174942a1740bf4d7ab811",
+        "classification": "declaration",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "6d33ff137b1fb63dd02dca63cc0eed3ef529da478f739b01f7608ebb433f37ea",
+        "classification": "declaration",
+        "owner": "SessionRuntimeView / RunView",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SessionRuntimeView / RunView",
+        "declaration": "llm/core/views.py",
+        "consumers": [
+          "llm/llm.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/llm/test_contracts.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/embeddings.py",
+    "sha256": "abb66c4c028ea067dab1fc83cbb10c42aed626df5773fd620733bd7bbbb97d41",
+    "reason": "Complete single-vector SDK response boundary reviewed. This Adapter helper owns data/vector wire fields and exact-one response count; other layers receive canonical validated vectors. Dict/attribute SDK access remains at the boundary; absence is passed to original integrity rejection.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "549f9209eacdbc7b185a39e943239c24efd2ed43d31803a1177c2e0ee24e506c",
+        "classification": "declaration",
+        "owner": "SingleEmbeddingWire",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "bf673bec27dbbe712586bb7b2b5e1713103ed39b17faf8f76de874735a8eab5e",
+        "classification": "declaration",
+        "owner": "SingleEmbeddingWire",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "ee3ed948a116388f3d963a86a37534b8139419832c116d50c008212953986b1f",
+        "classification": "declaration",
+        "owner": "SingleEmbeddingWire",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "3ebb1ab522a6db50866044593e5274725802d9b29c2a5ecb18fc4dcf72473683",
+        "classification": "declaration",
+        "owner": "SingleEmbeddingWire",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "8cb50a25dd67ae82aa16b61e843b5d6a1ce81e37cf163b3e9c291465773246a5",
+        "classification": "declaration",
+        "owner": "SingleEmbeddingWire",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "feb4fbe0c7230f6d43de7a24a4c672f4fd969ed2eb18c180b881efb6b956d5e8",
+        "classification": "non_contract",
+        "owner": "SingleEmbeddingWire",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "e4f7d43e8201c39f8bdad9b0e2e907a5f966e51aa4c267a99915fdc038f72f5c",
+        "classification": "non_contract",
+        "owner": "SingleEmbeddingWire",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "758efb74b5cd72ad6117f0534bc75ccd9d976942efdbcc7a8f53953605033266",
+        "classification": "non_contract",
+        "owner": "SingleEmbeddingWire",
+        "reason": "First result/vector indexing or local traversal accumulator; declared dimensional, cursor, cache byte and file constraints remain separate."
+      },
+      {
+        "id": "cd9751891f9ca72e4bbe0ed501b19d4fcc0a8d91c34e40032a9f3dc5e79db2cf",
+        "classification": "non_contract",
+        "owner": "SingleEmbeddingWire",
+        "reason": "First result/vector indexing or local traversal accumulator; declared dimensional, cursor, cache byte and file constraints remain separate."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SingleEmbeddingWire",
+        "declaration": "llm/providers/embeddings.py",
+        "consumers": [
+          "llm/providers/operations.py",
+          "llm/providers/requests.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_common_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/observations.py",
+    "sha256": "96c874b725ebb024858b975ef043fddeabb48fd601540dfd1f6eaddd0cef6bff",
+    "reason": "Complete callback/context lifetime and attempt observation reviewed. Typed invocation owns diagnostics; Adapter callbacks own usage/error semantics. Context resets, cancellation/failure propagation and finally observation are unchanged. No implicit retry, quota policy or persistence is added.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e84e478edc39e1bdafb9de1adebce438fcdb24d825a8bf7ee1d302c59f2bdc83",
+        "classification": "declaration",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "623431a9b5e5c0d9fa53ec0fe857ac28ebb7e42707c35c8e8d5a85fc42312567",
+        "classification": "declaration",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "e546d838dfe44a6cc32ee2f40ee78cffa0549bf97e34d0d3a993d3010944002c",
+        "classification": "non_contract",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "6f021c184bd62f7a0e80c7883e95afc03a37c16cb300cbf09b249bd0871484c1",
+        "classification": "non_contract",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Dataclass decorator describes Python value immutability/slots, not a business default or execution decision."
+      },
+      {
+        "id": "b9b246778812ad360086ec6cfdd443c5bd30a267b326b736d496d612be955f0d",
+        "classification": "declaration",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "dff25b2d97dbb3816f7345f1cdb76b60537c6578f6d0fea3652ea16bffebc461",
+        "classification": "declaration",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "0eab9a937daa7cef1f7201c85662b84a3668cd7518fb592ef22cfa0afffad0a9",
+        "classification": "declaration",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "2a29591134e1395ef5be62642469388eaa0a7cfaa3094f46f0fd60ff74356dd1",
+        "classification": "declaration",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "36bb14d33f9336f0c28314cbb376b293ec6ff4a99bf6275355447978a8f333d0",
+        "classification": "declaration",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "0ab5c528ba23b713f47949805da0fbc93643e103aa7a67db9593ab44be5649fa",
+        "classification": "non_contract",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "ce148492b33e4e3e822e39084faac9eab0036fd45c00a8e98d264c3469dec839",
+        "classification": "non_contract",
+        "owner": "ModelCall / provider_attempt",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ModelCall / provider_attempt",
+        "declaration": "llm/providers/observations.py",
+        "consumers": [
+          "llm/components/rag/data.py",
+          "llm/components/vision/data.py",
+          "llm/engines/base.py",
+          "llm/providers/litellm.py",
+          "llm/providers/requests.py",
+          "llm/services/lifecycle/components.py",
+          "llm/services/runtime/usage.py"
+        ],
+        "tests": [
+          "tests/llm/test_common_boundaries.py",
+          "tests/llm/test_usage_declarations.py",
+          "tests/llm/test_backend_contracts.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/codes.py",
+    "sha256": "b6edf3090da9192228645622aa47092a2c114d3c3cf00569a36739f5f5019b30",
+    "reason": "Read unchanged complete normalized Provider error Enum and actual imports. Every value is in its declaration; no SDK-specific branching or retry authority. Existing transport/observation tests consume these exact codes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a6963bff6ca8780c71edb8515a54b71a11c821c6cbf077cfa1b4633d222bc045",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "b50e8347fbcc4f2652ff36233d846dab8ae16d1e0fcb6297da4ab102515ee114",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "2e21a17539ac161c827ddd4e3f6522c1e12723d9ed1c419ba1bdbd499a69ea99",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "7c2764ab0bcc0017316ca53e9137c182ce0a15174331b37e4ad98afaae290fd9",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "6406b8a40c78e0954965dc1864983beac51067b499b8c28b9d39eba3a8060dd9",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "7c7d9a1b0a48cc81db7c1ea1c19b1f0e287b5502ba36dcb7a1010c04aa15a511",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "4a5a2df4c0645b0786d7dc1a0083fe6858668d70cacb25008f392687f038679d",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "bbf6939be0b86d83f488339850117b125f06494fefe887c3bc5435233e1ac035",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "335fe4e663a979b2277a89503712e31a94496ac86d88f089e8628c331bd0b886",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "729abbe7dfecfc5b9e17ace2199a958b3e90e9169926470e8641eb3dd0155fb5",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "1578e8150b63aefe0254cd14c7a085a54d0f7c1565a508ae7b90fe33a854916c",
+        "classification": "declaration",
+        "owner": "ProviderErrorCode",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProviderErrorCode",
+        "declaration": "llm/providers/codes.py",
+        "consumers": [
+          "hub/backend/execution/provider_recovery.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/extraction.py",
+          "llm/core/diagnostics.py",
+          "llm/core/models.py",
+          "llm/engines/base.py",
+          "llm/providers/calls.py",
+          "llm/providers/litellm.py",
+          "llm/providers/requests.py"
+        ],
+        "tests": [
+          "tests/llm/test_common_boundaries.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_backend_contracts.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/lifecycle/access.py",
+    "sha256": "976bcb648af308e9abe726e72b8047dce48063e39dd7d7b73444adba38d6543b",
+    "reason": "Complete live Project lookup/path ownership check reviewed. Existing deletion default and diagnostics are declared before methods; normalized full AST is identical. No retained handle can bypass current repository lookup or path check.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ecde523b8a9bf6364f6e999d24399f276b5afbfadbb01d56d42bec786fe75cbe",
+        "classification": "non_contract",
+        "owner": "ProjectAccess",
+        "reason": "Protocol method body has no runtime policy implementation."
+      },
+      {
+        "id": "784ed65b825740315c777e98d7a32bc79c8aeedf88a8d5b6551d739ab8e44fdd",
+        "classification": "non_contract",
+        "owner": "ProjectAccess",
+        "reason": "Protocol method body has no runtime policy implementation."
+      },
+      {
+        "id": "9a7ad02fc34c47834a85ad4e1e858044c165e8bf92d6b87e5e9dfb29482ec040",
+        "classification": "declaration",
+        "owner": "ProjectAccess",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "ecd892b6ada874e06b224b530e48e7ccacbf4f86912fb9000661715b02eca651",
+        "classification": "declaration",
+        "owner": "ProjectAccess",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "b9c152c6d93baba89d8f4a1bb52840c0723fdf3732ad5d97b325df05dc6b5d1c",
+        "classification": "declaration",
+        "owner": "ProjectAccess",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "6cec19cc220befa6974ef65084f6312bc0826f3a28881023453d041b78202db7",
+        "classification": "non_contract",
+        "owner": "ProjectAccess",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "6908e1527e8ebe8024ad33157949512c75e50c454878669f9841eb4bd8f3be25",
+        "classification": "non_contract",
+        "owner": "ProjectAccess",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectAccess",
+        "declaration": "llm/services/lifecycle/access.py",
+        "consumers": [
+          "llm/services/lifecycle/components.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py"
+        ],
+        "tests": [
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_definition_components.py",
+          "tests/llm/test_backend_contracts.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/pending.py",
+    "sha256": "b0abfc24fb5c0a089dada61cef6ed71d676b65edfa201ae6748cf179562609c4",
+    "reason": "Read complete unchanged task collection, cancellation exception retrieval, threading lock, idle callback and wake/wait ordering. Optional runtime callback/event absence uses Python None; active count derives live tasks and never reconstructs Run state. Existing shutdown/restart tests protect ownership release.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "368716e9d9a21cb081041ec1470699e82056d6e8accc1adb00108c379f3c27b0",
+        "classification": "non_contract",
+        "owner": "PendingWork",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "69e9959f9906ba846f17f6430ea15acd5656074e3cf0dc1dde93dbb6aff18001",
+        "classification": "non_contract",
+        "owner": "PendingWork",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "4b3868784422646fd90243311f9e8271b51d97c15c5c77c2140596372904ca8b",
+        "classification": "non_contract",
+        "owner": "PendingWork",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "a8e85d65942823983b548e4a035e72048ac9b988a5186aa61ee479e3cf8ac4c7",
+        "classification": "non_contract",
+        "owner": "PendingWork",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "4421f228b3919fb90807c7317b19dffb47a693d540018dc8aaa077a77dd66fda",
+        "classification": "non_contract",
+        "owner": "PendingWork",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "d14e401c4c4e9a77178c3bb0c61552866aa04fd3083894f657e1d01d5975403d",
+        "classification": "non_contract",
+        "owner": "PendingWork",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      },
+      {
+        "id": "566e137937c29b7a85703750831e91f880e2abe04374241acceceb1a45d536d4",
+        "classification": "non_contract",
+        "owner": "PendingWork",
+        "reason": "Python optional annotation, absent runtime callback/event/output, cache lookup miss, or unspecified optional vector dimension. The existing Owner handles absence directly; no stored evidence, known usage, capability or permission is synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PendingWork",
+        "declaration": "llm/services/runtime/pending.py",
+        "consumers": [
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_backend_contracts.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/status.py",
+    "sha256": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8",
+    "reason": "Read unchanged complete RAG lifecycle vocabulary and actual storage/job/progress consumers. All statuses are declared in the Enum; observations cannot authorize retry/resume.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "eb8d311733f930f2d0b3bda426b978d02e65dc24946c63836be8f2e9faca3a54",
+        "classification": "declaration",
+        "owner": "RAGJobStatus",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "bb7ad78796c162be32c8e05482575e983239deefc25dd0ecd673d8f2ca93f880",
+        "classification": "declaration",
+        "owner": "RAGJobStatus",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "69e42bcb7ab72d346e2b1c1e2cd58ddd4198c92976a43cf1c37298e5273f88c3",
+        "classification": "declaration",
+        "owner": "RAGJobStatus",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "6f254fb5bb5eb2e66fbd7adc2ce4350bcbae2d7101b2d3947b1cba681c43dea0",
+        "classification": "declaration",
+        "owner": "RAGJobStatus",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "63b28779adb99d1d5fdfc2db2285c3d7faf7fd6c3d8c2ea8bb77bfea909fb901",
+        "classification": "declaration",
+        "owner": "RAGJobStatus",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGJobStatus",
+        "declaration": "llm/components/rag/status.py",
+        "consumers": [
+          "llm/components/rag/__init__.py",
+          "llm/components/rag/data.py",
+          "llm/components/rag/job_storage.py",
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_backend_contracts.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/refinement/lifecycle.py",
+    "sha256": "12bb6b539d46ac4902467a0b1d6b780d17ce666b824aeb848f8682447db08e6c",
+    "reason": "Read unchanged complete refinement status vocabulary and single transition relation. Component validation consumes the same table; actions retain existing approval/currentness checks. No status is derived from display wording.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bf61a5ded74a35ab58acdbed2af250c5f64ff45257aef6bdaa0f55fba8dbb83c",
+        "classification": "declaration",
+        "owner": "RefinementStatus / TRANSITIONS",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "077375d00c124481f43e572e9a71dd65d26731237c54387331239770912553b9",
+        "classification": "declaration",
+        "owner": "RefinementStatus / TRANSITIONS",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "2414a3c29911511a846c470cb42f589107263ce2bbe6fb3cc2da0fc15d577441",
+        "classification": "declaration",
+        "owner": "RefinementStatus / TRANSITIONS",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "93fe00ba5230fed3df5dcddf15cd609fab662cca1956d5d859d8da57cd0b4d87",
+        "classification": "declaration",
+        "owner": "RefinementStatus / TRANSITIONS",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "b1d996dc23168a2dda2eb076f9623a9dcccccf8900b04e97b34493c556b7a643",
+        "classification": "declaration",
+        "owner": "RefinementStatus / TRANSITIONS",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      },
+      {
+        "id": "296f3802a50ae1a5e1267f16cd804e050ef1cfb5d42e31076e26b471cfed1b11",
+        "classification": "declaration",
+        "owner": "RefinementStatus / TRANSITIONS",
+        "reason": "Owner field metadata, lifecycle value, wire name, diagnostic, constraint, buffer or observation-context declaration before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RefinementStatus / TRANSITIONS",
+        "declaration": "llm/components/refinement/lifecycle.py",
+        "consumers": [
+          "llm/components/refinement/component.py",
+          "llm/components/refinement/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_stability_refinement.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

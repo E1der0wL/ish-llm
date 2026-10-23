@@ -16,18 +16,22 @@ class ProjectReader(Protocol):
 
 
 class ProjectAccess:
+    ALLOW_DELETED = False
+    DELETED = "Project is deleted"
+    WRONG_OWNER = "Project path ownership mismatch"
+
     def __init__(self, repository: ProjectReader) -> None:
         self.repository = repository
         self.agent_references = None
 
-    def load(self, project_id: str, *, allow_deleted: bool = False) -> Project:
+    def load(self, project_id: str, *, allow_deleted: bool = ALLOW_DELETED) -> Project:
         current = self.repository.load(project_id)
         if current.deleted and not allow_deleted:
-            raise ValueError("Project is deleted")
+            raise ValueError(self.DELETED)
         return current
 
-    def require(self, project: Project, *, allow_deleted: bool = False) -> Project:
+    def require(self, project: Project, *, allow_deleted: bool = ALLOW_DELETED) -> Project:
         expected = self.repository.paths(project.id)
         if project.paths.root.absolute() != expected.root.absolute():
-            raise ValueError("Project path ownership mismatch")
+            raise ValueError(self.WRONG_OWNER)
         return self.load(project.id, allow_deleted=allow_deleted)

@@ -2,15 +2,25 @@
 
 from collections import OrderedDict
 from copy import deepcopy
+from dataclasses import dataclass
 from threading import RLock
 import sys
+
+
+@dataclass(frozen=True, slots=True)
+class CacheEntry:
+    value: object
+    size: int
 
 
 class SnapshotCache:
     """Bound retained Python payload bytes, with independent copies for every reader."""
 
+    EMPTY_BYTES = 0
+    EVICT_NEWEST = False
+
     def __init__(self):
-        self.entries, self.bytes = OrderedDict(), 0
+        self.entries, self.bytes = OrderedDict(), self.EMPTY_BYTES
         self.lock = RLock()
 
     @staticmethod
@@ -31,8 +41,8 @@ class SnapshotCache:
 
     def _trim(self, maximum):
         while self.entries and self.bytes > maximum:
-            _, (_, size) = self.entries.popitem(last=False)
-            self.bytes -= size
+            _, entry = self.entries.popitem(last=self.EVICT_NEWEST)
+            self.bytes -= entry.size
 
     def get(self, key, maximum):
         with self.lock:
@@ -41,7 +51,7 @@ class SnapshotCache:
             if entry is None:
                 return None
             self.entries[key] = entry
-            return deepcopy(entry[0])
+            return deepcopy(entry.value)
 
     def put(self, key, value, maximum):
         if not maximum:
@@ -50,10 +60,10 @@ class SnapshotCache:
         with self.lock:
             previous = self.entries.pop(key, None)
             if previous is not None:
-                self.bytes -= previous[1]
+                self.bytes -= previous.size
             self._trim(maximum)
             if size > maximum:
                 return
             self._trim(maximum - size)
-            self.entries[key] = (deepcopy(value), size)
+            self.entries[key] = CacheEntry(deepcopy(value), size)
             self.bytes += size

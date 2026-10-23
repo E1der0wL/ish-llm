@@ -5,7 +5,7 @@ from typing import Protocol
 from llm.core.model_protocol import (
     EmbeddingResult, ModelOperation, ModelRequest, ModelResponse, RankedDocument, RerankResult, copy_model,
 )
-from .embeddings import extract_single_embedding, value
+from .embeddings import extract_single_embedding, value, SingleEmbeddingWire
 from .wire_codec import decode_message, encode_request, normalize_stop_reason
 
 
@@ -116,7 +116,7 @@ class LiteLLMOperations:
         raw = await self._invoke_sdk(ModelOperation.EMBEDDING, request, options, decide=decide)
         from .litellm import _usage
         vector = extract_single_embedding(raw, dimensions=parameters.get("dimensions"))
-        return EmbeddingResult(tuple(vector), _usage(value(raw, "usage")) or None, _opaque(raw, {"data", "usage"}))
+        return EmbeddingResult(tuple(vector), _usage(value(raw, "usage")) or None, _opaque(raw, {SingleEmbeddingWire.DATA, "usage"}))
 
     async def rerank(self, query, documents, parameters, options, *, decide=None):
         request = {**copy_model(parameters), "query": query, "documents": copy_model(documents)}

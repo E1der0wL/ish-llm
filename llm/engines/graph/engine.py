@@ -7,6 +7,7 @@
 from llm.core.resource_references import ResourceTarget
 
 from llm.core.configuration_views import ConfigurationView
+from llm.core.definition_snapshot import DefinitionSnapshot
 
 from llm.core.checkpoint_records import CheckpointWrite
 
@@ -782,8 +783,8 @@ class GraphEngine:
     def _definition(self, capabilities):
         if self.workflow is None:
             raise GraphExecutionError("Graph request requires engine_options.workflow")
-        candidates = [source["records"][self.workflow]
-                      for source in capabilities["workflows"] if self.workflow in source["records"]]
+        candidates = [DefinitionSnapshot.records_from(source)[self.workflow]
+                      for source in capabilities["workflows"] if self.workflow in DefinitionSnapshot.records_from(source)]
         if len(candidates) != 1:
             raise GraphExecutionError("Workflow must resolve to exactly one definition")
         graph = deepcopy(candidates[0])
