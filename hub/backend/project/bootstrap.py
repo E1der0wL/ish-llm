@@ -38,8 +38,10 @@ async def select_or_create(backend, config):
         if supplied:
             # Title generation resolves the current source settings at execution
             # time; copying them here would leave a stale, independent title model.
-            engines = project_config.parameters.setdefault("engines", {})
-            engines.setdefault("loop", {}).setdefault("config", {}).setdefault("completion", {}).update(supplied)
+            parameters = project_config.parameter_targets.engine("loop")
+            values = parameters.config
+            values.setdefault("completion", {}).update(supplied)
+            project_config.set_engine_parameters("loop", parameters.with_config(values).to_dict())
         return await create_project(backend, "Hub", config=project_config,
             components=preset["components"] if preset else list(backend.describe_project_config()["x-components"]),
             conversation_storage=preset["conversation_storage"] if preset else CONVERSATION_STORAGE,

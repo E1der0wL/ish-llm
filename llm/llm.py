@@ -992,15 +992,20 @@ def print_event(run: Run, event: EngineEvent) -> None:
 
 
 async def run_request(args: argparse.Namespace) -> int:
+    from llm.core.implementation_parameters import ImplementationParameters
     async with LargeLanguageModel(
         args.workspace, components=[ToolComponent()],
         conversation_storage=args.conversation_storage,
         engines={"loop": LoopEngine()},
     ) as backend:
         backend.events.subscribe(print_event, channel="engine")
-        project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(parameters={"engines": {"loop": {
-            'policy': {key: value for key, value in {'max_iterations': args.max_iterations, 'request_timeout': args.timeout}.items() if value is not None},
-            'config': {'completion': {key: value for key, value in {'model': args.model, 'temperature': args.temperature, 'api_base': args.api_base}.items() if value is not None}}}}}),
+        parameters = ImplementationParameters.read({}).with_policy({key: value for key, value in
+            {'max_iterations': args.max_iterations, 'request_timeout': args.timeout}.items() if value is not None})
+        parameters = parameters.with_config({'completion': {key: value for key, value in
+            {'model': args.model, 'temperature': args.temperature, 'api_base': args.api_base}.items() if value is not None}})
+        config = ProjectConfig()
+        config.set_engine_parameters("loop", parameters)
+        project = await backend.projects.acreate("LoopEngine demo", config=config,
             components=["tools"] if args.with_tools else [])
         if args.with_tools:
             selected_tools = await project.components.aget("tools")

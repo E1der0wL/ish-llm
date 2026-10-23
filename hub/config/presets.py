@@ -35,16 +35,13 @@ class PresetStore(WorkspaceJSONStore):
             raise ValueError("Preset project requires config, components and conversation_storage")
         if not isinstance(project["config"], dict) or not isinstance(project["components"], list):
             raise ValueError("Invalid project settings")
-        ProjectConfig.from_dict(project["config"])
+        config = ProjectConfig.from_dict(project["config"])
         components = project["components"]
         if (any(not isinstance(name, str) or not name for name in components)
                 or len(set(components)) != len(components)):
             raise ValueError("Preset components must be distinct names")
         ConversationStorage.validate(project["conversation_storage"], nullable=False)
-        parameters = project["config"].get("parameters", {})
-        if not isinstance(parameters, dict) or not isinstance(parameters.get("engines", {}), dict):
-            raise ValueError("Project parameters and engines must be JSON objects")
-        if "_hub_title" in parameters.get("engines", {}):
+        if config.parameter_targets.has_engine("_hub_title"):
             raise ValueError("_hub_title is managed by Hub")
         return deepcopy(value)
 

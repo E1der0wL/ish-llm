@@ -267,7 +267,7 @@ class ProjectManager:
             self._validate_config(current)
             configurations = {}
         self.components.validate(current.components)
-        for name in dict.fromkeys((*current.components, *current.config.parameters.get("components", {}))):
+        for name in dict.fromkeys((*current.components, *current.config.parameter_targets.component_names)):
             if name not in configurations:
                 configurations[name] = self.components.get(name).get_config(deepcopy(current))
         return ProjectConfiguration.snapshot(current, registry=self.components,
@@ -364,7 +364,7 @@ class ProjectManager:
             component.delete_directory(current)
         current.components = tuple(item for item in current.components if item != name)
         if permanent:
-            current.config.parameters.get("components", {}).pop(name, None)
+            current.config.remove_component_parameters(name)
             current.initialized_components = tuple(item for item in current.initialized_components if item != name)
         self.components.validate(current.components)
         # 선택 해제와 디렉토리 격리를 같은 트랜잭션으로 확정한다.

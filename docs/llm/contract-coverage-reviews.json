@@ -2255,8 +2255,8 @@
   },
   {
     "path": "llm/core/implementation_parameters.py",
-    "sha256": "0e3056702a65dc27fd432072c14e7a47bc6151e6d70f49cd40bd030eb4e218ac",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status.",
+    "sha256": "6dc5baecdb278d643cb4da0f6b09277c3df8a043c5fd93000537a25fa1b3fc7f",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Target-stage review: added detached config/policy replacements through the same validation; no new literals/candidates. Remaining selected-implementation envelope writers keep this contract incomplete.",
     "dynamic_paths_reviewed": false,
     "decisions": [
       {
@@ -2844,6 +2844,178 @@
           "tests/llm/test_configuration_validation.py"
         ],
         "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/core/configuration_targets.py",
+    "sha256": "1f865ad89d6e2ac264cb8f6fb3d87a3d576e5aec84fb86461d90b463f2df5bda",
+    "reason": "Reviewed complete target/Session/selected-Engine Owner and actual reads/writes through Component registries, lifecycle, Core resolution, Engine validation, Hub creation/presets/editor/title and the real CLI. Target maps remain open by name while section/envelope/scope validation is centralized. Unrelated Tool.parameters, Agent catalog engines and independent documentation examples are different boundaries; neighboring files remain independently unreviewed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "17971df9857904bc7dfd9b58413abf583bbb413f9556d5e25705af27dd8e9cf0",
+        "classification": "non_contract",
+        "owner": "ParameterTargets",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "d320945aee3384aa211ffedc93269e6c2f2357d812491aef92a969cf722fa74d",
+        "classification": "non_contract",
+        "owner": "ParameterTargets",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "c0a078544a38f72e7b914574264109ce5ce0c0d91513ce3115e6c24cf1311d8f",
+        "classification": "non_contract",
+        "owner": "ParameterTargets",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "74ce04a550773434e517b7e810c232cd1c15eb07fc42164d6629f25b9a6ffbb4",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "48261d3218bc9e2eb1571980e5f97e1e07664fc48253cd2d2ed366aff8bb8eb3",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "11497bad5a0cad943f1f9f52d262c5bbdc18b71431cca0625fe2d993c747a325",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "44c0f6e1181dfd028ff6db481181f29110e76be702bc46fdb2dad3181a0534f2",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "5af95b0ef6a8e639c836a08c399f6971909fd8f7a1a976b4d9eb6feeef60651e",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "c748f1f032efa729569fcefbaf27c3c50c58c8c17e836ddbe4b0674d90756356",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "0329e4739c51dc97eec63aff4ec34dff8c16dc31a966ece1a76c0283f3bb8395",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "b26711e2b1043e6a4013569f176e4dcd5fdb4d6df2730c4e357faff3807bb2f4",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "150c1bd450603e5af7c275428b43da3334e5ddd41b076561b4ae5d82a15b0b7d",
+        "classification": "declaration",
+        "owner": "ParameterTargets",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "70b1d8719ec7202f2d34321fb2398d0cb076631201a70139928fd8c7e1d0bd62",
+        "classification": "non_contract",
+        "owner": "ParameterTargets",
+        "reason": "Ignored pop result for absence-tolerant explicit deletion; no stored value or missing evidence default is created."
+      },
+      {
+        "id": "3f24faece26e8c6d4259746b2d6345c29197856cbebbeeebc5a3234c01b4923d",
+        "classification": "non_contract",
+        "owner": "SessionConfiguration",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "8193c272e4c8056cde0e750773e71339c2a889f4dbec87158334afb8f56534df",
+        "classification": "non_contract",
+        "owner": "SessionConfiguration",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "6780ed0a67c43c2d037a2d9ad4e16eeb43cd1cc5e3de8c7b35f28824e9ffe7b2",
+        "classification": "non_contract",
+        "owner": "SessionConfiguration",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "34c4e0336990edf64ef8d9e4a2e627d33d45815ab98e465d83d6dffc430dcf4d",
+        "classification": "non_contract",
+        "owner": "ResolvedEngineConfiguration",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "452c3390fd0f8fa67297651e89e10bd73519e412b6415d45fbf183fcb2572e47",
+        "classification": "non_contract",
+        "owner": "ResolvedEngineConfiguration",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "7920733dee8523587046103a568ab2e9d85349b30597bbd818788c4ebc1331b1",
+        "classification": "non_contract",
+        "owner": "ResolvedEngineConfiguration",
+        "reason": "Dataclass frozen/slots/init generation; not a stored value or execution policy."
+      },
+      {
+        "id": "3696bc6580c9b80f17389e242eb364f53f586bbc716dba6c8639d0f00e810ccc",
+        "classification": "declaration",
+        "owner": "ResolvedEngineConfiguration",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      },
+      {
+        "id": "7d70fb760703f37a4ed9f2a95c3897bea9f736825f1d6b85dc12618df9aa1509",
+        "classification": "declaration",
+        "owner": "ResolvedEngineConfiguration",
+        "reason": "Canonical target category, validation scope, diagnostic or required selected-engine field declared before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ParameterTargets / SessionConfiguration / ResolvedEngineConfiguration",
+        "declaration": "llm/core/configuration_targets.py",
+        "consumers": [
+          "llm/core/models.py",
+          "llm/core/configuration.py",
+          "llm/engines/registry.py",
+          "llm/components/base.py",
+          "llm/components/registry.py",
+          "llm/components/tools/component.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "llm/services/schema.py",
+          "llm/llm.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/project/naming.py",
+          "hub/backend/project/presets.py",
+          "hub/config/presets.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_parameter_values.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_linux_platform.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_naming.py"
+        ],
+        "complete": true
       }
     ]
   }

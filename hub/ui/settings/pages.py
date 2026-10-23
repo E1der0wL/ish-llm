@@ -2,7 +2,7 @@
 
 from llm.core.configuration_views import EngineConfigurationKey
 
-from llm.services.schema import ProjectConfiguration
+from llm.services.schema import ProjectFormSchemas, ProjectConfiguration
 
 from copy import deepcopy
 from dataclasses import replace
@@ -106,28 +106,26 @@ class ProjectPage(Page):
         values = view.values.to_dict()
         values["config"] = view.stored_config
         schema = view.schema
-        config = schema["properties"]["config"]["properties"]
-        parameters = config.pop("parameters")["properties"]
-        self.component_schemas = parameters.pop("components")["properties"]
-        engine_schemas = parameters.pop("engines")["properties"]
+        forms = ProjectFormSchemas.read(schema)
+        self.component_schemas = forms.components
+        engine_schemas = forms.engines
         engine_catalog = schema.get("x-engines", {})
         from ...backend.project.naming import TITLE_ENGINE
         keys = {name: EngineConfigurationKey.from_dict(spec).configuration_key for name, spec in engine_catalog.items()}
         self.engine_keys = {name: key for name, key in keys.items()
                             if name != TITLE_ENGINE and key != TITLE_ENGINE}
-        schema["properties"].pop("components")
-        self.form = SchemaForm(schema, values, screen.t)
+        self.form = SchemaForm(forms.general, values, screen.t)
         self.component_forms, self.engine_forms = {}, {}
         for key in dict.fromkeys(self.engine_keys.values()):
             effective = {name: view for name, view in view.effective_engines.items()
                          if self.engine_keys.get(name) == key}
             form = SchemaForm(engine_schemas.get(key, {}), values, screen.t,
-                              prefix=("config", "parameters", "engines", key), effective=effective)
+                              prefix=ProjectConfiguration.engine_form_path(key), effective=effective)
             self.engine_forms[key] = form
         for name in self.components:
             effective = view.components.get(name, {}).get("effective")
             form = SchemaForm(self.component_schemas.get(name, False), values, screen.t,
-                              prefix=("config", "parameters", "components", name),
+                              prefix=ProjectConfiguration.component_form_path(name),
                               effective={name: effective} if effective is not None else None)
             self.component_forms[name] = form
         # Older projects receive editable suggestions, persisted only on Save.

@@ -5,6 +5,7 @@ from enum import StrEnum
 from jsonschema import Draft202012Validator
 
 from .models import ProjectConfig
+from .configuration_targets import SessionConfiguration
 from llm.core.json_data import JsonObject, JsonPointer
 from .configuration_views import ConfigurationView, ConfigurationOverride
 
@@ -64,13 +65,12 @@ def resolve_config(layers, *, schema=None, host=None):
 def resolve_engine_config(config, name, *, session_config=None, agent=None, schema=None):
     """Project → Session → Agent. child는 schema가 지정한 authority를 넓힐 수 없다."""
     config = ProjectConfig.from_dict(config)
-    session = {} if session_config is None else session_config
-    ProjectConfig.validate_session(session)
+    session = SessionConfiguration.read({} if session_config is None else session_config)
     agent = {} if agent is None else agent
     JsonObject.validate(agent)
     layers = [
-        (ConfigurationSource.PROJECT, config.parameters.get("engines", {}).get(name, {})),
-        (ConfigurationSource.SESSION, session.get("parameters", {}).get("engines", {}).get(name, {})),
+        (ConfigurationSource.PROJECT, config.parameter_targets.engine(name).to_dict()),
+        (ConfigurationSource.SESSION, session.parameter_targets.engine(name).to_dict()),
         (ConfigurationSource.AGENT, agent)]
     from .schema import narrowing_paths
     limits = narrowing_paths(schema)

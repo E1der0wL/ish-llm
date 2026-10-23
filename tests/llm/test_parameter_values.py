@@ -30,6 +30,12 @@ class ParameterValuesTests(unittest.TestCase):
         selected["extra"].append(4)
         self.assertEqual(view.config["sdk"]["extra"], [1])
         self.assertNotIn("policy", view.to_dict())
+        replaced = view.with_policy({"max_attempts": 2}).with_config({"timeout": None})
+        self.assertEqual(replaced.to_dict(), {"config": {"timeout": None}, "policy": {"max_attempts": 2}})
+        self.assertNotIn("policy", view.to_dict())
+        for update in (view.with_config, view.with_policy):
+            with self.assertRaises(TypeError):
+                update(None)
         for invalid in ({"policy": None}, {"config": []}, {"max_attempts": 2}, []):
             with self.subTest(value=invalid), self.assertRaises((ValueError, TypeError)):
                 ImplementationParameters.read(invalid)

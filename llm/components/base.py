@@ -120,7 +120,7 @@ class Component:
     def get_config_layers(self, project):
         """설정 원본은 ProjectConfig뿐이다. 컴포넌트 파일을 대체 설정으로 읽지 않는다."""
         self.get_config(project)
-        return [(ConfigurationSource.PROJECT, project.config.parameters.get("components", {}).get(self.name, {}))]
+        return [(ConfigurationSource.PROJECT, project.config.parameter_targets.component(self.name).to_dict())]
 
     def validate_project_config(self, project):
         """검증을 컴포넌트에 위임하되 Project 저장은 서비스가 담당한다."""
@@ -288,7 +288,7 @@ class Component:
         # 기존 파일은 무시해서 설정을 잃지 않도록 명시적으로 거부한다. 변환/삭제는 하지 않는다.
         if self._checked(self.root(project) / "component.json").exists():
             raise ValueError("Legacy component.json is unsupported; configure ProjectConfig.parameters.components")
-        data = deepcopy(project.config.parameters.get("components", {}).get(self.name, {}))
+        data = deepcopy(project.config.parameter_targets.component(self.name).to_dict())
         self.serialize(data)
         self.validate_config(data)
         return data

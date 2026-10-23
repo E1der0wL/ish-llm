@@ -33,13 +33,15 @@ class EngineRegistry:
     def validate_config(self, config, *, session_config=None) -> None:
         """저장 전 공개 설정 계약만 호출한다. execute/capability/모델 함수는 호출하지 않는다."""
         from llm.core.models import ProjectConfig
+        from llm.core.configuration_targets import SessionConfiguration
+        from llm.core.configuration import ConfigurationSource
         from llm.core.schema import checked_implementation_schema
         from jsonschema import Draft202012Validator
         from copy import deepcopy
         import inspect
         config = ProjectConfig.from_dict(config)
         session = deepcopy(session_config) if session_config is not None else {}
-        ProjectConfig.validate_session(session)
+        session_view = SessionConfiguration.read(session)
         for name, engine in self._engines.items():
             schema = getattr(engine, "describe_config", None)
             if callable(schema):
@@ -48,10 +50,10 @@ class EngineRegistry:
                 if not isinstance(key, str) or not key.strip():
                     raise ValueError("Engine configuration key must be nonempty text")
                 # 호스트 고정값이 잘못된 입력을 가리지 않게 UI와 같은 입력 스키마부터 검사한다.
-                for source, owner in (("project", config), ("session", session)):
-                    supplied = owner.get("parameters", {}).get("engines", {})
-                    if key in supplied:
-                        error = next(Draft202012Validator(spec).iter_errors(supplied[key]), None)
+                for source, owner in ((ConfigurationSource.PROJECT, config), (ConfigurationSource.SESSION, session_view)):
+                    supplied = owner.parameter_targets
+                    if supplied.has_engine(key):
+                        error = next(Draft202012Validator(spec).iter_errors(supplied.engine(key).to_dict()), None)
                         if error:
                             raise ValueError(f"Invalid Engine configuration ({name}, {source}): {error.message}")
             describe = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)

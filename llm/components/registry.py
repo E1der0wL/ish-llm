@@ -144,7 +144,7 @@ class ComponentRegistry:
         """등록된 컴포넌트에만 Project 설정을 전달한다. 비활성 자료는 생성하지 않는다."""
         project.config.validate()
         self.validate(project.components)
-        for name in project.config.parameters.get("components", {}):
+        for name in project.config.parameter_targets.component_names:
             component = self.get(name)
             validate = getattr(component, "validate_project_config", None)
             if validate is None:

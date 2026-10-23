@@ -9,11 +9,12 @@ from dataclasses import asdict, dataclass, field, fields
 
 from llm.core.configuration import resolve_component_config
 from llm.core.models import ConversationStorage, ProjectConfig
+from llm.core.configuration_targets import ParameterTargets
 from llm.core.policies import PolicySection, UsagePolicy
-from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema, schema_nodes
+from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema, schema_nodes, SchemaKeyword
 
 
-@dataclass
+@dataclass(slots=True)
 class ProjectConfigForm:
     """Editable values and their schema share one field declaration.
 
@@ -75,8 +76,39 @@ class SessionConfigurationView:
         return asdict(self)
 
 
+@dataclass(slots=True)
+class ProjectFormSchemas:
+    general: dict
+    engines: dict
+    components: dict
+
+    @classmethod
+    def read(cls, schema):
+        general = deepcopy(schema)
+        config = general[SchemaKeyword.PROPERTIES][ProjectConfigForm.config.__name__][SchemaKeyword.PROPERTIES]
+        parameters = config.pop(ProjectConfig.PARAMETERS)[SchemaKeyword.PROPERTIES]
+        components = parameters.pop(ParameterTargets.COMPONENTS)[SchemaKeyword.PROPERTIES]
+        engines = parameters.pop(ParameterTargets.ENGINES)[SchemaKeyword.PROPERTIES]
+        general[SchemaKeyword.PROPERTIES].pop(ProjectConfigForm.components.__name__)
+        return cls(general, engines, components)
+
+
 class ProjectConfiguration:
     """Owner of the public configuration description, detached from stored state."""
+
+    @staticmethod
+    def engine_parameter_schemas(schema):
+        config = schema[SchemaKeyword.PROPERTIES][ProjectConfigForm.config.__name__]
+        parameters = config[SchemaKeyword.PROPERTIES][ProjectConfig.PARAMETERS]
+        return deepcopy(parameters[SchemaKeyword.PROPERTIES][ParameterTargets.ENGINES][SchemaKeyword.PROPERTIES])
+
+    @staticmethod
+    def engine_form_path(name):
+        return (ProjectConfigForm.config.__name__, *ProjectConfig.engine_parameter_path(name))
+
+    @staticmethod
+    def component_form_path(name):
+        return ProjectConfigForm.config.__name__, ProjectConfig.PARAMETERS, ParameterTargets.COMPONENTS, name
 
     @staticmethod
     def view(snapshot):
@@ -148,12 +180,12 @@ class ProjectConfiguration:
         engines = [(EngineConfigurationKey.from_view(engine_keys.get(name, {}), default=name).configuration_key, view)
                    for name, view in record.get("effective_engines", {}).items()]
         components = [(name, spec.get("effective") or {}) for name, spec in record.get("components", {}).items()]
-        for kind, entries in (("engines", engines), ("components", components)):
+        for kind, entries in ((ParameterTargets.ENGINES, engines), (ParameterTargets.COMPONENTS, components)):
             for name, view in entries:
                 for pointer, editable in ConfigurationView.read(view).editable.items():
                     if editable:
                         continue
-                    path = ("config", "parameters", kind, name,
+                    path = ("config", ProjectConfig.PARAMETERS, kind, name,
                             *JsonPointer.parts(pointer))
                     fixed.add(path)
         for path in fixed:
@@ -229,14 +261,14 @@ def describe_project_config(app, components=None):
             # UI values에는 명시적으로 설정한 값만 제공한다. 중첩/배열/ref의 조건을 보존한다.
         project_components[name] = spec
     config = object_schema({
-        "policies": policies, "data": metadata_schema(),
-        "parameters": object_schema({
-            "engines": object_schema(engines),
-            "components": object_schema(project_components, additionalProperties=False,
+        ProjectConfig.POLICIES: policies, ProjectConfig.DATA: metadata_schema(),
+        ProjectConfig.PARAMETERS: object_schema({
+            ParameterTargets.ENGINES: object_schema(engines),
+            ParameterTargets.COMPONENTS: object_schema(project_components, additionalProperties=False,
                 description="컴포넌트 설정의 유일한 저장 위치. 대상 구현체가 검증·해석한다."),
         }, description="대상별 전달 인자. 같은 이름의 인자를 다른 대상으로 자동 전달하지 않는다."),
     }, **{"not": {"anyOf": [{"required": [name]} for name in
-          ("completion", "engines", "component_configurations", "session_defaults", "default_engine")]}})
+          ProjectConfig.RETIRED_SECTIONS]}})
     config.update({"x-owner": "project", "x-scope": "execution-policy"})
     return checked_schema(object_schema(ProjectConfigForm.schema(config, registry.names()),
         additionalProperties=False, **{"$schema": "https://json-schema.org/draft/2020-12/schema",

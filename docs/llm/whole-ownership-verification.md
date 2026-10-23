@@ -853,3 +853,74 @@ new/stale/outstanding/error 0이다. `parameters-auxiliary/results.json`의 정�
 표시하지 않았다. 선언 후보 분류가 전체 소비자 완료를 뜻하지 않는다. 이 구간은 Level 2로
 보존하고, 이어 Project/Session 설정 대상 및 Schema 소비자 전환과 묶어 현 통합 소스의
 Level 3를 수행한다. 전체 게이트는 실행 시점을 묶었으며 필수 안전성 기준을 낮추지 않았다.
+
+## Project/Session 설정 대상과 변경 경계
+
+앞선 Schema/envelope 소단계는 `cb52b83`으로 보존했다. 이어 `ParameterTargets`,
+`SessionConfiguration`, `ResolvedEngineConfiguration`을 도입해 Project/Session 대상 선택과
+공통 외형의 생성·조회·변경을 연결했다. ProjectConfig가 section 선언·갱신·저장 전 검증을
+소유하며, ComponentData/ProjectManager는 잠금·CAS·수명·삭제 안전성·저장 순서를 유지한다.
+대상 이름은 열린 mapping이고 각 envelope의 내부 의미는 선택 구현체가 소유한다.
+필수 Project 저장 section과 실행의 engine 선택 필드는 누락 시 계속 오류다.
+
+Engine/Component registry·설정 resolve·Component 설정/영구 삭제·실제 CLI와 Hub 생성,
+부트스트랩, preset, 제목 Session, 설정 폼, JSON 편집/내보내기를 같은 경계로 전환했다.
+`ProjectFormSchemas`는 일반·Engine·Component Schema를 독립 사본으로 투영한다.
+`ProjectConfigForm`은 동일 필드 선언을 가진 slots dataclass가 되어 직렬화 이름과 경로가
+그 선언을 참조한다. 공개 JSON과 사용자 값·explicit null·host 고정값·생략 상태는 유지한다.
+
+JSON 내보내기 redaction은 편집 중 원본의 모양을 보존하며 저장 검증을 대신하지 않는다.
+숨겨진 제목 설정은 기존과 같이 부모 Schema 검증 뒤에 복원한다. Project/Session 정책
+권한 범위, Component 원본/영수증 삭제 보호, Hub가 명시하던 생성 기본값과 사용자 우선
+순위는 바꾸지 않았다. 다른 의미의 Tool.parameters/Agent catalog engines와 합치지 않았다.
+
+`project-config-draft/config-equivalence.json`에서 이전 cb52b83의 ProjectConfig를 독립
+namespace로 로드해 생성·Session 검증·Engine 선택 5,040개 조합의 결과와 오류 타입/문구가
+현재 구현과 일치함을 확인했다. 이는 실제 저장·실행 안전성 검증의 대체가 아니다.
+새 독립 시험은 대상 존재/빈 값/사본, 잘못된 변경의 원본 보존, Session 권한, 실제 wire,
+필수 선택 필드 누락, 편집 redaction의 비승인 성격, Schema 투영 사본·경로를 검사한다.
+
+개발 중 smoke-05는 Graph의 새 ProjectConfig 상수 참조에 import를 빠뜨려 NameError로
+실패했다. import를 추가한 smoke-06 이후와 아래 최종 공식 검증은 통과했다. 이 실패를
+성공으로 집계하지 않았다. 최초 migration helper의 잘못된 소스 경계 탐색도 외부 로그에
+보존했으며 해당 초기 smoke 결과를 공식 검증 근거로 사용하지 않았다.
+
+| 실행 | 발견/시작/통과 | Failure / Error / Skip | xfail/xpass·누락/추가/중복 | exit |
+|---|---:|---|---|---:|
+| whole-config-targets-01 | 126/126/126 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-config-targets-hub-01 | 32/32/32 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-config-targets-02 | 175/175/175 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-config-targets-hub-02 | 42/42/42 | 0 / 0 / 0 | 모두 0 | 0 |
+
+실제 명령과 실행별 전후 동일한 source/input:
+
+- `whole-config-targets-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-config-targets-01/llm.json --modules tests.llm.test_configuration_targets tests.llm.test_configuration_values tests.llm.test_configuration_objects tests.llm.test_configuration_results tests.llm.test_configuration_validation tests.llm.test_settings_contract tests.llm.test_settings_consistency tests.llm.test_explicit_configuration tests.llm.test_project_component_settings tests.llm.test_component_storage_integrity tests.llm.test_schema_ownership`.
+  source `955bba2f4908c1d3cea401a679e1b878a7a526351fe3da1ea913e5184f9b5bb4`.
+  input `e3e6cc34b5eee02dcf246809adf5b3748ad591434b98fdfa2d5ca59311d5ecf7`.
+- `whole-config-targets-hub-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-config-targets-hub-01/hub.json --modules tests.hub.test_presets_widgets tests.hub.test_settings_project_flow tests.hub.test_settings_json tests.hub.test_settings tests.hub.test_naming`.
+  source `955bba2f4908c1d3cea401a679e1b878a7a526351fe3da1ea913e5184f9b5bb4`.
+  input `e3e6cc34b5eee02dcf246809adf5b3748ad591434b98fdfa2d5ca59311d5ecf7`.
+- `whole-config-targets-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-config-targets-02/llm.json --modules tests.llm.test_configuration_targets tests.llm.test_parameter_values tests.llm.test_settings_contract tests.llm.test_configuration_validation tests.llm.test_project_component_settings tests.llm.test_graph_engine tests.llm.test_graph_agent_contract tests.llm.test_linux_platform tests.llm.test_plugin tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `dae8fa0f05db4114c8c616882aa069fae17f1a6c0c139a8a45d05bc0a779825f`.
+  input `711553057c75c0fdf5b1d79d7fcb6c00442af0d6b3e565f7728737c73b7b2fb9`.
+- `whole-config-targets-hub-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-config-targets-hub-02/hub.json --modules tests.hub.test_presets_widgets tests.hub.test_settings_project_flow tests.hub.test_settings_json tests.hub.test_settings tests.hub.test_naming tests.hub.test_bootstrap tests.hub.test_defaults tests.hub.test_rag_defaults`.
+  source `dae8fa0f05db4114c8c616882aa069fae17f1a6c0c139a8a45d05bc0a779825f`.
+  input `711553057c75c0fdf5b1d79d7fcb6c00442af0d6b3e565f7728737c73b7b2fb9`.
+
+01은 첫 대상 전환 소스, 02는 추가 Hub 생성/JSON 복원/폼/제목 및 실제 CLI까지 포함한
+최종 소스다. 서로 다른 실행을 전체 1회로 합산하지 않는다. 최종 LLM은 새 Owner와 설정,
+Graph·CLI 및 승인·예산 삭제·효과·Checkpoint·RAG·수명/부모 삭제·트랜잭션·감사/inventory를
+포함한다. 최종 Hub는 preset·설정 UI/JSON/Project 저장·제목·bootstrap·생성/RAG 기본값을
+검증했다. 실제 파일 효과와 장애 주입 Assertion을 유지했다. Python 3.12.14 Clang, 고정 host
+및 namespace/X11·의존성은 이전 로컬 환경과 같고 각 입력 manifest에 보존했다.
+
+변경된 정적 근거 84건을 호출 경계와 위 결과/동일성 근거로 재검토했다. 새 정적 발생은 없다.
+`config-targets-auxiliary/results.json`의 S1–S7 145건(new/stale/outstanding/error 0), 문서,
+R3 Mutation, Provider SDK, 양 suite 실제 환경 6개 검사는 각각 exit 0이며 실제 명령도 그
+파일에 보존했다. 전체 검토한 새 target 파일은 후보 21개를 개별 분류했고, 기존 envelope
+파일의 변경 API 추가는 같은 후보임을 대조한 뒤 hash를 갱신했다.
+
+현재 inventory는 452개 제품 파일, 414개 미검토 파일, 30,679개 미분류 후보다. 공통 envelope와
+Schema 어휘의 남은 소비 경로 두 계약은 여전히 incomplete다. 이 Level 2 커밋은 전수 완료가
+아니며, cb52b83과 현재 통합 SHA를 묶은 Level 3를 다음 고정 checkout에서 실행한다.
+원격 d43c82a CI는 이 기록 시점에 실행 중이며 아직 성공으로 선언하지 않았다.

@@ -176,7 +176,7 @@ class ComponentData:
     def configure(self, data: dict, *, expected_version=None) -> None:
         project, component = self._current()
         check_revision(component.get_config(project), expected_version)
-        project.config.parameters.setdefault("components", {})[self.name] = deepcopy(data)
+        project.config.set_component_parameters(self.name, data)
         self.registry.validate_config(project)
         self.access.repository.save(project)
         log_event(project.paths.logs, "component.configured", entity_id=project.id)

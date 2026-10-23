@@ -68,5 +68,15 @@ class ImplementationParameters:
         selected = ParameterLookup.read(self._value, path)
         return ParameterLookup(selected.present, deepcopy(selected.value))
 
+    def with_config(self, value):
+        result = self.to_dict()
+        result[self.CONFIG] = value
+        return self.read(result)
+
+    def with_policy(self, value):
+        result = self.to_dict()
+        result[self.POLICY] = value
+        return self.read(result)
+
     def to_dict(self):
         return deepcopy(self._value)

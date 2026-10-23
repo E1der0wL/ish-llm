@@ -1,6 +1,7 @@
 """Automatic titles use an ordinary, isolated backend Session/Run."""
 
 from llm.core.implementation_parameters import ImplementationParameters
+from llm.core.configuration_targets import ResolvedEngineConfiguration, SessionConfiguration
 
 from llm.core.configuration_views import ConfigurationView
 
@@ -37,7 +38,7 @@ class TitleEngine(BaseEngine):
         return resolve_engine_config(config, name, session_config=session_config, schema=self.describe_config())
 
     async def run(self, context):
-        settings = ImplementationParameters.read(context.resolve_config()["engine"])
+        settings = ResolvedEngineConfiguration.read(context.resolve_config()).engine
         parameters = copy_model(settings.config.get("completion", {}))
         self.completion_adapter.validate_input_ownership(parameters, auxiliary=True)
         request = ModelRequest([
@@ -118,8 +119,9 @@ class SessionNamer:
             if not params.get("model"):
                 raise ValueError(self.runtime.t("title_model_required"))
             from .agents import TITLE_AGENT
-            job = await session.project.sessions.acreate("Hub title", agent_ids=[TITLE_AGENT], config={
-                "parameters": {"engines": {TITLE_ENGINE: {'config': {'completion': params}}}}})
+            parameters = ImplementationParameters.read({}).with_config({"completion": params})
+            configuration = SessionConfiguration.read({}).with_engine(TITLE_ENGINE, parameters)
+            job = await session.project.sessions.acreate("Hub title", agent_ids=[TITLE_AGENT], config=configuration.to_dict())
             await job.asave(metadata={"hub_internal": "title", "source_session": session.id})
             text = "\n\n".join(f"{m.role}: {m.content[:4000]}" for m in history[:6]
                                if str(m.role) in ("user", "assistant"))[:12000]

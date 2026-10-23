@@ -194,3 +194,25 @@ Project config, Agent policy, 승인 binding의 policy와는 서로 다른 계�
 `llm/core/schema.py`가 소유한다. 외부 참조 거부, default annotation 거부, 숫자 한도 축소와
 복잡한 제약의 임의 재배치 거부를 유지한다. Schema 안의 const/enum/annotation 값은
 Schema 구조로 오해하지 않는다. 제품 코드 전수 전환의 잔여는 별도 inventory에 남긴다.
+
+## Project/Session 설정 대상의 단일 경계 (2026-10-23)
+
+`ProjectConfig`가 정책·대상 인자·Application data의 section 선언과 저장 전 검증을 소유한다.
+`ParameterTargets`는 Engine/Component 대상 이름과 명시적 구현체 envelope를 다룬다.
+Session override는 `SessionConfiguration`으로 읽으며 Component 설정과 Project 정책을
+추가할 수 없다. 누락한 대상과 명시한 빈 대상은 구분하고, 선택되지 않은 다른 대상의
+값을 자동으로 전달하지 않는다. Target 조회·변경은 중첩 사본을 사용하며 실패한 갱신은
+원본 설정을 변경하지 않는다. 저장 검증·잠금·CAS·수명과 삭제 보호는 기존 경계에 남는다.
+
+실행 설정의 `engine` 선택 결과는 `ResolvedEngineConfiguration`이 소유한다. 공통 설정
+section과 선택 envelope의 wire 모양을 보존하며 필수 선택 필드 누락은 오류다.
+Hub 생성/부트스트랩/제목 Session, 설정·preset 저장과 Component 선택/삭제, 실제 CLI도
+같은 선택·변경 API를 사용한다. Hub가 기존에 명시하던 생성 기본값과 사용자 우선 순위는
+바꾸지 않으며 Backend나 Adapter에 새 기본값을 만들지 않는다.
+
+`ProjectFormSchemas`는 설정 폼의 일반·Engine·Component Schema를 독립 사본으로 나누고,
+`ProjectConfiguration`은 공통 필드 선언에서 폼 경로를 제공한다. JSON 편집기는 기존대로
+부모 형식을 검증한 뒤 숨겨진 제목 설정을 복원하고 host 고정값을 검사한다. 내보내기용
+`ProjectConfig.without_engine_parameters`는 편집 중 값의 생략·무관한 필드를 보존하는
+redaction만 수행한다. 이 출력은 유효한 저장 설정이라는 증거가 아니며 실제 저장에는
+기존 전체 설정 검증이 필요하다. 이름만 같은 Tool.parameters 등의 계약과 합치지 않는다.

@@ -1,6 +1,7 @@
 """Project → Session → Run → Step의 영속 데이터와 상태를 정의한다. asyncio 객체나 서비스 핸들은 이 모델에 저장하지 않는다."""
 
 from llm.core.json_data import JsonObject
+from .configuration_targets import ParameterTargets, ResolvedEngineConfiguration
 
 from typing import Any, Optional, TYPE_CHECKING
 from collections.abc import Iterator
@@ -258,8 +259,22 @@ class ProjectConfig(dict):
     an object before construction and never consumes an iterator.
     """
 
+    POLICIES = "policies"
+    PARAMETERS = "parameters"
+    DATA = "data"
+    SECTIONS = (POLICIES, PARAMETERS, DATA)
+    SESSION_SECTIONS = (PARAMETERS, DATA)
+    RETIRED_SECTIONS = ("completion", ParameterTargets.ENGINES, "component_configurations", "session_defaults", "default_engine")
+    PYTHON_PRIVATE_PREFIX = "__"
+    INVALID_SECTION = "{section} must be a dictionary"
+    UNKNOWN_SECTIONS = "Unsupported configuration sections: {unknown}; use data for Application metadata"
+    SESSION_POLICIES = "Execution policies belong to ProjectConfig, not Session configuration"
+    RETIRED_CONFIGURATION = "Unsupported configuration sections: {removed}; use targeted parameters"
+    INVALID_SESSION_SECTION = "Session configuration sections must be dictionaries"
+    ENSURE_ASCII = False
+
     def __init__(self, values: dict | Iterator[tuple[str, Any]] | None = None, **config) -> None:
-        sections = {"policies": {}, "parameters": {}, "data": {}}
+        sections = {key: {} for key in self.SECTIONS}
         if values is not None:
             if isinstance(values, Iterator):
                 values = dict(values)
@@ -270,7 +285,7 @@ class ProjectConfig(dict):
         self.validate()
 
     def __getattr__(self, name):
-        if name.startswith("__"):
+        if name.startswith(self.PYTHON_PRIVATE_PREFIX):
             raise AttributeError(name)
         try:
             return self[name]
@@ -287,11 +302,11 @@ class ProjectConfig(dict):
 
     def validate(self) -> None:
         self.validate_json(self)
-        self["policies"] = normalize_policies(self.get("policies", {}))
-        for section in ("parameters", "data"):
+        self[self.POLICIES] = normalize_policies(self.get(self.POLICIES, {}))
+        for section in self.SESSION_SECTIONS:
             if not isinstance(self.get(section), dict):
-                raise TypeError(f"{section} must be a dictionary")
-        self.validate_session(self, project=True)
+                raise TypeError(self.INVALID_SECTION.format(section=section))
+        self.validate_session(self, project=ParameterTargets.PROJECT_SCOPE)
 
     @staticmethod
     def describe_policies() -> dict:
@@ -306,45 +321,64 @@ class ProjectConfig(dict):
         """
         self.validate_json(changes)
         candidate = deepcopy(self)
-        candidate["policies"] = self.merge(candidate.get("policies", {}), changes)
+        candidate[self.POLICIES] = self.merge(candidate.get(self.POLICIES, {}), changes)
         candidate.validate()
-        self["policies"] = candidate.policies
+        self[self.POLICIES] = candidate.policies
         return deepcopy(self.policies)
 
     @classmethod
-    def validate_session(cls, config: dict, *, project: bool = False) -> None:
+    def validate_session(cls, config: dict, *, project: bool = ParameterTargets.SESSION_SCOPE) -> None:
         cls.validate_json(config)
-        unknown = config.keys() - ({"parameters", "data", "policies"} if project else {"parameters", "data"})
+        unknown = config.keys() - set(cls.SECTIONS if project else cls.SESSION_SECTIONS)
         if unknown:
-            raise ValueError(f"Unsupported configuration sections: {sorted(unknown)}; use data for Application metadata")
-        if not project and "policies" in config:
-            raise ValueError("Execution policies belong to ProjectConfig, not Session configuration")
-        removed = {"completion", "engines", "component_configurations", "session_defaults", "default_engine"} & config.keys()
+            raise ValueError(cls.UNKNOWN_SECTIONS.format(unknown=sorted(unknown)))
+        if not project and cls.POLICIES in config:
+            raise ValueError(cls.SESSION_POLICIES)
+        removed = set(cls.RETIRED_SECTIONS) & config.keys()
         if removed:
-            raise ValueError(f"Unsupported configuration sections: {sorted(removed)}; use targeted parameters")
-        for name in ("parameters", "data"):
+            raise ValueError(cls.RETIRED_CONFIGURATION.format(removed=sorted(removed)))
+        for name in cls.SESSION_SECTIONS:
             if name in config and not isinstance(config[name], dict):
-                raise TypeError("Session configuration sections must be dictionaries")
-        parameters = config.get("parameters", {})
-        unknown = parameters.keys() - {"engines", "components"}
-        if unknown:
-            raise ValueError(f"Unsupported parameter targets: {sorted(unknown)}")
-        if not project and "components" in parameters:
-            raise ValueError("Component parameters belong to ProjectConfig, not Session configuration")
-        for category in ("engines", "components"):
-            targets = parameters.get(category, {})
-            if not isinstance(targets, dict) or any(not isinstance(options, dict) for options in targets.values()):
-                raise TypeError(f"parameters.{category} must map target names to dictionaries")
-            from .schema import validate_parameters
-            for name, options in targets.items():
-                validate_parameters(options, scope=f"parameters.{category}.{name}")
+                raise TypeError(cls.INVALID_SESSION_SECTION)
+        ParameterTargets.validate(config.get(cls.PARAMETERS, {}), project=project)
+
+    @property
+    def parameter_targets(self):
+        return ParameterTargets.read(self[self.PARAMETERS])
+
+    def set_component_parameters(self, name, value):
+        candidate = self.parameter_targets.with_component(name, value)
+        self[self.PARAMETERS] = candidate.to_dict()
+
+    def set_engine_parameters(self, name, value):
+        candidate = self.parameter_targets.with_engine(name, value)
+        self[self.PARAMETERS] = candidate.to_dict()
+
+    def remove_component_parameters(self, name):
+        self[self.PARAMETERS] = self.parameter_targets.without_component(name).to_dict()
+
+    def remove_engine_parameters(self, name):
+        self[self.PARAMETERS] = self.parameter_targets.without_engine(name).to_dict()
+
+    @classmethod
+    def engine_parameter_path(cls, name):
+        return cls.PARAMETERS, ParameterTargets.ENGINES, name
+
+    @classmethod
+    def without_engine_parameters(cls, value, *names):
+        """Detached export redaction, preserving draft omission and unrelated fields."""
+        result = deepcopy(value)
+        engines = result.get(cls.PARAMETERS, {}).get(ParameterTargets.ENGINES, {})
+        for name in names:
+            engines.pop(name, None)
+        return result
 
     def to_dict(self) -> dict:
         self.validate()
         return deepcopy(dict(self))
 
     def serialize(self) -> str:
-        return json.dumps(self.to_dict(), ensure_ascii=False, allow_nan=False)
+        return json.dumps(self.to_dict(), ensure_ascii=self.ENSURE_ASCII, allow_nan=JsonObject.ALLOW_NON_FINITE)
 
     @classmethod
     def deserialize(cls, value: str) -> "ProjectConfig":
@@ -366,8 +400,7 @@ class ProjectConfig(dict):
         session_config = session_config if session_config is not None else {}
         self.validate_session(session_config)
         result = self.merge(dict(self), session_config)
-        result["engine"] = deepcopy(result.get("parameters", {}).get("engines", {}).get(name, {}))
-        return result
+        return ResolvedEngineConfiguration.create(result, name).to_dict()
 
     @classmethod
     def from_dict(cls, data: dict) -> "ProjectConfig":
@@ -405,7 +438,7 @@ class Project:
         """Read the current record without applying creation defaults."""
         _stored_fields(cls, data)
         ProjectConfig.validate_session(data[cls.config.__name__], project=True)
-        if not isinstance(data[cls.config.__name__], dict) or data[cls.config.__name__].keys() != {"policies", "parameters", "data"}:
+        if not isinstance(data[cls.config.__name__], dict) or data[cls.config.__name__].keys() != set(ProjectConfig.SECTIONS):
             raise ValueError(Project.STORED_CONFIG)
         if type(data[cls.deleted.__name__]) is not bool:
             raise ValueError(Project.INVALID_DELETED)

@@ -4,6 +4,8 @@ from llm.services.schema import ProjectConfiguration
 
 import asyncio
 from copy import deepcopy
+from llm.core.models import ProjectConfig
+from .naming import TITLE_ENGINE
 
 from ...config.presets import PresetStore
 
@@ -24,7 +26,7 @@ class PresetService:
         form = ProjectConfiguration.view(record).values
         project = form.to_dict()
         del project["title"]
-        project["config"].get("parameters", {}).get("engines", {}).pop("_hub_title", None)
+        project["config"] = ProjectConfig.without_engine_parameters(project["config"], TITLE_ENGINE)
         return {"version": self.store.VERSION, "global": await asyncio.to_thread(self.store.globals, self.settings.runtime.config.user_profile),
                 "project": project}
 
@@ -42,9 +44,11 @@ class PresetService:
         record = await self.settings.load_project(identifier)
         view = ProjectConfiguration.view(record)
         candidate = {**view.values.to_dict(), **deepcopy(value["project"])}
-        hidden = view.values.config.get("parameters", {}).get("engines", {}).get("_hub_title")
-        if hidden is not None:
-            candidate["config"].setdefault("parameters", {}).setdefault("engines", {})["_hub_title"] = deepcopy(hidden)
+        targets = ProjectConfig.from_dict(view.values.config).parameter_targets
+        if targets.has_engine(TITLE_ENGINE):
+            config = ProjectConfig.from_dict(candidate["config"])
+            config.set_engine_parameters(TITLE_ENGINE, targets.engine(TITLE_ENGINE).to_dict())
+            candidate["config"] = config.to_dict()
         self._check_fixed(record, candidate)
         requests = [("save_project", (identifier, candidate, view.config_version, view.values.components))]
         requests.extend(("save_global", (section, values)) for section, values in value["global"].items())

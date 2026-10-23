@@ -3,6 +3,7 @@
 from llm.services.schema import ProjectConfiguration
 
 from copy import deepcopy
+from llm.core.models import ProjectConfig
 import json
 import subprocess
 
@@ -39,7 +40,8 @@ class SettingsJsonEditor:
             values = page_values(screen.page)
             exported = deepcopy(values)
             if isinstance(screen.page, ProjectPage):
-                exported.get("config", {}).get("parameters", {}).get("engines", {}).pop(TITLE_ENGINE, None)
+                if "config" in exported:
+                    exported["config"] = ProjectConfig.without_engine_parameters(exported["config"], TITLE_ENGINE)
             text = json.dumps(exported, ensure_ascii=False, indent=2, allow_nan=False)
         except (ValueError, TypeError) as error:
             screen.error(error)
@@ -56,7 +58,7 @@ class SettingsJsonEditor:
         if not isinstance(values, dict):
             raise ValueError(self.screen.t("settings_json_object"))
         if isinstance(page, ProjectPage):
-            path = ("config", "parameters", "engines", TITLE_ENGINE)
+            path = ProjectConfiguration.engine_form_path(TITLE_ENGINE)
             if at_path(values, path) is not MISSING:
                 raise ValueError(self.screen.t("settings_host_locked"))
             schema = ProjectConfiguration.view(page.record).schema
@@ -70,7 +72,7 @@ class SettingsJsonEditor:
         if isinstance(page, ProjectPage):
             # Validate parents before restoring hidden data: put_path must not
             # silently turn an invalid null/string parent into an object.
-            path = ("config", "parameters", "engines", TITLE_ENGINE)
+            path = ProjectConfiguration.engine_form_path(TITLE_ENGINE)
             hidden = at_path(before, path)
             if hidden is not MISSING:
                 put_path(values, path, deepcopy(hidden))

@@ -29,6 +29,7 @@ from copy import copy, deepcopy
 from llm.core.configuration import resolve_engine_config
 from llm.core.agents import AgentMode
 from llm.core.parameters import ParameterLayout
+from llm.core.models import ProjectConfig
 from contextlib import AsyncExitStack, aclosing
 from llm.core.interactions import InteractionOption, InteractionRequest, approval_request
 from contextvars import ContextVar
@@ -605,7 +606,7 @@ class GraphEngine:
     """
 
     TIMEOUT_PARAMETER = "timeout_seconds"
-    REQUIRED_CONFIG_SECTIONS = ("policies", "parameters")
+    REQUIRED_CONFIG_SECTIONS = (ProjectConfig.POLICIES, ProjectConfig.PARAMETERS)
 
     def __init__(self, *, handlers: Mapping[str, Callable],
                  revision: str = "1", config_keys: Optional[tuple[str, ...]] = None,

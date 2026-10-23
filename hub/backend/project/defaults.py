@@ -4,6 +4,7 @@ from copy import deepcopy
 import asyncio
 
 from llm.core.models import ConversationStorage, ProjectConfig
+from llm.services.schema import ProjectConfiguration
 from llm.components.rag.prompts import ExtractionFailurePolicy
 from llm.components.rag.search import SearchMethod, SearchExpansion, RelationRanking
 
@@ -56,11 +57,11 @@ async def create_project(backend, title, *, config, components, conversation_sto
     }
     for name, preset in presets.items():
         if name in components:
-            parameters = project_config.parameters.setdefault("components", {})
-            parameters[name] = ProjectConfig.merge(preset, parameters.get(name, {}))
+            current = project_config.parameter_targets.component(name).to_dict()
+            project_config.set_component_parameters(name, ProjectConfig.merge(preset, current))
     if "rag" in components:
-        parameters = project_config.parameters.setdefault("components", {})
-        parameters["rag"] = ProjectConfig.merge(rag_defaults(), parameters.get("rag", {}))
+        current = project_config.parameter_targets.component("rag").to_dict()
+        project_config.set_component_parameters("rag", ProjectConfig.merge(rag_defaults(), current))
     retry = project_config.policies.setdefault("tool_retry", {})
     retry.setdefault("max_retries", 2)
     retry.setdefault("delay_seconds", 0)
@@ -68,15 +69,22 @@ async def create_project(backend, title, *, config, components, conversation_sto
         from ..tools.builtin import HubBuiltinTools
         builtin = backend.project_manager.components.get("builtin_tools")
         if isinstance(builtin, HubBuiltinTools):
-            project_config.parameters.setdefault("components", {}).setdefault("builtin_tools", {}).setdefault(
-                "config", {}).setdefault("enabled", builtin.select_tools())
-    engines = backend.describe_project_config()["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]
+            parameters = project_config.parameter_targets.component("builtin_tools")
+            values = parameters.config
+            values.setdefault("enabled", builtin.select_tools())
+            project_config.set_component_parameters("builtin_tools", parameters.with_config(values).to_dict())
+    engines = ProjectConfiguration.engine_parameter_schemas(backend.describe_project_config())
     if "system_prompt" in engines.get("loop", {}).get("properties", {}).get("config", {}).get("properties", {}):
-        project_config.parameters.setdefault("engines", {}).setdefault("loop", {}).setdefault("config", {}).setdefault("system_prompt", SYSTEM_PROMPT)
+        parameters = project_config.parameter_targets.engine("loop")
+        values = parameters.config
+        values.setdefault("system_prompt", SYSTEM_PROMPT)
+        project_config.set_engine_parameters("loop", parameters.with_config(values).to_dict())
     for name in ("loop", "_hub_title"):
         if "provider" in engines.get(name, {}).get("properties", {}).get("policy", {}).get("properties", {}):
-            project_config.parameters.setdefault("engines", {}).setdefault(name, {}).setdefault("policy", {}).setdefault(
-                "provider", provider_defaults())
+            parameters = project_config.parameter_targets.engine(name)
+            values = parameters.policy
+            values.setdefault("provider", provider_defaults())
+            project_config.set_engine_parameters(name, parameters.with_policy(values).to_dict())
     project = await backend.projects.acreate(title, config=project_config, components=components,
                                              conversation_storage=conversation_storage)
     try:
