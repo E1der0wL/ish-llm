@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Optional
+from typing import ClassVar, Optional
 from .contracts import Diagnostic, JsonValue, ResourceRef
 from .interactions import InteractionView
 
@@ -24,6 +24,8 @@ class PlanBlockerCode(StrEnum):
 @dataclass(frozen=True, slots=True)
 class CheckpointPlan(JsonValue):
     """Run 전체 체크포인트 또는 RAG Job의 정리 계획. 원문/실행 payload는 노출하지 않는다."""
+    MINIMUM_BYTES: ClassVar[int] = 0
+    INVALID: ClassVar[str] = "Invalid checkpoint plan"
     source: ResourceRef
     checkpoints: list[str]
     bytes: int
@@ -34,8 +36,8 @@ class CheckpointPlan(JsonValue):
 
     def __post_init__(self):
         JsonValue.__post_init__(self)
-        if self.bytes < 0 or not self.revision or len(set(self.checkpoints)) != len(self.checkpoints):
-            raise ValueError("Invalid checkpoint plan")
+        if self.bytes < self.MINIMUM_BYTES or not self.revision or len(set(self.checkpoints)) != len(self.checkpoints):
+            raise ValueError(self.INVALID)
 
     @property
     def can_abandon(self) -> bool:

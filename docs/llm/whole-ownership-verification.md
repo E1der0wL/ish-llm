@@ -2500,3 +2500,62 @@ Checkpoint/승인·예산·효과·RAG·수명주기 및 Hub 실제 소비자를
 발견한 필수 상태 무결성 문제 때문에 이 수정본은 Level 3 gate20으로 승격한다. 실행 중이던
 이전 ea1a441 gate19는 끝까지 실행하되 이 결함 수정이 없으므로 해당 SHA의 Push를 보류한다.
 현재 수정본 전체 회귀 통과 후에만 Push하며 원격 정확한 SHA 결과도 별도 확인한다.
+
+
+## llm Checkpoint 수명·정리 계획·저장 Owner 전체 검토 (2026-10-23)
+
+CheckpointLifecycle이 공통 status/container·명시적 투영 검증·표준 상태를 소유한다.
+CheckpointEnvelope의 identity 접근은 자신의 필드 선언을 사용하며 진단을 선언부에 모았다.
+CheckpointAction·Selection·PlanValidation과 CheckpointRejectionDetails가 정리 동작,
+생략 선택의 단일 항목 조건, 거부 문구 및 기존 관찰 응답을 소유한다. CheckpointPlan의 byte
+제약도 선언한다. 삭제 영수증은 Run.ACTIVE_STATES를 사용하며 재개 포기 증거와 종료 상태의
+기존 차이는 유지한다. Session/Run/RAG 직접 동작 소비자를 연결하고 RAG 포기는 기존
+ResumeAbandonment Writer로 저장한다. Hub 제품 파일은 변경하지 않았다.
+
+Records/Content/Snapshot/Manifest/Record/Declarations/Deletion/Write/Step, 모든 Plan 타입,
+Repository 전체를 읽고 저장·조회·Writer/Reader·동적 이름·revision·실제 소비자를 대조했다.
+서로 다른 scope의 업무 정책을 합치지 않았다. private payload는 불투명하고 private 상태는
+명시 lifecycle이 필요하다. 필수 기록 누락·revision 불일치·삭제 후 재생성은 거부한다.
+선택/조회/관찰은 권한이 아니며 변경 경계의 최신 계획·CAS·잠금·트랜잭션 순서를 유지한다.
+
+b9de4c2 대비 lifecycle 672, envelope 55/read 36/attach 4/identity 36, 선택 28,
+계획 45/접수 96, 거부 진단 18, 포기 Writer 2, 삭제 후 상태 검사 28개가 같은 결과 또는
+정확한 예외/진단을 낸다. 입력 원본도 동일하다. 기존 독립 Assertion과 실제 파일/프로세스
+시험을 재사용했으며 초기 smoke 51개 pass/exit 0(31.410초)다.
+
+- `whole-checkpoint-closure-01`: 발견/시작/pass 168/168/168, exit 0, 161.571642초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-checkpoint-closure-01/llm.json --modules tests.llm.test_checkpoint_values tests.llm.test_checkpoint_lifecycle tests.llm.test_graph_checkpoints tests.llm.test_extension_contracts tests.llm.test_instruction_reservations tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_job_retention tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_turn_deletion`. source `ff08b395ae5971118f9c926e6e5c0cb65cf466e0d62868b6a48560b32f51f1a4`, input `94d8a6dfa91d012a965e26e854cb214626e480cb6089f21d73a631af9e6394f4`.
+
+- `whole-checkpoint-closure-hub-01`: 발견/시작/pass 22/22/22, exit 0, 71.349255초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-checkpoint-closure-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_turn_deletion tests.hub.test_approval_continuation`. source `ff08b395ae5971118f9c926e6e5c0cb65cf466e0d62868b6a48560b32f51f1a4`, input `94d8a6dfa91d012a965e26e854cb214626e480cb6089f21d73a631af9e6394f4`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. Python 3.12.14/
+Clang·Host d833790·고정 의존성·namespace/X11 환경을 유지했다. 정적 발생 119개 동일,
+바뀐 의존 검토 29개만 갱신했다. 정적·문서·R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다.
+4개 파일만 전체 검토 완료로 기록했다. Run/Session/RAG 파일은 변경 경로만 검증했으며 계속
+미검토 항목으로 남긴다. 현재 486개 중 미검토 309, 미분류
+23860, incomplete 2개다.
+
+Level 2 완료다. 동등성 및 직접 호출 범위 검증으로 의미 변경이 없음을 확인했으므로 소단계
+전체 회귀는 유예하고 다음 llm 묶음 gate21에서 현재 통합 소스를 검증한다. 진행 중인 gate20은
+b9de4c2의 추가 지시 무결성 수정까지이며 이번 Checkpoint 변경의 전체 통과로 승계하지 않는다.
+
+## gate18 정확한 SHA 원격 CI 완료 (2026-10-23)
+
+8ae9aa618e9f09554fafb855caea69179e66ea5a의
+[Actions 39982515365](https://github.com/E1der0wL/ish-llm/actions/runs/39982515365)를
+2026-10-23T16:34:56Z에 실제 확인했다. 필수 contracts(llm), contracts(hub) 모두 success다.
+LLM 2472/2472 pass(1695.496870초), Hub 588/588 pass(1447.057891초), failure/error/
+skip/xfail/xpass/누락/추가/중복 모두 0이다. 원격 Python 3.12.14/GCC 13.3.0은 로컬 Clang
+환경과 구분한다. 이후 커밋의 검증이나 전수 완료로 이 결과를 승계하지 않는다.
+
+## gate19 실행 완료·해당 SHA Push 보류 (2026-10-23)
+
+ea1a441bd4990768e4b7895635ddcfe0d0a6ae70 고정 worktree에서 전체 runner를 각각
+`python -m tests.llm.run_regression --suite llm|hub --output <suite>.json`으로 실행했다.
+LLM 2475/2475 pass, exit 0, 1490.482525초; Hub 588/588 pass, exit 0, 1140.141494초다.
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 source manifest
+`308016269a15a5ba1207c044d2cc58407725e346ef42a7dcba1adcf50db9fbfd`, validation input
+`2f3ccdfb2e472ff65939f721306bb9ebb24299e0b722e67cd6aa3895d352893d` 동일이다.
+정적·문서·R3·SDK·양 환경 6개도 exit 0이며 고정 로컬 Python/Host/의존성 환경이다.
+이후 발견한 필수 채널 누락 결함과 새 재현 시험은 이 SHA에 없으므로 Push하지 않는다.
+수정한 b9de4c26cdadf72f5bc8459eadabc10ea9966ac6의 gate20을 실행 중이다. 서로 다른 소스의
+성공 결과를 합쳐 현재 전체 통과라고 선언하지 않는다.

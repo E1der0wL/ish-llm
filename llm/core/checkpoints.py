@@ -26,9 +26,42 @@ class CheckpointOperation(StrEnum):
     RECORD = "record"
 
 
+class CheckpointAction(StrEnum):
+    ABANDON = "abandon"
+    DELETE = "delete"
+
+
 class ResumeAbandonmentReason(StrEnum):
     EXPLICIT = "explicit"
     CONVERSATION_DELETED = "conversation_deleted"
+
+
+@dataclass(frozen=True, slots=True)
+class CheckpointLifecycle:
+    """Public lifecycle projection; private Engine states remain Engine-owned."""
+
+    STATES: ClassVar[tuple] = (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
+    CONTAINER: ClassVar[bool] = True
+    INVALID: ClassVar[str] = "Invalid explicit checkpoint lifecycle"
+    PRIVATE_STATE: ClassVar[str] = "Private checkpoint states require an explicit lifecycle projection"
+    status: str
+    container: bool
+
+    def __post_init__(self):
+        if self.status not in self.STATES or type(self.container) is not bool:
+            raise ValueError(self.INVALID)
+
+    @classmethod
+    def read(cls, payload, explicit=None):
+        if explicit is not None:
+            if not isinstance(explicit, dict) or explicit.keys() != {item.name for item in fields(cls)}:
+                raise ValueError(cls.INVALID)
+            return cls(**explicit)
+        state = payload.get(cls.status.__name__)
+        if state not in tuple(CheckpointStatus):
+            raise ValueError(cls.PRIVATE_STATE)
+        return cls(state if state in cls.STATES else CheckpointStatus.COMPLETED,
+                   state != CheckpointStatus.STARTED or payload.get(cls.container.__name__) is cls.CONTAINER)
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +71,10 @@ class CheckpointEnvelope:
     KIND_FIELD: ClassVar[str] = "node_type"
     KIND: ClassVar[str] = "engine_record"
     PAYLOAD_FIELD: ClassVar[str] = "payload"
+    INVALID_IDENTITY: ClassVar[str] = "Checkpoint envelope requires scope, name and local key"
+    INVALID_LIFECYCLE: ClassVar[str] = "Invalid checkpoint envelope lifecycle"
+    INVALID_KIND: ClassVar[str] = "Expected a nested Engine checkpoint envelope"
+    INVALID_PAYLOAD: ClassVar[str] = "Checkpoint envelope requires an object payload"
     engine_scope: str
     checkpoint_name: str
     local_key: str
@@ -48,11 +85,11 @@ class CheckpointEnvelope:
     def __post_init__(self):
         if any(not isinstance(value, str) or not value.strip()
                for value in (self.engine_scope, self.checkpoint_name, self.local_key)):
-            raise ValueError("Checkpoint envelope requires scope, name and local key")
-        if (self.status not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
+            raise ValueError(self.INVALID_IDENTITY)
+        if (self.status not in CheckpointLifecycle.STATES
                 or type(self.container) is not bool or type(self.requires_retry) is not bool
                 or self.requires_retry != (self.status == CheckpointStatus.STARTED and not self.container)):
-            raise ValueError("Invalid checkpoint envelope lifecycle")
+            raise ValueError(self.INVALID_LIFECYCLE)
 
     def to_dict(self):
         return {self.KIND_FIELD: self.KIND, **asdict(self)}
@@ -63,12 +100,12 @@ class CheckpointEnvelope:
 
     @classmethod
     def belongs_to(cls, record, scope, name):
-        return record.get("engine_scope") == scope and record.get("checkpoint_name") == name
+        return record.get(cls.engine_scope.__name__) == scope and record.get(cls.checkpoint_name.__name__) == name
 
     @classmethod
     def from_dict(cls, record):
         if not cls.is_record(record):
-            raise ValueError("Expected a nested Engine checkpoint envelope")
+            raise ValueError(cls.INVALID_KIND)
         return cls(**{item.name: record.get(item.name) for item in fields(cls)})
 
     @classmethod
@@ -76,7 +113,7 @@ class CheckpointEnvelope:
         envelope = cls.from_dict(record)
         payload = record.get(cls.PAYLOAD_FIELD)
         if not isinstance(payload, dict):
-            raise ValueError("Checkpoint envelope requires an object payload")
+            raise ValueError(cls.INVALID_PAYLOAD)
         return envelope, payload
 
     @classmethod
@@ -122,26 +159,50 @@ class CheckpointErrorCode(StrEnum):
     CONFIGURATION = "checkpoint_configuration"
 
 
+@dataclass(frozen=True, slots=True)
+class CheckpointRejectionDetails:
+    BOUNDARY: ClassVar[str] = "checkpoint"
+    boundary: str
+    blockers: list[dict]
+
+    def to_dict(self):
+        return asdict(self)
+
+
 class CheckpointError(CodedError, ValueError):
     """Structured rejection; retains ValueError catch compatibility, never grants access."""
 
+    MESSAGE = "{code}: {message}"
+
     def __init__(self, code, message, *, blockers=()):
         self.code, self.blockers = code, tuple(blockers)
-        super().__init__(f"{code}: {message}")
-        self.diagnostic = Diagnostic(code, str(self), details={
-            "boundary": "checkpoint", "blockers": [item.to_dict() for item in self.blockers]})
+        super().__init__(self.MESSAGE.format(code=code, message=message))
+        self.diagnostic = Diagnostic(code, str(self), details=CheckpointRejectionDetails(
+            CheckpointRejectionDetails.BOUNDARY, [item.to_dict() for item in self.blockers]).to_dict())
+
+
+class CheckpointSelection:
+    IMPLICIT_COUNT = 1
+    AMBIGUOUS = "Specify a checkpoint name unless exactly one checkpoint exists"
+    INVALID_NAME = "Checkpoint name must be nonempty text"
+
+
+class CheckpointPlanValidation:
+    UNKNOWN_ACTION = "Unknown checkpoint action"
+    STALE_REVISION = "review a fresh checkpoint plan"
+    BLOCKER_SEPARATOR = "; "
 
 
 def select_checkpoint(names, name=None):
     """Omission selects the sole stored checkpoint, never an Engine preset."""
     if name is None:
-        if len(names) != 1:
-            raise ValueError("Specify a checkpoint name unless exactly one checkpoint exists")
+        if len(names) != CheckpointSelection.IMPLICIT_COUNT:
+            raise ValueError(CheckpointSelection.AMBIGUOUS)
         name = names[0]
     # Explicit names are resolved by the repository. In particular, a Run that
     # failed before checkpoint creation must still report missing, not corrupt.
     if not isinstance(name, str) or not name:
-        raise ValueError("Checkpoint name must be nonempty text")
+        raise ValueError(CheckpointSelection.INVALID_NAME)
     return name
 
 
@@ -152,18 +213,8 @@ def checkpoint_lifecycle(payload, lifecycle=None):
     denote persisted no-replay observations. Unknown private states require
     lifecycle={status, container} on the event, never a parent-specific adapter.
     """
-    if lifecycle is not None:
-        if (not isinstance(lifecycle, dict) or lifecycle.keys() != {"status", "container"}
-                or lifecycle["status"] not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
-                or type(lifecycle["container"]) is not bool):
-            raise ValueError("Invalid explicit checkpoint lifecycle")
-        return lifecycle["status"], lifecycle["container"]
-    state = payload.get("status")
-    if state not in tuple(CheckpointStatus):
-        raise ValueError("Private checkpoint states require an explicit lifecycle projection")
-    return (state if state in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
-            else CheckpointStatus.COMPLETED,
-            state != CheckpointStatus.STARTED or payload.get("container") is True)
+    value = CheckpointLifecycle.read(payload, lifecycle)
+    return value.status, value.container
 
 
 def build_envelope(*, engine_scope, checkpoint_name, local_key, status, container, requires_retry):
@@ -228,10 +279,10 @@ class ResumeAbandonment(JsonValue):
 
 def require_checkpoint_plan(plan: CheckpointPlan, expected_revision: str, *, action: str) -> None:
     """계획은 권한이 아니다. 소유자가 잠금 안에서 재계산한 계획에만 적용한다."""
-    if action not in ("abandon", "delete"):
-        raise ValueError("Unknown checkpoint action")
+    if action not in tuple(CheckpointAction):
+        raise ValueError(CheckpointPlanValidation.UNKNOWN_ACTION)
     if not expected_revision or expected_revision != plan.revision:
-        raise CheckpointError(CheckpointErrorCode.CONFLICT, "review a fresh checkpoint plan")
-    blockers = plan.abandon_blockers if action == "abandon" else plan.delete_blockers
+        raise CheckpointError(CheckpointErrorCode.CONFLICT, CheckpointPlanValidation.STALE_REVISION)
+    blockers = plan.abandon_blockers if action == CheckpointAction.ABANDON else plan.delete_blockers
     if blockers:
-        raise CheckpointError(CheckpointErrorCode.PROTECTED, "; ".join(item.message for item in blockers), blockers=blockers)
+        raise CheckpointError(CheckpointErrorCode.PROTECTED, CheckpointPlanValidation.BLOCKER_SEPARATOR.join(item.message for item in blockers), blockers=blockers)

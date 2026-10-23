@@ -33449,5 +33449,1326 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/checkpoints.py",
+    "sha256": "5f49ae2f6f6fb88f8bdf6bf103f0448bba622075c67dd60b03d572e0324bb57f",
+    "reason": "Read complete lifecycle/envelope/conversation, error, selection, abandonment and current-plan validation. Public lifecycle status/container projection owns allowed standard states and strict explicit shape; private states still require explicit projection. Envelope uses dataclass-declared identity fields and opaque payload copy. Actions, selection cardinality, errors and rejection detail shape have declarations before implementation. Only current plan/revision/blocker checks under the caller ownership boundary allow mutation; exact old normal/invalid results and wire remain. RAG explicit abandonment uses the existing Writer.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b7473c9f891bc4e6e592ca82fc9144b7760d365719615cbc15424f796f6b769c",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "ec5c08d902f06021c391f2fc2e38ab4010b918a6101d896905170426a4c6e175",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5db29b5fa820b10189008aa66bffdf98436a86471f5951b54a29eb88dd2ac585",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "668225759148cc812f6ea44da76a278a00cc20c6503ccc648021768ba01a2ff5",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "26eee79ad71e7ae9022e6ab0f891b6a0e8e94ba890ef076e969ace8907563034",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5fe3fcbe72c7de61a50b25806f0ffd60bd1c2672a05c792cd7a3b83a071835f6",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "15fc4cd8d6023647d6aca8c93137801e0ce0f5019ee4fb0419f0835166b68fd3",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1cfcdc63349c9eb2ee07ef5172362122081dc88e9c96d472132af1de6d0d47b7",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "3419b2f99e1ebebfc30535d8c70f372440c3f901b0f614adcde7592170a98baa",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f9935d5b64883c13aa6e69c156fdae1a1a43477416b3ace14c71822c48e58804",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b94f647b967a0a922f0598da346b833105ad9d0733b6cf14cfd4ba7b988813c4",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c6a37f458613a2b8fa65bb917f08974b5a040c16eab213ce45d7ac6878d5a454",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "ee6d0ef2fbcfacd93a6e9efcf1a236d95190bb1c24de4c1f90dd2607f2f05b20",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "ff7ad08fbd9a0e27998a45914d0238162dace9e60a7a008f35b5f05c25928dd0",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "d6cf1249aec8defc71ad4cfaad1f409be3aa4699e61c20770490054467383156",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "270cdf36fc47c9cfddee62b5a348fe79595270da43986e0d53d08710305989d9",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "ebec81e56660af075d9598cee73c8ff62a142e50c1a5f96f860e3b6262957487",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "bc29d165a74d732961f40a5667df6135ab01aa35406528a6c7b69505e75c71d4",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "35f914416eb058013fa928cc91114c8244f4045a6ddcf1e5ba55c8b29971a9b7",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "89caf70cee9a772906204d0e08932dd3e9cb7fb983a573b4d08bdb4076446cb2",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "77b737b6e1d657ce255f89fc15f2843d0ec5214a9026c120b3b721e7c0ffcb9c",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "98d01539ab7f32cc9ba90baa9f8ae892f41067685911ddd555f9a33a140d15e6",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f1bb219e4d1d4258de56333939d7441667d428a722f50c07a2d73672d11adf3f",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "0bf79655435059bcfc6e7c347df98820a207b8434fb981ee7a8de50c5e621cb2",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f651e89b8d854784f743a192bcb2769589fe38ca786b2d940a1257e2e9323051",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f0a788f612774c08ed8e408de5bedf1606f6f717510f43cb19e76cb2d5d6b566",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "fa9608c65d95e4bd789094eaca9ea591e6e508eea5fd2f395442e1bd13dda805",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "3ab6262ecf385e6ab3a6e0e8b1edd4ac01cf3666c7684d8a4f58ead161501dde",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "631fe38407fc96d0c03f16707b0aa778678236e430cd862b2a3bbd8fd5dc452e",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "e5d272b3aa7d11af63295ac560843febf91abd3229ba966739ca0003b0fef17d",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5ce4201b06bd89b54868aa223df0bc95edbe773848c8044cabc70dc393d540a0",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "ed7f1ed138e978792bcca7a77bbd645914d81d047713747715e03750219101da",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "118db364c0f9624be1efbc51d9180500f5d239909ef8ab4dd6ed0e0dbc0e0520",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4277d0e71ab8969ee826edbdcea428e54c821f4b73c830c969e06dfc5cc73f02",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "552ef098071ef71faa253c6ea3754fa8f2acb5d11a13d516d05bc6c26a09fdd0",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "304c9a72a8aed06e9e28982b932b069b71692f050a1b0a12ab195c8c093446e4",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "59da707de60a93c18c8b3336a5e247ad59c006df0fd98083c416c2e88caa19d6",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "3abef7f3da261b87eb4e496e97addabf2b4d1a709905a973f58b4245f2763f8a",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "86ea97314c29c52e6319ba821009acd84ee40d8b01d4e55b3b3a6b4ccd2e49cf",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "31a633356807b8b82f0434390f7a19af4e19b3e6c3228bafc0c5fe005e9927ad",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "7983121dfcec9a918a374f950836622679f15c02ce6616892a8c86be5d2240c8",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "782acbceb61610682b2eebcc75a2048cd5636c508fb5841a27349ff6daf06050",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "989e754e89470742d016c5c55c0db64c5bf2d005df703ebf379d11dcab7b8912",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "9d9296dc1ee3ca736139069c4bbcd34171b543057742733f7ee881afe70c8a35",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "875cde50c64d885e6c06e7d06d1e60f9deec7e8720349af0275670010049359f",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b6fcbfcff0a596a08abdbfc651393dca1e0f760e7dd3b43a2e363e3532f455e6",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "cbf455e67972d953c4dbc8833cb2cfa57338b9000400d81d42c87b0aa42e8bc2",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "dea58cbb0dc243e77cb5a69914248222e400f69eae49233eedb33bddf1dd40d9",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "bf44ea8e379c74ff3cc26c4e0e0801ae85a6c14bade706f26af7867dc8cb63ca",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "2165f1489a7a95cbdfad9962fb19bdfb5bc78d369cba506c09dd33203c265a23",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "46af75733f87071a2564c18f7bf1a7b61e72d96c8b18dae147358c58c50cc92b",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Select the first element after declared sole-checkpoint cardinality validation; a positional index, not an independent default."
+      },
+      {
+        "id": "1b6bf468b45a05012f4ccae2094c67c8bdab8ba5fbda710404fedaf0522c060f",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "5c1d5f85f80d4cc632271433c45a6d441fb4362f1e411ec733bb70a61aeb9cd2",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "23d34ba399fd0610e71b9d927680ac2e80cebe5800c501f774065f01e7cbdc8d",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "8a98c8d44d43737ef989f52e854e71397d9eb4ea995a219ff13ae1b11bee9535",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "66089ec4f00f6f8eb54dda9e599688fe2b6d6d1f4f2a261d7b048d3ae86f75f6",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7a8ff28fd86f2f0fb6b7f7169a0f5fda318989040457dee17d5756de0d270d10",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "8a0bc02d51da5955cb3b21aa835a505575688a955a766b094f3dfe6ad7439fcd",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "cdae7f3e21ebcee40577c9c527fcf9c907f27a7e1bed0d41ce9764fd87282ea4",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "56c4a33af9f7c0f548eda5bee199d642701a48b3ebab40baab5b1e7fee7f7b7b",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4e8abd308b51fc737b163d3a3e6126176d2d866ec0d3298fc45a0021c359aa01",
+        "classification": "declaration",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c1984ac7cffd3006d35416faffd565762d2c76c3a1c41e910a937a5ee828ae22",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "cd3e823b041da31ef97ca016c2460dba3db1c65ba65c359439ad8df685776b8b",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "6394b5bac04f1d49f03e4904a8c8c510ef8fec41428ee5a50fb8ab69acbf7cf6",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "4fc2231eff03d112a94b4fa65edb15f8b3dabc16d97402a2d35d414795624842",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "eb9a27629c6577611d26194d8a27ef1771dba663efebb773ecc124b6363b4f55",
+        "classification": "non_contract",
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
+        "declaration": "llm/core/checkpoints.py",
+        "consumers": [
+          "llm/engines/graph/checkpoints.py",
+          "llm/services/runtime/checkpoints.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_checkpoint_values.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_turn_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/checkpoint_records.py",
+    "sha256": "a2ac1c3b1d7b76b0ceb632a76e977a7f729b764c924b20bc67c568a795d35237",
+    "reason": "Read complete manifest/record projections and validation, paired name/revision witnesses, permanent deletion evidence, operation event Writer and common step observation. Fixed fields come from dataclass slots or Owner Field declarations; record keys and revisions are dynamic validated identities. Only absent fresh checkpoint/initialization can supply empty records. Exact current schema/owner/revision and saved interactions remain mandatory. Retirement uses Run active-state declaration and its declared terminal exceptions; abandonment evidence stays required for failed/interrupted/paused Runs. Common step reads do not interpret private payloads or grant resume permission.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8dbbee213d33da6bff5f5c374990c4eea6224922a995d6d250e70d541704df93",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "3871af570f9b16523dbc5f2a657c4fa16e5b8cb3804bb4eb389f40500a2fb122",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c4c84f5b20efd510ae7b3ebe94d20ffed1054919788a1b5e1f64d359a1405843",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "c3391828ba79c68163cf627532cafe961401381e518c113cc3a286feb8ccff9b",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "46f8c156e5bedbee6c88e569790f4f64264cf490cb7f569aaf124d2cffb9e4a1",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4c1a9b7903fd4016540ef699c60e91ec091e834543faf0ac7b2da10f6910faf2",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5c7b90abe685d375b1f398289e9055e312940ab7b4fdebe636916139f8e88c2b",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "ecbcb6ab33fdfa9e0abe85b05c94cc3bdfac4f4452e0c003724915a2ee37526b",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "469fbd731abaa82e56eed6eccaec718dfbcee7678b9a8fa9ba942ade382f0ba4",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "34b1d86243a228dba18bf215807ef19a20b0d1ef408c28eba3731d85f30a3b5b",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a86a39f3929ffab7f635173005f8ff4a9bbafdc4c9d7bf1a0d54686404bd36d9",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "861429cbc4e4fb21d116c3879b95779180c34a7e84885ec61586dd185463350e",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "3e54702f6f91bdc023e93af7064ff767cee984786d815ac8b2ef80d0b4285ef5",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "2622184c20b5c5128c5da0152208c2e6ec18c581db2fd693156b34391f68bd3c",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "8c7f97993702d120a36da52d9f6b80dc16e8fa0a506b55c27a211638e88b9e81",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "e09a9f89d0fa5092549a5b4bd012acd6d5df1246351312e3e43aa421bd94927a",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "bcaa3885ba9283b6762475ac2c9c0111806b7a735a7864788d6b13d820b61b5e",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "d7047bf8ccbc86663d5f21e99fc3bbc03c752742868bee75b49a45a2422c116c",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4cb2d5d01b1d78dc1a7e074116d6bf733e8d8d9a3d2cd6ae2d49d4470f42f9e1",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "caecbe34194a4c2d2712e6d8fd9dfd08637c6237f402a9f2b52eb454a9b3ee44",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "d0e8d32e52256c0b8c2d950158a9213b56fa419b22fe05ac2b91702f5ea42b31",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "f1afee4ff0a6bfadd833b1976bb73f8ec5a6e61053bcf0eac0e8bb097c277a78",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a97d7147472218a7ee1e1f170ca3be3a59ae01e7457db8ee21976f0753474600",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "c4e3fb801f1a77469cd992972af89c6f0bd11943a7891135540988d453c4d505",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "18887e259f66c033039c7a616e0e11c7f4e1341f56578321e3039b3d5ddd935f",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "6b64dad9f49a64f46b6bd3bc884cb5c9a29275241f49613197b5a19583ce27ab",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "e6ecfd6de4cc625ba43f821f2fd852844c7bf561f58b8674235fcf963d3f1c04",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "847a07709b4736c798ff990221dabfaf2d694a6dec0f56bd5a57ac204b26bab7",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a4d209a0816ae8a1f00c33b71086f5337dc2b9c92ee7c27e82864275b6a627f1",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a3f84537affdfde3322fd4185e9cc45983e1ab936d92ba83c62d45914592a037",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "e3b7411651c12e925529e2700ad8cb0eae52ab4d7e996dfbb360ed4e6ad699ef",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "92279dc9738913a6db5568bfc0d47813ca3e25ec3d09509af501dc0157a7a0a0",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "cc0d4c38b914ce3ccef723e59c3aa578f58ed9485238c04b2a9afa8eb6ff220b",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "b6c0493b946bf2e061d61d1f2e96994c043e23295a0790b5800cdff61613f679",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "a644225e95442a144567c7dc88efebe104ef1eefbbb978991e992101934efcc9",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "26e74d399a82bb29df59a6095478db2201e6664c8b85b2a5018a9c827fe34bc6",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "2b6692ce18ca2c494af620cecea839f55bbe81b60d78c5c9bc2f6095de5f6f64",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "04beeea1cd8fb44f556ebeb22ba2b840fceb633b768d6b96f3169e21f223f262",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "8f766790bba3c0f4fc53af0fe11c9a1d8610ae7e78c07cabfb20da250209cef3",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "213323ff310661caef48e153e1758ba150602918169d9864e754f0d9ba6d31c8",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c9e3d576428b43013770fd5fc3004b22b10e3da519fc5d6c68aa1fca08393954",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "d8d4e6eeb1e512fc37a171b9e630a6f5f1568f7b047fbc94f8d88cd9b82f9197",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "308c0cadeadbc78fb5cf45efcd679a83c78ef1c56dc1fe4c8ff6f8a1efe4506e",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4f9b5a4bc850d733e2225e2f94fdc688179c618daeae3cc78c80eaa5c6d82550",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a54f68bd762e49bf232efce6985fc8881ec69a81312569fb02d1abf51bb8041a",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "5cdd7fbfc95fcb3c66b8baac2080840842278a73bc29aa1ff46ba72e08c29bbd",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "3a332798d0889383829a655a8fd8c5e1f42414cf1d9ddd92d12775d7f46342d0",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "99a96d7388ce4d908d0ba36306bfc54b442b4457d981233a704f351b75a7907b",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "829ddd29c3b397616b7c89057289c0ffcd75dc3ba1afa5256ba0eaf01c6892e0",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "271b51c420adfef55da9fef09cc122361c32cc8fb798c4912cc88da484169ff2",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "793a9e6ee107884b4182df57ece45a5757128b5b8c9ea81a75be7e3ddfbaea8b",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a737d56e61d769c8fea473a44950519b8d04ecdb79ba0aa84c2d9014d94ff12d",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c2c86d4652a60252a525f0de7e64695aad412af112e68b81697984d2d61c7828",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "6143e6b109584fe307d6158cf312195dbc26dabec471ea99b8e8cf5df5ef8ecd",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "2e17ba21a974fc71165c67f79b05324c8e58a842b544db5016d21526fdb4fd60",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5408161bda261f04c1790187d3b6cdf407c9eeb32d4dd8916da3e5ca5db43dc7",
+        "classification": "declaration",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "e59f8e16f877ca8ec45118a39cc0cbd9f5dd8f6dac018aae66bab34ae45f7927",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "42e6848ec0894fdeccd3d8f202bfee26192ed38d2b2312a89375e96809e1178f",
+        "classification": "non_contract",
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
+        "declaration": "llm/core/checkpoint_records.py",
+        "consumers": [
+          "llm/services/runtime/checkpoints.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/interactions.py",
+          "llm/engines/graph/checkpoints.py"
+        ],
+        "tests": [
+          "tests/llm/test_checkpoint_values.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_turn_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/plans.py",
+    "sha256": "101938dff7acc0d080c312870318b88534cab10fa21720babf3d4bdb2e274cf5",
+    "reason": "Read all query-plan dataclass schemas, enums/defaults and checkpoint byte/revision/unique-name guard. Fields and defaults are declared in their owning type before methods; byte minimum and diagnostic are declared by CheckpointPlan. Generic JsonValue handles copies/serialization. Candidate/protected observation lists remain open service-owned projections; this module does not reinterpret them or store authority. Consumers recompute current plans and compare revisions at mutation boundaries.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c758bbf9bdf1d59b54231092c84ee7363a483f53a954e2fd5b5d4e3bf2895ac8",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "903f327fcd2f3bd8193235a0f3649494c2732096bbe731a4ac6e6ff208249676",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "44a7fc1f2d4b6f1dd81f6fa9c4fda4e719390d4d470864dd85ed81850c5fcf90",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "e462ff6e4a4d77a2878293f5483d3cf8239a6fb6623202bb40bfc181c5f4ace8",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1c53c3ff3c23e2d269bfaacc0390b7f1249f2fe42e89ba309f35d2339ce06d63",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "49e5346849248f006c797082e160d3232dcfe0377c0a71b0babfa45ca229285c",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "9267f3fa4b487350814fb7a5a50128d25c46ef6ceae23418851b877bcce3088d",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "9ce8e608c8a12a2814829e2e1e438e34376bc85cedb2a1c3452c301729c852c0",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "38915959386bfe11502013e33b74ada22c3bd4e5b846f06a9e341fcf23ab48b7",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "fb38e86cab1715a51ce52420f96e8eb0237720c02c7e42b4e98e51eb60699687",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "fdb96de0a30fca8e7a31bf02913dcc727b33131dbf2a857922ef1ccb7e8d9dde",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "c192baca4b27ca4eda4900c2ecb9bc7cdede8a3ba2bc9d68766fa72562c1aa69",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "e911e9c4de8fd88ccdbaf7c6793846893fc9b84f9b87dcb2a290d6cd9936972d",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "449d4a12298e06cd7c282041120b9ed7cb1d5e4023497d5ebd070d3a068ccf81",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "cc0d19210582b378601360f390367b1788eda6dd24fb46030976bfc42bca18ee",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "023dfb6d6e405bc3fa95c7cefa0727083a4119bfd4ff3f6f96af99493cf19924",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "560a7003db9a49038cc040e3f351c79675154f3a2dfb8d7a0fbc875967e0c672",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "0472c21ac215eea752fbbf4b6149c0b36df640054d3352c8389f67f90f19c2e8",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "d8febf7cdec7d8cde6425360b096662c47aee2839e24287903188c79a4fa1696",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a5e0e2f4fc40bb3f7aa1c59f7c149c74b4bfe7ded9a11c03fce53d4cfd2007ce",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "669f00c0e4733aced46808e21dad112295b4b035906f9bf065369b39904177bc",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "482e6e57176ddac50343eb355365ef5dec886151162b2c8a32301fab34732783",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "2930ffe91db7ad5b60c81c421c2016fa6330d139825268607a2405c7e4ab0c32",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "14356919991bde8f42277412b1832cd22d7af9aac3341aba67ab148ebceb6805",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "7ba6553484e7729a39ee3e514ed83d2e3cf19ac42496d02b272517e60a49542b",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "006906e0b6a3c403973cdbc99093b1b42383d55704a88c4fba8317ad2038a2f7",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "36c1414e6700a956f6f21a8a639bf7364b92d0916d0fb03e4956f57c20571461",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "49bd67721e21b2093efc08b7877784080d24f57375b2c87eddcf318d1a850811",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "45e38137be331042f4bcdffc39663c8b137592e32028c926e219c3396aba6fdd",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "719c01c8f401d609b0a2d70d60466c74ec741526b41368cfd5e362f535f3fed8",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "c802bf940eb1d353470598de4359eb9a39c1778193443a7426ade252ba38d75a",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "f59f0dc0155665ab7950295e95e64a4e7933a2478233c58d7eb3f9b3fd98a608",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "86a87fdb2421cdd6bdca8ba7adbd8bfc6599a2d7dbba0f9b01ab6f13e57404c9",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5f45e6e846447cb59553de8f28fd02752689d12aad99d3c93fc1250b2372ec9e",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "ea07ea4ab646d9dc07b89e65c04015c6ae24cc80abfbee9606f10e39fc01a3b7",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "b193f6d86bd1ff2b80354fdbe1544bd3b2072755114a9e4c46511b31daf44dc6",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a0adfffb890aada8220b3d274a62655a646509db9e8c56c3c44940181fa604c1",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "0f88c42c3de27cc0beafd29d86d4638d7d60b013358bd24e8a6c9b950e889131",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "24b6f1780d420769629c8fce2535dd5fd66695260f0fa6dcdce912e1cbec9de1",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "6dd5686eeb594bc2c502be13c891d4b7d57b91ed45334615413df9362c14cda9",
+        "classification": "declaration",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c962db6190ad78a94f51e4871c60857408d580d0f64134422ca4dcd9f86e74f2",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      },
+      {
+        "id": "c1f841950e772405a81d80f28c9b7edec4ec6f350ddb73fb3a10b20ca27e9ba9",
+        "classification": "non_contract",
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CheckpointPlan / TurnDeletionPlan / ResumePlan / JobResumePlan / RecoveryPlan / RetentionPlan / RecoveryResult",
+        "declaration": "llm/core/plans.py",
+        "consumers": [
+          "llm/core/checkpoints.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_checkpoint_values.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_turn_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/checkpoints.py",
+    "sha256": "762215565211b9de937f3124cac383088ddc8af928c4d5ad8a062f20b1d10e50",
+    "reason": "Read complete repository and reference projection, including path/link protections, named directories/manifest/record declarations, digest encoding, paired Run revision witness and original atomic commit order. Every fixed storage name/serialization option/error is declared before I/O implementation; semantic records and interactions are read through typed Owners. Direct/nested original message references share CheckpointConversation/InstructionCheckpoint. Deletion marker prevents recreation; missing/undeclared/digest-mismatched files fail. I/O remains under caller StorageIO/workspace transaction, and physical-failure/process-death tests preserve uncertainty and original evidence.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5f156d4b7932edd6b3cede33c23fd71de174b3643951168e327b88c54f5b5347",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a90210b8b4402d81046e805422c8b0ce259ea7903b4a373feda9765c60c12732",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7f453df4a25a5fb4988db540859090fad0337121d164d8545e69468b4060093e",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "e4a8d997bd11ca952c86a58d192b6e68e147704295383020e44a15e2e6bdd204",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "688184a92e8e4ceb08583922a2be401bca1c79e25d7d19dd5f9589ee09e35d31",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "557640f04998c4fa27877a90121e147f1e44cc479ce23eddbaf5344a6f1f21a3",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a50258502d0564e0a2b6882059b2eea6c0c6e2613f3e73057611370fc4894ea7",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "dc879581a25363c9657a503319aef3ad673a392a75dd9f57ca55a0f98370aa5a",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "72d141593245f434be1b5b0c0e2c4a0524f3824fcb86b60cd96fdeea719154ed",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "8cfe4348aeef90cac71c6e7e53360bdac3d98d48357132fca239737efd811b08",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "bcbbf98cf01681eeef3c25b6dc38856e2ea34809a9407994dd67da24f2b315ce",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "14924ac4f088b6f3eb8cd3f080f0a1a4fa42065d51f0cfe25c611ba322e69b2d",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "88ec257235d501978956242e9a1634af9d8ee4909f50cdfada33f440a802b479",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "9f49198f4c14eff95de9ce02d0934a7b5f56c0d6d3e52609e4325e1f2c2ef8d3",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "40d1bbbe0ae1ac798fd6b1480dc15db77b6f9593410953228dc3b3e641d82f5a",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "d251b6baf1abd3df1bfebe049eca7a096cee2c393c2691a6231f6245f1708817",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "82175f4f82898b92607a2f81a3e86b9cff9df7b69b58694ef744553cb5d6b75f",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "2cae65eab56afca719d11e0b32a5e4d163edbeac97b0613fda5f3a57d1275ef0",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "d0084d7d37bf2ac922a8b0e319bb020d81cb92d0401f3a0321d03918b03dccc2",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "74dde96f514d65aac0a285f2fe01c0f7cc88083acbb192bc2033c2234f44cc09",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "3c77dbfaf67c072d1056c48a7617a1eb74da9b12ccc28d9e1fe9be35f456ccc8",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a18ca1d6ce831e588e49b647ecd778f9f76277e1a3debc29227d7d470ab9d47b",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b23e89cc5bebf8dc4e5ef07f32d3279710f2400eded9834d2ba62da42f45cbe8",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "13e24f78e75c3719b9ce7d36da7741514dbefa261cdd3eec09355c5f65f3834f",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "03358241ab782ad51d1d42c9a0266657135be7c992803f58a38e789e6723534e",
+        "classification": "declaration",
+        "owner": "CheckpointRepository",
+        "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
+      },
+      {
+        "id": "ed970d8c0a3d7319c874c6a0b94ee84495a8bbaf1df0874a13d3b26f93d35c69",
+        "classification": "non_contract",
+        "owner": "CheckpointRepository",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "fda96a95f06859010ecb5e869b964e9f218863ad66f2d3b9c5fc0d650af0b1c7",
+        "classification": "non_contract",
+        "owner": "CheckpointRepository",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "36b09d0097ccde984f3d32ff7d7148874fb9dc64d45070251978ec022305de73",
+        "classification": "non_contract",
+        "owner": "CheckpointRepository",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "1ee304e8dc97c24c6ba9db7553fadf39e4161eddd1149517a29a1737a069d537",
+        "classification": "non_contract",
+        "owner": "CheckpointRepository",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "ed48d5d9e7e211be81693afb41a7202f8d9f037fbf62c0c3cf12114ed1064705",
+        "classification": "non_contract",
+        "owner": "CheckpointRepository",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "7020eb361b37ee6766eae53013e59356be22addf96cf522758ea7c416d2027b1",
+        "classification": "non_contract",
+        "owner": "CheckpointRepository",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "af5096e0888dab8a0464a5add1b61416d0e5456d225af9796ef9c59fac9ce56d",
+        "classification": "non_contract",
+        "owner": "CheckpointRepository",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      },
+      {
+        "id": "96fe4f45f079494066c79fde76410a1c06ecb9f39d091e07260fa0662b6a9c8f",
+        "classification": "non_contract",
+        "owner": "CheckpointRepository",
+        "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CheckpointRepository",
+        "declaration": "llm/services/runtime/checkpoints.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/interactions.py",
+          "llm/services/history/recovery.py",
+          "llm/engines/graph/checkpoints.py"
+        ],
+        "tests": [
+          "tests/llm/test_checkpoint_values.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_turn_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

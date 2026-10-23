@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 486,
-    "unreviewed_files": 313,
+    "unreviewed_files": 309,
     "stale_files": 0,
-    "unclassified": 24072,
+    "unclassified": 23860,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 315,
+    "unreviewed_dynamic_paths": 311,
     "unreadable_files": 0,
-    "candidates": 28932,
+    "candidates": 28919,
     "issues": 0
   },
   "files": [
@@ -1654,8 +1654,8 @@
     {
       "path": "llm/components/rag/jobs.py",
       "status": "unreviewed",
-      "sha256": "2520301d64c2ed94979a971e84c09b8ccdd0ff0883a43c9301d735ab3877c29e",
-      "candidates": 292
+      "sha256": "407748c099b8f09e31645a7115172094c180fffcf2d00458d533dbeb45f93ef0",
+      "candidates": 289
     },
     {
       "path": "llm/components/rag/prompts.py",
@@ -2103,15 +2103,15 @@
     },
     {
       "path": "llm/core/checkpoint_records.py",
-      "status": "unreviewed",
-      "sha256": "ffa11cde538f4b1ce3890c42dc38db3882947e17f744c2fdc657bbe46b2c6a73",
+      "status": "reviewed",
+      "sha256": "a2ac1c3b1d7b76b0ceb632a76e977a7f729b764c924b20bc67c568a795d35237",
       "candidates": 58
     },
     {
       "path": "llm/core/checkpoints.py",
-      "status": "unreviewed",
-      "sha256": "804ed7026068e93e24cd3581c41307acf1e0e9f818187c98869b861ec3a34c01",
-      "candidates": 74
+      "status": "reviewed",
+      "sha256": "5f49ae2f6f6fb88f8bdf6bf103f0448bba622075c67dd60b03d572e0324bb57f",
+      "candidates": 66
     },
     {
       "path": "llm/core/configuration.py",
@@ -2217,8 +2217,8 @@
     },
     {
       "path": "llm/core/plans.py",
-      "status": "unreviewed",
-      "sha256": "de0b759b051047de1e5d2e0b2bfb956fa74b0578de940601c7b042bd829b6aaa",
+      "status": "reviewed",
+      "sha256": "101938dff7acc0d080c312870318b88534cab10fa21720babf3d4bdb2e274cf5",
       "candidates": 42
     },
     {
@@ -2782,8 +2782,8 @@
     {
       "path": "llm/services/lifecycle/sessions.py",
       "status": "unreviewed",
-      "sha256": "d85d13f25ef2723ddc1d63c0597fe92f8ac1bb67ef32a91e3ed11cf23ebbfc30",
-      "candidates": 174
+      "sha256": "7e91673a0e1031b66759bc1c84f9a6f66a94c0305cf7bebddd5cdd0e0f5304a3",
+      "candidates": 173
     },
     {
       "path": "llm/services/lifecycle/steps.py",
@@ -2829,7 +2829,7 @@
     },
     {
       "path": "llm/services/runtime/checkpoints.py",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "762215565211b9de937f3124cac383088ddc8af928c4d5ad8a062f20b1d10e50",
       "candidates": 33
     },
@@ -2884,8 +2884,8 @@
     {
       "path": "llm/services/runtime/runs.py",
       "status": "unreviewed",
-      "sha256": "d27e8679dba4b87f00358909c96ccba45d9888f92b9c4c5e21d65f80661e3d16",
-      "candidates": 495
+      "sha256": "f9fbafd2ae61ca56128105026f80fac093cd71b5133ea85de8cb1339638c9883",
+      "candidates": 494
     },
     {
       "path": "llm/services/runtime/steering.py",

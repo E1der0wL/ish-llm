@@ -534,12 +534,12 @@ class SessionManager:
     @workspace_locked
     def abandon_resume(self, session: Session, run_id: str, *, expected_revision):
         """대화 삭제 없이 재개만 포기한다. 실행 효과·상태·대화는 유지한다."""
-        from llm.core.checkpoints import require_checkpoint_plan
+        from llm.core.checkpoints import require_checkpoint_plan, CheckpointAction
         self._owner(session)
         current = self.require_inactive(session)
         run = self.run_repository.load(current, run_id)
         plan = self.run_repository.checkpoint_plan(current, run, self.conversations(current))
-        require_checkpoint_plan(plan, expected_revision, action="abandon")
+        require_checkpoint_plan(plan, expected_revision, action=CheckpointAction.ABANDON)
         self.run_repository.abandon_resume(run)
         activity_event(self._owner(current), run, ActivityEventType.RUN_RESUME_ABANDONED,
             time=ResumeAbandonment.require(run.metadata).abandoned_at, status=run.status)

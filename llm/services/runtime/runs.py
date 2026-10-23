@@ -72,7 +72,7 @@ from llm.core.contracts import Diagnostic, ResourceRef
 from llm.errors import CodedError, stable_error_code
 from llm.core.plans import ResumePlan, ResumeState
 from llm.core.plans import CheckpointPlan
-from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError, CheckpointStatus
+from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError, CheckpointStatus, CheckpointAction
 from llm.core.results import CompletionRecords, CompletionResult, EngineOutput, EngineDelta
 from enum import StrEnum
 from asyncio import timeout
@@ -592,7 +592,7 @@ class RunRepository:
     def delete_checkpoints(self, session, run, store, *, expected_revision):
         with self._interaction_scope(session, run):
             plan = self.checkpoint_plan(session, run, store)
-            require_checkpoint_plan(plan, expected_revision, action="delete")
+            require_checkpoint_plan(plan, expected_revision, action=CheckpointAction.DELETE)
             requests = self.interaction_requests(session, run)
             CheckpointRepository().delete(run, names=plan.checkpoints,
                 interactions=requests, revision=plan.revision)

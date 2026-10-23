@@ -8,7 +8,7 @@ from typing import ClassVar
 
 from .contracts import JsonValue
 from .configuration import UNSET
-from .models import RunStatus
+from .models import Run, RunStatus
 from llm.core.json_data import JsonObject
 from .checkpoints import ResumeAbandonment, CheckpointOperation
 from .interactions import InteractionRequest
@@ -208,6 +208,7 @@ class CheckpointDeletion(JsonValue):
     DUPLICATE_NAMES: ClassVar[str] = "Duplicate deleted checkpoint names"
     DUPLICATE_INTERACTIONS: ClassVar[str] = "Duplicate archived interaction identity"
     INVALID_BINDING: ClassVar[str] = "Archived interaction checkpoint mismatch"
+    RETIRED_STATES: ClassVar[tuple] = (RunStatus.COMPLETED, RunStatus.CANCELLED)
     deleted_at: str
     revision: str
     names: tuple[str, ...]
@@ -240,9 +241,9 @@ class CheckpointDeletion(JsonValue):
         return cls(**values)
 
     def require_retired(self, run):
-        if CheckpointDeclarations.read(run.metadata).names or run.status in (RunStatus.PENDING, RunStatus.RUNNING):
+        if CheckpointDeclarations.read(run.metadata).names or run.status in Run.ACTIVE_STATES:
             raise ValueError(self.INVALID)
-        if run.status not in (RunStatus.COMPLETED, RunStatus.CANCELLED):
+        if run.status not in self.RETIRED_STATES:
             ResumeAbandonment.require(run.metadata)
 
     @classmethod

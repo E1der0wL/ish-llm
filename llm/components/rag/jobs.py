@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from llm.components.base import validate_name
 from llm.core.models import now
-from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError
+from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError, CheckpointAction
 from llm.core.contracts import ResourceRef, Diagnostic
 from llm.core.plans import CheckpointPlan, JobResumePlan
 from llm.services.infrastructure.locking import workspace_locked
@@ -173,9 +173,9 @@ class RAGJobs:
         lease = self._lease(identifier, probe=True)
         try:
             plan = self._plan(identifier, live=lease is None)
-            require_checkpoint_plan(plan, expected_revision, action="abandon")
+            require_checkpoint_plan(plan, expected_revision, action=CheckpointAction.ABANDON)
             job = self.get(identifier)
-            job["resume_abandonment"] = ResumeAbandonment(now(), "explicit").to_dict()
+            ResumeAbandonment.for_request(now(), None).store(job)
             self._storage().save(job)
             return job
         finally:
@@ -189,7 +189,7 @@ class RAGJobs:
         lease = self._lease(identifier, probe=True)
         try:
             plan = self._plan(identifier, live=lease is None)
-            require_checkpoint_plan(plan, expected_revision, action="delete")
+            require_checkpoint_plan(plan, expected_revision, action=CheckpointAction.DELETE)
             self._storage().delete(identifier)
         finally:
             if lease is not None:

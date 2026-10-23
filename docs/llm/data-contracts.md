@@ -93,6 +93,12 @@ Provider 원인 체인과 상세 수집 설정은 Provider가 소유한다. 다�
 `CheckpointError`는 `code`, `blockers`, `diagnostic`을 제공하는 `ValueError`다.
 문자열 파싱 없이 충돌(`checkpoint_conflict`), 보호(`checkpoint_protected`), 손상
 (`checkpoint_corrupt`), RAG 설정 불일치(`checkpoint_configuration`)를 구분할 수 있다.
+`CheckpointRejectionDetails`가 기존 boundary/blockers 관찰 형식을 소유한다. 정리 동작은
+`CheckpointAction`의 abandon/delete 선언을 사용하며 실제 실행 시 현재 계획·revision·
+blocker를 재검증한다. `CheckpointLifecycle`은 공통 status/container 투영과 허용 상태를
+소유하고 `CheckpointEnvelope`는 중첩 identity와 payload 경계를 소유한다. private 상태는
+여전히 명시적 lifecycle 투영이 필요하다. `CheckpointRecords` 계열과 Repository는 각각
+기록 검증/투영과 파일·digest·원자적 저장 순서를 소유하며 일반 조회로 필수 기록을 복구하지 않는다.
 새 공개 API와 Hub 연결 대응표는 [오류·복구 계약](backend-recovery.md)에 있다.
 
 ## 검토와 실행 분리
