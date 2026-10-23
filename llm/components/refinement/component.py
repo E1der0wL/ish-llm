@@ -1,5 +1,7 @@
 """제안은 실행 기록의 참조 데이터다. 자동 모델 호출이나 Run 수명은 소유하지 않는다."""
 
+from llm.core.history_references import HistoryReferenceRecord
+
 from llm.components.tools.registry import ToolRegistry
 
 from llm.core.resource_references import ResourceTarget, StoredResourceReference
@@ -101,10 +103,10 @@ class RefinementComponent(DefinitionComponent):
 
     def history_references(self, project):
         records = self.list(project).values()
-        return {"message_ids": [], "session_ids": [], "run_ids": sorted({ref["run_id"]
+        return HistoryReferenceRecord.project(message_ids=[], session_ids=[], run_ids=sorted({ref["run_id"]
             for record in records for ref in [*record["evidence"], record.get("source", {}),
                 *(ref for evaluation in record.get("evaluations", []) for ref in evaluation.get("evidence", [])),
-                *(evaluation.get("source", {}) for evaluation in record.get("evaluations", []))] if "run_id" in ref})}
+                *(evaluation.get("source", {}) for evaluation in record.get("evaluations", []))] if "run_id" in ref}))
 
     def references(self, project):
         """Agent proposals retain their target identity until the proposal is removed."""

@@ -42802,5 +42802,61 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/history_references.py",
+    "sha256": "1ad74760f33a33ef82bf373ba9337fabdb664bfd04c5a93160c960531aa45147",
+    "reason": "Read complete common history reference Projection/collection and all current producers/consumers. Producers preserve original field presence and insertion order, including base Component omission of session_ids, with original value identity. Required aggregate properties are lazy [] reads, never filled on read. Registry starts fresh sets only after stored evidence checks, preserves unknown-key ignore behavior and set.update failures/callback order, and returns the same owned mutable dictionary. Retention copies aggregate before adding transfer protection; Session deletion keeps original short-circuit access and checks. Components retain meaning/record validation; this layer grants no deletion or execution authority and stores no duplicate state.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cf32799c362dd0fa9214af12aa5f721955cb1eb1266bec9d588c4e902099af01",
+        "classification": "non_contract",
+        "owner": "HistoryReferenceRecord",
+        "reason": "Frozen slots Python layout for the transient producer projection, not a stored record or deletion policy."
+      },
+      {
+        "id": "80c2f73fb934a5221b75ee4e261c0e7d1b65c91e8f1b8b2320148dd1421ae8c7",
+        "classification": "non_contract",
+        "owner": "HistoryReferenceRecord",
+        "reason": "Frozen slots Python layout for the transient producer projection, not a stored record or deletion policy."
+      },
+      {
+        "id": "7d66fbb494f416c08e5a6fa215e57266978a79f83dd387b0a5825bf9540addc5",
+        "classification": "declaration",
+        "owner": "HistoryReferenceSet",
+        "reason": "Component reference-provider method and absent hook are declared by the common reference protocol Owner. Record fields are declared once as dataclass slots, with omitted fields excluded from projections."
+      },
+      {
+        "id": "0b70b95ce0ccb64fe6fd13649c01b5a53333aedd1dd989c8c7a35b7620c21a6f",
+        "classification": "declaration",
+        "owner": "HistoryReferenceSet",
+        "reason": "Component reference-provider method and absent hook are declared by the common reference protocol Owner. Record fields are declared once as dataclass slots, with omitted fields excluded from projections."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HistoryReferenceRecord / HistoryReferenceSet",
+        "declaration": "llm/core/history_references.py",
+        "consumers": [
+          "llm/components/base.py",
+          "llm/components/memory/component.py",
+          "llm/components/goals/component.py",
+          "llm/components/refinement/component.py",
+          "llm/components/registry.py",
+          "llm/services/history/retention.py",
+          "llm/services/lifecycle/sessions.py"
+        ],
+        "tests": [
+          "tests/llm/test_goals.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/llm/test_turn_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

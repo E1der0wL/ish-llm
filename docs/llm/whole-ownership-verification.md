@@ -3569,3 +3569,74 @@ Level 2 완료다. ProviderOptions와 이번 Base/관찰 계약을 gate27의 현
 전체 LLM/Hub·정적·R3·문서·실환경으로 검증한다. gate26은 고정 f4eb038에서 별도 실행 중이다.
 전체 성공 SHA만 Push하고 원격 필수 job 및 엄격 집계 artifact를 실제 확인한다.
 llm/의 나머지 Component/Engine/서비스를 계속 진행하고 Hub 구현은 llm/ 완료 이후에 진행한다.
+
+
+## llm Component 공통 history 참조 계약
+
+기준 6b2a10a 이후 HistoryReferenceRecord가 Component history 참조의 필드 Projection을,
+HistoryReferenceSet이 공통 집계·필수 필드 조회·선택적 Reader 조회를 소유한다.
+Base/Goal/Memory/Refinement Writer, ComponentRegistry 집계, 보관 정리와 Session 삭제
+소비자를 연결했다. 각 Component는 원래 내부 저장 기록을 읽고 참조 의미를 결정한다.
+공통 계층은 Component 업무 정책을 해석하지 않고 새 운영 기록이나 참조 원장을 저장하지 않는다.
+
+Projection은 호출자가 제공한 필드만 원래 순서와 값 identity로 반환한다. Base Component의
+session_ids 생략은 그대로이며 UNSET을 결과에 넣지 않는다. Registry는 원래 stored 검사 뒤
+새 집계 set을 만들고, 같은 순서로 optional Reader를 찾아 Project 사본을 전달한다. unknown
+종류 무시와 기존 set.update 오류를 보존한다. 서비스의 필수 참조 조회는 지연된 [] 접근이며
+누락을 빈 set으로 복구하지 않는다. Retention의 사본/transfer 보호와 직접 삭제의 short-circuit
+조건·승인/예산/효과/Checkpoint/원본 무결성 검증은 그대로다.
+
+### 검증
+
+첫 편집 도구의 들여쓰기 오류로 소비자 수정이 적용되지 않은 상태의 시험은 별도
+pre-edit-baseline-smoke.log로 보존하고 현재 소스의 증거로 사용하지 않았다. 오류는
+setup-initial-error.txt에 기록했다. 편집 도구를 수정하여 소비자를 반영한 이후 smoke
+`python -m unittest tests.llm.test_goals tests.llm.test_history_retention_integrity
+ tests.llm.test_memory_history_integrity tests.llm.test_lifecycle_deletion_integrity`가
+40개 pass, 30.401초, exit 0으로 통과했다.
+외부 equivalence.py는 이전 Registry와 callback/실패 50, Producer 필드 존재/순서·값 각 25,
+필수 지연 Reader 12, 공개 mutable aggregate 1개를 대조해 exit 0이다. 실제 삭제·프로세스 중단·
+원본 보존 시험과 기존 Assertion은 변경하지 않았다.
+
+- `whole-history-reference-01`: 발견/시작/pass 117/117/117, exit 0, 83.385672초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-history-reference-01/llm.json --modules tests.llm.test_goals tests.llm.test_refinement tests.llm.test_history_retention_integrity tests.llm.test_memory_history_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_run_reference_integrity tests.llm.test_turn_deletion tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_interaction_storage`. source `6eebf5154308e7f5321fea714f3bf86ab1861e76b09c727ea51f2f51fc0d5ffe`, input `33b863111ccd4c86a4b48ffe4e3fb5c5344832b9527ff446403d0142509fd5a8`.
+
+- `whole-history-reference-hub-01`: 발견/시작/pass 10/10/10, exit 0, 8.617091초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-history-reference-hub-01/hub.json --modules tests.hub.test_history_retention tests.hub.test_deletion_feedback tests.hub.test_turn_deletion`. source `6eebf5154308e7f5321fea714f3bf86ab1861e76b09c727ea51f2f51fc0d5ffe`, input `33b863111ccd4c86a4b48ffe4e3fb5c5344832b9527ff446403d0142509fd5a8`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 source/input 전후 동일이다.
+Python 3.12.14/Clang·Host d833790·동일 의존성·실제 namespace/X11 환경이다. Goal/Refinement/
+Memory 내부 참조, 보관·직접 삭제·Run/Turn 참조·승인/예산/효과/Checkpoint/RAG/수명 무결성,
+Hub 보관·삭제 소비자로 영향 범위를 정했다. 원본 데이터와 실패/중단 후 상태 보존을 검증했다.
+
+정적 finding 114개 동일이며 새 Owner와 바뀐 의존 근거만 갱신했다.
+`python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16개와
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py history-reference-auxiliary`의
+정적 S1–S7·문서·R3·SDK·양쪽 환경 6개가 각 exit 0이다. 기록 후 최종 문서/diff를 검사한다.
+
+현재 전체 503개 중 미검토 290, 미분류 21768, incomplete 4개이며 stale/위반/감사 오류 0이다. 공통 참조 Owner 전수 검토이며 각 Component/서비스 전체 완료가 아니다.
+
+Level 2 완료다. 기존 필드 존재·집계·필수 조회·보호 판단의 동등성으로 영향 범위를 제한했다.
+후속 Goal 정의/운영 소비자 closure와 gate28 전체 회귀를 수행한다. 실행 중인 gate27은
+고정 6b2a10a이며 이번 변경을 포함하지 않는다. llm/ 잔여 작업을 계속하고 Hub 구현은 이후다.
+
+### 전체·원격 게이트 후속 기록
+
+2fc76e80ded8b0fe6247f1dd190b775a839515d2의
+[CI 40013608607](https://github.com/E1der0wL/ish-llm/actions/runs/40013608607)을
+2026-10-23T20:21:12Z에 정확한 headSha·필수 두 job·artifact까지 확인해 verified=true다.
+원격 LLM 2489/2489 pass(1818.221799초), Hub 588/588 pass(1125.222510초), 모든 오류/
+skip/누락/추가/중복 0이다. CI 환경은 Python 3.12.14/GCC 13.3.0이며 로컬 결과와 별도 실행이다.
+
+f4eb0385a1f221c7d02514ffe14888ffecb2807f의
+`python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group26-l3`는
+LLM 2490/2490 pass(1471.671561초), Hub 588/588 pass(1149.905287초), 각 exit 0이다.
+모든 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 source/input 전후 동일이다.
+source 03d9f4416b717250f5f2226987b9f164be0ff1ef0c80c20009f0c0fa262a32f4,
+input 9066f69e54622106fba3bc16249ce420df9b5a9efee50b68b5a1717bc293b69b.
+같은 SHA의 group26-auxiliary 6개 필수 검사도 각 exit 0이다.
+
+전체 검증한 f4eb038만 refactor/llm-clean으로 Push했다(2fc76e8→f4eb038).
+main 94229cb865374d99f20ec48c5e48269488041a4e와 backend
+bb0946257ab6bcabb9a3ef04d3d854e5333b07d5가 그대로임을 원격 조회로 확인했다.
+그 SHA의 [CI 40018903169](https://github.com/E1der0wL/ish-llm/actions/runs/40018903169)는
+2026-10-23T20:24:11Z 확인 시 두 job 모두 in_progress이며 아직 통과로 선언하지 않는다.
+다음 gate27은 고정 6b2a10a877e3125bd1e39be1de2cdeb1819b2cd4에서 실행 중이다.

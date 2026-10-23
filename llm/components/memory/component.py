@@ -1,5 +1,7 @@
 """기억의 현재 값·출처·수정 이력을 한 JSON 파일로 원자적으로 저장한다."""
 
+from llm.core.history_references import HistoryReferenceRecord
+
 from llm.components.processing import COMPLETION_PROCESSORS
 from llm.components.tools.registry import ToolRegistry
 
@@ -284,7 +286,7 @@ class MemoryComponent(Component):
     def history_references(self, project):
         runs, messages, sessions = set(), set(), set()
         if not self._has_storage(project):
-            return {"run_ids": [], "message_ids": [], "session_ids": []}
+            return HistoryReferenceRecord.project(run_ids=[], message_ids=[], session_ids=[])
         def source(value):
             if isinstance(value, dict):
                 if value.get("run_id"):
@@ -308,7 +310,7 @@ class MemoryComponent(Component):
             messages.update(item["id"] for item in state.get("applied", {}).get("sources", []))
             if state.get("request", {}).get("status") in Compactions.UNFINISHED_STATES:
                 messages.update(item["id"] for item in state["request"]["sources"])
-        return {"run_ids": sorted(runs), "message_ids": sorted(messages), "session_ids": sorted(sessions)}
+        return HistoryReferenceRecord.project(run_ids=sorted(runs), message_ids=sorted(messages), session_ids=sorted(sessions))
 
     def references(self, project):
         refs = []

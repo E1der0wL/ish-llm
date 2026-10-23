@@ -1,5 +1,7 @@
 """History eligibility and explicit deletion; Application owns retention selection."""
 
+from llm.core.history_references import HistoryReferenceSet
+
 from llm.core.paths import SessionPaths
 from llm.core.models import ResourceKind
 
@@ -56,8 +58,8 @@ class HistoryRetention:
         return self.manager.components.history_references(project)
 
     def _owned_references(self, project):
-        refs = deepcopy(self._references(project))
-        refs["session_ids"].update(self.manager.sessions.transfers.protected(project))
+        refs = HistoryReferenceSet(deepcopy(self._references(project)))
+        refs.session_ids.update(self.manager.sessions.transfers.protected(project))
         return refs
 
     def _history(self, session):
@@ -84,15 +86,15 @@ class HistoryRetention:
                 reasons.append("non_file_conversation")
             if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) for m in messages):
                 reasons.append("pending_message")
-            if session.metadata.get("retain") or session.id in refs["session_ids"]:
+            if session.metadata.get("retain") or session.id in refs.session_ids:
                 reasons.append("pinned_or_component_reference")
             if any((session.paths.state / "maintenance").glob("*.json")):
                 reasons.append("pending_maintenance")
             # 외부 효과 원장은 Run 제거와 독립적으로 수명을 정해야 하므로 보수적으로 유지한다.
             if self.manager.sessions.run_repository.has_tool_operations(session):
                 reasons.append("external_operation_history")
-            keep = set(refs["run_ids"])
-            protected_messages = set(refs["message_ids"])
+            keep = set(refs.run_ids)
+            protected_messages = set(refs.message_ids)
             for run in runs:
                 sources.append(record(run))
                 source = ResumeRecord.source_id(run.metadata)
@@ -204,7 +206,7 @@ class HistoryRetention:
             total_bytes += size
             total_tokens += tokens
             reasons = []
-            if session.id in refs["session_ids"] or any(r.id in refs["run_ids"] for r in runs) or any(m.id in refs["message_ids"] for m in messages):
+            if session.id in refs.session_ids or any(r.id in refs.run_ids for r in runs) or any(m.id in refs.message_ids for m in messages):
                 reasons.append("component_reference")
             if any((session.paths.state / "maintenance").glob("*.json")):
                 reasons.append("pending_maintenance")

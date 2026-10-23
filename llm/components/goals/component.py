@@ -1,5 +1,7 @@
 """목표와 진행 상태를 저장한다. Run은 소유하지 않고 참조만 한다."""
 
+from llm.core.history_references import HistoryReferenceRecord
+
 from llm.components.processing import COMPLETION_PROCESSORS
 from llm.components.tools.registry import ToolRegistry
 
@@ -44,9 +46,8 @@ class GoalComponent(DefinitionComponent):
 
     def history_references(self, project):
         records = self.list(project).values()
-        return {"run_ids": sorted({r["run_id"] for value in records for r in value.get("run_refs", [])}),
-                "message_ids": [], "session_ids": sorted({v["scope"]["id"] for v in self.list(project).values()
-                    if v["scope"]["type"] == "session"})}
+        return HistoryReferenceRecord.project(run_ids=sorted({r["run_id"] for value in records for r in value.get("run_refs", [])}), message_ids=[], session_ids=sorted({v["scope"]["id"] for v in self.list(project).values()
+                    if v["scope"]["type"] == "session"}))
 
     def clone(self, source, destination):
         # Session와 Run은 복제되지 않는다. 잘못된 목적지 참조를 만들지 않는다.

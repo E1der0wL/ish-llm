@@ -2,6 +2,8 @@
 
 Resolve selected component identities without owning their path layouts."""
 
+from llm.core.history_references import HistoryReferenceSet
+
 from llm.core.resource_references import ResourceTarget, StoredResourceReference
 
 import re
@@ -93,14 +95,12 @@ class ComponentRegistry:
     def history_references(self, project):
         """Direct deletion and retention share the stored owners' history references."""
         self.stored(project)
-        refs = {"session_ids": set(), "run_ids": set(), "message_ids": set()}
+        refs = HistoryReferenceSet.empty()
         for component in self._components.values():
-            reader = getattr(component, "history_references", None)
+            reader = HistoryReferenceSet.reader(component)
             if reader:
-                for kind, values in reader(deepcopy(project)).items():
-                    if kind in refs:
-                        refs[kind].update(values)
-        return refs
+                refs.merge(reader(deepcopy(project)))
+        return refs.to_dict()
 
     def validate_selection(self, project, names):
         """남길 소비자가 참조하는 영속 Component를 선택 해제하지 않는다."""

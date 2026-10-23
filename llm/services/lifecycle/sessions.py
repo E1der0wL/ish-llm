@@ -1,5 +1,7 @@
 """Session의 영속 상태와 수명 주기를 관리한다. SessionRuntime은 실행 전용이며 RunManager가 소유한다. 제목/메타데이터 수정은 실행 설정 변경과 분리한다."""
 
+from llm.core.history_references import HistoryReferenceSet
+
 from llm.core.contracts import ActivityEventType
 
 from llm.core.plans import PlanBlockerCode
@@ -443,9 +445,9 @@ class SessionManager:
             self.transfers.require_unreferenced(self._owner(current, allow_deleted=True), current)
             if self.components is None:
                 raise ValueError("Session deletion requires bound Component reference readers")
-            refs = self.components.history_references(self._owner(current, allow_deleted=True))
-            if (current.id in refs["session_ids"] or any(run.id in refs["run_ids"] for run in runs)
-                    or any(message.id in refs["message_ids"] for message in messages)):
+            refs = HistoryReferenceSet(self.components.history_references(self._owner(current, allow_deleted=True)))
+            if (current.id in refs.session_ids or any(run.id in refs.run_ids for run in runs)
+                    or any(message.id in refs.message_ids for message in messages)):
                 raise ValueError("Session history is referenced by a stored Component")
         return current
 

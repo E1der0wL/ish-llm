@@ -2,6 +2,8 @@
 
 Project-owned JSON definitions and directories, independent of execution."""
 
+from llm.core.history_references import HistoryReferenceRecord
+
 from llm.core.configuration import ConfigurationSource
 
 from copy import deepcopy
@@ -128,7 +130,7 @@ class Component:
 
     def history_references(self, project) -> dict:
         """보관 정리에서 보호해야 할 외부 도메인 ID. 컴포넌트가 자신의 자료 형식을 해석한다."""
-        return {"run_ids": [], "message_ids": []}
+        return HistoryReferenceRecord.project(run_ids=[], message_ids=[])
 
     def references(self, project) -> list[dict]:
         """저장된 Component 참조. 소비자가 자기 정의를 해석하며 별도 원장은 만들지 않는다."""
