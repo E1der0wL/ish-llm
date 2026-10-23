@@ -17,7 +17,7 @@ class RequestAdmissionTests(unittest.TestCase):
                          {"engine": "base", "tools": [], "system_prompt": None}).to_dict()
                          for identifier in ("writer", "reader")}
         self.value = RequestAdmission.create(project_id=self.project, session_id=self.session,
-                    message_id=self.message_id, bindings=self.bindings)
+                    message_id=self.message_id, bindings=self.bindings).to_dict()
         self.message = Message(self.message_id, MessageRole.USER, "request", MessageStatus.QUEUED,
                                metadata={"admission": deepcopy(self.value)})
         self.owner = {"project_id": self.project, "session_id": self.session}
@@ -26,7 +26,7 @@ class RequestAdmissionTests(unittest.TestCase):
         original = deepcopy(self.message)
         self.message.status = MessageStatus.COMMITTED
         ids = {identifier: new_id() for identifier in self.bindings}
-        result = RequestAdmission.dispatch(self.value, run_ids=ids, history=[self.message])
+        result = RequestAdmission.dispatch(RequestAdmission.validate(self.value), run_ids=ids, history=[self.message]).to_dict()
         self.assertEqual(self.message.metadata["admission"], original.metadata["admission"])
         self.assertIsNone(self.value["dispatch"])
         self.message.metadata["admission"] = result
@@ -65,7 +65,7 @@ class RequestAdmissionTests(unittest.TestCase):
         self.assertEqual(self.value["bindings"]["writer"]["definition"]["tools"], [])
 
     def test_only_original_user_identity_and_state_can_own_admission(self):
-        self.assertEqual(RequestAdmission.read(self.message, **self.owner), self.value)
+        self.assertEqual(RequestAdmission.read(self.message, **self.owner).to_dict(), self.value)
         self.assertEqual(RequestAdmission.runs(self.message, [], **self.owner), [])
         for name, value in (("id", new_id()), ("role", MessageRole.ASSISTANT),
                             ("run_id", new_id()), ("status", MessageStatus.COMMITTED), ("metadata", {})):
@@ -87,7 +87,7 @@ class RequestAdmissionTests(unittest.TestCase):
         self.message.content = "later edit"
         self.assertEqual(history[0]["content"], "request")
         with self.assertRaises(ValueError):
-            RequestAdmission.dispatch(value, run_ids={}, history=[])
+            RequestAdmission.dispatch(RequestAdmission.validate(value), run_ids={}, history=[])
 
     def test_dispatch_rejects_lost_map_history_or_revision_without_repair(self):
         value, _ = self.dispatch()
@@ -141,7 +141,7 @@ class RequestAdmissionTests(unittest.TestCase):
     def test_single_recipient_has_the_same_group_contract(self):
         self.bindings = {"writer": self.bindings["writer"]}
         self.value = RequestAdmission.create(project_id=self.project, session_id=self.session,
-                    message_id=self.message_id, bindings=self.bindings)
+                    message_id=self.message_id, bindings=self.bindings).to_dict()
         value, runs = self.dispatch()
         self.assertEqual(value["recipients"], ["writer"])
         self.assertIsNone(self.message.run_id)

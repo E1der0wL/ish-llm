@@ -93,10 +93,10 @@ class SnapshotReader:
                     for run_id in RequestAdmission.run_ids(message)}
         authors = {}
         for message in messages:
-            if "admission" in message.metadata:
-                admission = RequestAdmission.validate(message.metadata["admission"])
-                if admission["dispatch"] is not None:
-                    authors.update((identifier, agent) for agent, identifier in admission["dispatch"]["run_ids"].items())
+            if RequestAdmission.present(message):
+                admission = RequestAdmission.from_message(message)
+                if admission.dispatched is not None:
+                    authors.update((identifier, agent) for agent, identifier in admission.dispatched.run_ids.items())
         for message in messages:
             role = str(message.role)
             if role not in ("user", "assistant"):

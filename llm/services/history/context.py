@@ -110,7 +110,7 @@ class ConversationContextBuilder:
             if is_instruction(message):
                 RunInstruction.validate_message(message)
         snapshot = deepcopy(self._ordered(messages))
-        snapshot = [RequestAdmission.clone_message(message) if "admission" in message.metadata else message
+        snapshot = [RequestAdmission.clone_message(message) if RequestAdmission.present(message) else message
                     for message in snapshot]
         for message in snapshot:
             message.run_id = None

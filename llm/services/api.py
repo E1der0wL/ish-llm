@@ -728,7 +728,7 @@ class RequestHandle(AsyncFacade):
     def recipients(self) -> list[str]:
         from llm.services.runtime.requests import RequestAdmission
         value = RequestAdmission.read(self.data, project_id=self.session.project.id, session_id=self.session.id)
-        return value["recipients"]
+        return value.recipients
 
     @property
     def runs(self) -> list[RunHandle]:

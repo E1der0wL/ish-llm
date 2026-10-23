@@ -25,7 +25,7 @@ def admitted_user(created_at, *, content="Q", run_id=None):
         message_id=message.id, bindings={"fixture": AgentBinding.create("a" * 32, "fixture", {"engine": "test"}).to_dict()})
     if run_id is not None:
         admission = RequestAdmission.dispatch(admission, run_ids={"fixture": run_id}, history=[message])
-    message.metadata["admission"] = admission
+    message.metadata["admission"] = admission.to_dict()
     return message
 
 

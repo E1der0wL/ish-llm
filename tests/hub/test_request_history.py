@@ -300,11 +300,11 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         admission = RequestAdmission.create(project_id=project_id, session_id=session_id,
             message_id=first.id, bindings={"assistant": binding})
         first.metadata["admission"] = RequestAdmission.dispatch(admission,
-            run_ids={"assistant": run_id}, history=[first])
+            run_ids={"assistant": run_id}, history=[first]).to_dict()
         following = Message(new_id(), MessageRole.USER, "request", MessageStatus.QUEUED,
                             metadata={"resume": {"run_id": run_id}})
         following.metadata["admission"] = RequestAdmission.create(project_id=project_id, session_id=session_id,
-            message_id=following.id, bindings={"assistant": binding})
+            message_id=following.id, bindings={"assistant": binding}).to_dict()
         records = [first, Message(new_id(), MessageRole.ASSISTANT, "partial", MessageStatus.FAILED,
                                  run_id=run_id), following]
         session = SimpleNamespace(id=session_id, project=SimpleNamespace(id=project_id),

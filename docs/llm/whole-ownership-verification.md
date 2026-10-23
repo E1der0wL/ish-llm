@@ -326,3 +326,63 @@ S1–S7은 변경된 근거 26건과 새 Owner/시험의 연결을 재검토해 
 
 이 기록은 추가 지시 소단계의 Level 2 증거다. 다음 검증 checkout에서 현재 통합 소스의 전체
 LLM/Hub·보조 검증을 실행하고 성공한 SHA만 Push한다. 원격 CI와 전수 잔여 0은 아직 완료하지 않았다.
+
+## 요청 접수·배포 이력의 전체 소비 경로
+
+`llm/services/runtime/requests.py`의 `RequestAdmission`/`RequestDispatch`가 정규 필드·진단·
+버전·수신자 선택·미배포 상태를 선언하고 검증된 값 객체를 반환한다. RunManager, RequestHandle,
+Agent 삭제 검사, 전송 검사, Conversation 복제, Hub 이력/작성자 Projection이 속성과 API로
+소비한다. 원시 dict 인덱싱을 제공하는 호환 실행 경로는 없다. 고정 필드는 Owner 경계에서만
+직렬화하며 Repository/공개 응답의 JSON 모양은 유지한다.
+
+수신자별 원래 Agent binding, 정확한 Run/Assistant 전체 집합, 원문 history revision, Message
+소유자·상태, 원본 request context를 계속 검사한다. history digest는 원시 저장 기록으로 계산하며
+typed Message projection의 재직렬화 결과로 대체하지 않는다. 조회한 수신자·binding·이력·Run map을
+수정해도 내부 증거는 바뀌지 않는다. 복제 provenance는 관찰 자료로만 남고 실행 admission이 아니다.
+전체 수신자의 Run 및 이력 저장 후 dispatch하는 잠금·트랜잭션·ACK 순서는 변경하지 않았다.
+
+새 `test_request_values` 4개는 독립 wire 값, 중첩 사본, missing/null, 원문 digest 변경,
+복제의 실행 권한 미승계를 검사한다. 기존 손상 테스트는 원시 fixture를 계속 변조한다.
+기존 시험 5파일의 Assertion 361개를 AST로 비교해 값 객체의 `to_dict()` 경계 외에는 모두
+유지했음을 확인했다(`admission-assertion-preservation.json`). 효과 횟수나 장애 단언은 삭제하지 않았다.
+
+개발 중 최초 smoke 명령 `.venv-linux312/bin/python -m unittest tests.llm.test_request_admission -q`는
+classmethod로 전환한 `identifiers`의 인자를 잘못 남겨 setUp에서 8개 모두 error(exit 1)였다.
+인자를 복구한 같은 smoke는 8개 통과(exit 0). 두 로그를 `admission-draft/smoke.log`,
+`smoke-02.log`에 보존했다. 별도 source/input manifest를 수집하지 않은 smoke는 공식 검증의
+재사용 근거로 쓰지 않는다. 아래 strict runner 실행에서 제품·시험·환경의 동일성을 다시 확인했다.
+
+| 실행 | 발견/실행/pass | Failure / Error / Skip | xfail·xpass·누락·추가·중복 | Exit |
+|---|---|---|---|---|
+| whole-admission-01 | 169/169/169 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-admission-safety-02 | 187/187/187 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-admission-hub-01 | 29/29/29 | 0 / 0 / 0 | 모두 0 | 0 |
+
+실제 명령과 실행 전후 hash(서로 다른 실행을 하나의 전체 회귀로 합산하지 않음):
+
+- `whole-admission-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-admission-01/llm.json --modules tests.llm.test_request_values tests.llm.test_request_admission tests.llm.test_multi_agent tests.llm.test_multi_agent_parallel tests.llm.test_multi_agent_crash tests.llm.test_cross_session_requests tests.llm.test_cross_session_crash tests.llm.test_facade_requests tests.llm.test_session_agents tests.llm.test_agent_domain tests.llm.test_conversation_turns tests.llm.test_turn_deletion tests.llm.test_loop_steering tests.llm.test_service_extensions`.
+  source `1b0177ac23214e24cfcc9619dd5962d95b850022538461ecf9b5f0f6dfec022a`, input `2a9b3600e439adf38d5682eb30f57897972bb2f9c1334dc856f907633cd46e75` 각각 전후 동일.
+- `whole-admission-safety-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-admission-safety-02/llm.json --modules tests.llm.test_request_values tests.llm.test_request_admission tests.llm.test_multi_agent tests.llm.test_multi_agent_parallel tests.llm.test_multi_agent_crash tests.llm.test_cross_session_requests tests.llm.test_cross_session_crash tests.llm.test_instruction_reservations tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `5b83b55225b789d32e44cdcbe9493174ecec07436a11c51eda7368b8f011d40f`, input `9157471c5478461384c56643515536209a3a38bb82025f30d99de79dc852b651` 각각 전후 동일.
+- `whole-admission-hub-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-admission-hub-01/hub.json --modules tests.hub.test_message_timing tests.hub.test_snapshot_projection tests.hub.test_request_history tests.hub.test_features`.
+  source `5b83b55225b789d32e44cdcbe9493174ecec07436a11c51eda7368b8f011d40f`, input `6c8fa70a97dbc972ffda5e0a9017cd9941895e3a69282c588c457309e2e99bff` 각각 전후 동일.
+
+첫 집중 범위는 접수/배포·다중 Agent·실제 중단/복구·전송·Facade·참여자·Agent 삭제·대화/turn
+삭제·추가 지시·서비스 확장이다. 이후 선언/slot 정리까지 반영한 최종 안전성 범위는 원본 접수,
+병렬/중단/전송, 예약, 승인, 예산 삭제, Tool 효과, Checkpoint, RAG, 수명/삭제, 원자적 저장,
+감사와 inventory다. Hub는 Message 타이밍·snapshot·request 이력·기능 소비자를 검사했다.
+Python 3.12.14 Clang 22.1.3, host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다.
+
+S1–S7은 변경된 근거 13건을 재검토한 후 146건, new/stale/outstanding/error 0
+(`admission-static-02.json`, exit 0). 앞선 검사는 변경된 source hash를 거절했으며
+(`admission-static-01.json`, exit 1), 기존 면제값을 자동 갱신하지 않았다. R3 Mutation은
+원래 실제 효과 Assertion 두 개로 검출(`admission-mutation-01.log`, exit 0)했다.
+명령은 `python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7 --output <위 JSON>`과
+`python -m tests.llm.check_budget_mutation`이다.
+
+전체 파일/동적 소비자를 검토한 요청 접수 Owner 1개, 후보 64개를 개별 근거로 추가했다.
+현재 inventory 447개 중 419개 파일/31,603개 후보는 미검토/미분류로 남는다. 주변 파일 전체를
+완료 처리하지 않았으며 전수 완료 게이트는 아직 통과하지 않는다.
+이 구간은 Level 2 로컬 완료다. 전송/후속 구간과 묶은 현재 통합 소스에서 다음 Level 3를 수행한다.
+앞선 `967f6dd` SHA에서 실행 중인 전체 게이트는 이 새 요청 접수 변경의 전체 통과 증거로 재사용하지 않는다.
+문서 검사는 `python -m tests.llm.check_docs --output /workspace/llm-clean-resume/whole-ownership/admission-docs-01.json`으로 exit 0이었다.

@@ -922,7 +922,7 @@ class RunManager:
         admission = RequestAdmission.create(project_id=runtime.project.id,
             session_id=runtime.session.id, message_id=message_id,
             bindings={identifier: binding.to_dict() for identifier, binding in bindings.items()})
-        values = {"admission": admission}
+        values = admission.metadata()
         if request_context is not UNSET:
             values[AgentBinding.CONTEXT_FIELD] = deepcopy(request_context)
         if metadata is not None:
@@ -966,7 +966,7 @@ class RunManager:
             raise ValueError("Run is absent from its original request admission")
         admission = RequestAdmission.read(original, project_id=project.id, session_id=session.id)
         if AgentBinding.metadata(binding, AgentBinding.request_context(run.metadata)) != AgentBinding.metadata(
-                AgentBinding.read(admission["bindings"][run.agent_id]), AgentBinding.request_context(original.metadata)):
+                admission.binding(run.agent_id), AgentBinding.request_context(original.metadata)):
             raise ValueError("Run Agent binding or request context differs from its admitted input")
         return binding
 
@@ -1311,10 +1311,9 @@ class RunManager:
         from llm.services.history.recovery import recover_session
         return recover_session(self.sessions, self.repository, self.steps, session, self._store(session))
 
-    def _new_run(self, runtime, message, binding):
+    def _new_run(self, runtime, message, binding: AgentBinding):
         session = runtime.session
         run_id = new_id()
-        binding = AgentBinding.read(binding)
         if binding.project_id != runtime.project.id:
             raise ValueError("Queued Agent binding belongs to another Project")
         run = Run(run_id, session.id, message.id, new_id(), binding.engine,
@@ -1361,8 +1360,8 @@ class RunManager:
         if existing:
             raise ValueError("Queued request already has dispatched Runs")
         admission = RequestAdmission.read(message, project_id=runtime.project.id, session_id=session.id)
-        runs = [self._new_run(runtime, message, admission["bindings"][identifier])
-                for identifier in admission["recipients"]]
+        runs = [self._new_run(runtime, message, admission.binding(identifier))
+                for identifier in admission.recipients]
         # One transaction owns the whole group and its shared history. No child
         # task or Provider can start before every recipient is durably linked.
         history = self.context_builder.snapshot_for_run(messages, message.id)
@@ -1370,7 +1369,7 @@ class RunManager:
                         if item.id == message.id else item for item in history)
         dispatched = RequestAdmission.dispatch(admission,
             run_ids={run.agent_id: run.id for run in runs}, history=history)
-        store.update_metadata(message.id, {"admission": dispatched})
+        store.update_metadata(message.id, dispatched.metadata())
         store.set_status(message.id, MessageStatus.COMMITTED)
         for run in runs:
             store.create(MessageRole.ASSISTANT, "", MessageStatus.QUEUED,
@@ -1456,10 +1455,10 @@ class RunManager:
         else:
             message = store.get(run.input_message_id)
             admission = RequestAdmission.read(message, project_id=runtime.project.id, session_id=runtime.session.id)
-            if admission["dispatch"] is None:
+            if admission.dispatched is None:
                 raise ValueError("Run requires its dispatched history snapshot")
             history = self.context_builder.select_snapshot(
-                tuple(Message.from_record(value) for value in admission["dispatch"]["history"]),
+                admission.dispatched.history,
                 policy=context_policy)
         # Copy domain state, but do not deepcopy Python handler closures or live
         # capabilities. The resolver returns a fresh registry for this Run.
@@ -1890,7 +1889,7 @@ class RunManager:
                     runtime.waiting.remove(message_id)
                     runtime.queue.task_done()
                     continue
-                recipients = set(admission["recipients"])
+                recipients = set(admission.recipients)
                 if not runtime.closed and not self.pending_work.active and recipients - occupied:
                     runs = await self._io.run(self._dispatch_request, runtime, message)
                     runtime.groups[message_id] = runs

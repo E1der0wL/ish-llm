@@ -431,7 +431,7 @@ class ContextPolicyTests(unittest.TestCase):
                 admission = RequestAdmission.create(project_id="a" * 32, session_id="b" * 32,
                     message_id=message.id, bindings={"fixture": binding})
                 message.metadata["admission"] = RequestAdmission.dispatch(admission,
-                    run_ids={"fixture": run_id}, history=[message])
+                    run_ids={"fixture": run_id}, history=[message]).to_dict()
         return messages
 
     def test_full_completed_recent_and_budget_preserve_current_input(self):

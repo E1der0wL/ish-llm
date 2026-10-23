@@ -271,7 +271,7 @@ class AgentManager:
             for message in self.sessions.conversations(session).list():
                 if is_queued_request(message):
                     admission = RequestAdmission.read(message, project_id=project.id, session_id=session.id)
-                    if identifier in admission["recipients"]:
+                    if identifier in admission.recipients:
                         raise ValueError("Agent is referenced by a queued request")
             for run in self.sessions.run_repository.list(session):
                 if run.agent_id == identifier:

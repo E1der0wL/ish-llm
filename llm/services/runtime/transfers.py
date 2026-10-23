@@ -235,7 +235,7 @@ class TransferRecords:
             original = messages[target][value["target_message_id"]]
             admission = RequestAdmission.read(original, project_id=project.id, session_id=target)
             if (original.metadata.get("transfer") != value or original.conversation_deleted
-                    or content_digest(original.content) != value["content_digest"] or admission["recipients"] != value["recipients"]):
+                    or content_digest(original.content) != value["content_digest"] or admission.recipients != value["recipients"]):
                 raise ValueError("Transfer target differs from the accepted request")
             chain = [source]
             if value["source"]["run_id"] is not None:
@@ -250,7 +250,7 @@ class TransferRecords:
                 raise ValueError("Transfer ancestry differs from its stored source")
         for sid in involved:
             for message in messages[sid].values():
-                if message.role != MessageRole.USER or "admission" not in message.metadata:
+                if message.role != MessageRole.USER or not RequestAdmission.present(message):
                     continue
                 value = self.lineage(message, messages[sid], runs[sid])
                 if value is not None and (values.get(value["id"]) != value or value["target_session_id"] != sid):

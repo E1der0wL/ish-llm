@@ -13,7 +13,7 @@ def stored_request(store, session, content, binding, *, run_id=None):
         admission = RequestAdmission.dispatch(admission,
             run_ids={binding["agent_id"]: run_id}, history=[message])
     return store.create(message.role, message.content, message.status, message_id=message.id,
-                        metadata={"admission": admission})
+                        metadata={"admission": admission.to_dict()})
 
 from uuid import NAMESPACE_URL, uuid5
 from llm.core.agents import AgentBinding
@@ -34,6 +34,6 @@ def admitted_message(identifier, role, status, run_id=None, metadata=None):
             message_id=identifier, bindings={'fixture': binding})
         if run_id is not None:
             admission = RequestAdmission.dispatch(admission, run_ids={'fixture': run_id}, history=[message])
-        message.metadata['admission'] = admission
+        message.metadata['admission'] = admission.to_dict()
     return message
 

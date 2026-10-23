@@ -642,7 +642,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
                 admission = RequestAdmission.create(project_id="1" * 32, session_id="2" * 32,
                     message_id=message.id, bindings={"worker": binding})
                 message.metadata["admission"] = RequestAdmission.dispatch(admission,
-                    run_ids={"worker": identifier(run_id)}, history=[message])
+                    run_ids={"worker": identifier(run_id)}, history=[message]).to_dict()
             return message
         def answer(run_id):
             return Message(identifier(run_id + "_answer"), MessageRole.ASSISTANT, run_id + "_answer",

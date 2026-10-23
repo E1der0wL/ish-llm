@@ -32,7 +32,7 @@ class TurnHistory:
         selected = {}
         for group in turn.active:
             message = group[0]
-            if "admission" not in message.metadata:
+            if not RequestAdmission.present(message):
                 continue  # Cloned observations carry no executable request identity.
             request = await session.run.arequest(message.id)
             records = [await run.aget_data() for run in await request.aget_runs()]
@@ -69,7 +69,7 @@ class TurnHistory:
                 else:
                     admission = RequestAdmission.read(source, project_id=session.project.id, session_id=session.id)
                     recipients.append({"agent_id": identifier, "run_id": "", "status": str(source.status),
-                        "engine": admission["bindings"][identifier]["engine"], "elapsed": None, "error": ""})
+                        "engine": admission.binding(identifier).engine, "elapsed": None, "error": ""})
             records = [message for group in turn.active for message in group]
             assistants = [message for message in records if message.role == "assistant"]
             fallback = assistants[-1].status if assistants else request.status

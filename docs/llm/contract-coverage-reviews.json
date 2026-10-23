@@ -214,5 +214,421 @@
     "dynamic_paths_reviewed": true,
     "contracts": [],
     "decisions": []
+  },
+  {
+    "path": "llm/services/runtime/requests.py",
+    "sha256": "958debae4c68767ced74e096656c61d76dcd218821ad54830310c0dfd6650772",
+    "reason": "Read the complete admission Owner and every product call site. Fixed shapes are private detached snapshots with typed properties and Owner serialization. Selection, ownership, history digest, complete recipient Run/Assistant witnesses, clone provenance and missing/null rejection have a single validator; no dictionary compatibility interface remains. Dynamic storage/Engine consumers use the existing transaction and validated bindings; the public stored schema and error text are unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "974f060024bd25f06db364f9b94742f9799c3a826d67e098f585b0f1c3ec2dd3",
+        "classification": "non_contract",
+        "owner": "Python dataclass declaration",
+        "reason": "Class decorator flags select frozen slot storage and disable generated construction. They do not define a persisted field, policy default, error or execution decision; the only constructors are validating Owner factories."
+      },
+      {
+        "id": "16945360bcb42ffc2d8512d9cfc32bb4d7f4ce55573d72ff32d45f679fb6a395",
+        "classification": "non_contract",
+        "owner": "Python dataclass declaration",
+        "reason": "Class decorator flags select frozen slot storage and disable generated construction. They do not define a persisted field, policy default, error or execution decision; the only constructors are validating Owner factories."
+      },
+      {
+        "id": "f2bd44221b1a5a4f6108ddf33a6329ebbda338a69ae2b63c5e55d0458385430e",
+        "classification": "non_contract",
+        "owner": "Python dataclass declaration",
+        "reason": "Class decorator flags select frozen slot storage and disable generated construction. They do not define a persisted field, policy default, error or execution decision; the only constructors are validating Owner factories."
+      },
+      {
+        "id": "14cc76c43b01b6598e3c083ab3b8385644105be2c66a505200a5687bbd91c45f",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "3f99cc9f601ad4e793066307940d3d6823986f43a7ba22aadde5f45dcc483039",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "30d75d721a164266c214e15142cbf3c439051ad8e39fc644be09ad2f26a3399b",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "2556fe0b5d794f61bad73ec8aaccfb83c9a237eb769711ba9cecad9dd88a97ae",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "331a1b6205f600d0931b5c5a31cc3928876413581cf453f750b578962f634d52",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "e95765d5572e157c1c5eca5a7ed74e8c6ac38c8ed7d30a9fb58b3797fc0500a7",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "b0647833f6e284f828f35485b2f270a23ed3925e2e94ece3473293d9d7fd9086",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "3c6ee766d2ba879c8e0723f994e45af043b055b4698ef980f35c967f97f801f6",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "9dead460d2018a88bb90dec489e1fd9ea22229bc972fa6ae266817c960f546e8",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "0a21da3bf31b9dba5af731c971ebfede85b36ca5bb96a0e41ed16153f677a183",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "fb95615befd7b28c2b31576e7d12b7d8b864f7d3803a3afedb33ac50ea40f00a",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "c78333aa456bc4c74834bea09abdef9e461d4285df1078fe7f8ebcdd438c676d",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "57d48cdf2e508d84feba48a9fa76305b36f0e22d26c16b75dc59a8aaf4798380",
+        "classification": "declaration",
+        "owner": "RequestDispatch",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "c44dfd59b9209a8044f0d4b0407b8bd051140a0ab8c5d239e28464a08cc384ac",
+        "classification": "non_contract",
+        "owner": "RequestDispatch.read sequence operation",
+        "reason": "Negative indexing selects the last supplied history entry. This is an algorithmic sequence position, not a configurable limit or stored identifier; the final committed input invariant is checked by this sole Owner."
+      },
+      {
+        "id": "a15d2a21bc4f61602fb1a2b826b997521e0997b8a7fdd8a6efc4836ff03aa0fc",
+        "classification": "non_contract",
+        "owner": "Optional Message/lookup presence",
+        "reason": "Identity comparison observes an existing optional Message Run reference or dictionary lookup result. It neither defines a default nor writes/repairs missing evidence. Declared dispatch state uses RequestAdmission.UNDISPATCHED separately."
+      },
+      {
+        "id": "ba2e02eec7ea8afb0a48f21f6b32614d2407e46e28a63392da363755c7e3661c",
+        "classification": "non_contract",
+        "owner": "Python dict.pop removal result",
+        "reason": "Discarded pop return when the Owner execution envelope is absent. No value is inserted into the original request, history snapshot or admission; original request metadata remains untouched."
+      },
+      {
+        "id": "388044cde3d0ed0d6da8ff0de71c6ffbba20c1b9e9072b0fdb63657eda2aec1d",
+        "classification": "non_contract",
+        "owner": "Python dataclass declaration",
+        "reason": "Class decorator flags select frozen slot storage and disable generated construction. They do not define a persisted field, policy default, error or execution decision; the only constructors are validating Owner factories."
+      },
+      {
+        "id": "d08e59fb91d8bf395a66af4871872fc4496af4cc0d6ce0c980ec9c9989dbd943",
+        "classification": "non_contract",
+        "owner": "Python dataclass declaration",
+        "reason": "Class decorator flags select frozen slot storage and disable generated construction. They do not define a persisted field, policy default, error or execution decision; the only constructors are validating Owner factories."
+      },
+      {
+        "id": "7645e61d73f9a9e257d36b1a4fd5c6d44d07d53202bf1c0ec261c8a898c6a21c",
+        "classification": "non_contract",
+        "owner": "Python dataclass declaration",
+        "reason": "Class decorator flags select frozen slot storage and disable generated construction. They do not define a persisted field, policy default, error or execution decision; the only constructors are validating Owner factories."
+      },
+      {
+        "id": "da90ddd8c2c934b1906305e83fc06fa34137b81fe7130be3aa545761dc442ab3",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "a5f91ee4c872aa8fc6ad0adfe72e91b2e780d2b6e31050ea4228e1d298767bfb",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "f03331e8e43c49ad4bdc7265d23cb3f8de2ba168b12165919559b4eab574555e",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "fd4acdcb7d35548bcd6ebb4dcd65bbcfc28eee3aeed9862d666f0421bf686516",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "3acaf131083f06cb050e0e88486c82cb679e7f773be8d6374f5aca913aced1a6",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "c5a18c0cbe8aec61f2e3b95b9b79c3336ee4343456a954e4a7c3d428b60480dc",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "a8ad32453a1275b4fbb40881edba2fbe30b8c9de803c9705226b6bbdfdd22d9e",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "e4fd62a6f6c1f937431f511c31a2f68effb431b5c20049780f4d54684605e691",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "7288cde90a51baf8ca457fd20b40066989be28084480f1e13eb9f146b9a4cf46",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "fb1a13bf421c6d862c590b0bb258ff84ee3f94f4d867d76322a6faa847c17ad4",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "aaea30e583e8919208324369b88f7f078e389eedff3374eddc802e124ab07d38",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "70f8554551134ae8458dd89f5ae8731af4a320495b93193965bf864f7f092bb6",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "7c146540214a84d65e3abaf36c5aa6e17e19e6381e16d802f4b6694e82041b36",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "977fd3eba64b1621d53284af9c46926e356d0019c522b3917dac4eac47c2642f",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "f873a7e9d9e6125f75438a7fb828d435f257ad8266bc8c989bc8a11d41910be7",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "e8c7ec8701298d875312ae2b43a2436c492617b2d5768ae2bd303e5e72dc3542",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "bdb8193630d8565381c23cb17aa13116b21e4850adc3136be60522b36a12e3d9",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "1bdd34f894982544d8af3606121c38712117fbef59242afe9cccdc49cf9bff59",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "105a4a45f2399d278400800ae901bf6fcf43a23fddec2bd627bf3349b5e7557d",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "9bd81c7f82c57c78f427efca65c392821d93dad553142ec50bc06b576297bf21",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "9571efa24fac15198b05d560a4180ce8cfb8fa0281959efd0efa7a08cab4aaa0",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "ccbaf135213ba8e9a4f9604dac405271a126b38f828a7d09cf1cc55fd4f48c1d",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "a838dcfc100241d302eebe33c3fbe6a18e6343394d938486f731d728afc84cbc",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "7a634d9eaa54337bba5300405765f267ed38a9c11a0f71cc3b9ada932551b740",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "478f44efe308737627456e198698fe0d66e13f4de62ea6622ac0d29e978c7c24",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "3ce94989791821f7d56325c564230a0babe42485396cd58c8dc20df2b87c205c",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "31fa372bcef499e4ac655eea4b8b5743a2163ef8d4bf44740c99592b2de3ff0e",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "61214b93e05d563fa6928d4272bd0f2cba48ee0cda0819d0ae621773cee9d05f",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "edd14ca300401dca0a3063449052645d2ff415ea8d376acaff6e0f77a473c518",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "56853b7adf27b9ed0fa6eb51832d19372e6f0f72112ccb0ba9f31fc1e66f9397",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "90958236c6cb95ac51ff493701ee554f976f965b252dcdb7d932e857d60c29a7",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "5a82abcd793c685875d88d0fb8b263fa692cc85c528b35c14337678be3b03840",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "ba47d37cd82c6df9090fbef25b497df8607951aba015528fcacd257c05ba3337",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "52bb6047389e199eb053e3c64bac122d4786366490bf431e9e8431056fe75edd",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "12c576e9e0726182e177ccfd31a46390c0f59d5e7e82232ca8433a84df308141",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "928c204668eac59b5cf53f710673c1ad519b479bb4e205d7a64a5aba0b4f094b",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "ae7396149fa901f7bae1d26abeed67951d7e5590e57c785b8efca99d399a5dc2",
+        "classification": "declaration",
+        "owner": "RequestAdmission",
+        "reason": "Canonical admission/dispatch field, error, version, optional-state, selection or allowed-status declaration at its owning class, before methods; Writer and Reader share it."
+      },
+      {
+        "id": "b203045d1bf8edac8c4e0eb442446dc0cf3f36e119442f05d6097d5c1ba6219a",
+        "classification": "non_contract",
+        "owner": "Optional Message/lookup presence",
+        "reason": "Identity comparison observes an existing optional Message Run reference or dictionary lookup result. It neither defines a default nor writes/repairs missing evidence. Declared dispatch state uses RequestAdmission.UNDISPATCHED separately."
+      },
+      {
+        "id": "6962ff4eba2db0449d027ed09f137e56f64cdbbe11bfa199927baae11f1ea18c",
+        "classification": "non_contract",
+        "owner": "Optional Message/lookup presence",
+        "reason": "Identity comparison observes an existing optional Message Run reference or dictionary lookup result. It neither defines a default nor writes/repairs missing evidence. Declared dispatch state uses RequestAdmission.UNDISPATCHED separately."
+      },
+      {
+        "id": "d2cab46b9f66730155de2f83b524d1897d909c001258c3018e8fe1c8cdf5e26b",
+        "classification": "non_contract",
+        "owner": "Optional Message/lookup presence",
+        "reason": "Identity comparison observes an existing optional Message Run reference or dictionary lookup result. It neither defines a default nor writes/repairs missing evidence. Declared dispatch state uses RequestAdmission.UNDISPATCHED separately."
+      },
+      {
+        "id": "2b38c311be08f74b4ecbde814c0972288b66d018934af2881c1de4e0eab902c0",
+        "classification": "non_contract",
+        "owner": "Optional Message/lookup presence",
+        "reason": "Identity comparison observes an existing optional Message Run reference or dictionary lookup result. It neither defines a default nor writes/repairs missing evidence. Declared dispatch state uses RequestAdmission.UNDISPATCHED separately."
+      },
+      {
+        "id": "d5e49174467f169c441cf7f52696732881160cd4aadb051c8061c867750c7236",
+        "classification": "non_contract",
+        "owner": "Optional Message/lookup presence",
+        "reason": "Identity comparison observes an existing optional Message Run reference or dictionary lookup result. It neither defines a default nor writes/repairs missing evidence. Declared dispatch state uses RequestAdmission.UNDISPATCHED separately."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RequestAdmission / RequestDispatch",
+        "declaration": "llm/services/runtime/requests.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/transfers.py",
+          "llm/services/lifecycle/agents.py",
+          "llm/services/history/context.py",
+          "llm/services/api.py",
+          "hub/backend/history.py",
+          "hub/backend/observability/snapshot.py"
+        ],
+        "tests": [
+          "tests/llm/test_request_values.py",
+          "tests/llm/test_request_admission.py",
+          "tests/llm/test_multi_agent.py",
+          "tests/llm/test_multi_agent_crash.py",
+          "tests/llm/test_cross_session_crash.py",
+          "tests/hub/test_request_history.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]
