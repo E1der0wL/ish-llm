@@ -3,6 +3,7 @@
 from llm.core.tool_contracts import ToolContract
 from llm.core.tool_selection_records import ToolBindingRecord, ToolInvocationSelection
 from llm.core.tool_usage_records import ToolUsageError, ToolUsageRecord, ToolUsageCheckpoint
+from llm.components.tools.bindings import ToolHandlerBindings
 
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
@@ -697,8 +698,7 @@ class ToolExecutor:
         arguments = constrained_arguments(tool.parameters, arguments,
             scope.argument_constraints.get(tool.name, {}) if scope is not None else {})
         classification = await self._classify(tool, arguments, context, scope)
-        from inspect import getattr_static
-        bind = getattr(tool.handler, "bind_arguments") if getattr_static(tool.handler, "bind_arguments", None) is not None else None
+        bind = ToolHandlerBindings.declared_binder(tool.handler)
         if callable(bind):
             selected = ToolInvocationSelection(tool.name, arguments, bind(deepcopy(arguments), context))
             name = (metadata or {}).get("checkpoint_name")

@@ -5289,5 +5289,352 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/tools/registry.py",
+    "sha256": "f2fab7163e9e47b7ca3924b7efa2f73b97d0dd51dbc2fbab7128373a4632a0b3",
+    "reason": "Reviewed the whole registration/selection/prepare file and its function, worker, MCP, builtin and Engine consumers. Registry owns registration name restrictions and errors; object Schema shape comes from ToolDefinition and Schema vocabulary from SchemaKeyword. Typed binding Owners serialize fixed output; selected records use mandatory validated Reader properties. Opaque name maps remain dictionaries. Public overrides, handler identity, constraint validation, source copies and authority order are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "146627992ca5ec077dbed67a353d87520eecd4242ba0f0b9407be0d138a13cae",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Dataclass generation options only (frozen/slots); not execution or stored contract values."
+      },
+      {
+        "id": "0219da5d3615fce841970c49420b116d905d9f9ed7026b790e712672639ff63a",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Dataclass generation options only (frozen/slots); not execution or stored contract values."
+      },
+      {
+        "id": "d9c187e61fe66e0b8aec3b77e20d68345ba271654fb5be79ac3fee9cd9542ef6",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "5b338cc49b5f46a6bd03b9bd4cd93e458f315711450dfb9a6e0bceaa8c48a511",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "ed955c231ce3e4298ffc1bf18c2917c51199039ecf4931df9c3abd536e1eabdc",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "939ba5425c74f46e3b978b8672030648ed9e3e45f986415d3da70613c9ab2b76",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "2ec5b8f14a212b2e08e237fd93aa35140165921d7d8a37915347bd2718bd51b4",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "2435041a018fae05aadcbd18eecf745f49ea6ce792aad52e01813557ace9b545",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "be61132559a76b0b1f234b52c62b95a0c861cc66e17ccb0c881190ccbd83f63b",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "d48db93e8eac2af1e35ac204589df487c89b0ac6ab9014c9bebfe91f66489b13",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "21fa67aa7a3a39a0169fadc171712a4433af7eb0d8b92800b79856c358c73105",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "43f6f6e829853d37cdbb985a9d45079cbc056af084f0aad1263900e7333608b5",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "4af6244a42b461eac062ec93d2d57fc2b1f21c87dbecf93b05e771fdd6db037f",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "f8dd7a22b50279dc5926dbbdc7d5b76af81392d9db5c3a3c67513ae27def9f83",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "edf30e7ef1708b8525a074727a1f6f3f90666c4fa7e6f57b4ac6630c7bfcd279",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "0f8974a2b475ad33dfa96469c65931276dd6817fc82a9cf02d1ff6b2f6f9f7ad",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "ae6802a83ba7e33908dcf8cba2ad3efcc66b8817ff709f0f5c9fa68385483ac0",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "0ee47f20eda3dd9df7a853836ec40e106f95e765bf341907ec5f993ecb4efcc1",
+        "classification": "declaration",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "0b65b0e99827ea258b19bc97ca4342d5bdce1dc117a17de3a7af52e39fb5bd92",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "b2d392e2581a729b9a394d1197a17b48129dfa07bc538ba50b3abe718dfc1c54",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "aa7e6da727e35bd13b08086c55bbd4d3c4f26a15c3ad1aca746827b6d2e8f53b",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "6018bd720fa6fc24de67fa1cdc725272a85cd7ccdf9d2e5b775e3cae5f333155",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
+      },
+      {
+        "id": "c516e3e45040a884bbe5a65a3ce36fa2f564ee127e763347e8e0fd3d458d4a27",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
+      },
+      {
+        "id": "5b5a489e14cfb199f4765710342607ed59d598f87fb97b1e45960804b80e7c0c",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "58016d8a0902938dda5faff1b4293e937e9f9988fa309e31a664c17af54d0fc3",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
+      },
+      {
+        "id": "9d49fe368c628961a1826d97fe4e0eb7ca0f2ad36ee5ddcc56dd469d4008ccde",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "170cd699f0aa18df170e417a8eee5aeca60a3d74996aaf6f17a089862d99e26f",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
+      },
+      {
+        "id": "42690d71a21f295bed96dc36fac2f13221f387c21737e3936be6e89be65c7581",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "6603b04ec81d74fadd8d1b44379c227e1c85d92e4b48264b5cee45a96880372f",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "4d866534b73792319de2c2536118c64cce149230a68b31a51b7bbedf2aa6e744",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
+      },
+      {
+        "id": "9094c2a4d2cf611a1bd33c6514a88c13e7b27789ce3f98da2baa2fa869e9a5eb",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "5f66b820e9b7dd103234019f3ae6b673e33737ab5ac666694a675d0b9f7ddf2b",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
+      },
+      {
+        "id": "9481af1d47a61660fca61e7bba03e7e58ff0e4f9c50c87ba393bc63e85902ef5",
+        "classification": "non_contract",
+        "owner": "Tool and ToolRegistry",
+        "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Tool and ToolRegistry",
+        "declaration": "llm/components/tools/registry.py",
+        "consumers": [
+          "llm/components/tools/function.py",
+          "llm/components/tools/process.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/bindings.py",
+    "sha256": "12e513a0c821db53a52c9e0f0154aa33454b6bedba3bb1a6026948d0ed7f7164",
+    "reason": "Reviewed all field declarations, optional omission, metadata wire mapping, detached serialization and hook lookups. No policy is recomputed or default introduced. Trusted execution extension retains existing JSON encoder acceptance and Python shape. Generic field projection is confined to this Owner; dynamic hook names each have one declaration and preserve prior lookup timing.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5a2fdebe33ee603f587a2a495fd9f6f1f86678fe6a4cc59f8b845e6973b6be6d",
+        "classification": "non_contract",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Dataclass generation options only (frozen/slots); not execution or stored contract values."
+      },
+      {
+        "id": "c335c604b0eab404150fe52d87a94550202a540b88f7d4bd3c8d282854e74d80",
+        "classification": "non_contract",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Dataclass generation options only (frozen/slots); not execution or stored contract values."
+      },
+      {
+        "id": "0a96eb8f2053941409aa6c26c1ab7e931479aaf84179a2269d07042f31e83ad6",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "8e7fb830993edc0a73eb47d1244d249a089776b582abaaea6a85832831feb0f0",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "680da5c13ae708532c7a64fe0fe28d635729c3b67ca19fd9bb9b57e075d64664",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "5c775c2db8212209d464c3a33f5774d9da78bbf40a3996a052a446f7851e0092",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "2a3aa3c1ef02261ed47024ce6cf78d3614426bc734b608a925f9e8d893198925",
+        "classification": "non_contract",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
+      },
+      {
+        "id": "5bd7af2b9b52eaa0a21b9f9351cb30d28e43c99fc3de7e50eb04525fd64ee0ec",
+        "classification": "non_contract",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
+      },
+      {
+        "id": "4fc8f3efe367f7c3a34420f61aa21fdfd3b5572f76df0f4f09f3c560d802588d",
+        "classification": "non_contract",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
+      },
+      {
+        "id": "8a2bf034e8677fd40200f5a237c1450ed682ec82b4d3fdb90a5784c0844d0554",
+        "classification": "non_contract",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Dataclass generation options only (frozen/slots); not execution or stored contract values."
+      },
+      {
+        "id": "a8a1e4e5ffc9bf1de4865013a05afc4274128f7892f0f9723837d271e8fd077a",
+        "classification": "non_contract",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Dataclass generation options only (frozen/slots); not execution or stored contract values."
+      },
+      {
+        "id": "b433eb7907d819832fafbe313d961762cc5b9ef2b34565c4d5137d013c5e0c4e",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "2dd78994fa447cc1ab76da37b03e6c9c9a7a26caf1c02b1baa0142abfa2c1c38",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "1a493bb0b5e8b8240c522e845b91ebcccacaabb27200de5f07d2a57713c9e9fd",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "9fc5095cf4ad3f470cf6aec6742f50b03a3fabec261197a0d7d8ac62bc1a5e0a",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      },
+      {
+        "id": "239257e4005e83ec534ae6554a44026d41e0718423079db63df1cf2a43869154",
+        "classification": "declaration",
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
+        "declaration": "llm/components/tools/bindings.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

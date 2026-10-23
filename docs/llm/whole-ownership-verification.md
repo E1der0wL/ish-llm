@@ -1494,3 +1494,55 @@ incomplete 계약 2개로 전체 완료를 선언하지 않는다.
 현재 464개 파일, 미검토 400개, 미분류 30064개, incomplete 계약 2개다. 전체 완료는 계속 차단된다.
 
 이 집중 검증 결과는 Level 2 증거다. 공통 사용량 Reader 변경을 포함하므로 다음 현재 통합 Level 3를 필수 게이트로 지정하며, 그 성공 전 이 변경을 Push하지 않는다. Tool 등록 정보와 남은 실행 계약 소비자도 계속 정리한다.
+
+
+## Tool 등록 정보·실행 binding·선택 hook의 단일 소유 (2026-10-23)
+
+[등록 계약](tool-registration-bindings.md)에 따라 고정 등록 정보와 Engine 관측 binding은
+ToolRegistrationBinding/ToolExecutionBinding이 직렬화한다. 공개 Registry 재정의, 선택적 필드
+생략, Application 확장의 JSON encoder 수용 범위와 Python 모양을 유지한다. Hook의 정적 선언
+확인과 동적 조회는 ToolHandlerBindings로 옮기되 기존 서로 다른 조회 시점을 보존한다.
+
+ToolDefinition이 객체 인자 조건을 소유하여 Registry와 같은 검사를 쓴다. 준비 단계의 중복
+객체/finite 검사는 기존 json_copy/constrained_arguments가 맡으며 공개 오류와 효과 0을 유지한다.
+변경되지 않은 모델 _record Reader의 AST 동일성을 확인했다. 초기 33개, 추가 독립 등록/모델/
+선택 smoke 21개는 pass/exit 0이며 공식 실행과 합산하지 않는다.
+
+초기 정적 검사는 내부 tool_policy 필드를 S5의 폐기된 실행 API 이름으로 검출했다. 검사나
+금지 규칙을 완화하지 않고 내부 속성은 policy, 기존 wire 이름은 그 필드 metadata로 명시했다.
+독립 wire와 opaque dataclass 정책/tuple 확장/공개 override 시험이 동일 출력을 확인한다.
+초기 정적 실패는 static-review.json/log에 보존한다.
+
+- `whole-tool-registration-01`: 발견/시작/pass 122/122/122, exit 0, 93.942040초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-registration-01/llm.json --modules tests.llm.test_tool_registration_bindings tests.llm.test_tool_declarations tests.llm.test_model_protocol tests.llm.test_tool_selection_records tests.llm.test_tool_constraints tests.llm.test_agent_delegation tests.llm.test_mcp_runtime tests.llm.test_tool_workers tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `9a3efcd1606fbf55d3d5c616523451aee5af3c797593aba375a79429598be5af`, input `61de0a1e6775f58a9855fa9cb44d75a852bf8df230f04a9e13fa26aa23d3d96a`.
+
+- `whole-tool-registration-hub-01`: 발견/시작/pass 31/31/31, exit 0, 115.634649초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-tool-registration-hub-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_question_tools tests.hub.test_interaction_updates tests.hub.test_tool_advice`.
+  source `9a3efcd1606fbf55d3d5c616523451aee5af3c797593aba375a79429598be5af`, input `61de0a1e6775f58a9855fa9cb44d75a852bf8df230f04a9e13fa26aa23d3d96a`.
+
+- `whole-tool-registration-wire-02`: 발견/시작/pass 37/37/37, exit 0, 12.099855초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-registration-wire-02/llm.json --modules tests.llm.test_tool_registration_bindings tests.llm.test_tool_declarations tests.llm.test_tool_selection_records tests.llm.test_agent_delegation tests.llm.test_tool_constraints`.
+  source `a6dd621ce748a7aa3b2294d3c2c90b07faa0e52217329bf8bff5f89417c079db`, input `77aef60d5ff17b5aa075f933333dda67157cfd1679d4bf713f78547301802aed`.
+
+- `whole-tool-registration-safety-02`: 발견/시작/pass 50/50/50, exit 0, 26.847420초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-registration-safety-02/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `a6dd621ce748a7aa3b2294d3c2c90b07faa0e52217329bf8bff5f89417c079db`, input `160b40d6c8ece820f4a635f74b5dd9d8b08e19be276e6772ccb154a9bafcd88f`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. 첫 두 실행은 내부 필드
+이름 변경 전 소스다. 이후 최종 wire 매핑은 독립 binding/선언/Agent/제약 소비자와 필수 안전성
+집합을 최종 소스에서 추가 실행했다. 이전 Hub/worker/MCP 결과를 최종 소스의 전체 통과로
+승계하지 않는다. 현재 전체 Level 3가 모든 직접/간접 소비자를 다시 검증한다.
+전후 manifest는 각 실행 안에서 동일하며 Python 3.12.14/Clang·고정 Host·의존성·namespace/X11을
+유지했다. 후속 실행의 input hash 차이는 문서/정적 감사 증거 갱신을 포함하며 테스트/fixture와
+최종 제품 source는 별도로 식별한다.
+
+기존 정적 근거 21건을 재검토했고 최종 발생 추가/삭제는 없다. 감사 자체 시험 16개는 pass/exit 0,
+tool-registration-auxiliary의 S1–S7 145건·문서·R3·SDK·양 suite 환경도 각각 exit 0이다.
+Registry와 새 binding Owner 파일만 전수 판정을 추가했다. 모델 프로토콜 및 Runtime의 나머지
+전환은 계속 미완료로 추적한다. 현재 465개 파일, 미검토 399개,
+미분류 29999개, incomplete 계약 2개다.
+
+이 소단계의 집중/관련/필수 안전성 결과를 보존하고 Tool 함수·선택/공통 사용량·등록 변경을
+묶어 고정 현재 SHA의 전체 Level 3를 진행한다. 통과 후에만 작업 브랜치에 Push하며 정확한 SHA
+원격 CI 결과를 실제 확인한다. 전체 미전환 범위는 계속 진행한다.

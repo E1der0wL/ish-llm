@@ -171,6 +171,8 @@ class ToolResult:
 
 @dataclass(frozen=True, slots=True)
 class ToolDefinition:
+    INVALID_PARAMETERS = "Tool parameters must describe an object"
+
     name: str
     description: str
     parameters: dict
@@ -181,12 +183,17 @@ class ToolDefinition:
         if not isinstance(self.name, str) or not self.name or not isinstance(self.description, str):
             raise ValueError("Tool definition requires a name and description")
         parameters = _object(self.parameters)
-        if parameters.get("type") != "object":
-            raise ValueError("Tool parameters must describe an object")
+        self.require_object_parameters(parameters)
         if self.strict is not None and type(self.strict) is not bool:
             raise TypeError("Tool strictness must be boolean or None")
         object.__setattr__(self, "parameters", parameters)
         object.__setattr__(self, "opaque", _object(self.opaque))
+
+    @classmethod
+    def require_object_parameters(cls, parameters):
+        from .schema import SchemaKeyword, SchemaType
+        if parameters.get(SchemaKeyword.TYPE) != SchemaType.OBJECT:
+            raise ValueError(cls.INVALID_PARAMETERS)
 
     def to_dict(self):
         return dict(name=self.name, description=self.description, parameters=_object(self.parameters),

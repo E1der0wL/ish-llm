@@ -2,12 +2,10 @@
 
 Explicitly registered async tools; no automatic shell or filesystem access."""
 
-import json
 import re
 from dataclasses import dataclass, field, replace
 from collections.abc import Awaitable, Callable
 from copy import deepcopy
-from inspect import getattr_static
 from typing import Any, Optional
 
 from jsonschema import Draft202012Validator
@@ -15,10 +13,14 @@ from llm.core.model_protocol import ToolDefinition, copy_model, json_copy
 from llm.core.tool_contracts import ToolClassification, ToolContract, ToolEffect, ToolIsolation
 from llm.core.tool_selection_records import ToolBindingRecord
 from llm.core.checkpoint_records import CheckpointRecords
+from llm.core.schema import SchemaKeyword
+from .bindings import ToolExecutionBinding, ToolHandlerBindings, ToolRegistrationBinding
 
 
 @dataclass(frozen=True, slots=True)
 class Tool:
+    INVALID_CONTRACT = "Tool contract must be ToolContract"
+
     name: str
     description: str
     parameters: dict[str, Any]
@@ -30,11 +32,24 @@ class Tool:
 
     def __post_init__(self):
         if not isinstance(self.contract, ToolContract):
-            raise TypeError("Tool contract must be ToolContract")
+            raise TypeError(self.INVALID_CONTRACT)
 
 
 # 런타임 함수와 인자 Schema를 등록한다. 저장된 Tool 선택과 분리된다.
 class ToolRegistry:
+    NAME_PATTERN = r"[A-Za-z0-9_-]{1,64}"
+    INVALID_CLASSIFICATION = "Tool classification must be ToolClassification"
+    INVALID_NAME = "Invalid or duplicate tool name"
+    INVALID_RETRY_FIELDS = "Tool retry_fields must name declared parameters"
+    DURABLE_RETRY_FIELDS = "Durable selected Tool bindings do not support retry_fields; start a new invocation"
+    MISMATCHED_DEFINITION = "Tool definition does not match its runtime binding"
+    CHANGED_SELECTION = "Selected Tool execution configuration changed; start a new request"
+    UNAVAILABLE_HANDLER = "Tool handler is unavailable"
+    DUPLICATE_ENABLED = "Duplicate enabled tool"
+    UNAVAILABLE_ENABLED = "Enabled tool is unavailable"
+    INVALID_ARGUMENTS = "Unknown tool or invalid tool arguments"
+    NO_CONSTRAINTS = None
+
     def __init__(self, tools: tuple[Tool, ...] = ()) -> None:
         self._tools: dict[str, Tool] = {}
         for tool in tools:
@@ -42,21 +57,20 @@ class ToolRegistry:
 
     def register(self, tool: Tool) -> None:
         if tool.classification is not None and not isinstance(tool.classification, ToolClassification):
-            raise TypeError("Tool classification must be ToolClassification")
+            raise TypeError(self.INVALID_CLASSIFICATION)
         if not isinstance(tool.contract, ToolContract):
-            raise TypeError("Tool contract must be ToolContract")
-        if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", tool.name) or tool.name in self._tools:
-            raise ValueError("Invalid or duplicate tool name")
+            raise TypeError(Tool.INVALID_CONTRACT)
+        if not re.fullmatch(self.NAME_PATTERN, tool.name) or tool.name in self._tools:
+            raise ValueError(self.INVALID_NAME)
         schema = deepcopy(tool.parameters)
-        if schema.get("type") != "object":
-            raise ValueError("Tool parameters must describe an object")
-        if set(tool.contract.retry_fields) - schema.get("properties", {}).keys():
-            raise ValueError("Tool retry_fields must name declared parameters")
+        ToolDefinition.require_object_parameters(schema)
+        if set(tool.contract.retry_fields) - schema.get(SchemaKeyword.PROPERTIES, {}).keys():
+            raise ValueError(self.INVALID_RETRY_FIELDS)
         # A durable selected child cannot change identity through argument repair.
         # A new selection requires a new invocation and its own approval binding.
         if (tool.contract.retry_fields
-                and getattr_static(tool.handler, "bind_arguments", None) is not None):
-            raise ValueError("Durable selected Tool bindings do not support retry_fields; start a new invocation")
+                and ToolHandlerBindings.declares_selection(tool.handler)):
+            raise ValueError(self.DURABLE_RETRY_FIELDS)
         from llm.core.schema import validate_local_refs
         validate_local_refs(schema)
         Draft202012Validator.check_schema(schema)
@@ -64,22 +78,14 @@ class ToolRegistry:
         if definition is not None:
             if (not isinstance(definition, ToolDefinition) or definition.name != tool.name
                     or definition.parameters != schema or definition.description != tool.description):
-                raise ValueError("Tool definition does not match its runtime binding")
+                raise ValueError(self.MISMATCHED_DEFINITION)
         self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition,
                                      contract=tool.contract, classification=tool.classification)
 
     def contracts(self):
-        contracts = {}
-        for name, tool in self._tools.items():
-            if tool.classification is not None:
-                contracts[name] = {"classification": tool.classification.to_dict()}
-            contracts.setdefault(name, {}).update(tool.contract.to_dict())
-            # 신뢰한 실행 adapter의 immutable binding도 승인/재개 fingerprint에 포함한다.
-            binding = getattr(tool.handler, "execution_binding", None)
-            if binding is not None:
-                json.dumps(binding, allow_nan=False)
-                contracts[name]["execution_binding"] = deepcopy(binding)
-        return contracts
+        return {name: ToolRegistrationBinding(tool.contract, tool.classification,
+                    ToolHandlerBindings.execution_binding(tool.handler)).to_dict()
+                for name, tool in self._tools.items()}
 
     def execution_binding(self, policy):
         """Shared Tool identity inside each Engine's own execution binding.
@@ -87,8 +93,8 @@ class ToolRegistry:
         The caller supplies the current scope policy; this observation grants no
         approval and does not replace checks immediately before execution.
         """
-        return {"tools": [tool.to_dict() for tool in self.definitions()],
-                "tool_contracts": self.contracts(), "tool_policy": deepcopy(policy)}
+        return ToolExecutionBinding([tool.to_dict() for tool in self.definitions()],
+                                    self.contracts(), policy).to_dict()
 
     def validate_selections(self, context):
         """Validate only durably selected invocation bindings, including nested scopes."""
@@ -99,15 +105,15 @@ class ToolRegistry:
             record.require_key(key)
             selected = record.selection
             handler = self.get(selected.tool).handler
-            bind = getattr(handler, "bind_arguments", None)
+            bind = ToolHandlerBindings.binder(handler)
             if not callable(bind) or bind(selected.arguments, context) != selected.binding:
-                raise ValueError("Selected Tool execution configuration changed; start a new request")
-            validate = getattr(handler, "validate_selection", None)
+                raise ValueError(self.CHANGED_SELECTION)
+            validate = ToolHandlerBindings.validator(handler)
             if callable(validate):
                 validate(selected.arguments, context, request_key=record.request_key,
                          checkpoint_name=record.checkpoint_name)
 
-    def definitions(self, *, constraints=None) -> tuple[ToolDefinition, ...]:
+    def definitions(self, *, constraints=NO_CONSTRAINTS) -> tuple[ToolDefinition, ...]:
         from .constraints import constrained_parameters
         definitions = (copy_model(tool.definition) if tool.definition is not None else
                        ToolDefinition(tool.name, tool.description, tool.parameters)
@@ -123,32 +129,29 @@ class ToolRegistry:
         try:
             tool = self._tools[name]
         except KeyError:
-            raise ValueError("Tool handler is unavailable") from None
+            raise ValueError(self.UNAVAILABLE_HANDLER) from None
         return Tool(tool.name, tool.description, deepcopy(tool.parameters), tool.handler,
                     copy_model(tool.definition), contract=tool.contract, classification=tool.classification)
 
     def select(self, names: tuple[str, ...]) -> "ToolRegistry":
         if len(set(names)) != len(names):
-            raise ValueError("Duplicate enabled tool")
+            raise ValueError(self.DUPLICATE_ENABLED)
         try:
             return ToolRegistry(tuple(self._tools[name] for name in names))
         except KeyError:
-            raise ValueError("Enabled tool is unavailable") from None
+            raise ValueError(self.UNAVAILABLE_ENABLED) from None
 
     def extend(self, other: "ToolRegistry") -> None:
         for tool in other._tools.values():
             self.register(tool)
 
-    def prepare(self, name: str, arguments: dict, *, constraints=None) -> tuple[Tool, dict[str, Any]]:
+    def prepare(self, name: str, arguments: dict, *, constraints=NO_CONSTRAINTS) -> tuple[Tool, dict[str, Any]]:
         """Validate before executing any tool in a returned batch."""
         try:
             tool = self._tools[name]
             values = json_copy(arguments)
-            if not isinstance(values, dict):
-                raise ValueError("Expected argument object")
-            json.dumps(values, allow_nan=False)
             from .constraints import constrained_arguments
             values = constrained_arguments(tool.parameters, values, (constraints or {}).get(name, {}))
         except Exception:
-            raise ValueError("Unknown tool or invalid tool arguments") from None
+            raise ValueError(self.INVALID_ARGUMENTS) from None
         return tool, values

@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 464,
-    "unreviewed_files": 400,
+    "files": 465,
+    "unreviewed_files": 399,
     "stale_files": 0,
-    "unclassified": 30064,
+    "unclassified": 29999,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 402,
+    "unreviewed_dynamic_paths": 401,
     "unreadable_files": 0,
-    "candidates": 30728,
+    "candidates": 30712,
     "issues": 0
   },
   "files": [
@@ -1796,6 +1796,12 @@
       "candidates": 18
     },
     {
+      "path": "llm/components/tools/bindings.py",
+      "status": "reviewed",
+      "sha256": "12e513a0c821db53a52c9e0f0154aa33454b6bedba3bb1a6026948d0ed7f7164",
+      "candidates": 16
+    },
+    {
       "path": "llm/components/tools/builtin/README.md",
       "status": "unreviewed",
       "sha256": "a7670e8e25f506efc23ca40865714ebbd7faaac775f894be9898a85a03af44be",
@@ -1893,9 +1899,9 @@
     },
     {
       "path": "llm/components/tools/registry.py",
-      "status": "unreviewed",
-      "sha256": "f5aa6ccd421ae2ef416b2561c9c3c9fc81c11c96457b75555dd9cb6d7c6d9d2c",
-      "candidates": 58
+      "status": "reviewed",
+      "sha256": "f2fab7163e9e47b7ca3924b7efa2f73b97d0dd51dbc2fbab7128373a4632a0b3",
+      "candidates": 33
     },
     {
       "path": "llm/components/tools/resolver.py",
@@ -2104,8 +2110,8 @@
     {
       "path": "llm/core/model_protocol.py",
       "status": "unreviewed",
-      "sha256": "8e889e8cf15e1e3bc6992925d6ae270c7786059eb7986829b01f86a07ae63072",
-      "candidates": 202
+      "sha256": "7760b1c23829e6b9b5b52031141e60e6987cba7407c0449e6153754e5054edbc",
+      "candidates": 200
     },
     {
       "path": "llm/core/models.py",
@@ -2770,8 +2776,8 @@
     {
       "path": "llm/services/runtime/tools.py",
       "status": "unreviewed",
-      "sha256": "4d781ef1730ea1796a92aab2c0f099594080bc23dd196717d67d048e0cb03cb5",
-      "candidates": 486
+      "sha256": "01910bc9adb18edc5f3feb0e8e8ab17126e1e98a9c7499c09499848eadf51c71",
+      "candidates": 481
     },
     {
       "path": "llm/services/runtime/transfer_values.py",
