@@ -1,5 +1,7 @@
 """Settings operations on the backend loop, through public LLM APIs only."""
 
+from hub.locales.keys import MessageKey
+
 from llm.services.schema import ProjectConfigForm, ProjectConfiguration
 
 from copy import deepcopy
@@ -20,7 +22,7 @@ class SettingsService:
 
     def _schema(self):
         schema = self.runtime.backend.describe_project_config()
-        schema["properties"]["conversation_storage"]["description"] = self.runtime.t("settings_storage_description")
+        schema["properties"]["conversation_storage"]["description"] = self.runtime.t(MessageKey.SETTINGS_STORAGE_DESCRIPTION)
         from ..interactions.approval import RISK_SCHEME
         schema["x-hub-risk-scheme"] = RISK_SCHEME
         from .settings_descriptions import describe_options
@@ -35,10 +37,10 @@ class SettingsService:
         Draft202012Validator(self._schema()).validate(values)
         form = ProjectConfigForm.from_dict(values)
         if not form.title.strip():
-            raise ValueError(self.runtime.t("settings_title_required"))
+            raise ValueError(self.runtime.t(MessageKey.SETTINGS_TITLE_REQUIRED))
         from ..execution.engine_selection import selected_engines
         if not selected_engines(ProjectConfig.from_dict(form.config), self.runtime.backend.engines.names()):
-            raise ValueError(self.runtime.t("settings_engine_required"))
+            raise ValueError(self.runtime.t(MessageKey.SETTINGS_ENGINE_REQUIRED))
         return form
 
     async def _project(self, identifier):
@@ -49,7 +51,7 @@ class SettingsService:
         for session in sessions:
             status = await session.run.astatus()
             if status.active_runs or status.queued_count or session.id in self.runtime.namer.tasks:
-                raise ValueError(self.runtime.t("settings_project_busy"))
+                raise ValueError(self.runtime.t(MessageKey.SETTINGS_PROJECT_BUSY))
         return sessions
 
     async def catalog(self):
@@ -100,7 +102,7 @@ class SettingsService:
         current = await project.aget_data()
         previous = list(current.components) if previous_components is None else previous_components
         if list(current.components) != previous:
-            raise ValueError(self.runtime.t("settings_components_changed"))
+            raise ValueError(self.runtime.t(MessageKey.SETTINGS_COMPONENTS_CHANGED))
         candidate = deepcopy(form.config)
         await project.asave(title=form.title, config=candidate,
                             conversation_storage=form.conversation_storage, expected_version=version,
@@ -109,7 +111,7 @@ class SettingsService:
 
     async def rename_project(self, identifier, title):
         if not title.strip():
-            raise ValueError(self.runtime.t("settings_title_required"))
+            raise ValueError(self.runtime.t(MessageKey.SETTINGS_TITLE_REQUIRED))
         project = await self._project(identifier)
         await project.asave(title=title.strip())
         return await self.load_project(identifier)
@@ -126,13 +128,13 @@ class SettingsService:
     async def select_components(self, identifier, names, previous):
         project = await self._project(identifier)
         if list((await project.aget_data()).components) != previous:
-            raise ValueError(self.runtime.t("settings_components_changed"))
+            raise ValueError(self.runtime.t(MessageKey.SETTINGS_COMPONENTS_CHANGED))
         await project.components.aselect(names)
         return list((await project.aget_data()).components)
 
     async def clone_project(self, identifier, title):
         if not title.strip():
-            raise ValueError(self.runtime.t("settings_title_required"))
+            raise ValueError(self.runtime.t(MessageKey.SETTINGS_TITLE_REQUIRED))
         project = await self._project(identifier)
         sessions = await self._idle_sessions(project)
         try:
@@ -151,7 +153,7 @@ class SettingsService:
         if identifier == self.runtime.project.id:
             others = [item for item in await self.runtime.backend.projects.alist() if item.id != identifier]
             if not others:
-                raise ValueError(self.runtime.t("project_delete_last"))
+                raise ValueError(self.runtime.t(MessageKey.PROJECT_DELETE_LAST))
             await self.runtime.activate_project(others[0])
         try:
             for session in sessions:

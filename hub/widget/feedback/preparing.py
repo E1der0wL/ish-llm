@@ -1,5 +1,7 @@
 """Immediate local submission feedback, separate from durable chat history."""
 
+from hub.locales.keys import MessageKey
+
 from llm.core.models import MessageStatus
 from prompt_toolkit.application.current import get_app
 import asyncio
@@ -24,7 +26,7 @@ class PreparingResponse:
         return (getattr(view, "project_id", ""), view.sessions[view.selected].id) in self.pending
 
     def text(self):
-        return self.view.t("preparing_response") + " · " + self.view.model
+        return self.view.t(MessageKey.PREPARING_RESPONSE) + " · " + self.view.model
 
     def start(self, key, text="", *, resume_run_id=None, turn_id=None):
         self.pending[key] = None

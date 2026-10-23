@@ -1,5 +1,7 @@
 """Help, activity and other read-only results share one interaction contract."""
 
+from hub.locales.keys import MessageKey
+
 from prompt_toolkit.layout import HSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
 
@@ -22,8 +24,8 @@ class ReadOnlyDialog(Dialog):
         def scroll(event):
             self.output.scroll(event.key_sequence[-1].key)
             event.app.invalidate()
-        registry.add(MOVEMENT_KEYS, t("shortcut_movement"), "scroll", scroll)
-        self.close_button = Button(t("history_close"), handler=close)
+        registry.add(MOVEMENT_KEYS, t(MessageKey.SHORTCUT_MOVEMENT), "scroll", scroll)
+        self.close_button = Button(t(MessageKey.HISTORY_CLOSE), handler=close)
         self.close_button.control.key_bindings = merge_key_bindings([
             self.close_button.control.key_bindings, registry.bindings])
         self.close_button.control.hub_shortcuts = registry

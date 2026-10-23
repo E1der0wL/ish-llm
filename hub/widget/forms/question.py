@@ -1,5 +1,7 @@
 """Questions and approvals reuse the chat composer without another focus target."""
 
+from hub.locales.keys import MessageKey
+
 import json
 from llm.core.interactions import InteractionOption
 from ...model import QuestionSource
@@ -103,7 +105,7 @@ class QuestionComposer:
     def heading(self):
         if not self.item:
             return ""
-        key = "approval_heading" if self.item["request"].get("action") else "question_heading"
+        key = MessageKey.APPROVAL_HEADING if self.item["request"].get("action") else MessageKey.QUESTION_HEADING
         return " " + self.view.t(key)
 
     def options(self):
@@ -112,8 +114,8 @@ class QuestionComposer:
     def hint(self):
         if not self.item or self.busy:
             return ""
-        key = ("question_text_hint" if self.choices.labels() else "question_free_text_hint") if self.item["live"] else "question_choice_hint"
-        return " " + self.view.t(key) + "\n " + self.view.t("question_details_hint")
+        key = (MessageKey.QUESTION_TEXT_HINT if self.choices.labels() else MessageKey.QUESTION_FREE_TEXT_HINT) if self.item["live"] else MessageKey.QUESTION_CHOICE_HINT
+        return " " + self.view.t(key) + "\n " + self.view.t(MessageKey.QUESTION_DETAILS_HINT)
 
     def detail_lines(self):
         request = self.item["request"]
@@ -140,7 +142,7 @@ class QuestionComposer:
         else:
             number, _, value_text = text.partition(" ")
             if not number.isdecimal() or not 1 <= int(number) <= len(request["options"]):
-                self.view.notice = self.view.t("question_choice_hint")
+                self.view.notice = self.view.t(MessageKey.QUESTION_CHOICE_HINT)
                 return
             option = request["options"][int(number) - 1]
             option_id, value = option["id"], None

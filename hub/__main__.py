@@ -1,5 +1,7 @@
 """Run a live Hub from a checkout: python -m hub --help."""
 
+from hub.locales.codes import LanguageCode
+
 import argparse
 from .backend.project.agents import DEFAULT_AGENT
 from pathlib import Path
@@ -18,7 +20,7 @@ def main() -> None:
     parser.add_argument("--project", help="Existing Project ID; retains its persisted model/settings")
     parser.add_argument("--session", help="Existing Session ID inside --project")
     parser.add_argument("--theme", choices=("terminal", "dark"), default="terminal")
-    parser.add_argument("--language", choices=("ko", "en"), default="ko")
+    parser.add_argument("--language", choices=LanguageCode.BUILTIN, default=LanguageCode.DEFAULT)
     parser.add_argument("--file-root", type=Path, help="Root for @path completion")
     args = parser.parse_args()
     if not args.project and not args.model:

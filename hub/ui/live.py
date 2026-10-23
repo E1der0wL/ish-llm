@@ -1,5 +1,9 @@
 """UI-thread controller; backend handles never cross into PTK callbacks."""
 
+from hub.locales.codes import LanguageCode
+
+from hub.locales.keys import MessageKey
+
 from llm.core.models import MessageStatus, RunStatus
 import asyncio
 from dataclasses import replace
@@ -22,16 +26,16 @@ from .chat.component_ui import ComponentCommands
 
 
 class LiveHubView(HubView):
-    def __init__(self, theme=None, language="ko", language_packs=None):
+    def __init__(self, theme=None, language=LanguageCode.DEFAULT, language_packs=None):
         super().__init__(theme=theme, language=language, language_packs=language_packs)
-        self.sessions = [SessionView(self.t("connecting"))]
+        self.sessions = [SessionView(self.t(MessageKey.CONNECTING))]
         self.output.set_messages(())
-        self.project_title = self.t("connecting")
+        self.project_title = self.t(MessageKey.CONNECTING)
         self.project_id = ""
         self.model = ""
         self.agent_id = ""
         self.connected = False
-        self.notice = self.t("connecting_notice")
+        self.notice = self.t(MessageKey.CONNECTING_NOTICE)
         self._submitted_messages = {}
         self._presentation_cache = MessagePresentationCache()
         self.failure_diagnoses = {}
@@ -89,7 +93,7 @@ class LiveHubView(HubView):
                          for s in display.sessions]
         self.no_sessions = not bool(self.sessions)
         if self.no_sessions:
-            self.sessions = [SessionView(self.t("welcome_title"))]
+            self.sessions = [SessionView(self.t(MessageKey.WELCOME_TITLE))]
         for index, session in enumerate(self.sessions):
             if session.id == snapshot.selected_id:
                 self.sessions[index] = replace(session, messages=display.messages)
@@ -165,7 +169,7 @@ class LiveController:
         self.closed = False
         self.requests = UIRequests(lambda: self.worker, self._dispatch,
             active=lambda: not self.closed, connected=lambda: self.view.connected,
-            unavailable=lambda: self.view.t("not_connected"))
+            unavailable=lambda: self.view.t(MessageKey.NOT_CONNECTED))
         self._snapshot_inbox = SnapshotInbox()
         self._submitting = set()
         self._choosing_submission = False
@@ -223,7 +227,7 @@ class LiveController:
             return
         info = self.view.operation_diagnostics.record(self.view.project_id, error)
         message = operation_notice(error if isinstance(error, str) else info, self.view.t)
-        self.view.notice = self.view.t("error", error=message)
+        self.view.notice = self.view.t(MessageKey.ERROR, error=message)
         self.view.toasts.alert(self.view.sessions[self.view.selected].title, message, "error", "backend-error")
         self.app.invalidate()
 
@@ -345,7 +349,7 @@ class LiveController:
             self._view_writer.save(self.view.project_id, self.view.sessions[self.view.selected].id,
                                   {key: value for key, value in self.view._positions.items() if not key.startswith("sample:")})
         except (OSError, ValueError, TypeError) as error:
-            self.view.notice = self.view.t("view_state_error", error=error)
+            self.view.notice = self.view.t(MessageKey.VIEW_STATE_ERROR, error=error)
 
     def _reading_changed(self):
         self.view.remember_position()
@@ -421,7 +425,7 @@ class LiveController:
             return
         current_id = view.sessions[view.selected].id
         if current_id == session_id:
-            view.notice = view.t("instruction_saved" if operation == "steer" else "saved")
+            view.notice = view.t(MessageKey.INSTRUCTION_SAVED if operation == "steer" else MessageKey.SAVED)
             if view.general.auto_scroll:
                 view.output.restore_position(None)
                 view.output.set_follow_tail(True)
@@ -477,7 +481,7 @@ class LiveController:
 
     def submit(self, session_id: str, text: str):
         if not session_id:
-            self.view.notice = self.view.t("session_required")
+            self.view.notice = self.view.t(MessageKey.SESSION_REQUIRED)
             self.view.session_dialog("new")
             return
         if not text.strip() or session_id in self._submitting or self._choosing_submission:
@@ -516,14 +520,14 @@ class LiveController:
             def follow_up():
                 self._send("submit_input", session_id, text, text, agent_id, options, False, draft=draft)
             from ..widget.controls import RadioList
-            choices = RadioList([("steer", view.t("send_steering")), ("follow_up", view.t("send_follow_up"))],
+            choices = RadioList([("steer", view.t(MessageKey.SEND_STEERING)), ("follow_up", view.t(MessageKey.SEND_FOLLOW_UP))],
                                 default="follow_up", select_on_focus=True)
             def accept():
                 if choices.current_value == "steer":
                     self.steer(session_id, text, expected_run_id=state.run_id, draft=draft)
                 else:
                     follow_up()
-            view.open_dialog(view.t("send_while_running"), choices, accept, choices,
+            view.open_dialog(view.t(MessageKey.SEND_WHILE_RUNNING), choices, accept, choices,
                              on_cancel=lambda: draft.restore(view))
             # This override and its hint share the choice widget's registry.
             def confirm(event):
@@ -544,7 +548,7 @@ class LiveController:
                 return
             run_id, targets = value
             if expected_run_id is not None and run_id != expected_run_id:
-                self._error(self.view.t("instruction_run_changed"))
+                self._error(self.view.t(MessageKey.INSTRUCTION_RUN_CHANGED))
                 if draft:
                     draft.restore(self.view)
                 return
@@ -553,7 +557,7 @@ class LiveController:
             else:
                 from ..widget.controls import RadioList
                 choices = RadioList(list(targets), select_on_focus=True)
-                self.view.open_dialog(self.view.t("choose_target"), choices,
+                self.view.open_dialog(self.view.t(MessageKey.CHOOSE_TARGET), choices,
                     lambda: self._send("steer", session_id, text, run_id, text, [choices.current_value], draft=draft), choices,
                     on_cancel=lambda: draft and draft.restore(self.view))
         self._call("instruction_targets", session_id, expected_run_id, completed=ready)
@@ -577,7 +581,7 @@ class LiveController:
         if key in self.view.preparing.resuming:
             return
         if key in self.view.interrupting.pending:
-            self.view.notice = self.view.t("cancel_wait")
+            self.view.notice = self.view.t(MessageKey.CANCEL_WAIT)
             self.app.invalidate()
             return
         snapshot = getattr(self.view, "_last_snapshot", None)
@@ -590,7 +594,7 @@ class LiveController:
         request = self.view.interrupting.start(key)
         if request:
             self.view.question.leave()
-        waiting = self.view.t("cancel_wait")
+        waiting = self.view.t(MessageKey.CANCEL_WAIT)
         def explain_delay():
             if not self.closed and request and self.view.interrupting.pending.get(key) is request:
                 self.view.notice = waiting

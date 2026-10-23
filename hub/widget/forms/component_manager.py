@@ -1,5 +1,7 @@
 """Shared import/list/action popup for project component data."""
 
+from hub.locales.keys import MessageKey, MessagePattern
+
 from datetime import datetime
 
 from prompt_toolkit.application.current import get_app
@@ -24,7 +26,7 @@ class ComponentManager(Dialog):
         self.component_settings = component_settings
         self.entries, self.selected, self.busy, self.status = [], "", False, ""
         self.path = InputField(input=PathInput(lambda: view.file_root, directories=directories),
-                               button_text=view.t("component_import"), on_action=lambda: self.import_path(self.path.buffer))
+                               button_text=view.t(MessageKey.COMPONENT_IMPORT), on_action=lambda: self.import_path(self.path.buffer))
         self.path.buffer.accept_handler = self.import_path
         registry = ShortcutRegistry()
         registry.add(["up", "down"], "↑↓", "select", lambda e: self.move(-1 if e.key_sequence[-1].key == "up" else 1))
@@ -35,20 +37,20 @@ class ComponentManager(Dialog):
             registry.add([" "], "Space", "tools_toggle", lambda e: self.toggle(), when=lambda: not self.busy)
         self.list = SidebarList(self.items, lambda: self.selected, self.select, key_bindings=registry.bindings)
         self.list.hub_shortcuts = registry
-        super().__init__(title=view.t(name + "_title"), body=HSplit([
-            Label(view.t(name + "_import_hint")), self.path, Window(height=1), Label(view.t("tools_columns")),
+        super().__init__(title=view.t(MessagePattern.component_title(name)), body=HSplit([
+            Label(view.t(MessagePattern.component_import_hint(name))), self.path, Window(height=1), Label(view.t(MessageKey.TOOLS_COLUMNS)),
             Window(self.list, height=lambda: Dimension.exact(max(2, min(18, view._rows() - 14 - detail_lines))),
                    wrap_lines=True, right_margins=[ScrollbarMargin(display_arrows=True)]),
             Label(self.hint)]),
-            buttons=[Button(view.t("settings_reload"), handler=self.reload, width=button_width),
-                     *([Button(view.t("settings_title"), handler=self.open_settings, width=button_width)]
+            buttons=[Button(view.t(MessageKey.SETTINGS_RELOAD), handler=self.reload, width=button_width),
+                     *([Button(view.t(MessageKey.SETTINGS_TITLE), handler=self.open_settings, width=button_width)]
                        if component_settings else []),
                      *extra_buttons,
-                     Button(view.t("search_close"), handler=view.close_dialog, width=button_width)],
+                     Button(view.t(MessageKey.SEARCH_CLOSE), handler=view.close_dialog, width=button_width)],
             width=lambda: Dimension(preferred=100, max=max(1, view._columns() - 4)))
 
     def hint(self):
-        return self.status or self.view.t("tools_hint" if self.name == "tools" else "manager_hint")
+        return self.status or self.view.t(MessageKey.TOOLS_HINT if self.name == "tools" else MessageKey.MANAGER_HINT)
 
     def open_settings(self):
         if not self.component_settings:
@@ -68,10 +70,10 @@ class ComponentManager(Dialog):
             except (ValueError, TypeError):
                 stamp = "—"
             if item.get("builtin"):
-                stamp = self.view.t("tools_builtin")
+                stamp = self.view.t(MessageKey.TOOLS_BUILTIN)
             description = item.get("description") or "—"
             rows.append(SidebarItem(item["name"], title, stamp + " · " + description.splitlines()[0]))
-        return rows or [SidebarItem("", self.view.t("manager_empty"))]
+        return rows or [SidebarItem("", self.view.t(MessageKey.MANAGER_EMPTY))]
 
     def select(self, name):
         self.selected = name
@@ -87,12 +89,12 @@ class ComponentManager(Dialog):
         if self.busy:
             return
         self.busy = True
-        self.status = self.view.t("component_loading")
-        progress = self.view.progress.start(self.view.t("progress_component", command=f"/{self.name} {action}"))
+        self.status = self.view.t(MessageKey.COMPONENT_LOADING)
+        progress = self.view.progress.start(self.view.t(MessageKey.PROGRESS_COMPONENT, command=f"/{self.name} {action}"))
         def done(result):
             self.view.progress.finish(progress)
             self.busy = False
-            self.status = "" if result is not None else self.view.t("tools_failed")
+            self.status = "" if result is not None else self.view.t(MessageKey.TOOLS_FAILED)
             if result is not None:
                 if completed:
                     completed(result)
@@ -120,7 +122,7 @@ class ComponentManager(Dialog):
                 self.selected = next((item["name"] for item in entries if item["name"] not in before), self.selected)
                 if self.path.text == original:
                     self.path.text = ""
-                self.status = self.view.t("tools_imported" if self.name == "tools" else "manager_imported")
+                self.status = self.view.t(MessageKey.TOOLS_IMPORTED if self.name == "tools" else MessageKey.MANAGER_IMPORTED)
             self.call("import", original.strip(), completed=imported)
         return True
 
@@ -135,10 +137,10 @@ class ComponentManager(Dialog):
             self.view.dialogs.show(self, self.list)
             if delete:
                 self.call("delete", item["name"], item["version"])
-        buttons = [Button(self.view.t("confirm"), handler=lambda: restore(True)),
-                   Button(self.view.t("cancel"), handler=restore)]
-        confirmation = Dialog(title=self.view.t("component_delete"),
-            body=Label(self.view.t("tools_delete_confirm" if self.name == "tools" else "manager_delete_confirm", name=item["name"])),
+        buttons = [Button(self.view.t(MessageKey.CONFIRM), handler=lambda: restore(True)),
+                   Button(self.view.t(MessageKey.CANCEL), handler=restore)]
+        confirmation = Dialog(title=self.view.t(MessageKey.COMPONENT_DELETE),
+            body=Label(self.view.t(MessageKey.TOOLS_DELETE_CONFIRM if self.name == "tools" else MessageKey.MANAGER_DELETE_CONFIRM, name=item["name"])),
             buttons=buttons)
         confirmation.on_close = restore
         self.view.dialogs.show(confirmation, buttons[1])

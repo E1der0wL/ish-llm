@@ -1,5 +1,7 @@
 """Read-only request card; keyboard focus stays in the answer composer."""
 
+from hub.locales.keys import MessageKey
+
 from copy import copy
 from prompt_toolkit.filters import Always
 
@@ -43,7 +45,7 @@ class QuestionCard(TextViewport):
             console = make_console(max(1, width - 2), theme)
             if request.get("action"):
                 lines = review_lines(request, language)
-                risk = language("approval_risk", value=risk_label(request.get("risk_scheme"), request.get("risk")))
+                risk = language(MessageKey.APPROVAL_RISK, value=risk_label(request.get("risk_scheme"), request.get("risk")))
                 parts = []
                 for line in lines:
                     target = line.partition(":")[0] in {"path", "source", "destination", "cwd", "command", "argv", "workspace_id", "url"}

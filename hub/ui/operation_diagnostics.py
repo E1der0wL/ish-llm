@@ -1,5 +1,7 @@
 """Bounded, project-scoped diagnostics for UI operations in this Hub process."""
 
+from hub.locales.keys import MessageKey
+
 from collections import deque
 from dataclasses import asdict
 from datetime import datetime
@@ -24,4 +26,4 @@ class OperationDiagnostics:
             if project == project_id:
                 body = json.dumps(asdict(error), ensure_ascii=False, indent=2, default=str)
                 entries.append(stamp + "\n" + "\n".join("    " + line for line in plain(body, 20000).splitlines()))
-        return (t("operation_diagnostics") + "\n\n" + "\n\n".join(entries)) if entries else ""
+        return (t(MessageKey.OPERATION_DIAGNOSTICS) + "\n\n" + "\n\n".join(entries)) if entries else ""

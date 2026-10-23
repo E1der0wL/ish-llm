@@ -1,5 +1,7 @@
 """Nonblocking lifetime owner for the isolated native X11 clipboard client."""
 
+from hub.locales.keys import MessageKey
+
 import asyncio
 from collections.abc import Mapping
 from pathlib import Path
@@ -21,8 +23,8 @@ class X11Clipboard:
         self.error = None
 
     def _failed(self, code: int) -> None:
-        self.error = {2: "clipboard_x11_library", 3: "clipboard_x11_connection", 4: "clipboard_x11_timeout"}.get(
-            code, "clipboard_x11_transfer")
+        self.error = {2: MessageKey.CLIPBOARD_X11_LIBRARY, 3: MessageKey.CLIPBOARD_X11_CONNECTION, 4: MessageKey.CLIPBOARD_X11_TIMEOUT}.get(
+            code, MessageKey.CLIPBOARD_X11_TRANSFER)
 
     async def _reap(self, process: asyncio.subprocess.Process) -> None:
         try:
@@ -69,10 +71,10 @@ class X11Clipboard:
                 retained = True
                 return True
         except TimeoutError:
-            self.error = "clipboard_x11_timeout"
+            self.error = MessageKey.CLIPBOARD_X11_TIMEOUT
             return None
         except (OSError, UnicodeError):
-            self.error = "clipboard_x11_transfer"
+            self.error = MessageKey.CLIPBOARD_X11_TRANSFER
             return None
         finally:
             if process is not None and not retained:

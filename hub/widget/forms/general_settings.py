@@ -1,5 +1,9 @@
 """Categorized general preferences and draft JSON language-pack management."""
 
+from hub.locales.codes import LanguageCode
+
+from hub.locales.keys import MessageKey, MessagePattern
+
 from copy import deepcopy
 import json
 
@@ -33,7 +37,7 @@ class GeneralForm:
                  "provider_max_detail_chars": "integer", "recovery_enabled": "boolean", "recovery_model_analysis": "boolean",
                  "recovery_timeout_seconds": "number", "recovery_input_chars": "integer",
                  "recovery_summary_chars": "integer", "recovery_max_summary_calls": "integer"}
-        properties = {key: {"type": kinds.get(key, "string"), "description": screen.t("general_" + key)}
+        properties = {key: {"type": kinds.get(key, "string"), "description": screen.t(MessagePattern.general(key))}
                       for keys in self.groups.values() for key in keys}
         for key, schema in properties.items():
             schema.update(setting_metadata("general")[key])
@@ -44,11 +48,11 @@ class GeneralForm:
             properties[key].update(exclusiveMinimum=0)
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)
         self.form.original.setdefault("language_packs", {})
-        self.add_button = Button(screen.t("language_pack_add"), handler=self.add_pack, width=18)
-        self.delete_button = Button(screen.t("language_pack_delete"), handler=self.delete_pack, width=18)
+        self.add_button = Button(screen.t(MessageKey.LANGUAGE_PACK_ADD), handler=self.add_pack, width=18)
+        self.delete_button = Button(screen.t(MessageKey.LANGUAGE_PACK_DELETE), handler=self.delete_pack, width=18)
         children, self.widgets = [], []
         for category, keys in self.groups.items():
-            children.append(section(screen.t("general_category_" + category)))
+            children.append(section(screen.t(MessagePattern.general_category(category))))
             for key in keys:
                 field = self.form.fields[(key,)]
                 children.append(field.container)
@@ -60,8 +64,8 @@ class GeneralForm:
         self.container = HSplit(children)
 
     def pack_names(self):
-        names = ", ".join(["ko", "en", *self.form.original["language_packs"]])
-        return self.screen.t("language_pack_names", names=names)
+        names = ", ".join([*LanguageCode.BUILTIN, *self.form.original["language_packs"]])
+        return self.screen.t(MessageKey.LANGUAGE_PACK_NAMES, names=names)
 
     def add_pack(self):
         if self.screen.busy:
@@ -79,17 +83,17 @@ class GeneralForm:
                 return False
         def apply():
             self.form.original["language_packs"][draft["code"]] = deepcopy(draft["messages"])
-            self.screen.status = self.screen.t("language_pack_draft")
-        self.screen.view.open_dialog(self.screen.t("language_pack_add"), HSplit([
-            Label(self.screen.t("language_pack_code")), code,
-            Label(self.screen.t("language_pack_json")), content]), apply, code, validate=validate)
+            self.screen.status = self.screen.t(MessageKey.LANGUAGE_PACK_DRAFT)
+        self.screen.view.open_dialog(self.screen.t(MessageKey.LANGUAGE_PACK_ADD), HSplit([
+            Label(self.screen.t(MessageKey.LANGUAGE_PACK_CODE)), code,
+            Label(self.screen.t(MessageKey.LANGUAGE_PACK_JSON)), content]), apply, code, validate=validate)
 
     def delete_pack(self):
         if self.screen.busy:
             return
         packs = self.form.original["language_packs"]
         if not packs:
-            self.screen.status = self.screen.t("language_pack_none")
+            self.screen.status = self.screen.t(MessageKey.LANGUAGE_PACK_NONE)
             return
         choices = RadioList([(code, code) for code in packs], select_on_focus=True)
         def apply():
@@ -97,6 +101,6 @@ class GeneralForm:
             packs.pop(code)
             language = self.form.fields[("language",)]
             if language.value() == code:
-                language.input.text = "en"
-            self.screen.status = self.screen.t("language_pack_draft")
-        self.screen.view.open_dialog(self.screen.t("language_pack_delete"), choices, apply, choices)
+                language.input.text = LanguageCode.ENGLISH
+            self.screen.status = self.screen.t(MessageKey.LANGUAGE_PACK_DRAFT)
+        self.screen.view.open_dialog(self.screen.t(MessageKey.LANGUAGE_PACK_DELETE), choices, apply, choices)

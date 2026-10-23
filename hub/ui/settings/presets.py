@@ -1,5 +1,7 @@
 """Profile preset selection and configured-editor JSON authoring."""
 
+from hub.locales.keys import MessageKey
+
 import json
 
 from prompt_toolkit.application.current import get_app
@@ -26,7 +28,7 @@ class PresetUI:
 
     def items(self):
         return [(name, name) for name in self.names] + [
-            (EXPORT_CURRENT, self.view.t("preset_export_current")), (None, self.view.t("preset_add"))]
+            (EXPORT_CURRENT, self.view.t(MessageKey.PRESET_EXPORT_CURRENT)), (None, self.view.t(MessageKey.PRESET_ADD))]
 
     def loaded_names(self, result):
         if result is not None:
@@ -59,7 +61,7 @@ class PresetUI:
         if screen.busy:
             return
         if any(page.dirty for page in screen.drafts.active_pages()):
-            self.view.notice = self.view.t("preset_drafts")
+            self.view.notice = self.view.t(MessageKey.PRESET_DRAFTS)
             return
         if name is None or name is EXPORT_CURRENT:
             self.view.profile_bar.presets.value = self.selected
@@ -85,7 +87,7 @@ class PresetUI:
             screen.error(result["batch"]["error"])
             self.view.notice = screen.status
         else:
-            self.view.notice = self.view.t("preset_applied")
+            self.view.notice = self.view.t(MessageKey.PRESET_APPLIED)
             screen.drafts.prompt_restart(screen.global_keys)
         get_app().invalidate()
 
@@ -111,7 +113,7 @@ class PresetUI:
                     draft["editing"] = False
                     get_app().invalidate()
             get_app().create_background_task(edit())
-        name = InputField(button_text=view.t("preset_edit"), button_width=12, on_action=open_editor)
+        name = InputField(button_text=view.t(MessageKey.PRESET_EDIT), button_width=12, on_action=open_editor)
         def save():
             if draft["editing"]:
                 return
@@ -120,7 +122,7 @@ class PresetUI:
                 value = PresetStore.validate(json.loads(draft["text"], parse_constant=lambda s:
                     (_ for _ in ()).throw(ValueError("Invalid JSON: " + s))))
                 if not name.text.strip():
-                    raise ValueError(view.t("settings_title_required"))
+                    raise ValueError(view.t(MessageKey.SETTINGS_TITLE_REQUIRED))
             except (ValueError, TypeError) as error:
                 draft["error"] = str(error)
                 return
@@ -132,7 +134,7 @@ class PresetUI:
                 else:
                     draft["error"] = screen.status
             self.call("preset_save", name.text, value, completed=saved)
-        popup = Dialog(title=view.t("preset_export_current" if exporting else "preset_add"), body=HSplit([
-            Label(view.t("preset_export_hint" if exporting else "preset_hint")), Label(view.t("preset_name")), name, status]),
-            buttons=[Button(view.t("settings_save"), handler=save), Button(view.t("cancel"), handler=view.close_dialog)])
+        popup = Dialog(title=view.t(MessageKey.PRESET_EXPORT_CURRENT if exporting else MessageKey.PRESET_ADD), body=HSplit([
+            Label(view.t(MessageKey.PRESET_EXPORT_HINT if exporting else MessageKey.PRESET_HINT)), Label(view.t(MessageKey.PRESET_NAME)), name, status]),
+            buttons=[Button(view.t(MessageKey.SETTINGS_SAVE), handler=save), Button(view.t(MessageKey.CANCEL), handler=view.close_dialog)])
         view.dialogs.show(popup, name.input)

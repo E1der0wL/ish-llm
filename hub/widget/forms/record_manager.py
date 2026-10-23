@@ -1,5 +1,7 @@
 """Skill/Workflow/Agent/RAG editing through the shared component manager."""
 
+from hub.locales.keys import MessageKey
+
 import subprocess
 
 from prompt_toolkit.application.current import get_app
@@ -32,7 +34,7 @@ class RecordManager(ComponentManager):
         try:
             edited = await self.edit_text(text, self.view.general, suffix=component_spec(self.name).editor_suffix)
         except (OSError, ValueError, subprocess.CalledProcessError) as error:
-            self.status = self.view.t("error", error=error)
+            self.status = self.view.t(MessageKey.ERROR, error=error)
             return
         finally:
             self.busy = False
@@ -44,5 +46,5 @@ class RecordManager(ComponentManager):
         def saved(entries):
             self.entries = entries
             self.drafts.pop(name, None)
-            self.status = self.view.t("manager_saved")
+            self.status = self.view.t(MessageKey.MANAGER_SAVED)
         self.call("save", {"name": name, "text": edited}, version, completed=saved)

@@ -2123,3 +2123,51 @@ Component·Agent/Graph·저장·승인·예산·효과·Checkpoint·RAG·삭제 
 현재 479개 파일 중 미검토 356, 미분류 27962, incomplete
 2개이며 전체 완료는 계속 차단된다. 나머지 제품 코드·assets 및 마지막
 현재 SHA의 통합 회귀·원격 필수 CI까지 작업을 계속한다.
+
+
+## 번역 식별자·언어팩·선택 코드 단일 소유 (2026-10-23)
+
+MessageKey에 기존 612개 공개 번역 키를 한 번 선언하고 두 언어의 문구 표와 실제 UI/Backend
+표시 소비자가 참조한다. MessagePattern은 기존 열린 동적 이름 조합을 소유하고 LanguageCode는
+내장 언어·기본 선택을 선언한다. 사용자 언어팩, 알려지지 않은 키 fallback, 원문 응답과 Backend
+진단은 기존대로다. 원본 설정에 기본 언어를 새로 저장하지 않는다. 동일 철자라도 역할·명령·
+단축키 동작·저장 필드는 실제 도메인 Owner의 계약이다. 초기 변환에서 발견한 object_raw
+단축키 동작 두 곳은 번역 키 참조로 바꾸지 않고 원래 동작으로 유지했다.
+
+a3510d8 대비 65개 기존 소비 파일은 참조 확장 후 전체 AST가 같다. 두 언어의 612개 키·문구·
+순서·정확한 str 타입이 같고, 전체 키 format 1224개·시간 표시 24개·상태 14개·언어팩 검증
+17개·언어 선택 12개는 이전 반환값 또는 예외 종류/문구와 같다. 선언 추가 뒤 공개 키·독립
+문구·사용자 사본 보호·위험한 placeholder 거절을 시험했다. proof 보조 스크립트의 stdlib 이름
+충돌 및 tuple 확장 오류는 보조 스크립트만 수정하고 실패 로그를 보존했다. 마지막 증거는
+현재 소스 hash에 묶인 성공 결과이며, 제품 검증이나 기존 Assertion을 완화하지 않았다.
+
+- `whole-locale-keys-hub-01`: 발견/시작/pass 92/92/92, exit 0, 77.771864초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-locale-keys-hub-01/hub.json --modules tests.hub.test_locale_keys tests.hub.test_language_presence tests.hub.test_general_options tests.hub.test_features tests.hub.test_component_catalog tests.hub.test_plugin tests.hub.test_error_contract tests.hub.test_settings tests.hub.test_settings_navigation tests.hub.test_settings_tabs tests.hub.test_output tests.hub.test_output_interaction tests.hub.test_question_card tests.hub.test_clipboard tests.hub.test_x11_clipboard`. source `6196a90929eede7f3a3bdc83da80af0a61069d76c4186eefb87f66ad47d703bb`, input `bf991627a16775282dd435ebc96957e1e6be608f8dfd6ef28615310b25600f67`.
+
+- `whole-locale-keys-safety-01`: 발견/시작/pass 50/50/50, exit 0, 28.802581초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-locale-keys-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `6196a90929eede7f3a3bdc83da80af0a61069d76c4186eefb87f66ad47d703bb`, input `bf991627a16775282dd435ebc96957e1e6be608f8dfd6ef28615310b25600f67`.
+
+두 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 source/input 전후가 같다.
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11 환경을 유지했다. UI 렌더링·언어 저장·
+설정·오류·질문·클립보드와 승인·예산·효과·Checkpoint·RAG·삭제의 Level 2 검증이다.
+전송·저장·실행 정책은 바뀌지 않았으며 전체 회귀는 공개 namespace 단계와 현재 소스를 묶은
+후속 gate17에서 실행한다. 앞선 고정 SHA 전체 실행과 이번 집중 결과를 합쳐 표현하지 않는다.
+
+정적 감사는 두 언어의 중복 키 리터럴 S3 발생 26개가 사라진 것을 확인했고 이전 근거는
+이력에 보존했다. 변경된 의존 근거 28개만 현재 동일성 증거로 갱신했으며 새 면제는 없다.
+정적·문서·R3 mutation·SDK·양 환경 각각 exit 0, 감사 자체 16개 pass/exit 0이다.
+locale 6개 파일의 전체 선언·동적 경로·소비자를 검토했다. 현재 482개 파일,
+미검토 353, 미분류 24997, incomplete 2개로
+전체 완료는 계속 차단된다. 다른 소비 파일은 참조 치환만으로 전체 검토 완료 처리하지 않았다.
+
+### 앞선 고정 gate16 및 Push
+
+7fc8404b3ed263322ff06ef11cf7c466a2605fa4의 gate16은 LLM 2463/2463 pass(1410.671376초),
+Hub 586/586 pass(1117.307571초), 각각 exit 0이다. 모든 비성공·누락·중복은 0이며,
+source `725d85d9ebae3005d618007b2d7f9f00048eea640e72f4631cd5ec0f35f38d95`,
+input `6d75597489fd21b9eb297fdecbb33722e4dfb19ea2feae57d83a5207b9c9dfb7` 전후가 같다.
+명령은 `python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group16-l3/llm.json`
+및 `--suite hub --output /workspace/llm-clean-resume/b/whole-owners-group16-l3/hub.json`이며,
+고정 checkout의 정적·문서·R3·SDK·양 환경도 각각 exit 0이다.
+해당 정확한 SHA를 refactor/llm-clean에 Push했다. main·refactor/llm-backend·Draft PR #1은
+변경하지 않았다. 원격 실행은 [39967504376](https://github.com/E1der0wL/ish-llm/actions/runs/39967504376)이며
+이 문서 기록 시 실제 전체 결과 확인 전이므로 원격 통과로 선언하지 않는다. 공개 namespace
+a3510d8 및 이번 번역 변경은 gate16에 포함되지 않으며 다음 통합 검증 대상이다.

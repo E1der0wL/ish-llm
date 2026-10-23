@@ -1,5 +1,7 @@
 """Transient search popup; conversation output never receives keyboard focus."""
 
+from hub.locales.keys import MessageKey
+
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.dimension import Dimension
@@ -28,8 +30,8 @@ class SessionSearch:
     def count(self):
         control = self.transcript.control
         if not control.search_query:
-            return self.view.t("search_hint")
-        return self.view.t("search_count", index=max(0, control.search_index + 1), count=len(control.search_hits))
+            return self.view.t(MessageKey.SEARCH_HINT)
+        return self.view.t(MessageKey.SEARCH_COUNT, index=max(0, control.search_index + 1), count=len(control.search_hits))
 
     def move(self, direction=1):
         self.transcript.control.move_search(direction)
@@ -50,11 +52,11 @@ class SessionSearch:
             self.move()
             return True
         self.input.buffer.accept_handler = next_match
-        self.dialog = Dialog(title=view.t("search_title"),
+        self.dialog = Dialog(title=view.t(MessageKey.SEARCH_TITLE),
             body=HSplit([self.input, Label(self.count)]),
-            buttons=[Button(view.t("search_previous"), handler=lambda: self.move(-1)),
-                     Button(view.t("search_next"), handler=self.move),
-                     Button(view.t("search_close"), handler=view.close_dialog)],
+            buttons=[Button(view.t(MessageKey.SEARCH_PREVIOUS), handler=lambda: self.move(-1)),
+                     Button(view.t(MessageKey.SEARCH_NEXT), handler=self.move),
+                     Button(view.t(MessageKey.SEARCH_CLOSE), handler=view.close_dialog)],
             width=Dimension(preferred=58, max=70), with_background=False, modal=False)
         self.dialog.dispose = lambda: self.transcript.control.set_search("")
         view.dialogs.show(self.dialog, self.input)

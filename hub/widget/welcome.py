@@ -1,5 +1,7 @@
 """A non-focusable welcome screen for projects without sessions."""
 
+from hub.locales.keys import MessageKey
+
 from functools import lru_cache
 
 from prompt_toolkit.layout import UIContent, UIControl, Window
@@ -24,7 +26,7 @@ class WelcomeControl(UIControl):
         view = self.view
         content = [[("class:hub.accent", row)] for row in logo(width)]
         content += [[("", "")]]
-        for key in ("welcome_title", "welcome_hint", "welcome_keys"):
+        for key in (MessageKey.WELCOME_TITLE, MessageKey.WELCOME_HINT, MessageKey.WELCOME_KEYS):
             content += literal_lines(view.t(key), width, "class:hub.muted")
         top = max(0, (height - len(content)) // 2)
         lines = [[("", "")]] * top

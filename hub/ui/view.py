@@ -1,5 +1,9 @@
 """Localized PTK layout and input behavior shared by preview and live mode."""
 
+from hub.locales.codes import LanguageCode
+
+from hub.locales.keys import MessageKey
+
 from pathlib import Path
 
 from prompt_toolkit.application.current import get_app
@@ -28,14 +32,14 @@ from ..backend.project.agents import DEFAULT_AGENT
 
 
 class HubView:
-    def __init__(self, sessions=(), theme=None, language="ko", language_packs=None, *, output_factory=None) -> None:
+    def __init__(self, sessions=(), theme=None, language=LanguageCode.DEFAULT, language_packs=None, *, output_factory=None) -> None:
         self.t = Language(language, language_packs, icons=lambda: self.icons)
         self.general = GeneralSettings()
         from ..config.profile import UserProfile
         self.user_profile = UserProfile()
         self.theme = theme or HubTheme()
         self.style = self.theme.style()
-        self.sessions = list(sessions) or [SessionView(self.t("welcome_title"))]
+        self.sessions = list(sessions) or [SessionView(self.t(MessageKey.WELCOME_TITLE))]
         self.on_open = self.on_submit = self.on_select = self.on_new = None
         self.on_interrupt = None
         self.on_answer = self.on_review = None
@@ -56,7 +60,7 @@ class HubView:
         self.file_root = Path.cwd()
         self.project_title = "Hub"
         self.model = ""
-        self.notice = self.t("preview_notice")
+        self.notice = self.t(MessageKey.PREVIEW_NOTICE)
         from .operation_diagnostics import OperationDiagnostics
         self.operation_diagnostics = OperationDiagnostics()
         self._previous_focus = None
@@ -119,9 +123,9 @@ class HubView:
         from ..widget.sidebar_panel import SidebarPanel
         self.projects = ChatProjects(self)
         self._sidebar = ConditionalContainer(SidebarPanel([
-            HSplit([SidebarHeading(lambda: self.icons.project + " " + self.t("settings_projects")),
+            HSplit([SidebarHeading(lambda: self.icons.project + " " + self.t(MessageKey.SETTINGS_PROJECTS)),
                     Window(self.projects.control, style="class:hub.sidebar")]),
-            HSplit([SidebarHeading(lambda: self.t("sessions")),
+            HSplit([SidebarHeading(lambda: self.t(MessageKey.SESSIONS)),
                     Window(self._session_control, style="class:hub.sidebar")]),
         ], self.profile_bar, width=self.sidebar_width, project_fraction=0.27,
             controls=(self.projects.control, self._session_control)),
@@ -131,9 +135,9 @@ class HubView:
         self._composer_frame = InputFrame(HSplit([
             self.question.container,
             self.composer,
-        ]), title=lambda: self._focus_heading(self.composer.control, self.t("model_line", model=self.model)),
-            hint=lambda: self.t("input_hint") + (
-                " · " + self.t("followup_hint") if self.followup.get_suggestion(
+        ]), title=lambda: self._focus_heading(self.composer.control, self.t(MessageKey.MODEL_LINE, model=self.model)),
+            hint=lambda: self.t(MessageKey.INPUT_HINT) + (
+                " · " + self.t(MessageKey.FOLLOWUP_HINT) if self.followup.get_suggestion(
                     self.composer.buffer, self.composer.buffer.document) else ""),
               style="class:hub.input-frame", actions=self.composer_actions)
         from ..widget.auxiliary import AuxiliaryBar
@@ -149,7 +153,7 @@ class HubView:
             DynamicContainer(lambda: self.output),
             self.auxiliary, self._composer_frame,
         ])
-        self.header = HeaderBar(lambda: self.t("profile_home"), icons=lambda: self.icons)
+        self.header = HeaderBar(lambda: self.t(MessageKey.PROFILE_HOME), icons=lambda: self.icons)
         self.chat_page = TwoPanelPage(
             header=HeaderActions(self.header, self), footer=self.shortcut_bar(),
             sidebar=self._sidebar, main=conversation, progress=self.progress, notice=lambda: self.notice,
@@ -240,7 +244,7 @@ class HubView:
         get_app().invalidate()
 
     def _not_connected(self):
-        self.notice = self.t("not_connected")
+        self.notice = self.t(MessageKey.NOT_CONNECTED)
 
     def _select_sidebar_session(self, key):
         self._session_focus = True
@@ -296,7 +300,7 @@ class HubView:
         if name in self.agents:
             self.agent_id = name
         else:
-            self.notice = self.t("agent_command_usage", agents=", ".join(self.agents))
+            self.notice = self.t(MessageKey.AGENT_COMMAND_USAGE, agents=", ".join(self.agents))
 
     @property
     def agent_id(self):

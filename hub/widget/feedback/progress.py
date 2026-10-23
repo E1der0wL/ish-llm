@@ -1,5 +1,7 @@
 """Rich progress rendered by PTK, without a second terminal renderer."""
 
+from hub.locales.keys import MessageKey
+
 import asyncio
 from io import StringIO
 
@@ -35,7 +37,7 @@ class ProgressControl(UIControl):
         owner.bar.complete_style = owner.bar.finished_style = owner.bar.pulse_style = theme.accent
         task = tasks[-1]
         task.fields["label"] = task.description + (
-            owner.view.t("progress_more", count=len(tasks) - 1) if len(tasks) > 1 else "")
+            owner.view.t(MessageKey.PROGRESS_MORE, count=len(tasks) - 1) if len(tasks) > 1 else "")
         stream = StringIO()
         console = Console(file=stream, width=max(1, width - get_cwidth(annotation) - bool(annotation)), color_system="truecolor",
                           force_terminal=True, highlight=False)

@@ -1,5 +1,9 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
 
+from hub.locales.codes import LanguageCode
+
+from hub.locales.keys import MessageKey
+
 from llm.core.continuations import ResumeRecord
 
 from llm.core.models import MessageStatus, RunStatus
@@ -35,7 +39,7 @@ class HubConfig:
     api_base: str | None = None
     project_id: str | None = None
     session_id: str | None = None
-    language: str = "ko"
+    language: str = LanguageCode.DEFAULT
     engine_factories: dict[str, Callable] | None = None
     component_factories: tuple[Callable, ...] | list[Callable] | None = None
     tool_classifier: Callable | None = None
@@ -214,11 +218,11 @@ class HubRuntime:
                           through_message_id: str | None = None) -> str:
         if mode == "clone":
             if not self.sessions:
-                raise ValueError(self.t("session_required"))
+                raise ValueError(self.t(MessageKey.SESSION_REQUIRED))
             source = self.sessions[source_id or self.selected_id]
             status = await source.run.astatus()
             if status.active_runs or status.queued_count or source.id in self.namer.tasks:
-                raise ValueError(self.t("clone_busy"))
+                raise ValueError(self.t(MessageKey.CLONE_BUSY))
             await source.run.shutdown()
             try:
                 from .execution.turns import TurnIndex, edit_source
@@ -227,7 +231,7 @@ class HubRuntime:
                 index = TurnIndex(records)
                 boundary = (next(i for i, turn in enumerate(index.turns) if turn.id == through_message_id)
                             if revised and through_message_id else None)
-                session = await source.aclone(title=title or self.t("new_session"),
+                session = await source.aclone(title=title or self.t(MessageKey.NEW_SESSION),
                     through_message_id=None if revised else through_message_id)
                 if boundary is not None:
                     # The Hub context builder clones logical turns. Trim the
@@ -240,7 +244,7 @@ class HubRuntime:
         elif mode == "new":
             participants = sorted(identifier for identifier in await self.project.agents.alist()
                                   if not identifier.startswith("_hub_"))
-            session = await self.project.sessions.acreate(title or self.t("new_session"), agent_ids=participants)
+            session = await self.project.sessions.acreate(title or self.t(MessageKey.NEW_SESSION), agent_ids=participants)
         else:
             raise ValueError(f"Unknown session operation: {mode}")
         data = await session.aget_data()
@@ -284,16 +288,16 @@ class HubRuntime:
         session = self.sessions[session_id]
         status = await session.run.astatus()
         if status.active_runs or status.queued_count or session_id in self.namer.tasks:
-            raise ValueError(self.t("history_busy"))
+            raise ValueError(self.t(MessageKey.HISTORY_BUSY))
         await session.run.shutdown()
         try:
             try:
                 await session.adelete_turn(request_id, abandon_runs=abandon_runs, expected_revision=expected_revision)
             except ValueError as error:
                 if str(error) == "Turn deletion plan changed; reload and confirm again":
-                    raise ValueError(self.t("history_delete_changed")) from error
+                    raise ValueError(self.t(MessageKey.HISTORY_DELETE_CHANGED)) from error
                 if str(error) == "Conversation turn is required by an unfinished resumable Run":
-                    raise ValueError(self.t("history_checkpoint_protected")) from error
+                    raise ValueError(self.t(MessageKey.HISTORY_CHECKPOINT_PROTECTED)) from error
                 raise
             self.snapshot_reader.clear()
         finally:
@@ -308,7 +312,7 @@ class HubRuntime:
         self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
         if not cancelled:
-            raise ValueError(self.t("history_cancel_unavailable"))
+            raise ValueError(self.t(MessageKey.HISTORY_CANCEL_UNAVAILABLE))
         return True
 
     async def project_activity(self):
@@ -331,7 +335,7 @@ class HubRuntime:
 
     async def rename_session(self, session_id: str, title: str) -> str:
         if not title.strip():
-            raise ValueError(self.t("session_name_required"))
+            raise ValueError(self.t(MessageKey.SESSION_NAME_REQUIRED))
         session = self.sessions[session_id]
         # Stop an in-flight automatic title before saving the explicit title.
         task = self.namer.tasks.get(session_id)
@@ -350,7 +354,7 @@ class HubRuntime:
         session = self.sessions[session_id]
         status = await session.run.astatus()
         if status.active_runs or status.queued_count or session_id in self.namer.tasks:
-            raise ValueError(self.t("session_busy"))
+            raise ValueError(self.t(MessageKey.SESSION_BUSY))
         was_open = session_id in self._opened_sessions
         await session.run.shutdown()
         try:
@@ -393,9 +397,9 @@ class HubRuntime:
     async def _submit_recipients(self, session_id, text, recipients, request_context):
         """Application-selected recipients share one durable Backend admission."""
         if not text.strip():
-            raise ValueError(self.t("empty_message"))
+            raise ValueError(self.t(MessageKey.EMPTY_MESSAGE))
         if session_id not in self.sessions:
-            raise ValueError(self.t("session_required"))
+            raise ValueError(self.t(MessageKey.SESSION_REQUIRED))
         session = self.sessions[session_id]
         project = await session.project.aget_data()
         config = (await session.aget_data()).config
@@ -405,7 +409,7 @@ class HubRuntime:
                 raise ValueError("Internal Agent cannot receive conversation requests")
             definition = await session.project.agents.aload(selected)
             if agent_model(self.backend.engines, project.config, definition, config)[1]:
-                raise ValueError(self.t("model_required"))
+                raise ValueError(self.t(MessageKey.MODEL_REQUIRED))
         request = await session.run.submit(text, recipients=recipients, request_context=request_context)
         self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
@@ -440,13 +444,13 @@ class HubRuntime:
         selected = next((run for run in status.active_runs if (
             run.run_id == run_id if run_id is not None else run.agent_id == self.config.agent_id)), None)
         if selected is None:
-            raise ValueError(self.t("no_active_run"))
+            raise ValueError(self.t(MessageKey.NO_ACTIVE_RUN))
         run = await session.run.aload(selected.run_id)
         targets = tuple((target.id, target.node_path or target.node_id or target.engine)
                         for target in await run.ainstruction_targets()
                         if target.accepting and str(target.mode) == "consume")
         if not targets:
-            raise ValueError(self.t("no_targets"))
+            raise ValueError(self.t(MessageKey.NO_TARGETS))
         return selected.run_id, targets
 
     async def steer(self, session_id: str, run_id: str, text: str, targets: list[str]) -> str:

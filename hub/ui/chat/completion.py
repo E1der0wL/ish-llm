@@ -1,5 +1,7 @@
 """Explicit completion of UI commands, Agent IDs and paths beneath a project."""
 
+from hub.locales.keys import MessageKey, MessagePattern
+
 from pathlib import Path
 import re
 
@@ -24,19 +26,19 @@ class HubCompleter(Completer):
             for command, name in self.components().items():
                 value = "/" + command
                 if value.startswith(before):
-                    yield Completion(value, -len(before), display_meta=self.t("command_component", name=name))
+                    yield Completion(value, -len(before), display_meta=self.t(MessageKey.COMMAND_COMPONENT, name=name))
             return
         command, separator, prefix = before.partition(" ")
         if separator and command[1:] in self.components() and before.startswith("/"):
             for action in ACTIONS:
                 if action.startswith(prefix):
-                    yield Completion(action, -len(prefix), display_meta=self.t("component_action_" + action))
+                    yield Completion(action, -len(prefix), display_meta=self.t(MessagePattern.component_action(action)))
             return
         spec = find_command(command[1:]) if command.startswith("/") else None
         if separator and spec is not None and spec.arguments == "agents" and "\n" not in before:
             for name in self.agents():
                 if name.startswith(prefix):
-                    yield Completion(name, -len(prefix), display_meta=self.t("agent"))
+                    yield Completion(name, -len(prefix), display_meta=self.t(MessageKey.AGENT))
             return
         match = re.search(r'(?:^|\s)@([^\n]*)$', before)
         if not match:
@@ -52,6 +54,6 @@ class HubCompleter(Completer):
             for path in sorted(directory.iterdir(), key=lambda p: (not p.is_dir(), p.name.casefold())):
                 if path.name.startswith(partial) and path.resolve().is_relative_to(root):
                     value = path.relative_to(root).as_posix() + ("/" if path.is_dir() else "")
-                    yield Completion(value, -len(prefix), display_meta=self.t("directory" if path.is_dir() else "file"))
+                    yield Completion(value, -len(prefix), display_meta=self.t(MessageKey.DIRECTORY if path.is_dir() else MessageKey.FILE))
         except OSError:
             return

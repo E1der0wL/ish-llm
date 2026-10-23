@@ -1,5 +1,7 @@
 """Project navigation and CRUD for the conversation sidebar."""
 
+from hub.locales.keys import MessageKey
+
 from llm.services.schema import ProjectConfiguration
 
 from prompt_toolkit.application.current import get_app
@@ -27,13 +29,13 @@ class ChatProjects:
         if self.busy or self.view.settings.request is None:
             return
         self.busy = True
-        token = self.view.progress.start(self.view.t("progress_settings_work"))
+        token = self.view.progress.start(self.view.t(MessageKey.PROGRESS_SETTINGS_WORK))
         def done(value, error=None):
             self.busy = False
             self.view.progress.finish(token)
             if error is not None:
                 self.view.operation_diagnostics.record(getattr(self.view, "project_id", ""), error)
-                self.view.notice = self.view.t("error", error=operation_notice(error, self.view.t))
+                self.view.notice = self.view.t(MessageKey.ERROR, error=operation_notice(error, self.view.t))
                 self.selected = getattr(self.view, "project_id", "")
             elif completed:
                 completed(value)
@@ -71,11 +73,11 @@ class ChatProjects:
         def validate():
             if field.text.strip():
                 return True
-            self.view.notice = self.view.t("settings_title_required")
+            self.view.notice = self.view.t(MessageKey.SETTINGS_TITLE_REQUIRED)
             return False
         def accept():
             action(field.text.strip())
-        self.view.open_dialog(title, HSplit([Label(self.view.t("settings_project_name")), field]),
+        self.view.open_dialog(title, HSplit([Label(self.view.t(MessageKey.SETTINGS_PROJECT_NAME)), field]),
                               accept, field, validate=validate)
         def entered(_):
             if validate():
@@ -99,14 +101,14 @@ class ChatProjects:
                 self.view.project_title = title
             self.select(target)
         if key == "c":
-            self.name_dialog(self.view.t("settings_create"), "",
+            self.name_dialog(self.view.t(MessageKey.SETTINGS_CREATE), "",
                 lambda title: self.call("create_project", {"title": title, "config": {}}, completed=saved))
         elif item and key in ("e", "r"):
             operation = "rename_project" if key == "e" else "clone_project"
-            title = item["title"] + (" " + self.view.t("settings_copy_suffix") if key == "r" else "")
-            self.name_dialog(self.view.t("settings_rename" if key == "e" else "settings_clone"), title,
+            title = item["title"] + (" " + self.view.t(MessageKey.SETTINGS_COPY_SUFFIX) if key == "r" else "")
+            self.name_dialog(self.view.t(MessageKey.SETTINGS_RENAME if key == "e" else MessageKey.SETTINGS_CLONE), title,
                 lambda name: self.call(operation, identifier, name, completed=saved))
         elif item and key == "d":
-            self.view.open_dialog(self.view.t("settings_delete"),
-                Label(self.view.t("settings_delete_confirm", title=item["title"])),
+            self.view.open_dialog(self.view.t(MessageKey.SETTINGS_DELETE),
+                Label(self.view.t(MessageKey.SETTINGS_DELETE_CONFIRM, title=item["title"])),
                 lambda: self.call("delete_project", identifier, completed=lambda _: self.refresh()))

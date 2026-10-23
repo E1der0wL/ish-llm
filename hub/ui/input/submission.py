@@ -1,5 +1,7 @@
 """A consumed draft stays recoverable until durable admission acknowledges it."""
 
+from hub.locales.keys import MessageKey
+
 from dataclasses import dataclass
 
 
@@ -30,4 +32,4 @@ class SubmittedDraft:
         else:
             view.input_history.recover(self.session_id, self.text)
             if current:
-                view.notice += " · " + view.t("draft_recovered")
+                view.notice += " · " + view.t(MessageKey.DRAFT_RECOVERED)

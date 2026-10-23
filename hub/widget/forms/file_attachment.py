@@ -1,5 +1,7 @@
 """Choose a local file path without reading its contents on the UI thread."""
 
+from hub.locales.keys import MessageKey
+
 from pathlib import Path
 
 from prompt_toolkit.application.current import get_app
@@ -13,11 +15,11 @@ def attach_file(view):
     root = Path(view.file_root)
     field = PathInput(root)
     error = Label("")
-    body = HSplit([Label(view.t("attach_hint")), field, error])
+    body = HSplit([Label(view.t(MessageKey.ATTACH_HINT)), field, error])
 
     def validate():
         if not field.text.strip():
-            error.text = view.t("attach_required")
+            error.text = view.t(MessageKey.ATTACH_REQUIRED)
             return False
         return True
 
@@ -32,7 +34,7 @@ def attach_file(view):
         buffer.insert_text(prefix + json.dumps(str(path), ensure_ascii=False) + " ")
         view._focus_composer()
 
-    view.open_dialog(view.t("attach_title"), body, accept, field, validate=validate)
+    view.open_dialog(view.t(MessageKey.ATTACH_TITLE), body, accept, field, validate=validate)
 
     def entered(_):
         if validate():

@@ -1,5 +1,7 @@
 """External JSON editing of drafts; persistence stays with SettingsDrafts."""
 
+from hub.locales.keys import MessageKey
+
 from llm.services.schema import ProjectConfiguration
 
 from copy import deepcopy
@@ -56,11 +58,11 @@ class SettingsJsonEditor:
             raise ValueError("Invalid JSON: " + value)
         values = json.loads(text, parse_constant=invalid)
         if not isinstance(values, dict):
-            raise ValueError(self.screen.t("settings_json_object"))
+            raise ValueError(self.screen.t(MessageKey.SETTINGS_JSON_OBJECT))
         if isinstance(page, ProjectPage):
             path = ProjectConfiguration.engine_form_path(TITLE_ENGINE)
             if at_path(values, path) is not MISSING:
-                raise ValueError(self.screen.t("settings_host_locked"))
+                raise ValueError(self.screen.t(MessageKey.SETTINGS_HOST_LOCKED))
             schema = ProjectConfiguration.view(page.record).schema
         else:
             schema = page.form.schema
@@ -79,7 +81,7 @@ class SettingsJsonEditor:
         for form in page.forms():
             for path in form.locked:
                 if not same_json(at_path(before, path), at_path(values, path)):
-                    raise ValueError(f"{'.'.join(path)}: {self.screen.t('settings_host_locked')}")
+                    raise ValueError(f"{'.'.join(path)}: {self.screen.t(MessageKey.SETTINGS_HOST_LOCKED)}")
         if isinstance(page, ProjectPage):
             record = ProjectConfiguration.with_values(page.record, values)
             candidate = ProjectPage(self.screen, record, suggest_defaults=False)
@@ -108,10 +110,10 @@ class SettingsJsonEditor:
                     candidate.section if isinstance(candidate, ProjectPage) else candidate.name)
                 screen.show_page(candidate)
                 screen._sidebar()
-                screen.status = screen.t("settings_json_updated")
+                screen.status = screen.t(MessageKey.SETTINGS_JSON_UPDATED)
             self.recovery = None
         except subprocess.CalledProcessError as error:
-            screen.error(screen.t("settings_editor_failed", code=error.returncode))
+            screen.error(screen.t(MessageKey.SETTINGS_EDITOR_FAILED, code=error.returncode))
         except Exception as error:
             if edited is not None:
                 self.recovery = (page, edited)

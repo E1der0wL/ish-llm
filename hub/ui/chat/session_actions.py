@@ -1,4 +1,6 @@
 """Session creation, clone-boundary loading and naming workflows."""
+
+from hub.locales.keys import MessageKey
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
@@ -16,13 +18,13 @@ class SessionActions:
             self.rename()
         elif key == "d" and not view.no_sessions:
             session = view.sessions[view.selected]
-            view.open_dialog(view.t("session_delete"), Label(view.t("session_delete_confirm", title=session.title)),
+            view.open_dialog(view.t(MessageKey.SESSION_DELETE), Label(view.t(MessageKey.SESSION_DELETE_CONFIRM, title=session.title)),
                              lambda: view.on_delete and view.on_delete(session.id))
 
     def create(self, mode="new", title="", *, turns=None, through_message_id=None):
         view = self.view
         if view.no_sessions and mode == "clone":
-            view.notice = view.t("session_required")
+            view.notice = view.t(MessageKey.SESSION_REQUIRED)
             return
         source_id = view.sessions[view.selected].id
         ready = view.no_sessions or turns is not None or view.on_turns is None
@@ -45,11 +47,11 @@ class SessionActions:
             return True
         def validate():
             if choices.current_value == "clone" and not ready:
-                view.notice = view.t("settings_loading")
+                view.notice = view.t(MessageKey.SETTINGS_LOADING)
                 return False
             return True
         name.buffer.accept_handler = accept_name
-        view.open_dialog(view.t("create_dialog"), form, create, name, validate=validate)
+        view.open_dialog(view.t(MessageKey.CREATE_DIALOG), form, create, name, validate=validate)
         pending = view._dialog
         if not ready:
             def loaded(rows):
@@ -73,9 +75,9 @@ class SessionActions:
         def validate():
             if name.text.strip():
                 return True
-            view.notice = view.t("session_name_required")
+            view.notice = view.t(MessageKey.SESSION_NAME_REQUIRED)
             return False
-        view.open_dialog(view.t("session_rename"), name, rename, name, validate=validate)
+        view.open_dialog(view.t(MessageKey.SESSION_RENAME), name, rename, name, validate=validate)
         def accept(_):
             if validate():
                 view.close_dialog()

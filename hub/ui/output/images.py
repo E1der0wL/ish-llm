@@ -1,5 +1,7 @@
 """Bounded background ASCII conversion; never print or fetch remote images."""
 
+from hub.locales.keys import MessageKey
+
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -114,14 +116,14 @@ class ImageRenderer:
                 context.invalidate()
             future.add_done_callback(completed)
         caption = attrs.get("alt") or source
-        header = literal_lines(context.language("output_image", caption=caption), context.width, "class:hub.muted")
+        header = literal_lines(context.language(MessageKey.OUTPUT_IMAGE, caption=caption), context.width, "class:hub.muted")
         if limited:
-            return header + literal_lines(context.language("output_image_limit"), context.width, "class:hub.muted")
+            return header + literal_lines(context.language(MessageKey.OUTPUT_IMAGE_LIMIT), context.width, "class:hub.muted")
         if result is None:
-            return header + literal_lines(context.language("output_image_loading"), context.width, "class:hub.muted")
+            return header + literal_lines(context.language(MessageKey.OUTPUT_IMAGE_LOADING), context.width, "class:hub.muted")
         lines, error = result
         if error:
-            return header + literal_lines(context.language("output_error", error=error), context.width, "class:hub.notice")
+            return header + literal_lines(context.language(MessageKey.OUTPUT_ERROR, error=error), context.width, "class:hub.notice")
         return header + lines
 
     def close(self):

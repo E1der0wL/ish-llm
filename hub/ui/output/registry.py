@@ -1,5 +1,7 @@
 """Explicit renderer registration; tags never name importable Python classes."""
 
+from hub.locales.keys import MessageKey
+
 import re
 from typing import Protocol
 
@@ -83,12 +85,12 @@ class RendererRegistry:
     def render(self, block: OutputBlock, context: RenderContext) -> FragmentLines:
         renderer = self._renderers.get(block.kind)
         if renderer is None:
-            text = context.language("output_pending") if block.kind == OutputBlock.PENDING else block.raw or block.text
+            text = context.language(MessageKey.OUTPUT_PENDING) if block.kind == OutputBlock.PENDING else block.raw or block.text
             return literal_lines(text, context.width, "class:hub.muted")
         try:
             return renderer.render(block, context)
         except Exception as error:
-            return literal_lines(context.language("output_error", error=str(error)), context.width, "class:hub.notice")
+            return literal_lines(context.language(MessageKey.OUTPUT_ERROR, error=str(error)), context.width, "class:hub.notice")
 
     def close(self):
         if self.on_close:

@@ -1,5 +1,7 @@
 """Hub's clipboard register, backed by the desktop or terminal clipboard."""
 
+from hub.locales.keys import MessageKey
+
 import asyncio
 import base64
 import os
@@ -104,18 +106,18 @@ async def system_clipboard(text=None, *, env=None, x11=None):
 async def export_text(app, text, *, env=None, x11=None):
     env = dict(os.environ if env is None else env)
     if await system_clipboard(text, env=env, x11=x11):
-        return "clipboard_copied"
+        return MessageKey.CLIPBOARD_COPIED
     payload = base64.b64encode(text.encode()).decode("ascii")
     # Bound the entire sequence: some terminals print the remainder of an
     # oversized control string as text. Always retain the full internal register.
     if env.get("HUB_CLIPBOARD_COPY") or not terminal_clipboard_supported(app, env) or len(payload) > 7000:
-        return "clipboard_internal"
+        return MessageKey.CLIPBOARD_INTERNAL
     sequence = "\x1b]52;c;" + payload + "\x07"
     if env.get("TMUX"):
         sequence = "\x1bPtmux;" + sequence.replace("\x1b", "\x1b\x1b") + "\x1b\\"
     app.output.write_raw(sequence)
     app.output.flush()
-    return "clipboard_terminal"
+    return MessageKey.CLIPBOARD_TERMINAL
 
 
 class SystemClipboard(Clipboard):
@@ -141,11 +143,11 @@ class SystemClipboard(Clipboard):
             await asyncio.shield(previous)
         # A terminal paste or a newer copy supersedes a write still in queue.
         if revision != self.revision:
-            return "clipboard_internal"
+            return MessageKey.CLIPBOARD_INTERNAL
         try:
             result = await export_text(self.app, data.text, env=env, x11=self.x11)
         except OSError:
-            result = "clipboard_internal"
+            result = MessageKey.CLIPBOARD_INTERNAL
         return result
 
     def set_data(self, data):
@@ -181,7 +183,7 @@ async def copy_text(text):
         register.set_data(ClipboardData(text))
         if register.pending:
             return await asyncio.shield(register.pending)
-        return "clipboard_internal"
+        return MessageKey.CLIPBOARD_INTERNAL
     else:
         register.set_data(ClipboardData(text))
     return await export_text(app, text)

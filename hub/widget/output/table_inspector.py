@@ -1,5 +1,7 @@
 """Keyboard-operated table inspection; all state is local to the popup."""
 
+from hub.locales.keys import MessageKey
+
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.data_structures import Point
 from prompt_toolkit.layout import DynamicContainer, HSplit, UIContent, Window, ScrollOffsets
@@ -140,7 +142,7 @@ class TableControl(SelectableControl):
         self._height = max(1, height)
         def line(index):
             if not self.order:
-                text = self.error or self.context.language("object_empty" if self.data else "object_loading")
+                text = self.error or self.context.language(MessageKey.OBJECT_EMPTY if self.data else MessageKey.OBJECT_LOADING)
                 return [("class:hub.muted", cell_text(text))]
             row = self.cells[self.order[index]]
             return [("class:hub.search.current" if index == self.row and i == self.column else
@@ -159,19 +161,19 @@ class TableInspector(ExpandedOutputDialog):
         output.raw_mode = True
         super().__init__(item, context, output,
                          body=DynamicContainer(lambda: output if self.raw_mode else self.table))
-        self.shortcuts.add(MOVEMENT_KEYS, self.t("shortcut_movement"), "select",
+        self.shortcuts.add(MOVEMENT_KEYS, self.t(MessageKey.SHORTCUT_MOVEMENT), "select",
                            lambda e: self.move(e.key_sequence[-1].key))
         self.shortcuts.add(["enter", "s"], "Enter/s", "object_sort", lambda e: self.table.sort(),
                            when=lambda: not self.raw_mode)
-        self.shortcuts.add(["r"], "r", "object_raw", lambda e: self.toggle_raw())
+        self.shortcuts.add(["r"], "r", 'object_raw', lambda e: self.toggle_raw())
         self.shortcuts.add(["n", "c-n"], "n/Ctrl+N", "next_match", lambda e: output.move_match(1),
                            when=lambda: self.raw_mode)
         self.shortcuts.add(["N", "c-p"], "N/Ctrl+P", "previous_match", lambda e: output.move_match(-1),
                            when=lambda: self.raw_mode)
         self.buttons[1:1] = [
-            Button(self.t("shortcut_object_sort"), handler=self.table.sort),
-            Button(self.t("object_raw"), handler=self.toggle_raw),
-            Button(self.t("object_copy_cell"), handler=lambda: get_app().create_background_task(self.copy_cell())),
+            Button(self.t(MessageKey.SHORTCUT_OBJECT_SORT), handler=self.table.sort),
+            Button(self.t(MessageKey.OBJECT_RAW), handler=self.toggle_raw),
+            Button(self.t(MessageKey.OBJECT_COPY_CELL), handler=lambda: get_app().create_background_task(self.copy_cell())),
         ]
 
     async def copy_cell(self):
@@ -204,10 +206,10 @@ class TableInspector(ExpandedOutputDialog):
 
     def status(self):
         if self.raw_mode:
-            detail = self.t("search_count", index=self.output.hit_index + 1, count=len(self.output.hits))
-            return self.t("object_raw") + " · " + detail
+            detail = self.t(MessageKey.SEARCH_COUNT, index=self.output.hit_index + 1, count=len(self.output.hits))
+            return self.t(MessageKey.OBJECT_RAW) + " · " + detail
         table = self.table
-        detail = self.t("object_table_count", index=table.row + 1 if table.order else 0,
+        detail = self.t(MessageKey.OBJECT_TABLE_COUNT, index=table.row + 1 if table.order else 0,
                         visible=len(table.order), total=len(table.data.rows) if table.data else 0,
                         column=table.column + 1)
         return detail + (f" · {self.notice}" if self.notice else "")

@@ -1,5 +1,7 @@
 """UI identity, independent of provider and conversation persistence."""
 
+from hub.locales.codes import LanguageCode
+
 from dataclasses import dataclass, field
 from getpass import getuser
 
@@ -14,7 +16,7 @@ class UserProfile:
     def __post_init__(self):
         if not isinstance(self.display_name, str) or not self.display_name.strip():
             raise ValueError("display_name must be a nonempty string")
-        if self.language not in ("", "ko", "en"):
+        if self.language not in ("", *LanguageCode.BUILTIN):
             raise ValueError("language must be empty, ko or en")
         for key in ("email", "phone"):
             if not isinstance(getattr(self, key), str):

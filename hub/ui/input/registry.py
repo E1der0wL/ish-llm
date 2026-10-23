@@ -1,5 +1,7 @@
 """One definition supplies both PTK dispatch and the visible shortcut legend."""
 
+from hub.locales.keys import MessageKey, MessagePattern
+
 from dataclasses import dataclass
 from collections.abc import Callable
 
@@ -47,7 +49,7 @@ def legend(shortcuts, t):
     for shortcut in sorted(shortcuts, key=lambda item: item.order()):
         label = shortcut.label() if callable(shortcut.label) else shortcut.label
         action = shortcut.action() if callable(shortcut.action) else shortcut.action
-        pair = (t("shortcut_alt_movement") if label == "movement" else label, t("shortcut_" + action))
+        pair = (t(MessageKey.SHORTCUT_ALT_MOVEMENT) if label == "movement" else label, t(MessagePattern.shortcut(action)))
         if pair not in result:
             result.append(pair)
     return result

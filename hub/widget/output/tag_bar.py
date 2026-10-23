@@ -1,5 +1,7 @@
 """Shared tag navigation; engine outputs supply entries and their actions."""
 
+from hub.locales.keys import MessageKey
+
 from dataclasses import dataclass
 
 from prompt_toolkit.application.current import get_app
@@ -43,7 +45,7 @@ class TagBar:
         self.window = Window(self.control, wrap_lines=False, style="class:hub.sidebar")
         self.collapse = Button(lambda: view.icons.collapse, handler=self.close, width=3)
         self.collapse.control.hub_shortcuts.add(["escape"], "ESC", "close", lambda e: self.close())
-        self.heading = Window(FormattedTextControl(lambda: " " + view.t("tags_title")),
+        self.heading = Window(FormattedTextControl(lambda: " " + view.t(MessageKey.TAGS_TITLE)),
                               height=1, style="class:hub.accent bold")
         self.header = VSplit([self.heading, self.collapse], height=1)
         self.container = ConditionalContainer(VSplit([
@@ -76,7 +78,7 @@ class TagBar:
             prefix = " " * entry.indent + (entry.icon + "  " if entry.icon else "")
             items.append(SidebarItem(entry.id, prefix + ellipsize(entry.title, width - get_cwidth(prefix)),
                                      margin_top=entry.margin_top))
-        return items or [SidebarItem("", self.view.t("tags_empty"))]
+        return items or [SidebarItem("", self.view.t(MessageKey.TAGS_EMPTY))]
 
     def open(self):
         self.view.composer.buffer.cancel_completion()
@@ -115,5 +117,5 @@ class TagBar:
             try:
                 await copy_text(item.raw)
             except (OSError, RuntimeError) as error:
-                self.view.notice = self.view.t("error", error=error)
+                self.view.notice = self.view.t(MessageKey.ERROR, error=error)
             get_app().invalidate()

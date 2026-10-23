@@ -1,5 +1,7 @@
 """Session turn management and project execution activity dialogs."""
 
+from hub.locales.keys import MessageKey, MessagePattern
+
 from llm.core.models import RunStatus
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
@@ -16,16 +18,16 @@ def provider_detail(row, t):
     value = row["details"]
     details = value.get("details", {})
     exceptions = details.get("exceptions", ()) if isinstance(details, dict) else ()
-    lines = [t("activity_provider_" + row["scope"]), str(row["time"])]
+    lines = [t(MessagePattern.activity_provider(row['scope'])), str(row["time"])]
     if row.get("log_path"):
-        lines.append(t("activity_provider_file", path=row["log_path"]))
+        lines.append(t(MessageKey.ACTIVITY_PROVIDER_FILE, path=row["log_path"]))
     if not isinstance(exceptions, (list, tuple)) or not exceptions:
         lines.append(json.dumps(value, ensure_ascii=False, indent=2))
         return "\n".join(lines)
     # Retain other diagnostic fields (stage, elapsed, attempt, chunk count, ...).
     summary = {**value, "details": {key: data for key, data in details.items() if key != "exceptions"}}
     lines.append(json.dumps(summary, ensure_ascii=False, indent=2))
-    lines.append(t("activity_provider_traceback"))
+    lines.append(t(MessageKey.ACTIVITY_PROVIDER_TRACEBACK))
     for exception in exceptions:
         if not isinstance(exception, dict):
             lines.append(str(exception))
@@ -51,18 +53,18 @@ def format_activity(rows, t):
     for row in rows:
         source = row["source"]
         lines = [f"{t.icons.alerts[levels.get(row['status'], 'info')]} {row['time']} · {t.status(row['status'])} · {row['event']}",
-                 t("activity_source", session_id=source.get("session_id", "—"), run_id=source.get("run_id", "—"))]
+                 t(MessageKey.ACTIVITY_SOURCE, session_id=source.get("session_id", "—"), run_id=source.get("run_id", "—"))]
         if row.get("provider"):
             lines.append(provider_detail(row, t))
         if source.get("step_id"):
-            lines.append(t("activity_step", step_id=source["step_id"]))
+            lines.append(t(MessageKey.ACTIVITY_STEP, step_id=source["step_id"]))
         if row.get("code"):
-            lines.append(t("activity_code", code=row["code"]))
+            lines.append(t(MessageKey.ACTIVITY_CODE, code=row["code"]))
         if row.get("provider_diagnostics"):
-            lines.append(t("activity_provider_run_details"))
+            lines.append(t(MessageKey.ACTIVITY_PROVIDER_RUN_DETAILS))
             lines.extend(provider_detail(record, t) for record in row["provider_diagnostics"])
         blocks.append("\n".join(lines))
-    return "\n\n".join(blocks) or t("activity_empty")
+    return "\n\n".join(blocks) or t(MessageKey.ACTIVITY_EMPTY)
 
 
 class HistoryUI:
@@ -77,7 +79,7 @@ class HistoryUI:
         view = self.view
         project_id = view.project_id
         session_id = view.sessions[view.selected].id
-        view.open_dialog(view.t("history_title"), Label(view.t("settings_loading")))
+        view.open_dialog(view.t(MessageKey.HISTORY_TITLE), Label(view.t(MessageKey.SETTINGS_LOADING)))
         pending = view._dialog
         def ready(rows):
             if view._dialog is not pending:
@@ -94,8 +96,8 @@ class HistoryUI:
         view, t = self.view, self.view.t
         project_id = view.project_id
         if not rows:
-            button = Button(t("history_close"), handler=view.close_dialog)
-            popup = Dialog(title=t("history_title"), body=Label(t("history_empty")), buttons=[button])
+            button = Button(t(MessageKey.HISTORY_CLOSE), handler=view.close_dialog)
+            popup = Dialog(title=t(MessageKey.HISTORY_TITLE), body=Label(t(MessageKey.HISTORY_EMPTY)), buttons=[button])
             view.dialogs.show(popup, button)
             return
 
@@ -106,13 +108,13 @@ class HistoryUI:
         def execute(operation):
             identifiers = popup.selected()
             if len(identifiers) != 1:
-                view.notice = t("history_select_one")
+                view.notice = t(MessageKey.HISTORY_SELECT_ONE)
                 return
             identifier = identifiers[0]
             row = popup.rows[identifier]
             text = popup.drafts[identifier]
             if operation == "edit_turn" and not text.strip():
-                view.notice = t("empty_message")
+                view.notice = t(MessageKey.EMPTY_MESSAGE)
                 return
             view.close_dialog()
             if operation == HistoryUI.RETRY_TURN:
@@ -120,14 +122,14 @@ class HistoryUI:
                 candidates = [run for run in row["runs"] if run["run_id"]
                               and run["status"] in (RunStatus.INTERRUPTED, RunStatus.FAILED)]
                 if not candidates:
-                    view.notice = t("history_retry_unavailable")
+                    view.notice = t(MessageKey.HISTORY_RETRY_UNAVAILABLE)
                 elif len(candidates) == 1:
                     resume_turn(self.controller, session_id, candidates[0]["run_id"], identifier)
                 else:
                     from ...widget.controls import RadioList
                     choices = RadioList([(run["run_id"], run["agent_id"] + " · " + t.status(run["status"]))
                                          for run in candidates], select_on_focus=True)
-                    view.open_dialog(t("choose_target"), choices,
+                    view.open_dialog(t(MessageKey.CHOOSE_TARGET), choices,
                         lambda: resume_turn(self.controller, session_id, choices.current_value, identifier), choices)
                 return
             args = (session_id, identifier, text, row.get("request_id", identifier))
@@ -137,10 +139,10 @@ class HistoryUI:
         def delete():
             identifiers = popup.selected()
             if not identifiers:
-                view.notice = t("history_select_items")
+                view.notice = t(MessageKey.HISTORY_SELECT_ITEMS)
                 return
             view.close_dialog()
-            view.open_dialog(t("history_delete"), Label(t("settings_loading")))
+            view.open_dialog(t(MessageKey.HISTORY_DELETE), Label(t(MessageKey.SETTINGS_LOADING)))
             pending = view._dialog
             def ready(plan):
                 if view._dialog is not pending or not current():
@@ -197,18 +199,18 @@ class HistoryUI:
                         self.controller._call("snapshot", completed=refreshed)
                     self.controller._call("delete_turns", session_id, identifiers, plan["revision"], completed=removed,
                         progress=lambda done, total: view.deleting.update(request, done, total))
-                summary = t("history_delete_selected", count=len(identifiers))
+                summary = t(MessageKey.HISTORY_DELETE_SELECTED, count=len(identifiers))
                 if any(not item["queued"] for item in plan.get("items", ())):
-                    summary += "\n" + t("history_delete_confirm")
+                    summary += "\n" + t(MessageKey.HISTORY_DELETE_CONFIRM)
                 if plan["blockers"]:
-                    summary += "\n" + t("history_abandon_confirm", count=len(plan["blockers"]))
+                    summary += "\n" + t(MessageKey.HISTORY_ABANDON_CONFIRM, count=len(plan["blockers"]))
                     summary += "\n" + "\n".join(
                         f"{item['source']['run_id']} · {item['details']['engine']} · {t.status(item['details']['status'])}"
                         for item in plan["blockers"])
                 body = TextArea(text=summary, read_only=True, scrollbar=True, wrap_lines=True,
                                 height=Dimension(min=1, max=8))
-                view.open_dialog(t("history_delete"), body, confirmed,
-                    accept_text=t("history_abandon_delete") if plan["blockers"] else t("history_delete"))
+                view.open_dialog(t(MessageKey.HISTORY_DELETE), body, confirmed,
+                    accept_text=t(MessageKey.HISTORY_ABANDON_DELETE) if plan["blockers"] else t(MessageKey.HISTORY_DELETE))
             self.controller._call("delete_turns_plan", session_id, identifiers, completed=ready)
 
         popup = RequestHistoryDialog(view, rows, delete=delete, edit=lambda: execute("edit_turn"),
@@ -218,7 +220,7 @@ class HistoryUI:
     def activity(self):
         view, t = self.view, self.view.t
         project_id = view.project_id
-        self._activity_dialog(t("settings_loading"))
+        self._activity_dialog(t(MessageKey.SETTINGS_LOADING))
         pending = view._dialog
         def ready(rows):
             if view._dialog is not pending:
@@ -235,6 +237,6 @@ class HistoryUI:
 
     def _activity_dialog(self, text):
         view = self.view
-        popup = ReadOnlyDialog(view.t("project_activity"), text, view._rows, view._columns,
+        popup = ReadOnlyDialog(view.t(MessageKey.PROJECT_ACTIVITY), text, view._rows, view._columns,
                                view.close_dialog, view.t, render_worker=view.render_worker)
         view.dialogs.show(popup, popup.receiver)

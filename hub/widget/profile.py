@@ -1,5 +1,7 @@
 """Shared sidebar identity and page navigation, independent of backend handles."""
 
+from hub.locales.keys import MessageKey
+
 from getpass import getuser
 
 from prompt_toolkit.application.current import get_app
@@ -19,11 +21,11 @@ class ProfileBar(HSplit):
     def __init__(self, view):
         self.view = view
         self.account = getuser()
-        self.page = Button(lambda: view.t("profile_home" if view.settings_open else "profile_settings"),
+        self.page = Button(lambda: view.t(MessageKey.PROFILE_HOME if view.settings_open else MessageKey.PROFILE_SETTINGS),
                            handler=lambda: view.open_page(not view.settings_open), width=8)
         from ..ui.settings.presets import PresetUI
         self.preset_ui = PresetUI(view)
-        self.presets = DropdownBox(self.preset_ui.items, value="", placeholder=view.t("preset_title"),
+        self.presets = DropdownBox(self.preset_ui.items, value="", placeholder=view.t(MessageKey.PRESET_TITLE),
                                    on_change=self.preset_ui.choose, width=14, icons=lambda: view.icons)
         self.buttons = (self.page, self.presets)
         heading = Window(FormattedTextControl(self.identity), height=1, style="class:hub.profile")

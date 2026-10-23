@@ -1,5 +1,7 @@
 """Request history operations through the public Session/Run facades."""
 
+from hub.locales.keys import MessageKey
+
 from llm.core.plans import PlanBlockerCode
 
 from hub.errors.operations import OperationCode
@@ -88,7 +90,7 @@ class TurnHistory:
     async def require_idle(self, session_id):
         state = await self.runtime.sessions[session_id].run.astatus()
         if state.active_runs or state.queued_count or session_id in self.runtime.namer.tasks:
-            raise OperationBlocked(OperationCode.BUSY, self.runtime.t("history_busy"))
+            raise OperationBlocked(OperationCode.BUSY, self.runtime.t(MessageKey.HISTORY_BUSY))
 
     async def retry(self, session_id, request_id, expected_run_id):
         runtime, session = self.runtime, self.runtime.sessions[session_id]
@@ -96,16 +98,16 @@ class TurnHistory:
         turn = (await self.index(session_id)).by_id[request_id]
         if not expected_run_id or expected_run_id not in {run.id for _, run in
                 (await self.attempts(session, turn)).values() if run is not None}:
-            raise OperationBlocked(OperationCode.CHANGED, runtime.t("history_changed"))
+            raise OperationBlocked(OperationCode.CHANGED, runtime.t(MessageKey.HISTORY_CHANGED))
         handle = await session.run.aload(expected_run_id)
         run = await handle.aget_data()
         status = str(run.status)
         if status == RunStatus.PAUSED:
             status = str(display_run(await session.aget_data(), run).status)
         if status not in (RunStatus.INTERRUPTED, RunStatus.FAILED):
-            raise OperationBlocked(OperationCode.NOT_RESUMABLE, runtime.t("history_retry_unavailable"))
+            raise OperationBlocked(OperationCode.NOT_RESUMABLE, runtime.t(MessageKey.HISTORY_RETRY_UNAVAILABLE))
         if str(run.status) == RunStatus.PAUSED and await reopen_questions(
-                session, handle, unavailable=runtime.t("history_retry_question_unavailable")):
+                session, handle, unavailable=runtime.t(MessageKey.HISTORY_RETRY_QUESTION_UNAVAILABLE)):
             runtime.snapshot_reader.invalidate(session_id)
             runtime.dirty.set()
             return turn.latest.id
@@ -114,7 +116,7 @@ class TurnHistory:
             # This neither executes Tools nor changes the selected source Run.
             plan = await session.run.resume_plan(run.id, agent_id=run.agent_id)
             if any(item.code == PlanBlockerCode.INTERACTION_REQUIRED for item in plan.blockers) and await reopen_questions(
-                    session, handle, unavailable=runtime.t("history_retry_question_unavailable")):
+                    session, handle, unavailable=runtime.t(MessageKey.HISTORY_RETRY_QUESTION_UNAVAILABLE)):
                 runtime.snapshot_reader.invalidate(session_id)
                 runtime.dirty.set()
                 return turn.latest.id
@@ -126,7 +128,7 @@ class TurnHistory:
                     request = await session.run.restart(run.id, agent_id=run.agent_id, expected_revision=plan.revision)
                 else:
                     details = "\n".join(dict.fromkeys(item.message for item in (*plan.blockers, *plan.restart_blockers)))
-                    raise CheckpointError(CheckpointErrorCode.PROTECTED, runtime.t("history_retry_blocked", details=details),
+                    raise CheckpointError(CheckpointErrorCode.PROTECTED, runtime.t(MessageKey.HISTORY_RETRY_BLOCKED, details=details),
                                           blockers=(*plan.blockers, *plan.restart_blockers))
             except CheckpointError as error:
                 if error.code != CheckpointErrorCode.CONFLICT or attempt:
@@ -144,12 +146,12 @@ class TurnHistory:
         turn = (await self.index(session_id)).by_id[request_id]
         latest = turn.latest
         if latest.id != expected_request_id:
-            raise OperationBlocked(OperationCode.CHANGED, runtime.t("history_changed"))
+            raise OperationBlocked(OperationCode.CHANGED, runtime.t(MessageKey.HISTORY_CHANGED))
         attempts = await self.attempts(session, turn)
         if not attempts or any(run is None or str(run.status) not in (
                 RunStatus.COMPLETED, RunStatus.INTERRUPTED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.PAUSED)
                 for _, run in attempts.values()):
-            raise OperationBlocked(OperationCode.EDIT_UNAVAILABLE, runtime.t("history_edit_unavailable"))
+            raise OperationBlocked(OperationCode.EDIT_UNAVAILABLE, runtime.t(MessageKey.HISTORY_EDIT_UNAVAILABLE))
         return await self._edit_request(session_id, latest, list(attempts), text)
 
     async def deletion_plan(self, session_id, identifiers):
@@ -185,7 +187,7 @@ class TurnHistory:
         runtime, session = self.runtime, self.runtime.sessions[session_id]
         plan = await self.deletion_plan(session_id, identifiers)
         if plan["revision"] != expected_revision:
-            raise OperationBlocked(OperationCode.CHANGED, runtime.t("history_delete_changed"))
+            raise OperationBlocked(OperationCode.CHANGED, runtime.t(MessageKey.HISTORY_DELETE_CHANGED))
         allowed = {item["source"]["run_id"] for item in plan["blockers"]}
         removed, errors = [], []
         total = len(plan["items"])
@@ -200,7 +202,7 @@ class TurnHistory:
                     current = (await session.adelete_turn_plan(item["id"])).to_dict()
                     blockers = [b["source"]["run_id"] for b in current["blockers"]]
                     if not set(blockers) <= allowed:
-                        raise OperationBlocked(OperationCode.CHANGED, runtime.t("history_delete_changed"))
+                        raise OperationBlocked(OperationCode.CHANGED, runtime.t(MessageKey.HISTORY_DELETE_CHANGED))
                     await runtime.delete_turn(session_id, item["id"], blockers, current["revision"])
                 removed.append(item["id"])
             except (ValueError, KeyError, RuntimeError) as error:

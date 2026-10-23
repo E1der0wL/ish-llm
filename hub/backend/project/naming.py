@@ -1,5 +1,7 @@
 """Automatic titles use an ordinary, isolated backend Session/Run."""
 
+from hub.locales.keys import MessageKey
+
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.core.configuration_targets import ResolvedEngineConfiguration, SessionConfiguration
 
@@ -117,7 +119,7 @@ class SessionNamer:
                 return
             await session.asave(metadata={**record.metadata, "hub_title_attempt": attempt})
             if not params.get("model"):
-                raise ValueError(self.runtime.t("title_model_required"))
+                raise ValueError(self.runtime.t(MessageKey.TITLE_MODEL_REQUIRED))
             from .agents import TITLE_AGENT
             parameters = ImplementationParameters.read({}).with_config({"completion": params})
             configuration = SessionConfiguration.read({}).with_engine(TITLE_ENGINE, parameters)

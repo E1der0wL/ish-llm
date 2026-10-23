@@ -1,5 +1,7 @@
 """Full-screen output inspection with local search and lossless source access."""
 
+from hub.locales.keys import MessageKey
+
 from dataclasses import dataclass
 
 from prompt_toolkit.application.current import get_app
@@ -113,7 +115,7 @@ class ExpandedOutputDialog:
         self.notice = ""
         self.searching = False
         self._before_query = ""
-        self.query = TextArea(multiline=False, height=1, prompt=lambda: self.t("object_query") + " ")
+        self.query = TextArea(multiline=False, height=1, prompt=lambda: self.t(MessageKey.OBJECT_QUERY) + " ")
         self.query.buffer.on_text_changed += lambda _: self.changed_query(self.query.text)
         navigation = PopupInput()
         self.shortcuts = registry = navigation.shortcuts
@@ -129,9 +131,9 @@ class ExpandedOutputDialog:
         self.query.control.hub_shortcuts = query_keys
         self.query.control.modal = True
         self.buttons = [
-            Button(self.t("shortcut_find"), handler=self.start_query),
-            Button(self.t("shortcut_copy"), handler=lambda: get_app().create_background_task(self.copy())),
-            Button(self.t("search_close"), handler=context.close),
+            Button(self.t(MessageKey.SHORTCUT_FIND), handler=self.start_query),
+            Button(self.t(MessageKey.SHORTCUT_COPY), handler=lambda: get_app().create_background_task(self.copy())),
+            Button(self.t(MessageKey.SEARCH_CLOSE), handler=context.close),
         ]
         self.actions = ActionBar(self.buttons, lambda: max(1, context.columns() - 4))
         self.container = Frame(HSplit([
@@ -175,7 +177,7 @@ class ExpandedOutputDialog:
         try:
             await copy_text(self.selected_text() or self.item.raw)
         except (OSError, RuntimeError) as error:
-            self.notice = self.t("error", error=error)
+            self.notice = self.t(MessageKey.ERROR, error=error)
         get_app().invalidate()
 
     def selected_text(self):
@@ -186,14 +188,14 @@ class OutputInspector(ExpandedOutputDialog):
     def __init__(self, item, context, *, error=""):
         super().__init__(item, context, context.viewport(item))
         if error:
-            self.notice = self.t("output_error", error=error)
+            self.notice = self.t(MessageKey.OUTPUT_ERROR, error=error)
             self.output.raw_mode = True
-        self.shortcuts.add(MOVEMENT_KEYS, self.t("shortcut_movement"), "scroll",
+        self.shortcuts.add(MOVEMENT_KEYS, self.t(MessageKey.SHORTCUT_MOVEMENT), "scroll",
                            lambda e: self.output.scroll(e.key_sequence[-1].key))
         self.shortcuts.add(["n", "c-n"], "n/Ctrl+N", "next_match", lambda e: self.output.move_match(1))
         self.shortcuts.add(["N", "c-p"], "N/Ctrl+P", "previous_match", lambda e: self.output.move_match(-1))
-        self.shortcuts.add(["r"], "r", "object_raw", lambda e: self.toggle_raw())
-        self.actions.insert(1, Button(self.t("object_raw"), handler=self.toggle_raw))
+        self.shortcuts.add(["r"], "r", 'object_raw', lambda e: self.toggle_raw())
+        self.actions.insert(1, Button(self.t(MessageKey.OBJECT_RAW), handler=self.toggle_raw))
 
     def toggle_raw(self):
         self.output.selection.clear()
@@ -201,6 +203,6 @@ class OutputInspector(ExpandedOutputDialog):
         self.output.top_line = self.output.left_column = 0
 
     def status(self):
-        mode = self.t("object_raw" if self.output.raw_mode else "object_rendered")
-        count = self.t("search_count", index=self.output.hit_index + 1, count=len(self.output.hits))
+        mode = self.t(MessageKey.OBJECT_RAW if self.output.raw_mode else MessageKey.OBJECT_RENDERED)
+        count = self.t(MessageKey.SEARCH_COUNT, index=self.output.hit_index + 1, count=len(self.output.hits))
         return f"{mode} · {count}" + (f" · {self.notice}" if self.notice else "")

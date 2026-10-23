@@ -1,5 +1,7 @@
 """Slash commands route to the same screen actions as keyboard input."""
 
+from hub.locales.keys import MessagePattern
+
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
@@ -16,7 +18,7 @@ class CommandSpec:
 
     @property
     def description_key(self) -> str:
-        return "command_" + self.name
+        return MessagePattern.command(self.name)
 
 
 # Execution and completion consume the same ordered definitions. Keep the

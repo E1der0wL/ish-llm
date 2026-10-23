@@ -1,5 +1,7 @@
 """Settings focus, field editing and keyboard navigation state."""
 
+from hub.locales.keys import MessageKey
+
 import subprocess
 from prompt_toolkit.application.current import get_app
 from .. import host
@@ -87,7 +89,7 @@ class SettingsNavigation:
                                                suffix=".txt" if "string" in kinds else ".json")
             self.screen.status = ""
         except subprocess.CalledProcessError as error:
-            self.screen.error(self.screen.t("settings_editor_failed", code=error.returncode))
+            self.screen.error(self.screen.t(MessageKey.SETTINGS_EDITOR_FAILED, code=error.returncode))
         except Exception as error:
             self.screen.error(error)
         finally:

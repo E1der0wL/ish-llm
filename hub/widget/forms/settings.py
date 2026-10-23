@@ -1,5 +1,7 @@
 """Schema fields retain missing/null distinctions and unknown JSON properties."""
 
+from hub.locales.keys import MessageKey
+
 from llm.core.json_data import JsonPointer
 from llm.core.configuration_views import ConfigurationView
 
@@ -92,16 +94,16 @@ class SettingField:
         self.input.control.hub_shortcuts = registry
         self.input.window.style = lambda: "class:hub.settings-input" + (
             " class:hub.focused" if get_app().layout.has_focus(self.input) else "")
-        description = self.schema.get("description") or t("settings_no_description")
+        description = self.schema.get("description") or t(MessageKey.SETTINGS_NO_DESCRIPTION)
         if self.schema.get("requires_restart"):
-            description += " · " + t("settings_requires_restart")
+            description += " · " + t(MessageKey.SETTINGS_REQUIRES_RESTART)
         constraints = {name: self.schema[name] for name in ("minimum", "maximum", "exclusiveMinimum",
                        "minLength", "maxLength", "pattern") if name in self.schema}
         if constraints:
             description += " · " + json.dumps(constraints, ensure_ascii=False)
         self.container = HSplit([Label(lambda: (t.icons.edit + " " if self.editing else "") + self.label, style="class:hub.title"),
                                  Label("- " + description, style="class:hub.muted"),
-                                 Label(t("settings_type", type=type_hint(self.schema)), style="class:hub.muted"),
+                                 Label(t(MessageKey.SETTINGS_TYPE, type=type_hint(self.schema)), style="class:hub.muted"),
                                  self.input,
                                  *[Label(note, style="class:hub.muted") for note in self.observations],
                                  Window(height=1)])
@@ -178,7 +180,7 @@ class SchemaForm:
         self.fields = {}
         self.children = []
         self._walk(schema, prefix)
-        self.container = HSplit(self.children or [Label(t("settings_no_fields"))])
+        self.container = HSplit(self.children or [Label(t(MessageKey.SETTINGS_NO_FIELDS))])
 
     def _schema_locks(self, schema, path):
         if isinstance(schema, dict):
@@ -192,9 +194,9 @@ class SchemaForm:
     def _observations(self, path):
         notes = []
         if any(path[:len(locked)] == locked for locked in self.locked):
-            notes.append(self.t("settings_host_locked"))
+            notes.append(self.t(MessageKey.SETTINGS_HOST_LOCKED))
         elif any(locked[:len(path)] == path for locked in self.locked):
-            notes.append(self.t("settings_host_partial"))
+            notes.append(self.t(MessageKey.SETTINGS_HOST_PARTIAL))
         return notes
 
     def _walk(self, schema, path):
@@ -219,7 +221,7 @@ class SchemaForm:
                 self._walk(spec, (*path, key))
         else:
             if not schema.get("description") and (self.prefix or path[:1] == SchemaForm.CONFIG_PATH):
-                schema = {**schema, "description": self.t("settings_option_description", name=".".join(path))}
+                schema = {**schema, "description": self.t(MessageKey.SETTINGS_OPTION_DESCRIPTION, name=".".join(path))}
             field_type = ChoiceField if "x-hub-choices" in schema else SettingField
             field = field_type(schema.get("title", ".".join(path)), schema, at_path(self.original, path), self.t,
                 readonly=any(path[:len(locked)] == locked for locked in self.locked), observations=self._observations(path))
@@ -249,6 +251,6 @@ class SchemaForm:
                          json.dumps(before, sort_keys=True, allow_nan=False) ==
                          json.dumps(after, sort_keys=True, allow_nan=False))
             if not unchanged:
-                raise ValueError(f"{'.'.join(path)}: {self.t('settings_host_locked')}")
+                raise ValueError(f"{'.'.join(path)}: {self.t(MessageKey.SETTINGS_HOST_LOCKED)}")
         values.clear()
         values.update(candidate)

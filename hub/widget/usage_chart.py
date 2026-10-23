@@ -1,5 +1,7 @@
 """Non-focusable forty-row daily token chart, painted as PTK cells."""
 
+from hub.locales.keys import MessageKey
+
 from datetime import date, timedelta
 from math import ceil
 from prompt_toolkit.layout import Window, UIContent
@@ -18,7 +20,7 @@ class DailyUsageControl(UIControl):
 
     def rows(self, width):
         if width < 16 or not self.days:
-            return [[("class:hub.muted", self.t("settings_usage_empty")[:width])]] + [[("", "")]] * 39
+            return [[("class:hub.muted", self.t(MessageKey.SETTINGS_USAGE_EMPTY)[:width])]] + [[("", "")]] * 39
         end = date.fromisoformat(max(self.days))
         count = min(30, max(1, (width - 12) // 2))
         dates = [end - timedelta(days=i) for i in reversed(range(count))]
@@ -26,7 +28,7 @@ class DailyUsageControl(UIControl):
         peak = max(1, ceil(max(v[0] for v in values)))
         plot_height = 34
         cell = max(1, (width - 12) // count)
-        rows = [[("class:hub.accent bold", self.t("usage_daily_title"))], [("", "")]]
+        rows = [[("class:hub.accent bold", self.t(MessageKey.USAGE_DAILY_TITLE))], [("", "")]]
         for y in reversed(range(plot_height)):
             label = f"{peak * (y + 1) / plot_height:8.0f}" if y % 5 == 3 or y == plot_height - 1 else " " * 8
             bars = "".join(("█" if v[0] > peak * y / plot_height else " ") * max(1, cell - 1) + " " for v in values)
@@ -38,8 +40,8 @@ class DailyUsageControl(UIControl):
             if i * cell + len(label) <= len(labels):
                 labels[i * cell:i * cell + len(label)] = label
         rows.append([("class:hub.muted", " " * 10 + "".join(labels))])
-        rows.append([("class:hub.muted", self.t("usage_daily_range", start=dates[0].isoformat(), end=end.isoformat()))])
-        rows.append([("class:hub.muted", self.t("usage_daily_unknown", count=sum(v[1] for v in values)))])
+        rows.append([("class:hub.muted", self.t(MessageKey.USAGE_DAILY_RANGE, start=dates[0].isoformat(), end=end.isoformat()))])
+        rows.append([("class:hub.muted", self.t(MessageKey.USAGE_DAILY_UNKNOWN, count=sum(v[1] for v in values)))])
         return rows
 
     def create_content(self, width, height):

@@ -1,5 +1,7 @@
 """RAG document editing plus resumable registration jobs in one shared popup."""
 
+from hub.locales.keys import MessageKey, MessagePattern
+
 from llm.core.checkpoints import CheckpointErrorCode
 from llm.llm import RAGJobStatus
 import asyncio
@@ -22,8 +24,8 @@ class RAGManager(RecordManager):
         self._poll_timer, self._polling, self._epoch = None, False, 0
         self.last_job = None
         self.cancel_pending = set()
-        self.retry_button = Button(view.t("history_retry"), handler=self.retry, width=10)
-        self.cancel_button = Button(view.t("rag_cancel_job"), handler=self.cancel_job, width=10)
+        self.retry_button = Button(view.t(MessageKey.HISTORY_RETRY), handler=self.retry, width=10)
+        self.cancel_button = Button(view.t(MessageKey.RAG_CANCEL_JOB), handler=self.cancel_job, width=10)
         self.delete_button = Button(view.t("delete"), handler=self.delete, width=10)
         super().__init__(view, request, name=name, edit_text=edit_text,
                          extra_buttons=(self.retry_button, self.cancel_button, self.delete_button),
@@ -34,17 +36,17 @@ class RAGManager(RecordManager):
 
     def _phase(self, item):
         if item.get("job_id") in self.cancel_pending and item["status"] in (RAGJobStatus.QUEUED.value, RAGJobStatus.RUNNING.value):
-            return self.view.t("rag_phase_cancelling")
-        return self.view.t("rag_phase_" + item["phase"])
+            return self.view.t(MessageKey.RAG_PHASE_CANCELLING)
+        return self.view.t(MessagePattern.rag_phase(item['phase']))
 
     def _counts(self, item):
         stats = item.get("ingestion", {})
-        counts = self.view.t("rag_job_counts", done=stats.get("chunks_completed", 0), total=stats.get("chunks_total", 0),
+        counts = self.view.t(MessageKey.RAG_JOB_COUNTS, done=stats.get("chunks_completed", 0), total=stats.get("chunks_total", 0),
                            reused=stats.get("checkpoint_reuse", 0), batches=stats.get("extraction_batches", 0))
         progress = item.get("progress", {})
         if progress.get("total") is not None:
-            counts += " · " + self.view.t("rag_stage_counts", done=progress.get("completed", 0),
-                total=progress["total"], unit=self.view.t("rag_unit_" + (progress.get("unit") or "job")))
+            counts += " · " + self.view.t(MessageKey.RAG_STAGE_COUNTS, done=progress.get("completed", 0),
+                total=progress["total"], unit=self.view.t(MessagePattern.rag_unit(progress.get('unit') or 'job')))
         return counts
 
     def hint(self):
@@ -55,14 +57,14 @@ class RAGManager(RecordManager):
             return super().hint()
         stats = item.get("ingestion", {})
         elapsed = "—" if item.get("elapsed") is None else str(int(item["elapsed"]))
-        timing = self.view.t("rag_job_times", embedding=int(stats.get("embedding_seconds", 0)),
+        timing = self.view.t(MessageKey.RAG_JOB_TIMES, embedding=int(stats.get("embedding_seconds", 0)),
                              extraction=int(stats.get("extraction_seconds", 0)), elapsed=elapsed)
         times = item.get("phase_seconds", {})
         if times:
-            timing += "\n" + self.view.t("rag_observed_times") + " · ".join(
-                self.view.t("rag_phase_" + phase) + f" {int(seconds)}s" for phase, seconds in times.items())
-        note = self.view.t("rag_job_retry_check" if item.get("retryable") is None else
-                           "rag_job_retry_hint" if item["retryable"] else "rag_job_readonly")
+            timing += "\n" + self.view.t(MessageKey.RAG_OBSERVED_TIMES) + " · ".join(
+                self.view.t(MessagePattern.rag_phase(phase)) + f" {int(seconds)}s" for phase, seconds in times.items())
+        note = self.view.t(MessageKey.RAG_JOB_RETRY_CHECK if item.get("retryable") is None else
+                           MessageKey.RAG_JOB_RETRY_HINT if item["retryable"] else MessageKey.RAG_JOB_READONLY)
         failure = item.get("failure") or item.get("observation_error")
         return self._phase(item) + " · " + self._counts(item) + "\n" + timing + "\n" + (operation_notice(failure, self.view.t) if failure else note)
 
@@ -135,7 +137,7 @@ class RAGManager(RecordManager):
             return
         item = self._selected_job()
         if item is None or item.get("retryable") is False:
-            self.status = self.view.t("rag_retry_unavailable")
+            self.status = self.view.t(MessageKey.RAG_RETRY_UNAVAILABLE)
             if item and item.get("resume_blockers"):
                 error = ErrorInfo(code=CheckpointErrorCode.PROTECTED, operation="rag.resume",
                                   details={"blockers": item["resume_blockers"]})
@@ -158,22 +160,22 @@ class RAGManager(RecordManager):
         if self.busy:
             return
         if item["status"] not in (RAGJobStatus.FAILED.value, RAGJobStatus.CANCELLED.value):
-            self.view.notice = self.view.t("rag_delete_unavailable")
+            self.view.notice = self.view.t(MessageKey.RAG_DELETE_UNAVAILABLE)
             return
         def ready(plan):
             if self.view._dialog is not self:
                 return
             if not plan["allowed"]:
-                self.view.notice = self.view.t("rag_delete_unavailable")
+                self.view.notice = self.view.t(MessageKey.RAG_DELETE_UNAVAILABLE)
                 return
             def restore(confirmed=False):
                 self.view.dialogs.show(self, self.list)
                 if confirmed:
                     self.call(RAGAction.DELETE_JOB.value, item["job_id"], plan["revision"])
-            buttons = [Button(self.view.t("confirm"), handler=lambda: restore(True)),
-                       Button(self.view.t("cancel"), handler=restore)]
-            popup = Dialog(title=self.view.t("component_delete"),
-                body=Label(self.view.t("rag_delete_confirm", name=item["label"], bytes=plan["bytes"])), buttons=buttons)
+            buttons = [Button(self.view.t(MessageKey.CONFIRM), handler=lambda: restore(True)),
+                       Button(self.view.t(MessageKey.CANCEL), handler=restore)]
+            popup = Dialog(title=self.view.t(MessageKey.COMPONENT_DELETE),
+                body=Label(self.view.t(MessageKey.RAG_DELETE_CONFIRM, name=item["label"], bytes=plan["bytes"])), buttons=buttons)
             popup.on_close = restore
             self.view.dialogs.show(popup, buttons[1])
         self.call(RAGAction.JOB_DELETE_PLAN.value, item["job_id"], completed=ready)
@@ -181,10 +183,10 @@ class RAGManager(RecordManager):
     def cancel_job(self):
         item = self._selected_job()
         if item is None or item["status"] not in (RAGJobStatus.QUEUED.value, RAGJobStatus.RUNNING.value):
-            self.view.notice = self.view.t("rag_cancel_unavailable")
+            self.view.notice = self.view.t(MessageKey.RAG_CANCEL_UNAVAILABLE)
             return
         if item["job_id"] in self.cancel_pending:
-            self.view.notice = self.view.t("cancel_wait")
+            self.view.notice = self.view.t(MessageKey.CANCEL_WAIT)
             get_app().invalidate()
             return
         self.cancel_pending.add(item["job_id"])
@@ -192,14 +194,14 @@ class RAGManager(RecordManager):
         app = get_app()
         def explain_delay():
             if item["job_id"] in self.cancel_pending:
-                self.view.notice = self.view.t("cancel_wait")
+                self.view.notice = self.view.t(MessageKey.CANCEL_WAIT)
                 app.invalidate()
         monitor = asyncio.get_running_loop().call_later(5, explain_delay)
         # Cancellation must remain available while the import request is busy.
         def done(entries):
             monitor.cancel()
             self.cancel_pending.discard(item["job_id"])
-            if self.view.notice == self.view.t("cancel_wait"):
+            if self.view.notice == self.view.t(MessageKey.CANCEL_WAIT):
                 self.view.notice = ""
             if entries is not None:
                 self.entries = entries
@@ -231,10 +233,10 @@ class RAGManager(RecordManager):
                     self.view.settings.open_component(result["component"])
             self.call(RAGAction.VISION_SETTINGS.value, completed=ready)
         buttons = [Button("OCR", handler=lambda: restore("ocr")),
-                   Button(self.view.t("rag_image_analysis"), handler=lambda: restore("analysis")),
-                   Button(self.view.t("rag_vision_settings"), handler=settings, width=14),
-                   Button(self.view.t("cancel"), handler=restore)]
-        popup = Dialog(title=self.view.t("rag_image_title"), body=Label(self.view.t("rag_image_hint")), buttons=buttons)
+                   Button(self.view.t(MessageKey.RAG_IMAGE_ANALYSIS), handler=lambda: restore("analysis")),
+                   Button(self.view.t(MessageKey.RAG_VISION_SETTINGS), handler=settings, width=14),
+                   Button(self.view.t(MessageKey.CANCEL), handler=restore)]
+        popup = Dialog(title=self.view.t(MessageKey.RAG_IMAGE_TITLE), body=Label(self.view.t(MessageKey.RAG_IMAGE_HINT)), buttons=buttons)
         popup.on_close = restore
         self.view.dialogs.show(popup, buttons[0])
         return True

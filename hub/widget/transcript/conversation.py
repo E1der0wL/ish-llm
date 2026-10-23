@@ -1,5 +1,7 @@
 """Rich Markdown rendered into PTK cells, without printing to the terminal."""
 
+from hub.locales.keys import MessageKey
+
 from hub.ui.output.model import OutputBlock
 
 from llm.core.models import MessageStatus
@@ -53,9 +55,9 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         inset = 1 if inner >= 3 else 0
         message_width = max(1, int(inner * 0.78) - 2 * inset) if user else inner
         label = (message.author or account_name) if user else t(
-            "assistant" if message.role == "assistant" else
-            "system" if message.role == "system" else
-            "reasoning" if message.role == "reasoning" else "info")
+            MessageKey.ASSISTANT if message.role == "assistant" else
+            MessageKey.SYSTEM if message.role == "system" else
+            MessageKey.REASONING if message.role == "reasoning" else MessageKey.INFO)
         if message.role != "system" and (message.activity or message.phase or message.status):
             label += " · " + (message.activity or t.status(message.phase or message.status))
         if message.role == "assistant":

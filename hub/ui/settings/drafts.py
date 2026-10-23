@@ -1,5 +1,7 @@
 """Own settings drafts, saved preferences and save/discard/reload transitions."""
 
+from hub.locales.keys import MessageKey
+
 from dataclasses import asdict
 from prompt_toolkit.widgets import Label
 from ...config.theme import HubTheme
@@ -37,7 +39,7 @@ class SettingsDrafts:
             self.screen.error(error)
             return
         if not requests:
-            self.screen.status = self.screen.t("settings_saved")
+            self.screen.status = self.screen.t(MessageKey.SETTINGS_SAVED)
             self.prompt_restart(self.screen.global_keys)
             return
         def saved(batch):
@@ -55,7 +57,7 @@ class SettingsDrafts:
                 self.screen.error(batch["error"])
             else:
                 self.screen.choose(selected)
-                self.screen.status = self.screen.t("settings_saved")
+                self.screen.status = self.screen.t(MessageKey.SETTINGS_SAVED)
                 self.prompt_restart(self.screen.global_keys)
         self.screen.call("save_all", requests, completed=saved)
 
@@ -66,9 +68,9 @@ class SettingsDrafts:
             anchor=self.workspace_anchor)]
         if not changed or self.on_restart is None:
             return
-        self.screen.view.open_dialog(self.screen.t("settings_restart_title"),
-            Label(self.screen.t("settings_restart_confirm", fields="\n".join(changed))),
-            self.on_restart, accept_text=self.screen.t("settings_restart_now"))
+        self.screen.view.open_dialog(self.screen.t(MessageKey.SETTINGS_RESTART_TITLE),
+            Label(self.screen.t(MessageKey.SETTINGS_RESTART_CONFIRM, fields="\n".join(changed))),
+            self.on_restart, accept_text=self.screen.t(MessageKey.SETTINGS_RESTART_NOW))
 
     def discard(self):
         if self.screen.busy:
@@ -85,7 +87,7 @@ class SettingsDrafts:
         self.screen.page = None
         self.screen._engine_target = self.screen._component_target = self.screen._pending_selection = None
         self.screen.choose(selected)
-        self.screen.status = self.screen.t("settings_discarded")
+        self.screen.status = self.screen.t(MessageKey.SETTINGS_DISCARDED)
 
     def reload(self, page):
         if self.screen.busy:
@@ -119,4 +121,4 @@ class SettingsDrafts:
             self.screen.show_page(self.pages[page.name])
         else:
             self.screen.loaded_project(page.record)
-        self.screen.status = self.screen.t("settings_cancelled")
+        self.screen.status = self.screen.t(MessageKey.SETTINGS_CANCELLED)

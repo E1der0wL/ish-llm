@@ -1,5 +1,7 @@
 """Component managers and help share one small slash-command entry point."""
 
+from hub.locales.keys import MessageKey
+
 from ...backend.project.component_commands import parse_arguments
 from ...widget.output.reader import ReadOnlyDialog
 from ...components import component_spec, ManagerKind
@@ -22,7 +24,7 @@ class ComponentCommands:
         project_id = view.project_id
         view.composer.text = ""
         if action == "help":
-            popup = ReadOnlyDialog(f"/{command} help", view.t("component_help", command=command),
+            popup = ReadOnlyDialog(f"/{command} help", view.t(MessageKey.COMPONENT_HELP, command=command),
                                    view._rows, view._columns, view.close_dialog, view.t,
                                    render_worker=view.render_worker)
             view.dialogs.show(popup, popup.receiver)

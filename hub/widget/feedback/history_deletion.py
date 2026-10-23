@@ -1,5 +1,7 @@
 """Clear only the affected transcript while durable turn deletion completes."""
 
+from hub.locales.keys import MessageKey
+
 from dataclasses import dataclass
 
 
@@ -17,7 +19,7 @@ class HistoryDeletion:
 
     def start(self, key, total):
         view = self.view
-        request = PendingDeletion(key, view.progress.start(view.t("history_deleting"), total=total or None),
+        request = PendingDeletion(key, view.progress.start(view.t(MessageKey.HISTORY_DELETING), total=total or None),
                                   view.output.reading_position())
         self.pending[key] = request
         if self.current(key):

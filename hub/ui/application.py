@@ -1,5 +1,7 @@
 """Standalone live terminal UI; ish installations reuse the host Application."""
 
+from hub.locales.keys import MessageKey
+
 from prompt_toolkit.application import Application
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
@@ -16,7 +18,7 @@ def create_application(config, *, theme=None, input=None, output=None, worker_fa
     view = LiveHubView(theme, config.language, config.language_packs)
     options = {"worker_factory": worker_factory} if worker_factory else {}
     controller = LiveController(view, config, **options)
-    background = Window(FormattedTextControl(view.t("background"), focusable=True))
+    background = Window(FormattedTextControl(view.t(MessageKey.BACKGROUND), focusable=True))
     root = FloatContainer(HSplit([background]), floats=[Float(
         view.container, top=0, bottom=0, left=0, right=0), Float(
         ConditionalContainer(view.toasts.container, Condition(lambda: not view.visible and view.toasts.active())),

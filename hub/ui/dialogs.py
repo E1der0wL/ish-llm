@@ -1,5 +1,7 @@
 """Popup lifecycle, validation and focus restoration on the UI thread."""
 
+from hub.locales.keys import MessageKey
+
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import Window
 from prompt_toolkit.layout.containers import to_container
@@ -35,10 +37,10 @@ class DialogController:
             self.close(accepted=True)
             if accept:
                 accept()
-        buttons = [Button(accept_text or self.view.t("confirm"), handler=confirm,
+        buttons = [Button(accept_text or self.view.t(MessageKey.CONFIRM), handler=confirm,
                           **({"width": get_cwidth(accept_text) + 2} if accept_text else {}))]
         if accept:
-            buttons.append(Button(self.view.t("cancel"), handler=self.close))
+            buttons.append(Button(self.view.t(MessageKey.CANCEL), handler=self.close))
         dialog = Dialog(title=title, body=body, buttons=buttons,
                         width=width or (lambda: Dimension(preferred=64, max=max(1, min(80, self.view._columns() - 4)))))
         dialog.on_cancel = on_cancel
@@ -88,6 +90,6 @@ class DialogController:
     def help(self):
         from ..widget.output.reader import ReadOnlyDialog
         view = self.view
-        popup = ReadOnlyDialog(view.t("help_title"), view.t("help"), view._rows, view._columns,
+        popup = ReadOnlyDialog(view.t(MessageKey.HELP_TITLE), view.t(MessageKey.HELP), view._rows, view._columns,
                                self.close, view.t, markdown=True, theme=lambda: view.theme, render_worker=view.render_worker)
         self.show(popup, popup.receiver)

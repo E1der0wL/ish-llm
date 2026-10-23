@@ -1,5 +1,7 @@
 """Hub actions and their footer hints share these context predicates."""
 
+from hub.locales.keys import MessageKey
+
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.key_binding import DynamicKeyBindings, merge_key_bindings
 from prompt_toolkit.layout.controls import BufferControl
@@ -197,7 +199,7 @@ class HubBindings:
         if view.on_submit:
             view.on_submit(view.sessions[view.selected].id, view.composer.text)
         else:
-            view.notice = view.t("preview_submit")
+            view.notice = view.t(MessageKey.PREVIEW_SUBMIT)
 
     def newline(self, event):
         self.view.composer.buffer.cancel_completion()

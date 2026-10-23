@@ -1,5 +1,7 @@
 """Multi-selection request history, editable input and response preview."""
 
+from hub.locales.keys import MessageKey, MessagePattern
+
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
@@ -27,16 +29,16 @@ class RequestHistoryDialog(Dialog):
         for key, action, callback in (("d", "delete", delete), ("e", "edit", edit), ("r", "retry", retry)):
             self.choices.control.hub_shortcuts.add([key], key, action, lambda e, callback=callback: callback())
         body = HSplit([
-            Label("\n" + view.t("history_requests"), style="class:hub.accent bold"),
-            Label(lambda: clipped_summary(view.t("history_hint"), width() - 6)), self.choices,
-            Label("\n" + view.t("history_user_message"), style="class:hub.accent bold"), self.editor,
-            Label("\n" + view.t("history_response"), style="class:hub.accent bold"),
+            Label("\n" + view.t(MessageKey.HISTORY_REQUESTS), style="class:hub.accent bold"),
+            Label(lambda: clipped_summary(view.t(MessageKey.HISTORY_HINT), width() - 6)), self.choices,
+            Label("\n" + view.t(MessageKey.HISTORY_USER_MESSAGE), style="class:hub.accent bold"), self.editor,
+            Label("\n" + view.t(MessageKey.HISTORY_RESPONSE), style="class:hub.accent bold"),
             Label(lambda: clipped_summary(self.details(), width() - 6), style="class:hub.muted"), self.response,
         ], width=lambda: Dimension.exact(max(1, width() - 4)))
-        buttons = [Button(view.t("history_" + name), handler=callback, width=9) for name, callback in (
+        buttons = [Button(view.t(MessagePattern.history(name)), handler=callback, width=9) for name, callback in (
             ("delete", delete), ("edit", edit), ("retry", retry), ("close", close))]
         self.buttons = buttons
-        super().__init__(title=view.t("history_title"), body=body, buttons=buttons, shortcut_context="history",
+        super().__init__(title=view.t(MessageKey.HISTORY_TITLE), body=body, buttons=buttons, shortcut_context="history",
                          width=lambda: Dimension.exact(width()))
 
     def select(self, identifier):

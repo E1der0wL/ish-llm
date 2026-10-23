@@ -4,22 +4,24 @@ Backend는 이 이름/구간을 알지 않는다. 기본 모델 평가와 명시
 척도를 구분하며, 모델 평가가 없으면 unknown으로 남긴다.
 """
 
+from hub.locales.keys import MessageKey
+
 RISK_SCHEME = "hub-risk-v1"
 
 
 def review_lines(request, t):
     """Bounded, plain action details shared by the composer and Markdown review."""
     action = request["action"]
-    lines = [t("approval_tool", name=str(action.get("tool", ""))[:160])]
+    lines = [t(MessageKey.APPROVAL_TOOL, name=str(action.get("tool", ""))[:160])]
     if request.get("description"):
         lines.append(request["description"][:240] + ("…" if len(request["description"]) > 240 else ""))
-    lines.append(t("approval_risk", value=risk_label(request.get("risk_scheme"), request.get("risk"))))
+    lines.append(t(MessageKey.APPROVAL_RISK, value=risk_label(request.get("risk_scheme"), request.get("risk"))))
     from ..tools.advice import FIELD, MODEL_RISK_SCHEME, model_assessment
     assessment = model_assessment(request)
     if assessment:
-        lines.append(t("approval_model_reason", reason=assessment[1])
+        lines.append(t(MessageKey.APPROVAL_MODEL_REASON, reason=assessment[1])
             if request.get("risk_scheme") == MODEL_RISK_SCHEME
-            else t("approval_model_risk", level=assessment[0], reason=assessment[1]))
+            else t(MessageKey.APPROVAL_MODEL_RISK, level=assessment[0], reason=assessment[1]))
     arguments = action.get("arguments", {})
     targets = []
     if isinstance(arguments, dict):
@@ -34,7 +36,7 @@ def review_lines(request, t):
                 targets.append(f"{key}: {preview.repr(value)}")
             else:
                 size = len(value) if isinstance(value, (str, list, dict)) else 1
-                lines.append(t("approval_argument", name=str(key)[:80], kind=type(value).__name__, size=size))
+                lines.append(t(MessageKey.APPROVAL_ARGUMENT, name=str(key)[:80], kind=type(value).__name__, size=size))
         if len(arguments) > 12:
             lines.append("…")
     return [lines[0], *targets, *lines[1:]]

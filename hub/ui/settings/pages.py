@@ -1,5 +1,7 @@
 """Draft settings pages with field and action regions."""
 
+from hub.locales.keys import MessageKey, MessagePattern
+
 from llm.core.configuration_views import EngineConfigurationKey
 
 from llm.services.schema import ProjectFormSchemas, ProjectConfiguration
@@ -36,10 +38,10 @@ class Page:
         self.query = query.strip().casefold()
         self._filtered_fields = self._matching_fields()
         if not self.section_fields():
-            self.container = SettingsBody([Label(self.screen.t("settings_tab_empty"))], [])
+            self.container = SettingsBody([Label(self.screen.t(MessageKey.SETTINGS_TAB_EMPTY))], [])
             return
         self.container = (SettingsBody(self.grouped_children(self.fields()) or
-                          [Label(self.screen.t("settings_search_empty"))], self.fields())
+                          [Label(self.screen.t(MessageKey.SETTINGS_SEARCH_EMPTY))], self.fields())
                           if self.query else self._unfiltered)
 
     def grouped_children(self, fields):
@@ -55,10 +57,10 @@ class Page:
         return children
 
     def actions(self):
-        self.save = SaveButton(lambda: self.screen.t("settings_save"),
+        self.save = SaveButton(lambda: self.screen.t(MessageKey.SETTINGS_SAVE),
                                lambda: any(page.dirty for page in self.screen.drafts.active_pages()), self.screen.save)
-        self.reload = Button(self.screen.t("settings_reload"), handler=lambda: self.screen.reload(self), width=10)
-        self.cancel = Button(self.screen.t("settings_discard"), handler=self.screen.discard, width=10)
+        self.reload = Button(self.screen.t(MessageKey.SETTINGS_RELOAD), handler=lambda: self.screen.reload(self), width=10)
+        self.cancel = Button(self.screen.t(MessageKey.SETTINGS_DISCARD), handler=self.screen.discard, width=10)
         self.buttons = [self.save, self.reload, self.cancel]
         self.bottom = ActionBar(self.buttons, lambda: max(1, self.screen.main_width() - 2))
         for field in self.all_fields():
@@ -175,7 +177,7 @@ class ProjectPage(Page):
             field.label = field.schema.get("title") or label
             groups.setdefault(category, []).append(field)
         def title(category):
-            key = "settings_group_" + category
+            key = MessagePattern.settings_group(category)
             value = self.screen.t(key)
             return category.replace("_", " ") if value == key else value
         self.groups = [(title(category), fields) for category, fields in groups.items()]
@@ -185,9 +187,9 @@ class ProjectPage(Page):
             required = ProjectConfiguration.view(self.record).schema.get("x-components", {}).get(name, {}).get("required_components", [])
             missing = [item for item in required if item not in self.components]
             if required:
-                body.append(Label(self.screen.t("settings_dependencies", names=", ".join(required))))
+                body.append(Label(self.screen.t(MessageKey.SETTINGS_DEPENDENCIES, names=", ".join(required))))
             if missing:
-                body.append(Label(self.screen.t("settings_dependencies_missing", names=", ".join(missing))))
+                body.append(Label(self.screen.t(MessageKey.SETTINGS_DEPENDENCIES_MISSING, names=", ".join(missing))))
         self._unfiltered = SettingsBody([*body, *self.grouped_children(self.section_fields())], self.section_fields())
         self.container = self._unfiltered
         self.filter(self.screen.query)
@@ -217,11 +219,11 @@ class GlobalPage(Page):
             values = {"icon_style": "nerd", "mode": "dark", "output_refresh_interval": 0.1,
                       "progress_refresh_interval": 0.1, **values}
         self.original = deepcopy(values)
-        descriptions = ({"display_name": screen.t("settings_profile_description"),
-                         "email": screen.t("settings_email_description"),
-                         "phone": screen.t("settings_phone_description")} if name == "profile" else
-                        {"editor": screen.t("settings_editor_description")} if name == "general" else
-                        {key: screen.t("settings_color_description") for key in
+        descriptions = ({"display_name": screen.t(MessageKey.SETTINGS_PROFILE_DESCRIPTION),
+                         "email": screen.t(MessageKey.SETTINGS_EMAIL_DESCRIPTION),
+                         "phone": screen.t(MessageKey.SETTINGS_PHONE_DESCRIPTION)} if name == "profile" else
+                        {"editor": screen.t(MessageKey.SETTINGS_EDITOR_DESCRIPTION)} if name == "general" else
+                        {key: screen.t(MessageKey.SETTINGS_COLOR_DESCRIPTION) for key in
                          ("background", "foreground", "accent1", "accent2", "accent3", "comment")})
         properties = {key: {"type": "string", "description": description} for key, description in descriptions.items()}
         from ...config.restart import setting_metadata
@@ -230,56 +232,56 @@ class GlobalPage(Page):
                 properties[key].update(metadata)
         if name == "appearance":
             properties["mode"] = {"type": "string", "enum": ["dark", "light"],
-                "title": screen.t("settings_theme_mode"), "description": screen.t("settings_theme_mode_description")}
+                "title": screen.t(MessageKey.SETTINGS_THEME_MODE), "description": screen.t(MessageKey.SETTINGS_THEME_MODE_DESCRIPTION)}
             properties["icon_style"] = {"type": "string", "enum": ["nerd", "unicode"],
-                "title": screen.t("settings_icon_style"), "description": screen.t("settings_icon_description"),
-                "x-hub-choices": {"nerd": "Nerd Font", "unicode": screen.t("settings_icon_unicode")}}
+                "title": screen.t(MessageKey.SETTINGS_ICON_STYLE), "description": screen.t(MessageKey.SETTINGS_ICON_DESCRIPTION),
+                "x-hub-choices": {"nerd": "Nerd Font", "unicode": screen.t(MessageKey.SETTINGS_ICON_UNICODE)}}
             for key in ("background", "foreground", "accent1", "accent2", "accent3", "comment"):
-                properties[key]["title"] = screen.t("settings_theme_" + key)
+                properties[key]["title"] = screen.t(MessagePattern.settings_theme(key))
             properties["sidebar_width"] = {"type": "integer", "minimum": screen.view.profile_bar.minimum_width, "maximum": 60,
-                "title": screen.t("settings_sidebar_width_title"), "description": screen.t("settings_sidebar_width")}
+                "title": screen.t(MessageKey.SETTINGS_SIDEBAR_WIDTH_TITLE), "description": screen.t(MessageKey.SETTINGS_SIDEBAR_WIDTH)}
             for key in ("output_refresh_interval", "progress_refresh_interval"):
                 properties[key] = {"type": "number", "minimum": 0.01, "maximum": 10,
-                    "title": screen.t("settings_" + key), "description": screen.t("settings_" + key + "_description")}
+                    "title": screen.t(MessagePattern.settings(key)), "description": screen.t(MessagePattern.settings_help(key))}
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)
         self.general_form = None
         if name == "general":
             from ...widget.forms.general_settings import GeneralForm
             self.general_form = GeneralForm(screen, values)
             self.form = self.general_form.form
-        self.container = HSplit([section(screen.t("settings_" + name)), self.form.container])
+        self.container = HSplit([section(screen.t(MessagePattern.settings(name))), self.form.container])
         if name == "appearance":
-            self.container = SettingsBody([section(screen.t("settings_" + name)), *self.form.children], self.all_fields())
+            self.container = SettingsBody([section(screen.t(MessagePattern.settings(name))), *self.form.children], self.all_fields())
         if self.general_form is not None:
             self.container = self.general_form.container
-            self.groups = [(screen.t("general_category_" + category), [self.form.fields[(key,)] for key in keys])
+            self.groups = [(screen.t(MessagePattern.general_category(category)), [self.form.fields[(key,)] for key in keys])
                            for category, keys in self.general_form.groups.items()]
         else:
-            self.groups = [(screen.t("settings_" + name), self.all_fields())]
+            self.groups = [(screen.t(MessagePattern.settings(name)), self.all_fields())]
         self.usage_output = None
         if name == "profile":
             from ...widget.usage_chart import DailyUsageChart
             self.usage_output = TextArea(text=self.usage_text(), read_only=True, scrollbar=True,
                                          wrap_lines=True, height=6, style="class:hub.muted")
             self.usage_chart = DailyUsageChart(screen.usage, screen.t)
-            self.container = SettingsBody([section(screen.t("settings_profile")), *self.form.children,
-                section(screen.t("settings_usage")), self.usage_output, self.usage_chart], self.all_fields())
+            self.container = SettingsBody([section(screen.t(MessageKey.SETTINGS_PROFILE)), *self.form.children,
+                section(screen.t(MessageKey.SETTINGS_USAGE)), self.usage_output, self.usage_chart], self.all_fields())
         self.actions()
         if name == "appearance":
             self.form.fields[("sidebar_width",)].input.buffer.on_text_changed += self.preview_width
 
     def usage_text(self):
-        rows = [self.screen.t("settings_usage_scope")]
+        rows = [self.screen.t(MessageKey.SETTINGS_USAGE_SCOPE)]
         if not self.screen.usage:
-            rows.append(self.screen.t("settings_usage_empty"))
+            rows.append(self.screen.t(MessageKey.SETTINGS_USAGE_EMPTY))
         for record in self.screen.usage:
             if "error" in record:
                 from ..error_presentation import error_text
-                rows.append(self.screen.t("settings_usage_error", title=record["title"], error=error_text(record["error"])))
+                rows.append(self.screen.t(MessageKey.SETTINGS_USAGE_ERROR, title=record["title"], error=error_text(record["error"])))
                 continue
-            period = (self.screen.t("settings_usage_all") if record["period_seconds"] is None else
-                      self.screen.t("settings_usage_period", seconds=record["period_seconds"]))
-            rows.append(self.screen.t("settings_usage_row", **record, period=period))
+            period = (self.screen.t(MessageKey.SETTINGS_USAGE_ALL) if record["period_seconds"] is None else
+                      self.screen.t(MessageKey.SETTINGS_USAGE_PERIOD, seconds=record["period_seconds"]))
+            rows.append(self.screen.t(MessageKey.SETTINGS_USAGE_ROW, **record, period=period))
         return "\n".join(rows)
 
     def preview_width(self, _=None):
@@ -315,7 +317,7 @@ class GlobalPage(Page):
         self.screen.drafts.preferences[self.name] = result
         page = self.screen.drafts.pages[self.name] = GlobalPage(self.screen, self.name, result)
         self.screen.show_page(page)
-        self.screen.status = self.screen.t("settings_saved")
+        self.screen.status = self.screen.t(MessageKey.SETTINGS_SAVED)
         if self.name == "appearance":
             self.screen.drafts.saved_sidebar_width = result["sidebar_width"]
             self.screen.view.set_theme(HubTheme(**result))

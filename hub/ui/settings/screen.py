@@ -1,5 +1,7 @@
 """Settings navigation: two panels with fields and actions."""
 
+from hub.locales.keys import MessageKey, MessagePattern
+
 from llm.services.schema import ProjectConfiguration
 
 from dataclasses import asdict, replace
@@ -55,8 +57,8 @@ class SettingsScreen:
                                   Window(height=1)), show_scrollbar=True,
                                   width=lambda: Dimension(min=1, preferred=max(1, self.main_width() - 1)))
         from ...widget.tab_page import TabPage
-        self.tabs = TabPage([(SettingsTab.CONFIG.value, self.t("settings_tab_config"), self.main),
-                             (SettingsTab.POLICY.value, self.t("settings_tab_policy"), self.main)],
+        self.tabs = TabPage([(SettingsTab.CONFIG.value, self.t(MessageKey.SETTINGS_TAB_CONFIG), self.main),
+                             (SettingsTab.POLICY.value, self.t(MessageKey.SETTINGS_TAB_POLICY), self.main)],
                             width=self.main_width, on_change=self.tab_changed,
                             on_enter=self.enter_tab, on_leave=self.navigation.finish_edit)
         bottom = DynamicContainer(lambda: self.page.bottom if self.page else Label(""))
@@ -65,7 +67,7 @@ class SettingsScreen:
         self.auxiliary = AuxiliaryBar([("filter", self.search), ("json", self.show_json)],
                                       lambda: view.icons, lambda: self.navigation.focus_zone(1))
         self.layout = TwoPanelPage(
-            header=HeaderActions(HeaderBar(lambda: self.t("settings_title"), icons=lambda: view.icons), view),
+            header=HeaderActions(HeaderBar(lambda: self.t(MessageKey.SETTINGS_TITLE), icons=lambda: view.icons), view),
             sidebar=DynamicContainer(lambda: self._left),
             main=HSplit([
                         ContentInset(self.tabs, heading=self.page_title, width=self.main_dimension,
@@ -107,15 +109,15 @@ class SettingsScreen:
                      self.view.project_title)
         active = not self.layout.sidebar_focused
         return [("class:hub.focused" if active else "", (SELECTED + " " if active else "  ")
-                 + self.t("settings_current_project", title=title))]
+                 + self.t(MessageKey.SETTINGS_CURRENT_PROJECT, title=title))]
 
     def page_title(self) -> str:
         if self.page is None:
             return ""
         if isinstance(self.page, GlobalPage):
-            category, key = "settings_global", self.page.name
+            category, key = MessageKey.SETTINGS_GLOBAL, self.page.name
         else:
-            category, key = "settings_projects", self.page.section
+            category, key = MessageKey.SETTINGS_PROJECTS, self.page.section
         return self.t(category) + " • " + self._item_title(key)
 
     def _sidebar(self):
@@ -123,10 +125,10 @@ class SettingsScreen:
         if self.navigation.left_key not in self.navigation.left_items():
             self.navigation.left_key = "profile"
         from ...widget.sidebar_panel import SidebarPanel
-        self._left = SidebarPanel([HSplit([SidebarHeading(lambda: self.view.icons.settings + " " + self.t("settings_global")),
+        self._left = SidebarPanel([HSplit([SidebarHeading(lambda: self.view.icons.settings + " " + self.t(MessageKey.SETTINGS_GLOBAL)),
                              Window(self.global_list, height=len(self.global_keys)),
                              Window(height=1)]),
-                             HSplit([SidebarHeading(lambda: self.view.icons.project + " " + self.t("settings_projects")),
+                             HSplit([SidebarHeading(lambda: self.view.icons.project + " " + self.t(MessageKey.SETTINGS_PROJECTS)),
                                      Window(self.project_list)])], self.view.profile_bar, width=self.view.sidebar_width,
                                      controls=(self.global_list, self.project_list))
         if previous and self.view.visible and self.view.settings_open:
@@ -147,8 +149,8 @@ class SettingsScreen:
     def _item_title(self, key: str) -> str:
         kind, _, name = key.partition(":")
         if kind in ("engine", "component"):
-            return self.t("settings_" + kind + "_item", name=name)
-        return self.t("settings_" + (name or kind))
+            return self.t(MessagePattern.settings_item(kind), name=name)
+        return self.t(MessagePattern.settings(name or kind))
 
     def project_items(self):
         keys = ["project:general"]
@@ -184,8 +186,8 @@ class SettingsScreen:
         field = TextArea(text=self.query, height=1, multiline=False)
         def accept():
             self.filter(field.text)
-        self.view.open_dialog(self.t("settings_search"), HSplit([
-            Label(self.t("settings_search_hint")), field]), accept, field)
+        self.view.open_dialog(self.t(MessageKey.SETTINGS_SEARCH), HSplit([
+            Label(self.t(MessageKey.SETTINGS_SEARCH_HINT)), field]), accept, field)
         def entered(_):
             self.view.close_dialog()
             accept()
@@ -196,7 +198,7 @@ class SettingsScreen:
         return " · ".join(part for part in (self.filter_label(), self.status) if part)
 
     def filter_label(self):
-        return self.t("settings_search_active", query=self.query) if self.query else ""
+        return self.t(MessageKey.SETTINGS_SEARCH_ACTIVE, query=self.query) if self.query else ""
 
     def show_json(self):
         self.json_editor.open()
@@ -255,19 +257,19 @@ class SettingsScreen:
         from ...errors.adapters import from_exception
         info = from_exception(error, operation="settings", validation=isinstance(error, (ValueError, TypeError)))
         self.view.operation_diagnostics.record(getattr(self.view, "project_id", ""), info)
-        self.status = self.t("error", error=operation_notice(error if isinstance(error, str) else info, self.t))
+        self.status = self.t(MessageKey.ERROR, error=operation_notice(error if isinstance(error, str) else info, self.t))
         get_app().invalidate()
 
     def call(self, operation, *args, completed=None):
         if self.busy:
             return
         if self.request is None:
-            self.error(self.t("not_connected"))
+            self.error(self.t(MessageKey.NOT_CONNECTED))
             return
         self.busy = True
         self.status = ""
         progress = self.view.progress.start(self.t(
-            "progress_settings_load" if operation in ("catalog", "load_project") else "progress_settings_work"))
+            MessageKey.PROGRESS_SETTINGS_LOAD if operation in ("catalog", "load_project") else MessageKey.PROGRESS_SETTINGS_WORK))
         def done(value, error=None):
             self.view.progress.finish(progress)
             self.busy = False
@@ -291,7 +293,7 @@ class SettingsScreen:
             self.drafts.preferences = {"profile": asdict(UserProfile()), "appearance": self.drafts.initial_appearance.copy(),
                                 "general": asdict(GeneralSettings())}
             self.choose("profile")
-            self.status = self.t("preview_notice")
+            self.status = self.t(MessageKey.PREVIEW_NOTICE)
             return
         self.call("catalog", completed=self.loaded_catalog)
 
@@ -402,7 +404,7 @@ class SettingsScreen:
         identifier, title = ProjectConfiguration.view(record).project_id, ProjectConfiguration.view(record).values.title
         self.projects = [item for item in self.projects if item["id"] != identifier] + [{"id": identifier, "title": title}]
         self._sidebar()
-        self.status = self.t("settings_saved")
+        self.status = self.t(MessageKey.SETTINGS_SAVED)
 
     def left_control(self):
         return self.navigation.left_control()

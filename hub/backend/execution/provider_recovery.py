@@ -1,5 +1,7 @@
 """Repair failed model input within a live Loop, never replay a Run or Tool."""
 
+from hub.locales.codes import LanguageCode
+
 from llm.providers.streaming import CompletionErrorCode
 from llm.providers.codes import ProviderErrorCode
 import asyncio
@@ -64,7 +66,7 @@ class RecoveryUnavailable(ValueError):
 
 
 class ProviderRecovery:
-    def __init__(self, settings, monitor, language="ko"):
+    def __init__(self, settings, monitor, language=LanguageCode.DEFAULT):
         self.settings, self.monitor, self.language = settings, monitor, language
         self.current = ContextVar("hub_provider_recovery", default=None)
 
