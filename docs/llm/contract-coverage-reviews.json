@@ -1,0 +1,218 @@
+[
+  {
+    "path": "llm/__init__.py",
+    "sha256": "620c36e62df528b1f8e0543da0d28ccdea9a41822edd5f76b12b79be384b4e68",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "llm/core/__init__.py",
+    "sha256": "1f604a83002f717dc87eb1d3a81519f3e8b14a38e15f5897a66f74519775a792",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "llm/providers/__init__.py",
+    "sha256": "89eebb9b222acd71e7334a56f1254ed98fac37ba69babd8524751361aea8f86f",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "llm/services/__init__.py",
+    "sha256": "dbed9df73b23cd2f23cc13d687d19eb4eda1c8d897bd96460a7dfe3c9e2c4385",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "llm/services/history/__init__.py",
+    "sha256": "5521b3b52334e4ce96e32b4d9ca055aae7bffdf5f3347ecbd469b0a5d4fc318a",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "llm/services/infrastructure/__init__.py",
+    "sha256": "fe69a8291d2479c1d946ebcdd514c15884b8184cfb1d393c15d3a5119bf01261",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "llm/services/lifecycle/__init__.py",
+    "sha256": "46008a2abfd6e164c2326feaf33a35a97f79e8a02f84b4361634c205c62b618c",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "llm/services/runtime/__init__.py",
+    "sha256": "5a427b633fce7de7d95ab655e7fa0ba286a387fd3cad95aeae27e19393ce6284",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/__init__.py",
+    "sha256": "205a82141b406e55cd774f02600d55e3714b3ebd321db47495974de1f0cf71ce",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/asset/__init__.py",
+    "sha256": "06863d66eb1776214c586c894956b3e71b453f4c009059b4ea3c782a1b565480",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/backend/__init__.py",
+    "sha256": "596d871e9608deb2657408ca1d83a66d4aa8b82a0328802569e1c8b2d85f8e25",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/backend/execution/__init__.py",
+    "sha256": "a8568e699bf4390e159c7f04d4381be5a733af21a33b01eb026eb30e16631efc",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/backend/interactions/__init__.py",
+    "sha256": "241e97a2ae0952020311518520bf41ba4ceff8bf2674adc46ca6cb98b51ece80",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/backend/observability/__init__.py",
+    "sha256": "fd333b06664cb60117f060a255310f98d3a30e25e6a323739bf4cd985a227977",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/backend/project/__init__.py",
+    "sha256": "fa1075c4f4912e8efa91b771f35e865ffb902b5c0be51847c9783e970b9ebb9c",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/backend/tools/__init__.py",
+    "sha256": "6255d02b459387bb93ca1c407c4776e512bd82222489ff0ef3498c50d0a2dc6f",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/config/__init__.py",
+    "sha256": "c00e004778e021ab4b3a59e0e6c65dfbaa89e61196d6cde6c6a74c5f489a1a69",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/errors/__init__.py",
+    "sha256": "d59f6e7ef543ce5bb4db21bdd2baf2024ebb28aba7b767a8436eadfe6cb336d4",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/ui/__init__.py",
+    "sha256": "817fc060faee34fe9e49b4e5ea874b8f36e9bed1b69237335c6d784087744a83",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/ui/chat/__init__.py",
+    "sha256": "3c7afc6399274bff82531d600e3dc06a5f598c534a348ff0d3b59b6c4455f5b0",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/ui/input/__init__.py",
+    "sha256": "8f129e9152fb3d545ccfecc5c0a07e833d63209bb7f6ab20e087071a8b653818",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/ui/settings/__init__.py",
+    "sha256": "1f001280906026293a001bceb744c64584c8b3a96acb8c9ea36bce55d0a16718",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/widget/__init__.py",
+    "sha256": "60379f1417e2ab2ca7abf1a10a2236bf845f7e5a03c0140bb57c5ee26e918ccb",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/widget/feedback/__init__.py",
+    "sha256": "f1d901bc429793a06854f3e007c04180ffdbdeb9d566e8819d159488f8f76a06",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/widget/forms/__init__.py",
+    "sha256": "64800283eae21027ee3c1ab42b5b005f60c32691f19d9774922e847922ca63b0",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/widget/output/__init__.py",
+    "sha256": "361ce4c8b9208af50a52e59ce0ef7f97157ffb1944e7226581b89d9fb23456df",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  },
+  {
+    "path": "hub/widget/transcript/__init__.py",
+    "sha256": "9bfdd6e45f30f4a8a6833cd331cc934fd533925d9efc9dc488e8ad0c61fe7678",
+    "reason": "Read the entire package marker: only a descriptive module docstring, no imports, assignments, Reader/Writer, callbacks, factories, data structures or runtime operations. The package itself adds no contract or dynamic consumer path. Neighboring implementation files are reviewed separately.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [],
+    "decisions": []
+  }
+]

@@ -222,3 +222,107 @@ Assertion 두 개가 실패하여 검출됐다. 검사를 통과한 제품 결�
 Checkpoint 소단계와 Hub 대역 보정을 로컬 커밋으로 보존하고 그 SHA를 고정한 검증 디렉터리에서
 Hub 전체를 재실행한다. 통합 게이트는 아직 완료가 아니며 원격 Push/CI도 아직 하지 않았다.
 상위 전수 작업은 이어서 진행한다. 이전 전체·집중 로그와 실패 증거를 삭제하지 않는다.
+
+## 묶음 1의 고정 SHA Hub 재검증
+
+Checkpoint 로컬 커밋은 `a887583`이다. `/workspace/ish-llm-group1-validation`을 이 SHA의
+분리된 검증 checkout으로 만들고 동일 Python·호스트·고정 의존성·namespace/X11 환경에서
+`/workspace/ish-llm/.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/run-suite.py hub whole-owners-group1-hub-corrected-l3`
+를 실행했다. **586/586/586, 모든 bad count 0, exit 0**. Source
+`2747f1ba3367773a49066d6f412c58d6cab1be42fe3c3b62a924ca3de92c2750`, input
+`63bfe7bdc8841d2f75b651c6cf5a78cec6bfc237696bbd47e3d9ca3467af93af`는 전후 동일하다.
+실제 import 경로도 해당 검증 checkout의 `llm`·`hub`임을 확인했다. 작업 checkout의 다음 변경이
+이 시험에 섞이지 않았다. 앞서 기록한 LLM 전체와 보정된 감사 시험의 재사용 조건·각 소스 구분을
+유지한다. 다음 추가 지시 소단계와 묶어 Push/원격 CI를 진행하며 이 결과는 전수 작업 완료가 아니다.
+
+## 추가 지시 이벤트·채널·Message 영수증 Owner
+
+`SteeringEventData`/`SteeringOperation`은 Engine 요청과 중첩 scope 연결, `SteeringNotification`은
+부분 변경 알림의 생략/빈 배열 구분을 소유한다. `SteeringChannel`은 Run 채널·예약 경로·실행 대상
+등록과 종료를 소유한다. `InstructionMessageRecord`/`InstructionReceipt`/`InstructionApplication`은
+Message 내부 영수증·상태 집계·반영 이력·예약 연결을 소유한다. RunManager·Graph·서비스·Hub는
+속성/변경 API와 공개 `RunInstruction`을 사용한다. 원본 Message 본문이나 실행 기록의 새 저장소를
+만들지 않았다. 원래 JSON 모양·초기 필드 생략·미결합 null·opaque 확장 데이터와 저장 ACK 순서는 유지한다.
+공통 Checkpoint records 교체도 Owner 경계에서 원본 필수 증거와 교체값을 검사하고 사본에만 적용한다.
+
+이 과정에서 기존 복제 Writer의 결함을 독립 재현했다. 일부 대상은 applied, 다른 대상은 pending인
+지시를 복제하면 대상별 영수증은 남지만 전체 상태를 unapplied로 만들어 현행 Reader가 거절했다.
+새 복제본에서 pending 대상만 cloned 사유로 닫고 같은 Owner로 부분 반영 상태를 계산하도록 수정했다.
+원본 및 적용 영수증·사용 이력은 바꾸지 않으며 기존 손상 기록을 복구하거나 재실행하지 않는다.
+새 회귀는 집계의 정합성뿐 아니라 노드 전용 지시가 후속 실행의 일반 문맥으로 유출되지 않음을 확인한다.
+
+실패와 보정 이력:
+
+- `whole-steering-channel-01`: 기존 장애 주입 helper가 typed SteeringTarget을 dict로 읽어
+  두 번째 대상의 의도적 장애 전에 TypeError를 일으켰다. `.scope` 접근으로 변경했고, 실제로
+  두 번째 대상에서만 주입됐다는 Assertion을 추가했다. 기존 부분 반영/재개/효과 Assertion은 유지했다.
+- `whole-instruction-clone-repro`: 위 복제 결함이 현재 Reader의 aggregate status 검사로 재현됐다.
+- `whole-instruction-clone-fixed`: 복제본 상태/영수증 Assertion은 통과한 뒤 새 시험의 후속 요청
+  fixture에 필수 admission이 없어 실패했다. 기존 admitted_message helper로 실제 접수 증거를
+  구성했고 권한 검사를 완화하지 않았다. 보정 재현 시험은 `whole-instruction-clone-fixed-02`로 통과했다.
+- `whole-steering-receipts-03`: 재시작 회복 시험의 Writer fixture가 typed 영수증을 JSON 변환 없이
+  저장하려 했다. 해당 경계에 `to_dict()`만 추가했다. 원본 독립 필드값·재시작/무실행 Assertion은 유지했다.
+- `whole-steering-hub-01`: 존재하지 않는 test_steering 모듈을 지정해 발견 단계에서 exit 2로
+  중단됐다. 시험을 실행하지 않았으며 성공/Skip으로 처리하지 않는다. 실제 모듈 test_features를
+  확인해 `whole-steering-hub-02`에서 실행했다.
+
+| 실행 | 발견/실행/pass | 실패 ID / failure / error | Skip·xfail·xpass·누락·중복 | Exit |
+|---|---|---|---|---|
+| whole-steering-channel-01 | 128/128/127 | 1 / 1 / 0 | 모두 0 | 1 |
+| whole-steering-reservations-02 | 29/29/29 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-instruction-clone-repro | 1/1/0 | 1 / 0 / 1 | 모두 0 | 1 |
+| whole-instruction-clone-fixed | 70/70/69 | 1 / 0 / 1 | 모두 0 | 1 |
+| whole-instruction-clone-fixed-02 | 1/1/1 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-steering-receipts-03 | 140/140/139 | 1 / 0 / 1 | 모두 0 | 1 |
+| whole-steering-receipts-04 | 140/140/140 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-steering-safety-05 | 143/143/143 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-steering-hub-01 | 실행 전 중단 | 집계 없음 | 집계 없음 | 2 |
+| whole-steering-hub-02 | 29/29/29 | 0 / 0 / 0 | 모두 0 | 0 |
+
+각 실행은 별도 증거이며 하나의 전체 실행으로 합산하지 않는다. 명령·소스/입력 hash:
+
+- `whole-steering-channel-01`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-steering-channel-01 tests.llm.test_steering_values tests.llm.test_engine_steering tests.llm.test_loop_steering tests.llm.test_instruction_reservations tests.llm.test_graph_checkpoints tests.llm.test_checkpoint_integrity tests.llm.test_conversation_turns`.
+  source `95717dbb7de825c3d4556e32ca59ed7a930fc6ecb5a7a56bfb6476be1734c8f8` 전후 동일.
+  input `962c394e1fd02e587cdbd18151d01e22958c4345aa067d1055de215fb00e6a7b` 전후 동일.
+- `whole-steering-reservations-02`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-steering-reservations-02 tests.llm.test_instruction_reservations tests.llm.test_steering_values`.
+  source `bf0c97422b0efa7a9938d945c581315755436b9fc31130ca9c2a75f70d63aaa3` 전후 동일.
+  input `94f9093988d9a2312dcf72d5ff63b092d33cf936957f71815472cb7658c25318` 전후 동일.
+- `whole-instruction-clone-repro`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-instruction-clone-repro tests.llm.test_instruction_values`.
+  source `ede4d41e76a138f0c98e549c8afd2b3897f8aaa95f626b1ae749d961fc834536` 전후 동일.
+  input `429e3bf295faf3686f9b952040d4ee60e5075a1e7d0704267e002b4aaa775297` 전후 동일.
+- `whole-instruction-clone-fixed`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-instruction-clone-fixed tests.llm.test_instruction_values tests.llm.test_loop_steering tests.llm.test_instruction_reservations tests.llm.test_conversation_turns`.
+  source `0bbe9a84c0fe46e0ab2f2e77f803c3fa3bb7eb5b1f1ec1b77fcf82facbf6dd27` 전후 동일.
+  input `034a7122a307b8829c5fbc5e1c6a864f4c2d49faa1a1c6e231699bc7e3c56fd4` 전후 동일.
+- `whole-instruction-clone-fixed-02`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-instruction-clone-fixed-02 tests.llm.test_instruction_values`.
+  source `c93134654a85abcf548c9337152ce24099afc83036242140c4d77640b30fbcf5` 전후 동일.
+  input `42a5d02724dda02b1675ade3e49538ca2392450761a32394ba0ed99ed6e660c0` 전후 동일.
+- `whole-steering-receipts-03`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-steering-receipts-03 tests.llm.test_instruction_values tests.llm.test_steering_values tests.llm.test_loop_steering tests.llm.test_instruction_reservations tests.llm.test_conversation_turns tests.llm.test_engine_steering tests.llm.test_checkpoint_values tests.llm.test_checkpoint_integrity tests.llm.test_graph_checkpoints`.
+  source `b9c26d75f02ab714345ff571fc203992fe7eb416ed769274919b632d88594e0b` 전후 동일.
+  input `4e160690c12eec3b709dd37bde787f187bb527980f359e7dae1e7b6646c7690e` 전후 동일.
+- `whole-steering-receipts-04`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-steering-receipts-04 tests.llm.test_instruction_values tests.llm.test_steering_values tests.llm.test_loop_steering tests.llm.test_instruction_reservations tests.llm.test_conversation_turns tests.llm.test_engine_steering tests.llm.test_checkpoint_values tests.llm.test_checkpoint_integrity tests.llm.test_graph_checkpoints`.
+  source `424d2acff6a6a86531a8a1face4f1ed4bb757bcc5cdb974fd5c411dd9774327e` 전후 동일.
+  input `5901dd09c8422620e5854e525076039446e9a909dee302ec35b54068f43d568c` 전후 동일.
+- `whole-steering-safety-05`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-steering-safety-05 tests.llm.test_instruction_values tests.llm.test_steering_values tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_runtime_reliability tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `1837b72cc45d7b089ae3d1372eaf8eb3d75f1ef4df59407abbf1cdc6b2b338c4` 전후 동일.
+  input `37f2cc4220effbd5f18ced9d3699ed7a34121d8fd765249be3f6f982bfcdca87` 전후 동일.
+- `whole-steering-hub-01`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py hub whole-steering-hub-01 tests.hub.test_message_timing tests.hub.test_snapshot_projection tests.hub.test_request_history tests.hub.test_steering`.
+  source `1837b72cc45d7b089ae3d1372eaf8eb3d75f1ef4df59407abbf1cdc6b2b338c4` 전후 동일.
+  input `ab05f9411c94b99f3a3727cd3cd938000221eb02039942d3e6807027c63e9f56` 전후 동일.
+- `whole-steering-hub-02`: `.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py hub whole-steering-hub-02 tests.hub.test_message_timing tests.hub.test_snapshot_projection tests.hub.test_request_history tests.hub.test_features`.
+  source `1837b72cc45d7b089ae3d1372eaf8eb3d75f1ef4df59407abbf1cdc6b2b338c4` 전후 동일.
+  input `ab05f9411c94b99f3a3727cd3cd938000221eb02039942d3e6807027c63e9f56` 전후 동일.
+
+안전성 범위는 승인·예산 삭제·Tool 효과·Checkpoint·RAG·수명/삭제·실제 트랜잭션·런타임 장애와
+감사/범위 검사이며, 직접 Hub 범위는 Message 타이밍·snapshot·재개 거부/CAS·추가 지시다.
+S1–S7은 변경된 근거 26건과 새 Owner/시험의 연결을 재검토해 146건, new/stale/outstanding/error 0
+(`steering-static-02.json`, exit 0). R3 Mutation은 실제 효과 Assertion 두 개로 검출했으며
+`steering-mutation-01.log` exit 0이다. 기존 필수 검사와 실패 재현을 삭제하지 않았다.
+
+전수 감사에는 실제로 전체 내용을 읽은 docstring 전용 package marker 27개를
+[파일별 근거](contract-coverage-reviews.json)에 기록했다. 구현·값·Reader/Writer·동적 소비자가
+없는 파일만 해당하며 주변 구현 파일은 포함하지 않는다. [현재 inventory](contract-coverage-index.json)는
+447개 파일 중 420개와 31,739개 후보가 여전히 미검토/미분류다. 기존 S1–S7 검토를 전수 승인으로
+전환하지 않았다. 새 시험은 검토 hash·분류와 현재 inventory 일치를 확인한다.
+
+이 기록은 추가 지시 소단계의 Level 2 증거다. 다음 검증 checkout에서 현재 통합 소스의 전체
+LLM/Hub·보조 검증을 실행하고 성공한 SHA만 Push한다. 원격 CI와 전수 잔여 0은 아직 완료하지 않았다.

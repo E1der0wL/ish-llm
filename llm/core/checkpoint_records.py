@@ -48,6 +48,13 @@ class CheckpointRecords(JsonValue):
         return cls(**{item.name: value[item.name] for item in fields(cls)})
 
     @classmethod
+    def replace_records(cls, checkpoint, records):
+        """Replace the common projection on a copy; retain all envelope/header fields."""
+        cls.from_checkpoint(checkpoint)
+        value = cls(records)
+        return {**deepcopy(checkpoint), cls.records.__name__: value.records}
+
+    @classmethod
     def records_or_empty(cls, checkpoint):
         """Only an absent checkpoint denotes fresh execution; missing fields are corrupt."""
         return {} if checkpoint is None else cls.from_checkpoint(checkpoint).records

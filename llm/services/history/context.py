@@ -3,6 +3,8 @@
 Build conversation context for Runs and clones, independent of storage."""
 
 from llm.core.continuations import ResumeRecord
+from llm.core.instruction_records import InstructionMessageRecord
+from llm.core.steering_events import SteeringReason
 
 from copy import deepcopy
 from llm.core.policies import ContextMode, ContextPolicy
@@ -87,7 +89,7 @@ class ConversationContextBuilder:
         for message in self._ordered(messages):
             # 노드 대상 지시는 그 실행의 체크포인트로만 복원한다. 다른 Agent/후속 Run에
             # 일반 사용자 지시처럼 흘러가지 않으며 대화 조회에는 원문이 그대로 남는다.
-            if is_instruction(message) and any(t["scope"] is not None for t in message.metadata["steering"].get("targets", [])):
+            if is_instruction(message) and any(t.scope is not None for t in InstructionMessageRecord.from_message(message).targets):
                 continue
             if message.id == input_message_id:
                 history.append(message)
@@ -116,12 +118,14 @@ class ConversationContextBuilder:
                 value = message.metadata.pop("transfer")
                 message.metadata["cloned_transfer"] = {"id": value["id"], "revision": value["revision"]}
             if message.status == MessageStatus.QUEUED:
-                message.status = MessageStatus.CANCELLED
                 if is_instruction(message):
-                    message.metadata["steering"].update(status=InstructionStatus.UNAPPLIED, reason="cloned")
-                    for target in message.metadata["steering"].get("targets", []):
-                        if target["status"] == InstructionStatus.PENDING:
-                            target.update(status=InstructionStatus.UNAPPLIED, reason="cloned")
+                    value = InstructionMessageRecord.from_message(message)
+                    value = value.with_targets(target.finish(SteeringReason.CLONED) if target.pending_for() else target
+                                               for target in value.targets)
+                    message.metadata.update(value.metadata())
+                    message.status = value.message_status
+                else:
+                    message.status = MessageStatus.CANCELLED
             elif message.status == MessageStatus.STREAMING:
                 message.status = MessageStatus.INTERRUPTED
         return snapshot

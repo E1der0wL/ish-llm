@@ -1,5 +1,8 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
+from llm.core.steering_channel import SteeringChannel
+from llm.core.instruction_records import InstructionMessageRecord, InstructionReceipt
+from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringNotification
 from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
 
 from llm.core.checkpoints import CheckpointConversation
@@ -50,7 +53,7 @@ from llm.core.interactions import InteractionActor, InteractionRequest, Interact
 from llm.engines.base import EngineContext, EngineEvent, EngineEventType, SteeringInbox, required_capabilities, steering_mode
 from llm.core.steering import InstructionStatus, RunInstruction, SteeringMode, SteeringRoute, is_instruction, is_queued_request
 from llm.services.runtime.steering import (finish_instructions, checkpoint_messages, steering_boundary,
-    close_targets, initial_channel, reservation_receipts, resume_instructions)
+    close_targets, reservation_receipts, resume_instructions)
 from llm.engines.registry import EngineRegistry
 from llm.components.tools import ToolRegistry
 from llm.services.history.conversation import Conversation
@@ -441,7 +444,7 @@ class RunRepository:
     def instructions(self, session, run, store):
         """본문은 선택한 ConversationStore에서 읽는다. 복제 저장소를 만들지 않는다."""
         inherited = set()
-        if "steering" in run.metadata:
+        if SteeringChannel.present(run.metadata):
             for name in CheckpointDeclarations.read(run.metadata).names:
                 inherited.update(checkpoint_messages(store, self.checkpoint(run, name)))
         values = [(m.id, RunInstruction.from_message(m)) for m in store.list() if is_instruction(m)]
@@ -828,34 +831,34 @@ class RunManager:
 
     async def _publish_instructions(self, run, values):
         event = EngineEvent(EngineEventType.STEERING_CHANGED,
-                           metadata={"instructions": [v.to_dict() for v in values],
-                                     "targets": deepcopy(list(run.metadata["steering"].get("targets", {}).values()))})
+                           metadata=SteeringNotification(instructions=values,
+                               targets=SteeringChannel.require(run).targets.values()).to_dict())
         await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
 
     def _accept_instruction(self, run_id, content, targets, reserved=False):
         _, session = self._prepare()
         run = self.repository.load(session, run_id)
+        channel = SteeringChannel.read(run)
         if (run.status != RunStatus.RUNNING or run.id not in session.active_run_ids
-                or not run.metadata.get("steering", {}).get("accepting")):
+                or channel is None or not channel.accepting):
             raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE,
                                   "Run does not accept live instructions")
         control = self._active.executions.get(run.id) if self._active is not None else None
         if self._active is None or self._active.closed or control is None or control.interrupt_requested:
             raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, "Run is stopping or owned by another runtime")
-        available = run.metadata["steering"]["targets"]
-        identifiers = () if reserved else targets if targets is not None else ("root",)
+        available = channel.targets
+        identifiers = () if reserved else targets if targets is not None else (SteeringChannel.ROOT,)
         if not reserved and (not identifiers or len(set(identifiers)) != len(identifiers)):
             raise ValueError("Choose distinct active instruction targets")
         selected = reservation_receipts(run, targets) if reserved else []
         for identifier in identifiers:
             target = available.get(identifier)
-            if target is None or not target["accepting"] or target["mode"] != SteeringMode.CONSUME:
+            if target is None or not target.accepting or target.mode != SteeringMode.CONSUME:
                 raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, f"Instruction target unavailable: {identifier}")
-            selected.append({"id": identifier, "scope": target["scope"], "status": InstructionStatus.PENDING, "applications": []})
+            selected.append(InstructionReceipt.active(target))
         store = self._store(session)
         message = store.create(MessageRole.USER, content, MessageStatus.QUEUED, run_id=run.id,
-            metadata={"steering": {"run_id": run.id, "status": InstructionStatus.PENDING,
-                       "input_message_id": run.metadata["steering"]["input_message_id"], "targets": selected}})
+            metadata=InstructionMessageRecord.create(run.id, channel.input_message_id, selected).metadata())
         return run, RunInstruction.from_message(message)
 
     async def _send_instruction(self, run_id, content, targets, *, reserved=False):
@@ -875,8 +878,8 @@ class RunManager:
 
     def _open_resumed_steering(self, run: Run, checkpoint: dict) -> None:
         """재개 원본 검증 뒤에만 접수한다. 검증 실패도 기존 Run 종료 경계에서 처리한다."""
-        run.metadata["steering"] = initial_channel(run, steering_mode(self.engines.get(run.engine)),
-                                                  CheckpointConversation.from_checkpoint(checkpoint).input_message_id)
+        SteeringChannel.initial(run, steering_mode(self.engines.get(run.engine)),
+                                CheckpointConversation.from_checkpoint(checkpoint).input_message_id).store(run)
         self.repository.save(run)
 
     async def _publish_run(self, run: Run) -> None:
@@ -1338,8 +1341,9 @@ class RunManager:
             run.metadata[AgentBinding.EXECUTION_FIELD] = deepcopy(source.metadata[AgentBinding.EXECUTION_FIELD])
         strategy = self.engines.get(run.engine) if run.engine in self.engines.names() else None
         if steering_mode(strategy) != SteeringMode.UNSUPPORTED:
-            run.metadata["steering"] = ({"accepting": False} if ResumeRecord.KEY in run.metadata
-                                        else initial_channel(run, steering_mode(strategy), message.id))
+            channel = (SteeringChannel.suspended(run) if ResumeRecord.KEY in run.metadata
+                       else SteeringChannel.initial(run, steering_mode(strategy), message.id))
+            channel.store(run)
         self.repository.create(run)
         return run
 
@@ -1492,7 +1496,7 @@ class RunManager:
         for name in values.get("tools", ToolRegistry()).names():
             tool_scope.validate(values["tools"].get(name))
         inbox = (SteeringInbox(history=checkpoint_messages(store, checkpoint) if checkpoint else {})
-                 if "steering" in run.metadata else None)
+                 if SteeringChannel.present(run.metadata) else None)
         if inbox is not None:
             inbox.engine, inbox.mode = run.engine, steering_mode(engine)
             inbox.channels[inbox.target_id] = inbox
@@ -1608,37 +1612,38 @@ class RunManager:
                 if event.type == EngineEventType.STEERING:
                     if context.steering is None:
                         raise ValueError("Engine has no live instruction channel")
-                    channel = context.steering.channels[event.metadata["target_id"]]
-                    if event.metadata["operation"] == "open":
-                        target = event.metadata["target"]
-                        if (target["scope"] != channel.scope or target["mode"] != channel.mode
-                                or target["engine"] != channel.engine):
+                    directive = SteeringEventData(event.metadata)
+                    channel = context.steering.channels[directive.target_id]
+                    if directive.operation == SteeringOperation.OPEN:
+                        target = directive.target
+                        if (target.scope != channel.scope or target.mode != channel.mode
+                                or target.engine != channel.engine):
                             raise ValueError("Instruction target does not match its execution channel")
-                    usage = context.tool_scope.checkpoint() if event.metadata["operation"] == "select" else None
+                    usage = context.tool_scope.checkpoint() if directive.operation == SteeringOperation.SELECT else None
                     messages, changed = await self._io.run(self._steering_boundary, run, store, event, usage)
-                    if event.metadata["operation"] in ("routes", "bind"):
-                        channel.acknowledged = event.metadata["request_id"]
-                        if event.metadata["operation"] == "routes":
+                    if directive.operation in (SteeringOperation.ROUTES, SteeringOperation.BIND):
+                        channel.acknowledged = directive.request_id
+                        if directive.operation == SteeringOperation.ROUTES:
                             notifications.append(EngineEvent(EngineEventType.STEERING_CHANGED,
-                                metadata={"routes": deepcopy(list(run.metadata["steering"]["routes"].values()))}))
+                                metadata=SteeringNotification(routes=SteeringChannel.require(run).routes.values()).to_dict()))
                         if changed:
                             notifications.append(EngineEvent(EngineEventType.STEERING_CHANGED,
-                                metadata={"instructions": [v.to_dict() for v in changed]}))
+                                metadata=SteeringNotification(instructions=changed).to_dict()))
                         continue
                     channel.messages = messages
                     channel.history.update((m.id, m) for m in messages)
-                    channel.acknowledged = event.metadata["request_id"]
+                    channel.acknowledged = directive.request_id
                     channel.opened = True
-                    channel.closed = run.metadata["steering"]["targets"][channel.target_id]["reason"] is not None
-                    if channel.closed and channel.target_id != "root":
+                    channel.closed = SteeringChannel.require(run).targets[channel.target_id].reason is not None
+                    if channel.closed and channel.target_id != SteeringChannel.ROOT:
                         # UI 이력은 저장된 descriptor가 소유한다. 완료한 자식 전달함은 회수한다.
                         context.steering.channels.pop(channel.target_id)
-                    if event.metadata["operation"] in ("open", "close") or channel.closed:
+                    if directive.operation in (SteeringOperation.OPEN, SteeringOperation.CLOSE) or channel.closed:
                         notifications.append(EngineEvent(EngineEventType.STEERING_CHANGED,
-                            metadata={"targets": deepcopy(list(run.metadata["steering"]["targets"].values()))}))
+                            metadata=SteeringNotification(targets=SteeringChannel.require(run).targets.values()).to_dict()))
                     if changed:
                         notifications.append(EngineEvent(EngineEventType.STEERING_CHANGED,
-                            metadata={"instructions": [v.to_dict() for v in changed]}))
+                            metadata=SteeringNotification(instructions=changed).to_dict()))
                     continue
                 if event.type == EngineEventType.TEXT_DELTA:
                     pending_outputs.append(value)
@@ -1683,7 +1688,7 @@ class RunManager:
         if context.steering is not None:
             if steering_mode(engine) == SteeringMode.CONSUME and not context.steering.opened:
                 raise ValueError("Instruction consumer did not open its channel")
-            if any(t["accepting"] for t in run.metadata["steering"]["targets"].values()):
+            if any(t.accepting for t in SteeringChannel.require(run).targets.values()):
                 raise ValueError("Engine ended without closing instruction targets")
         if any(step.status in (StepStatus.PENDING, StepStatus.RUNNING, StepStatus.FAILED)
                for step in await self._io.run(self.steps.list, run)):
@@ -1783,9 +1788,9 @@ class RunManager:
                     self.steps.interrupt(step)
         store = self._store(runtime.session)
         changed = []
-        if "steering" in run.metadata:
+        if SteeringChannel.present(run.metadata):
             changed = finish_instructions(store, run.id,
-                run.metadata["steering"].get("unapplied_reason") or error_code or status.value)
+                SteeringChannel.require(run).unapplied_reason or error_code or status.value)
             close_targets(run, error_code or status.value)
         store.set_status(run.assistant_message_id, MessageStatus(status.value))
         run.status = status
@@ -1844,7 +1849,7 @@ class RunManager:
                         log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id,
                                   status=RunManager.RESPONSE_WRITE_FAILED)
                 await self._publish_run(run)
-                if "steering" in run.metadata:
+                if SteeringChannel.present(run.metadata):
                     await self._publish_instructions(run, changed)
         finally:
             control.execution = None
@@ -2078,7 +2083,7 @@ class RunManager:
                             raise ValueError("Pending cancellation requires proven unstarted execution")
                         validate_run_transition(run.status, RunStatus.CANCELLED, reason=RunTransition.PENDING_CANCEL)
                         run.status, run.ended_at, run.error_code = RunStatus.CANCELLED, now(), RunErrorCode.REQUEST_CANCELLED
-                        if "steering" in run.metadata:
+                        if SteeringChannel.present(run.metadata):
                             close_targets(run, RunErrorCode.REQUEST_CANCELLED)
                         self._store(session).set_status(run.assistant_message_id, MessageStatus.CANCELLED)
                         self.repository.save(run)

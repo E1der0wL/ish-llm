@@ -196,3 +196,18 @@ Loop는 자신이 소유하는 입력 체크포인트의 현재 형식도 재개
 대기 요청을 우회 실행하지 않는다. 일반 지시 없는 Run/Workflow 데이터는 그대로다.
 memory 저장의 정상적인 재시작 소실은 형식 손상과 구분한다. 소실된 입력으로 명시적 재개는
 할 수 없지만 같은 Session의 새 요청은 계속 실행할 수 있다.
+
+## 내부 계약 Owner와 복제 집계
+
+추가 지시 이벤트의 wire 필드와 동작은 `SteeringEventData`/`SteeringOperation`, Run 채널과
+예약 경로/대상은 `SteeringChannel`, Message에 저장된 대상별 소비 영수증과 집계는
+`InstructionMessageRecord`/`InstructionReceipt`/`InstructionApplication`이 소유한다.
+서비스는 저장 잠금과 트랜잭션·ACK 순서를 조율하며 상태·필드 구조를 따로 해석하지 않는다.
+공개 `RunInstruction`과 변경 알림의 기존 JSON, 초기 생략 필드와 미결합 null은 유지한다.
+
+대화를 복제할 때는 pending 대상만 cloned 사유로 닫고 이미 applied인 대상의 영수증은
+보존한다. 전체 상태는 같은 대상별 집계 규칙으로 계산한다. 따라서 일부가 이미 반영됐다면
+partially_applied이며 전부 미반영으로 덮어쓰지 않는다. 원본은 변경하지 않고, 노드 scope의
+지시를 후속 실행의 일반 문맥으로 전달하지 않는다. 손상된 원본 Reader는 계속 거부한다.
+
+변경 및 재현/안전성 근거는 [전수 작업 검증 기록](whole-ownership-verification.md)에 남긴다.

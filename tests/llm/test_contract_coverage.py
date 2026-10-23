@@ -99,3 +99,17 @@ class ContractCoverageTests(unittest.TestCase):
         for path, item in files.items():
             with self.subTest(path=path):
                 self.assertEqual(hashlib.sha256((root / path).read_bytes()).hexdigest(), item['sha256'])
+
+    def test_recorded_reviews_are_current_and_match_inventory_without_approving_remaining_files(self):
+        import json
+        from tests.llm.check_contract_coverage import product_files
+        root = Path(__file__).resolve().parents[2]
+        reviews = json.loads((root / 'docs/llm/contract-coverage-reviews.json').read_text())
+        recorded = json.loads((root / 'docs/llm/contract-coverage-index.json').read_text())
+        actual = inspect(root, product_files(root), reviews)
+        self.assertEqual(actual['issues'], [])
+        self.assertEqual(actual['counts']['stale_files'], 0)
+        self.assertEqual(actual['counts'], recorded['counts'])
+        self.assertEqual(actual['complete'], recorded['complete'])
+        self.assertEqual([(item['path'], item['status']) for item in actual['files']],
+                         [(item['path'], item['status']) for item in recorded['files']])

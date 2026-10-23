@@ -1,5 +1,8 @@
 """Read-only projection through llm services; no scheduling or localized strings."""
 
+from llm.core.steering import RunInstruction, is_instruction
+from llm.core.models import MessageRole
+
 from llm.core.models import StepKind
 
 from llm.core.models import RunStatus, MessageStatus
@@ -86,7 +89,7 @@ class SnapshotReader:
     async def messages(self, session, messages, author="", *, latest=None, latest_steps=(), stopped_runs=()):
         visible = []
         requests = {run_id: self.submissions.get(message.id, message.created_at) for message in messages
-                    if str(message.role) == "user" and not message.metadata.get("steering")
+                    if message.role == MessageRole.USER and not is_instruction(message)
                     for run_id in RequestAdmission.run_ids(message)}
         authors = {}
         for message in messages:
@@ -129,7 +132,7 @@ class SnapshotReader:
                         self.trace_history.get(message.run_id, ())), tool_trace(tools))
                     visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning", tools=tools,
                                                trace=trace))
-            status = str(message.metadata.get("steering", {}).get("status", message.status))
+            status = str(RunInstruction.from_message(message).status if is_instruction(message) else message.status)
             if status == MessageStatus.PAUSED and message.run_id in stopped_runs:
                 status = MessageStatus.INTERRUPTED.value
             phase = (self.thinking.activity(latest)

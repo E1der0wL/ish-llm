@@ -1,5 +1,6 @@
 """도메인 참조 검사와 명시적 복구. 실행을 재생하지 않고 저장 상태만 정리한다."""
 
+from llm.core.steering_channel import SteeringChannel
 from llm.core.checkpoint_records import CheckpointDeclarations
 from llm.core.checkpoints import CheckpointConversation
 
@@ -38,7 +39,7 @@ def recover_session(sessions, repository, steps, session, store):
     for run in runs:
         if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
             instruction_targets(run)
-        if "steering" in run.metadata and run.status != RunStatus.COMPLETED:
+        if SteeringChannel.present(run.metadata) and run.status != RunStatus.COMPLETED:
             for name in CheckpointDeclarations.read(run.metadata).names:
                 # 여기서는 형식을 검사한다. memory 대화의 정상적인 재시작 소실은
                 # Session 시작을 막지 않으며 메시지 존재 검사는 명시적 재개가 소유한다.
@@ -49,7 +50,7 @@ def recover_session(sessions, repository, steps, session, store):
             validate_run_transition(run.status, RunStatus.INTERRUPTED, reason=RunTransition.RECOVERY)
         steps.recover(run)
         if stale:
-            if "steering" in run.metadata:
+            if SteeringChannel.present(run.metadata):
                 from llm.services.runtime.steering import finish_instructions, close_targets
                 finish_instructions(store, run.id, RunErrorCode.PROCESS_RESTART.value)
                 close_targets(run, RunErrorCode.PROCESS_RESTART.value)
@@ -147,7 +148,7 @@ class ProjectRecovery:
                         checkpoint = self.runs.checkpoint(run, name)
                         signatures.append(checkpoint)
                         checkpoint_ids = list(CheckpointConversation.from_checkpoint(checkpoint).message_ids)
-                        if "steering" in run.metadata:
+                        if SteeringChannel.present(run.metadata):
                             from llm.services.runtime.steering import instruction_records
                             checkpoint_ids.extend(mid for _, value in instruction_records(checkpoint) for mid in value.message_ids)
                         if run.status != RunStatus.COMPLETED and any(mid not in messages for mid in checkpoint_ids):

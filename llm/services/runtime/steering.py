@@ -1,8 +1,11 @@
 """추가 지시의 메시지/체크포인트 연결. 호출자는 저장 잠금과 트랜잭션을 소유한다."""
 
+from llm.core.steering_channel import SteeringChannel
+from llm.core.instruction_records import InstructionMessageRecord, InstructionReceipt
+from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringReason
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
-from llm.core.checkpoints import CheckpointOperation, CheckpointConversation
+from llm.core.checkpoints import CheckpointOperation, CheckpointConversation, CheckpointEnvelope
 
 from llm.core.continuations import ResumeRecord
 
@@ -16,37 +19,13 @@ from llm.services.query import Query
 from llm.services.runtime.tools import ToolExecutionScope
 
 
-def initial_channel(run, mode, input_message_id):
-    """단독 소비자는 기존 Run 시작 직후 접수를 유지한다. Graph는 자식 등록을 기다린다."""
-    targets = {}
-    if mode == SteeringMode.CONSUME:
-        targets["root"] = SteeringTarget("root", run.id, run.engine, mode, accepting=True).to_dict()
-    return {"accepting": True, "mode": mode, "input_message_id": input_message_id,
-            "targets": targets, "root_opened": False, "routes": {}, "bindings": {}, "routes_declared": False}
+
 
 
 def instruction_routes(run) -> list[SteeringRoute]:
-    """실행 스냅샷에서 검증된 예약 경로. 종료된 Run에서는 조회만 가능하다."""
-    channel = run.metadata.get("steering", {})
-    if not isinstance(channel, dict):
-        raise InstructionDataError("run reservation channel")
-    routes = channel.get("routes", {})
-    if not isinstance(routes, dict):
-        raise InstructionDataError("run reservation routes")
-    result = []
-    for key, value in routes.items():
-        try:
-            route = SteeringRoute.from_dict(value)
-        except (TypeError, ValueError) as error:
-            raise InstructionDataError("run reservation route") from error
-        if route.key != key:
-            raise InstructionDataError("run reservation route key")
-        result.append(route)
-    bindings = channel.get("bindings", {})
-    if not isinstance(bindings, dict) or any(not isinstance(k, str) or not k
-            or not isinstance(v, str) or v not in routes for k, v in bindings.items()):
-        raise InstructionDataError("run reservation bindings")
-    return result
+    """Read reservation routes through the Run channel Owner."""
+    channel = SteeringChannel.read(run)
+    return [] if channel is None else list(channel.routes.values())
 
 
 def reservation_receipts(run, routes):
@@ -56,8 +35,7 @@ def reservation_receipts(run, routes):
         raise ValueError("Choose distinct reservation routes")
     if any(available.get(route.key) != route for route in routes):
         raise ValueError("Reservation route is not a consuming Agent in this Run snapshot")
-    return [{"id": new_id(), "scope": None, "status": InstructionStatus.PENDING, "applications": [],
-             "reservation": route.to_dict(), "execution_id": None} for route in routes]
+    return [InstructionReceipt.reserve(new_id(), route) for route in routes]
 
 
 def instructions(store: Conversation, run_id: str, *, pending: bool = False) -> list[Message]:
@@ -66,60 +44,33 @@ def instructions(store: Conversation, run_id: str, *, pending: bool = False) -> 
     result = []
     for message in store.list(query=query):
         if is_instruction(message):
-            RunInstruction.validate_message(message)
-            if (message.metadata["steering"]["run_id"] == run_id
-                    and (not pending or message.metadata["steering"]["status"] == InstructionStatus.PENDING)):
+            value = InstructionMessageRecord.from_message(message)
+            if value.run_id == run_id and (not pending or value.status == InstructionStatus.PENDING):
                 result.append(message)
     return result
 
 
 def instruction_targets(run) -> list[SteeringTarget]:
-    """조회·복구가 같은 저장 descriptor 계약을 사용한다."""
-    channel = run.metadata.get("steering")
-    if "steering" not in run.metadata:
-        return []
-    # 원본 검증 전인 재개 시도는 아직 채널이 없다. 실패한 시도도 이 상태를 보존한다.
-    if ResumeRecord.KEY in run.metadata and channel == {"accepting": False}:
-        return []
-    if not isinstance(channel, dict) or not isinstance(channel.get("targets"), dict):
-        raise InstructionDataError("run targets")
-    instruction_routes(run)
-    targets, scopes = [], set()
-    for identifier, value in channel["targets"].items():
-        target = SteeringTarget.from_dict(value)
-        if target.id != identifier or target.run_id != run.id or target.scope in scopes:
-            raise InstructionDataError("run target ownership/scope")
-        scopes.add(target.scope)
-        targets.append(target)
-    return targets
+    """Query and recovery share the validated Run channel."""
+    channel = SteeringChannel.read(run)
+    return [] if channel is None else list(channel.targets.values())
 
 
-def _save_instruction(store, message, value):
-    states = {v["status"] for v in value["targets"]}
-    value["status"] = (InstructionStatus.PENDING if InstructionStatus.PENDING in states else InstructionStatus.APPLIED if states == {InstructionStatus.APPLIED}
-                       else InstructionStatus.UNAPPLIED if states == {InstructionStatus.UNAPPLIED} else InstructionStatus.PARTIALLY_APPLIED)
-    value["applications"] = [deepcopy(a) for target in value["targets"] for a in target.get("applications", [])]
-    if value["status"] == InstructionStatus.UNAPPLIED:
-        value["reason"] = value["targets"][0]["reason"]
-    else:
-        value.pop("reason", None)
-    store.update_metadata(message.id, {"steering": value})
-    store.set_status(message.id, MessageStatus.QUEUED if InstructionStatus.PENDING in states else
-                     MessageStatus.COMMITTED if InstructionStatus.APPLIED in states else MessageStatus.CANCELLED)
+def _save_instruction(store, message, value: InstructionMessageRecord):
+    store.update_metadata(message.id, value.metadata())
+    store.set_status(message.id, value.message_status)
     return RunInstruction.from_message(store.get(message.id))
 
 
 def finish_instructions(store: Conversation, run_id: str, reason: str, *, target_id=None) -> list[RunInstruction]:
-    """미반영 입력을 일반 요청으로 재생하지 않는다. 이미 사용한 지시는 그대로 둔다."""
+    """Close pending recipients without replaying them as ordinary requests."""
     changed = []
     for message in instructions(store, run_id, pending=True):
-        value = deepcopy(message.metadata["steering"])
-        affected = [v for v in value["targets"] if v["status"] == InstructionStatus.PENDING
-                    and (target_id is None or v.get("execution_id", v["id"]) == target_id)]
-        if affected:
-            for target in affected:
-                target.update(status=InstructionStatus.UNAPPLIED, reason=("node_not_reached" if "reservation" in target
-                    and target["scope"] is None and reason == "completed" else reason))
+        value = InstructionMessageRecord.from_message(message)
+        targets = value.targets
+        if any(target.pending_for(target_id) for target in targets):
+            value = value.with_targets(target.finish(reason) if target.pending_for(target_id) else target
+                                       for target in targets)
             changed.append(_save_instruction(store, message, value))
     return changed
 
@@ -151,10 +102,9 @@ def checkpoint_messages(store: Conversation, checkpoint: dict) -> dict[str, Mess
                 message = store.get(identifier)
             except KeyError as error:
                 raise InstructionDataError("checkpoint message is unavailable") from error
-            RunInstruction.validate_message(message)
-            if (not is_instruction(message) or message.role != MessageRole.USER
-                    or message.metadata["steering"]["input_message_id"] != CheckpointConversation.from_checkpoint(checkpoint).input_message_id
-                    or not any(t["scope"] == record.target_scope for t in message.metadata["steering"]["targets"])):
+            value = InstructionMessageRecord.from_message(message)
+            if (value.input_message_id != CheckpointConversation.from_checkpoint(checkpoint).input_message_id
+                    or not any(target.scope == record.target_scope for target in value.targets)):
                 raise InstructionDataError("checkpoint message ownership mismatch")
             result[identifier] = message
     return result
@@ -167,156 +117,124 @@ def resume_instructions(store: Conversation, checkpoint: dict) -> dict:
     일반 활성 실행 지시의 기존 재개 계약은 유지한다.
     """
     history = checkpoint_messages(store, checkpoint)
-    result = deepcopy(checkpoint)
-    for key, record in instruction_records(result):
+    records = CheckpointRecords.from_checkpoint(checkpoint).records
+    for key, record in instruction_records(checkpoint):
         kept = []
         for identifier in record.message_ids:
-            receipt = next(t for t in history[identifier].metadata["steering"]["targets"]
-                           if t["scope"] == record.target_scope)
-            if "reservation" not in receipt or receipt["status"] == InstructionStatus.APPLIED:
+            receipt = next(target for target in InstructionMessageRecord.from_message(history[identifier]).targets
+                           if target.scope == record.target_scope)
+            if receipt.restores_context:
                 kept.append(identifier)
-        result["records"][key] = InstructionCheckpoint.replace_message_ids(result["records"][key], kept)
-    return result
+        records[key] = InstructionCheckpoint.replace_message_ids(records[key], kept)
+    return CheckpointRecords.replace_records(checkpoint, records)
 
 
 def apply_instructions(store: Conversation, messages: tuple[Message, ...], run_id: str,
-                       boundary: str, step_id: str, *, target, details=None) -> list[RunInstruction]:
-    """모델 호출 직전 입력 사용을 기록한다. 명시적 재개의 사용 이력도 보존한다."""
+                       boundary: str, step_id: str, *, target: SteeringTarget, details=None) -> list[RunInstruction]:
+    """Persist model input use; resume never consumes an applied reservation twice."""
     changed = []
     for selected in messages:
         message = store.get(selected.id)
-        value = deepcopy(message.metadata["steering"])
-        receipt = next(t for t in value["targets"] if t["scope"] == target["scope"])
-        # 재개는 기존 입력 문맥 복원이다. 예약을 다시 소비하거나 원본 영수증을 갱신하지 않는다.
-        if "reservation" in receipt and receipt["applications"]:
+        value = InstructionMessageRecord.from_message(message)
+        targets = value.targets
+        receipt = next(item for item in targets if item.scope == target.scope)
+        if receipt.reserved and receipt.applications:
             continue
-        applications = receipt.setdefault("applications", [])
-        if not any(v["run_id"] == run_id and v["boundary"] == boundary for v in applications):
-            applications.append({**(details or {}), "run_id": run_id, "boundary": boundary,
-                                 "target_id": target["id"], "step_id": step_id, "time": now()})
-        receipt.update(status=InstructionStatus.APPLIED)
-        receipt.pop("reason", None)
+        applied = receipt.apply(run_id, boundary, target.id, step_id, now(), details)
+        value = value.with_targets(applied if item.id == receipt.id else item for item in targets)
         changed.append(_save_instruction(store, message, value))
     return changed
 
 
 def close_targets(run, reason):
-    for target in run.metadata["steering"].get("targets", {}).values():
-        if target["reason"] is None:
-            target.update(accepting=False, reason=reason)
-    run.metadata["steering"]["accepting"] = False
+    channel = SteeringChannel.require(run)
+    channel.close(reason)
+    channel.store(run)
 
 
 def steering_boundary(repository, run, store, event, *, tool_usage):
     """엔진이 제공한 경계/대상으로 처리한다. 저장 잠금·트랜잭션은 RunManager가 소유한다."""
     from llm.engines.base import EngineEvent, EngineEventType
-    data = event.metadata
-    channel = run.metadata["steering"]
-    targets = channel["targets"]
-    identifier, operation = data["target_id"], data["operation"]
-    if operation == "routes":
-        if channel["mode"] != SteeringMode.FORWARD or channel["routes_declared"]:
-            raise ValueError("Reservation routes must be declared once by the forwarding Run")
-        routes = [SteeringRoute.from_dict(v) for v in data["routes"]]
-        if len({r.key for r in routes}) != len(routes):
-            raise ValueError("Ambiguous reservation routes")
-        channel.update(routes={r.key: r.to_dict() for r in routes}, routes_declared=True)
+    data = SteeringEventData(event.metadata)
+    channel = SteeringChannel.require(run)
+    identifier, operation = data.target_id, data.operation
+    if operation == SteeringOperation.ROUTES:
+        channel.declare_routes(data.routes)
+        channel.store(run)
         repository.save(run)
         return (), []
-    if operation == "bind":
-        route = SteeringRoute.from_dict(data["route"])
-        scope = data["scope"]
-        if (not channel["accepting"] or channel["routes"].get(route.key) != route.to_dict()
-                or not isinstance(scope, str) or not scope or scope in channel["bindings"]):
-            raise ValueError("Invalid or repeated reservation execution binding")
-        channel["bindings"][scope] = route.key
+    if operation == SteeringOperation.BIND:
+        route, scope = data.route, data.scope
+        channel.bind_route(route, scope)
         changed = []
         for message in instructions(store, run.id, pending=True):
-            value = deepcopy(message.metadata["steering"])
-            affected = [t for t in value["targets"] if t.get("reservation") == route.to_dict()
-                        and t["scope"] is None and t["status"] == InstructionStatus.PENDING]
-            if affected:
-                for receipt in affected:
-                    receipt["scope"] = scope
+            value = InstructionMessageRecord.from_message(message)
+            targets = value.targets
+            if any(receipt.waiting_for_route(route) for receipt in targets):
+                value = value.with_targets(receipt.bind(route, scope) if receipt.waiting_for_route(route) else receipt
+                                           for receipt in targets)
                 changed.append(_save_instruction(store, message, value))
+        channel.store(run)
         repository.save(run)
         return (), changed
-    if operation == "open":
-        target = SteeringTarget.from_dict(data["target"])
-        reserved_root = (identifier == "root" and targets.get(identifier) == target.to_dict()
-                         and not channel["root_opened"])
-        if (target.id != identifier or target.run_id != run.id or identifier in targets and not reserved_root
-                or not channel["accepting"] or target.reason is not None
-                or target.accepting != (target.mode == SteeringMode.CONSUME)
-                or any(t["scope"] == target.scope and t["id"] != identifier for t in targets.values())):
-            raise ValueError("Invalid instruction target registration")
-        targets[identifier] = target.to_dict()
-        if identifier == "root":
-            channel["root_opened"] = True
+    if operation == SteeringOperation.OPEN:
+        target = data.target
+        channel.register(identifier, target)
         changed = []
         for message in instructions(store, run.id, pending=True):
-            value = deepcopy(message.metadata["steering"])
-            affected = [t for t in value["targets"] if "reservation" in t and t["scope"] == target.scope
-                        and t["status"] == InstructionStatus.PENDING and t["execution_id"] is None]
-            if affected:
-                if target.mode != SteeringMode.CONSUME:
-                    raise ValueError("Reserved execution must consume instructions")
-                for receipt in affected:
-                    if receipt["reservation"]["engine"] != target.engine:
-                        raise ValueError("Reserved Agent engine changed")
-                    receipt["execution_id"] = identifier
+            value = InstructionMessageRecord.from_message(message)
+            targets = value.targets
+            if any(receipt.waiting_for_target(target) for receipt in targets):
+                value = value.with_targets(receipt.activate(target) if receipt.waiting_for_target(target) else receipt
+                                           for receipt in targets)
                 changed.append(_save_instruction(store, message, value))
+        channel.store(run)
         repository.save(run)
         return (), changed
-    target = targets[identifier]
-    if target["reason"] is not None:
-        raise ValueError("Instruction target is closed")
+    target = channel.target(identifier)
 
     def close(reason):
-        target.update(accepting=False, reason=reason)
-        if identifier == "root":
-            channel["accepting"] = False
+        channel.close_target(identifier, reason)
+        channel.store(run)
         repository.save(run)
         return finish_instructions(store, run.id, reason, target_id=identifier)
 
-    if operation == "close":
-        return (), close(data["reason"])
-    if target["mode"] != SteeringMode.CONSUME or not target["accepting"]:
-        raise ValueError("Instruction target does not consume input")
-    name, key = data["checkpoint"], data["boundary"]
+    if operation == SteeringOperation.CLOSE:
+        return (), close(data.required_reason)
+    channel.target(identifier, consuming=True)
+    name, key = data.checkpoint, data.boundary
     if not isinstance(key, str) or not key:
         raise ValueError("Invalid instruction boundary")
     checkpoint = repository.checkpoint(run, name)
-    envelope = data.get("envelope")
-    if (envelope is None and target["scope"] is not None or envelope is not None
-            and envelope["engine_scope"] != target["scope"]):
+    envelope = data.envelope
+    if (envelope is None and target.scope is not None or envelope is not None
+            and CheckpointEnvelope.from_dict(envelope).engine_scope != target.scope):
         raise ValueError("Instruction checkpoint target mismatch")
-    if operation == "select":
+    if operation == SteeringOperation.SELECT:
         if key in CheckpointRecords.from_checkpoint(checkpoint).records:
             raise ValueError("Instruction boundary already selected")
         pending = [m for m in instructions(store, run.id, pending=True)
-                   if any(t.get("execution_id", t["id"]) == identifier and t["status"] == InstructionStatus.PENDING
-                          for t in m.metadata["steering"]["targets"])]
-        messages = pending if data["allow_continue"] else []
-        if data["final"] and not messages:
-            return (), close(data.get("reason") or "completed")
-        selected = {mid for _, value in instruction_records(checkpoint) if value.target_scope == target["scope"]
+                   if any(target.pending_for(identifier) for target in InstructionMessageRecord.from_message(m).targets)]
+        messages = pending if data.allow_continue else []
+        if data.final and not messages:
+            return (), close(data.reason or SteeringReason.COMPLETED)
+        selected = {mid for _, value in instruction_records(checkpoint) if value.target_scope == target.scope
                     for mid in value.message_ids}
         if selected.intersection(m.id for m in messages):
             raise ValueError("Apply the selected instruction boundary before selecting again")
-        record = InstructionCheckpoint.create(target["scope"], (m.id for m in messages)).to_dict()
+        record = InstructionCheckpoint.create(target.scope, (m.id for m in messages)).to_dict()
         if envelope is not None:
-            record = {**deepcopy(envelope), "payload": record}
+            record = CheckpointEnvelope.attach(envelope, record)
         ToolExecutionScope.validate_usage([tool_usage])
         record[ToolExecutionScope.CHECKPOINT_FIELD] = deepcopy(tool_usage)
         repository.record_checkpoint(run, EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(name, key, record).to_dict()))
         return tuple(messages), []
-    if operation == "apply":
+    if operation == SteeringOperation.APPLY:
         record = dict(instruction_records(checkpoint))[key]
-        if record.target_scope != target["scope"]:
+        if record.target_scope != target.scope:
             raise ValueError("Instruction application target mismatch")
         history = checkpoint_messages(store, checkpoint)
         messages = tuple(history[i] for i in record.message_ids)
         return messages, apply_instructions(store, messages, run.id, key, event.step_id,
-                                            target=target, details=data.get("details"))
+                                            target=target, details=data.details)
     raise ValueError("Unknown instruction operation")

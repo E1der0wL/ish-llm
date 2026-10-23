@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import json
 from llm.core.contracts import ResourceRef
 from llm.core.results import CompletionRecords
+from llm.core.steering_channel import SteeringChannel
 from llm.core.checkpoint_records import CheckpointDeclarations
 from llm.core.checkpoints import CheckpointConversation
 from llm.core.plans import RetentionPlan, RetentionUnit
@@ -100,7 +101,7 @@ class HistoryRetention:
                         checkpoint = self.manager.sessions.run_repository.checkpoint(run, name)
                         sources.append(checkpoint)
                         protected_messages.update(CheckpointConversation.from_checkpoint(checkpoint).message_ids)
-                        if "steering" in run.metadata:
+                        if SteeringChannel.present(run.metadata):
                             from llm.services.runtime.steering import instruction_records
                             protected_messages.update(mid for _, value in instruction_records(checkpoint) for mid in value.message_ids)
             keep.update(identifier for m in messages if m.id in protected_messages

@@ -259,13 +259,16 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         await self.reserve(routes)
         from llm.services.runtime import steering
         apply = steering.apply_instructions
+        injected = []
         def fail_b(*args, **kwargs):
-            if kwargs["target"]["scope"] == '["b"]':
+            if kwargs["target"].scope == '["b"]':
+                injected.append(kwargs["target"].scope)
                 raise OSError("b input not committed")
             return apply(*args, **kwargs)
         with patch.object(steering, "apply_instructions", side_effect=fail_b):
             self.gate_release.set()
             failed = (await self.request.wait(timeout=15))[0]
+        self.assertEqual(injected, ['["b"]'])
         before, = await failed.ainstructions()
         self.assertEqual((failed.data.status, before.status), ("failed", "partially_applied"))
         self.assertEqual(b.requests, [])
@@ -488,7 +491,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             store.set_status(record.assistant_message_id, MessageStatus.STREAMING)
             return store.create(MessageRole.USER, "pending before crash", MessageStatus.QUEUED, run_id=run.id,
                 metadata={"steering": {"run_id": run.id, "input_message_id": record.input_message_id,
-                    "status": "pending", "targets": reservation_receipts(record, routes)}})
+                    "status": "pending", "targets": [value.to_dict() for value in reservation_receipts(record, routes)]}})
         message = await self.app._storage_call(stale)
         await self.session.run.start()
         await asyncio.wait_for(self.session.run.wait_idle(), 10)

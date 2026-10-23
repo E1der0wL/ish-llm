@@ -18,9 +18,10 @@ class InstructionDataError(ValueError, CodedError):
     """지시 저장 계약 위반. 누락된 대상을 추측하거나 옛 형식을 변환하지 않는다."""
 
     code = "invalid_instruction_data"
+    MESSAGE = "Invalid instruction data: {location}; original records are not converted"
 
     def __init__(self, location: str):
-        super().__init__(f"Invalid instruction data: {location}; original records are not converted")
+        super().__init__(self.MESSAGE.format(location=location))
 
 
 def _text(value):
@@ -115,6 +116,9 @@ class SteeringRoute(JsonValue):
     같은 경로에서 접수 이후 시작되는 다음 실행 하나에만 예약을 결합한다.
     """
 
+    INVALID_ROUTE = "reservation route"
+    KEY_JSON = {"ensure_ascii": False, "separators": (",", ":")}
+
     workflow_path: tuple[str, ...]
     node_id: str
     engine: str
@@ -122,16 +126,19 @@ class SteeringRoute(JsonValue):
     def __post_init__(self):
         JsonValue.__post_init__(self)
         if not self.workflow_path or any(not _text(v) for v in (*self.workflow_path, self.node_id, self.engine)):
-            raise InstructionDataError("reservation route")
+            raise InstructionDataError(self.INVALID_ROUTE)
 
     @property
     def key(self) -> str:
-        return json.dumps([*self.workflow_path, self.node_id], ensure_ascii=False, separators=(",", ":"))
+        return json.dumps([*self.workflow_path, self.node_id], **self.KEY_JSON)
 
 
 @dataclass(frozen=True, slots=True)
 class SteeringTarget(JsonValue):
     """이번 Run의 Engine 실행. id는 재사용하지 않고 scope는 명시적 재개에 사용한다."""
+
+    INVALID_STATE = "target identity/state"
+    INVALID_DESCRIPTOR = "target descriptor"
 
     id: str
     run_id: str
@@ -148,18 +155,26 @@ class SteeringTarget(JsonValue):
         if (any(not _text(v) for v in (self.id, self.run_id, self.engine))
                 or any(v is not None and not _text(v) for v in (self.scope, self.node_id, self.node_path, self.reason))
                 or self.accepting and (self.mode != SteeringMode.CONSUME or self.reason is not None)):
-            raise InstructionDataError("target identity/state")
+            raise InstructionDataError(self.INVALID_STATE)
+
+    def registration(self):
+        """Engine opening request preserves the existing omitted reason field."""
+        value = self.to_dict()
+        del value[type(self).reason.__name__]
+        return value
 
     @classmethod
     def from_dict(cls, value: dict) -> "SteeringTarget":
+        mode = cls.mode.__name__
         try:
-            return cls(**{**value, "mode": SteeringMode(value["mode"])})
+            return cls(**{**value, mode: SteeringMode(value[mode])})
         except (KeyError, TypeError, ValueError) as error:
-            raise InstructionDataError("target descriptor") from error
+            raise InstructionDataError(cls.INVALID_DESCRIPTOR) from error
 
 
 def is_instruction(message: Message) -> bool:
-    return "steering" in message.metadata
+    from .instruction_records import InstructionMessageRecord
+    return InstructionMessageRecord.present(message.metadata)
 
 
 def is_queued_request(message: Message) -> bool:
@@ -182,74 +197,13 @@ class RunInstruction(JsonValue):
 
     @staticmethod
     def validate_message(message: Message) -> None:
-        """읽기 경계에서 현재 계약을 검사한다. 본문이나 대상을 복구·생성하지 않는다."""
-        value = message.metadata.get("steering")
-        if (message.role != MessageRole.USER or not isinstance(value, dict)
-                or any(not _text(value.get(k)) for k in ("run_id", "input_message_id"))
-                or message.run_id is not None and message.run_id != value["run_id"]):
-            raise InstructionDataError("message ownership")
-        targets = value.get("targets")
-        if not isinstance(targets, list) or not targets:
-            raise InstructionDataError("message targets (nonempty list required)")
-        ids, scopes, bound_scopes, states, applications = set(), set(), set(), set(), []
-        for target in targets:
-            if (not isinstance(target, dict) or not _text(target.get("id")) or "scope" not in target
-                    or target["scope"] is not None and not _text(target["scope"])
-                    or target.get("status") not in (InstructionStatus.PENDING, InstructionStatus.APPLIED, InstructionStatus.UNAPPLIED)
-                    or not isinstance(target.get("applications"), list)):
-                raise InstructionDataError("message target fields")
-            reserved = "reservation" in target
-            if reserved:
-                try:
-                    route = SteeringRoute.from_dict(target["reservation"])
-                except (TypeError, ValueError) as error:
-                    raise InstructionDataError("message reservation route") from error
-                if ("execution_id" not in target
-                        or target["execution_id"] is not None and not _text(target["execution_id"])
-                        or target["execution_id"] is not None and target["scope"] is None
-                        or target["status"] == InstructionStatus.APPLIED and target["execution_id"] is None
-                        or len(target["applications"]) != (1 if target["status"] == InstructionStatus.APPLIED else 0)):
-                    raise InstructionDataError("reservation binding")
-            identity = ("reservation", route.key) if reserved else ("execution", target["scope"])
-            if target["id"] in ids or identity in scopes:
-                raise InstructionDataError("duplicate message target identity/scope")
-            if target["scope"] is not None:
-                if target["scope"] in bound_scopes:
-                    raise InstructionDataError("duplicate bound reservation scope")
-                bound_scopes.add(target["scope"])
-            ids.add(target["id"])
-            scopes.add(identity)
-            states.add(target["status"])
-            if target["status"] == InstructionStatus.UNAPPLIED and not _text(target.get("reason")):
-                raise InstructionDataError("unapplied target reason")
-            for application in target["applications"]:
-                if (not isinstance(application, dict)
-                        or any(not _text(application.get(k)) for k in ("run_id", "boundary", "target_id", "time"))
-                        or "step_id" not in application
-                        or application["step_id"] is not None and not _text(application["step_id"])):
-                    raise InstructionDataError("target application")
-                if reserved and (application["target_id"] != target["execution_id"]
-                                 or application["run_id"] != value["run_id"]):
-                    raise InstructionDataError("reservation application ownership")
-            if target["status"] == InstructionStatus.APPLIED and not target["applications"]:
-                raise InstructionDataError("applied target requires application")
-            applications.extend(target["applications"])
-        status = (InstructionStatus.PENDING if InstructionStatus.PENDING in states else InstructionStatus.APPLIED if states == {InstructionStatus.APPLIED}
-                  else InstructionStatus.UNAPPLIED if states == {InstructionStatus.UNAPPLIED} else InstructionStatus.PARTIALLY_APPLIED)
-        expected = (MessageStatus.QUEUED if status == InstructionStatus.PENDING else MessageStatus.CANCELLED
-                    if status == InstructionStatus.UNAPPLIED else MessageStatus.COMMITTED)
-        if value.get("status") != status or message.status != expected:
-            raise InstructionDataError("message aggregate status")
-        if value.get("applications", []) != applications:
-            raise InstructionDataError("message aggregate applications")
-        if status == InstructionStatus.UNAPPLIED and not _text(value.get("reason")):
-            raise InstructionDataError("unapplied message reason")
+        """Validate once through the Message receipt Owner without repairing evidence."""
+        from .instruction_records import InstructionMessageRecord
+        InstructionMessageRecord.from_message(message)
 
     @classmethod
     def from_message(cls, message: Message) -> "RunInstruction":
-        cls.validate_message(message)
-        value = message.metadata["steering"]
-        return cls(message.id, value["run_id"], message.content,
-                   InstructionStatus(value["status"]), message.created_at,
-                   deepcopy(value.get("applications", [])), value.get("reason"),
-                   deepcopy(value["targets"]))
+        from .instruction_records import InstructionMessageRecord
+        value = InstructionMessageRecord.from_message(message)
+        return cls(message.id, value.run_id, message.content, value.status, message.created_at,
+                   value.application_records, value.reason, [target.to_dict() for target in value.targets])

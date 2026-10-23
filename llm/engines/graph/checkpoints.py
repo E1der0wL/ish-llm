@@ -1,5 +1,6 @@
 """자식 Engine의 로컬 체크포인트를 부모 Workflow 실행 위치에 연결한다. 파일은 쓰지 않는다."""
 
+from llm.core.steering_events import SteeringEventData, SteeringOperation
 from llm.core.checkpoint_records import CheckpointWrite
 
 from llm.core.checkpoints import CheckpointOperation
@@ -118,18 +119,18 @@ class EngineCheckpointScope:
 
     def wrap_instruction(self, event):
         """입력 선택/반영도 같은 부모 저장 ACK를 사용한다. 본문은 여기에 저장하지 않는다."""
-        data = event.metadata
-        if data["operation"] not in ("select", "apply"):
+        data = SteeringEventData(event.metadata)
+        if data.operation not in (SteeringOperation.SELECT, SteeringOperation.APPLY):
             return event
-        if data["checkpoint"] != self.name:
+        if data.checkpoint != self.name:
             raise ValueError("Child instruction checkpoint name mismatch")
-        local = data["boundary"]
+        local = data.boundary
         envelope = build_envelope(engine_scope=self.owner, checkpoint_name=self.name, local_key=local,
                                   status=CheckpointStatus.COMPLETED, container=True, requires_retry=False)
-        return replace(event, metadata={**data, "checkpoint": self.parent_name, "boundary": self.key(local), "envelope": envelope})
+        return replace(event, metadata=data.scoped(self.parent_name, self.key(local), envelope).to_dict())
 
     def accepted_instruction(self, event, inbox):
-        if event.metadata["operation"] == "select" and not inbox.closed:
-            data = event.metadata
-            self.records[data["boundary"]] = CheckpointEnvelope.attach(data["envelope"],
+        if SteeringEventData(event.metadata).operation == SteeringOperation.SELECT and not inbox.closed:
+            data = SteeringEventData(event.metadata)
+            self.records[data.boundary] = CheckpointEnvelope.attach(data.envelope,
                 InstructionCheckpoint.create(self.owner, (m.id for m in inbox.messages)).to_dict())
