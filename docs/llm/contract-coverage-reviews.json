@@ -1808,117 +1808,129 @@
   },
   {
     "path": "llm/core/configuration_views.py",
-    "sha256": "6ec3683a2b70ae6b361b63ff1c7e1a0e228a0c5e785809e3b64b3b0011f4f4d4",
-    "reason": "Reviewed the whole query Owner and all common values/editable/runtime/key and dynamic resolver consumers. Common fixed shapes are typed; optional omission and opaque extension fields survive serialization, nested projections detach, and present malformed values fail. Selected implementation config/policy internals remain with their own Owners and are not classified complete here. JSON syntax ownership review: validator calls now target JsonObject. The validator body is AST-identical after expanding its canonical declarations; each consumer AST is identical after normalizing only that call/import, and every original import scope is preserved, including the isolated worker. Record-specific mandatory fields, policy, identity, version, CAS, effects and permission validation are unchanged. ProjectConfig retains a direct public delegate, never a second validator.",
+    "sha256": "a2288b73e986a59e1a8810270203c1fa66439a72268b45bfa178e76ed9ec5d32",
+    "reason": "Reviewed the whole query Owner and all common values/editable/runtime/key and dynamic resolver consumers. Common fixed shapes are typed; optional omission and opaque extension fields survive serialization, nested projections detach, and present malformed values fail. Selected implementation config/policy internals remain with their own Owners and are not classified complete here. JSON syntax ownership review: validator calls now target JsonObject. The validator body is AST-identical after expanding its canonical declarations; each consumer AST is identical after normalizing only that call/import, and every original import scope is preserved, including the isolated worker. Record-specific mandatory fields, policy, identity, version, CAS, effects and permission validation are unchanged. ProjectConfig retains a direct public delegate, never a second validator. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "ff434d28006a6199671491646bd361c347893ba4f64c92314c3f6b28e0342c46",
+        "id": "714d3a930d4422db5abda3165add3836ccd19051cf8f30d47cf068276acb6754",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "2d3b732568b68824c028e54a5c91519eba8e1a8f898a77aead33a83de11aec56",
+        "id": "edf7de3146df0b05be73012fdde0cf94fd64e2df4a1ab7918650ef7eb407fbd5",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "69d463de66e87e3cc79ef196d64f1060b7942103b1c7a3219d880b922a089836",
+        "id": "4316552fbe159bb23388a049cc728ba085347fb212952825e066211b467fc6df",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "2690f5ae3d57c7585149346c67b4da2255922ccd306d166aa42f0dd1ceee44cb",
+        "id": "9c633d691583a075ddfb09875ecef5da84acebd6916b546e88162fb2d0dc4f36",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "5b3c624dd2726140e835cf648ffaf8b82121c1c833c874046bac0ddfb814fb33",
+        "id": "04bd285546aff86a8f89eaebd8f91451d2cc0cc1fab091dc4d19864958ea2dff",
         "classification": "declaration",
         "owner": "ConfigurationResolution",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "037232b903faa5010051c8f5b56fc0856f92cbf8da4fcced1a57e4703f17910e",
+        "id": "1e05d34eb4f3ce45a7a80e5e5514471554f106dfbd70bf5776e138066d247736",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "6b2690e01fc00354816edfd9056885014ecb45e246a8222fcae135a6172e2da1",
+        "id": "0d4789ace62ca2eb96e9b3e5a5e965afa5f62ae64c3be6f636f8c288c0ad8427",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "badf82b0903f461e337260625c405ffb1f87b3e967bb495609ae09b8309ec8a9",
+        "id": "10b64eb59eb38b3582a29b6198ab016aa3868bc74c3e16c0918d5daa8e9967d6",
+        "classification": "declaration",
+        "owner": "EngineConfigurationKey",
+        "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
+      },
+      {
+        "id": "97559b5379b705dc3f7a9f2a9ab451b75ada7a3851e1068b49dbe68226de2fbc",
         "classification": "declaration",
         "owner": "EngineConfigurationKey",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "248bd1da7c15855eeacb18a70e84e874bb99bdf9f127c2855931ab0af7c8de3e",
+        "id": "ed5c8fbbe164fceddde10aca684f70dcb888f92f9232cade51f6ae3d93b41e7a",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "7ece97d16f1baf525f39105f3cbc0a057fcc2de1dcd46de38a799ee34765e96c",
+        "id": "2f75009cc2dd95fb328e26cefd2d1d206c06a313128098b0561913af1f53198c",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "0286d8590ed3b14ee0a05b011b751ab9268001a967cc1b46d91b6de17c66e942",
+        "id": "b32043b8531e3f8c3f2fbad1cb9e14ead3244e9b874af97b945c9fb92aaa0f6b",
         "classification": "declaration",
         "owner": "RuntimeConfiguration",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "0d85208a5702647046345912db78b641fcb9f39101462c14ba8e94a779fb78fd",
+        "id": "9d597df9c30dfeee02403adaaef8645fefa2b55656f3bb82c188481d8fd370bd",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "f1f5576b0b3dc50eac83ef505163e16fc71a1cad1a3e0ba7bc41abe3a7b28f4e",
+        "id": "ee8fd777f1dee410f9c24994fb5f458a18d4ef85aa911ddf312fd5a980dfa165",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "d08c15ea2cc7a68c4e4f934597b8567ed60eaa6855c8a4f9cea25bab10c4d364",
+        "id": "7e8a59e93ce44968874db719e108d4db992d8d38fefcac6b8c8fa1b048cd26e4",
         "classification": "declaration",
         "owner": "RuntimeOnlyConfiguration",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "3cac926e2db0d5a2b24de68f05ee9f482677dd30139d49baf6c92977b14552fd",
+        "id": "b705d2edfa3c13eb9aebe56a6bc62f597660fa1f48180f40237b0c0fdae7391d",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "ffd466084aca5a962c51e412a1ad01895f3e49b52457ff977625360836a99a43",
+        "id": "c7f3e69fb4baa67a1e3f1e5634afc63f15686647254a074f8f713b5c511fa6eb",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "8b032aabd9643edae596f6536864b5e9b285ee913fefcdb6701ffede6772a00e",
+        "id": "c359db98c882d8c9904e06eae9bf22f08e114b72c71d502bd8ba6adc9cb9f28d",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "7bd3d6a702c2e810a04338945cef725146009c51584c181f91a9b000415232bb",
+        "id": "4347410cf21eae50817ba2c925486700c12ffce6d5d902025c06765963a058bf",
         "classification": "declaration",
         "owner": "ConfigurationView",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
+      },
+      {
+        "id": "8fafa279a80f285fd74b603f3d4948788b9fdb0da730724eace8590a1d432a99",
+        "classification": "declaration",
+        "owner": "ConfigurationView",
+        "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
       }
     ],
     "contracts": [
@@ -1945,6 +1957,24 @@
           "tests/llm/test_explicit_configuration.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "EngineConfigurationKey Schema key / ConfigurationView.resolver",
+        "declaration": "llm/core/configuration_views.py",
+        "consumers": [
+          "llm/engines/registry.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
+          "llm/services/schema.py",
+          "llm/core/configuration.py"
+        ],
+        "tests": [
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_configuration_results.py"
         ],
         "complete": true
       }
@@ -2372,8 +2402,8 @@
   },
   {
     "path": "llm/core/schema.py",
-    "sha256": "052f92453f0f4eee275ea9c8e58a995454c0724c0a474f21e7d6a7335cea55d9",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete.",
+    "sha256": "4f74b5a66bbdf339b82fd66fe8bd2e06666865e329d824e5bb53909a618ad5ab",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked.",
     "dynamic_paths_reviewed": false,
     "decisions": [
       {
@@ -2701,193 +2731,199 @@
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "08306f0b6445462bd5d54dc4f402363d8bec92b99a8f957f34fa20a156b755b8",
+        "id": "ed5216136d68807e2a2f7a8ee6e571a9f26a1cc764cdf9d94c6c38cee7afb371",
+        "classification": "declaration",
+        "owner": "SchemaExtension",
+        "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
+      },
+      {
+        "id": "84dbada4b33b95a609aebaf7877665ee2966bc53ea137f08399d4dfd8c2a6497",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b1ffe0a5a79c86ab001ca825c9fbc35acca31218aac8df1d44e1c4fcad959b01",
+        "id": "5ff1a46966efc16b76c23f03887a4c7911c21d901c10ed54239f4598d5ee4998",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4c632a32b88ff36eb42adab27d3a56719bc80f5dd7d2f31ab7a76b118dab5e0c",
+        "id": "ae090cada712a579b766e11c6d9a27e58bfd85f68c95504adb4889d8697d2c3e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "97a6c5e8674286c762ea408e18d714cf5d195c4ba1bb1f3f090154ff73309b32",
+        "id": "ef61b0bb8150cdd76e7d59500eef826437f583e1628ad60de4e5390586140e65",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b435f8289cd4ea01cbcc628a1d2b8d7333c18da0a73d0749519463895df06323",
+        "id": "7e315cd8ee678687f57aac8c3321d5ef5c7ee739500da02bae4ebe221b933784",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c0388bf5fd8b4efafab9a5c3c7fc50254a71d2f8dd98179d4c1b806cd36b17f4",
+        "id": "df019b10d561eac829e8d2bef2917ed053372f0ee4f8c1b75aac1f070bd18161",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "b0cf6bface047d96546258eeef9f819cb18e615d31848e59ac92dd465827d7a4",
+        "id": "c91c52078c9c5b1159c8bbabd7fb08ec0782b64fcba4e143f389405a1ee35e96",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "1a8e69beaf5ea9626d269f93a3f51aaa0601060e7d4ad7d8a39d09c1960c0988",
+        "id": "d1e854a2150dc69d5e7f959b40478582504ea65a5727da4b660ac4fae9cfbc2b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f6365eab99c65a29430d7f24502ffe6439f9555db71923acc31300aeabda77e2",
+        "id": "a1bb3856e7b0ad74d9e7aefb17d68f27485a1e13d5bb78b11546fb64a637463c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b77bcf2440ca8d7084bfa006f710f509eecd00f8910176ce6e2283dc93707068",
+        "id": "a025f0c8fa99ca31196a38e0f3a000fe223feff212702ceead00f3bbdf62af5e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8cdaef24e76149a1845b83b3a2fa866a7716134698836cb2374420d0d70614c5",
+        "id": "b9c341135374f75b76124cf50f476deeb866a9251599dcdb854005bd898aa5c9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fca4bf0c01d273fa815bb1d071dd87143666d547328ce3d524ecac293c60b94b",
+        "id": "683f80195b827d66e5a3eba80c59db62b8537fbc9262ab2816d1c474ac1a872a",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8789ae4faa28a1f30fe1a86165cf596ef2e26b55414466b41c79b0fd69b11ef2",
+        "id": "aa8f27f2edd2cb892f4de2ae2b8d49c469d0cc6752069d321b66f5cd8e8348f0",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7e0d015e9eaed5e69ec34ae02b9b71ad6402e88058aafdca506537fc2b3b14ce",
+        "id": "1a1fde0536262be488d7c7ac97e00452ff5c8286c185bd51088358441e154deb",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "141783c6d27cc288598b5b2a269e6964928201d1732712be4797387a1603ac20",
+        "id": "a67048384bbe5becae879ae9acaa928ab35c2f7a47c538345a31d77d1dd46918",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e6c318b0a5c0a4a0f1c989066f9ee937a0ec8e37569b78f44426c021b84524ba",
+        "id": "997bf2087711c343cbaba5d4a541818c94cf058125c9dc0accf0f0f5caf9fce9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5d304fd14903e9b964a8ccc65f58a07c9a554dacd248c21617fc5bfe276e31a8",
+        "id": "bce1f7159c69a7083390512720232c5417496affa62d13de685c881d87dce97d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a57be96a73daa276d1a6c1f7de787ce1c4836e627549663cc23e531b0bb519df",
+        "id": "7775b02a601da1fc886753e7307800c615535d697d8e4dfa292ecb44d710f10b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fdfe2334fee82d037a86f74bdde7585097c6cbd83587b9b36e5d92c563e200c5",
+        "id": "f9e944b7a1913b1f5a71e0925d9bf3194008396062da4212514e779570c73c6c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a7def40b77aedc6fbe2f29a4aca6dd4a5bbb5dc29f7239dc5f109177c3b1be95",
+        "id": "098a4e4aaef9a02cf40dd119753b61bddfeeb8cd5b0d5a7ded8c87127af75de2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "9cdc951accff420f1f1c09b1282c7ad3014286d94bd934226bbba6c57e8c3aac",
+        "id": "b6a362621651250103dea3825c416bfdd53f3f2286bca6d513ac65fb51469d22",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a9996fb8b3929521980a635c2183ec3dc7f94265744121fec2d6653574db4cad",
+        "id": "6a9cd3362278ad62fbcada2f3afbe238b8208c16aefcc293d32294a429cac642",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8fc5d4461142cf870b7730c8b966c90a629ed6a66e9d348c7516b3a9dce2a5de",
+        "id": "2be88d83c6a979a28a5421c19114ca0f98045058c3c518ca1cb5371849c6fd9b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3bab1053ec678541e24c88cfeb823c8b24acc7d04943aa73d4d25991899881b8",
+        "id": "1a94de1eb260797792a208d92f4e9f448807a2f8d38301a482ce3e779f407a79",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "bae6641b802291bba7f577180b73dc6c2b332abf8de1ad272aa9956e511b9110",
+        "id": "711bd651aa7c3b1530047afbb82b91294db3caf92bc58f995d6db298f42bab6d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "9b4ec7b36bf90892c6b44416efdc885d2114839cc455fd33dc16b1d758080137",
+        "id": "1329cfd7ec52ef27180610e458343872343d1db7ebd17c4463bbdbab9b10bff0",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "24f24bc7ebde6b3066148002c97a2262c9bb77a5858348c4645db40e08d5e7a8",
+        "id": "5a240582d65f8bd89b9ddc60de6c15266d345dd50a43d43a19bfc7d72e7e5e87",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "35239d2947b83bbf288d269d372797a942626ccb5980567dc8702fdf724aa6b7",
+        "id": "349699052a5a3659cb17dda4b5c3bd4cc6261ae08f2175f1c753f8be5ba50cf9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e9d1a2e17d7a3a80e8488d8d99a859a3acd00fcf6bf69c4e12c6c99cd24fb92e",
+        "id": "09625ac3d79b3a3503996d7ad866099a3afdc7fabb80842f99bdf53ca40bfbd8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "24788943d1d75762a3f6feba357db9a47b23746cb0c7b937bde1454b0f12891b",
+        "id": "ecf6b37b8086d0ccda459da8bf9adc3fa5ee4fe2f94298f8427d992f2c7623c8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "50131d633477c09a0db325f758376397993a455e9a76d35b2ac95b228975dbbd",
+        "id": "603de1a766d28a3a8b65f9233de6fa66e7bb174d5acfc7d296f31f5c988b0b23",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
       },
       {
-        "id": "df1ac284d424db7b509c7be52b94ac9431d6cc3361d45fe1fe4e97130075b782",
+        "id": "63e7b7085829bc2c32b56f1600ff9ea794604b831252f9eaf335d7c0499d286a",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
@@ -15854,7 +15890,7 @@
   {
     "path": "llm/services/runtime/agents.py",
     "sha256": "a60e45f4f3d3385036fae52e32343b84055cf5e82238aed1b8ae6283e8ffe9f2",
-    "reason": "Reviewed the complete selected/current/strategy/source flow. Typed AgentBinding owns identity/definition parsing; EngineContextBinding owns request context contracts. Only the diagnostic was relocated and full AST is otherwise identical. Current lookup and admission checks remain, with root/Agent/Graph/Resume effects covered.",
+    "reason": "Reviewed the complete selected/current/strategy/source flow. Typed AgentBinding owns identity/definition parsing; EngineContextBinding owns request context contracts. Only the diagnostic was relocated and full AST is otherwise identical. Current lookup and admission checks remain, with root/Agent/Graph/Resume effects covered. The same public EngineContextBinding symbol now has its single implementation in llm/engines/contracts.py and base imports it; Resolver admission semantics and source are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -31098,8 +31134,8 @@
   },
   {
     "path": "llm/core/configuration.py",
-    "sha256": "d669fc7115e5c0e943e106c5e4f6eda6b418ffc9f7450e5893c71baf585ea19d",
-    "reason": "Read complete layered merge/provenance, configured narrowing, selected Component resolver and required-setting paths. Fixed source/diagnostic/absence semantics are declared; source/pointer and schema-defined user parameter maps remain open data. Host/Project/Session/Agent values, explicit null overriding, no added defaults, caller detachment and parent limit checks are unchanged. Typed ConfigurationView/Override, SessionConfiguration and Project parameter targets own internal fixed structures and serialization. 212 old/new configuration cases and direct schema/configuration consumer tests pass.",
+    "sha256": "a6baa2bac52d564059c7fb8ea4d1afca7d1bcfe000204d3cf6a9b6010baea046",
+    "reason": "Read complete layered merge/provenance, configured narrowing, selected Component resolver and required-setting paths. Fixed source/diagnostic/absence semantics are declared; source/pointer and schema-defined user parameter maps remain open data. Host/Project/Session/Agent values, explicit null overriding, no added defaults, caller detachment and parent limit checks are unchanged. Typed ConfigurationView/Override, SessionConfiguration and Project parameter targets own internal fixed structures and serialization. 212 old/new configuration cases and direct schema/configuration consumer tests pass. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -31224,12 +31260,6 @@
       },
       {
         "id": "a0e0efcbac17f815eb66995fbbc6a5700bc54513d3f29fff5455e38202153dcc",
-        "classification": "non_contract",
-        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
-        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
-      },
-      {
-        "id": "b1c27614f913baa89687468778933bf65f6787b038361834a2408736b126d615",
         "classification": "non_contract",
         "owner": "ConfigurationSource / ConfigurationInput / resolution API",
         "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
@@ -38259,8 +38289,8 @@
   },
   {
     "path": "llm/core/agents.py",
-    "sha256": "62d56d56c245d1bef7d8956584106b5cfd6f8195ce2cb95e56daa5fdf7318327",
-    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain.",
+    "sha256": "630ea8cb4a90dd5eaac4efd383a2580a1f8c8b8fdca42a03855457f7e472a3bc",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -38534,283 +38564,289 @@
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "d88ab15706ef4f21ac58f84cc4cbd2c81a72eb6ab8d30b82f3072fa8ce08ad0c",
+        "id": "64b05cb328bd3759fce538262c01918eeab25b5dfb60fcfd43a0e43a09957ce9",
+        "classification": "declaration",
+        "owner": "AgentDefinition",
+        "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
+      },
+      {
+        "id": "17a3a46a7ccab592733a9c25f95456608284199c5418d17dd7a715216f5a2339",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Select the first already sorted validation error; positional indexing, not a domain default or threshold."
       },
       {
-        "id": "641f583e8d5f8e9b781d9bbba4a9b9fe0be7c37628244b835aa02c718bfa9b3e",
+        "id": "368f87785215c97fe79b694797b3118da5ad85998a355761be1dac856f489647",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "c46108cd64373a1019146d82e53693455413a3752d95ed2726b57ef733c7d88b",
+        "id": "c3b9854b27576f6fbf80c1749f8a056c179abe996c130032780918ebdd6f7e70",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "96c634de1a1bd700343d5e39cb90ff706fccd67e6ce4eb1d6de1ce6256564b0f",
+        "id": "4c3d1b7a807a6c5ba72934806efdb5f387d3ecd60c86734ebee83c9ae82e66c7",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "8f4a11717fce8ec39d60e39d2ca97513550c5f09676a0a3c46b09379ae25c1bc",
+        "id": "057f910bb3ba736d14bacdc4aaa562b2337960fb6d3e6c08ebafba9d310e3fa0",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "c61fc775f87a3c82463330e3b9e8f8f2e26607594d1fcef25b65860b7ffdd626",
+        "id": "a918c92f43306e081d23cabece9fa257ff73033d528d6eac86190b787c9d4331",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "e43f9adcc15e5cbe0cbf45724897b05001909b0d4aa3941cd5bfb1295a56196a",
+        "id": "2763f67a6a9603d2def12a0304cccd71d2b21295af862811d63540056a9c6100",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "b1fc87e55767b88dc03c7e2ebe54cbf8cfb68b1cb9aec7d6b437b9b831b452c2",
+        "id": "fc63f16ac69c69f6bb5d18e360cbfd3597b52518a437eae10ab1fcc2e6f339fa",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "bc8644e8819baf16841e708f339b8f565db2476bbcaac5d8e4d758531dd4625e",
+        "id": "b4fd557f4cb38078a8c7e166ca400829ef439789bb6da4c3034ba362b3168fcc",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "eb744bd1c796e75c063c2b0121a3540f48097b80a53ced89cbcd3b8b93e92238",
+        "id": "21d54865c515fad2f01c35a40ee902be1a992e5012f3ee0bdc1a9849515ffd39",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "d47a9d81a506f8cdd59f345c46f1a2ad0827961f6048c60baa8196119cd00342",
+        "id": "37ef89231692924b9891d7ae22750ca15a109286f8f13baa08c210e1af0a6fc4",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "f53cd55dcfe7f89e340ba852ed42ffd66d2bfc7c10f98acd378118cc8b0f8710",
+        "id": "aa64ddcda776ecec04b612ba80d7c45fd9f5da8195064812926d06a5d440d2a7",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "d6530c3b6f183908c01cdfd52bef9e7b6e4b88578ccfbf88aaa88ca3ff470cf6",
+        "id": "c2a3104659fd1b67ac9bde090906f3f8fc21dedada1f59055c507e687906d42a",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "9c9d422428b5e2c1f8244bb9e0c8f2df271ce97afefdc175db5c7081ff5d393d",
+        "id": "a1d3be2a69b20e057c391511d829a0464091e0cab8ffe54933216dac3833417c",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "f2408baa88e9ee635e27324dc7f30f5d4c7ce5f87b002c5aa3a0c9f1c8e6cfe6",
+        "id": "1032877b9c917e3c9f49f6df886c96993631a0ffc46d03225957ce81979661a7",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "c84371994ad53840e4ae5c36b65db305667b11dd755d8f9f88910eac1379eae4",
+        "id": "c00c46cead3ed1d3da7373749900dbdc4352493f947c9899825ba29e2d8b1d5b",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "c6a4ca1232c5118184c776796f11f2f63c4bb968a2c5c1616cd0b427583ff73d",
+        "id": "cbedecbfaacdcebdf85dacb2eca0e38bc08e388d0f51085a00592d8867e3ede5",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b3aed8898ff4b5c7d7e4a47a1f5c873b0043177c2dfcfa760a42aa7eacc7c071",
+        "id": "fe0c747de51313a935881496cc95a4c660b74685a2e6efce70ee04f510085158",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "86ee0aea76151db4eaea332d8de8408e650cf35023c3318524cce72d17e41a02",
+        "id": "d7bed7472379e498c0aae985f074a636133ae71857ed34c9b0360d7c5773089f",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "2302cf01cb159cc532df6789901025621f92a5f720103978dee454272186c23d",
+        "id": "cfe067f013c5e88397a585d3702b8755f93089824f1e2e2572dedb85a3b0c96c",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "2ee3ae5842c5180f72a4244b074661a82698b938fc182101009230c958093a93",
+        "id": "b27f6be402ed560ae5aa91c2b9805b2eeb9f932ba5eede2498e8d4c25b525bbb",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "ea4a4f2e3b540868b685e0ea1fd4e7865078750e03e037a8c3d93790a69420cc",
+        "id": "80e744b6290f746cd4a1f32a2c58c1a01ca7d2373bc9afed12d0ed6519255fc4",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b77084b178480b51b0498bc1d960d2df5fefe7a21ee369ef0b33d465f8e17a6b",
+        "id": "beb65b065134f8bf11bb9c9e2424e7d7432b0bebcd9e94b3e2ff6021d43ad34d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "1abf59a0a0afaa9d9b9edc47d71ffbec4e7804eb93dceedd4f6c567597b6db4f",
+        "id": "a8e7b1c79654cc62bfe4f844f531658a80850b53e0ecfc6bb3ce2db192c36ad0",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "90e693adaa085d4823017fb4ae846520f15436793332a810d96da263567133f1",
+        "id": "b5daf7074700da51977039144157b4476b610c1672adf90e65e770894ba2bd09",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "ba314eafefc79597e430d8aa9e9b2831fe0b9b3a803ae7f419ccbafb12c3e336",
+        "id": "ccb50d3b5f0f38b9ff64a356b08692ffc3ef89d8986ce5a1a79876af46da3576",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b1fa8eba6ba6c851d272d897a2626b3c95ff86f4e0429266b4025a6d981f5be6",
+        "id": "cd65edc5e7c1f39bcbe909f3e8a07f826359f19e826b09639ec253f2b6085454",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b4258287b54e8adedf12e557cf719aff723fde6ca0db49d25d5a5d5166a8d5cf",
+        "id": "ece847d16c40cefddd986d1a2c6426bf7ebd7b3f54475447cf6154ede5de50ea",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "a88d7688734e39d0549c8e06851a674e3275558a937123c13d6519d8500bf2ae",
+        "id": "5d1c75424ac45284a759e5026e735a013f1c4b5e39a233e475b5481307f7b897",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "122bcaa30b2a9e18947a09d78b058f04683eaf7082ed50e22d677e8dd1589457",
+        "id": "a965b8188e6789fd1ed3eff56377f0d640d82b3427b9ee090461bdd89a225f2a",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "fffc4cc2d789d44162ec2cc59902ba92a32298dc079bcfe996b03e3fbcb105d1",
+        "id": "39118b410b1578f24a7b083073364e5c29c4fdc0e20ec6947b9b38dde8bb379a",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "ec7b321dc9362ee20591d7976cfb212f06b37dfcaa4316ab3c69b92976dbaa4d",
+        "id": "93a395b57b22b1e35d0b274c83b4118711f4c4910545a5192a9bea35bd5e081f",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "81b12fc9b547abc9dc224077b86a59ceae90f1a1f12a6166b68f06e4fe86d612",
+        "id": "b22a8275a975f4acdbd71ae4ce0bcfaa736edadf2021ac8952dbf387f0cddaae",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b0857fb5fd00dff7f2437e60f76677f7cb9c373c4e23a2faf1ca784975c4d66e",
+        "id": "a2f6968c1f78b14d1996cc3a63f53c4c936e9c7e40eaeb1a81d44eaa23ff8aef",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "ab020763569258f5b57f50ea2954b451d3c8eb9239e622aad483dc990a03367e",
+        "id": "0a8de083f733c170361a96e10cc9d3c460dd29ca043f855c1cd15329684c0434",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "a00177d6514f95ed178d241bbf2c0e38bce88fa6bcbd8ada865cc20e50a007f0",
+        "id": "4795a515f8ab7e5aaf275a13b288f580cb842b135606636454f6fffb42d58ee9",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "0620029697574bc9e3cde6c2319c90ae80d61cd16509a777ea55064b4b822cf2",
+        "id": "3808171c231a2ce776c9a7ab7ee4e10c91f7bf0cb9831a477adec778226ccad7",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "905caadb762a3be7b76fd3442270f6de840261d3950105ce58ed93e0466f5d78",
+        "id": "ee9d20e1355ccf2e9a4cd0878d2a2a6aba081d73002a574650f14008f154ca7f",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "f63ae53cff720f8a12af9c9b7576632781781d03d7bbc200a15838d29eff9347",
+        "id": "052b598d3c53aafbb3f676f63b106f83cd08439b3cbc51332ee4e89a12d8adf8",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "4f2a4fd186997fcc89e41e606b29ce1eee4a578d6e37f2ca96f739145e90fb23",
+        "id": "db83ac3b4b45f87ba8875a8bdb6ab613fcaf3c4c952b1d7c676632096dfe0b55",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "02446d50d217e817837819cb6742633adcdeaaf6f23e9b8b25aa8df99d90daa6",
+        "id": "3d6ba87ad38d7c2043cd52868324633adc692428482cae91c2b7d718900a5356",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "261891915d7f416cef9eab1e0bfb2885b08fef73b2c4aa21efa78d2a3a32259d",
+        "id": "c6552afe3dc4003eb41b08cf9f2483f8d32874def2d2a9ddd7ca69e175540897",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "d25c620235c67507c74b5b0d34410e8194ec433552d542758b7f88f3bb15c2fe",
+        "id": "f11399466531c01ebda9ae1cea501742450380121806f6e4de58dc980e24805d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "5dbe53d55a87a81254a24463d642592943bc8fb62f70c11071a066dcfe0c248d",
+        "id": "f56bdb3470ed424b1fb73a74d725d671fdae0bea06405d6fef11e30bb60f0359",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "f7ee891b4cfae8fc92590f0aedbb6fb23cdff263290cf1600cd3731b7988d37f",
+        "id": "a91fd07f72040a23cf666ffd19b08269b2a658ffe2dcfca9e7995c253ff21119",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "05290cac8962634c118ffd330e69915aa996f44156b33b651cf58b5988378cdf",
+        "id": "53476641dbb52c2d6c33da6aa71af9c56e5704940f822bb5f9df61698891a2bc",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b92244ccbe102da1902b84b6c743cc4329504a6a88c4a38f2a9bf00137fa27f8",
+        "id": "d5aea0bde5dc349202c0f977a12c52c6da8d8a09e883fbeabc3d25d3573397fc",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
@@ -38863,6 +38899,20 @@
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_nested_graph.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "AgentDefinition.validate_selected",
+        "declaration": "llm/core/agents.py",
+        "consumers": [
+          "llm/engines/registry.py",
+          "llm/engines/base.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_configuration_results.py"
         ],
         "complete": true
       }
@@ -40812,6 +40862,343 @@
         "tests": [
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_tool_selection.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/contracts.py",
+    "sha256": "130045a054b04ff467a348e908951ae8ec2443cc387afc13e498fe3894a34f02",
+    "reason": "Read all optional Engine hook discovery, capability and mode validation, shared synchronous factory binding and selected Agent/context wrappers. Same argument deepcopy, coroutine closing, required execution/capabilities and short-circuit mode/steering/checkpoint comparisons and diagnostics. Context omission bypasses its factory; Agent additionally validates mode and consuming checkpoint/resume contract. Registration remains separately constrained. No runtime configuration or authority added. Base reexports the same public API with one implementation, not a compatibility branch. Other Engine hook consumers remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6f7895703d2c32ec3c356358451d910c2531bd9ea7be86edb63820bf81943a3a",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "1148d49d02fc7286fa99ec7cdde09759ca402dea13fb2d95b2342ea996b129c5",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "4e101301eade0f2238dea5d6862e6e8040edddba6ad044b40cf9232f8fa33ed0",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "70e6ebb31889c449a0672410303f7d5852fd7efd075bc678113baaf44907be22",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "52f9417484865a2d625646c8ba00fd797c8f1b606a6e85a30ada0620704f2dd3",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "eef35ce3e1515f44be800367ef816b6b5a2bca58bcd69813a9bb37945251c09f",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "b732722045fa91b30efb3f42efbcca64d5a380bcee1e99b7f894192eac4d33ed",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "41946af7c017e4f129f7ca04f4431f542f2d27d27e2b386252441becfefabebd",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "7a105e7d2ccedc53521bb5002ecd83f7013a418a4213be96c3d9c642aa27e61c",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "95ce29e2ac48db124688a47f81bfff3f3c20bac483c072a90271d670abe78bd6",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "46736116636d6f554e8d6c56ef4ac6f368fa08f8cf6587447f9cd706390fdfc5",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "24c26ef2661cf3a63f5f10a69b90cfa73e9f310fbfab121c3e9fca32e833ba5e",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "8f8f15e277a34edcbb6eef35475caea868282abb8506398582a4c5350a490154",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "2b2ff62d3480e68d4f8733cb8dc5fa44a879cd434b6afe41d495b83c93c5952d",
+        "classification": "non_contract",
+        "owner": "Engine public binding and hooks",
+        "reason": "Variable-length tuple annotation, not a runtime fallback."
+      },
+      {
+        "id": "67c50e28d34c664260db8442ffa7529395451413d5d9b78f3bb61e1815e4217e",
+        "classification": "non_contract",
+        "owner": "Engine public binding and hooks",
+        "reason": "Frozen/slots dataclass layout for fixed API diagnostics, not a policy setting."
+      },
+      {
+        "id": "3ec348f5e5b67fdcf9bd7f4f71e0ab7b7bee654093e3f25be37c2ab591b4e137",
+        "classification": "non_contract",
+        "owner": "Engine public binding and hooks",
+        "reason": "Frozen/slots dataclass layout for fixed API diagnostics, not a policy setting."
+      },
+      {
+        "id": "6e091f01c830967186084b0571a5f4af9f87829bd12194b95ab2f433ae9a2bee",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "ce36a087f99bddcd15ec0efe28a6faf573a526ab2ecde87775d4bfdb11c7b8fb",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "1fdb81de3686a8afda22043a0222a4d7d1035ad1fabca52b5877a7b05f1067f4",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "a879824f54fbe98720b57d8f26dcc54617317686e249c38b0c0f07d196f1bfd4",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "7347ca795a7716350869d5c266e9f611bb69b1b04b31a090bea7aa253810b557",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "4094e89f359fb6d11c9f1ee4f1ea830c7bbd2ecd5b7fbef49e0cab905893f33e",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "bf5362b97ebeda9c60037d3e4132199a34b000be27e27d1ef01b37830be70bbb",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "79736af8ae8bc70b94cc39d656aaacab3e0117fa9f8f34e531015a13eac9a601",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "7bed1602a8fc022812e79acf705a268fca9df1402db2ccea14ae4245aaa461fe",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "ca03fb7af5ee329ea986b77ae418a80cc8f4c69f1b9a2ace5fc7fd9550eb6508",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "620825b4c635ad672b923905fd4f02f2d16bdaf6cb617d6964293503f33135bf",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "f56368fe1a0dc81d613ab2b0b52d08b2f450876dae5398012eddc25980dfad1d",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "ade46133ba9a3332b5fe97856b01867a0d72b19a96bb3e6b4b0038c1badb5cb0",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "3c4e661942087dd4427676587b341110a099eee0bacc0ad49b4910ce2b02ad3e",
+        "classification": "declaration",
+        "owner": "Engine public binding and hooks",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EngineBindingContract / EngineContextBinding / EngineAgentBinding / required_capabilities / steering_mode / agent_mode",
+        "declaration": "llm/engines/contracts.py",
+        "consumers": [
+          "llm/engines/base.py",
+          "llm/engines/registry.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_execution_contexts.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "EngineHooks",
+        "declaration": "llm/engines/contracts.py",
+        "consumers": [
+          "llm/engines/registry.py",
+          "llm/engines/agents.py",
+          "llm/services/schema.py"
+        ],
+        "tests": [
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_configuration_validation.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/registry.py",
+    "sha256": "4193005f10bd8804601e3968aaeb22720c4e7025576cc38bc3aff8a7660bb621",
+    "reason": "Read complete registration, public config preflight, lookup and selected Agent resolution. Registration preserves its original nonempty checkpoint condition; Agent binding separately preserves stricter consuming-bound validation. Schema keys and effective resolvers use their Owners, original Project/Session sources validate before resolver invocation, and coroutine config results close/reject. Selected Agent definition uses its canonical Reader, and same registry/definition/Engine errors are preserved. No private Engine state, stored defaults or implicit policy.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "13f645814afb02c248f06f45a5628f0c12b2e0c611e903ee052c4a82221f3c3e",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "cb58cca2c87f2d659030e2e4c32ddfc1cbd1c94b2ec1d992b118a77cb655edad",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "a29fceafe003ecc10f88350beaf041c95ee643f5b5ebe72c04bba0a7254fa6d8",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "9c41e482cc8d7fe079096332df2dbf9fcb81a84912ed241f0b4c290d57fe49e9",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "7e5e3a46b2d8ab6de772f744634ea05db1c2c201569ae2545d84a203d1d0dbe9",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "b505ccda2215b762c356f331c5dc4602276f7bfc75848c27ccc02b4c52972e83",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "9bb31e098f2eaecbd7ad1fe0b25f398f42152a0b396a2e254930b7386ae963af",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "2b9a575f069b9ea17ff1ce0961c18f318d6bd452a0e27126f1f24b86f1bd84c9",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "26da3d515185cb09dd26d5def8fc152d9e5d33fd674aa059c931402155a57333",
+        "classification": "declaration",
+        "owner": "EngineRegistry",
+        "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
+      },
+      {
+        "id": "a56ba795c2f76d69d073342f51cceb2171ad28e00b8ad90aad4b6ab536c845b9",
+        "classification": "non_contract",
+        "owner": "EngineRegistry",
+        "reason": "Python no-result return annotation."
+      },
+      {
+        "id": "df1b393f581fbdb964edc246e1d2f7c5e9447ab39aa1c3bcc098a25c73da5fab",
+        "classification": "non_contract",
+        "owner": "EngineRegistry",
+        "reason": "Python no-result return annotation."
+      },
+      {
+        "id": "0df89de485a4aaaa4120ab693b970fcd96fb5372db25c341ece6a89c9eca6d52",
+        "classification": "non_contract",
+        "owner": "EngineRegistry",
+        "reason": "Variable-length tuple annotation, not a runtime fallback."
+      },
+      {
+        "id": "52cf48eeda4217df876caa7dc0cb3584fa6da675a4947868e6d57361eb85088f",
+        "classification": "non_contract",
+        "owner": "EngineRegistry",
+        "reason": "Python no-result return annotation."
+      },
+      {
+        "id": "3c36101e010d623136c252c7cb9e5c4aa5e39aa4e9418925dc19781fd32c2608",
+        "classification": "non_contract",
+        "owner": "EngineRegistry",
+        "reason": "No validation error sentinel for iterator exhaustion; does not substitute a configuration value."
+      },
+      {
+        "id": "819b46a83c9ea3b6d6cd42f56620d1ccf95ddd88182c33619bc6324c44780f8f",
+        "classification": "non_contract",
+        "owner": "EngineRegistry",
+        "reason": "Suppress the lookup KeyError as the exception cause; no data or authority fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EngineRegistry",
+        "declaration": "llm/engines/registry.py",
+        "consumers": [
+          "llm/llm.py",
+          "llm/services/lifecycle/agents.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_agent_storage.py",
+          "tests/llm/test_engine_steering.py"
         ],
         "complete": true
       }

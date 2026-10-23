@@ -202,7 +202,7 @@ def effective_engines(app, config, *, session_config=None):
     result = {}
     for name in app.engines.names():
         engine = app.engines.get(name)
-        describe = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
+        describe = ConfigurationView.resolver(engine)
         result[name] = describe(config, name, session_config=session_config) if describe else ConfigurationView.unavailable().to_dict()
     return result
 
@@ -233,12 +233,11 @@ def describe_project_config(app, components=None):
     engines, engine_catalog = {}, {}
     for name in app.engines.names():
         engine = app.engines.get(name)
-        describe = getattr(engine, "describe_config", None)
+        from llm.engines.contracts import EngineHooks
+        describe = EngineHooks.schema_describer(engine)
         spec = checked_implementation_schema(describe() if describe else implementation_schema())
         resources(spec)
-        key = spec.get("x-parameter-key", name) if isinstance(spec, dict) else name
-        if not isinstance(key, str) or not key.strip():
-            raise ValueError("Engine configuration key must be nonempty text")
+        key = EngineConfigurationKey.schema_key(spec, default=name)
         if isinstance(spec, dict):
             spec["$id"] = "urn:ish:engine:" + name + ":configuration"
         engines[key] = {"allOf": [engines[key], spec]} if key in engines else spec

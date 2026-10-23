@@ -71,6 +71,7 @@ class SchemaBoolean:
 
 class SchemaExtension:
     PREFIX = "x-"
+    PARAMETER_KEY = "x-parameter-key"
     OWNER = "x-schema-owner"
     OPEN_KIND = "x-open-kind"
     HOST_OVERRIDE = "x-host-override"

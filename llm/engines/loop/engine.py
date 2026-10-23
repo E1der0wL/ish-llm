@@ -7,7 +7,7 @@ from llm.components.tools.registry import ToolRegistry
 
 from llm.core.implementation_parameters import ImplementationParameters
 
-from llm.core.configuration_views import ConfigurationView
+from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
 
 from llm.core.checkpoint_records import CheckpointWrite
 
@@ -203,7 +203,7 @@ class LoopEngine(BaseEngine):
         for key in self._option_names:
             if key != "buffer_size":
                 properties[key]["x-narrowing"] = "maximum"
-        return self.parameter_layout.schema(object_schema(properties, **({"x-parameter-key": self.parameter_key} if self.parameter_key else {})))
+        return self.parameter_layout.schema(object_schema(properties, **EngineConfigurationKey.schema_fields(self.parameter_key)))
 
     def resolve_config(self, config, name, *, session_config=None):
         """실행과 UI가 공유하는 Project → Session → Agent 설정."""

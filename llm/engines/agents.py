@@ -30,6 +30,7 @@ from llm.engines.registry import EngineRegistry
 from .graph.engine import _GraphPause, GraphNodeContext
 from .graph.checkpoints import EngineCheckpointScope
 from .agent_resources import AgentResourceResolver
+from .contracts import EngineHooks
 from .agent_checkpoints import AgentCheckpoint
 from .graph.selections import GraphHandlerSelection
 from .agent_values import (AgentNodeDefinition, AgentExecutionBinding, AgentStepMetadata,
@@ -131,7 +132,7 @@ class AgentExecution:
     def checkpoint_engine(self, definition, context):
         """저장·재개 계약을 제공하는 자식만 조율 노드로 선언한다."""
         engine = self._engine(self._profile(definition, context.capabilities))
-        return engine if getattr(engine, "checkpoint_name", None) and callable(getattr(engine, "validate_resume", None)) else None
+        return engine if EngineHooks.checkpoint_name(engine) and callable(EngineHooks.resume_validator(engine)) else None
 
     def instruction_engine(self, definition, context):
         """등록된 공개 소비 기능을 선언한다. 선택 시 factory의 동일 선언을 검증한다."""
@@ -142,7 +143,7 @@ class AgentExecution:
         """재개 검사와 Step에 런타임 핸들 없이 재현 가능한 정의를 남긴다."""
         profile = self._profile(definition, context.capabilities)
         engine = self._engine(profile)
-        describe = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
+        describe = ConfigurationView.resolver(engine)
         configuration = (describe(context.project.config, profile.engine, session_config=context.session.config)
                          if describe else ConfigurationView.unavailable().to_dict())
         from llm.core.configuration import UNSET
@@ -151,7 +152,7 @@ class AgentExecution:
             workflow = engine.workflow
         else:
             resources = self._resources(profile, context)[1]
-        bind_execution = getattr(engine, "bind_execution", None)
+        bind_execution = EngineHooks.execution_binder(engine)
         if callable(bind_execution):
             execution = bind_execution(context)
         return AgentExecutionBinding.create(AgentNodeDefinition(definition).agent_id, profile,
@@ -166,7 +167,7 @@ class AgentExecution:
             return
         self._resources(profile, context)
         resources = profile.resources
-        if (resources.skills or resources.prompt) and not callable(getattr(engine, "with_instructions", None)):
+        if (resources.skills or resources.prompt) and not callable(EngineHooks.instruction_binder(engine)):
             raise ValueError("Agent Prompt/Skill composition requires Engine.with_instructions")
         AgentNodeDefinition(definition).validate_behavior(profile)
 
@@ -177,10 +178,10 @@ class AgentExecution:
         engine = self._engine(profile)
         if agent_mode(engine) == AgentMode.WORKFLOW and not wrapped_graph:
             return  # Inline Graph children are visited in the parent Graph environment.
-        name = getattr(engine, "checkpoint_name", None)
+        name = EngineHooks.checkpoint_name(engine)
         if agent_mode(engine) != AgentMode.WORKFLOW:
             self._checkpoint_usage(records, owner, name)
-        validate = getattr(engine, "validate_selections", None)
+        validate = EngineHooks.selection_validator(engine)
         if name is None or not callable(validate):
             return
         if agent_mode(engine) != AgentMode.WORKFLOW:
@@ -200,7 +201,7 @@ class AgentExecution:
         context = context.with_capabilities((AgentDefinition.CAPABILITY,))
         engine = self._engine(self._profile(definition, context.capabilities))
         context = context.with_capabilities(self.additional_capabilities(definition, context.capabilities))
-        discover = getattr(engine, "additional_capabilities", None)
+        discover = EngineHooks.discoverer(engine)
         if callable(discover):
             from itertools import count
             for expansion in count():
@@ -273,7 +274,7 @@ class AgentExecution:
                 if node.context.checkpoint:
                     # 완료된 자식 노드를 재사용해도 Agent의 호출 예산/필수 Tool 이력은 보존한다.
                     scope.restore(self._checkpoint_usage(CheckpointRecords.from_checkpoint(node.context.checkpoint).records,
-                                                         node.checkpoint_key, getattr(engine, "checkpoint_name", None)))
+                                                         node.checkpoint_key, EngineHooks.checkpoint_name(engine)))
                 await node.record_usage(scope.checkpoint())
                 message = next(item for item in node.context.messages if item.id == node.context.run.input_message_id)
                 message = replace(message, content=json.dumps(inputs, ensure_ascii=False, allow_nan=False))
@@ -282,7 +283,7 @@ class AgentExecution:
                     name: node.context.capabilities[name] for name in required_capabilities(engine) if name != ToolRegistry.CAPABILITY}
                 if ToolRegistry.CAPABILITY in required_capabilities(engine):
                     capabilities[ToolRegistry.CAPABILITY] = tools
-                discover = getattr(engine, "additional_capabilities", None)
+                discover = EngineHooks.discoverer(engine)
                 if callable(discover):
                     # 부모가 이미 승인/해석한 capability만 전달한다. 새 resource를 만들지 않는다.
                     for name in discover({**node.context.capabilities, ToolRegistry.CAPABILITY: tools}):
@@ -398,7 +399,7 @@ class AgentInvocation:
             *((ToolRegistry.CAPABILITY,) if self.profile.tools or resources.mcp or resources.rag else ()))))
 
     def additional_capabilities(self, capabilities):
-        discover = getattr(self.engine, "additional_capabilities", None)
+        discover = EngineHooks.discoverer(self.engine)
         return discover(capabilities) if callable(discover) else ()
 
     def prepare_context(self, context):
@@ -418,10 +419,10 @@ class AgentInvocation:
             if self.profile.has_input_schema:
                 message = next(item for item in context.messages if item.id == context.run.input_message_id)
                 self.profile.validate_input(message.content)
-        describe = getattr(self.engine, ConfigurationView.RESOLVE_METHOD, None)
+        describe = ConfigurationView.resolver(self.engine)
         configuration = (revision_token(describe(context.project.config, self.binding.engine,
                          session_config=context.session.config)) if callable(describe) else None)
-        execution = getattr(self.engine, "bind_execution", None)
+        execution = EngineHooks.execution_binder(self.engine)
         self.runtime_binding = AgentInvocationBinding(
             AgentInvocationIdentity(self.binding.agent_id, self.binding.revision, self.binding.engine,
                 self.mode.value, configuration, self.resources.to_dict() if self.resources is not None else None),
@@ -433,7 +434,7 @@ class AgentInvocation:
         return context
 
     def validate_resume(self, checkpoint, *, retry_nodes=(), context=None, **kwargs):
-        validate = getattr(self.engine, "validate_resume", None)
+        validate = EngineHooks.resume_validator(self.engine)
         if not callable(validate):
             raise ValueError("Engine does not support checkpoint resume")
         # Connected remote definitions are checked after connection and before execution.

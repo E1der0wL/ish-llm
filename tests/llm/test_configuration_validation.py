@@ -33,6 +33,22 @@ class SchemaEngine:
 
 
 class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
+    def test_schema_key_selection_preserves_host_string_without_applying_response_validation(self):
+        from llm.engines.registry import EngineRegistry
+        from llm.core.configuration_views import EngineConfigurationKey
+        class HostText(str):
+            pass
+        key = HostText("shared")
+        class HostEngine(SchemaEngine):
+            def describe_config(self):
+                return implementation_schema(**{"x-parameter-key": key})
+        registry = EngineRegistry()
+        registry.register("registered", HostEngine(1, 2))
+        registry.validate_config({})
+        self.assertIs(EngineConfigurationKey.schema_key({"x-parameter-key": key}, default="registered"), key)
+        with self.assertRaises(ValueError):
+            EngineConfigurationKey(key).to_dict()
+
     def backend(self, *, engines=None, components=()):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)

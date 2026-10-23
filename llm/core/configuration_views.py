@@ -6,6 +6,7 @@ from typing import Any
 
 from .contracts import JsonValue
 from llm.core.json_data import JsonObject
+from llm.core.schema import SchemaExtension
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,11 +27,24 @@ class ConfigurationResolution(JsonValue):
 
 @dataclass(frozen=True, slots=True)
 class EngineConfigurationKey(JsonValue):
+    INVALID_SCHEMA_KEY = "Engine configuration key must be nonempty text"
+
     configuration_key: str | None
 
     @classmethod
     def from_view(cls, value, *, default):
         return cls(value.get(cls.configuration_key.__name__, default))
+
+    @classmethod
+    def schema_key(cls, schema, *, default):
+        key = schema.get(SchemaExtension.PARAMETER_KEY, default) if isinstance(schema, dict) else default
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError(cls.INVALID_SCHEMA_KEY)
+        return key
+
+    @staticmethod
+    def schema_fields(key):
+        return {SchemaExtension.PARAMETER_KEY: key} if key else {}
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,10 +67,15 @@ class ConfigurationView:
     """
 
     RESOLVE_METHOD = "resolve_config"
+    NO_RESOLVER = None
 
     _value: dict
     _resolution: ConfigurationResolution
     _runtime: RuntimeConfiguration
+
+    @classmethod
+    def resolver(cls, implementation):
+        return getattr(implementation, cls.RESOLVE_METHOD, cls.NO_RESOLVER)
 
     @classmethod
     def read(cls, value):

@@ -80,6 +80,7 @@ class AgentDefinition:
     REVISION_SORT_KEYS = True
     REVISION_ENSURE_ASCII = False
     REVISION_ENCODING = "utf-8"
+    SELECTED_VALIDATION_ID = "selected"
 
     schema = {
         SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.REQUIRED: [ENGINE_FIELD], SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
@@ -118,6 +119,11 @@ class AgentDefinition:
     @classmethod
     def engine(cls, definition):
         return definition[cls.ENGINE_FIELD]
+
+    @classmethod
+    def validate_selected(cls, definition):
+        """Validate an already selected definition without inventing a stored Agent ID."""
+        cls.validate(cls.SELECTED_VALIDATION_ID, definition)
 
     @classmethod
     def validate_mode(cls, definition, mode):

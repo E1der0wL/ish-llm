@@ -105,7 +105,7 @@ def resolve_engine_config(config, name, *, session_config=ConfigurationInput.UNS
 
 def resolve_component_config(component, project):
     """선택적인 설정 조회 계약. 사용자 컴포넌트에 새 필수 메서드를 강요하지 않는다."""
-    describe = getattr(component, ConfigurationView.RESOLVE_METHOD, None)
+    describe = ConfigurationView.resolver(component)
     if callable(describe):
         return describe(project)
     return resolve_config([(ConfigurationSource.PROJECT, component.get_config(project))])

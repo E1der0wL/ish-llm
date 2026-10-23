@@ -6,7 +6,7 @@
 
 from llm.core.resource_references import ResourceTarget
 
-from llm.core.configuration_views import ConfigurationView
+from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
 from llm.core.definition_snapshot import DefinitionSnapshot
 
 from llm.core.checkpoint_records import CheckpointWrite
@@ -666,7 +666,7 @@ class GraphEngine:
         from llm.core.schema import object_schema
         properties = self._option_schema()
         return self.parameter_layout.schema(object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
-            **({"x-parameter-key": self.parameter_key} if self.parameter_key else {})}))
+            **EngineConfigurationKey.schema_fields(self.parameter_key)}))
 
     def resolve_config(self, config, name, *, session_config=None):
         view = resolve_engine_config(config, self.parameter_key or name, session_config=session_config,

@@ -29,12 +29,14 @@ from enum import StrEnum
 from contextlib import aclosing
 from asyncio import timeout
 from llm.core.models import Message, Project, Run, RunStatus, Session, new_id, now
+from llm.core.agents import AgentDefinition
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
 from llm.errors import stable_error_code
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta, ResumeOutput
 from llm.core.interactions import InteractionRequest
 from llm.core.configuration import UNSET
 from llm.core.steering import SteeringMode, SteeringRoute
+from .contracts import EngineContextBinding, required_capabilities, steering_mode, agent_mode
 from llm.components.tools import ToolRegistry
 from llm.providers.streaming import CompletionError, CompletionAdapter
 from llm.core.model_protocol import CompletionUpdate, ModelRequest, ModelResponse, copy_model
@@ -236,64 +238,6 @@ class Engine(Protocol):
     def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]: ...
 
 
-class EngineContextBinding:
-    """The Engine extension boundary owns validation of a request-bound Engine."""
-
-    FOR_CONTEXT = 'for_context'
-    EXECUTE = 'execute'
-    CHECKPOINT_NAME = 'checkpoint_name'
-    INVALID_CONTEXT = 'request_context must be a JSON object'
-    UNSUPPORTED = 'Selected Engine does not accept request context'
-    ASYNC_FACTORY = 'Engine for_context must be synchronous'
-    INVALID_ENGINE = 'for_context must return an Engine'
-    CHANGED_CONTRACT = 'Request context must preserve Engine execution contracts'
-
-    @classmethod
-    def bind(cls, engine, request_context=UNSET):
-        if request_context is not UNSET:
-            if not isinstance(request_context, dict):
-                raise TypeError(cls.INVALID_CONTEXT)
-            from llm.core.json_data import JsonObject
-            JsonObject.validate(request_context)
-            factory = getattr(engine, cls.FOR_CONTEXT, None)
-            if not callable(factory):
-                raise ValueError(cls.UNSUPPORTED)
-            bound = factory(deepcopy(request_context))
-            if inspect.isawaitable(bound):
-                if inspect.iscoroutine(bound):
-                    bound.close()
-                raise TypeError(cls.ASYNC_FACTORY)
-            if not callable(getattr(bound, cls.EXECUTE, None)):
-                raise TypeError(cls.INVALID_ENGINE)
-            required_capabilities(bound)
-            if (agent_mode(bound) != agent_mode(engine)
-                    or steering_mode(bound) != steering_mode(engine)
-                    or getattr(bound, cls.CHECKPOINT_NAME, None) != getattr(engine, cls.CHECKPOINT_NAME, None)):
-                raise ValueError(cls.CHANGED_CONTRACT)
-            engine = bound
-        return engine
-
-
-def required_capabilities(engine) -> tuple[str, ...]:
-    """선언하지 않은 Engine은 외부 기능 없이 실행한다."""
-    names = getattr(engine, "required_capabilities", ())
-    if (not isinstance(names, tuple) or any(not isinstance(name, str) or not name.strip() for name in names)
-            or len(set(names)) != len(names)):
-        raise ValueError("Engine required_capabilities must be a tuple of distinct names")
-    return names
-
-
-def steering_mode(engine) -> SteeringMode:
-    """잘못된 지원 선언은 조용히 무시하지 않는다."""
-    return SteeringMode(getattr(engine, "steering_mode", SteeringMode.UNSUPPORTED))
-
-
-def agent_mode(engine):
-    """Read the declared execution mode through the public Engine contract."""
-    from llm.core.agents import AgentMode
-    return AgentMode(getattr(engine, "agent_mode", AgentMode.BEHAVIORAL))
-
-
 # 작업 함수를 공통 Step 이벤트와 스트리밍 출력으로 감싼다.
 class BaseEngine:
     """Adapt a developer operation to the existing Engine event contract.
@@ -307,15 +251,18 @@ class BaseEngine:
     """
 
     required_capabilities = ()
+    HOST_AGENT_UNSUPPORTED = frozenset((AgentDefinition.Field.SYSTEM_PROMPT.value,
+        AgentDefinition.Field.COMPLETION.value, AgentDefinition.Field.ENGINE_OPTIONS.value))
+    HOST_AGENT_INVALID = "Host action must implement these Agent settings: "
+    HOST_FIELD_SEPARATOR = ", "
     steering_mode = SteeringMode.UNSUPPORTED
 
     def for_agent(self, definition):
         """Bind a host action without silently accepting unimplemented settings."""
-        from llm.core.agents import AgentDefinition
-        AgentDefinition.validate("selected", definition)
-        unsupported = set(definition) & {"system_prompt", "completion", "engine_options"}
+        AgentDefinition.validate_selected(definition)
+        unsupported = set(definition) & BaseEngine.HOST_AGENT_UNSUPPORTED
         if unsupported:
-            raise ValueError("Host action must implement these Agent settings: " + ", ".join(sorted(unsupported)))
+            raise ValueError(BaseEngine.HOST_AGENT_INVALID + BaseEngine.HOST_FIELD_SEPARATOR.join(sorted(unsupported)))
         return copy(self)
 
     def validate_selections(self, context):

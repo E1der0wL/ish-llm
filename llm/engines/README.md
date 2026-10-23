@@ -84,6 +84,18 @@ Graph AgentNode에서도 사용할 Engine은 `for_agent(definition)`이 호출�
 미시작 Agent의 지시 예약은 등록 선언으로 탐색하고, 실제 선택·승인 대기·재개 시 이
 일치 조건을 검증합니다. 선택하지 않은 Agent의 factory나 자원은 미리 평가하지 않습니다.
 
+EngineHooks가 공통 확장 이름과 선택적 조회를 소유하고, EngineBindingContract가 동기 factory·
+반환 Engine·capability·mode/steering/checkpoint 보존을 같은 순서로 검증합니다.
+Agent 정의와 요청 context의 입력 검증·진단·checkpoint 요구 차이는 각각 EngineAgentBinding과
+EngineContextBinding에 남습니다. `request_context` 생략은 factory를 호출하지 않으며,
+기존 오류가 발생한 뒤 다른 hook을 추가로 읽지 않습니다. BaseEngine의 공개 factory를
+상속 없이 재사용하는 Host 구현에도 같은 정의 검증과 원래 거부 조건을 적용합니다.
+
+공개 Schema의 `x-parameter-key`는 EngineConfigurationKey의 Schema Projection/Reader를
+통해 선언·해석합니다. Graph/Loop의 선언과 Registry/설정 조회는 같은 키 검증을 사용하며,
+생략 시 등록 이름을 사용하고 명시 null/빈 이름은 거부합니다. ConfigurationView.resolver는
+공통 유효 설정 조회 hook만 찾으며 정책·기본값·저장 설정을 만들지 않습니다.
+
 Prompt/Skill 자원을 사용하는 Agent Engine은 `with_instructions(context, before=..., after=...)`로
 자기 지침의 상속·합성을 소유합니다. AgentExecution은 특정 config 경로를 읽지 않습니다.
 선택형 자식을 재사용하는 Engine은 `validate_selections(context)`를 실행·재개 경계에서
