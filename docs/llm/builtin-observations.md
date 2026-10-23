@@ -33,8 +33,8 @@ file_values의 타입으로 조립하고 공개 경계에서 직렬화한다. �
 원본 또는 완전한 새 상태 계약을 유지한다. 실제 원자적 교체 실패에서도 원본 bytes와 mode를
 보존하고 임시 파일을 회수한다. Workspace 선택은 기존 TestWorkspaces 경계가 소유한다.
 
-프로세스/테스트 공간과 다른 등록 경로의 남은 전환은 [전수 기록](whole-ownership-verification.md)에서
-계속 추적한다. 진단/파일 Tool 전환을 내장 Tool 전체 완료로 해석하지 않는다.
+각 소단계의 상태와 미전환 소비자는 [전수 기록](whole-ownership-verification.md)에서 추적한다.
+개별 입력·파일 전환을 전체 저장소 완료로 해석하지 않는다.
 
 ## 프로세스 Tool
 
@@ -64,3 +64,28 @@ Unicode 문자 단위의 cursor를 계산한다. 미완성 UTF-8은 실행 중�
 효과 Assertion은 유지한다. 환경 값/오류와 전체 등록 정의/계약/binding의 이전·현재 동등성,
 실제 파일/격리/취소·필수 안전성 및 Hub 소비자 검증을 거친다. 공유 환경 Owner 변경은 다음
 현재 통합 Level 3의 필수 대상이며 소단계 결과를 원격 CI 통과로 승계하지 않는다.
+
+## 테스트 공간과 등록
+
+WorkspaceSelection과 작업별 입력 타입이 선택 ID·생성 파일·명령·명시 환경의 단일 선언이다.
+파일 Schema의 선택 공간 필드도 같은 선언에서 파생한다. WorkspaceSettings의 Host 값은
+WorkspaceRuntime이 기존 ProcessToolRunner 검증과 실행에 전달하고 WorkspaceBinding은
+분리된 사본으로 승인 지문에 투영한다. 외부 실행 설정 조회는 기존 JSON 모양의 사본이다.
+원본 입력·저장 설정에 생략된 env나 기본 제한을 추가하지 않으며 env 지정 시 전체 대체한다.
+
+ProcessCommand가 격리 명령의 절대 executable·문자열 argv·NUL 검증을 소유한다. Hub의
+실행 전 피드백도 이 판별을 사용한다. Hub의 status/executed/error/guidance는 별도 UI 응답
+선언이며 재시도·승인 권한이 아니다. 실행기는 동일한 명령 검증을 반드시 다시 통과한다.
+ProcessResult는 일반 명령의 종료 코드·stdout/stderr decoding과 공개 결과를 소유하고
+WorkspaceExecutionResult가 공간 identity를 함께 직렬화한다. JSON Tool 출력은 별도 계약이다.
+
+BuiltinTools는 해당 입력 Owner의 이름·설명·Schema를 조립하며 GitCommands와 Host 셸 prefix를
+분리한다. Git 등록은 선택한 shell argv를 바꾸지 못한다. checks는 ConfiguredChecks가 기존
+명령 검증을 수행한다. 외부 Host 어댑터의 요청 Schema·효과 종류는 HostAdapters가 선언하고
+실제 payload 의미와 구현은 주입된 Host가 소유한다. Backend는 opaque options를 해석하거나
+생략값을 채우지 않는다. 로컬 RAG 이름의 거절과 명시적 외부 이름은 기존대로 유지한다.
+
+BuiltinExecutionBinding은 root/shell/checks/선택 공간의 사본을 소유한다. Component는
+bound revision API를 사용하고 환경 필드를 다시 조립하지 않는다. 승인 대상 효과·격리·
+재시도 가능 필드·원래 revision은 유지하며 환경/계약이 바뀌면 기존 승인을 재사용하지 않는다.
+독립 wire·이전/현재 정의/계약/지문 비교와 실제 셸/Git 동시 등록·환경·승인/재개 검증을 수행한다.

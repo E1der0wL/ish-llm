@@ -12,6 +12,8 @@ from typing import Any, Mapping, Optional, Sequence, TYPE_CHECKING, Union
 from llm._platform import require_linux
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.process_environment import ProcessEnvironment
+from llm.services.infrastructure.process_result import ProcessResult
+from llm.services.infrastructure.process_command import ProcessCommand
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.policies import ExecutionLimitError
 from llm.core.tool_contracts import ToolIsolation
@@ -50,8 +52,7 @@ class ProcessToolRunner:
                 raise ValueError("Process limits must be positive integers")
         self.commands = {}
         for name, argv in commands.items():
-            if (not isinstance(name, str) or not name or not isinstance(argv, (list, tuple)) or not argv
-                    or any(not isinstance(arg, str) or "\0" in arg for arg in argv) or not Path(argv[0]).is_absolute()):
+            if not isinstance(name, str) or not name or not ProcessCommand.valid(argv):
                 raise ValueError("Commands require named argv lists with absolute executables")
             self.commands[name] = tuple(argv)
         self.cwd = Path(cwd).resolve(strict=True)
@@ -182,15 +183,11 @@ class ProcessToolRunner:
 
         pass_fds는 호스트 수명 잠금이다. 시작 게이트만 상속하며 사용자 명령에는 전달하지 않는다.
         """
-        if (not isinstance(argv, (list, tuple)) or not argv or not argv[0]
-                or any(not isinstance(arg, str) or "\0" in arg for arg in argv)
-                or not Path(argv[0]).is_absolute()):
-            raise ValueError("Command requires argv with an absolute executable")
+        ProcessCommand.validate(argv)
         slots = self._admission()
         async def invoke():
             code, stdout, stderr = await self._launch(self._sandbox(list(argv)), None, pass_fds=tuple(pass_fds))
-            return {"returncode": code, "stdout": stdout.decode("utf-8", errors="replace"),
-                    "stderr": stderr.decode("utf-8", errors="replace")}
+            return ProcessResult.decoded(code, stdout, stderr).to_dict()
         if slots is None:
             return await invoke()
         async with slots:

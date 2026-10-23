@@ -1,5 +1,7 @@
 """Convert model assessments to Hub risk classifications, never permission."""
 
+from llm.components.tools.builtin.workspace_values import WorkspaceExecuteArguments
+
 from copy import deepcopy
 from dataclasses import replace
 from typing import Any
@@ -68,7 +70,7 @@ def bind_advice(toolkit: BuiltinTools) -> None:
             # Keep the sandbox handler's trusted type and execution binding.
             # HubTestWorkspaces removes the classification metadata itself.
             tool = replace(tool, parameters=parameters,
-                handler=tool.handler if name == "test_workspace_execute" else handler(tool),
+                handler=tool.handler if name == WorkspaceExecuteArguments.NAME else handler(tool),
                 contract=replace(tool.contract, revision="hub-risk-advice-v1:" + tool.contract.revision))
         tools.append(tool)
     toolkit.registry = ToolRegistry(tuple(tools))

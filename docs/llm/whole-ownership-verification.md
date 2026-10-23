@@ -1842,3 +1842,72 @@ storage-static-fixed.log에 원래 실패와 수정 결과를 분리 보존한�
 전체 완료는 차단된 상태다. workspaces 실행 입력·Host binding·카탈로그/Hub 소비와 나머지
 전체 대상 전환을 계속한다. 이 저장 소단계는 고정 a12223c의 group13에 포함되지 않는다.
 다음 관련 통합 게이트에서 현재 소스 전체 LLM/Hub Level 3 후 Push/정확한 SHA CI를 확인한다.
+
+
+## adb0c5c 정확한 SHA 원격 CI와 a12223c 전체 게이트 (2026-10-23)
+
+12:15:18 UTC에 SHA `adb0c5c06422a23d9269e02013b819e6b251ef11`의
+[원격 run 39947616773](https://github.com/E1der0wL/ish-llm/actions/runs/39947616773)을 다시 조회했다.
+contracts (llm)과 contracts (hub) 모두 success다. 실제 전체 결과는 LLM 2426/2426/pass 2426,
+Hub 586/586/pass 586이며 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다.
+원격 Python 3.12.14/GCC와 로컬 Clang 환경은 구별하며 동일 환경이라고 표현하지 않는다.
+
+고정 SHA `a12223ca09f1247cfab92c8ccf34c2e708b5f1c4`의 group13도 전체 통과했다.
+
+- `whole-owners-group13-l3` llm: 발견/시작/pass 2439/2439/2439, exit 0, 1401.479575초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group13-l3/llm.json`. source `21109abe4aa226236f1a00c3c86b273a60ac05e5007e3065bb4f712d056de94f`, input `0a226e874f10593b11c32dfa1979f44d2eb8e3826a9cf3401aff00ef6a89a9cd`.
+
+- `whole-owners-group13-l3` hub: 발견/시작/pass 586/586/586, exit 0, 1112.868935초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group13-l3/hub.json`. source `21109abe4aa226236f1a00c3c86b273a60ac05e5007e3065bb4f712d056de94f`, input `0a226e874f10593b11c32dfa1979f44d2eb8e3826a9cf3401aff00ef6a89a9cd`.
+
+모든 비성공·누락·중복은 0이고 전후 manifest가 같다. group13-auxiliary의 정적·문서·R3·SDK·
+양 suite 환경도 각각 exit 0이다. 뒤이은 등록부 조사에서 기존 shell+Git 결함을 새 실제 시험으로
+재현했으므로 이 SHA를 추가 Push하지 않고 수정과 저장/등록 소단계를 다음 현재 통합 gate14에
+묶는다. group13 결과는 해당 고정 소스의 기존 발견 목록에 대한 결과이며 새 실패를 덮지 않는다.
+
+## 테스트 공간 입력·실행 설정·등록·환경 지문 (2026-10-23)
+
+[내장 Tool 계약](builtin-observations.md)에 따라 Workspace 입력/Schema와 실행 설정·binding·
+결과를 Owner 타입으로 연결했다. TestWorkspaces의 내부 dict 해석을 제거하고 공개 결과는 기존
+JSON 모양으로 직렬화한다. WorkspaceSettings의 선언을 실행과 승인 지문이 공유하며 생략된 env와
+명시 {}를 구분한다. 공개 지문 조회는 분리된 사본이고 기존 저장/승인 원본을 수정하지 않는다.
+
+BuiltinTools는 각 Owner의 이름·설명·Schema·typed 입력을 사용한다. Component는 Toolkit의
+binding revision API를 호출한다. Git/prompt/check와 opaque Host 어댑터 선언은 catalog_values가
+소유하며 어댑터 payload는 그대로 전달한다. Hub의 공간 이름 분기는 같은 Owner 선언을 참조한다.
+이 참조를 원래 상수로 확장하면 변경한 Hub builtin/advice/paths 전체 AST가 원본과 동일하다.
+
+ProcessCommand는 격리 명령의 기존 절대 경로/argv/NUL 판별을 공유한다. Hub 피드백과 실행기가
+각자 이를 호출하며 피드백은 권한이 아니다. 16개 이전/현재 입력 판별 사례가 같고 실행기 생성자의
+명령 predicate 외 AST, execute 이외 다른 메서드 AST는 동일하다. ProcessResult가 UTF-8 replacement와
+일반 명령 결과를 소유하며 JSON Tool 반환은 변경하지 않는다. 공개 override·namespace·spawn/
+취소·자식 회수·잠금 순서는 유지한다.
+
+실제 결함: 기존 등록부의 Git prefix 재할당이 shell closure에 영향을 주어 `/bin/sh -c`로 선택한
+`printf configured-shell`이 Git 하위 명령으로 실행됐다. 새 재현 시험은 1개/failure 1/exit 1
+(0.041초)이었고 `catalog-shell-before.log`에 보존했다. GitCommands와 shell prefix를 분리한 동일
+시험은 1개/pass/exit 0이다. 이 수정은 이미 선택한 Host 명령 보존 계약에 따른 것으로 새로운
+승인/재시도 정책이 아니다. 기존 Hub workaround나 독립 출력 Assertion으로 실패를 숨기지 않았다.
+
+중간 실행 설정 smoke 44개(25.168초), 등록 smoke 52개(21.807초), 독립 wire/생략/지문 사본/
+피드백/실제 효과를 포함한 최종 smoke 81개(30.530초)는 각각 pass/exit 0이다. 명령과 전체 로그는
+builtin-workspace-draft의 runtime-smoke.log/catalog-smoke.log/catalog-final-smoke.log에 보존한다.
+여섯 Host 구성의 전체 정의·계약·binding은 f43467e와 같았다. 기존 시험 변경은 내부
+runtime.env/binding.test_workspaces.allow_network 접근뿐이며 이를 원래 형태로 정규화하면
+전체 시험 AST가 동일하다. 환경 변경 후 재개 거절과 실제 효과 Assertion은 유지한다.
+
+- `whole-builtin-catalog-01` llm: 발견/시작/pass 150/150/150, exit 0, 58.983908초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-builtin-catalog-01/llm.json --modules tests.llm.test_builtin_catalog_values tests.llm.test_builtin_tools tests.llm.test_test_workspaces tests.llm.test_workspace_records tests.llm.test_isolated_tools tests.llm.test_execution_contexts tests.llm.test_tool_registration_bindings tests.llm.test_tool_selection_records tests.llm.test_process_group_cleanup tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `3bf5f9c23142beefa55cf26e222bd2a9228058ed00cd48c8242b5a3370df579b`, input `059baeb9d6057dc96f1223e727a800dc2239adc182f80dccf2ef632ca363ab32`.
+
+- `whole-builtin-catalog-hub-01` hub: 발견/시작/pass 35/35/35, exit 0, 112.378723초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-builtin-catalog-hub-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_tool_advice tests.hub.test_shell_environment tests.hub.test_tool_history tests.hub.test_interaction_updates`. source `3bf5f9c23142beefa55cf26e222bd2a9228058ed00cd48c8242b5a3370df579b`, input `059baeb9d6057dc96f1223e727a800dc2239adc182f80dccf2ef632ca363ab32`.
+
+최종 두 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이며 전후 manifest가 같다.
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11을 유지했고 실제 파일/명령/격리·승인·예산·
+효과·Checkpoint·RAG·삭제와 Hub 환경/재개/이력/피드백을 포함했다. 서로 다른 실행을 합산하지 않는다.
+
+새 정적 S3 1건은 UI 응답 타입의 status 선언이며 실제 wire와 zero-effect 시험으로 분류했다.
+기존 정적 의존 1건은 Owner 이름 참조만 바뀐 AST 증거로 갱신했다. 정적 145건·문서·R3 mutation·
+SDK·양 suite 환경 각각 exit 0, 감사 자체 16개 pass/exit 0이다. 전체 구현·소비 경로를 확인한
+8개 파일만 전수 판정했고 현재 477개, 미검토 386개,
+미분류 28799개, incomplete 2개로 전체 완료는 계속 차단된다.
+
+이 결과는 Level 2다. 저장 f43467e와 등록/명령 변경을 묶은 현재 통합 Level 3 gate14를 수행하고
+통과한 정확한 SHA만 Push/원격 CI로 확인한다. 공유 격리 실행기의 나머지 선언과 Hub/다른 도메인의
+미전환 경로를 계속 진행한다. 기존 전체 대상과 최종 완료 조건은 축소하지 않는다.

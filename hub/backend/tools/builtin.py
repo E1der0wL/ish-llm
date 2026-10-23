@@ -1,5 +1,7 @@
 """Host lifecycle and Project selection for llm's built-in Tool collection."""
 
+from llm.components.tools.builtin.workspace_values import WorkspaceExecuteArguments
+
 from llm.components.processing import COMPLETION_PROCESSORS
 
 from copy import deepcopy
@@ -50,7 +52,7 @@ class HubBuiltinTools(BuiltinToolComponent):
                 **{key: value for key, value in args.items() if key != "command"}})
         handlers = {"shell_execute": shell_execute}
         if environment is not None:
-            execution_tools = ("process_start", "shell_execute", "test_workspace_execute") if spaces else (
+            execution_tools = ("process_start", "shell_execute", WorkspaceExecuteArguments.NAME) if spaces else (
                 "process_start", "shell_execute")
             if any("env" not in toolkit.registry.get(name).parameters.get("properties", {})
                    for name in execution_tools):
@@ -113,7 +115,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         # 선택된 Tool은 Run 시작 전에 검증된다. 사용할 수 없는 선택적 sandbox가
         # 일반 대화까지 막지 않도록 최초 preset에서만 설치 여부를 반영한다.
         return [name for name in self.toolkit.registry.names()
-                if name != "test_workspace_execute" or shutil.which("bwrap") is not None]
+                if name != WorkspaceExecuteArguments.NAME or shutil.which("bwrap") is not None]
 
     def resolve(self, project, capability):
         if capability == COMPLETION_PROCESSORS:

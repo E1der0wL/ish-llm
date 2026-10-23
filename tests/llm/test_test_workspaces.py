@@ -175,7 +175,7 @@ print(json.dumps({{'secret':pathlib.Path({str(secret)!r}).exists(),
             result = await self.invoke("test_workspace_execute", workspace_id=identifier,
                 argv=["/bin/sh", "-c", 'printf "%s\\n" "$VALUE"; pwd'], env={"VALUE": "explicit"})
             self.assertEqual(result["stdout"], "explicit\n" + str(self.files(identifier)) + "\n")
-            self.assertEqual(spaces._runtime["env"], {"ISH_CONFIGURED": "host"})
+            self.assertEqual(spaces._runtime.env, {"ISH_CONFIGURED": "host"})
 
     async def test_invalid_environment_is_rejected_before_sandbox_spawn(self):
         with self.owner():
@@ -197,7 +197,7 @@ print(json.dumps({{'secret':pathlib.Path({str(secret)!r}).exists(),
                 "argv": self.python("import os,time; time.sleep(.05); print(os.environ['ISH_ENV_VALUE'])"),
                 "env": {"ISH_ENV_VALUE": value}}) for identifier, value in zip(identifiers, ("first", "second"))))
         self.assertEqual([item["stdout"] for item in results], ["first\n", "second\n"])
-        self.assertEqual(spaces._runtime["env"], {"ISH_ENV_VALUE": "baseline"})
+        self.assertEqual(spaces._runtime.env, {"ISH_ENV_VALUE": "baseline"})
         self.assertEqual(dict(os.environ), before)
 
     async def test_unsafe_mounts_and_nonboolean_network_are_rejected(self):
@@ -424,11 +424,11 @@ asyncio.run(main())
         self.assertEqual(await paused.ainteraction_responses(), [])
         request, = await paused.ainteractions()
         await paused.arespond(request.respond("approve"))
-        original = component.toolkit._execution_binding["test_workspaces"]["allow_network"]
-        component.toolkit._execution_binding["test_workspaces"]["allow_network"] = True
+        original = component.toolkit._execution_binding.test_workspaces.allow_network
+        component.toolkit._execution_binding.test_workspaces.allow_network = True
         with self.assertRaisesRegex(ValueError, "changed"):
             await session.run.resume(paused.id, agent_id="graph")
-        component.toolkit._execution_binding["test_workspaces"]["allow_network"] = original
+        component.toolkit._execution_binding.test_workspaces.allow_network = original
         resumed = (await (await session.run.resume(paused.id, agent_id="graph")).wait())[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
 

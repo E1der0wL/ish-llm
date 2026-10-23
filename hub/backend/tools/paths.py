@@ -1,5 +1,7 @@
 """Accept model-supplied absolute paths only inside the captured working root."""
 
+from llm.components.tools.builtin.workspace_values import WorkspaceCreateArguments
+
 from dataclasses import replace
 from pathlib import Path
 
@@ -29,7 +31,7 @@ def bind_paths(toolkit):
                 for key in keys:
                     if key in args:
                         args[key] = relative_path(root, args[key])
-                if tool.name == "test_workspace_create" and isinstance(args.get("source_paths"), list):
+                if tool.name == WorkspaceCreateArguments.NAME and isinstance(args.get("source_paths"), list):
                     args["source_paths"] = [relative_path(root, value) for value in args["source_paths"]]
             return await tool.handler(args)
         return invoke
@@ -37,7 +39,7 @@ def bind_paths(toolkit):
     tools = []
     for name in toolkit.registry.names():
         tool = toolkit.registry.get(name)
-        if name.startswith("file_") or name in ("process_start", "shell_execute", "test_workspace_create"):
+        if name.startswith("file_") or name in ("process_start", "shell_execute", WorkspaceCreateArguments.NAME):
             contract = tool.contract
             tool = replace(tool, handler=handler(tool), contract=replace(contract,
                 revision="hub-relative-paths-v1:" + contract.revision))

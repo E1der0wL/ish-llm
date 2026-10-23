@@ -8,6 +8,7 @@
 | --- | --- |
 | [__init__.py](__init__.py) | BuiltinTools와 BuiltinToolComponent 공개 import입니다. |
 | [catalog.py](catalog.py) | Tool schema와 구현을 조립하고 명시적으로 주입한 서비스 어댑터를 연결합니다. |
+| [catalog_values.py](catalog_values.py) | Git·prompt·Host 어댑터 선언과 실행 환경/계약 지문 투영을 소유합니다. |
 | [component.py](component.py) | 호스트 Toolkit을 Project의 명시적 enabled 선택에 연결합니다. |
 | [files.py](files.py) | 지정한 root 범위의 파일 조회·읽기·작성·수정·삭제를 구현합니다. |
 | [file_values.py](file_values.py) | 파일 Tool의 공통·작업별 입력 Schema, 조회·변경 결과와 휴지통 ID 계약을 선언합니다. |
@@ -19,6 +20,7 @@
 | [workspaces.py](workspaces.py) | Project Tool 호출·취소 수명과 테스트 공간의 sandbox 실행 라우팅을 담당합니다. |
 | [workspace_repository.py](workspace_repository.py) | 테스트 공간의 경로·복사·잠금·게시·조회·명시적 삭제를 소유합니다. |
 | [workspace_records.py](workspace_records.py) | 소유권 기록·완료 상태와 불완전 공간의 관측을 구분하고 저장 읽기를 검증합니다. |
+| [workspace_values.py](workspace_values.py) | 테스트 공간 Tool 입력·Schema·Host 실행 설정·환경 지문·실행 결과를 선언합니다. |
 
 ## 연결 방법
 

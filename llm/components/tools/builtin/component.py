@@ -6,7 +6,6 @@ from llm.components.base import Component, validate_name
 from llm.core.parameters import ParameterLayout
 from llm.components.tools import Tool, ToolRegistry
 from llm.components.tools.selection import ToolSelection
-from llm.services.infrastructure.storage import revision_token
 
 
 class BuiltinToolComponent(Component):
@@ -26,14 +25,13 @@ class BuiltinToolComponent(Component):
         if capability != ToolRegistry.CAPABILITY:
             return super().resolve(project, capability)
         if self.toolkit.closed:
-            raise RuntimeError("BuiltinTools is closed")
+            raise RuntimeError(self.toolkit.CLOSED)
         selected = self.toolkit.registry.select(tuple(ToolSelection.read(self._options(project), scope=self.name).names))
         def bound_contract(tool):
             contract = tool.contract
             # Tool 고유 불변식과 호스트 작업 환경을 모두 기존 revision에 묶는다.
             # 명시 contract가 있어도 작업 루트/명령 변경으로 옛 승인을 재사용할 수 없다.
-            return replace(contract, revision=revision_token({
-                "environment": self.toolkit._execution_binding, "contract": contract.to_dict()}))
+            return replace(contract, revision=self.toolkit.binding_revision(contract))
         return ToolRegistry(tuple(Tool(tool.name, tool.description, tool.parameters, tool.handler,
                                        definition=tool.definition, contract=bound_contract(tool),
                                        classification=tool.classification)

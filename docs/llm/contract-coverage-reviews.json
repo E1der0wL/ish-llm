@@ -6481,7 +6481,7 @@
   {
     "path": "llm/components/tools/builtin/arguments.py",
     "sha256": "452bd0ccebdd2d713263b1af581c79cae11abc7f2edbbbdb0ab29a71c88286da",
-    "reason": "Entire declared-field projection and Schema derivation reviewed. Required fields remain required, explicit null is retained, defaults are only local dataclass values, original input is untouched. Other boundary fields are not interpreted; ToolRegistry remains the admission validator. File inputs also consume the unchanged Reader/Schema projection: required paths, shared limits/traversal filters, optional range presence, original requests and Schema copies are covered. Process requests also consume the unchanged field projection; explicit env/limit overrides and omission are verified without changing admission validation.",
+    "reason": "Entire declared-field projection and Schema derivation reviewed. Required fields remain required, explicit null is retained, defaults are only local dataclass values, original input is untouched. Other boundary fields are not interpreted; ToolRegistry remains the admission validator. File inputs also consume the unchanged Reader/Schema projection: required paths, shared limits/traversal filters, optional range presence, original requests and Schema copies are covered. Process requests also consume the unchanged field projection; explicit env/limit overrides and omission are verified without changing admission validation. Workspace/Git/prompt fields consume the same unchanged projection and Schema derivation; opaque Host adapters retain their own declared schemas without internal interpretation.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -6498,13 +6498,16 @@
         "consumers": [
           "llm/components/tools/builtin/diagnostic_values.py",
           "llm/components/tools/builtin/file_values.py",
-          "llm/components/tools/builtin/process_values.py"
+          "llm/components/tools/builtin/process_values.py",
+          "llm/components/tools/builtin/workspace_values.py",
+          "llm/components/tools/builtin/catalog_values.py"
         ],
         "tests": [
           "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_builtin_tools.py",
           "tests/llm/test_builtin_file_values.py",
-          "tests/llm/test_builtin_process_values.py"
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_builtin_catalog_values.py"
         ],
         "complete": true
       }
@@ -10043,6 +10046,1839 @@
           "tests/llm/test_workspace_records.py",
           "tests/llm/test_test_workspaces.py",
           "tests/llm/test_builtin_file_values.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/catalog.py",
+    "sha256": "38bc40d06013023ae9e162bf54d3668e7a3caee76e2b2069ff9645183cfcfe89",
+    "reason": "Reviewed the entire registration/lifecycle/prompt flow and all declared input owners. No fixed input dictionary is interpreted here. Schemas/descriptions/names derive from Owners; opaque adapter arguments are forwarded unchanged. Existing contracts, feature opt-in, closed checks and method dispatch remain. Six complete old/new catalogs and bindings agree. GitCommands no longer reassigns the captured shell prefix: the actual failing shell+Git test now passes without weakening its output assertion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "52094856da45ea2913f94cdd90aa9d4ac7ff7a2f8352901926f4be46b16987f6",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "736a4113ec159d0dcbce1fb9394e8f4d2bde4160bda4195b183c7550f741346d",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "035a31fac2bdc59d3372ba09afaf976dc9f8e31658c425db6ca398b95c41633c",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "fd1983559281ad7eee1dea11fb457d5d8a7d73834f25c32bb3f13e4e2a56e569",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "e75ea82fcb4602732d863d46a4d47081d617918dc060ec506f4dda2010d15e9a",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "194fece34c569ef99fefa4f8bd8049f92c84c1eb81035ce56c0ab477dfb95296",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "edda21843b448d9e174a0ddd2ddb56d7c82d0754c1c8bf3d0ed59d5057c65704",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "2cd2cdb1db77c5c67d659f11f2453c9fd307b8af252d94f93c94cc5cd87e3b5b",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "62660ba204e1d5beb1ed524cab35662385cdd585277a3fe0ecc7ea0bf0e85ef8",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "0edc537e361377619cfc950cf0b0339bff4994d64bd0115ab371ddcc4aa9238a",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "e0753b0742bfe275205eb18560006ac67c0c5115dedd7c779d747132d14f9539",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "d64e00324fa33981d998aac97b29eee3301611091457b74f5f5cb691945272c0",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "09fef46f9dfc2880cece1bb57d2cf09d1127e8936509d6624684227fd0ef2cd1",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "477725d705dc38ed8ee351bb10a76cb9e237c528b1c845e3ebe18078a75c76ed",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "2bd1409f1ba40dd3f5a8b7a1a9f812cb59131ba3a9d895e8e96d114cfd59fd5d",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "0f8b49736c6028e8085507bfa700f25cb1cdf10ed1b5f7c99dfc4e7bc7d5b9c7",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "60d14a614a7c8b46757ef28dd31c53f70fff59b72a718c23a64e0bdc0cb4a40e",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f666ced7907944837ba36732b2f9670662f526d03ed878a598fa73e46ddcc816",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "3cef4658b718b75cb53862045995eb088b46482b781405c18aabb64155437670",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "80057b0748fc4854c03ccb46b68c5a9989d5ec974b971e164d6116ec0edbb915",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f9d492315eb37441bb190418d352a9d08a3d3edc2cbdc8bc081406b37202bbc5",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "902273a5dabf5f0537da610a3c7c8c6a5fbd14dd603ee21a48439359133cbd6f",
+        "classification": "declaration",
+        "owner": "BuiltinTools",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f4c29cfbef0202a2544bf6b8e1912c1087b7485a68066f2feeda416a88ec64a3",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "45654662a852dc813778bee7a2df1f6bc52022b313cab227eb292e1e9536abcd",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "5f26ca14462279e79e9ff2fe8abaae10890e52d3f9d8666d783042b59855fe3d",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "62c4b31148f5c3e0d6a439c2fe4f52500f8868e0a888bfc6708d5d3051d35b1a",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "06f4ea4e7448fc670caf8aee09c230f999236c76a9e5a83dabfd83b433ce69f5",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "58adf46d794a6aa1d12e9d704eb0158e8ad209ac47a11fea7895a2ccfad8e9e3",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "0efc2e8773b8eb419fbab36272b00718891b91164856185784092c9e04bea40e",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "0aed5e1936d9b78b5a1bf215d8b9a34ce89c2ce8f085a9b18b47a3e2afbf0cbf",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "1b47c3e17ffcdf0e12113e71e0493022840f0119d67c19b5a999869f509be004",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "f5549f2905a6f74966c15cfe5400e1cf765d3e1974a14804117d5e7a3d0c7b24",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "12987074a3cf39809df887e6c3a513c3c128d1296548bbc2b963ed219a827311",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "e05b5eb10e702f748ec664bd4877e3a42f8781893bb5814bed2ccbb4f8392088",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "45aba12957fa0bb70979dc4c43c77fbc71145172b77d96ac90c0aa387fe1f52e",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "0788e5f2dbb34625eb763171a2a468e238e4b7a3b9cbec13110c6b905d461861",
+        "classification": "non_contract",
+        "owner": "BuiltinTools",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "BuiltinTools",
+        "declaration": "llm/components/tools/builtin/catalog.py",
+        "consumers": [
+          "llm/components/tools/builtin/component.py",
+          "hub/backend/tools/builtin.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/catalog_values.py",
+    "sha256": "3f8d2b8bfa11d6905842871158ed398837a532e0632ed2d350ae62bcecd8b6d9",
+    "reason": "Reviewed all Git/prompt/check declarations, opaque Host schema definitions/effect classifications and environment/contract fingerprint projections. Optional test-space binding is omitted while shell/check original shapes remain. Contract revision uses the exact previous environment/contract wire. Adapter payload semantics remain Host owned; no unknown option is parsed or defaulted.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "90167e68fa3d195bb1d1b39d21bc156aa83ae8f4f955b136dbdf90ad63487394",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "b228ce68c4207b89a5b2413584769d7d89ee0e4850de43397151d8e90abe7bac",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "12ad5ba363f578f4fff8580af48fc000a3d5d138d0dbab1b5d83d4ca72df5328",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "e984983c0adcedc5651bb459995e4f264a219a72f1bc7084991814ef74dd922f",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "40b5e9c786fb870d2c02ad0d5c4c6cf67b6582776a89c098f998098a921ccee7",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "6f166da923c088949b1651590969b2463e712b179a930e866ff12835e8e6f61c",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "86a0ab27b9e53ef3129c52fa88aa8337c4b237b7bf98589c27b82290ca1aa7ce",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "61cdd2df7554aee9fe1ac9e57e012a2a51d3482a6101458e15f921c76097b240",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "9fe8d0f065cb4e69bc3fcf8010e697a924b247cb3e21664564502ca3a449712f",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8cf0b622211a9c516890047006baaaa5a7a1dd5543efb9db36178048eafc11d5",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "4add1916262046811470d33b8242f64e108882a70f8684ad47608894777c66c6",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "a642b2a94fbe410c3828f5c0862b231cfb1deabb9f56204f239f0cada752714f",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "42552c7d334917c5a69ec4ae2bf8e10cf150a9f755484a95608285872bf0555a",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "21834f0cc079cd5dc5b19594e930d28b24c1f19a134eefbed0677ed6f4e8fb59",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "61a470f2641c6b67fd8719efc83e657087a1666094d4573ef6f95671347b5278",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "c82ba934e985327663d31178d0caeaf823eefa0ce4f03277caa5a25c61cdd1d6",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "1ff957bfa2e707f08781efc70310ca62819f434b4f2d94b57b3c570c2b21d7b5",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "5fc2b71983fa1843e0e4037d28242148d22be564ac0a3e82f812858021aac8e9",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "ffa6a0f5a0408192eb252b3667ddcb40b70e3c275a461834072a7814df11d2fd",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "fbf35c911bc704a1fdd63400c2ef228dbe29d3ecadf1496964cbf3cf334c1d3f",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "77b5feecd165052bb866c1a4049b5bf5125e224e153882b3e3981f0c20b70483",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "be9369db364c6397f8d4b5c83cda2e53990f25c5c0529c9cf7e3e2b3cca0badf",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "b6fc42b1954d04844388087c9e4bb7dc7c737adbee76c9590a6b3c1f7183a0be",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "15fca5161a7094777ef1ae2bb896d686e11b7588ab828bfdaa75c28d3eec3c40",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "4aff7f6c476f3fa457bceb46907a6ca8b1b14a31cfdb6019bf5c4b2c1a1155a6",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "2183b81a6172f7be86385b31c96b566a16d4da98bbee8d05a577c893e3c59e98",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "b24ad4f71f83c2ff1b396ab4f1a465ca24acf525072cdcdd5cdeee1af6bb9ed1",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "7db2d0208e712d81388786929a78964cfed68823772616ba1bcded0ac27f4c28",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "7159a7a99ab24a1da84b56bd9a68418e29e186d4d2ef9607256d8d0535d66210",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "9fa16423d676a9ed21842bb4d568cf05a2d021f5cd4a9229103c1a2ede1bd4c9",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "2d9258729345f50d710df880289e28360885767d36db09966d77acbeb98ed42b",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "e9e07a85acdb85f3bb38b3e55c528ce9c7157115fc5227fa745de426e198b25e",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "c550532d76c86b4a8552e2e47817071f089077cd310b3de9145fc2b3bd957eed",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "3c49e7457400842b88631258d6bca3b5465a500507bee40c7b1d5bcddc72ad1b",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "7066097bce0c712aee12f3eea6ef283b64c73e591ce1bf0cd1bf1c812e179a1b",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "3269b6945aed81dcc19fd2cffd7363788619eb40ee5aed5a79224c8e2c96fe10",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "da4d15772b4052f1348fc12a05b5ae4cc6aa4a9996594cc23a767b31f7201755",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "205b772a57c8c40b6dcd661cc7b048c26291a1969bd95f96d19f551714927a51",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "1d09160f84b7bc893186b9d7955c7500ab74ac31d10a581eafeaf1a260cdbe21",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "5211ff692af2e4aee4488db3243a2bcf484b5facf06c838d8b0347cd3ef69348",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "bd254c17c22cba147b4d0187f4351ef31d6a2f97febacff932f4ef7bc281f62d",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "20f8aa09fa8ffe6b4ec40221655f8c60e89efe87976c4612c24b89315016b089",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "4f70a4256f84e78c068ba948d979adf21f715ab2675ed04431ce907eb103ac18",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "69ce9b01a6c4fd76d826d6db00dcd22b4182d2b8e10eaa5d072104cafcba77d9",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "5d01435ac9cbbb11b19b15b8ecdb6a686c88166b7420a187dde765ef67828461",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "7fa2551aab45d860990df678d28ebf90127f3e6739df3a38fa74f697b6132134",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "1cd5313eab8287ad15fea0366be430d3f4f796cec88eca1b3b9532c22b17708e",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "23f7df2fb12623d57c18d8843418bfdcb332d8c49f2dcb68a55226a8e4be482f",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f9b059d822245345c023a8f960cf88a7f0d0bb020f7edb3c30601de2d1438847",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "22ee88dcbb83950ce0e90ac970c606037cfa2814ae561f5f0704879ab1ea788f",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "b8778be1be5afea025c5557d68e1c8a91fac6e84400e785a42e795f5c2f9c079",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "2367f6dc7d5c25acf82155931c956b6e7c3e3c6888f2c91bce7ecd3f685eb057",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "67c447be1239deb3c01f9378d3e0fd2ce9ec6696eec10107501b7466e0545806",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8fce93971604268a95651c7354259e5b85b0391fddeda3c0e12c8a960442d542",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "d3ae9263d8d757da19f13e0f9cf716f9b9304e2724550ae65961b489455045e6",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "299510dd083f30187c1712ff228907f32054cfffbb5afa214cb4e4752856de8d",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "15a16e867f594a7fd326b4b04317bdc124bab2061dba89c627ea5a2d01294d25",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "46503b40c807c2a5b6440f5cb71243f24c84faf3b7d5cb9bdd0e9ecb030284e6",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "bdf3780d79320591149fb68a05ffe684f4814de69914d367b95a1fda3a376da1",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "4768406b6657537c90f835f4f31046ae0c47fa2d2f4759cc40afefd73f48bc60",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "ba9ae9152870265371a994a2c2ae21190ebca0582c87afcef91eeab7d5feb712",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "81bd434f92500fd1f9e1ed7815b9df1607074d306342f5876c920918a3c80ec1",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "53592a9d9f8e77e2f97715da1f505f25711a9aac87a63b717b0b0b099d0581e4",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "afb22af3fed460e681cb58c126c91ad32398daa9566cb321948a2ffcbe081d25",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "a96a5b670e89fa5391795bbce165e6baddeb94d3e75b1071e8ee766234cb7cc8",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "4539cc3c4e1a4d14372e96fac9825a4c9580ef995363638b58c7039a1e1182f1",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "961715f717356af0ae7c37976743063a70691d69f9cdfc64a6598da5fe9d805c",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "db7341a804f2d3a1f9a859476898efcc52d55e9aa174a821e96ff46b2715b15f",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "a85341a625f0411c8159cfdc0678ea1634b84f3645ce66ab68842aa972d4fdba",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "7cfab864fe3f6d4835c37e63f16d8793c574dd5fcc0194a28cb0e6a0231c8317",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f4407124aae78ebe25b5c65b139dff3459f960f0e4d510be477b3a9fa8aeff0a",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "e4024fb636d71cd4d420d6bd4ab0ba9393df9e91885316b165fa7c31a61513aa",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "33bf351692564fb350c2c794f2a0cd329c19b71c6de59b215509cc650791e263",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "57382236e478782e8c7b450a26b6f1f2c0737de454636e5d04c0bef51f0033fe",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "67a79a218842c12f70ae4c03c0b4a26274db78a90c1e6e699345fb7a9fb00556",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "1e738ca819c82a7b3d0f2a47325e9c5f9bae3ee97e9d8cc4af68d119093e417d",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "e7d294c34e8bc38841b930d0483a6fa43d11a3bc4343b9cb5785baa8620d8144",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f5713fe4a6ce7363c25fe5b587599371a7d0c39bf5d4f1af49769a9be230686e",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "5b95661c8566f375f380d746630a91258c99864fc4a3010c8d7cc797523b3a1c",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "254f7c88c058ff4605b3e15151a5b58657b87e0b6461ed71fd2fa4cfae619dd3",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "042c80f51a5a2c289d0179c3004d5b556a628ce5dd0051d1519893b7a815c354",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "51c4a8510bfe74fa968bfbfad4c7d72716627c17598d5ade90bb3004daa6cc80",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "627515fa67fe8e0cf8cd90a09e0a94c60c3c835a5c6d53a2724e11ae03c3acaa",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8ddcb400b2cdda993b3761daca63320f6d9904dc8f2149785c9f3ba50b6e5854",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "090a34de31c5bbb301024895a5b1117a066852e40def62f49f51bf27e7b524e7",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "1b7cb45a2d9e5c86608ab7c2b9f4337b8dcaa03098a91e304136b495142bc7c1",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "a876552336014fe620c1a512d3bbb9b462faa746c25a53b5ad890bde58f21506",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "d585b70bcf290823237af3c9181dd9c2d26223abab88f94c4562b1d6927a1b11",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "2cd215edf38131cc67cc4b2020f0b7c9d4f5774f1d737482af905501b6e17f33",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "37c71f10fa7e45c9f742c60fa433f409c5a37b57e51fd2893fd1d0efe73bb5d9",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "5e03a84d9c703bbfadae2dbbebf9e9ae28835b230594563bd48054544c53732b",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "74f92aac988daf6d23c8e167899bc707b7689e23e285c7f35c4241b1cbd66985",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "be29b693ab61089c3b423e449af988e6495796776cfb725654e86f46beabee86",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "9d231cc2c99a4ea0db2f1507b7711e26eeabe317c379f1246ddfe3e8dbe734ed",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "2a5656dedbdf423ad687fa503fab2920a17963fb0618707678de7843d0231379",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "96cd5643d3d0b8f7c8f5aa58c0baf820c7d4992152dc156eba1eb7e26da7cc41",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "867413227b3e34c3cca6c858147371b948f957f01f5b4f8f789255de36758613",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "468482c5fce76ffcda3c1c38aa0d41fb9da7669fd5825e9ea7d4b8edbd86bfde",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8368fafcf520bdcbb150c4581560d722ad104236ac0f855a0e923beab3414b2a",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8708d9fbc0adee998d4d87362c737818be5b175b6591609df2b21906967a0208",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "47f560f4222d835100082d3e1ca8a6287a91f4f6308e8fcb20fc46785f926b40",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "3c2f859c19830f33464e5690f89d1920beeb7cbe75e9532f3d62d4dd1a190d68",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "ef2d377386c265752576b7ba427485ed6fc39c9c2a4b215bc9f1d5ea39af1204",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "b564b4a32bb54049232b2f83aaea698e46954cf42b5d8fe45fea4955a9ee7519",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "39495e5d3e767007f44180ee8098fc04081326f641e0a309e87c4e9a7a74fbe4",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "2d673037c6233d45179a58f54f23754aaec703a4cd8ca1cb7dcddd98445abde5",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "67fc13d763a9ca8b448c66dd07a27b06ea15271c132ae7b97471fcb87593586c",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "3f230ad0cb28fbf728bcb0f0384fc7808adfc7350b3f72fa8bc5859024cdc1f7",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "51d5217b23cd1fc1df1df03b32bd00bb46af5678952a531d1ae431fe81c2159f",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "c9ae2e03e321bbb572b0d6671c682e08ca3b77d7838a9f8f6095990e484cb86a",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "0a2ce2a19409a43ace36667d28db8b9f8fd07d11d575b690b197638d5716c870",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "36983ca4031b11d59b104211ae3b8294b186d6134a9ea0ac8975dda5f7b4da31",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "fa2687fa37a08c69404b67be210ff6bb5053419e2b9306a42fc6abf2e68eb7bf",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f942c36b9329e3491c19cb261c83723823cc80ef6a5793432e948a94e50dd138",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "89ea5cc1247cc87b465390bd7d8a486b219e63ad2799f026ff7e43c8082996b9",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "b8f9c03b157ba868188e1bbd9bf8ab65f4e330f0ea9036a72f99fe4f4dede524",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "4f043c07f6574bac5017a308e212fca314c48a6e9b0ffb58924297ac3ce8140e",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8d75ed4fb14045ef0649096fae205b23a7e1e66afd3aebf07336d82f80187fa9",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "190f35858844f4fdab30dc65c491428f66e168a334ba21f095df175a4c1f18d3",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "d2e64bd3688a6b80c4840e557de124f4309bd342868257fe28cd6794e3aa1c8c",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "b389222b7fe9e6a3f567389c419edd3aab5ebc49c2c46e8b8c75c42033d273fe",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "760a6b47885334e52997e15c8c6d619c99b289c30910500a91c67c4ed09a9b64",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "7de2891d254a924ff3af399f847b71abbf33981e05f0ebf3a0f44a9709057155",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "3366d36740e30e9d5b2e81251c580a42792bcce8ba5977c36758c4dd522d01c5",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "a692e2830aae4129a4fb82da82ce203b1633923d90864a02ca38358082b5efa9",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "7f287633add0afe8c05524e9e70f30e9915d44020e94c69463837537c4461a62",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "5b51e2bd5a2d9a4fad2cbf90d137a627b5f550928ce758e8c4370fa5ef443f61",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "60d45e08196281a454a06a619465bb8295eab345d1050161326e653cf26d1fd8",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "db13811e36569b7a66274ea6b3b42952cb4a5f0fd25d4b43fce9da817cede74d",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "01bf65a4c30e09fe357423b25643d57fd9985df8eb3b36c84f5b07c0dddbe5d6",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "449375f2b503767fb7d92b73922e37fcec257badac4899b4fcf3185af7232e29",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "d1670ab48dba04ad3a24f29134d8ee0dfe16d0af2258f833b131dcb0dcbc57b8",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "6a2e60c01e284dff642e0b15a1a3726a8f6061674d31bf083dfb95952fea33f3",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "88969e59ac0367cda782d316345dbda0ce3c6c172570ac0f7c7b9296772999ba",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "20327d7951fd4b1e167b46b9fbac46dcfe240a5954f96ae40d4b1562f2ee8a3b",
+        "classification": "declaration",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "d1f00c70905a85f0126f2a5e9ab423ba1e85f20f8447b1611a7435266473d7f0",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "91baeeea15d3d98d536861d1918662354564f1885aa86789f090bfd1d2a8fbec",
+        "classification": "non_contract",
+        "owner": "Builtin registration and environment Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Builtin registration and environment Owners",
+        "declaration": "llm/components/tools/builtin/catalog_values.py",
+        "consumers": [
+          "llm/components/tools/builtin/catalog.py",
+          "llm/components/tools/builtin/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/component.py",
+    "sha256": "e0ab5e767b3352cf5f95c8162be9e311869f5260e37db45564db5d86e4cede74",
+    "reason": "Reviewed complete Project selection and binding flow. Enabled selection belongs to ToolSelection, and host environment revision now comes from the Toolkit public binding API. It preserves the original contract and full selected definitions/handler identity; the original changed-environment resume rejection still executes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "BuiltinToolComponent",
+        "declaration": "llm/components/tools/builtin/component.py",
+        "consumers": [
+          "hub/backend/tools/builtin.py",
+          "llm/components/tools/registry.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/workspaces.py",
+    "sha256": "8ef642c027ba5c22060a45d029efa9226588cdc29f00223835f3616aa2f15eee",
+    "reason": "Reviewed all Tool entry paths, Host initialization, ownership, active-task lifecycle and fallback dispatch. Inputs are typed selected projections; paths/records/leases delegate to Repository; Host values and execution result use their Owners. Env omission/explicit replacement, trusted handler validation, required sandbox and no fallback remain. Public binding is a detached wire projection; internal binding/runtime use attributes. Actual namespace, lock inheritance, parent death, cleanup, concurrent environments and approval/resume tests cover the boundary.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "80b9dec11edc8afb612a74915095f4b358c268fceafe6a0382dd86bb6604deb8",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "803b3bf9cf576313bd48e6453c71ed09b8cf0d17013b5af78fefa7696fdd5303",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "35841d1b024807b062298787533b8feda8bd564d893b79f9cc7e6abb10a638a0",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "232ba534eb5600cf0952ada1c0e3e6caa4e990fee96ffde796defce8f4c61d94",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "3ac105caec144e157e8fe49cc83e2183e188186d1291f3ce6c9d2710f5f36307",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "c2c8f630c1a23d74b800efd9540d01f24f8f26a6cdc2447deef7690428d424b7",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "7aede1ee9e4a32b534ea5489304cce37fbf179629dddff12d996cab1620a2f1f",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "2c0033847ad73a2b03dfaf95142a41d8cca0cc505e6ebd0563057662b2795e74",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "03e54e7dd41fdb3214e4f41a92df93daf9903f94b6a94ec15489da45b019d72b",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8d586cf9ff5b10b5db0c0c6755a2c0d442fb4a3517ac94f3db4d2a32acf070ce",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "06f725a9e7a57606f1fda0a4403bc312ec5e745df622fe05d8448c6096a74472",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "fca5d8c38a88958bc447c88d5947a95a90a960e952762fc4a8d374343c8bdddf",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "a85f221a904604c566f280c5fa76204e9daa81e19ba559ba62f4eaabbc6d8eed",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "51c6706dac978922ffe16411e53a84b88c4da2ab77bc8e8902f771e0e24faa9f",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "2de97227b3948ff3d562f6913b40b93befd67ee8c4fd17f05907392d2ab6189b",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "2ec232717aa907b62d7a7523ec65d31d2b92d814003366ccb0033a6ea62a36c0",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "0606a6e40493c6b46a822c3af14ca188f88077faf090e08d195cead4e4a150f5",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "528d1443b34cd35c8f9c7f89412a42a910d83af05db213b19985c65d470d187a",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "4d8b5222cf214add083d3c836ce2da6ad2b40aa92faf2f660c11048dd9d532f8",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "70d89b9b3df8df022f08305c0ca012d9968cca16699c79b9f43227d6abd63841",
+        "classification": "declaration",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "4fe3063524587fa85a445d337e3439cade9dfc431be8b54f54632717ec0f244e",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "26bca36ad025bf56aec60c6f9013280eadb9b2005313fa6113d723771ef82ea3",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "eaac9d864b53140f7f58dda3eeb9b52e44d84b12320fde438ac862288c73c44f",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "53744da3f8eec21ac3f6189c6c35b611c140f5743f4c62eade0d84e8c97f6dcf",
+        "classification": "non_contract",
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TestWorkspaces and BuiltinToolRunner",
+        "declaration": "llm/components/tools/builtin/workspaces.py",
+        "consumers": [
+          "llm/components/tools/builtin/catalog.py",
+          "hub/backend/tools/test_workspaces.py",
+          "hub/backend/tools/retry.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/workspace_values.py",
+    "sha256": "84c83abb46fdc42f0aad33eb00a75a5b9c175279dd22ad440db5b001f67a8a31",
+    "reason": "Reviewed every field/Schema, optional workspace selection and required reference, runtime settings and detached approval snapshot. Stored evidence remains solely WorkspaceRecord. Defaults are declared in WorkspaceSettings; explicit env is validated and replaces baseline without mutation. General command results use ProcessResult, and only workspace identity is added. Schema/binding equality and original wire expectations pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0f446bf33e73f9e4466f31fdcbb79567a0fbdfdb290485eed73d477c37369f02",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "e63f386e9c4fec40e249d862d98e8fd527a495f677b7cbb8081c850eb70894aa",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "788332d3edca55616efc6bde683cc91247ab37732ea4ccca95b287a8c6aaaad8",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "5466bfaf57b912d4f80080fe5bd076d407d805340f2520625469ac7d1eff27a4",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "82f7ca0e4f902c5835f7a7ea2702a78fb0c6881985910f34b77acc84a9ad15c8",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "0388430cdbd38fc4c4e92fe0bb1dacb740ca0b36e3206a1faf1b24935e1b6a3a",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8da4ad70a0d74861ea790531240c0caa9941b840f47ac3b892fec0cc82849757",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "14008b795a5eee7877bfdc21fa999ec1b582a9714beaa166c171f20e78ca09ca",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "a40237bed1387aba4ba9d35cbbb18af0cffcbdf69ae02cd40c5fc916c701d110",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "30540999eff15b3f355da3066dbf6245cbac34bbc83c434eb6f9419750541e00",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "ff34ed0dd9dd4a9d617e1de50d5a21bcca2024e6cf925bd3e59ebac502d8217b",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "c41945a4016cc3d09f9515071b0d0f41676a64caedd1b89e6794c2c73eb7b1ea",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "b596e05c8f5263d5c9d3c2c431a21ff145b8bdafd8afb12eab2625e6b91fc932",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "f899cd527d1d7135819452d96da5d869e4839336dd440cbd4fe82db176e2e1ce",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "d97c1183b841c729150534800186a9087b66c6e4811a861bcad1fcff5fe9ac5c",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "ecbb5aaaf8a035d0e42933516dddef5f17fbe325ba2a2f5424491cbb5e56d1d1",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f35341d2a661917bab7d04212fa4511105bec2893cdb85bcddc8bec41dabb6e3",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "d2446e171b45ab273702927ecc9f7262e149df16475421c9457e59c79fb63ac2",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "e24b46d88974a06b6a3e3be63719122d5e014f96cf7c0531d2bb5c8f423c94f9",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "71c0394b380093e708e3877ccb99e7164f9d6bb11daddc03098efd644fc6c22e",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "6977f0c82773ffc7025b0ed76e4534d3dff7f3d3b44eb318691707ebe12d66f5",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "6cbcc19ed6869575642179638c01575d27670936fc7434e31f957c6f935cd01d",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "9c4b8532cf56ea6c5136d0d31e62c20af29c7539cb9156e35948583f191e9697",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "6461acfaa4cb5c386bb4cc3f32b9bbf1a5e61e6d574634ac3e1c898893a5bc2b",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "e1a882e19943b995205430c289b40aa63aef99a5bc5f0283ad0b607eb582ea74",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "4dc9a107a412d3ca9effbf757084587bcafe837868d8655eb9ba26c5a890fb37",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "e22d62c45cfa339a2fb5fc8a582ef899f3291e24cb479c6e7413db1cfb4b6ad1",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "265d5822380044d269c128b413a6e4496883b2fe7aa65088c8588442de028c50",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "10d922eb3e211490cf7dc87569bfdc8e6a17456c02ed0ad311bf1e22183a3715",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "3bde2e46714f3e3e6de4af2c55996edae720b01e65a5610daeed5f550835c265",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "831dc130f22365cb68f1f0df2fd6dc734e1c4c2a5016f854cb3e2a43f995ea58",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "e909c08ee14f90899c318293a0fc6f3e220a051a4ece3ad85cbace417248245f",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "60622b50e840eabab0557b661b9536309b7e4ac727e3023b04599e706c57cac1",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "6a88729807ac729ea0be0a0905f1a0dcd132550211c9e88843e0d7b9b25d3807",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "5073caf7d54da3e8af891414be409260603f04fe8cc30e7c0ce8ea99b4f5eaeb",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "9aefdbf68dae6290e1f7860410327bd4172a055da5a8624d43ffad38ca7602cb",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "aad853c485351a5a281492342a25470ba30b63bbe875e2b7eb28c5cdf0c7e5aa",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "67e5c5e1d2a9c34f9678296bb752d37e9e3dd0a14dc74d2e40a224249441c8d0",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "c2e303553e8a88c70f64be11aeec9a1626bc554b920a19c817b1873c08d4ba31",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "fe5bf7345a5751252150a2f239d76a51b940ac5a1a89edfdb94ba5f3fabed2ab",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "324a658a3574acc24c9b8f3cbb79e591bbd9a0c30ff46dd7bded199d83263e00",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "187a3e8790b9eed81909b8e0b240e34e25ce53bea9ee47e7ee335211b1e44627",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "771649c9bf9c9f6d92fe4945705b263d0fbdd9587f22cda77c476684bf7863bb",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "48de8cfa284b9979187c99012733b056bc90ef0683af8d408d82a2140cadc330",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "3d1e9b5a42d08eed3996aaa6ca4eb9141e5caeb362a24436509cdc979cdd8fde",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "b003a1c29cc919bfc830b5deaa0b3a65674d664e3598d62d896fda0fc195103b",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "7ac349c5c67ada592eb030511ddf67cfc1851275a4c1b87fd08c13907bc894d2",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "5084dc8b4549f4fd1e352d903a7fcc331a26653554f0986fb1922c82e870db1f",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "8af4631613fe6087df488a9f8c731d67db89c69f3a1a03c5f8870aae2f210afb",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f5fb068ab77c1146e7fdb1d8703a412aafd1b5b23ee392882fcb9ac0e0cf1559",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "8b60a760a206e3423fc0d966846fe8b384dfe983bc459ae468af051c250762d6",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "5ec3bb123b25bbfce41a043a5bba7814f083c26360265837e536cb4b4d37914a",
+        "classification": "declaration",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "a1310d9141bbbac6d56cb2f5e1e529277c6d5f454c300ea2773ce4e3772262e0",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "40a09dbf9c08be88ade2c3d020b9182f963b65ff21451d8bbaf48a0a53e16dd1",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "2853ac6716f1d88c104108fa55f3ee4d48b622451caad0da074243c66aaa483e",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "8e3eead8295ae86dee6aadc16d53d4b8ce7727ce7444006fa27a4ece4d3b5172",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "435e8e775dd53aafabe6d3d3afa6e28042f1c690db9581a98039cfd40e35adbb",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "300a6af66425cc4a9e41154b937aa1844527b710061e5f74bbf3c24366a1106d",
+        "classification": "non_contract",
+        "owner": "Workspace input, settings, binding and result Owners",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Workspace input, settings, binding and result Owners",
+        "declaration": "llm/components/tools/builtin/workspace_values.py",
+        "consumers": [
+          "llm/components/tools/builtin/workspaces.py",
+          "llm/components/tools/builtin/catalog.py",
+          "hub/backend/tools/test_workspaces.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/advice.py",
+          "hub/backend/tools/paths.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/process_command.py",
+    "sha256": "23210ec4e843617109f81adf08ff41245ef032478c334c408832564edbbc2835",
+    "reason": "Reviewed full absolute-command predicate and actual constructor/execute/Hub pre-effect consumers. Sixteen prior/current value cases agree; argv[0] is only positional executable access. Named-command registration keeps its original name guard and error. Hub feedback does not grant authority and execution validates independently.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1857764e07a7cec61fb08fd6e4012a73c35e2b234d58001488035b17f19df2c4",
+        "classification": "declaration",
+        "owner": "ProcessCommand",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "824c7b415736a4a5ab5ffeb00ba9f154bfd8c8882ce05cd2b97ffe4cd9880420",
+        "classification": "declaration",
+        "owner": "ProcessCommand",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "0466cc55292e82d2f1480e403d484843b4f167670679e882bce1187259f190ba",
+        "classification": "non_contract",
+        "owner": "ProcessCommand",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "29b0d6b5e814664601d95bd601e76b5d8af6ba06d53173c758c385d60e37fb8d",
+        "classification": "non_contract",
+        "owner": "ProcessCommand",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProcessCommand",
+        "declaration": "llm/services/infrastructure/process_command.py",
+        "consumers": [
+          "llm/services/runtime/processes.py",
+          "llm/components/tools/builtin/workspace_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/process_result.py",
+    "sha256": "df5e57fc7768d2f9c0d9eaccfa07585adb71c4affedd4a43239e63f8f9ec80a8",
+    "reason": "Reviewed complete command-result fields, UTF-8 replacement decoding and serialization. This is general command output; arbitrary JSON Tool results remain separate. Independent negative returncode/invalid-byte expectations and real stdout/stderr/exit tests pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ec03f85e1ad773d5f849aba8ddfcbe4343dd19406e7a740a650e73b9d3096637",
+        "classification": "non_contract",
+        "owner": "ProcessResult",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "370510c21f29aada3e73afde9d0b4145a4bf262b2c2d73ea57df458b8baa4ea7",
+        "classification": "non_contract",
+        "owner": "ProcessResult",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "dd638c6955643fc730a5972c28211dc54da0147c7b63781afdd8330276befa9a",
+        "classification": "declaration",
+        "owner": "ProcessResult",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "f5e44c5eb0c2dc77e8dea8418e4fb3cae05c77001cc8628178763734a6ca07c3",
+        "classification": "declaration",
+        "owner": "ProcessResult",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProcessResult",
+        "declaration": "llm/services/infrastructure/process_result.py",
+        "consumers": [
+          "llm/services/runtime/processes.py",
+          "llm/components/tools/builtin/workspace_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/tools/test_workspaces.py",
+    "sha256": "01dfd213372673a325d25215aeb3b341266bb73d99a5bac047be61db0fb0c2ac",
+    "reason": "Reviewed complete UI pre-effect boundary. Model advice removal precedes shared command validity projection; invalid commands return the exact declared feedback and never invoke Backend execution. Valid commands retain the trusted TestWorkspaces inheritance and public super dispatch. No copied argv validator remains.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6b561b1bc46617ec0758b5800e4af75f6253199ee633378b97a47d6b9eaf90a5",
+        "classification": "non_contract",
+        "owner": "HubTestWorkspaces and InvalidSandboxArguments",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "12ce1ff3e7515f4390fb2c301b7c7fd8d8f1a006a5a61459350248e70fc112c3",
+        "classification": "non_contract",
+        "owner": "HubTestWorkspaces and InvalidSandboxArguments",
+        "reason": "Python dataclass options, optional dependency/observation absence, return annotation, or executable sequence index. Feature defaults, environment meaning, statuses and command flags are separately declared."
+      },
+      {
+        "id": "aaa6710d6f92c5b8cff6fa3a44a1b7587fc000ae7197b698086ac9b2cc27e00e",
+        "classification": "declaration",
+        "owner": "HubTestWorkspaces and InvalidSandboxArguments",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "dd2c6852064f479efcb81cd3b42a919604aebf3f9047ec794a737cae12d7dea6",
+        "classification": "declaration",
+        "owner": "HubTestWorkspaces and InvalidSandboxArguments",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "fd4ddc6ca8c82ce3f12145c5156646d285f42f14cd58071812bcd5702178242a",
+        "classification": "declaration",
+        "owner": "HubTestWorkspaces and InvalidSandboxArguments",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      },
+      {
+        "id": "bd6a38240d5fb62fc5ee6095a6117ac952397b86ca44f38ff87dcd8f7bdb4b73",
+        "classification": "declaration",
+        "owner": "HubTestWorkspaces and InvalidSandboxArguments",
+        "reason": "Owner field/Schema/name/diagnostic/default/state/binding/command declarations precede implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubTestWorkspaces and InvalidSandboxArguments",
+        "declaration": "hub/backend/tools/test_workspaces.py",
+        "consumers": [
+          "hub/backend/tools/builtin.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_tool_retry.py"
         ],
         "complete": true
