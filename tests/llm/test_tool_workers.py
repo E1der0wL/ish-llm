@@ -232,6 +232,21 @@ async def main(limit: int = count):
                     self.assertEqual(raised.exception.effect, 'uncertain')
                     self.assertFalse(raised.exception.retryable)
 
+    async def test_coded_error_is_observed_once_across_real_worker_boundary(self):
+        imports = '''from llm.errors import CodedError
+class ChangingError(CodedError, Exception):
+    def __init__(self):
+        self.reads = 0
+    @property
+    def code(self):
+        self.reads += 1
+        return "observed_" + str(self.reads)
+'''
+        _, tool = await self.resolve(source('raise ChangingError()', imports))
+        with self.assertRaises(process.RemoteToolError) as caught:
+            await tool.handler({})
+        self.assertEqual(caught.exception.code, "observed_1")
+
     async def test_run_interrupt_timeout_and_shutdown_reap_worker(self):
         for action in ('interrupt', 'timeout', 'shutdown'):
             with self.subTest(action=action), tempfile.TemporaryDirectory() as directory:

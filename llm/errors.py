@@ -3,6 +3,18 @@
 from typing import Iterator, Optional
 
 
+class ErrorObservation:
+    UNAVAILABLE = None
+    MAX_CHAIN_LENGTH = 32
+
+    @classmethod
+    def read(cls, reader):
+        try:
+            return reader()
+        except Exception:
+            return cls.UNAVAILABLE
+
+
 class CodedError:
     """안정적인 code를 제공한다고 명시하는 mixin. 임의 SDK의 .code와 구분한다.
 
@@ -12,6 +24,14 @@ class CodedError:
 
     code: str
 
+    @classmethod
+    def read_code(cls, error):
+        if isinstance(error, cls):
+            code = ErrorObservation.read(lambda: error.code)
+            if isinstance(code, str) and code.strip():
+                return str(code)
+        return ErrorObservation.UNAVAILABLE
+
 
 def get_error_attribute(error: BaseException, name: str):
     """Read optional error observations without replacing the original failure.
@@ -19,30 +39,26 @@ def get_error_attribute(error: BaseException, name: str):
     SDK/custom errors may expose computed attributes. A broken observer is
     missing information, not a new execution failure. Cancellation is not caught.
     """
-    try:
-        return getattr(error, name, None)
-    except Exception:
-        return None
+    return ErrorObservation.read(lambda: getattr(error, name))
 
 
 def exception_chain(error: BaseException) -> Iterator[BaseException]:
     """명시적 cause 우선, 없으면 숨기지 않은 context. 순환/과도한 체인은 중단한다."""
     seen = set()
     # 실행 정책이 아닌 오류 관찰의 작업량 상한. 비정상 체인이 종료 처리를 막지 못하게 한다.
-    for _ in range(32):
+    for _ in range(ErrorObservation.MAX_CHAIN_LENGTH):
         if not isinstance(error, BaseException) or id(error) in seen:
             break
         seen.add(id(error))
         yield error
-        error = error.__cause__ if error.__cause__ is not None else (
-            None if error.__suppress_context__ else error.__context__)
+        error = error.__cause__ if error.__cause__ is not ErrorObservation.UNAVAILABLE else (
+            ErrorObservation.UNAVAILABLE if error.__suppress_context__ else error.__context__)
 
 
 def stable_error_code(error: BaseException) -> Optional[str]:
     """명시적으로 분류한 오류만 보존한다. message/status/vendor code를 추측하지 않는다."""
     for current in exception_chain(error):
-        if isinstance(current, CodedError):
-            code = get_error_attribute(current, "code")
-            if isinstance(code, str) and code.strip():
-                return str(code)
-    return None
+        code = CodedError.read_code(current)
+        if code is not ErrorObservation.UNAVAILABLE:
+            return code
+    return ErrorObservation.UNAVAILABLE

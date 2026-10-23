@@ -55,9 +55,6 @@ def error_code(error):
     for error in exception_chain(error):
         if isinstance(error, asyncio.CancelledError):
             return ProviderErrorCode.CANCELLED.value
-        code = getattr(error, "code", None)
-        if isinstance(error, CodedError) and isinstance(code, str) and code.strip():
-            return code
         status = getattr(error, "status_code", None)
         if status in (401, 403):
             return ProviderErrorCode.AUTHENTICATION.value

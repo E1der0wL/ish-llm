@@ -924,3 +924,81 @@ R3 Mutation, Provider SDK, 양 suite 실제 환경 6개 검사는 각각 exit 0�
 Schema 어휘의 남은 소비 경로 두 계약은 여전히 incomplete다. 이 Level 2 커밋은 전수 완료가
 아니며, cb52b83과 현재 통합 SHA를 묶은 Level 3를 다음 고정 checkout에서 실행한다.
 원격 d43c82a CI는 이 기록 시점에 실행 중이며 아직 성공으로 선언하지 않았다.
+
+## 묶음 5 원격 CI 확인
+
+`d43c82a5ee619f7b99d49bf6a4de05533725a4bb`의
+[원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39911703976)를
+2026-10-23 06:59:35 UTC에 실제 확인했다. LLM 2,374/2,374/2,374(1,557.354초),
+Hub 586/586/586(1,235.949초), 모든 failure/error/skip/xfail/xpass/누락/추가/중복 0,
+양 Job과 필수 보조 단계 success다. 증거는
+`whole-ownership/ci/d43c82a5ee619f7b99d49bf6a4de05533725a4bb/status.json`이다.
+원격 GCC 환경은 로컬 Clang 환경과 구분한다. 후속 설정 대상은 `8136897`으로 커밋했고
+고정 checkout `/workspace/ish-llm-group6-validation`에서 별도 Level 3를 실행 중이다.
+그 전체 결과는 아직 완료로 기록하지 않는다.
+
+## 오류 관측의 단일 분류와 소비자 중복 제거
+
+`CodedError.read_code`가 명시적 분류 권한과 유효한 code 판정을 소유하고,
+`ErrorObservation`이 선택적 속성 실패 처리·관측 없음·기존 32개 chain 상한을 선언한다.
+`stable_error_code`의 바깥쪽 우선/cause/context/순환 차단은 유지한다. 일반 관측 예외는
+원래 실패를 대체하지 않고, 취소 등 BaseException은 계속 전파한다.
+
+검토 중 중복 소비의 실제 결함 두 건을 독립 재현했다.
+
+- Provider는 공통 분류 뒤 code getter를 다시 읽어, 권한 없는 SDK 예외의 getter가 실패하면
+  분류 자체가 깨졌다. trusted getter가 첫 관측 뒤 바뀌면 이미 선택한 관측을 다시 해석했다.
+- 실제 Linux Tool worker는 분기 조건과 전송 레코드에서 같은 예외의 code를 두 번 관측해
+  첫 코드 observed_1 대신 observed_2를 전송했다.
+
+`error-observation-draft/repro.log`의 정확한 unittest 대상은
+`tests.llm.test_provider_diagnostics.DiagnosticTests.test_provider_classification_reads_trusted_code_once_and_ignores_vendor_code_getter`
+및 `tests.llm.test_tool_workers.WorkerTests.test_coded_error_is_observed_once_across_real_worker_boundary`다.
+실제 명령은 `.venv-linux312/bin/python -m unittest <위 두 ID>`이며 exit 1, 실행 2개,
+subtest를 포함한 failure event 3개, error/skip 0이었다. 해당 Provider/worker 소비자 소스는
+8136897과 byte-identical임을 `repro-evidence.json`에 기록했고 전체 소스/입력 manifest도
+`repro-source.json`/`repro-input.json`에 보존했다. 기존 오류 Owner를 정리하던 중 재현한
+결과이며 별도 과거 SHA에서 실행한 전체 테스트로 표현하지 않는다.
+
+Provider의 중복 getter/trust 검사를 제거하고 Tool worker는 한 번 선택한 코드를 재사용했다.
+동일 재현 두 개와 기존 FailureContractTests를 포함한 `repro-fixed.log`는 6개 pass, exit 0이다.
+기존 HTTP/timeout/연결 분류, ToolExecutionError 효과·재시도·복구 가능성, 미분류 오류의
+불확실한 효과, 프로세스 취소/정리와 원본 실패 Assertion은 유지했다. 신규 시험은 취소를
+삼키지 않고 untrusted getter를 실행 분류용으로 읽지 않는 것까지 검증한다.
+계약 설명은 [오류 관측](error-observations.md)에 정리했다.
+
+| 실행 | 발견/시작/통과 | Failure / Error / Skip | xfail/xpass·누락/추가/중복 | exit |
+|---|---:|---|---|---:|
+| whole-error-observation-01 | 224/224/224 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-error-observation-hub-01 | 6/6/6 | 0 / 0 / 0 | 모두 0 | 0 |
+
+실제 명령 및 각 실행 전후 동일한 source/input:
+
+- `whole-error-observation-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-error-observation-01/llm.json --modules tests.llm.test_error_boundaries tests.llm.test_execution_boundaries tests.llm.test_backend_contracts tests.llm.test_provider_diagnostics tests.llm.test_provider_runtime tests.llm.test_tool_workers tests.llm.test_model_protocol tests.llm.test_rag_models tests.llm.test_graph_agent_contract tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `8f3e5088c5d0d67ab3e91fe619ec4002887260c7a3b08425a8306caba914a30d`.
+  input `e363fd261cf3ea483c4cfc436875008c88f930579a9689b82e0cb27d6cb0f23c`.
+- `whole-error-observation-hub-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-error-observation-hub-01/hub.json --modules tests.hub.test_tool_history tests.hub.test_page_layout`.
+  source `8f3e5088c5d0d67ab3e91fe619ec4002887260c7a3b08425a8306caba914a30d`.
+  input `e363fd261cf3ea483c4cfc436875008c88f930579a9689b82e0cb27d6cb0f23c`.
+
+LLM 범위는 실제 오류/실행 경계, Provider/SDK, 실제 격리 worker, 모델 사본·RAG client·
+Graph 위임, 승인·예산 삭제·효과·Checkpoint·RAG 저장·수명·실제 트랜잭션과 감사다.
+Hub는 여러 승인과 재시작을 거친 실제 Tool 영수증/trace 및 공통 레이아웃을 검증했다.
+Python·host·namespace/X11·고정 의존성은 앞선 로컬 환경과 동일하다. 수정 전 실패를 제외하거나
+다른 실행의 pass를 합산해 전체 검증으로 표현하지 않는다.
+
+변경된 근거 86건을 재검토했다. `error-observation-auxiliary/results.json`에서
+S1–S7 145건(new/stale/outstanding/error 0), 문서, R3 Mutation, SDK, 양 suite 환경이
+각각 exit 0이었다. 실제 명령은 그 파일에 보존한다. 안전성 기준과 기존 Assertion을 낮추지 않았다.
+
+또한 실제 전체 내용·소비자를 읽은 `errors.py`, `execution/trace.py`, Graph `agent.py`,
+`policies/errors.py`, Provider `parameters.py`, `ui/layout/__init__.py` 6개를 개별 전수 검토했다.
+뒤의 5개는 이미 typed TraceItem/AgentExecution/Diagnostic/copy_model/직접 class export를
+사용하고 있어 제품 변경이 필요 없었다. runtime client 동일성, 동적 ID mapping, inherited
+실행과 Python export를 고정 wire의 중복 해석으로 혼동하지 않았다. 인접 파일은 함께
+승인하지 않았다. 현재 inventory는 452개 파일, 미검토 408개, 미분류 30,669개,
+incomplete 계약 2개이며 전체 완료는 계속 차단된다.
+
+이 소단계는 Level 2 통과다. 오류 관측 수정은 실행 중인 8136897 전체 게이트에 포함되지
+않았으므로 그 결과를 재사용해 최종 완료하지 않는다. 다음 관련 Tool 계약 정리와 묶은
+현재 통합 소스의 Level 3 및 정확한 Push SHA 원격 CI까지 계속 진행한다.

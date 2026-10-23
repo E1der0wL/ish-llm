@@ -3018,5 +3018,166 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/errors.py",
+    "sha256": "0ffe4057722fb502d6a1dcd9e9dcdee87b863c8837779fbf0ca5367bf18d6ffd",
+    "reason": "Read the entire file and dynamic attribute/cause chain paths. One Owner validates explicit classification trust, one observer handles ordinary property failure while propagating cancellation, and one declared bound limits cause/context traversal. Provider and worker reuse the same selected value; generic Diagnostic observations remain distinct from execution authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7c25fd89357666e2e08465c6a67ac6a43bdc79cda1dbe9fea3dc6dc72ae321ea",
+        "classification": "declaration",
+        "owner": "ErrorObservation / CodedError",
+        "reason": "Canonical observation absence/bound or Python package export declared before implementation."
+      },
+      {
+        "id": "76f124cb3577503b5c1351e1b56cc3ad00b24f40852ffe786b7972b3a4c263c9",
+        "classification": "declaration",
+        "owner": "ErrorObservation / CodedError",
+        "reason": "Canonical observation absence/bound or Python package export declared before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ErrorObservation / CodedError",
+        "declaration": "llm/errors.py",
+        "consumers": [
+          "llm/core/contracts.py",
+          "llm/engines/base.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/providers/requests.py",
+          "llm/components/tools/_worker.py",
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_error_boundaries.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_backend_contracts.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_tool_workers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/trace.py",
+    "sha256": "821035546c7b3c129cd71d41110a27967ce471fbc07603f987beb176ab1407ca",
+    "reason": "Read all functions and snapshot/thinking/continuation consumers. Dynamic ID maps only deduplicate typed TraceItem values; original start ordering is preserved and the Tool kind comes from TraceItem. No wire-field parsing, duplicated state transition or fixed literal remains.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Chronological TraceItem projection",
+        "declaration": "hub/backend/execution/trace.py",
+        "consumers": [
+          "hub/backend/observability/snapshot.py",
+          "hub/backend/execution/thinking.py",
+          "hub/backend/execution/continuations.py"
+        ],
+        "tests": [
+          "tests/hub/test_tool_history.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/agent.py",
+    "sha256": "3bbc38364387d6c5fb0476492c3b960e3a0f6ec27f47d43e66bf35fad6bf7520",
+    "reason": "Read the complete subclass and its inherited execution/selection entry points. This wrapper declares no extra data, state, policy or fallback; Graph passes its context to the shared AgentExecution Owner. No local interpretation or literal exists.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "AgentNode delegation to AgentExecution",
+        "declaration": "llm/engines/graph/agent.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/policies/errors.py",
+    "sha256": "c6f712cc3318a5bf6396cb66376dbc2d684c84d40d70c20124d0b5dc965c5c9f",
+    "reason": "Read the entire error class and policy export. It stores the declared CodedError code through an attribute and delegates Diagnostic conversion; it invents no default code, policy decision or JSON fields.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "ExecutionLimitError",
+        "declaration": "llm/policies/errors.py",
+        "consumers": [
+          "llm/policies/__init__.py",
+          "llm/core/contracts.py",
+          "llm/services/runtime/usage.py"
+        ],
+        "tests": [
+          "tests/llm/test_error_boundaries.py",
+          "tests/llm/test_backend_contracts.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/parameters.py",
+    "sha256": "9467a9fa01c4f4508210a9197b78bcc499d62317df4a9549cd215af29d1d3fb9",
+    "reason": "Read the complete recursive merge and RAG client with_config caller. All mapping keys are caller-owned opaque fields, not a fixed internal record. Each copied value delegates to copy_model, preserving runtime client identity and detaching containers. No policy/default inference or literal exists.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Open request parameter merge",
+        "declaration": "llm/providers/parameters.py",
+        "consumers": [
+          "llm/components/rag/_client.py",
+          "llm/core/model_protocol.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_settings_contract.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/layout/__init__.py",
+    "sha256": "c44dd26521db7f9a2006fd061f92fd9278f0675b766410d410f16b08f468474f",
+    "reason": "Read the whole import/export module and both importing UI consumers. The sole string is the Python __all__ export declaration; the implementation is imported directly from its class Owner. No runtime wrapper, data interpretation or dynamic fallback exists.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "558fb4e25e6d041e14dd511e8728e01a95714fb8c3ad86e9785fb0fa59906d6a",
+        "classification": "declaration",
+        "owner": "Public TwoPanelPage export",
+        "reason": "Canonical observation absence/bound or Python package export declared before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Public TwoPanelPage export",
+        "declaration": "hub/ui/layout/__init__.py",
+        "consumers": [
+          "hub/ui/settings/screen.py",
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/hub/test_page_layout.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

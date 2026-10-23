@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 452,
-    "unreviewed_files": 414,
+    "unreviewed_files": 408,
     "stale_files": 0,
-    "unclassified": 30679,
+    "unclassified": 30669,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 416,
+    "unreviewed_dynamic_paths": 410,
     "unreadable_files": 0,
-    "candidates": 31080,
+    "candidates": 31073,
     "issues": 0
   },
   "files": [
@@ -219,7 +219,7 @@
     },
     {
       "path": "hub/backend/execution/trace.py",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "821035546c7b3c129cd71d41110a27967ce471fbc07603f987beb176ab1407ca",
       "candidates": 0
     },
@@ -711,7 +711,7 @@
     },
     {
       "path": "hub/ui/layout/__init__.py",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "c44dd26521db7f9a2006fd061f92fd9278f0675b766410d410f16b08f468474f",
       "candidates": 1
     },
@@ -1780,7 +1780,7 @@
     {
       "path": "llm/components/tools/_worker.py",
       "status": "unreviewed",
-      "sha256": "103d52a6d06108d5f19514ffa253b61bdce9dfe2cf2f801f0cb52a70f7cc0364",
+      "sha256": "7a908292f7e6cdb1cace6d8959d6fd2bcff589fa297c3428757b4a033010e545",
       "candidates": 72
     },
     {
@@ -2199,7 +2199,7 @@
     },
     {
       "path": "llm/engines/graph/agent.py",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "3bbc38364387d6c5fb0476492c3b960e3a0f6ec27f47d43e66bf35fad6bf7520",
       "candidates": 0
     },
@@ -2253,9 +2253,9 @@
     },
     {
       "path": "llm/errors.py",
-      "status": "unreviewed",
-      "sha256": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
-      "candidates": 7
+      "status": "reviewed",
+      "sha256": "0ffe4057722fb502d6a1dcd9e9dcdee87b863c8837779fbf0ca5367bf18d6ffd",
+      "candidates": 2
     },
     {
       "path": "llm/llm.py",
@@ -2283,7 +2283,7 @@
     },
     {
       "path": "llm/policies/errors.py",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "c6f712cc3318a5bf6396cb66376dbc2d684c84d40d70c20124d0b5dc965c5c9f",
       "candidates": 0
     },
@@ -2355,15 +2355,15 @@
     },
     {
       "path": "llm/providers/parameters.py",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "9467a9fa01c4f4508210a9197b78bcc499d62317df4a9549cd215af29d1d3fb9",
       "candidates": 0
     },
     {
       "path": "llm/providers/requests.py",
       "status": "unreviewed",
-      "sha256": "78ab3a551eb2701f8cc7f6abbd7ea68dbec675dc6ab8a6694976d33e9f57f4de",
-      "candidates": 101
+      "sha256": "ade0dc013d0f86d9511536c0a3c6c3c1af70e997443d77154325e16d92d3fd9b",
+      "candidates": 99
     },
     {
       "path": "llm/providers/retry.py",

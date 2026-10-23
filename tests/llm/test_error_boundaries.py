@@ -46,10 +46,37 @@ class FailureContractTests(unittest.TestCase):
                 (UntrustedError(), None), (RuntimeError("unexpected"), None)):
             with self.subTest(error=type(error).__name__):
                 self.assertEqual(stable_error_code(error), expected)
+                self.assertEqual(CodedError.read_code(error), expected)
         for invalid in (None, "", "  ", 429, {}):
             error = ProviderError("initial")
             error.code = invalid
             self.assertIsNone(stable_error_code(error))
+            self.assertIsNone(CodedError.read_code(error))
+
+    def test_observation_does_not_swallow_cancellation_or_read_untrusted_codes(self):
+        from llm.errors import get_error_attribute
+        reads = []
+
+        class CancelledCode(CodedError, Exception):
+            @property
+            def code(self):
+                reads.append("read")
+                raise asyncio.CancelledError()
+
+        error = CancelledCode()
+        with self.assertRaises(asyncio.CancelledError):
+            stable_error_code(error)
+        with self.assertRaises(asyncio.CancelledError):
+            get_error_attribute(error, "code")
+        self.assertEqual(reads, ["read", "read"])
+
+        class UntrustedCode(Exception):
+            @property
+            def code(self):
+                raise AssertionError("Untrusted code must not be read for execution classification")
+
+        self.assertIsNone(CodedError.read_code(UntrustedCode()))
+        self.assertIsNone(stable_error_code(UntrustedCode()))
 
     def test_cause_context_precedence_suppression_cycles_and_bound(self):
         known = ProviderError("provider_timeout")

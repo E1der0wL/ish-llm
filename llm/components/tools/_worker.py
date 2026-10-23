@@ -59,8 +59,8 @@ async def dispatch(request):
         if isinstance(error, ToolExecutionError):
             record = {"kind": "tool_execution", "message": str(error), "code": ToolExecutionError.code,
                       "effect": error.effect, "retryable": error.retryable, "recoverable": error.recoverable}
-        elif stable_error_code(error):
-            record = {"kind": "coded", "code": stable_error_code(error), "message": str(error)}
+        elif (code := stable_error_code(error)):
+            record = {"kind": "coded", "code": code, "message": str(error)}
         elif request["operation"] == "inspect":
             record = {"kind": "inspection", "message": str(error)}
         else:

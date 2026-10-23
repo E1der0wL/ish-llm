@@ -115,6 +115,34 @@ class DiagnosticTests(unittest.IsolatedAsyncioTestCase):
         wrapper.code = "provider_rate_limit"  # arbitrary .code is not the CodedError contract
         self.assertEqual(error_code(wrapper), "provider_failed")
 
+    def test_provider_classification_reads_trusted_code_once_and_ignores_vendor_code_getter(self):
+        from llm.errors import CodedError
+
+        class VendorError(Exception):
+            status_code = 429
+
+            @property
+            def code(self):
+                raise AssertionError("Vendor code is not execution classification evidence")
+
+        class ChangingCode(CodedError, Exception):
+            status_code = 429
+
+            def __init__(self):
+                self.reads = 0
+
+            @property
+            def code(self):
+                self.reads += 1
+                return None if self.reads == 1 else "changed_after_observation"
+
+        for kind in (VendorError, ChangingCode):
+            with self.subTest(kind=kind):
+                error = kind()
+                self.assertEqual(error_code(error), "provider_rate_limit")
+                if isinstance(error, ChangingCode):
+                    self.assertEqual(error.reads, 1)
+
     async def test_real_sdk_error_body_and_request_id_are_preserved_without_full_response(self):
         import httpx
         from openai import BadRequestError
