@@ -1,6 +1,7 @@
 """Project provider and Tool retries into one UI state; never decide execution."""
 
 from llm.core.models import StepKind
+from llm.core.policies import ToolRetryPolicy
 
 from contextlib import aclosing
 from contextvars import ContextVar
@@ -55,10 +56,10 @@ class RetryMonitor:
         """Called after the owning service consumes each Engine event."""
         key = (context.run.id, event.step_id)
         if event.type == EngineEventType.STEP_STARTED and event.kind == StepKind.TOOL:
-            policy = context.run.metadata.get("policies", {}).get("tool_retry", {})
-            if policy.get("max_retries"):
-                delay = policy.get("delay_seconds")
-                self.tools[key] = ToolWatch(event.name, policy["max_retries"] + 1,
+            policy = ToolRetryPolicy.from_run(context.run)
+            if policy.max_retries:
+                delay = policy.delay_seconds
+                self.tools[key] = ToolWatch(event.name, policy.max_retries + 1,
                                             0 if delay is None else delay)
         watch = self.tools.get(key)
         if watch is None:

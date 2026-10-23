@@ -3,6 +3,8 @@
 from llm.core.tool_contracts import ToolContract
 from llm.core.tool_selection_records import ToolBindingRecord, ToolInvocationSelection
 from llm.core.tool_usage_records import ToolUsageError, ToolUsageRecord, ToolUsageCheckpoint
+from llm.core.policies import ToolPolicyValues, ToolRetryPolicy, PolicySection
+from llm.core.tool_policy_binding import ToolExecutionBinding
 from llm.components.tools.bindings import ToolHandlerBindings
 
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
@@ -155,6 +157,7 @@ class ToolExecutionScope:
     USAGE_COUNTERS = ToolUsageRecord.counter_fields()
     USAGE_COLLECTIONS = ToolUsageRecord.collection_fields()
     CHECKPOINT_FIELD = ToolUsageCheckpoint.FIELD
+    INHERITED_LIMITS = (ToolPolicyValues.timeout_seconds.__name__, ToolPolicyValues.max_output_chars.__name__)
 
     def __init__(self, runtime: ToolRuntime, *, policy=None, retry=None, operations=None, parent=None):
         # 외부 dict 편집으로 실행 중 승인/제약의 사본이 바뀌지 않게 한다.
@@ -162,31 +165,32 @@ class ToolExecutionScope:
         from llm.core.policies import normalize_policies
         policy = deepcopy({} if policy is None else policy)
         retry = deepcopy({} if retry is None else retry)
-        normalize_policies({"tools": policy, "tool_retry": retry})
-        constraints = policy.get("argument_constraints", {})
+        normalize_policies({PolicySection.TOOLS: policy, PolicySection.TOOL_RETRY: retry})
+        policy, retry = ToolPolicyValues(**policy), ToolRetryPolicy(**retry)
+        constraints = policy.argument_constraints
         self.argument_constraints = (constraints if parent is None else
                                      narrow_constraints(parent.argument_constraints, constraints))
-        selected = policy.get("allowed_tools")
+        selected = policy.allowed_tools
         self.allowed_tools = tuple(selected) if selected is not None else None
         if parent is not None and parent.allowed_tools is not None:
             if self.allowed_tools is None:
                 self.allowed_tools = parent.allowed_tools
             elif not set(self.allowed_tools).issubset(parent.allowed_tools):
                 raise ValueError("Child Tool selection widens its parent")
-        self.max_calls = policy.get("max_calls")
+        self.max_calls = policy.max_calls
         if parent is not None and parent.max_calls is not None:
             if self.max_calls is not None and self.max_calls > parent.max_calls:
                 raise ValueError("Child Tool budget widens its parent")
             if self.max_calls is None:
                 self.max_calls = parent.max_calls
-        self.timeout_seconds = policy.get("timeout_seconds")
-        self.max_output_chars = policy.get("max_output_chars")
+        self.timeout_seconds = policy.timeout_seconds
+        self.max_output_chars = policy.max_output_chars
         if parent is not None:
-            for key in ("timeout_seconds", "max_output_chars"):
+            for key in self.INHERITED_LIMITS:
                 inherited, chosen = getattr(parent, key), getattr(self, key)
                 if inherited is not None:
                     setattr(self, key, inherited if chosen is None else min(inherited, chosen))
-        self.max_retries, self.retry_delay = retry.get("max_retries"), retry.get("delay_seconds")
+        self.max_retries, self.retry_delay = retry.max_retries, retry.delay_seconds
         self.runtime = runtime
         self.operations = operations
         self.parent = parent
@@ -233,15 +237,16 @@ class ToolExecutionScope:
         root = self
         while root.parent is not None:
             root = root.parent
-        return {"revision": root.runtime.revision, "allowed_tools": list(self.allowed_tools) if self.allowed_tools is not None else None,
-                "max_calls": self.max_calls, "approval": root.runtime.authorize is not None,
-                "timeout_seconds": self.timeout_seconds, "max_output_chars": self.max_output_chars,
-                "classifier": root.runtime.classify is not None,
-                **({"retry_selector": True} if root.runtime.decide_retry is not None else {}),
-                "isolated_runner": root.runtime.runner is not None,
-                "operation_key": root.runtime.operation_key is not None,
-                "retry_safe_tools": list(self.runtime.retry_safe_tools), "max_retries": self.max_retries,
-                "retry_delay": self.retry_delay, "argument_constraints": deepcopy(self.argument_constraints)}
+        return ToolExecutionBinding(revision=root.runtime.revision,
+            policy=ToolPolicyValues(allowed_tools=list(self.allowed_tools) if self.allowed_tools is not None else None,
+                max_calls=self.max_calls, timeout_seconds=self.timeout_seconds, max_output_chars=self.max_output_chars,
+                argument_constraints=self.argument_constraints), approval=root.runtime.authorize is not None,
+            classifier=root.runtime.classify is not None,
+            retry_selector=ToolExecutionBinding.SELECTOR_PRESENT if root.runtime.decide_retry is not None else None,
+            isolated_runner=root.runtime.runner is not None,
+            operation_key=root.runtime.operation_key is not None,
+            retry_safe_tools=list(self.runtime.retry_safe_tools), max_retries=self.max_retries,
+            retry_delay=self.retry_delay).to_dict()
 
     @classmethod
     def validate_usage(cls, records):
@@ -261,9 +266,9 @@ class ToolExecutionScope:
     def child(self, *, allowed_tools, max_calls=None, argument_constraints=None):
         """Agent 한도를 추가하되 부모의 승인, 실행기, 원장과 예산을 유지한다."""
         return ToolExecutionScope(self.runtime,
-            policy={"allowed_tools": list(allowed_tools), "max_calls": max_calls,
-                      "argument_constraints": {} if argument_constraints is None else argument_constraints},
-            retry={"max_retries": self.max_retries, "delay_seconds": self.retry_delay},
+            policy=ToolPolicyValues(allowed_tools=list(allowed_tools), max_calls=max_calls,
+                argument_constraints={} if argument_constraints is None else argument_constraints).to_dict(),
+            retry=ToolRetryPolicy(max_retries=self.max_retries, delay_seconds=self.retry_delay).to_dict(),
             operations=self.operations, parent=self)
 
     def validate(self, tool):
@@ -454,7 +459,7 @@ class ToolExecutor:
             if not same_interaction_value(action.get("contract"), tool.contract.to_dict()):
                 raise ToolInvocationError("Durable Tool approval Tool contract changed")
             if scope is not None and not same_interaction_value(
-                    action.get("policy", {}).get("argument_constraints", {}), scope.argument_constraints):
+                    ToolExecutionBinding.constraints(action.get("policy", {})), scope.argument_constraints):
                 raise ToolInvocationError("Durable Tool approval argument constraints changed")
             if (request_key not in decisions or type(stored_decision) is not bool
                     or type(decision) is not bool or decision != stored_decision

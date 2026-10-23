@@ -9,6 +9,12 @@ from .json_data import JsonObject, JsonPointer
 
 class SchemaKeyword:
     TYPE = "type"
+    CONST = "const"
+    MINIMUM = "minimum"
+    MAXIMUM = "maximum"
+    EXCLUSIVE_MINIMUM = "exclusiveMinimum"
+    MIN_LENGTH = "minLength"
+    MIN_ITEMS = "minItems"
     ENUM = "enum"
     UNIQUE_ITEMS = "uniqueItems"
     DESCRIPTION = "description"
@@ -112,7 +118,7 @@ class SchemaReference:
 
 
 class SchemaNarrowing:
-    MAXIMUM = "maximum"
+    MAXIMUM = SchemaKeyword.MAXIMUM
     NUMERIC = frozenset((SchemaType.INTEGER, SchemaType.NUMBER))
     NULLABLE_NUMERIC = NUMERIC | {SchemaType.NULL}
 

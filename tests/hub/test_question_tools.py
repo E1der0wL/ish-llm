@@ -37,7 +37,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(HubConfig(root,model="test/model",auto_title=False,
                 engine_factories={"loop":lambda:LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}))
             try:
-                with patch("hub.backend.tools.builtin.shutil.which",return_value=None):
+                with patch("llm.services.infrastructure.linux_sandbox.shutil.which",return_value=None):
                     await runtime.start()
                     project = await runtime.project.aget_data()
                     registry = runtime.builtin_tools.resolve(project,"tools")

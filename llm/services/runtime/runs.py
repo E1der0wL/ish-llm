@@ -85,7 +85,7 @@ from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_di
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
 from llm.services.runtime.usage import UsageScope, check_admission, completion_usage, INCLUDE_DELETED_EVIDENCE
-from llm.core.policies import UsagePolicy, UsageErrorCode
+from llm.core.policies import UsagePolicy, UsageErrorCode, ApprovalPolicy, PolicySection, RunPolicySnapshot, RunPolicy
 from llm.core.usage import UsageSource, UsageReceipt, UsageCall
 from llm.services.infrastructure.observability import ObservationKind, ObservationStatus
 
@@ -477,7 +477,8 @@ class RunRepository:
 
     def apply_interaction_policy(self, session, run, policy):
         """정책 응답만 저장한다. 실행 재개와 호스트 허용 여부 검사는 별도다."""
-        if not policy.get("enabled", False):
+        policy = ApprovalPolicy.from_dict(policy)
+        if not policy.enabled:
             return []
         with self._interaction_scope(session, run) as (interactions, _):
             requests = self.interaction_requests(session, run)
@@ -485,15 +486,15 @@ class RunRepository:
             saved = []
             for request in requests:
                 if (request.id in answered or request.expired is True or request.risk is None
-                        or request.risk_scheme != policy.get("risk_scheme")
+                        or request.risk_scheme != policy.risk_scheme
                         or request.category == InteractionRepository.RETRY_CATEGORY
                         or interactions.envelope(run, request)["cancelled"] is True):
                     continue
-                for rule in policy.get("rules", []):
-                    if rule["category"] == request.category and request.risk <= rule["max_risk"]:
+                for rule in policy.rules:
+                    if rule.category == request.category and request.risk <= rule.max_risk:
                         option = request.find_approval()
                         if option is not None:
-                            response = replace(request.respond(option.id), actor=InteractionActor.POLICY, policy_id=rule["id"])
+                            response = replace(request.respond(option.id), actor=InteractionActor.POLICY, policy_id=rule.id)
                             saved.append(self.respond(session, run, response))
                         break
         return saved
@@ -1064,7 +1065,7 @@ class RunManager:
 
     def _check_queue(self, session):
         project = self.sessions._owner(session)
-        maximum = project.config.policies.get("run", {}).get("max_queued")
+        maximum = RunPolicy.from_policies(project.config.policies).max_queued
         if maximum is not None:
             waiting = {message.id for message in self._store(session).list(
                 query=Query(status=MessageStatus.QUEUED)) if is_queued_request(message)}
@@ -1486,8 +1487,9 @@ class RunManager:
             if not isinstance(resolved, dict) or any(name not in resolved for name in missing):
                 raise ValueError("Capability resolver omitted a required capability")
             values.update(resolved)
-        retries = run.metadata["policies"].get("tool_retry", {})
-        tool_scope = ToolExecutionScope(self.tool_runtime, policy=run.metadata["policies"].get("tools", {}), retry=retries,
+        admitted_policies = RunPolicySnapshot.read(run.metadata)
+        retries = admitted_policies.get(PolicySection.TOOL_RETRY, {})
+        tool_scope = ToolExecutionScope(self.tool_runtime, policy=admitted_policies.get(PolicySection.TOOLS, {}), retry=retries,
               operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         if checkpoint:
             tool_scope.restore_checkpoint(CheckpointRecords.from_checkpoint(checkpoint).records)
@@ -1674,7 +1676,7 @@ class RunManager:
                 await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
 
         try:
-            output_buffer = self.output_buffer.for_project(run.metadata["policies"].get("output", {}))
+            output_buffer = self.output_buffer.for_policies(RunPolicySnapshot.read(run.metadata))
             await consume_events(events, output_buffer, handle)
 
         finally:
@@ -1843,7 +1845,7 @@ class RunManager:
                 if outcome.status == RunStatus.PAUSED:
                     try:
                         await self._io.run(self.repository.apply_interaction_policy, runtime.session, run,
-                                           run.metadata["policies"].get("approval", {}))
+                                           RunPolicySnapshot.read(run.metadata).get(PolicySection.APPROVAL, {}))
                     except Exception:
                         log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id,
                                   status=RunManager.RESPONSE_WRITE_FAILED)

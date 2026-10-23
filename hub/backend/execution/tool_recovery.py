@@ -4,6 +4,7 @@ import asyncio
 from contextlib import aclosing, nullcontext
 from dataclasses import dataclass
 from typing import Callable
+from llm.core.policies import ToolRetryPolicy
 
 
 @dataclass(slots=True)
@@ -16,8 +17,8 @@ class RecoveryContext:
 
 async def recovery_events(selector, engine, context, environment, *, provider=None):
     # Keep the ordinary rendering/execution path unchanged when retries are off.
-    retries = context.run.metadata.get("policies", {}).get("tool_retry", {})
-    if not retries.get("max_retries") and not (provider and provider.settings.recovery_enabled):
+    retries = ToolRetryPolicy.from_run(context.run)
+    if not retries.max_retries and not (provider and provider.settings.recovery_enabled):
         async with aclosing(engine.execute(context)) as events:
             async for event in events:
                 yield event

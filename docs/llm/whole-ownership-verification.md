@@ -2014,3 +2014,71 @@ S1–S7 발생은 145개 그대로다. 변경된 7개 의존 파일을 참조하
 미검토 381, 미분류 28514, incomplete 2개다.
 전수 완료 조건은 그대로이며 잔여 파일·실제 소비자 정리를 계속한다. 이 소단계 완료와 최종 전체
 완료·원격 CI 검증은 별도다. 실패 로그와 새 검증 증거는 덮어쓰지 않았다.
+
+
+## Project 정책 값·Schema·실제 소비자 연결 (2026-10-23)
+
+[정책 관측 계약](project-policy-values.md)에 따라 core.policies의 선언에서 기존 공개 Schema를
+파생하고 ToolPolicyValues/ToolRetryPolicy/ApprovalPolicy/ApprovalRule을 runtime·Hub 소비자에
+연결했다. 승인 저장, 부모 한도·narrowing·예약·실제 효과·재시도·Resume 순서는 유지한다.
+Context/Run/Output도 Owner 관측을 사용한다. TokenCounters가 기본 등록 이름과 명시 override
+검증을 공유하고 ProjectManager는 같은 초기 map을 받는다. 별도 정책 기본값·저장 원본은 없다.
+
+ToolExecutionBinding은 typed 정책과 Host 관측을 기존 평평한 binding JSON으로 직렬화한다.
+선택 callback 부재 시 retry_selector 생략과 중첩 사본을 보존한다. 추가 인자 제약 조회도 완전한
+현재 binding 비교 뒤 Owner Projection을 사용한다. 입력 원본·저장 정책 생략은 그대로다.
+Hub의 Tool retry 조회는 필수 Run policies가 없으면 거절한다. 이전 빈 map 대체는 필수 기록을
+복구할 근거가 아니므로 제거했고 새 독립 시험에서 누락 거절과 원본 보존을 확인했다.
+
+720a980 대비 공개 Schema 전체가 같고, 정규화 446개와 부모/자식 scope 216개 경우에서 반환값
+또는 예외 종류/문구가 같다. Scope의 승인/효과/재개 코드는 세 변경 메서드와 동일 Projection
+참조 확장 외 AST가 같다. Run의 승인 규칙 속성 소비 외 나머지 변경도 Owner 참조를 확장하면
+AST가 같으며, Hub event/ack/취소 정리는 그대로다. 기존 시험을 삭제하거나 Assertion을 낮추지 않았다.
+소비 필드 검사에는 typed 속성 감지를 추가하고 원래 dict의 누락·동적 접근 음성 시험을 유지했다.
+새 typed 음성 시험도 max_calls 누락·typo를 검출한다. R3 mutation은 변경하지 않았다.
+
+첫 정책 집중 `python -m unittest tests.llm.test_policy_consumers tests.llm.test_project_policies tests.llm.test_tool_constraints tests.llm.test_agent_execution tests.llm.test_nested_graph`는
+64개 pass/exit 0(44.805초), 선언 추가 후 같은 범위는 64개 pass/exit 0(45.525초)다.
+`python -m unittest tests.llm.test_policy_values tests.llm.test_policy_consumers`는 9개 pass/exit 0(0.011초).
+기존 Schema/상태 검토를 재사용하고 실제 변경한 Owner·소비자만 갱신했다.
+
+고정 720a980의 **gate15는 실패**다. LLM 2457/2457 pass, exit 0(1432.450766초),
+Hub 586개 발견/시작 중 585 pass, error 1, failure 0, exit 1(1138.957028초).
+Skip/xfail/xpass/누락/추가/중복은 두 suite 모두 0이다. source
+`2ff22e74e5c3e341698a4072cdfb941bd37844a7b9f8763459b753aa79c8b951`, input
+`5ccff8ea54aa847e474a077209215bdbfcb9f5794a256ffe21f0d05e2f35e783` 전후가 같다.
+명령: `python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group15-l3/llm.json`
+및 `--suite hub --output /workspace/llm-clean-resume/b/whole-owners-group15-l3/hub.json`.
+고정 checkout의 정적·문서·R3·SDK·양 환경은 각각 exit 0이다.
+
+오류는 `QuestionToolTests.test_missing_bwrap_does_not_block_ordinary_hub_conversation`의 옛
+`hub.backend.tools.builtin.shutil.which` mock 경로다. LinuxSandbox의 실제 lookup으로 연결했고
+이를 되돌려 비교하면 시험 전체 AST가 같다. 대화 완료·기본 Tool 선택·승인·실제 sandbox
+Assertion을 그대로 유지했다. tests/llm·tests/hub의 실행 Python mock 경로를 함께 검색해 추가
+옛 경로가 없음을 확인했다. 아래 새 Hub 11개 실행은 통과했지만 gate15를 성공으로 바꾸지 않는다.
+720a980은 Push하지 않고, 정책 변경·이 fixture 수정까지 포함한 현재 통합 gate16을 필수로 수행한다.
+
+- `whole-policy-values-01`: 발견/시작/pass 155/155/155, exit 0, 86.365742초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-policy-values-01/llm.json --modules tests.llm.test_policy_values tests.llm.test_policy_consumers tests.llm.test_policy_ownership tests.llm.test_project_policies tests.llm.test_tool_constraints tests.llm.test_agent_execution tests.llm.test_nested_graph tests.llm.test_settings_contract tests.llm.test_settings_consistency tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `9f62bef515f470e178a9b1ceaf7327bfad1e332016288eaf77369fac7d231827`, input `30f19d6f85e683516fec709d4065fdbf265aedbdf5a518b3675defe8bbb8a6aa`.
+
+- `whole-policy-values-hub-01`: 발견/시작/pass 48/48/48, exit 0, 182.990553초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-policy-values-hub-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_retry_observations tests.hub.test_provider_recovery tests.hub.test_settings tests.hub.test_project_authority`. source `9f62bef515f470e178a9b1ceaf7327bfad1e332016288eaf77369fac7d231827`, input `30f19d6f85e683516fec709d4065fdbf265aedbdf5a518b3675defe8bbb8a6aa`.
+
+- `whole-policy-binding-01`: 발견/시작/pass 85/85/85, exit 0, 49.681205초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-policy-binding-01/llm.json --modules tests.llm.test_policy_values tests.llm.test_retry tests.llm.test_tool_constraints tests.llm.test_interaction_storage tests.llm.test_agent_execution tests.llm.test_nested_graph`. source `e4ec7ceb9a7d9ecc8490f97c637da43ea4847acdbd9477e710170072d4b55538`, input `5a03451beabb5ab7e60e13f314b6604b8c4c3e0680b7e3342d98f8ae68cf10e2`.
+
+- `whole-sandbox-question-fixed-01`: 발견/시작/pass 11/11/11, exit 0, 40.165336초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-sandbox-question-fixed-01/hub.json --modules tests.hub.test_question_tools`. source `725d85d9ebae3005d618007b2d7f9f00048eea640e72f4631cd5ec0f35f38d95`, input `c3e041924e59769858ebf4887d0e25c150f2e42821df5483cf6bbe00460cc1cc`.
+
+각 성공 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0이다. source/input 전후가 같으며
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11 환경은 유지했다. 최종 binding Projection과
+지역 변수명 정리 뒤의 85개 실행, fixture 수정 뒤의 Hub 11개는 별도 소스/입력으로 기록한다.
+다른 실행을 하나의 전체 실행으로 합치지 않으며 최종 현재 소스의 gate16을 대체하지 않는다.
+
+감사는 실제 바뀐 의존 파일을 참조하는 84개 검토만 갱신했다. S3의 inline binding dict 발생
+1개는 typed Owner로 옮겨 제거됐으며 이전 검토는 이력에 보존한다. 현재 S1–S7은 144개다.
+처음 새 값 타입 이름이 제거된 옛 런타임 이름과 충돌한 것은 S5가 검출했고 ToolPolicyValues로
+바꾸어 구형 API/호환 경로를 복원하지 않았다. 새 예외나 검사 완화는 없다. Schema 어휘 추가로
+이동한 후보 ID는 symbol/role/area/literal별 기존 판정을 연결했고 주변 incomplete를 유지했다.
+정적·문서·R3·SDK·양 환경은 각각 exit 0, 감사 자체는 최종 16개 pass/exit 0(3.137초)다.
+
+세 파일은 전체 선언·해석·동적 경로·실제 소비자를 검토했고, 큰 Run/Tool/Hub 파일의 주변
+미전환은 완료로 승격하지 않았다. 현재 479개 파일, 미검토 379개,
+미분류 28051개, incomplete 2개로 전체 완료는 차단된다.
+후속 전체 범위 정리와 정확한 Push SHA의 원격 CI 확인을 계속한다.

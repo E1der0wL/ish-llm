@@ -16,6 +16,9 @@ from llm.services.runtime.tools import ToolExecutionScope
 def compare_reader(source, receiver, schema):
     keys = set()
     for node in ast.walk(ast.parse(textwrap.dedent(source))):
+        if (isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name)
+                and node.value.id == receiver and node.attr != 'get'):
+            keys.add(node.attr)
         if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
                 and isinstance(node.func.value, ast.Name)
                 and node.func.value.id == receiver and node.func.attr == 'get'):
@@ -53,3 +56,10 @@ class PolicyConsumerTests(unittest.TestCase):
         for source in ('value = policy.get(key)', 'value = policy[key]'):
             with self.subTest(source=source), self.assertRaisesRegex(ValueError, 'dynamic policy'):
                 compare_reader(source, 'policy', {'properties': {}})
+
+    def test_typed_reader_still_detects_deleted_limits_and_unknown_attributes(self):
+        schema = {'properties': {'max_calls': {}, 'allowed_tools': {}}}
+        valid = 'limit = policy.max_calls\ntools = policy.allowed_tools'
+        self.assertEqual(compare_reader(valid, 'policy', schema), {'unconsumed': [], 'undeclared': []})
+        self.assertEqual(compare_reader('tools = policy.allowed_tools', 'policy', schema)['unconsumed'], ['max_calls'])
+        self.assertEqual(compare_reader(valid + '\nx = policy.typo', 'policy', schema)['undeclared'], ['typo'])
