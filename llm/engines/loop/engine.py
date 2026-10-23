@@ -2,6 +2,8 @@
 
 A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
+from llm.core.configuration_views import ConfigurationView
+
 from llm.core.checkpoint_records import CheckpointWrite
 
 from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
@@ -85,7 +87,7 @@ class LoopEngine(BaseEngine):
                          "adapter": {"type": type(self.completion_adapter).__module__ + "." + type(self.completion_adapter).__qualname__,
                                      "binding": getattr(self.completion_adapter, "execution_binding", None)},
                          **context.tools.execution_binding(context.tool_scope.binding() if context.tool_scope else None)})
-        policy = self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)["values"].get("policy", {}).get("final_review")
+        policy = ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values.get("policy", {}).get("final_review")
         if ReviewPolicy.read(policy) is not None:
             values["final_reviewers"] = review_identities(context.capabilities.get("completion_processors", ()))
         return hashlib.sha256(json.dumps(values, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
@@ -206,14 +208,14 @@ class LoopEngine(BaseEngine):
             overrides["system_prompt"] = agent["system_prompt"]
         if agent.get("completion"):
             overrides["completion"] = agent["completion"]
-        view = resolve_engine_config(config, key, session_config=session_config,
-            agent=self.parameter_layout.pack(overrides), schema=self.describe_config())
-        CompletionPolicy.validate_config(view["values"].get("policy", {}).get("completion"))
-        provider = view["values"].get("policy", {}).get("provider")
+        view = ConfigurationView.read(resolve_engine_config(config, key, session_config=session_config,
+            agent=self.parameter_layout.pack(overrides), schema=self.describe_config()))
+        values = view.values
+        CompletionPolicy.validate_config(values.get("policy", {}).get("completion"))
+        provider = values.get("policy", {}).get("provider")
         resolve_provider_options({} if provider is None else provider)
-        ReviewPolicy.read(view["values"].get("policy", {}).get("final_review"))
-        view["runtime"] = []
-        return view
+        ReviewPolicy.read(values.get("policy", {}).get("final_review"))
+        return view.with_runtime(()).to_dict()
 
     def _request(self, context: EngineContext, params: dict[str, Any]) -> ModelRequest:
         parameters = copy_model(params)
@@ -225,8 +227,8 @@ class LoopEngine(BaseEngine):
 
     def with_instructions(self, context, *, before=(), after=()):
         """Compose explicit Agent resources using this Engine's own prompt resolution."""
-        values = self.parameter_layout.unpack(self.resolve_config(context.project.config,
-            self.parameter_key or context.run.engine, session_config=context.session.config)["values"])
+        values = self.parameter_layout.unpack(ConfigurationView.read(self.resolve_config(context.project.config,
+            self.parameter_key or context.run.engine, session_config=context.session.config)).values)
         prompt = values.get("system_prompt")
         parts = [*before, *([prompt] if prompt else []), *after]
         if any(not isinstance(part, str) for part in parts):
@@ -259,7 +261,7 @@ class LoopEngine(BaseEngine):
 
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
         context.tools.validate_selections(context)
-        resolved = self.parameter_layout.unpack(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)["values"])
+        resolved = self.parameter_layout.unpack(ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values)
         # A Run-local instance keeps shared defaults immutable and preserves
         # subclass methods. Only Loop-owned configuration are reinitialized.
         worker = copy(self)

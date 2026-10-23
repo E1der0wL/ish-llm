@@ -1,5 +1,7 @@
 """RAG 공개 검색 API를 현재 프로젝트에 묶인 LLM Tool로 노출한다."""
 
+from llm.core.configuration_views import ConfigurationView
+
 from llm.components.tools.registry import Tool, ToolRegistry, ToolContract, ToolEffect, ToolIsolation
 from .search import retrieval_schema
 
@@ -13,7 +15,7 @@ def search_tools(data) -> ToolRegistry:
     """호출 서비스의 핸들을 사용한다. 모델 인자로 프로젝트나 파일 경로를 받지 않는다."""
     parameters = retrieval_schema()
 
-    configured = data.resolve_config()["values"].get("config", {}).get("search", {})
+    configured = ConfigurationView.read(data.resolve_config()).values.get("config", {}).get("search", {})
     for name in parameters["properties"].keys() - {"query"}:
         if name != "rerank" and name not in configured:
             parameters["required"].append(name)

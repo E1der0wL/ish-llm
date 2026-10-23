@@ -4,6 +4,8 @@
 상태 채널에는 JSON만 전달하고 런타임 객체를 저장 형식에 노출하지 않는다.
 """
 
+from llm.core.configuration_views import ConfigurationView
+
 from llm.core.checkpoint_records import CheckpointWrite
 
 from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
@@ -670,7 +672,7 @@ class GraphEngine:
         """등록 인스턴스를 변경하지 않는 실행별 설정 사본. 중첩 실행에도 동일하게 적용한다."""
         if self._configured:
             return self
-        values = self.parameter_layout.unpack(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)["values"])
+        values = self.parameter_layout.unpack(ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values)
         worker = copy(self)
         worker._configure(values)
         worker._configured = True

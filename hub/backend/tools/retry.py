@@ -1,5 +1,7 @@
 """Select bounded argument repairs; llm owns eligibility, execution and approval."""
 
+from llm.core.configuration_views import ConfigurationView
+
 from llm.core.model_protocol import copy_model
 
 import asyncio
@@ -124,15 +126,15 @@ class ToolRetrySelector:
     async def _model_choice(self, payload, frame, parent_step_id):
         from dataclasses import asdict
         engine, name = frame.engine, frame.context.run.engine
-        resolve = getattr(engine, "resolve_config", None)
-        values = resolve(frame.context.project.config, name,
-            session_config=frame.context.session.config).get("values", {}) if resolve else {}
+        resolve = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
+        values = ConfigurationView.read(resolve(frame.context.project.config, name,
+            session_config=frame.context.session.config)).values if resolve else {}
         if not values.get("config", {}).get("completion", {}).get("model"):
             engine, name = self.fallback_engine, "loop"
             if engine is None:
                 return None
-            values = engine.resolve_config(frame.context.project.config, name,
-                session_config=frame.context.session.config).get("values", {})
+            values = ConfigurationView.read(engine.resolve_config(frame.context.project.config, name,
+                session_config=frame.context.session.config)).values
         params = copy_model(values.get("config", {}).get("completion", {}))
         if not params.get("model") or not hasattr(engine, "completion_adapter"):
             return None

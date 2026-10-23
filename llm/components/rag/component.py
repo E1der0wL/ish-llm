@@ -1,5 +1,8 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
+from llm.core.configuration_views import ConfigurationView
+from llm.core.configuration import ConfigurationSource
+
 from llm.providers.codes import ProviderErrorCode
 from copy import copy, deepcopy
 from dataclasses import fields
@@ -337,14 +340,14 @@ class RAGComponent(DefinitionComponent):
                     runtime.append(name)
         if getattr(self.extractor, "extraction", None):
             client_values["extraction"] = deepcopy(self.extractor.extraction)
-        layers = [("client", self.parameter_layout.pack(client_values)), *self.get_config_layers(project)]
+        layers = [(ConfigurationSource.CLIENT, self.parameter_layout.pack(client_values)), *self.get_config_layers(project)]
         view = resolve_config(layers, schema=self.describe_config())
         from .embedding import EmbeddingModel
         selected = EmbeddingModel() if self.embedding is None else self.embedding
         view["enforced"] = {"config": {"embedding_params": deepcopy(getattr(selected, "enforced_configuration", {}))}}
         view["model_providers"] = {name: resolve_config([
-            ("client", getattr(getattr(self, name), "provider_options", {})),
-            ("project", view["values"].get("policy", {}).get("provider", {}))], schema=provider_schema())
+            (ConfigurationSource.CLIENT, getattr(getattr(self, name), "provider_options", {})),
+            (ConfigurationSource.PROJECT, ConfigurationView.read(view).values.get("policy", {}).get("provider", {}))], schema=provider_schema())
             for name in ("embedding", "extractor", "reranker")}
         view["runtime"] = runtime
         return view
@@ -355,7 +358,7 @@ class RAGComponent(DefinitionComponent):
         from .extraction import TripleExtractor
         from .rerank import RerankModel
         view = self.resolve_config(project)
-        values = self.parameter_layout.unpack(view["values"])
+        values = self.parameter_layout.unpack(ConfigurationView.read(view).values)
         worker = copy(self)
         worker._configuration_source = self
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
@@ -379,7 +382,7 @@ class RAGComponent(DefinitionComponent):
                 elif self._options(project).get(key):
                     raise ValueError(f"Custom {name} requires with_config(params) to apply project parameters")
             if client is not None and callable(getattr(client, "with_provider", None)):
-                client = client.with_provider(view["model_providers"][name]["values"])
+                client = client.with_provider(ConfigurationView.read(view["model_providers"][name]).values)
             setattr(worker, name, client)
         bind_extraction = getattr(worker.extractor, "with_extraction", None)
         if bind_extraction is not None:
@@ -390,7 +393,7 @@ class RAGComponent(DefinitionComponent):
         elif worker.extractor is not None and worker.extraction_options.keys() - {"failure_policy"}:
             raise ValueError("Custom extractor requires with_extraction(options, prompt) to apply extraction policies")
         worker._configuration_version = revision_token({"configuration": values,
-            "model_providers": {k: v["values"] for k, v in view["model_providers"].items()}, "prompt": worker.extraction_prompt,
+            "model_providers": {k: ConfigurationView.read(v).values for k, v in view["model_providers"].items()}, "prompt": worker.extraction_prompt,
                                                        "prompt_resolved": worker._extraction_error is None})
         return worker
 

@@ -1,5 +1,7 @@
 """Agent 업무 정의를 등록 엔진에 연결한다. 모든 실행은 부모 Run 안에서 관찰된다."""
 
+from llm.core.configuration_views import ConfigurationView
+
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
 from llm.core.continuations import ResumeRecord
@@ -192,12 +194,12 @@ class AgentExecution:
         """재개 검사와 Step에 런타임 핸들 없이 재현 가능한 정의를 남긴다."""
         profile = self._profile(definition, context.capabilities)
         engine = self._engine(profile)
-        describe = getattr(engine, "resolve_config", None)
+        describe = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
         binding = {"agent_id": definition["agent"], "agent": profile,
                 "agent_revision": AgentDefinition.revision(profile), "engine": profile["engine"],
                 "handler_revision": self.revision,
                 "configuration": describe(context.project.config, profile["engine"], session_config=context.session.config)
-                                 if describe else {"runtime_only": True}}
+                                 if describe else ConfigurationView.unavailable().to_dict()}
         if agent_mode(engine) == AgentMode.WORKFLOW:
             binding["workflow_id"] = engine.workflow
         else:
@@ -510,7 +512,7 @@ class AgentInvocation:
             if "input_schema" in self.profile:
                 message = next(item for item in context.messages if item.id == context.run.input_message_id)
                 Draft202012Validator(self.profile["input_schema"]).validate(message.content)
-        describe = getattr(self.engine, "resolve_config", None)
+        describe = getattr(self.engine, ConfigurationView.RESOLVE_METHOD, None)
         configuration = (revision_token(describe(context.project.config, self.binding.engine,
                          session_config=context.session.config)) if callable(describe) else None)
         execution = getattr(self.engine, "bind_execution", None)

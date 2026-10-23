@@ -1805,5 +1805,149 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/configuration_views.py",
+    "sha256": "b8de1185f1c92abd5f6f13a46ac5ee96e15bbc16e6a0f4a44926da2a2708346a",
+    "reason": "Reviewed the whole query Owner and all common values/editable/runtime/key and dynamic resolver consumers. Common fixed shapes are typed; optional omission and opaque extension fields survive serialization, nested projections detach, and present malformed values fail. Selected implementation config/policy internals remain with their own Owners and are not classified complete here.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ff434d28006a6199671491646bd361c347893ba4f64c92314c3f6b28e0342c46",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "2d3b732568b68824c028e54a5c91519eba8e1a8f898a77aead33a83de11aec56",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "69d463de66e87e3cc79ef196d64f1060b7942103b1c7a3219d880b922a089836",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "2690f5ae3d57c7585149346c67b4da2255922ccd306d166aa42f0dd1ceee44cb",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "5b3c624dd2726140e835cf648ffaf8b82121c1c833c874046bac0ddfb814fb33",
+        "classification": "declaration",
+        "owner": "ConfigurationResolution",
+        "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
+      },
+      {
+        "id": "037232b903faa5010051c8f5b56fc0856f92cbf8da4fcced1a57e4703f17910e",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "6b2690e01fc00354816edfd9056885014ecb45e246a8222fcae135a6172e2da1",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "badf82b0903f461e337260625c405ffb1f87b3e967bb495609ae09b8309ec8a9",
+        "classification": "declaration",
+        "owner": "EngineConfigurationKey",
+        "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
+      },
+      {
+        "id": "248bd1da7c15855eeacb18a70e84e874bb99bdf9f127c2855931ab0af7c8de3e",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "7ece97d16f1baf525f39105f3cbc0a057fcc2de1dcd46de38a799ee34765e96c",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "0286d8590ed3b14ee0a05b011b751ab9268001a967cc1b46d91b6de17c66e942",
+        "classification": "declaration",
+        "owner": "RuntimeConfiguration",
+        "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
+      },
+      {
+        "id": "0d85208a5702647046345912db78b641fcb9f39101462c14ba8e94a779fb78fd",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "f1f5576b0b3dc50eac83ef505163e16fc71a1cad1a3e0ba7bc41abe3a7b28f4e",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "d08c15ea2cc7a68c4e4f934597b8567ed60eaa6855c8a4f9cea25bab10c4d364",
+        "classification": "declaration",
+        "owner": "RuntimeOnlyConfiguration",
+        "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
+      },
+      {
+        "id": "3cac926e2db0d5a2b24de68f05ee9f482677dd30139d49baf6c92977b14552fd",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "ffd466084aca5a962c51e412a1ad01895f3e49b52457ff977625360836a99a43",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "8b032aabd9643edae596f6536864b5e9b285ee913fefcdb6701ffede6772a00e",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
+      },
+      {
+        "id": "7bd3d6a702c2e810a04338945cef725146009c51584c181f91a9b000415232bb",
+        "classification": "declaration",
+        "owner": "ConfigurationView",
+        "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ConfigurationView / ConfigurationResolution / Override / Engine key / runtime observations",
+        "declaration": "llm/core/configuration_views.py",
+        "consumers": [
+          "llm/core/configuration.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/engines/registry.py",
+          "llm/components/rag/component.py",
+          "llm/services/schema.py",
+          "hub/backend/execution/engine_selection.py",
+          "hub/backend/tools/retry.py",
+          "hub/widget/forms/settings.py",
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_explicit_configuration.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

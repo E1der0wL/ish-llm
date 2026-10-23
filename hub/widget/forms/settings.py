@@ -1,5 +1,9 @@
 """Schema fields retain missing/null distinctions and unknown JSON properties."""
 
+from llm.core.configuration import ConfigurationPointer
+from llm.core.configuration_views import ConfigurationView
+
+
 from copy import deepcopy
 import json
 
@@ -163,13 +167,13 @@ class SchemaForm:
     def __init__(self, schema, values, t, *, prefix=(), effective=None):
         self.schema, self.original, self.t = schema, deepcopy(values), t
         # 적용값은 고정 경로와 확장 키 조회에만 사용하고 저장할 값과 혼합하지 않는다.
-        self.prefix, self.effective = prefix, deepcopy(effective or {})
+        self.prefix = prefix
+        self.effective = {name: ConfigurationView.read(view) for name, view in (effective or {}).items()}
         self.locked = set()
         for view in self.effective.values():
-            for pointer, editable in view.get("editable", {}).items():
+            for pointer, editable in view.editable.items():
                 if not editable:
-                    self.locked.add((*prefix, *(part.replace("~1", "/").replace("~0", "~")
-                                               for part in pointer.lstrip("/").split("/"))))
+                    self.locked.add((*prefix, *ConfigurationPointer.parts(pointer)))
         self._schema_locks(schema, prefix)
         self.fields = {}
         self.children = []
@@ -205,7 +209,7 @@ class SchemaForm:
             properties = dict(properties)
             if self.effective and schema.get("additionalProperties", True) is not False:
                 # 이미 저장됐거나 주입된 열린 SDK 키도 조회/편집 가능하게 한다.
-                candidates = [at_path(self.original, path), *(at_path(view.get("values", {}), path[len(self.prefix):])
+                candidates = [at_path(self.original, path), *(at_path(view.values, path[len(self.prefix):])
                               for view in self.effective.values())]
                 for value in candidates:
                     if isinstance(value, dict):

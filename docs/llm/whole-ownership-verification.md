@@ -625,3 +625,75 @@ Paths 파일 후보 29개와 실제 소비 경로만 전수 완료로 분류했�
 416개 미검토 파일/31,186개 미분류 후보다. models.py의 설정·metadata 등 남은 작업을 전체
 파일 검토로 승인하지 않았다. 이 소단계는 Level 2이며 다음 관련 통합 게이트에서 전체 검증한다.
 현재 2f13412에서 실행 중인 전체 게이트는 그 뒤의 이 변경을 포함하지 않는다.
+
+
+## 묶음 4 전체 게이트
+
+고정 SHA `2f134127c502cf761d032b66aa43234b1a729858`의 `whole-owners-group4-l3`에서
+LLM 2,360/2,360(1,278.67초), Hub 586/586(1,082.02초)이 pass/exit 0이었다.
+Failure/Error/Skip/xfail/xpass/누락/추가/중복 모두 0이다. source
+`954b55e6b82c8c93f41c8dc0e6eec299b3ca652505a4f528ba7af96fcae7a088`, input
+`9e81c1d29e3986813c0692820459d6a79cde8ba6d688e825d68bbe6fca286441`는 전후 동일했다.
+각 suite의 실제 명령은 `python -m tests.llm.run_regression --suite llm|hub --output /workspace/llm-clean-resume/b/whole-owners-group4-l3/<suite>.json`이다.
+`group4-auxiliary/results.json`의 정적 S1–S7(147건), 문서, R3, SDK, 양 suite 환경은 각각 exit 0.
+로컬 Python/host/실제 namespace 환경은 앞서 고정한 것과 같다. 이 SHA 이후 도메인 Record와
+설정 변경은 이 전체 게이트에 포함하지 않는다. 아직 이 SHA의 원격 성공으로 보고하지 않는다.
+
+## 공통 설정 조회·출처·편집 가능성
+
+`configuration_views.py`의 ConfigurationView/Resolution, Override, Engine key, runtime
+관측 타입이 공통 고정 구조를 소유한다. Resolver는 Owner로 직렬화하고 Engine/Component,
+Agent/registry의 동적 resolver, Hub 모델 선택·Tool 인자 재시도·설정 페이지/위젯은 검증된
+속성을 소비한다. 같은 관측을 여러 번 파싱하던 Loop/Hub 경로도 작업 내부에서 재사용한다.
+ConfigurationSource/Pointer가 출처 이름과 경로 인코딩을 공유한다. RAG 확장 관측과 실제
+구현별 config/policy 해석은 해당 Owner에 남으며 이 구간의 전체 완료로 승인하지 않는다.
+
+선택적 query 관측 부재는 독립된 빈 조회값을 제공하되 원래 JSON의 생략 상태는 보존한다.
+필수 저장 증거의 누락을 이 규칙으로 복원하지 않는다. 명시적 null/false, 열린 SDK 옵션,
+원본 Project/Session/Agent/host 값과 unknown extension을 보존한다. 새 5개 독립 시험은
+wire·JSON pointer escaping·override 원문·중첩 사본·생략·잘못된 타입 거부·runtime query가
+원본 설정을 수정하지 않음을 검증한다. [현재 설정 감사](configuration-audit.md)에 반영했다.
+
+`whole-configuration-01`은 존재하지 않는 tests.llm.test_graph 지정으로 발견 단계 exit 2였다.
+발견/실행/pass 수를 성공 집계하지 않았다. 실제 모듈 목록을 확인하여 nested_graph를 지정했고,
+첫 정상 LLM 179개/Hub 29개를 통과했다. 이후 위젯 소비자와 resolver 식별자/Owner 모듈 분리를
+추가한 최종 통합 소스에서 안전성 및 Hub를 다시 검증했다.
+
+| 실행 | 발견/실행/pass | Failure / Error / Skip | xfail·xpass·누락·추가·중복 | Exit |
+|---|---|---|---|---|
+| whole-configuration-02 | 179/179/179 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-configuration-hub-01 | 29/29/29 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-configuration-safety-03 | 174/174/174 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-configuration-hub-02 | 37/37/37 | 0 / 0 / 0 | 모두 0 | 0 |
+
+실제 명령과 각 실행 전후 동일한 source/input:
+
+- `whole-configuration-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-configuration-02/llm.json --modules tests.llm.test_configuration_values tests.llm.test_configuration_validation tests.llm.test_configuration_objects tests.llm.test_configuration_results tests.llm.test_configuration_workflow_example tests.llm.test_settings_contract tests.llm.test_settings_consistency tests.llm.test_explicit_configuration tests.llm.test_project_component_settings tests.llm.test_rag_models tests.llm.test_rag_retry_presence tests.llm.test_loop tests.llm.test_nested_graph`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-configuration-hub-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-configuration-hub-01/hub.json --modules tests.hub.test_settings tests.hub.test_settings_project_flow tests.hub.test_tool_retry tests.hub.test_live`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-configuration-safety-03`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-configuration-safety-03/llm.json --modules tests.llm.test_configuration_values tests.llm.test_configuration_validation tests.llm.test_settings_contract tests.llm.test_settings_consistency tests.llm.test_explicit_configuration tests.llm.test_agent_execution tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-configuration-hub-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-configuration-hub-02/hub.json --modules tests.hub.test_settings tests.hub.test_settings_project_flow tests.hub.test_settings_json tests.hub.test_settings_usability tests.hub.test_tool_retry tests.hub.test_live`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+직접 범위는 설정 객체·설명·저장/복원·workflow 예제·명시 옵션·Component·RAG 모델/retry·
+Loop/중첩 Graph이고, 최종 안전성은 설정 narrowing/host 고정값·Agent·승인·예산 삭제·효과·
+Checkpoint·RAG·수명/삭제·트랜잭션·감사다. Hub는 settings/project flow/JSON 편집/사용성,
+Tool 재시도와 실제 Backend live 소비자다. 환경은 앞서 고정한 로컬 Python/host와 동일하다.
+다른 소스의 통과를 하나의 전체 실행으로 합산하지 않는다.
+
+정적 검사는 변경된 근거 hash를 먼저 거절했다. 24건 의존 근거를 실제 의미별로 재검토했으며
+새 정적 발생은 없다. 최종 `configuration-auxiliary/results.json`에서 S1–S7(145건,
+new/stale/outstanding/error 0), 문서, R3, SDK, 양 suite 환경 모두 exit 0이다. 실제 명령은
+위 보조 게이트와 같고 output 디렉터리만 configuration-auxiliary다. 원래 실제 효과/실패
+Assertion을 제거하지 않았다. query Owner 파일 후보 18개와 실제 동적 소비 경로만 개별
+완료로 분류했다. 전수 inventory는 449개 파일, 416개 미검토 파일/31,113개 미분류 후보다.
+이 소단계는 Level 2 완료이며 도메인 Record·후속 공통 검증 변경과 다음 전체 게이트로 묶는다.

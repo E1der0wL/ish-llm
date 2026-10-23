@@ -1,5 +1,8 @@
 """등록 객체가 선언한 Project 편집 스키마를 조합한다. 저장 파일이나 모델은 읽지 않는다."""
 
+from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
+from llm.core.configuration import ConfigurationPointer
+
 from copy import deepcopy
 import json
 from dataclasses import asdict, dataclass, field, fields
@@ -142,16 +145,16 @@ class ProjectConfiguration:
                 schema_locks(child, path)
         schema_locks(record.get("schema", {}))
         engine_keys = record.get("schema", {}).get("x-engines", {})
-        engines = [(engine_keys.get(name, {}).get("configuration_key", name), view)
+        engines = [(EngineConfigurationKey.from_view(engine_keys.get(name, {}), default=name).configuration_key, view)
                    for name, view in record.get("effective_engines", {}).items()]
         components = [(name, spec.get("effective") or {}) for name, spec in record.get("components", {}).items()]
         for kind, entries in (("engines", engines), ("components", components)):
             for name, view in entries:
-                for pointer, editable in view.get("editable", {}).items():
+                for pointer, editable in ConfigurationView.read(view).editable.items():
                     if editable:
                         continue
                     path = ("config", "parameters", kind, name,
-                            *(part.replace("~1", "/").replace("~0", "~") for part in pointer.lstrip("/").split("/")))
+                            *ConfigurationPointer.parts(pointer))
                     fixed.add(path)
         for path in fixed:
             before, after = at(record["values"], path), at(candidate, path)
@@ -166,8 +169,8 @@ def effective_engines(app, config, *, session_config=None):
     result = {}
     for name in app.engines.names():
         engine = app.engines.get(name)
-        describe = getattr(engine, "resolve_config", None)
-        result[name] = describe(config, name, session_config=session_config) if describe else {"runtime_only": True}
+        describe = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
+        result[name] = describe(config, name, session_config=session_config) if describe else ConfigurationView.unavailable().to_dict()
     return result
 
 
@@ -206,7 +209,7 @@ def describe_project_config(app, components=None):
         if isinstance(spec, dict):
             spec["$id"] = "urn:ish:engine:" + name + ":configuration"
         engines[key] = {"allOf": [engines[key], spec]} if key in engines else spec
-        engine_catalog[name] = {"configuration_key": key}
+        engine_catalog[name] = EngineConfigurationKey(key).to_dict()
     policies = ProjectConfig.describe_policies()
     names = sorted(getattr(app.policy_resolver, "token_counters", {}))
     if names:

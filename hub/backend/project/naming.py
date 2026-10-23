@@ -1,5 +1,7 @@
 """Automatic titles use an ordinary, isolated backend Session/Run."""
 
+from llm.core.configuration_views import ConfigurationView
+
 from llm.core.models import StepKind
 
 from llm.core.agents import AgentBinding
@@ -67,9 +69,9 @@ class SessionNamer:
             if name not in self.runtime.backend.engines.names():
                 continue
             implementation = selected if name == definition["engine"] else self.runtime.backend.engines.get(name)
-            describe = getattr(implementation, "resolve_config", None)
+            describe = getattr(implementation, ConfigurationView.RESOLVE_METHOD, None)
             if describe is not None:
-                values = describe(project.config, name, session_config=record.config).get("values", {})
+                values = ConfigurationView.read(describe(project.config, name, session_config=record.config)).values
                 candidate = values.get("config", {}).get("completion")
                 if isinstance(candidate, dict) and candidate.get("model"):
                     params = deepcopy(candidate)
@@ -78,7 +80,7 @@ class SessionNamer:
         params = title.completion_adapter.auxiliary_parameters(params,
             preserve_retries=True, preserve_output_limits=False)
         configured = title.resolve_config(project.config, TITLE_ENGINE, session_config=record.config)
-        params.update(deepcopy(configured["values"].get("config", {}).get("completion", {})))
+        params.update(deepcopy(ConfigurationView.read(configured).values.get("config", {}).get("completion", {})))
         return params
 
     def schedule(self, session, key):

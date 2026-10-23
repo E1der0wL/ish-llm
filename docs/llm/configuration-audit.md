@@ -161,3 +161,21 @@ UI metadata 감사: Loop의 system_prompt=null은 host의 명시적 해제로 x-
 Python API의 None은 null을 허용하는 설정 경계에서 명시적 해제다. Loop/Graph/Preparation/host Tool retry는 UNSET으로 누락과 구별한다. null을 지원하지 않는 RAG 알고리즘 설정은 오류이며 null을 임의의 숫자로 변환하지 않는다. SDK nullable 옵션은 실제 request에서 None을 보존한다.
 
 외부 확장 컴포넌트의 임의 Python 실행을 감시하는 sandbox는 아니다. 공개 configuration schema에 default annotation을 넣으면 UI 계약 경계에서 거부한다. 사용자 JSON field 이름 `default`와 enum/const 데이터는 허용한다. 확장 코드는 같은 explicit-only 계약을 지켜야 한다.
+
+## 설정 조회 Projection Owner 보강 (2026-10-23)
+
+`ConfigurationView`와 `ConfigurationResolution`이 공통 values/sources/overridden/editable
+조회 구조를 소유한다. `ConfigurationOverride`, `EngineConfigurationKey`,
+`RuntimeConfiguration`/`RuntimeOnlyConfiguration`의 타입 선언이 직렬화 이름의 원본이다.
+Engine·Component·Agent binding·Hub 모델 선택/재시도·설정 편집은 같은 Reader와 속성을 사용한다.
+`ConfigurationSource`와 `ConfigurationPointer`가 출처 및 JSON pointer 구성을 소유한다.
+
+조회 결과는 저장 원본이 아니다. 사용자 확장이 제공하지 않는 관측 필드는 조회에서 빈 집합으로
+볼 수 있지만 to_dict는 원래 생략 상태를 보존한다. runtime_only처럼 설정 조회를 제공하지 않는
+구현도 기존 표시를 유지한다. 반대로 명시된 잘못된 필드 타입은 거부한다. 이 선택적 조회 계약은
+필수 Run·승인·예산·Checkpoint 저장 증거에 적용되지 않는다. 그런 기록의 누락은 계속 오류다.
+
+원래 Project/Session/Agent/host 입력은 수정하지 않는다. 명시적 null/false, 출처·덮어쓴 값,
+확장 SDK 옵션과 Component별 추가 관측은 보존한다. 중첩 반환값은 독립 사본이며 화면의
+편집 잠금 계산은 Owner의 editable 결과를 읽는다. 실제 저장 검증과 host 고정값 검사는
+기존 경계에서 유지한다. 관측값을 저장 설정으로 복사하거나 실행 기본값을 추가하지 않는다.

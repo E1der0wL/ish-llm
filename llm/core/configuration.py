@@ -1,45 +1,83 @@
 """저장 설정의 적용 순서와 UI 출처 표시. 실행 객체나 저장소는 소유하지 않는다."""
 
 from copy import deepcopy
+from enum import StrEnum
 from jsonschema import Draft202012Validator
 
 from .models import ProjectConfig
+from .configuration_views import ConfigurationView, ConfigurationOverride
 
 
-HOST_SOURCE = "host"
+# Explicit None must override inheritance at the existing public boundaries.
+UNSET = object()
+
+
+class ConfigurationSource(StrEnum):
+    PROJECT = "project"
+    SESSION = "session"
+    AGENT = "agent"
+    HOST = "host"
+    CLIENT = "client"
+
+
+class ConfigurationPointer:
+    ROOT = ""
+    SEPARATOR = "/"
+    ESCAPE = "~"
+    ESCAPED_ESCAPE = "~0"
+    ESCAPED_SEPARATOR = "~1"
+
+    @classmethod
+    def append(cls, path, key):
+        return path + cls.SEPARATOR + key.replace(cls.ESCAPE, cls.ESCAPED_ESCAPE).replace(
+            cls.SEPARATOR, cls.ESCAPED_SEPARATOR)
+
+    @classmethod
+    def parts(cls, path):
+        return tuple(part.replace(cls.ESCAPED_SEPARATOR, cls.SEPARATOR).replace(
+            cls.ESCAPED_ESCAPE, cls.ESCAPE) for part in path.lstrip(cls.SEPARATOR).split(cls.SEPARATOR))
+
+
+
+
+class ConfigurationError:
+    INVALID = "Invalid configuration: {message}"
+    WIDENING = "{source} configuration widens parent limit: /{path}"
+    MISSING = "Missing required setting: {scope}.{key}"
+    DEFAULT_SCOPE = "configuration"
 
 
 def resolve_config(layers, *, schema=None, host=None):
     """뒤의 계층이 우선한다. 호스트 지정 필드는 JSON 경로별로 편집 불가를 표시한다."""
     values, sources, overridden = {}, {}, {}
 
-    def merge(target, changes, source, path=""):
+    def merge(target, changes, source, path=ConfigurationPointer.ROOT):
         for key, value in changes.items():
-            pointer = path + "/" + key.replace("~", "~0").replace("/", "~1")
+            pointer = ConfigurationPointer.append(path, key)
             if isinstance(value, dict):
                 if not isinstance(target.get(key), dict):
                     if pointer in sources:
-                        overridden.setdefault(pointer, []).append({"source": sources[pointer], "value": deepcopy(target[key])})
+                        overridden.setdefault(pointer, []).append(ConfigurationOverride(sources[pointer], target[key]).to_dict())
                     target[key] = {}
                     sources.pop(pointer, None)
                 merge(target[key], value, source, pointer)
             else:
                 if pointer in sources:
-                    overridden.setdefault(pointer, []).append({"source": sources[pointer], "value": deepcopy(target[key])})
+                    overridden.setdefault(pointer, []).append(ConfigurationOverride(sources[pointer], target[key]).to_dict())
                 target[key], sources[pointer] = deepcopy(value), source
                 for child in tuple(sources):
-                    if child.startswith(pointer + "/"):
+                    if child.startswith(pointer + ConfigurationPointer.SEPARATOR):
                         del sources[child]
 
-    for source, data in [*layers, (HOST_SOURCE, {} if host is None else host)]:
+    for source, data in [*layers, (ConfigurationSource.HOST, {} if host is None else host)]:
         ProjectConfig.validate_json(data)
         merge(values, data, source)
     if schema is not None:
         error = next(Draft202012Validator(schema).iter_errors(values), None)
         if error is not None:
-            raise ValueError("Invalid configuration: " + error.message)
-    return {"values": values, "sources": sources, "overridden": overridden,
-            "editable": {path: source != HOST_SOURCE for path, source in sources.items()}}
+            raise ValueError(ConfigurationError.INVALID.format(message=error.message))
+    return ConfigurationView.create(values, sources, overridden,
+        {path: source != ConfigurationSource.HOST for path, source in sources.items()}).to_dict()
 
 
 def resolve_engine_config(config, name, *, session_config=None, agent=None, schema=None):
@@ -50,9 +88,9 @@ def resolve_engine_config(config, name, *, session_config=None, agent=None, sche
     agent = {} if agent is None else agent
     ProjectConfig.validate_json(agent)
     layers = [
-        ("project", config.parameters.get("engines", {}).get(name, {})),
-        ("session", session.get("parameters", {}).get("engines", {}).get(name, {})),
-        ("agent", agent)]
+        (ConfigurationSource.PROJECT, config.parameters.get("engines", {}).get(name, {})),
+        (ConfigurationSource.SESSION, session.get("parameters", {}).get("engines", {}).get(name, {})),
+        (ConfigurationSource.AGENT, agent)]
     from .schema import narrowing_paths
     limits = narrowing_paths(schema)
 
@@ -69,30 +107,24 @@ def resolve_engine_config(config, name, *, session_config=None, agent=None, sche
         if schema is not None:
             error = next(Draft202012Validator(schema).iter_errors(merged), None)
             if error is not None:
-                raise ValueError("Invalid configuration: " + error.message)
+                raise ValueError(ConfigurationError.INVALID.format(message=error.message))
         for path in limits:
             parent, child = read(prior, path), read(merged, path)
             if parent is not None and (child is None or child > parent):
-                raise ValueError(f"{source} configuration widens parent limit: /{'/'.join(path)}")
+                raise ValueError(ConfigurationError.WIDENING.format(source=source, path=ConfigurationPointer.SEPARATOR.join(path)))
         prior = merged
-    view = resolve_config(layers, schema=schema)
-    view["configuration_key"] = name
-    return view
+    return ConfigurationView.read(resolve_config(layers, schema=schema)).with_engine_key(name).to_dict()
 
 
 def resolve_component_config(component, project):
     """선택적인 설정 조회 계약. 사용자 컴포넌트에 새 필수 메서드를 강요하지 않는다."""
-    describe = getattr(component, "resolve_config", None)
+    describe = getattr(component, ConfigurationView.RESOLVE_METHOD, None)
     if callable(describe):
         return describe(project)
-    return resolve_config([("project", component.get_config(project))])
+    return resolve_config([(ConfigurationSource.PROJECT, component.get_config(project))])
 
 
-# Public/configuration boundaries use this only where explicit None must override inheritance.
-UNSET = object()
-
-
-def require_config(values, key, *, scope="configuration"):
+def require_config(values, key, *, scope=ConfigurationError.DEFAULT_SCOPE):
     if key not in values or values[key] is None:
-        raise ValueError(f"Missing required setting: {scope}.{key}")
+        raise ValueError(ConfigurationError.MISSING.format(scope=scope, key=key))
     return values[key]

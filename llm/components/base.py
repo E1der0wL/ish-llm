@@ -2,6 +2,8 @@
 
 Project-owned JSON definitions and directories, independent of execution."""
 
+from llm.core.configuration import ConfigurationSource
+
 from copy import deepcopy
 import hashlib
 import json
@@ -117,7 +119,7 @@ class Component:
     def get_config_layers(self, project):
         """설정 원본은 ProjectConfig뿐이다. 컴포넌트 파일을 대체 설정으로 읽지 않는다."""
         self.get_config(project)
-        return [("project", project.config.parameters.get("components", {}).get(self.name, {}))]
+        return [(ConfigurationSource.PROJECT, project.config.parameters.get("components", {}).get(self.name, {}))]
 
     def validate_project_config(self, project):
         """검증을 컴포넌트에 위임하되 Project 저장은 서비스가 담당한다."""

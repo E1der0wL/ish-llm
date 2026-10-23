@@ -1,5 +1,7 @@
 """Draft settings pages with field and action regions."""
 
+from llm.core.configuration_views import EngineConfigurationKey
+
 from llm.services.schema import ProjectConfiguration
 
 from copy import deepcopy
@@ -110,8 +112,9 @@ class ProjectPage(Page):
         engine_schemas = parameters.pop("engines")["properties"]
         engine_catalog = schema.get("x-engines", {})
         from ...backend.project.naming import TITLE_ENGINE
-        self.engine_keys = {name: spec["configuration_key"] for name, spec in engine_catalog.items()
-                            if name != TITLE_ENGINE and spec["configuration_key"] != TITLE_ENGINE}
+        keys = {name: EngineConfigurationKey.from_dict(spec).configuration_key for name, spec in engine_catalog.items()}
+        self.engine_keys = {name: key for name, key in keys.items()
+                            if name != TITLE_ENGINE and key != TITLE_ENGINE}
         schema["properties"].pop("components")
         self.form = SchemaForm(schema, values, screen.t)
         self.component_forms, self.engine_forms = {}, {}

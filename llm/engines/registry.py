@@ -1,5 +1,7 @@
 """Engine 등록과 실행 전 설정 검증을 담당한다. 구체적인 Engine 구현이나 저장소에 의존하지 않는다."""
 
+from llm.core.configuration_views import ConfigurationView
+
 from llm.engines.base import Engine, required_capabilities, steering_mode, agent_mode
 from llm.core.steering import SteeringMode
 from copy import deepcopy
@@ -52,7 +54,7 @@ class EngineRegistry:
                         error = next(Draft202012Validator(spec).iter_errors(supplied[key]), None)
                         if error:
                             raise ValueError(f"Invalid Engine configuration ({name}, {source}): {error.message}")
-            describe = getattr(engine, "resolve_config", None)
+            describe = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
             if callable(describe):
                 try:
                     result = describe(ProjectConfig.from_dict(config), name, session_config=deepcopy(session))
