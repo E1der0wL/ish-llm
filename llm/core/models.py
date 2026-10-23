@@ -650,22 +650,21 @@ class Step:
 
     @property
     def progress(self):
-        from .contracts import OperationProgress
-        value = self.metadata.get("progress")
-        return OperationProgress.from_dict(value) if value is not None else None
+        from .execution_observations import ExecutionObservations
+        return ExecutionObservations.progress(self.metadata)
 
     @property
     def diagnostic(self):
         from .contracts import Diagnostic, ResourceRef
-        value = self.metadata.get("diagnostic")
+        from .execution_observations import ExecutionObservations
+        value = ExecutionObservations.diagnostic(self.metadata)
         if value is not None:
-            return Diagnostic.from_dict(value)
+            return value
         return Diagnostic(StepErrorCode.FAILED, self.error,
             source=ResourceRef(ResourceKind.STEP, self.id, step_id=self.id, run_id=self.run_id)) if self.error else None
 
     @property
     def output(self) -> Optional["EngineOutput"]:
         """Step에 귀속된 공통 결과를 독립된 조회 스냅샷으로 반환한다."""
-        from .results import EngineOutput
-        value = self.metadata.get("output")
-        return EngineOutput.from_dict(value) if value is not None else None
+        from .execution_observations import ExecutionObservations
+        return ExecutionObservations.step_output(self.metadata)

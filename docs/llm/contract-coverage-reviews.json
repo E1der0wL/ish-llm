@@ -34770,5 +34770,1036 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/results.py",
+    "sha256": "3840ced460d184dbe703e80e9e488d037c68acdb1fb28bf89b7e70af0d0ab517",
+    "reason": "Read complete output/delta/reference and Completion receipt/container/result implementation. Dataclass fields define wire; Owner validation reads slot-derived names, required fields remain mandatory, and enum/constraint/default/diagnostic declarations precede implementation. Completion container uses typed identities and Owner validation, preserving finalization, live stored list updates, immutable reservation ID/Step/start/tokens, retained unknown usage and terminal end evidence. Output copies open JSON, preserves identity/sequence/final behavior; query result delegates stored observation fields and TokenUsage aggregation. No additional persisted result or authority is created.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "81af6808b570e7872210a310ca2d0a1d23b1de063472161422a76db1c7a3108b",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "a9d13dfd3791ecaa3ad2f88739184f40cdf4c262c34c4c56dc14b3792c353b60",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "e163d75ca0d81c2d2c1b34e7a8370768ddc26e2eb6798e1d37a327ecb8fca67d",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "14505e5ba20cc608bfb083c6d49064eadb292d10136848a1d27086ad1508a8e2",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "38ac61363b7146d59717dda8aeb96fd9b6ee2321fe639681c10ddcf08e2772ac",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "3c43e96974adbd4e8fec008f01b8f757aa45e371b265d4cf54693090116f482f",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "33dfd15d45696c9013afef295532982b895f0652a69f61215327393d058888e5",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "e6e615236d98f86347c8e53293f797719364c3816098cfa6b2142f1d0f324650",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "e986afc0f4b22c573c3c885a72be1094ebe69d4f76b4ea6a40c415168a3d2769",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "7cf6af2d70d5b6e919b790b43b84cf9154dcd6add2c4315dc1af0f9a50b286a4",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "89a4067ff55b00e8c402737bbdd71b3ada82278eee962d6536f90c3d3e063536",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "7d24ba647cf4f87f6ca0523310fa67f99e3db3d6b5eb7de102f68f6b2a2d2262",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "2aa64378350c94a772e6963822d5cfd5ee4bf2023f7f7143140063265093d98e",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "1a5a65ea2413d37781241956c377e1dc5bfe4642456dc4dd9289fdba31cbc676",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "50f3aab47bb56c98cb71efb3119835d5fef5fcaabbdf94c45f459412124bf896",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "41e1030d82a826091aebee5c5d586c2d28a6752caf3775ea88ab2a38729c91ba",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "501826d1e8e879eb74d1168cb284b2b01832f2c18a24ff389a330699e7f1848a",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "590d093a211d4034c83624ab40154fa00b28f20b32f819d944c312d90832aa80",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "458eff601679d002e60ca4510e2b8068879a45a8f2a500a56b473962f5f83f6f",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python forward type annotation, not a protocol field, discriminator or dynamic reflection key."
+      },
+      {
+        "id": "54c121e7df8486ade88d43f1fd2f9ad12fb9539723488588ac3acf790e9b6e08",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "e4c8a78c936447c36c2da0cd0672d041a8e36e6b7621c69e00694ec1883d1810",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "ea444e00bfde716b1c086ff4faeefd9c841b0ff1015862eaaecebe48a4681dca",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c8f78c79a02d0bcf64b3368f624964b4a8adb2058fa0bafbd8926f36bba3a2c8",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c1206adcc5a4673264bf5e6677c0deac2dd66f71676fcbdd980cb585ccb4390f",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "188543108d73e9f43141431cd0cb07cab98697237e4db742cd88878a4e585f4b",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "a026a90d78e09bae0c2c9c818c9d4e211bb21f9d6ca32ef9a4da23f2c47ed9fd",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "cf976960aa78e0a8884236dd66f127fb5d86e7e7188bc2796ec1ebb8d80e2e8a",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "3b9f710dcfcde5702374e6bcf63c4c483aded244c70d7d5744aa67bf5fc9376d",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "80e1e45fa273abf364e1f9ee1da075f156439d65eb469494637259980867e15c",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python forward type annotation, not a protocol field, discriminator or dynamic reflection key."
+      },
+      {
+        "id": "fc2b974e9a8f1c48170bda24142d0bbb123f5bbc60ed3a59e8c8966816bc18ba",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python forward type annotation, not a protocol field, discriminator or dynamic reflection key."
+      },
+      {
+        "id": "697bc3c2f28218ff24644fecd3d093a72fe1862f966ced26c196c335789eee81",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "7904cb8fa41a59dea68bbf8dde687898cd41653cf8d556cf050df6b91f9b0fcc",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "3e54b8feeca07c71ea78f71833feb4c55613f808a243ec5b54d1ce945f651219",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "f32360c8e169b8b2bbe6074d66cf2f174c754837b13d63a68a682acc1b71f7b3",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "5546f3dda40c342cbc1a5485dd590be2d9a0303ba69abef791a73c605bfcc99a",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "012d4cf623d1e16e1a7a1f2b13e0118fb98e759f86328a834218e34c11d48a05",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "4d177380b2c8a032fe4c8510a0bc2377afc412e7b771c8a96c26fb3627fede5b",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "0f7ed695df8b598070125f0fb21a1df4c0f193d85d44e7d782e4fdc9ffa4b230",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "13efa7a1270320a02e14a74dfc458f33ac93a978c26caf26ce1d0b53cb7b0ba6",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "f42cd3c3ca14abfd71fa536d70ef7d020ecef93bc2518aa524a31a660a85b334",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "cc3425d459145c8fe60b8e289692e6bcfc61753a44c2427913dbd2d19e76ea1e",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "e951ed1462ff32f14a4d9864e6536aa02716efa26e003828b62a9cf72d5a9afa",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "33ea184e5a880fa59f71f274c85fd97eb371602bc026127fa6d08ea5c8a25edc",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "dc11811cc3495b82c4dffa1a4065900c12132210ca53a0123feeedc2075d7dae",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "4bad8bda520c51f90a0c7b21603f3728128bb87a754a63d19e1702bdcd28c62a",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c7e0b83ad76d2c7acfd2afd99b06bc8c146be26b24da03fbcff46e171d94e8d0",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "2a32a2b960fa60452391efaf143d221ddc841ab9d58bdc35ba476015a9e23366",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "cb92dbbba828b957061e9ef7c422ba0560e3370b896e728be7fae7d3a43f6fc2",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "57ca1c5ff1c6d860bddf6801b4e0c2c0502070f177adaedd1dc03011cff27c7e",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "435ae64d27f3ce7450611ff4d3608d93a3bc603deb332baa52dbb393caf09d09",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "88e436c35432f2a959e4eb87ca9ef1561b850b34e08da8bcb5c68a081d0470f6",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "06a40e2d4fb7b6ce02b3a25d4f8ab3cf519bbbc6ee187a35bf1ba5f1ff092533",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "19652f549ec0f53898c6cd9347a2e4d44182749d32e9c6e4f6316c80d0d75b00",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "b46d7c56db660bd855c1be18b1fe046efbb8608c5e1fa730ea4ddf02fb9b8477",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "82fc8b25d0cd2ccfe78a301b063f9f0a4e7f6ac356876259318f9b9da66ac553",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "19d43d26de8cb98c41ec86841b9d11e923262be116bfb6c8cb7725967e863b42",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "48655fc470502988670ad5d67a7a3a4e454df716a3c867babfd76a8b46f94d87",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "38863301a1c2bf64657a32e7da30696a6aa4d81d467d1fca722d91ed116d271c",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "ed71d574e0159af4b5119c9894165ea34681174a63da59ade31eac83e390b602",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "5fba53600bd68a108d43efa790054c22f24cc7ee446786da3589034005b3e8c9",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "f30d08c2d9052fc6e317a350183d228b8987c18ea9ac25475a594e4f4f0ca4b3",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "be11db2b6d4a61c5e61732a90d23c1bad7adb6a6148753d1b8c6be0884e366a0",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c1c2fbe555da6623a911f0e6ab2485c93f9fb158ea931a8991102f09d734590b",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "295c285d17de3922b30859888430fe5ff73df00a053c0740b693504017962e41",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "8441f3128866bebbaedf74b1cf1137b3c2d7ea08b96acc7c5f89f29ffccdc9f8",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "7c90dff41bc277403c5330136f885cc3efa0f8381ecc3252ec3a18144e96eee9",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "d6db6d296efe0636d58d753c257dfc97aaefc689a19022ed306a50bdc557b700",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "ad351893b05ea44a6378d5b9ce29de1e61adf52049ee769e1738cdc984a7f10d",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "2f6eda05676e67a323c888a01c21be8a9395b2688ed300da52d981f800057d31",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "7d26796e9338837568f7ebe2d6e026255196a2607d4a038da018d6d467eb0fb2",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "6d8ec1811d6dedf45f52182dbdcf41c27d9cb48062ab529039dce7d199644dbf",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "535d7cceb5607ab7ca4f747a4c75f5c94fe954d6ee8de58baab60cbc9193cf88",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "bb448a84033848807b288bf1adab03168fea8f0092a8d851417c13342281f2d5",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "eb9e20c5a877f9f2d1cead04a46484759654a0635884a5717f6402817164e50e",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "f32e55629c5f446221fe2e238c660fabe1b6e9f2e0e0fd680d0b8b705f329c6e",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "0875bcb289d3cfbc09af82f9c048d5e3b23c991320892a61283a690f17297f42",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "40c38155cc2aee0288b051c20520f921e88e61b1ea9619bf4304d8fc48d0b347",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "b1f658212080f31e44398ca31cc6ada5c3bf53bf6dc0971e03a2e3ec6cb330c2",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "18b1c1478d0062942b173ab6a3c65aa48e778ad457835c41a889fd3505130c47",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "025bf1c4d74ab074530e2f50a85297fc2d135706b69e8d5d210948e4c4f2081b",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python forward type annotation, not a protocol field, discriminator or dynamic reflection key."
+      },
+      {
+        "id": "bcca8892d8680816d4ebfa8b22be0289c74f00b336e74a2755be133d679e6e66",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "677476bfaf4ae763d116c0aeb0f5f1b1a0215e692fe8975697b36bc661168212",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "a07b5dde53b9a4cd47b9739d96d4ef116aa4595cd8e00a5a64d041bc23370546",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "81d3b9896594b33b9e6de3afd1cd77faff457ad65d443035808fcb44d063a0dc",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c64bb9e695f477ae2ee5aa01084c12393495e5d2c8d7432de5d099e7950f68de",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "f223ef93e7ae0f7a94d6ea84e0d3e36e9403dc53ff1be8309fbaf12aca04a85f",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "eba545a879be87e8d5b9d24c3fcaa03d1d9e70f089584864c3c66b746139391f",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "58f1c86f6df37cc72fcbef437c70a7e96f8da56b6ad2d319867bc8b1667dc525",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "4462c811e0945a08631cfd95d788dbfd1092ea3592d1e4d2065f45decced23a6",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "fd4b62024843f91ead211b32307fc5494fe74bc4ae7e0b7066be15991d4961fc",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "1362ed4fe72ec8bc3ae3ee6c4ff29428396e019bc7dcd29678e6839d3eee310a",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "d6c1baa02cd8d0f0d383f6ef277401dd2fa8d34ada816d102bfe33c305a20c86",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "cc47b62ee479182f0eeff9e265f0db116fcbffa6f9397240a1459419236ccf66",
+        "classification": "declaration",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "d02f7914292934f576d6334cf16f68b931a3d5b611613a4e53ab9e830e2ac964",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python forward type annotation, not a protocol field, discriminator or dynamic reflection key."
+      },
+      {
+        "id": "a32098bf661e52d031d02eaee8dcaa88a471c1fcf5b5fcefe565912565754b5e",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "f3a29130c2959c5663b6519ef4323bc4ba32831e770d73f46785a8d12066e1db",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "a9e220b004c5d3e5c7cb277c31a6af8a93abe1305bf862d6948205dda0814c16",
+        "classification": "non_contract",
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OutputContract / EngineDelta / EngineOutput / ResumeOutput / CompletionResult / CompletionRecords / ExecutionResult",
+        "declaration": "llm/core/results.py",
+        "consumers": [
+          "llm/services/runtime/output.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/lifecycle/steps.py",
+          "llm/services/runtime/usage.py",
+          "llm/services/infrastructure/journal.py",
+          "llm/engines/base.py"
+        ],
+        "tests": [
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_main_domain_optimization.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/execution_observations.py",
+    "sha256": "7ee6aa775354c86c5530f453f4f9a8ce4953c0cfb537071f63650f3add8aca0b",
+    "reason": "Read complete declared observation envelope and typed payload access/writes. The three metadata fields have one Owner; EngineOutput/Diagnostic/OperationProgress remain the payload Readers. Run final output rejects present null while optional Step output/progress/diagnostic retain established null absence; these are distinct public projections, not alternate schemas or compatibility Readers. Raw diagnostic snapshot preserves original absent versus explicit null behavior. Writers serialize only the supplied value and do no file I/O, permission inference or missing-record repair. Protected metadata uses the same declarations, and callers keep existing watch/transaction/ACK ordering.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6757577e1421391330de5571e8843e1087ff9e2663b340ae549718c1f50b89e2",
+        "classification": "declaration",
+        "owner": "ExecutionObservations",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "d5f0029040f9c7895566b001540d7c876d8b7d658b364731fc8dd555871b0068",
+        "classification": "declaration",
+        "owner": "ExecutionObservations",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "36948ec11e6ee93250af076633fb9942ab2d7bcaa4b9c15f2f1f20977daa22ca",
+        "classification": "declaration",
+        "owner": "ExecutionObservations",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "f673ec67dac297052b64d7e13e542073f9dc419a1f20a56396ecabe5920c64bc",
+        "classification": "non_contract",
+        "owner": "ExecutionObservations",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "f6f7b53ace6982e3bba86062db007732f3b2262db02cfab86d1b847ced0b3115",
+        "classification": "non_contract",
+        "owner": "ExecutionObservations",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "14c844814b829bd1918469b306c053d648b435ae5a18e16da3f81b6192a382ef",
+        "classification": "non_contract",
+        "owner": "ExecutionObservations",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "e89759019b53a11bb301c80f834659b74001f2b729d940e80d87ca00d14c54c6",
+        "classification": "non_contract",
+        "owner": "ExecutionObservations",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "295dc50095dfe4729fec81095661f03f45312fadb818f491b3883d50451eaaf0",
+        "classification": "non_contract",
+        "owner": "ExecutionObservations",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "5717d3e0b697a28eec0293cf4cc845c7e9973d7efcd79545cb945d1b343239c5",
+        "classification": "non_contract",
+        "owner": "ExecutionObservations",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "1354c70cc53b071a8bd2c65772ca14ecaceac83d792e5e67c967ae831efb1fc8",
+        "classification": "non_contract",
+        "owner": "ExecutionObservations",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ExecutionObservations",
+        "declaration": "llm/core/execution_observations.py",
+        "consumers": [
+          "llm/core/results.py",
+          "llm/core/models.py",
+          "llm/services/lifecycle/steps.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/events.py"
+        ],
+        "tests": [
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_main_domain_optimization.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/output.py",
+    "sha256": "9c66eaba120b040fcb1bb1437601f10f2304c67615659c916e3d912bcc323b05",
+    "reason": "Read full incremental projection, Run state validation and bounded async batching protocol. Shared output defaults/constraints come from OutputContract; runtime diagnostics/event set and queue protocol names/close method/cancellation collection are declared before methods. Projection applies the same output Owner before mutating buffers; invalid/final/foreign-Step and duplicate result events cannot advance state. Text is materialized only for snapshots, temporary copies release payloads as before. Non-delta ACK barriers, producer task ownership, timed flush, bounded queue, failure propagation and cancellation drain order are unchanged; actual storage/notification/child-process tests protect effects.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ddbfdea8595f60b2755d88bd3724514e55f6e29ec42810fe4e33b47a4c2a8532",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "983766051ccfdf7035dbc3c983edcb045304f4ab21c256937b4190aaffd735f4",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "547bcfb10a9ac697ebc3324e786600776bad030fed75ff73d10736e52da6d438",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "4f04cd8af9c71dcef5942217f80e3ab8030dc9f2f07c048100280da55abb9e0b",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "0f41e9567866447165102a80d0ad2d49c060d0f495594f4c2a20ae8c911ce65d",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "f34e1db457eb08736534020b7448ac98f560dfc1a5f2417d52d8e15c8aed9226",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "cd2bf2feb8becb347ec952b1f14bedfc9f871f95e776a6e94eea52043fa94b00",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "9203c6618fd582e3f8d6733c8a562d5401043db02ce11082de1d1e7bae7d11e5",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "60b506721e997703c9243ba5f365e3abd91a9f0cab5b3644ea39e78c8827c643",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "442e8d899a2096fe60d5a5a2aa93de93c7dfa15a579ccc14cafeab6ba58c18ff",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "64a6b6dbaa11db10e6f1a43278aad4568a535c92702148ccbbafde9486e3f7ae",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "cb58ad00c0514292b09c55964b423e41cd3cc8cc09dc4fa147e7a5410378b90d",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "43689c92e382fd8d90aef8c225f471e45b3d49dd668a93f7bf1f06e42fe5a3c2",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "1d34da6bba631890abc808ff13636ee482717a4d2e758ba1e443c76ecee6788f",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "aa909b94b2b9d7d8cd48ed37bc130bd918b36f842b4ea871ce7bc09c1a2c5edb",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "4527f3211018b0bf20603cf3d63edc2d9ec6c4040f4ed0d70e34013feaa8a3ae",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "ee9a0d19caa363d9585b35e4fb7342870ea934fff07e07a6b376bcedf499cf4c",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "10a0eb0d9816e04a729acd4aa874e526b3ad4b2c8f80967f35f72d7c26362099",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "696ba4169aef1f47ac2b990eb735cd2cb4da1f61c275dd25c809500a5b8506fd",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "dbe6afef07d3c3e7d25013229b3a1f8fc586e95567d7626876135b8a7403c513",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "030ae123b0fb87b95dab22410ea170e0c5fd43bbf473364b768e20a9dd5d4dcf",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "25be78a69e275414ec5263b4a745d731a46e36b0daf6bd4c9798f9cd663121db",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "a87f0bc23872a692105b1324714d16ed4ec95b2696c27848476c63e129ea1a15",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "61d19ca635bfdf785f4c01da7922de1440db0c0ee855d1e88d9a13e545fd8c25",
+        "classification": "declaration",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Owner field/default, enum, metadata/queue protocol, constraint or diagnostic declaration before implementation."
+      },
+      {
+        "id": "06eba5ed7d9aa10fb75f94fe36a56f54b1139829aeb7eb1e6b3a6901d43a0f0c",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "6d2e3b588d29f843185b09de29c4fb2d96c46c07e88a592a1be8381b567227e6",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "644ab5732b88c55475014c3d0097b8dd9513185dec22cf52c4f4b8abc4ad4e84",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "31f1d3bfa3e67113d95d4845cef4758983977302ac53137c49d9be1224d27cc6",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "98b3f89ea35a661fd0b1ef5a77f9d8410d0dc8d4d123230dcba261f41b87d44a",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "fbd33b5e6d70f87dd69c0baa3b72a196add899484aaae865aab896ccb54e4554",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "9094319dc3026b4c03d5609f7415fb6beae22751e661d3ad7d702a8022c5adf1",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "21923f7f55d2a475c25ed3ed64b804451cff39a2af17a513b8775a55b6a6f952",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "07dcc557f05c4bc34f5c3c65348f3566676ace9df01ba0cdfc8a851073959ed8",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Arithmetic successor of the last accepted sequence, not a configured limit/default; durable sequence starts at the OutputContract declaration."
+      },
+      {
+        "id": "3af4546ab55ee5772796d2a9da2546b23854c5ef364c1477cf3b9319396c1557",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "50a5e99ea538cbc8e88122e16db7419eb76f0c10d44719879b884afc2d63174a",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "cc36a032cdc2a7575e1a0d7d6697039b6eec480066750d2936171de5bf6686e5",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "6ab26a2f47c45f9e4400e193896790820a263ac72a4a8f67bca526e5bc61da2c",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "be8b2df16dc41cf7a7f95e24f9109651b4b6d4f0317e8a0cb0f136c70dc51f91",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "49a153d297e03082cec7c7e29c971f7adb80b77a739b2a02c991df03e8d5d051",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "0b444c713eeaed935a6c370456b1aa657c339811f4c5f5802146a2e1b6f104e9",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "b7aa3e1c0ad982037bcaa81c488c7ddba56610b51c619ea75934f847970a1767",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "6e39fd5bd785759b07052b847ac16d2a67fa74ede12c1104977d609105c023ce",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "788602a19e15ba68022aa38e1f57b6fbb531011b29ac704ef95fec539bc27e2f",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "f8a970b9a044651d174f847a08c27a100cf05943c54da703a851b5238b525782",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "f7a3eeed3ca758a3b889db69f64aad604505e85762a2dd2d171e1be4532153f8",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "f398c1dc8ad33dc19a81417486fe2e8a1f7b24bfd5296ca9ceda57a93a76f162",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python unconditional consumer loop or dataclass layout declaration, not an execution policy or stored state."
+      },
+      {
+        "id": "fb6dad05fa273b4102ff0edbbffc299e810080918fa9ce258d92aae4d953ef01",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "c5a56876e8ae600c7145a25835141fdf8d26b3ff555d4779960fae9edaa14cd6",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      },
+      {
+        "id": "6f6d018a62bf3bbe4dda8e675b05ab19308ca55ede91f8a38793cb903b359b70",
+        "classification": "non_contract",
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "reason": "Python absence/type/optional pointer or local queue/error/deadline state. Existing missing-versus-null observation semantics are explicit in the Owner; none of these literals synthesizes a required receipt, quota or output."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OutputProjection / RunOutputState / OutputQueueKind / OutputQueue",
+        "declaration": "llm/services/runtime/output.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/infrastructure/journal.py",
+          "llm/core/results.py"
+        ],
+        "tests": [
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_main_domain_optimization.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

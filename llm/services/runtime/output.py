@@ -5,11 +5,25 @@ from llm.core.results import OutputOperation, OutputVisibility
 
 import asyncio
 from dataclasses import replace
+from enum import StrEnum
 from io import StringIO
 from typing import Union
 
 from llm.engines.base import EngineEventType
-from llm.core.results import EngineOutput, EngineDelta
+from llm.core.results import EngineOutput, EngineDelta, OutputContract
+
+
+class OutputQueueKind(StrEnum):
+    EVENT = "event"
+    ERROR = "error"
+    END = "end"
+
+
+class OutputQueue:
+    ZERO_CHARS = 0
+    NO_WAIT = 0
+    COLLECT_CANCELLATION = True
+    CLOSE_METHOD = "aclose"
 
 
 class OutputProjection:
@@ -26,9 +40,9 @@ class OutputProjection:
     def add(self, value: Union[EngineDelta, EngineOutput]) -> None:
         if isinstance(value, EngineDelta):
             previous = self.states.get(value.output_id) or EngineOutput(
-                value.output_id, step_id=value.step_id, visibility=value.visibility, final=False)
+                value.output_id, step_id=value.step_id, visibility=value.visibility, final=OutputContract.PARTIAL)
             # 빈 본문에 공통 계약을 적용한다. 거부된 이벤트는 버퍼도 변경하지 않는다.
-            updated = previous.apply(replace(value, text=""))
+            updated = previous.apply(replace(value, text=OutputContract.EMPTY_TEXT))
             buffer = self.texts.get(value.output_id)
             if buffer is None or value.operation == OutputOperation.REPLACE:
                 buffer = StringIO()
@@ -36,7 +50,7 @@ class OutputProjection:
                     buffer.write(previous.text)
             buffer.write(value.text)
             self.texts[value.output_id] = buffer
-            self.states[value.output_id] = replace(updated, text="") if updated.text else updated
+            self.states[value.output_id] = replace(updated, text=OutputContract.EMPTY_TEXT) if updated.text else updated
         else:
             self.states[value.output_id] = value
             self.texts.pop(value.output_id, None)
@@ -50,53 +64,69 @@ class OutputProjection:
 class RunOutputState:
     """한 Run의 출력 계약과 누적 본문만 관리한다. 저장·Step 수명·UI 알림은 소유하지 않는다."""
 
+    NO_RESULT = False
+    RELEASED_DATA = None
+    OUTPUT_EVENTS = (EngineEventType.TEXT_DELTA, EngineEventType.OUTPUT, EngineEventType.STEP_COMPLETED)
+    INVALID_DELTA_EVENT = "Delta payload requires TEXT_DELTA without an output"
+    INVALID_OUTPUT_TYPE = "EngineEvent.output requires EngineOutput"
+    MISSING_DELTA = "TEXT_DELTA requires EngineDelta"
+    MISSING_OUTPUT = "OUTPUT requires EngineOutput"
+    INVALID_PAYLOAD_TYPE = "Output payload must be an output data class"
+    INVALID_EVENT = "Output payload is not supported by this event"
+    STEP_MISMATCH = "Output and event Step ownership mismatch"
+    MISSING_STEP = "Step output requires a Step ID"
+    INVALID_IDENTITY = "Output is finalized or changed ownership"
+    INACTIVE_STEP = "Output requires a running Step"
+    PARTIAL_RESULT = "Engine result must be final; use deltas for partial output"
+    DUPLICATE_RESULT = "Run already has a final output"
+
     def __init__(self):
         self._projection = OutputProjection()
         self._visible_text = {}
-        self.sequence = 0
+        self.sequence = OutputContract.INITIAL_SEQUENCE
 
     @property
     def outputs(self):
         return self._projection.snapshot()
 
-    def accept(self, event, active_steps, *, has_result=False):
+    def accept(self, event, active_steps, *, has_result=NO_RESULT):
         """검증된 이벤트와 대화 본문 변경을 반환한다. 호출자는 저장 후에만 알린다."""
         if event.delta is not None and (event.type != EngineEventType.TEXT_DELTA or event.output is not None):
-            raise ValueError("Delta payload requires TEXT_DELTA without an output")
+            raise ValueError(self.INVALID_DELTA_EVENT)
         if event.output is not None and not isinstance(event.output, EngineOutput):
-            raise TypeError("EngineEvent.output requires EngineOutput")
+            raise TypeError(self.INVALID_OUTPUT_TYPE)
         value = event.delta if event.type == EngineEventType.TEXT_DELTA else event.output
         if event.type == EngineEventType.TEXT_DELTA and not isinstance(value, EngineDelta):
-            raise ValueError("TEXT_DELTA requires EngineDelta")
+            raise ValueError(self.MISSING_DELTA)
         if event.type == EngineEventType.OUTPUT and not isinstance(value, EngineOutput):
-            raise ValueError("OUTPUT requires EngineOutput")
+            raise ValueError(self.MISSING_OUTPUT)
         if value is None:
             return event, None
         if not isinstance(value, (EngineDelta, EngineOutput)):
-            raise TypeError("Output payload must be an output data class")
-        if event.type not in (EngineEventType.TEXT_DELTA, EngineEventType.OUTPUT, EngineEventType.STEP_COMPLETED):
-            raise ValueError("Output payload is not supported by this event")
+            raise TypeError(self.INVALID_PAYLOAD_TYPE)
+        if event.type not in self.OUTPUT_EVENTS:
+            raise ValueError(self.INVALID_EVENT)
         if value.step_id != event.step_id:
-            raise ValueError("Output and event Step ownership mismatch")
+            raise ValueError(self.STEP_MISMATCH)
         if event.type == EngineEventType.STEP_COMPLETED and value.step_id is None:
-            raise ValueError("Step output requires a Step ID")
+            raise ValueError(self.MISSING_STEP)
         previous = self._projection.states.get(value.output_id)
         if previous is not None and (previous.final or
                 (previous.step_id, previous.visibility) != (value.step_id, value.visibility)):
-            raise ValueError("Output is finalized or changed ownership")
+            raise ValueError(self.INVALID_IDENTITY)
         if value.step_id is not None and value.step_id not in active_steps:
-            raise ValueError("Output requires a running Step")
+            raise ValueError(self.INACTIVE_STEP)
         value = replace(value, sequence=self.sequence + 1)
         if isinstance(value, EngineDelta):
             updated = value
             event = replace(event, delta=value)
         else:
             if not value.final:
-                raise ValueError("Engine result must be final; use deltas for partial output")
+                raise ValueError(self.PARTIAL_RESULT)
             if value.step_id is None and has_result:
-                raise ValueError("Run already has a final output")
+                raise ValueError(self.DUPLICATE_RESULT)
             # 확정 출력은 이후 델타를 거부할 식별 정보만 유지한다. 큰 결과는 저장소가 소유한다.
-            updated = replace(value, text="", data=None, metadata={})
+            updated = replace(value, text=OutputContract.EMPTY_TEXT, data=self.RELEASED_DATA, metadata={})
             event = replace(event, output=value)
         # 모든 검증에 성공한 뒤에만 상태와 순서를 반영한다.
         self._projection.add(updated)
@@ -105,7 +135,7 @@ class RunOutputState:
         if isinstance(value, EngineDelta) and value.visibility == OutputVisibility.USER:
             self._visible_text[value.output_id] = self._projection.texts[value.output_id]
             change = ((value.text, OutputOperation.APPEND) if value.operation == OutputOperation.APPEND else
-                      ("".join(buffer.getvalue() for buffer in self._visible_text.values()), OutputOperation.REPLACE))
+                      (OutputContract.EMPTY_TEXT.join(buffer.getvalue() for buffer in self._visible_text.values()), OutputOperation.REPLACE))
         return event, change
 
 
@@ -117,7 +147,7 @@ async def consume_events(events, batching, handle):
         return
     # generator 전체를 하나의 asyncio.Task에서 실행해야 timeout/context manager의 소유 Task가 유지된다.
     queue = asyncio.Queue(maxsize=batching.batch_size)
-    buffer, chars, deadline = [], 0, None
+    buffer, chars, deadline = [], OutputQueue.ZERO_CHARS, None
     loop = asyncio.get_running_loop()
 
     stopping = asyncio.Event()
@@ -127,13 +157,13 @@ async def consume_events(events, batching, handle):
         try:
             async for event in events:
                 barrier = None if event.type == EngineEventType.TEXT_DELTA else asyncio.Event()
-                await queue.put(("event", event, barrier))
+                await queue.put((OutputQueueKind.EVENT, event, barrier))
                 if barrier is not None:
                     await barrier.wait()
         except BaseException as error:
             failure = error
         finally:
-            close = getattr(events, "aclose", None)
+            close = getattr(events, OutputQueue.CLOSE_METHOD, None)
             if close is not None:
                 try:
                     await close()
@@ -141,12 +171,12 @@ async def consume_events(events, batching, handle):
                     if failure is None:
                         failure = error
         if not stopping.is_set():
-            await queue.put(("error" if failure is not None else "end", failure, None))
+            await queue.put((OutputQueueKind.ERROR if failure is not None else OutputQueueKind.END, failure, None))
 
     async def flush():
         nonlocal buffer, chars, deadline
         accepted, buffer = buffer, []
-        chars, deadline = 0, None
+        chars, deadline = OutputQueue.ZERO_CHARS, None
         if accepted:
             # handle의 저장 부분만 취소를 drain한다. 관찰 콜백까지 강제로 기다리지 않는다.
             await handle(accepted)
@@ -154,19 +184,19 @@ async def consume_events(events, batching, handle):
     producer = asyncio.create_task(produce())
     try:
         while True:
-            delay = None if deadline is None else max(0, deadline - loop.time())
+            delay = None if deadline is None else max(OutputQueue.NO_WAIT, deadline - loop.time())
             try:
                 kind, event, barrier = await asyncio.wait_for(queue.get(), timeout=delay)
             except asyncio.TimeoutError:
                 await flush()
                 continue
-            if kind == "end":
+            if kind == OutputQueueKind.END:
                 break
-            if kind == "error":
+            if kind == OutputQueueKind.ERROR:
                 raise event
             if event.type == EngineEventType.TEXT_DELTA:
                 buffer.append(event)
-                chars += len(getattr(event.delta, "text", ""))
+                chars += len(getattr(event.delta, EngineDelta.text.__name__, OutputContract.EMPTY_TEXT))
                 if deadline is None:
                     deadline = loop.time() + batching.max_delay
                 if len(buffer) >= batching.batch_size or chars >= batching.max_chars:
@@ -178,5 +208,5 @@ async def consume_events(events, batching, handle):
     finally:
         stopping.set()
         producer.cancel()
-        await asyncio.gather(producer, return_exceptions=True)
+        await asyncio.gather(producer, return_exceptions=OutputQueue.COLLECT_CANCELLATION)
         await flush()

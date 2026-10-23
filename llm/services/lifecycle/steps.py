@@ -1,5 +1,6 @@
 """Step의 시작, 완료, 실패, 중단 상태와 저장을 담당한다. 실제 LLM/Tool 작업은 실행하지 않으며 Engine 이벤트를 저장 상태로 변환한다."""
 
+from llm.core.execution_observations import ExecutionObservations
 from llm.core.models import StepErrorCode
 
 from llm.core.models import ResourceKind
@@ -107,9 +108,9 @@ class StepManager:
         from dataclasses import replace
         ref = ResourceRef(ResourceKind.STEP, step.id, step_id=step.id, run_id=step.run_id)
         progress = step.progress or OperationProgress(ref, status.value)
-        step.metadata["progress"] = replace(progress, phase=status.value).to_dict()
-        if error is not None and "diagnostic" not in step.metadata:
-            step.metadata["diagnostic"] = Diagnostic(StepErrorCode.FAILED, error, source=ref).to_dict()
+        ExecutionObservations.store_progress(step.metadata, replace(progress, phase=status.value))
+        if error is not None and not ExecutionObservations.has_diagnostic(step.metadata):
+            ExecutionObservations.store_diagnostic(step.metadata, Diagnostic(StepErrorCode.FAILED, error, source=ref))
         self.save(step)
         log_event(step.paths.logs, f"step.{status.value}", entity_id=step.id, status=status)
 
@@ -172,8 +173,8 @@ class StepEventRecorder:
         from dataclasses import replace
         from llm.core.contracts import ResourceRef
         metadata = dict(event.metadata)
-        for name in ("progress", "diagnostic"):
-            value = getattr(event, name)
+        for value, store_observation in ((event.progress, ExecutionObservations.store_progress),
+                                         (event.diagnostic, ExecutionObservations.store_diagnostic)):
             if value is None:
                 continue
             ref = value.source
@@ -183,14 +184,14 @@ class StepEventRecorder:
                 raise ValueError("Step observation ownership mismatch")
             bound = replace(ref, step_id=event.step_id, run_id=run.id, session_id=run.session_id) if ref else ResourceRef(
                 ResourceKind.STEP, event.step_id, step_id=event.step_id, run_id=run.id, session_id=run.session_id)
-            metadata[name] = replace(value, source=bound).to_dict()
+            store_observation(metadata, replace(value, source=bound))
         event = replace(event, metadata=metadata)
         if event.type == EngineEventType.TEXT_DELTA:
             return
         if event.step_id is None:
             raise ValueError("Step events require an ID")
         if event.type == EngineEventType.STEP_STARTED:
-            if "output" in event.metadata or event.output is not None:
+            if ExecutionObservations.has_output(event.metadata) or event.output is not None:
                 raise ValueError("A Step cannot start with a final output")
             step = self.manager.create(run, event.kind, event.name,
                                        step_id=event.step_id, metadata=event.metadata)
@@ -199,14 +200,14 @@ class StepEventRecorder:
         step = self.manager.load(run, event.step_id)
         # 최종 이벤트의 결과도 같은 Step에 저장한다. 별도 실행 결과 파일을 만들지 않는다.
         if event.metadata:
-            if "output" in event.metadata:
+            if ExecutionObservations.has_output(event.metadata):
                 raise ValueError("Use EngineEvent.output for Step results")
             JsonObject.validate(event.metadata)
             step.metadata.update(deepcopy(event.metadata))
         if event.output is not None:
             if not isinstance(event.output, EngineOutput) or event.output.step_id != step.id:
                 raise ValueError("Step output ownership mismatch")
-            step.metadata["output"] = event.output.to_dict()
+            ExecutionObservations.store_output(step.metadata, event.output)
         if event.type == EngineEventType.STEP_UPDATED:
             if step.status != StepStatus.RUNNING:
                 raise ValueError("Only running Steps can report progress")

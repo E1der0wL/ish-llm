@@ -1,5 +1,6 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
+from llm.core.execution_observations import ExecutionObservations
 from llm.core.steering_channel import SteeringChannel
 from llm.core.instruction_records import InstructionMessageRecord, InstructionReceipt
 from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringNotification
@@ -1596,7 +1597,7 @@ class RunManager:
             for event in batch:
                 if paused:
                     raise ValueError("Engine emitted events after pause")
-                event, change = outputs.accept(event, active_steps, has_result="output" in run.metadata)
+                event, change = outputs.accept(event, active_steps, has_result=ExecutionObservations.has_output(run.metadata))
                 if event.type == EngineEventType.CHECKPOINT and CheckpointWrite(event.metadata).is_record:
                     # Run 전체 예산은 서비스 스코프가 소유한다. Engine payload를 해석하지 않고
                     # 같은 durable 저장 경계에 스냅샷을 붙여 명시적 재개가 예산을 초기화하지 않게 한다.
@@ -1741,7 +1742,7 @@ class RunManager:
         if (value.visibility == OutputVisibility.USER and (value.text or value.data is None)
                 and store.get(run.assistant_message_id).content != value.text):
             store.delta(run.assistant_message_id, value.text, operation=OutputOperation.REPLACE)
-        run.metadata["output"] = value.to_dict()
+        ExecutionObservations.store_output(run.metadata, value)
         self.repository.save(run)
 
     def _record_completion(self, run: Run, event: EngineEvent) -> None:
@@ -1835,7 +1836,7 @@ class RunManager:
                 if issue.code != outcome.error_code:
                     issue = replace(issue, code=outcome.error_code,
                                     details={**issue.details, "observed_code": issue.code})
-                run.metadata["diagnostic"] = issue.to_dict()
+                ExecutionObservations.store_diagnostic(run.metadata, issue)
             finally:
                 changed = await self._io.run(self._finish, runtime, run,
                                              outcome.status, outcome.error, outcome.error_code)

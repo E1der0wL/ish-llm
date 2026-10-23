@@ -103,6 +103,15 @@ blocker를 재검증한다. `CheckpointLifecycle`은 공통 status/container 투
 
 ## 검토와 실행 분리
 
+`ExecutionObservations`는 Run/Step metadata의 output·diagnostic·progress 필드와 조회/기록
+접근을 소유한다. payload 검증은 EngineOutput·Diagnostic·OperationProgress에 위임한다.
+Run의 최종 output은 필드가 있으면 null을 거부하고, Step의 선택 관찰값은 기존 null/생략
+의미를 유지한다. 서로 다른 투영이 같은 payload Reader를 사용하며 별도 호환 형식을 만들지 않는다.
+필수 output 필드와 Completion 영수증 누락은 복구하지 않는다. CompletionResult의 필드 선언·
+검증·갱신 불변식을 CompletionRecords가 사용하고, 예약 ID/Step/시작/토큰 및 확정 사용량을
+보존한다. 출력의 순서·identity·확정 제약은 OutputContract와 값 타입, 버퍼·ACK·취소는
+runtime 출력 Owner가 소유한다. 조회 관찰과 진단은 실행 권한이 아니다.
+
 `TurnDeletionPlan`은 `session.adelete_turn_plan(request_id)`가 반환한다.
 `source`는 턴의 사용자 메시지 참조, `message_ids`는 삭제 대상, `blockers`는 이를 참조하는
 미완료 체인의 마지막 Run 진단, `revision`은 조회 원본의 변경 식별자다.

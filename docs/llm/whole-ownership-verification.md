@@ -2559,3 +2559,42 @@ failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 source manifes
 이후 발견한 필수 채널 누락 결함과 새 재현 시험은 이 SHA에 없으므로 Push하지 않는다.
 수정한 b9de4c26cdadf72f5bc8459eadabc10ea9966ac6의 gate20을 실행 중이다. 서로 다른 소스의
 성공 결과를 합쳐 현재 전체 통과라고 선언하지 않는다.
+
+
+## llm Completion·출력·저장 관찰 Owner 전체 정리 (2026-10-23)
+
+CompletionResult는 필드 선언에서 저장 키를 파생하며 토큰 유효성은 TokenUsage에 위임한다.
+CompletionRecords의 조회/갱신은 typed ID와 해당 영수증 검증을 사용한다. 예약 정체성·시작 시각·
+토큰 예약·확정 사용량·종료 증거·중복/누락 거부와 실제 저장 목록 갱신 의미는 유지한다.
+OutputContract·EngineDelta/Output·ResumeOutput·ExecutionDuration에 제약/진단/기본값을 선언하고
+자신의 필드 사본은 슬롯 선언을 참조한다. Run/Step metadata의 3개 관찰 필드는
+ExecutionObservations가 소유하며 실제 payload 검증은 기존 타입이 수행한다.
+
+Run 최종 output의 명시 null 거부와 Step 선택 관찰의 기존 null/생략 의미를 구별해 유지한다.
+필수 payload 누락을 복구하거나 새 호환 Reader를 만들지 않는다. Step 기록/종료와 Run 결과/
+오류 기록, 사용자 metadata 보호 집합도 Owner API/선언을 사용한다. 저장 전 watch·잠금·
+트랜잭션·알림/ACK 순서는 유지한다. runtime 출력 전체의 Projection·수명·버퍼·queue/close/
+취소 선언도 정리했으며 느린 전체 본문 복사나 별도 영속 결과를 추가하지 않는다. Hub는 미변경이다.
+
+d8c1ed2 대비 receipt Reader 183/Run 투영 98/갱신 732, container Reader 9/갱신 32/
+upsert 32, delta 67/output 89/apply 120, duration 16, Run output·진단 snapshot 각 7,
+Projection 이력 4, runtime accept 24개가 같은 결과 또는 정확한 예외를 낸다. 실패 후 상태와
+입력 원본도 비교했다. 새로운 독립 시험 3개는 Run/Step의 명시 null·생략, 기존 wire·사본,
+모든 필수 output 필드 누락의 원본 보존을 검증한다(3 pass/exit 0, 0.002초).
+기존 실제 파일/자식 프로세스 중단·출력 ACK·취소 smoke 63개 pass/exit 0(14.664초)다.
+
+- `whole-results-closure-01`: 발견/시작/pass 199/199/199, exit 0, 59.688178초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-results-closure-01/llm.json --modules tests.llm.test_execution_observations tests.llm.test_completion_integrity tests.llm.test_engine_outputs tests.llm.test_output_integrity tests.llm.test_stability_refinement tests.llm.test_operational_storage tests.llm.test_domain_state_integrity tests.llm.test_runtime_reliability tests.llm.test_contracts tests.llm.test_execution_boundaries tests.llm.test_main_domain_optimization tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `17b326f500c4935388f60668c6114da0f2dbe32fff09ed092fc522fa2addfc31`, input `e9f1ba9526f2110b77e17c35190b02bac0e9b6496f609f7cd2fb74376e2332d4`.
+
+- `whole-results-closure-hub-01`: 발견/시작/pass 28/28/28, exit 0, 19.156270초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-results-closure-hub-01/hub.json --modules tests.hub.test_engine_output tests.hub.test_stream_output tests.hub.test_activity tests.hub.test_backend_diagnostics tests.hub.test_error_contract`. source `17b326f500c4935388f60668c6114da0f2dbe32fff09ed092fc522fa2addfc31`, input `e9f1ba9526f2110b77e17c35190b02bac0e9b6496f609f7cd2fb74376e2332d4`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. 고정 Python 3.12.14/
+Clang·Host d833790·의존성·namespace/X11 환경이다. 기존 출력/영수증/실제 효과 Assertion은
+유지했으며 완전한 관련 계약과 공통 안전성·Hub 직접 소비자를 실행했다. 정적 119개 동일,
+바뀐 의존 검토 31개만 갱신했다. 정적·문서·R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다.
+
+전체 읽기/소비/동적 경로를 마친 results, execution_observations, runtime/output 3개만 완료
+처리했다. models·Run/Step/event 서비스는 변경 경로만 검증했으므로 전체 완료로 기록하지 않는다.
+현재 487개 중 미검토 307, 미분류 23642, incomplete
+2개다. Level 2 완료이며 영향 범위의 동등성·실제 효과/실행 검증에 따라
+소단계 전체 회귀를 유예한다. 앞 Checkpoint 변경과 다음 llm 묶음의 gate21에서 전체 통합 검증을
+수행한다. gate20은 이전 b9de4c2까지만 검증하며 현재 결과와 하나의 전체 실행으로 합치지 않는다.

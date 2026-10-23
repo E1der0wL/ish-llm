@@ -1,5 +1,6 @@
 """실행에 영향을 주는 이벤트 처리기와 실행을 관찰하는 구독자를 분리한다."""
 
+from llm.core.execution_observations import ExecutionObservations
 from llm.core.continuations import RestartRecord, ResumeRecord, RunExecutionEvidence
 
 import asyncio
@@ -81,8 +82,8 @@ class EventContext:
     """처리기에 제공하는 Run 문맥. 영속 메타데이터 갱신은 서비스 I/O 경로를 사용한다."""
 
     # Run 시작 시 확정한 정책과 실행/재개 원본은 서비스만 변경한다.
-    _managed_metadata = frozenset(("policies", CompletionRecords.KEY, ResumeRecord.KEY, CheckpointDeclarations.NAMES, "output", SteeringChannel.KEY, "engine_options",
-                                  ResumeAbandonment.KEY, CheckpointDeletion.KEY, RunExecutionEvidence.KEY, RestartRecord.KEY, "diagnostic",
+    _managed_metadata = frozenset(("policies", CompletionRecords.KEY, ResumeRecord.KEY, CheckpointDeclarations.NAMES, ExecutionObservations.Field.OUTPUT, SteeringChannel.KEY, "engine_options",
+                                  ResumeAbandonment.KEY, CheckpointDeletion.KEY, RunExecutionEvidence.KEY, RestartRecord.KEY, ExecutionObservations.Field.DIAGNOSTIC,
                                   AgentBinding.METADATA_FIELD, AgentBinding.CONTEXT_FIELD, AgentBinding.EXECUTION_FIELD))
 
     def __init__(self, run, engine_context, io, repository):
