@@ -339,6 +339,10 @@ class MemoryProcessingConfig:
     def tool_data_record(self):
         return self._value[self.Field.TOOL_DATA]
 
+    @classmethod
+    def for_compaction(cls, options, failure_mode):
+        return {**options, cls.Field.FAILURE_MODE: failure_mode}
+
     def tool_summary_options(self):
         return {key: deepcopy(self._value[key]) for key in self.TOOL_SUMMARY_OPTIONS if key in self._value}
 

@@ -231,12 +231,7 @@ class MemoryComponent(Component):
             sessions.add(summary.session_id)
             source(summary.optional_source)
         from .compaction import Compactions
-        for key, state in Compactions.inventory(project, self)[1].items():
-            if not key.startswith(Compactions.CONTEXTS + "/"):
-                continue
-            messages.update(item["id"] for item in state.get("applied", {}).get("sources", []))
-            if state.get("request", {}).get("status") in Compactions.UNFINISHED_STATES:
-                messages.update(item["id"] for item in state["request"]["sources"])
+        Compactions.collect_history_references(project, self, messages)
         return HistoryReferenceRecord.project(run_ids=sorted(runs), message_ids=sorted(messages), session_ids=sorted(sessions))
 
     def references(self, project):
@@ -244,11 +239,7 @@ class MemoryComponent(Component):
         if not self._has_storage(project):
             return refs
         from .compaction import Compactions
-        for key, state in Compactions.inventory(project, self)[1].items():
-            if key.startswith(Compactions.TOOLS + "/"):
-                request = state["request"]
-                refs.append(StoredResourceReference.from_value(request["reference"], request["id"]).to_dict())
-        return refs
+        return Compactions.resource_references(project, self)
 
     def validate_config(self, data):
         from jsonschema import Draft202012Validator

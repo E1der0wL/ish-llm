@@ -44689,429 +44689,429 @@
   },
   {
     "path": "llm/components/memory/configuration.py",
-    "sha256": "dd0988e5d69fd2bc751a7d872d125b6ef5dc52d9f68999409ea5a93818ac8fa3",
-    "reason": "Read the complete processing/Component configuration Owner, ordered required-field groups, schema, parameter layout, typed readers and Tool destination view. Missing/null/explicit values, copy boundaries, Adapter ownership/validation order, provider handling and exact integer semantics are unchanged. Public Processor schema customization is resolved at its original callback points. Current Component/Data/Session/Tool selection consumers use typed properties; no new implicit model/retry/default/authority. The fixed options projection still in tool_results.py remains explicitly incomplete and will be connected with its Compaction options Owner. Provider schema.py has only its model-field contract moved and is not claimed fully reviewed. Tool result fixed option projection, mode/prompt and opaque destination export now use this Owner; Data destination reads use MemoryToolData. The temporary failure_mode projection in prepare_compaction remains explicitly incomplete until its execution consumer is connected.",
+    "sha256": "6a03bf60ca2c4bc59ccfe10d0544c4fc20b8be1cba8fbd86ff0384f6845c4f2a",
+    "reason": "Read complete declarations and implementations plus changed Component/Data/runtime consumers. Mandatory state/manifest/cursor/source validation has one Owner; storage remains responsible for IO and transaction boundaries. Required lookup order, callback-before-target assignment, exact integer semantics, explicit resume, source/receipt protection, config restoration and original response copies are preserved. Independent normal-path assertions, differential actual-file/coroutine traces and real safety regression results support this classification. Remaining File snapshot container ownership belongs to the later File owner scope, not a second Memory reader.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "5340a68986900a72877622b40852fe1a1ecec58f868eb1ee277d0a566d08289e",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "7856e75b43d2d15e035f51d64157d92b92c2f85dbff2bdbe57b50717b6968c33",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "81f3f19898fa43045b378c2b97580fd6b4bcc9b10959d7346455db59ba7ce593",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "f93f31a39965edf18ffe3d2400817a1af288ffb31c6b32a71e5769eca68d9229",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "cbba7835807b014b51fda0eaa3aad995fab9c7a21e291a754f4c789e4f0e04ad",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "23de101d4b522ca6ccd5af7e31326070880a34d6042369b74980a11a4a587a08",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "87b64f70a391e7462c0f0d0cd40b93c19d60efb790c0b4fd707d5e264495a9cb",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "2c499f5230a7b776659c18205361de10717b2e972e93b5cf9f9abffc140f266d",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "bb7429cdc77b2734db79d883ba6bdec761b3fdd94afd631b868b5e2a81f24d48",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "c67d441458b0973319d5018105beb9575285f0395140f3542701b0ca4df98b0e",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "ec4ae8db8f75f9f0021d8f580cea8168d70f701e9384b51aed000c234040bdd8",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "eb099d874ab7b72cac7e6186c85527bdc1ad1a69c39da6a27a16fb8bd1a9697f",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "eb0678631d5521e9781d5c85cf6069f9c05e6604d3d9b8d77f4a021f750f01a5",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "e7ab7063e737621f3f27a5a1829d61fe91534858235ac0a496cfcbba7218aa9b",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "e23c96bcc58352a4314b5b8bccba5d96abf68fe4b0e81695ce478ae9a464e131",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "b89c11008b85b8072045ffd2e60cf9765018fe356b0d2e1da7020db1d2f26fe1",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "620299ee89f83dc2f165549a89fb8f46fbd394f878d5d8ce42012945e0382a9f",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "4bde00b98e0211f10693992abf6dc290e631952635f65ab5c1c93087e5fc7da0",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "3596ea267e80c4153ed4810afbfa0ad2b42e1ad2cd63ea9d12ba8c4a2fbfb386",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "04a9352540b2eebc92f07b4159f836a1f0dc15afdb7b05a816d814029933a52f",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "249572d61a927cf2b64cd2e2a982f02c7df750348e01af0d3ba689a5e1a155e5",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "40faffd50aa6e6b7fb7714cc79382f13daabaa3a55f98864fce9f8054c7eb21a",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "25542f23e4a772cc626406b2babc6959ad34876634e1626db89593b6b7cd4a7c",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "d46f71a38685925b699a2313f8599651034d67e398af0b5b3a96c77feb4592fb",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "c0a299c40df75e6c43e7aeed97f3a4009e3ce7a5a8a8eabb4b2d75438de4c4a3",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "7a24f794cfc0eff6e9cbbdbb587d0336f2413f63a42a845f7164d1636fc91d8e",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "e8722904e3daa26191289d416a6fd86f72ad701f8ff4507488f929c95c5556e2",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "b03fe420d3bb68d3e16a474b76d4b54f30bfd2aa565622f139fe95495c0166db",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "6fc07a8cf8eb8431dbf62f56af0aa6b5c8bc62f38428969f08249404ff33acdc",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "763a5fe57c8eb5e096b5fae59b993216830ef35a106a43302309e052440c480c",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "cbc146f4fdfa16a6a4044cccc9846e4a3f06641edc0fb42822dd319848eaaea7",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "ee62e62a39cae10e83e664081f69177c77644959abe11f1788f4e6fe37a9f84c",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "1a06601e5667cf64a23bb56818a5d9fabcb36c398f8dd54cc0649b0e22fb53cd",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "28515b6dfcf7d926b899f3c643eac9c16a608c9d21deae751feb94ded63ce22d",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "75d798e72e970de41f01311682252a56833ac891497646a448601bf92b5a205d",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "1e3bc756ed7ad69cde82676c5fc0518fee73873ba40b3f661a6002b8f689cfd9",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "db276844221fc737e4490adac4cdb11275df25e89c53558dd18c630dc970d01d",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "5e16d7a602e61e7c45747ea04e15b5e0a40ea27a1ed5a2eb56d6bfff72e32040",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "4f21af23bb4080f0c955396475facda454bb30307b2d093ffd04712005c2ae64",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "e0cf15d50710543fe88fef5bdd35f43015e50b23f55903b6e9dd3f79d269cb75",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "d16c318bf7930f88c731a0cfd0748bf6d1f5ec999cf7a4e1044cdc3ce2d9f9ff",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "198310ed4ed92f49426bc6aa711c052b2fba67fb7e48e06b9f74e10e337b4660",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "d18432d73482454e05d4493d809fb8a9e7453cf0b4379438930999b2638074b5",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "1016ceeb1119c793df6aaa1e6b6a780b299400357456a689325798f065b17ec1",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "d42850b64f8b1cb3ded7cd61065fd192150305c305c3a1c2731a37de5bf3d18c",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "4b951df8de4f376f5d6b5492ba0e4dfd31e9962d19517a0c6b88ec0a27be635b",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "986521b29b9653b0b46920dc174b26982d485d257484d386fa1611ffd86f58e4",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "6a0c5490eba52ce96fc18454893dd5016eb018386800c2a225f95e6d5f5ab951",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "3d28c8304c76b528352fe98cc83e163310d2a1af7b2602c44f422c3774b49f41",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "d127a7f14eda6150c3e2324d5b6c9f44dd89dae5bc0cfd053621c258cd84c4ae",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "0609b244f6d00e97a7f4019561359278040e2c8fec4984ee9ca493b0f3481c5f",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "4066e9bb6a78f5a213611fd234c3778a2f7e93848b6ab86d2fb3da83084faa73",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
         "id": "9cdd21e09b83f0eb53880016a7cb01a1cd3ba1171bc82f929717113cefef3dcf",
         "classification": "declaration",
         "owner": "MemoryProcessingConfig.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "24a7c2b558e428127f5b2e1525dbc308276781aa062255c58115bf9d3ff561f8",
+        "id": "faad2e3b94a4a847b87387e6905154b20de48cbd0ca477daa2f39dbec5b8df97",
         "classification": "declaration",
         "owner": "MemoryToolData",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "3606626f9561500a53e7c728ed8be23b0f381a4523b164ccdd3bb7148d36222b",
+        "id": "8c3b4eab08dd78e7ea8931f1dcffa49b17517d55721adcb30847d59b78ef4b14",
         "classification": "declaration",
         "owner": "MemoryToolData.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "34c857d443161a52170fc66cfc89df5e2fd69173e58cf1749c462d4a13cccc6d",
+        "id": "d414e7ad9765f35d4f4c937ca065159d1326524054937f949396e212432815a6",
         "classification": "declaration",
         "owner": "MemoryToolData.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "8f3c7ee3548cd1b1d437e1a9d4226dfb215748297aed1c55d9d3a8bf1bf3a72f",
+        "id": "178c1bcfa6d13b89759777269511ce5138468d2de1eaaed10cfee9ca03d1a613",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "fc6be085cff060d37dddb23391902ab9ad4fc32a913a209c65f2e37ac00d80d6",
+        "id": "09ecd1acde2f1e230d5abff4c441a0b2b1626ea12fcf486cf6378d2c52642163",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "23637de9342220c26fc04293263eaea7714d936fbfaae2904f0be420c1db19ed",
+        "id": "90af6895a4113be2c062e6f24033199cd7d2a8d1a5fe0e8454552fcaf4405279",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "f9d480a676c09e479009d99c5d70990bd1c064578cf1baf84fe9205131595f63",
+        "id": "05289bae8723e7071ba637531e0f89cf2dd6e9a2f5de64eafaf5ed5da2262cec",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "9b48711a4455371f232da45fe56ba04f7656860803f4ddf201e88c5e3453e312",
+        "id": "7cf586857253c0562aea4a363ea77e56deced89d1e975d458fe68790bef56261",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "b0b9ddc7b11fc4403b1fc9207dbf55edb188afdc7c2de75c91ee032b6675c219",
+        "id": "e4452821da8888366eca891f2c29cf90ecdbbf58af4d965da398e7b3aa2a6570",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "29bd7e3ccf5a766ba0f14f34a1b7f1ed7df7cad9a008bc79a2df27eb4ccfd535",
+        "id": "c36c0c5f59c811e6f733fb1ddbb689a5ee4c5f3f0aebc1f534943aca5a2c99c9",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "1c26b724c0931c98d73cccaddec577c9b2af63cb82342df1d6c9d45324ed3f91",
+        "id": "d3b0312bfa1b3525138312771740645cae4850d8f99c863c8bbbb3f2fd0c691e",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "8107cd1d94d47e7c30c5f4aa08749a07905e46f4b8b87c345cc5eefac9c53c3f",
+        "id": "59c08a5a46b5ce89a2ffad2d1ee3ffdc4f0c1800e346ab27c15a7ba69a6d577f",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "e7de33bed8a15c97c9f83b7873ba94a6468e465bec1c83fb6d4008ced264b94b",
+        "id": "4d5c0a4401857b6b02246df0f2fbc19c18e2569c3b6473baabedc7b47adb212f",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "8e7466874041cefe7d68f8052c2fbf7ef5ce8dd6ff2a8c040b5eefe41bce5e0b",
+        "id": "33e9f78592e38013c03321c895c2bd3a4aaa4016cb29cd693cc112244428c4df",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "ed342f6ef27efbc19e2b595b4c4c8c5e1d763069ed83b4b29f5cf5f598c8c45a",
+        "id": "e887a9f014a54433088d9f1dfbe857969bcbf533b9b2ccb01ec368df3515e4d2",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "3cf60aa0beeb2b271b681c3066b01a9fa94ff614f90e0c6348e822c891522413",
+        "id": "83e9d93e7e4b6a97be322cb37d631ea68c3d49153e4fa1487709f34cc6ebffce",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "6aa2004fe3f6bafcb392e21f7e4874fc230c203ed742ecfe4dfdd9d45bd89237",
+        "id": "f5f6c0ea62eb40f8fb5139b23f3f09a9d5bdd9d003f4a4c07a732684deb9aec6",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
-        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       }
     ],
     "contracts": [
@@ -45123,20 +45123,24 @@
           "llm/components/memory/data.py",
           "llm/components/memory/processing.py",
           "llm/components/memory/tools.py",
-          "llm/components/memory/tool_results.py"
+          "llm/components/memory/tool_results.py",
+          "llm/components/memory/compaction.py",
+          "llm/components/memory/compaction_values.py"
         ],
         "tests": [
-          "tests/llm/test_memory_processing_config.py",
-          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_memory_compaction_integrity.py",
           "tests/llm/test_memory_processing.py",
-          "tests/llm/test_memory_component.py",
-          "tests/llm/test_provider_choices.py",
-          "tests/llm/test_provider_transport.py",
-          "tests/llm/test_adapter_boundaries.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_memory_manager.py"
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_history_retention.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -45866,309 +45870,439 @@
   },
   {
     "path": "llm/components/memory/compaction_records.py",
-    "sha256": "e73bf1a1845c1ed26e31fa3eb35831283c9c172a238e58b1f73b9854fa30bf6c",
-    "reason": "Read the full Owner/consumer file and affected schema, storage validation, cursor save/resume/finish, Tool pipeline and configuration paths. Stored state has one validation implementation; typed views of already validated storage do not provide a fallback reader. Differential invalid-input/ordering/copy/cause and actual coroutine traces plus real fault/effect tests preserve explicit resume, required cursor and source evidence. CompactionState consumer wiring outside Tool processing is explicitly incomplete; this does not claim all Compactions or Memory is finished.",
+    "sha256": "afe00b367d398efc5c19e407524c95b186e4b04d3335c3caabc7ea7dad7257ea",
+    "reason": "Read complete declarations and implementations plus changed Component/Data/runtime consumers. Mandatory state/manifest/cursor/source validation has one Owner; storage remains responsible for IO and transaction boundaries. Required lookup order, callback-before-target assignment, exact integer semantics, explicit resume, source/receipt protection, config restoration and original response copies are preserved. Independent normal-path assertions, differential actual-file/coroutine traces and real safety regression results support this classification. Remaining File snapshot container ownership belongs to the later File owner scope, not a second Memory reader.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "6c1cf7e1f8c4367ec11026e42efa27bd2ef5ac66f689b1bf7d30d49e9d7d919d",
+        "id": "358a803b01ba8df44d5466b2deff753d9c61220dd71dce3c81354e6f826908dd",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "1c915b9848e9e2aacf3261e1b49445d2a0b5d4e50cfe90eea61e4be6632a9e30",
+        "id": "35decad12566b351c004b06a8c0b89a3f0adb35191db0d467e32e0b45695f6b8",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "eef32194c7b6528762ae0e7755fb99925e670d940be25383aabd3881d89dae28",
+        "id": "7f8034aefb42191f31511455d5edbf2b3de3994b95169f16d9ced703c80f4fe0",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "cb95cba246983e39ab1b4934be939dc60b91712b7f9ada5603e4a64467febfae",
+        "id": "2ac2691eeeeb4bc581cf3ff10258aca5d43d9b2f65b3f2bd8a39669bc140905d",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "ac295a2911c75782643b8b90cb21527467727e86ba981056500de6a26206ea3a",
+        "id": "3f1dae2f219c89dbd8edab4571f89c7485b610e7e0575e986f34c5c8f668859c",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "768b55bde0a5250704c95ee020b6d87d7f88a393eddebb08c89c7438fe8b3c2c",
+        "id": "e669bd936dcfed36c213f3eea30369e47d0898040d535b5d6c572d527a9c6cef",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "5d53cfe9fcba220cefc0c01a2c2ea7cd5e5fe0e66917a9f9e82d0e058099685f",
+        "id": "7cca041f5a1a0cfbd9a889f8df2faf863e15247e34be29fe3cb1e91a43320a98",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "d2b0d7a28b61a0bdba14e5108d63ca194eff9c027f9c948676d6a357725c53b0",
+        "id": "08b9eeb97b9b59334bcd4aa8b971e69fb4e2ddaa7c2d9e204dd3ed198944b1d9",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "63426fdec160af79f883bf49e619942919c3a7b19689a382a580aa905bf20930",
+        "id": "a4b8830a255a5c2deac97409af37a8d45ac716fa04fcbfb40450da4c29167321",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "ce41aef14e7174a60fe6e991e9fa90e454cf720018e30bda46271e7734293e29",
+        "id": "f2971f4cd2493492b228994f8887e7b940b8863baf0ffa9e08a50b4f69db00b7",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "07c8daa238bd6fe17fcfb77d94ff09f43e32c359b37767680205881aac83707f",
+        "id": "605685ff0f84751944b0aae22979c082607565ab8dd7f1a3add4d830a73946af",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "09d59f6ed16b04505b708f05aa47fd428ba5022b0ed078df1eeac6b274de38f5",
+        "id": "b897824208665a2b03a706bacaa75633e3d2fec27ae5d6733b113e9a230085b3",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "7055a8b9ec6dc7b34cefc2507d7dcab52a03434268438dc6abca5f1f48c7f390",
+        "id": "b1b9c2dfae5377760a1dda8e4397fabfa990111d253eb47ff8638f2fec1f20b7",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "9c313638147eeb584798e23b98218ec9e3fca5497a096836c90d9d438f1e81d4",
+        "id": "06df4e37d490e8ebd8b4b9892dfcf8c90784f1c0005fc56f9f39f31fa528cce7",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "98bef8fc7e7e611b09ae05af5584c78020920ef689acd4891a2fcf638a8acb23",
+        "id": "385ed9355e3193dae0440a605d5a075c1b0ff5b8b63d6f0fe459bf3d83c07aaa",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "38ff4dd62f24a4f9401a8fcba4b4cc139c779a320fa8834fecbb5e40003f4079",
+        "id": "f32875f4f284bfbb730a3ceec9f5e91331e973928002a072aa873b5d549b5cd1",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "8f0bc8bf9c49abf7cda1ced61c1317afb2f7b3e6b7f4cf5ddf3283c7ec519c01",
+        "id": "c308e7e27736eeafc6343dcaf0c7e4decfa25f1dae088d94c275576f4f4b71a9",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "926a02ff2da1ddf84f5509f78200c94a549b16c0b3942e21f5074641771cfc13",
+        "id": "567bdd4a24412a3a78f2d8c7084d3c930000bcd732e88928c6f4bbb2eac04460",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "e964e705965e938a3b476bcc4635fefe58b0b08bfc4a9c256ec688c1c676c221",
+        "id": "28ef8adc99f778c3a12d2fb472b003c26c58a25a6a2916ac7825860668d534f9",
         "classification": "declaration",
         "owner": "CompactionState",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "ef0fd36c72df5f92f40ccb7f0acbe29757c0957017696e5705d242847d96384b",
+        "id": "acc0122fd4de4218022f1d4bbde7e4beb856102baa916c7cfeb29d527a9d72a3",
         "classification": "declaration",
-        "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "owner": "CompactionState",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "d9038e35c124beedcb70aec105602c10c6c903721c12fb0129e8375454a3d20f",
+        "id": "11049ec5115c60357fef4534d86fa44caa5b34566a9e046e866ebcff54529d24",
         "classification": "declaration",
-        "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "owner": "CompactionState",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "ef80b78279deb1a1d342de8c8c9ee29b9996d6b5278747473678b41c78ec97a3",
+        "id": "0360965e1ec469a27e3e40102aea02d3ad7a95f67c1a664693b3eb242d069972",
         "classification": "declaration",
-        "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "owner": "CompactionState",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "26ce141bf864b1467f02d5d15b7a673f22a8c41a39627afadaf4bd783c84fd16",
+        "id": "464f9c35b9df13df5cec5eff493c8703f6de1c5b1a464cd8e2f382e2345feb61",
         "classification": "declaration",
-        "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "owner": "CompactionState",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "4e46a3790ef890af3ca31e35115156399bb6d7cce44710a7945425b5e860dd47",
+        "id": "bbce15ac6668706d1b284aba047c7270d9a87925659e3535b614a795d4659625",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "50ea39dc9ff2a5f7ad7bbc8ddc7e1778970ed66996dd44fe9690b51f76da8641",
+        "id": "538bc348689fdd2766811719c50dd441a04eefd0f20a71c952d25866e72d6bf7",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "e38a0954af2f20cdc42829fe963f1781fd87ead5fde5fef0c089fd6ba85837e7",
+        "id": "4bd019dcbf3a09f5c1f3b18732fd36d3fb9505e8e4ad88dd32a865b2f6e4b5e6",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "98315d33e6235102f9bc57b6f3ed7d2b6c86793a167a5f42d2a766904548c854",
+        "id": "c915262d442ba02534accd97cb23a62694adab1912bb480c215ac9ee5b371a2f",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "4d176cb87eb40bd1bb80f0bfe47606249c0381f934f7bb2ebd322b775ebd5d82",
+        "id": "abcb3d5316b83a5006f047521db0db4df2be6394013dced2414648a5bf5a9500",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "3be94489c1b23f7bd632b6ad696886ab1b3f8dddff1ba28c81886a13a6d2a0aa",
+        "id": "b6abb3e580dd2bbdc3942e1dc98b4bfc2b72dc419360883d52039e6543c33b75",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "66fca948e08a9d845b2f4ac13387fe9e81ea23366d2bd863cbb747554be837fc",
+        "id": "91e37496733a768b23780ac7f9f9cb0c6ed7f6dfff1427bd5827200ee4c33a6e",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "ee1f8d41a3cd479ab10b0c287eb2568d513d4bf54a9ff1da910ecd96c20ac386",
+        "id": "cd10d6a2d6578e7ba76a79ed1ac0fc711d7a23da693aa14e42db92914d0ab59c",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "f6fb7af4eba500ec5bcfee26a65d9138db6a03c00ea8749fc890652c136f0767",
+        "id": "547336e7953ad60056a837eb4047ffb62af2e5692b75623ceac23e57809d38b9",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "6b5cfbfc6a3091456ea4e4e4fab047db7ba92c21eebfe2cfbdb07009da9648a7",
+        "id": "26a6acef9f5b5684220f68ad33743ddb0209bff11452abcacab4cb3397c9b131",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "97aaeac3dd682a85d78e9c894bf89fbcd4629ff6c4d46c27eb977bf107f15bc2",
+        "id": "cf7435d071780b1677eec9b2ef4d8e7473dc9d25154a85495f773fb919fbdf2b",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "8d89fe974eedc69dd65c874fdf6546a7b93b19421870575a841e1e63bf6f2634",
+        "id": "065daac885e053c9d456eabd97ddec9a61a783027780d2d3758f114dc765c60f",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "d1be4c1da31ecf3c6212472ff0f1c331896dbed19be9d86eee309511332f68c6",
+        "id": "58e690e0fdcb266533380d77c075add096e4fe9644626c3a0c471ec8c4318be1",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "87287b4aa6a2db40f393c0827d183f1b40dc8f7a312a5cdf50cacf2b1c8bbe00",
+        "id": "7c99d28caf4d03a262e655ce13afbe5c0fbd0dd51b851510604898f640f1b76d",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "011b567d15a4ed55dc9027313cb29234927c616a601a67f04df3ae3df7785608",
+        "id": "4ae6b08adafe89b03be5172786c4d884d51836f7f8719398055c22aebd0c1c37",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "4c3f8ee06ba9e01945b64997f654d851ae93251e196b90e9654d204a8ced67b1",
+        "id": "c4fc630c55ea7094dab1bcfb1a40cc32cd3b4b91471c26e324a06caf7f424276",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "bb32fbb5172f38bb8980b4214197af877485e5c594bfe4887eea89d9c1aecfa7",
+        "id": "03b39d5eb239f5f5c1721905106ae13b27b4beb80ed0d16575952e0a24532988",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "83a9cb475c290d424ae64fa03f8bd80929d18ac0f133d6eef1759a4bc83e9202",
+        "id": "b03cbf8736e58429d70542a60cffbd0adcabf8c5f40f7e4f5dad7b6cfb47a1a4",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "eca6fdd252331cd683da2daf52fa96c8bdaae5ace4d5241c1cc09c089f92d10c",
+        "id": "3df9d2c2e4343e734a69267de1b2084831aa703843ace115cb4c6c0121c91ade",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "9789501669fa6a93e7e448d91558c976506f24a90a4871b5de898173735359a4",
+        "id": "51df45e094a8fa942b1428917c7bb74cfedfd30e85bc5ec14b3f9102d9f22f2a",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "77f002b75c0af85da2a30d647ef24d7555c3777ee39eb078c59324c8426878af",
+        "id": "370ea1a3edb2d3ee6f3e3e2374b7178764421cd8babd8e304db25303f43c91ac",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "6de64a296f0553127fdeaec5467f25d31af9cd837ff6c509d2230be09ea7ef68",
+        "id": "ef561ce98563900e5f5801446db899ff5eacae8f126fdbc17a3a824ac50a41d9",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       },
       {
-        "id": "4111ce27e82b50e1dce58fe14e14fe3cbfc875f4506f8977f336660c5716601f",
+        "id": "bb68224cea998ccce593044df69c87cbb30ae1152ff77c5613dd6464335af45a",
         "classification": "declaration",
         "owner": "CompactionState.Field",
-        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "c4813e15de6c91e9ae777f7767bda3bcf3c4d3c00ab33b1796545e2bb4116462",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "3775e6ac99176b7819eb2f48b9af5f2eb6eef67e7adba34134dcde05707ac5c7",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "e2a7260f3a7aa9a5add68173346a2ae724039db8d71bf3c56952aede96712a04",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "b5a968678fa1984e378baafc19fdc7db9b5ac20b242effdf024b80946436756b",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "52d558b6daa3b056013b9b002577ba311fbccc7d927383f0317af571ce345099",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "a5623893ed7e3f7220a25a1a419142323073880e4089af2b9c18da9164881251",
+        "classification": "declaration",
+        "owner": "CompactionSource",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "59e682f02c35a2f491925bea0ce4f4bae73f77e5df7b1ac51c5798553523991a",
+        "classification": "declaration",
+        "owner": "CompactionSource",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "3357207178324a5d1a42caaf9343c7941592af026631c04e73000acfb04c249d",
+        "classification": "declaration",
+        "owner": "CompactionSource",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "13488c0d1c6d46e8fa1464f9e61d9c5e08eda29de171453d3f6eb4fe78e3176e",
+        "classification": "declaration",
+        "owner": "CompactionSource",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "ea11eff44cfb074f2238b264b3117f0daeff0bbd962ef0e49eb6bcf3383960a2",
+        "classification": "declaration",
+        "owner": "CompactionReference",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "dbb866a434560a93a765cd7b29c1c3c17051c2087118110b15d17b8d5af69358",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "f70f9a58236ace657cdb2da8d99349a76a87e21ead51eb01fd7c080c38b2944d",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "4d29f28ea1d23acdfc11bddb682501a38dd5271f9ae88ecaa3ac20e2400e04b8",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "24d453dc332e6c703f3d2645d43b271c5e52cd91666ef03d1d3054d1c8846020",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "5c2409737d37e25f19b2582967f9b1451066e5087c1b1d42a9bd0afb41137488",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "b31ac9525c80d80ea8baea63a02e6b817bd9cbabb5420e2aa3adf12cf14cdc91",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "946543b824c4ee92ec28be94a20a8abaf3f2c3a10df53dc2e02f5c937d42c648",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "3171828ba87d74f2135eaeeafc3e7ac6d9c3f6b96a848d73e4ba32d28cd421c1",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "75e9c9497bd0c913a6879d66e2de7cbb4e481827749d86f35b9947f03ed326ad",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "090cb1d30b78dcf3b96e2051f4c5c7565af295648b8b1b14de00f9001c4de28f",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "0175904c3c8dc48aa35e7634425d440e82f0156ab715f011aecd5d3414b0336a",
+        "classification": "declaration",
+        "owner": "CompactionSourceRead",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
       }
     ],
     "contracts": [
       {
-        "owner": "CompactionState / CompactionRequest / CompactionApplied",
+        "owner": "CompactionState / Request / Applied / View / Source / Reference / SourceRead",
         "declaration": "llm/components/memory/compaction_records.py",
         "consumers": [
           "llm/components/memory/compaction.py",
           "llm/components/memory/data.py",
           "llm/components/memory/component.py",
           "llm/components/memory/tool_results.py",
-          "llm/components/memory/tool_result_values.py"
+          "llm/components/memory/tool_result_values.py",
+          "llm/components/memory/compaction_storage.py"
         ],
         "tests": [
           "tests/llm/test_large_data.py",
           "tests/llm/test_memory_compaction_integrity.py",
           "tests/llm/test_memory_processing.py",
           "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_data_component.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/hub/test_summary_api.py",
           "tests/hub/test_provider_recovery.py",
-          "tests/hub/test_rag_retention.py"
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_history_retention.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -46402,6 +46536,747 @@
           "tests/hub/test_summary_api.py",
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/compaction_storage.py",
+    "sha256": "618e06667455fd637bc854eb65bf4aaa179fa4e9322b9bc1a1514d4cdc131984",
+    "reason": "Read complete declarations and implementations plus changed Component/Data/runtime consumers. Mandatory state/manifest/cursor/source validation has one Owner; storage remains responsible for IO and transaction boundaries. Required lookup order, callback-before-target assignment, exact integer semantics, explicit resume, source/receipt protection, config restoration and original response copies are preserved. Independent normal-path assertions, differential actual-file/coroutine traces and real safety regression results support this classification. Remaining File snapshot container ownership belongs to the later File owner scope, not a second Memory reader.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "391e4d9bd8c912fdb0a03850b8f7982e055e8ef8cdf59da6b09b2102b4703140",
+        "classification": "declaration",
+        "owner": "CompactionManifest",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "0c31fb6b29be2771c3672bf7101a0fc866c44110440cf6aad57696833c37b786",
+        "classification": "declaration",
+        "owner": "CompactionManifest",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "a8b953aa344c367b705ff213ba2a9ad146a041dec1a722ecf43cbe7640a89041",
+        "classification": "declaration",
+        "owner": "CompactionManifest.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "788adee0c7fd5cd8ad1e18c3c92512ce72ed04c4dd6d5d7caf7bcae829236679",
+        "classification": "declaration",
+        "owner": "CompactionManifest.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "dc0624330a1e98295c8088a79f4de2b00a6d2f6a1b8a25e66fa780a8b01ee28a",
+        "classification": "declaration",
+        "owner": "CompactionManifest.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "572bb80d00c0d0c24eddbab7c26c161b5602551dfb0d4c1a9babc77d7683be47",
+        "classification": "declaration",
+        "owner": "CompactionManifest.Field",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "84f67092698dc0da8aeab85d5bb52806799b7fe96be5c26df077a0f9d2e9fba2",
+        "classification": "declaration",
+        "owner": "CompactionInventoryEntry",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompactionManifest / InventoryEntry / Inventory",
+        "declaration": "llm/components/memory/compaction_storage.py",
+        "consumers": [
+          "llm/components/memory/compaction.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_history_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/compaction_runtime.py",
+    "sha256": "7a22aebbfb10403fdf7fc715000975ae06cb85dad28f670602e9cc5a201ff639",
+    "reason": "Read complete declarations and implementations plus changed Component/Data/runtime consumers. Mandatory state/manifest/cursor/source validation has one Owner; storage remains responsible for IO and transaction boundaries. Required lookup order, callback-before-target assignment, exact integer semantics, explicit resume, source/receipt protection, config restoration and original response copies are preserved. Independent normal-path assertions, differential actual-file/coroutine traces and real safety regression results support this classification. Remaining File snapshot container ownership belongs to the later File owner scope, not a second Memory reader. The fixed summary instruction still mentions the shared summary reply field; canonical reply declarations and parser integration in components/summarization.py remain explicitly incomplete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b93f4098e7960f5ebfbc760b15653e0e3d375c1f49e012047811ad2cc9af717c",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "f48606f2d2a8d6c58c5740a6d8c8b03c720665525d928902632fc3bdb91533ed",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "ceae7aadc73718572644340da59b45cf54e86b31db78822d1e34472333556982",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "f9b0f780e2c9b54c1e8cc95dde287205063c9b8605e200fcae74d830d41bcdbe",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "f91b038ac5c1f60fa435c8826dae7cb7ac472610ff36f76ac0418082de877964",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "0eb6fc7acfebacb5194e804764506f2b70e2da336398d09d191da6bec9788ac6",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "33290e17912a0d637d086a57a468373a42921a4ceb72e343a83301f3e6c559d6",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "d15a5df630a5287b6a290057c30da47deeba8b81b806e425a07d87f1480117cb",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "7466aa1c940ea8521452dd79a368cbb4e4e3b5a70039999e9a543381f505e63d",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "b85b2ce92607ddebdcab629592edaaae314f7dc1de42b97460c7f06ab31080b7",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "36fa5c5b35cf74e41ee296646863a366e8945e56fec7a058f31bb8186b29b6d1",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "de1eb8bf44c34c07143160e0e887a18a9d4b4ed1c4efa16c048eb58a2e591521",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "ffa94450c932e001d9ccd0215eba1390fcee43400943e66a8412f36a09ae796f",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "02e11c30abd6c7668ba5c1296861833001ddb954d015ac879e75b550ed482b38",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "7d1370cfa9ff970d8af43e153f2dc8cf47dd5cd765bca2f98e4fbf21b5a38f52",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "06a0271cc142e5897d83c3118804a86d6051169105a11a904183084555f919d9",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "8c8328c92467e82a240efeca4cc5cfc43d8bb3a2442c99abda112004a9d9a018",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "f7ffba18dde12ec622977db872339f700a2aabafe5c94e2ea3e0c68765a419eb",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "8517017fa61eb8ffd5450989346ef0e9e3db075747149aa43257b401a9eaf006",
+        "classification": "declaration",
+        "owner": "CompactionExecution",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "9fbdfcb8304e7c48f33f34d678cb448fa8c4c0d1f447146e1e2e6237440bf5d6",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "afe88fd63908da4ac84021161a80290fb183a65cdc7622b1adf29e24d3a445ff",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "924c3aa6170890720b2bbd6fd4b790083626083d5486bb43f0d4585464077320",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "778e36ddb5a4a6365d6156b686deb3d5e2f8d17aadb980a296cb138bff58f923",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "13194242f47aa0b4d2342fe07bb82a7816ccfed77dc7f473c0e9792927f24e6e",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "620c334c735f35eb6dd60b93ff9385507cac6d29c84ad72c4252a98896dbc50b",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "3c48e685fdc625796848f9d34aff5b1aedba082a17db32b3456dc00caf3aa2fa",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "a7d6ac3889fbc519ba2b733cf03e397fa56b37fe041fecdec472a6f6329560db",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "fd43f2d03b8694a83b749daccae7cc7c760c47d5488c8d0e7370a8c5eb5c6aa5",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "103713b9f0ebc11b528c20bc7cf80c3ca0859e506997c88735acbecffc9c06a9",
+        "classification": "declaration",
+        "owner": "CompactionOutcome",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "2b4d0eaf0552a8679742d535a0ea5205ed019c84f68736c0b59cdfaa95f1a66f",
+        "classification": "declaration",
+        "owner": "CompactionOutcome",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "1c0a9e943cb0f02ffcc0cd5d4b6c5474bb61e4557a3fc560b0f0e3d197ca7faa",
+        "classification": "declaration",
+        "owner": "CompactionOutcome",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "4f103573316cfaf540115b4ecde9cea699af2a9b6d4e9850adfdab921fa6e9dd",
+        "classification": "declaration",
+        "owner": "CompactionOutcome",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "4eca759e9fa1e919db8d572c2e77302fcc4c33def7b73b6c65befd51be68d752",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "e32352b923b8e213204a7f5cc0943c8223fec0308f739943c5aa1d168179bb8e",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "02e06daedc18ff5173499ef34cced28104761f2dfe443151ee184e0c29985eae",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "68d6594a105ef14adf7da6b9fa4b648d7a8101e29f26b68c26329fbbc462a934",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "a4b12345ff5803cd917c7931b6247317198d9c7bb857d643a623e52e30a7685e",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "127d18bd29ec75fd1ecead1afd9e8a5f9dedfec8d1a9221e9ad7a11b64c23016",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "e9dcc57d92a80a3a1b4c8c82913c737c79d92e939c0b572d573035ec598435c4",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "d9066af06353a5f025126ccb4224fc7f40769fd68560286f3fe0388a4ffc0ddb",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "fd08ea66faf105663e7dc74a9f0c055fd6ea7661b73edfb4ca801d1a0ec49781",
+        "classification": "declaration",
+        "owner": "CompactionObservation",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Compaction execution/input/outcome/observations; shared summary reply follow-up",
+        "declaration": "llm/components/memory/compaction_runtime.py",
+        "consumers": [
+          "llm/components/memory/compaction.py"
+        ],
+        "tests": [
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_history_retention.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/compaction.py",
+    "sha256": "0d366b97617c3df96c68d9fe84c5010f76c20f110f0d76ac92a961b907003dfa",
+    "reason": "Read complete declarations and implementations plus changed Component/Data/runtime consumers. Mandatory state/manifest/cursor/source validation has one Owner; storage remains responsible for IO and transaction boundaries. Required lookup order, callback-before-target assignment, exact integer semantics, explicit resume, source/receipt protection, config restoration and original response copies are preserved. Independent normal-path assertions, differential actual-file/coroutine traces and real safety regression results support this classification. Remaining File snapshot container ownership belongs to the later File owner scope, not a second Memory reader.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "441b6bb71437b187ecc02fc6048046200456b69903735f50292605771f8f310b",
+        "classification": "non_contract",
+        "owner": "turns",
+        "reason": "Internal last-element/list partition index or boolean predicate return. It is not a setting, stored/wire value, policy default, status or sizing limit."
+      },
+      {
+        "id": "bbd182911baac316f1e71e7e32065801df9d95f57dfcf5b59616af501377c2db",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "0a28c95a1a3d78d0facd04657dd2432f77bb5bd55bb4ece459624192a83c0f0a",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "0816897b48099ab5e07c215245ba446ee3d8da8c898594b2dba298b826586dee",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "8b612b8ab9adacd082109ac118318a40265e85055b44eba4b840744399338bc0",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "fcf1a788731717b851e466402697129fb7d9a747e154ac8c59b2bd63f0938900",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "f10025de5f3ff97620e861ff0314f96cb94bbb10eedc47c4de4b24198cf3909c",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "003d1c40911537e11d8ea83884df405ac8f00beb99ecd9b81d7f9a9603b5f96c",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "c54f842c17059cf8e807e215d3d21eee3267b995b2a15581306b587baea46270",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "2be81b2a01000291d83f40b6df276fa82c7a33f3a61dff4e0c5a793879903827",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "e5bda3886875088cc71869dfaeb1c6819dd24da349202e978ca82c5ef456c325",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "750923bd139785621d8aafe4afe0bf06812867e59e0d47367a26d3264b3590a4",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "221c381763a0732419b89e224ca3b690891eefb18c45d0145be17259bd41584b",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "0a1569813af52d62905180d83ee5d786e7ecda6f4a4b548b2c19449e19128c52",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "d6bb816a730e72ce8f4d629410afe166dbd8696c0e3cbcd75bc06c9f1438700b",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "e53cf687f0b5f3da2ee10fb90b54fe17f8918df9d12b0c19e89b3a872ce24db6",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "64ba3322d808bbeb342d5cb45be5f668b3fbc684fbd1d039a33dbef288456697",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "7eb4324343d3b09ea7c957fdad4b2c88ca4858fcbcf3022c5fbd370618fd0dd2",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "223dd7ec4876efd276e6dd12848fbd97ef87960f6b6e3b788f25cfe917d13cee",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "24b29a9de0667fe99ac3213273f93c54c12bc40b52f20e0d2e54e56c6c630582",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "a4a287e90c3813dc2d2a850072d44e75d07143c24034897e525faa35039767c8",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "0ad8aa7e178c34bf54519b72344c35687f93e301ed181542eeb234e1027df720",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "de3cc12b171f471226fbe0650ae65d3a8871bdea24edc6dd5c0ddfd4c96de0af",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "58350521c786618edb101ba92cac72e5344e5463858c8aa9b3f3f06388373a87",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "edf05663b722ea75e6f9c76ee58e4bfd49ed0bcaf9ebaa2483e343fb1bc31315",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "95b272724b3ee8f5211288f5ed1224a885044ac420919391bbef065593a3aae1",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "054ceca725bcca7fa62351debad51de972da7c02a051ea8eb50106372de8b501",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "3e5d3ada6ead9c2cf532f0cf2eaee7a7a8b3bbc2333a9b7005f8b9ce1fdec9e1",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "2e3436b862c70b966768b5dcd9ef3cbc03e6ab84fad0acf79193e8dd78681ab6",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "846e3d44f72ac30993f8a40dbada298b03dcd29ad4d279d8776eb0ccb8a303c6",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "8a35b5f5dd9d5a49b33705ad86beef91788f65cfd847e5086ef966def0b23785",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "8a3092e8769263e92048ad7b0b262247329d3422a686185bd508dbf62d6dedf3",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "d75c52c57261f8cc38c622418ba0c74dffce2ecd2f4c45fd3b9123a227e185f9",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "40b5dbd208fcc2a5e3af3d5c2d20f7f91fac377b14927a13aae345be6458e9e3",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "1a46977be8d9f9799843820d2a65b2ce75e805de830b6cf9bf4dc1faa5bcb534",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "5a49db071e4e98759bf4f204b5f0b90929c152ea30912809d1f4d4839a0163af",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "8874fb54eb4659c7b87edaefff2279cc40cffc175c976d2b7661773fad9de133",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "497b091492da71f627c51aeb6ae40b338625a023cebf4314ec4becee10c9ec02",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "d6260025a553f09b664af3f29f4ed0bd27abbffca13597f385546df6ab3ce1b8",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "ee1eb2c62482f0ddf4123b82608962b9caeea2dc4be502d2f54536d3a4902592",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "5154b71686c8a7c2d51485ff7c33b408a848eaf74fed4a5010debc7fffdf2c99",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "d9c92f77d5459b9676565da613f328e4adc995f2453ceadfa4f2b0696290ddfa",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "afc68f4b5a77fcc0a37bb30b865dc3ed6303cbae3a8d9b8e840f3ec92cd2888d",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "81a4d125a74e6ba374d3d5683d50741ebe1f0cd24d63ac6db7473421d968d80a",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "fde4ab489ab7e37a537cffb73fa05eaffaf6e0a68642415e9f50c64dfc35f45a",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "011300657b294189ae5eb0b3652e8189051da006a617dd24cae63340fd229478",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "9f44f8a1931e96c5281bb3ac66a87c4cc9d5d344d8d68f5be362278d5ec40842",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "b0afa48b87fdd7a563c29cdd310ae248a2a5e40a766c9ee255521aba7299411f",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "c1ad5311b10de17ba097025ec0cd40e34820a2e87efe6e0a6eb3a5c26365b4d8",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "c1403c0f8e5fdecc801cc5eaf1f386b3f7e63c8906e1b8632ac5e486c9e2c822",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "04e6cf09e0d919f179f1416bfd18f503609ddd48c38f22407822c045dfc487f9",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "d67e9c633e521231bc81dd04fb86975a1dcf024d0d272ccc49dfc3f0a89a58ce",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "3c41646013d040842c2a5937233b6b887f808663742c660bf0d9c8506a65a221",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "b13175bbf616145436d144f231bdf1c3e9ccdf780da2234f03050117ca0faa81",
+        "classification": "declaration",
+        "owner": "Compactions",
+        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+      },
+      {
+        "id": "d4c1912ebf7a5e8385e8be262f177ee6721154629a3cf412a4a9448ce06b4b1e",
+        "classification": "non_contract",
+        "owner": "Compactions.initialize",
+        "reason": "Internal last-element/list partition index or boolean predicate return. It is not a setting, stored/wire value, policy default, status or sizing limit."
+      },
+      {
+        "id": "28ff0f07b540725cb272721cc49c018436ecc9cb02f8016b438d61c2e8804b7b",
+        "classification": "non_contract",
+        "owner": "Compactions.initialize",
+        "reason": "Internal last-element/list partition index or boolean predicate return. It is not a setting, stored/wire value, policy default, status or sizing limit."
+      },
+      {
+        "id": "8878b05e8185f2426644863b5d7323dafdd837cc2b3e80da7b2c72a1cd7479ac",
+        "classification": "non_contract",
+        "owner": "prepare_compaction.apply",
+        "reason": "Internal last-element/list partition index or boolean predicate return. It is not a setting, stored/wire value, policy default, status or sizing limit."
+      },
+      {
+        "id": "6d87044f77bcb56f34a0d00cee66952058b4079a4383639aa649c35fb907b228",
+        "classification": "non_contract",
+        "owner": "prepare_compaction.apply",
+        "reason": "Internal last-element/list partition index or boolean predicate return. It is not a setting, stored/wire value, policy default, status or sizing limit."
+      },
+      {
+        "id": "f90af5296a174cd6576006f843bfda8095df7974cc4774a963ec0d90bc77c1c0",
+        "classification": "non_contract",
+        "owner": "prepare_compaction.apply",
+        "reason": "Internal last-element/list partition index or boolean predicate return. It is not a setting, stored/wire value, policy default, status or sizing limit."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Compactions storage and explicit compaction execution",
+        "declaration": "llm/components/memory/compaction.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/processing.py",
+          "llm/components/memory/tool_results.py",
+          "llm/components/memory/configuration.py"
+        ],
+        "tests": [
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_history_retention.py"
         ],
         "complete": true
       }

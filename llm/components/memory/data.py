@@ -8,6 +8,7 @@ from .records import MemoryRecord
 from .configuration import MemoryConfiguration, MemoryToolData
 from .extraction import MemoryExtractionPrompt
 from .compaction_values import SummaryCheckpoint
+from .compaction_records import CompactionState, CompactionApplied, CompactionReference, CompactionSourceRead
 from .history import MemoryHistory
 from .sources import MemorySource
 from .tool_values import MemoryToolArguments, MemoryToolDefinition
@@ -132,16 +133,16 @@ class MemoryData(ComponentData):
         from .compaction import Compactions
         storage = Compactions(self, session_id, scope, tool_id=tool_id)
         state = storage.read()
-        request = state.get("request", {})
-        if request.get("id") != identifier or request.get("status") != Compactions.PENDING:
+        request = CompactionState(state).optional_request
+        if request.optional_identifier != identifier or request.optional_status != Compactions.PENDING:
             return False
         try:
-            storage.check_sources(request)
+            storage.check_sources(request.to_record())
         except ValueError:
-            request.update(status=Compactions.STALE, error="Summary source changed")
+            request.finish(Compactions.STALE, CompactionState.SOURCE_CHANGED)
             storage.write(state)
             return False
-        request.update(status=Compactions.RUNNING, run_id=run_id)
+        request.start(Compactions.RUNNING, run_id)
         storage.write(state)
         return True
 
@@ -150,27 +151,27 @@ class MemoryData(ComponentData):
         from .compaction import Compactions
         storage = Compactions(self, session_id, scope, tool_id=tool_id)
         state = storage.read()
-        if state.get("request", {}).get("id") != identifier:
+        if CompactionState(state).optional_request.optional_identifier != identifier:
             if applied is not None:
                 from .compaction import CompactionStopped
-                raise CompactionStopped("Summary request was replaced")
+                raise CompactionStopped(CompactionState.REQUEST_REPLACED)
             return
-        if state["request"]["status"] == Compactions.CANCELLED:
+        if CompactionState(state).request.status == Compactions.CANCELLED:
             if applied is not None:
                 from .compaction import CompactionStopped
-                raise CompactionStopped("Summary cancelled before publication")
+                raise CompactionStopped(CompactionState.CANCELLED_BEFORE_PUBLICATION)
             return
         if run_id is not None:
             storage.require_running(state, identifier, run_id)
         if applied is not None:
-            storage.check_sources(state["request"])
-            checkpoint = state["request"].get("checkpoint")
+            storage.check_sources(CompactionState(state).request.to_record())
+            checkpoint = CompactionState(state).request.checkpoint_record
             if (checkpoint is None or SummaryCheckpoint(checkpoint).offset != SummaryCheckpoint(checkpoint).total_chars
-                    or SummaryCheckpoint(checkpoint).summary != applied["summary"]):
-                raise ValueError("Cannot publish an incomplete summary")
-        state["request"].update(status=status, error=error)
+                    or SummaryCheckpoint(checkpoint).summary != CompactionApplied(applied).summary):
+                raise ValueError(CompactionState.INCOMPLETE_PUBLICATION)
+        CompactionState(state).request.finish(status, error)
         if applied is not None:
-            state["applied"] = applied
+            CompactionState(state).apply(applied)
         storage.write(state)
 
     @workspace_locked
@@ -184,23 +185,23 @@ class MemoryData(ComponentData):
         from .compaction import Compactions
         storage = Compactions(self, session_id, scope)
         state = storage.read()
-        state["view"] = view
+        CompactionState(state).observe(view)
         storage.write(state)
 
     def _read_source(self, reference, *, offset, limit):
         """Use the selected file owner's public snapshot/read contract, never its paths."""
-        if type(offset) is not int or offset < 0 or limit is not None and (type(limit) is not int or limit < 0):
-            raise ValueError("Source ranges must be nonnegative integers")
+        CompactionSourceRead.validate_range(offset, limit)
+        selected = CompactionReference(reference)
         from llm.services.infrastructure.storage import revision_token
-        files = self.related(reference["component"])
-        snapshot = EditableSnapshot.read(files.snapshot(reference["identifier"]))
-        info = snapshot.data.get("files", {}).get(reference["path"])
-        if info is None or revision_token(info) != reference["revision"]:
-            raise ValueError("Summary source file changed; the saved reference is stale")
-        if limit == 0:
-            return ""
-        text = files.read_file(reference["identifier"], reference["path"], expected_revision=snapshot.version).decode("utf-8")
-        return text[offset:] if limit is None else text[offset:offset + limit]
+        files = self.related(selected.component)
+        snapshot = EditableSnapshot.read(files.snapshot(selected.identifier))
+        info = snapshot.data.get("files", {}).get(selected.path)
+        if info is CompactionSourceRead.NO_EVIDENCE or revision_token(info) != selected.revision:
+            raise ValueError(CompactionSourceRead.STALE_FILE)
+        if limit == CompactionSourceRead.VERIFY_ONLY:
+            return CompactionSourceRead.EMPTY_TEXT
+        text = files.read_file(selected.identifier, selected.path, expected_revision=snapshot.version).decode(CompactionSourceRead.TEXT_ENCODING)
+        return text[offset:] if limit is CompactionSourceRead.TO_END else text[offset:offset + limit]
 
     @workspace_locked
     def _prepare_tool_summary(self, session_id, identifier, text, options, destination, mode, call_id):
@@ -209,21 +210,22 @@ class MemoryData(ComponentData):
         storage = Compactions(self, session_id, None, tool_id=identifier)
         state = storage.recover()
         if state:
-            storage.check_sources(state["request"])
+            storage.check_sources(CompactionState(state).request.to_record())
             return state
         selected = MemoryToolData(destination)
         files = self.related(selected.component)
         snapshot = EditableSnapshot.read(files.snapshot(selected.identifier))
-        path = f"tool-results/{session_id}/{identifier}.txt"
+        path = CompactionReference.path_for(session_id, identifier)
         if path in snapshot.data.get("files", {}):
             raise ValueError("Source file already exists without a summary request")
         snapshot = EditableSnapshot.read(files.write_file(
             selected.identifier, path, text, expected_revision=snapshot.version))
-        reference = {**destination, "path": path, "revision": revision_token(snapshot.data["files"][path])}
-        state = {"request": {"id": identifier, "status": Compactions.APPLIED if mode == Compactions.REFERENCE else Compactions.PENDING,
-            "mode": mode, "options": deepcopy(options), "reference": reference, "tool_call_id": call_id}}
+        reference = CompactionReference.create(destination, path, revision_token(snapshot.data["files"][path]))
+        state = CompactionState.tool_request(identifier=identifier,
+            status=Compactions.APPLIED if mode == Compactions.REFERENCE else Compactions.PENDING,
+            mode=mode, options=options, reference=reference, tool_call_id=call_id)
         if mode == Compactions.REFERENCE:
-            state["applied"] = {}
+            CompactionState(state).apply({})
         storage.write(state)  # Source + reference share the workspace transaction.
         return deepcopy(state)
 
@@ -253,13 +255,13 @@ class MemoryData(ComponentData):
     def resume_compaction(self, session_id, *, expected_revision, scope=None):
         """Requeue the same immutable request and validated cursor; never resume a Tool effect."""
         from .compaction import Compactions
-        return Compactions(self, session_id, scope).change(expected_revision, "resume")
+        return Compactions(self, session_id, scope).change(expected_revision, Compactions.RESUME)
 
     @workspace_locked
     def cancel_compaction(self, session_id, *, expected_revision, scope=None):
         """Cancel pending work or reject an in-flight result at its next save boundary."""
         from .compaction import Compactions
-        return Compactions(self, session_id, scope).change(expected_revision, "cancel")
+        return Compactions(self, session_id, scope).change(expected_revision, Compactions.CANCEL)
 
     aresume_compaction = async_method(resume_compaction)
     acancel_compaction = async_method(cancel_compaction)
@@ -277,36 +279,29 @@ class MemoryData(ComponentData):
         """List saved result transformations, without loading the source text."""
         from .compaction import Compactions
         project, component = self._current()
-        from llm.components.base import validate_name
-        validate_name(session_id)
-        prefix = Compactions.TOOLS + "/" + session_id + "/"
-        result = []
-        for key in sorted(Compactions.inventory(project, component)[1]):
-            if key.startswith(prefix):
-                identifier = key.removeprefix(prefix).removesuffix(".json")
-                result.append(Compactions(self, session_id, None, tool_id=identifier).view())
-        return result
+        return [Compactions(self, session_id, None, tool_id=identifier).view()
+                for identifier in Compactions.tool_summary_ids(project, component, session_id)]
 
     @workspace_locked
     def read_source(self, session_id, identifier, *, expected_revision, offset, limit):
         """Read a character range of a pinned Tool/MCP source in the owning Session."""
         from .compaction import Compactions
         state = Compactions(self, session_id, None, tool_id=identifier).read()
-        reference = state["request"]["reference"]
-        if reference["revision"] != expected_revision:
-            raise ValueError("Source revision changed")
-        return {"text": self._read_source(reference, offset=offset, limit=limit),
-                "offset": offset, "reference": deepcopy(reference)}
+        reference = CompactionState(state).request.reference_record
+        if CompactionReference(reference).revision != expected_revision:
+            raise ValueError(CompactionSourceRead.CHANGED_REVISION)
+        return CompactionSourceRead.create(self._read_source(reference, offset=offset, limit=limit),
+                                          offset, reference)
 
     @workspace_locked
     def resume_tool_summary(self, session_id, identifier, *, expected_revision):
         from .compaction import Compactions
-        return Compactions(self, session_id, None, tool_id=identifier).change(expected_revision, "resume")
+        return Compactions(self, session_id, None, tool_id=identifier).change(expected_revision, Compactions.RESUME)
 
     @workspace_locked
     def cancel_tool_summary(self, session_id, identifier, *, expected_revision):
         from .compaction import Compactions
-        return Compactions(self, session_id, None, tool_id=identifier).change(expected_revision, "cancel")
+        return Compactions(self, session_id, None, tool_id=identifier).change(expected_revision, Compactions.CANCEL)
 
     @workspace_locked
     def delete_tool_summary(self, session_id, identifier, *, expected_revision):

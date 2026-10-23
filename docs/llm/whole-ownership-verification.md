@@ -4163,3 +4163,83 @@ Configuration/추출·Tool과 이번 압축 묶음의 현재 통합 소스에 �
 실제 namespace 검사를 실행할 수 있는 바깥 셸 권한을 사용한다. 새 group31은 이 설명을 반영한
 고정 SHA에서 환경 검사를 먼저 통과시킨 뒤 전체 LLM/Hub를 실행한다. Level 2의 앞선 185/17,
 136/25 pass는 해당 집중 실행 결과로 보존하며, namespace 전체 게이트 통과 증거로 재해석하지 않는다.
+
+
+## llm 압축 저장·관리·실행 소비자 연결 — Level 2
+
+기준 570ecb6 이후 Compactions가 경로·manifest·현재 상태를 해석하고, Component/Data는 공개
+참조/목록 API와 typed State/Request/Reference/SourceRead를 소비한다. manifest는 정확한 버전
+타입·Project/Component·선언 목록을 검증하며 원래 파일 쓰기·삭제·manifest 확정 순서를 유지한다.
+inventory는 tuple 호환 named tuple이다. 단일 조회·정렬·view 복구 순서를 유지했다.
+Source hash 계산 callback을 모두 마친 다음 현재 Request의 저장 대상을 다시 조회해 대입하는
+원래 순서도 보존했다. 새 복구·자동 재시도·기본값·호환 Reader는 없다.
+
+명시 압축 실행의 prior/pending/applied/outcome와 입력·관측·문맥 view 조립을 Owner에 연결했다.
+취소·부분 결과·토큰 상한·원문 복원·Session.config finally 복구는 그대로다. 임시 failure_mode
+Projection도 MemoryProcessingConfig가 소유한다. SourceRead는 문자 범위·revision·조회 응답
+사본을 소유한다. Data File snapshot 안의 files 필드는 File 소유권 후속 작업으로 남기며,
+추가 load를 만드는 list_files 호출로 기존 snapshot revision 경계를 바꾸지 않았다.
+
+중간 소스의 실제 집중 시험: 상태 소비자 2 pass/3.874초, inventory/참조/읽기 횟수 11 pass/22.895초,
+재열기·명시 resume/읽기 횟수 2 pass/11.143초, 각각 exit 0. 이 실행들은 아래 최종 소스의
+Level 2와 별도 기록이다. 변환 과정의 구문/들여쓰기 오류는 compile 검증에서 발견해 수정했으며
+실패한 변환 상태를 기능 검증 통과나 완료로 집계하지 않았다.
+
+외부 `PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/memory-compaction-storage-draft/equivalence.py`
+exit 0: key/거부 순서 48, 실제 inventory 손상·원본 파일 보존 51, 파일/manifest 쓰기 순서·실패 12,
+Data claim/finish 바인딩·거부 시 쓰기 0 검증 192, Component 참조 3, 정렬 목록/단일 조회 3,
+실제 prepare coroutine의 토큰·취소·원문/config 복원·wire 160, 실제 summary coroutine의
+cursor/progress/payload/오류 순서 20, 원본 문자 범위·revision·probe 시 읽기 0 검증 180,
+공개 source 응답 사본 6개가 기존 구현과 같다.
+정상 경로가 실제 완료/발행/문자 slice에 도달함을 독립 기대값으로도 확인했다. 초기 비교 probe의
+progress 인자 인덱스 오류는 수정 후 전 범위를 다시 실행했으며 초기 probe는 최종 증거로 사용하지 않는다.
+
+- `whole-memory-compaction-storage-01`: 발견/시작/pass 148/148/148, exit 0, 287.155337초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-compaction-storage-01/llm.json --modules tests.llm.test_large_data tests.llm.test_memory_compaction_integrity tests.llm.test_memory_processing tests.llm.test_memory_processing_config tests.llm.test_resource_references tests.llm.test_data_component tests.llm.test_history_retention_integrity tests.llm.test_naming_contract tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `9d6a61191b28db0c828fd18d0251c968b19f8b4b2a4c374706f837a5c7eaa9ed`, input `420fc3e28f91d5be32b22f9e16665e2c1e2c49730bcb606ac84e6a36891e5979`.
+
+- `whole-memory-compaction-storage-hub-01`: 발견/시작/pass 31/31/31, exit 0, 93.112874초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-memory-compaction-storage-hub-01/hub.json --modules tests.hub.test_summary_api tests.hub.test_provider_recovery tests.hub.test_rag_retention tests.hub.test_history_retention`. source `9d6a61191b28db0c828fd18d0251c968b19f8b4b2a4c374706f837a5c7eaa9ed`, input `420fc3e28f91d5be32b22f9e16665e2c1e2c49730bcb606ac84e6a36891e5979`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+Python 3.12.14/Clang·Host d833790와 고정 의존성/Fixture, 실제 namespace를 사용할 수 있는
+셸 권한에서 실행했다. 대용량/Memory 처리·설정, 실제 파일 원본·참조/삭제·중단 복구,
+공통 승인·예산·효과·Checkpoint·RAG·수명 안전성과 Hub 공개 관리/복구/참조를 포함한다.
+기존 시험·Assertion은 수정하지 않았다.
+
+정적 finding 110→111: CompactionManifest.validate의 정확한 int 검사가 선행하는 버전 비교
+한 위치가 S4로 추가 검출됐다. bool/null/누락/오류 버전 거부와 실제 파일 보존 근거로 그 위치만 검토한다.
+compaction.py의 59후보 중 53개는 선언, 6개는 목록 인덱스·내부 predicate 반환값이다.
+파일 전체와 동적 조율 경로를 검토했다. 상수 키 치환만을 완료로 보지 않으며 실제 모든 저장·실행
+소비자를 typed API에 연결했다. 모델 요약 응답의 공통 선언은 summarization 후속 범위로 추적한다.
+전체 Memory/llm과 File snapshot Owner는 아직 미완료다.
+
+이번 검증은 Level 2다. 570ecb6의 group31 전체 게이트와 이 새 소스의 결과를 섞지 않는다.
+이후 관련 변경을 묶어 다음 Level 3를 수행한다. 새 저장/실행 정책 변경 없이 한정된 이동임을
+비교·실제 장애 시험으로 입증했으며, 입증하지 못하는 안전성 변화는 즉시 전체 게이트로 승격한다.
+
+압축 저장 묶음 후속 감사: `python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`
+16 pass/3.161초/exit 0, `check_architecture`·`check_docs` exit 0,
+`check_budget_mutation` exit 0(의도한 한도 제거 2건을 실제 효과 Assertion으로 검출).
+518파일, 미검토 280, 미분류 후보 19,833, 미완료 계약 7, stale/issues 0이다.
+
+## group31 전체 게이트와 정확한 SHA Push
+
+고정 checkout `/workspace/ish-llm-group31-validation`의
+`570ecb6c609803c95a6185ce822ed4e6df1eba8f`에서 전체 검증을 완료했다.
+실제 명령은 `python -m tests.llm.run_regression --suite llm|hub --output <suite>.json`이며
+각 정확한 argv·exit·전체 발견 목록은 `b/whole-owners-group31-l3/*-execution.json`과 suite JSON에 보존했다.
+
+- LLM: 발견/시작/pass 2,491/2,491/2,491, exit 0, 1445.900279초.
+- Hub: 발견/시작/pass 588/588/588, exit 0, 1108.791225초.
+- 각 failure/error/skip/xfail/xpass/누락/추가/중복 0. source/input 전후 동일.
+- source `eb07f7d4a7eebeed9d13ea1bc9e2be1a62bc640b90da47eb8710722159b7e370`,
+  input `23fcfac02cbd11d6049108714953a1ff68e5aee204e2e4434f0e000a310b305e`.
+- 동일 SHA의 S1–S7 정적 감사, 문서, R3 mutation, 실제 Provider 환경, LLM/Hub namespace·X11
+  필수 환경 검사 모두 exit 0. 전체 시작 전에 환경 검사를 통과했다.
+  `whole-ownership/group31-auxiliary/results.json`에 정확한 명령을 보존했다.
+
+보호 ref를 읽기 전용으로 확인한 뒤
+`git push origin 570ecb6c609803c95a6185ce822ed4e6df1eba8f:refs/heads/refactor/llm-clean`
+exit 0으로 6b2a10a→570ecb6을 Push했다. main 94229cb, refactor/llm-backend bb094625와 Draft PR #1은 변경하지 않았다.
+원격 [CI run 40037971329](https://github.com/E1der0wL/ish-llm/actions/runs/40037971329)의
+head SHA가 570ecb6 전체 SHA와 일치한다. 2026-10-23T23:09:02Z 조회에서 필수 LLM/Hub Job 모두
+진행 중이며 아직 원격 성공을 선언하지 않는다. 이후 압축 저장 변경의 Level 2 결과는 이
+전체 게이트에 포함되지 않으며, 다음 관련 묶음의 Level 3 대상으로 유지한다.

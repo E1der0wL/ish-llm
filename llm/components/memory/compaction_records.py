@@ -4,8 +4,10 @@ Compactions retains storage, transactions and the source/cursor validation callb
 """
 
 import re
+from copy import deepcopy
 from jsonschema import ValidationError
 from llm.components.base import validate_name
+from llm.services.infrastructure.storage import revision_token
 from .compaction_values import CompactionOptions, SummaryCheckpoint
 
 
@@ -13,6 +15,10 @@ class CompactionState:
     ABSENT = None
     MINIMUM_COUNT = 0
     REVISION_PATTERN = r"[a-f0-9]{64}"
+    SOURCE_CHANGED = "Summary source changed"
+    REQUEST_REPLACED = "Summary request was replaced"
+    CANCELLED_BEFORE_PUBLICATION = "Summary cancelled before publication"
+    INCOMPLETE_PUBLICATION = "Cannot publish an incomplete summary"
     INVALID_STATE = 'Invalid stored compaction state'
     INVALID_CONTEXT = 'Invalid stored compaction context'
     INVALID_TOKENS = 'Invalid stored compaction token count'
@@ -31,6 +37,7 @@ class CompactionState:
     INVALID_APPLIED_CONTENT = 'Invalid applied summary content'
 
     class Field:
+        CONTEXT = 'context'
         VIEW = 'view'
         REQUEST = 'request'
         APPLIED = 'applied'
@@ -140,9 +147,39 @@ class CompactionState:
                 raise ValueError(cls.INVALID_APPLIED_CONTENT)
 
 
+    @classmethod
+    def describe(cls, state):
+        return {cls.Field.REVISION: revision_token(state), cls.Field.CONTEXT: deepcopy(state.get(cls.Field.VIEW)),
+                cls.Field.REQUEST: deepcopy(state.get(cls.Field.REQUEST))}
+
+    @property
+    def has_observed_view(self):
+        return bool(self._value.get(self.Field.VIEW))
+
+    @property
+    def view(self):
+        return CompactionView(self._value[self.Field.VIEW])
+
+    def request_context(self, identifier, status, options, selected):
+        self._value[self.Field.REQUEST] = {self.Field.ID: identifier, self.Field.STATUS: status,
+            self.Field.OPTIONS: deepcopy(options), self.Field.SOURCES: [item for group in selected for item in group]}
+
+    @classmethod
+    def scope_identity(cls, scope):
+        return {cls.Field.SCOPE: scope}
+
+    def collect_history_references(self, messages, unfinished_states):
+        messages.update(CompactionSource(item).identifier for item in self._value.get(self.Field.APPLIED, {}).get(self.Field.SOURCES, []))
+        if self._value.get(self.Field.REQUEST, {}).get(self.Field.STATUS) in unfinished_states:
+            messages.update(CompactionSource(item).identifier for item in self._value[self.Field.REQUEST][self.Field.SOURCES])
+
     @property
     def request(self):
         return CompactionRequest(self._value[self.Field.REQUEST])
+
+    @property
+    def previous_applied(self):
+        return CompactionApplied(self._value.get(self.Field.APPLIED))
 
     @property
     def has_applied(self):
@@ -151,6 +188,22 @@ class CompactionState:
     @property
     def applied_record(self):
         return self._value[self.Field.APPLIED]
+
+    @property
+    def optional_request(self):
+        return CompactionRequest(self._value.get(self.Field.REQUEST, {}))
+
+    def observe(self, view):
+        self._value[self.Field.VIEW] = view
+
+    def apply(self, applied):
+        self._value[self.Field.APPLIED] = applied
+
+    @classmethod
+    def tool_request(cls, *, identifier, status, mode, options, reference, tool_call_id):
+        return {cls.Field.REQUEST: {cls.Field.ID: identifier, cls.Field.STATUS: status,
+            cls.Field.MODE: mode, cls.Field.OPTIONS: deepcopy(options), cls.Field.REFERENCE: reference,
+            cls.Field.TOOL_CALL_ID: tool_call_id}}
 
 
 class CompactionRequest:
@@ -166,14 +219,219 @@ class CompactionRequest:
         return self._value[CompactionState.Field.STATUS]
 
     @property
+    def reference_record(self):
+        return self._value[CompactionState.Field.REFERENCE]
+
+    @property
     def reference_revision(self):
-        return self._value[CompactionState.Field.REFERENCE][CompactionState.Field.REVISION]
+        return CompactionReference(self.reference_record).revision
+
+    @property
+    def run_id(self):
+        return self._value[CompactionState.Field.RUN_ID]
+
+    @property
+    def options_record(self):
+        return self._value[CompactionState.Field.OPTIONS]
+
+    @property
+    def options(self):
+        return CompactionOptions(self.options_record)
+
+    @property
+    def sources(self):
+        return self._value[CompactionState.Field.SOURCES]
+
+    @property
+    def stored_sources(self):
+        return self._value.get(CompactionState.Field.STORED_SOURCES, [])
+
+    @property
+    def has_reference(self):
+        return CompactionState.Field.REFERENCE in self._value
+
+    def checkpoint(self, checkpoint):
+        self._value[CompactionState.Field.CHECKPOINT] = checkpoint
+
+    def set_stored_sources(self, values):
+        self._value[CompactionState.Field.STORED_SOURCES] = values
 
     def to_record(self):
         return self._value
 
+    @property
+    def optional_identifier(self):
+        return self._value.get(CompactionState.Field.ID)
+
+    @property
+    def optional_status(self):
+        return self._value.get(CompactionState.Field.STATUS)
+
+    @property
+    def optional_run_id(self):
+        return self._value.get(CompactionState.Field.RUN_ID)
+
+    @property
+    def checkpoint_record(self):
+        return self._value.get(CompactionState.Field.CHECKPOINT)
+
+    def finish(self, status, error):
+        self._value.update({CompactionState.Field.STATUS: status, CompactionState.Field.ERROR: error})
+
+    def start(self, status, run_id):
+        self._value.update({CompactionState.Field.STATUS: status, CompactionState.Field.RUN_ID: run_id})
+
 
 class CompactionApplied:
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def summary(self):
+        return self._value[CompactionState.Field.SUMMARY]
+
+    def __bool__(self):
+        return bool(self._value)
+
+    @property
+    def sources(self):
+        return self._value[CompactionState.Field.SOURCES]
+
+    @classmethod
+    def context(cls, text, combined, source):
+        return cls({CompactionState.Field.SUMMARY: text,
+                    CompactionState.Field.SOURCES: CompactionSource.unique(combined),
+                    CompactionState.Field.SOURCE: source})
+
+    def to_record(self):
+        return self._value
+
     @staticmethod
     def from_summary(text):
         return {CompactionState.Field.SUMMARY: text}
+
+
+class CompactionView:
+    def __init__(self, value):
+        self._value = value
+
+    @staticmethod
+    def create(*, run_id, scope, iteration, tokens, max_tokens, reserve_tokens, turns):
+        f = CompactionState.Field
+        return {f.RUN_ID: run_id, f.SCOPE: scope, f.ITERATION: iteration, f.TOKENS: tokens,
+                f.MAX_TOKENS: max_tokens, f.RESERVE_TOKENS: reserve_tokens, f.TURNS: turns}
+
+    @property
+    def turns(self):
+        return self._value[CompactionState.Field.TURNS]
+
+
+class CompactionSource:
+    ID = CompactionState.Field.ID
+    DIGEST = CompactionState.Field.DIGEST
+    REVISION = CompactionState.Field.REVISION
+    REVISION_PATTERN = CompactionState.REVISION_PATTERN
+    ABSENT = None
+    INVALID_LIST = "Invalid compaction source list"
+    INVALID_IDENTITY = "Invalid compaction source identity"
+    DUPLICATE = "Duplicate compaction source"
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def validate(cls, value, hash_field):
+        if not isinstance(value, list):
+            raise ValueError(cls.INVALID_LIST)
+        identifiers = set()
+        for source in value:
+            if (not isinstance(source, dict) or source.keys() != {cls.ID, hash_field}
+                    or not isinstance(source[hash_field], str)
+                    or re.fullmatch(cls.REVISION_PATTERN, source[hash_field]) is cls.ABSENT):
+                raise ValueError(cls.INVALID_IDENTITY)
+            identifier = validate_name(source[cls.ID])
+            if identifier in identifiers:
+                raise ValueError(cls.DUPLICATE)
+            identifiers.add(identifier)
+        return identifiers
+
+    @classmethod
+    def signatures(cls, messages):
+        return [{cls.ID: m.source_id, cls.DIGEST: revision_token(m.message.to_dict())} for m in messages]
+
+    @classmethod
+    def stored(cls, sources, read_revision):
+        return [{cls.ID: item[cls.ID], cls.REVISION: read_revision(item[cls.ID])} for item in sources]
+
+    @classmethod
+    def unique(cls, sources):
+        return list({source[cls.ID]: source for source in sources}.values())
+
+    @property
+    def digest(self):
+        return self._value[self.DIGEST]
+
+    @property
+    def identifier(self):
+        return self._value[self.ID]
+
+    @property
+    def revision(self):
+        return self._value[self.REVISION]
+
+
+class CompactionReference:
+    SOURCE_PATH = "tool-results/{session}/{identifier}.txt"
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def path_for(cls, session_id, identifier):
+        return cls.SOURCE_PATH.format(session=session_id, identifier=identifier)
+
+    @staticmethod
+    def create(destination, path, revision):
+        return {**destination, CompactionState.Field.PATH: path, CompactionState.Field.REVISION: revision}
+
+    @property
+    def component(self):
+        return self._value[CompactionState.Field.COMPONENT]
+
+    @property
+    def identifier(self):
+        return self._value[CompactionState.Field.IDENTIFIER]
+
+    @property
+    def path(self):
+        return self._value[CompactionState.Field.PATH]
+
+    @property
+    def revision(self):
+        return self._value[CompactionState.Field.REVISION]
+
+
+class CompactionSourceRead:
+    TEXT = "text"
+    OFFSET = "offset"
+    REFERENCE = CompactionState.Field.REFERENCE
+    MINIMUM_OFFSET = 0
+    MINIMUM_LENGTH = 0
+    PROBE_OFFSET = MINIMUM_OFFSET
+    VERIFY_ONLY = MINIMUM_LENGTH
+    TO_END = None
+    NO_EVIDENCE = None
+    EMPTY_TEXT = ""
+    TEXT_ENCODING = "utf-8"
+    INVALID_RANGE = "Source ranges must be nonnegative integers"
+    STALE_FILE = "Summary source file changed; the saved reference is stale"
+    CHANGED_REVISION = "Source revision changed"
+
+    @classmethod
+    def validate_range(cls, offset, limit):
+        if type(offset) is not int or offset < cls.MINIMUM_OFFSET or limit is not cls.TO_END and (type(limit) is not int or limit < cls.MINIMUM_LENGTH):
+            raise ValueError(cls.INVALID_RANGE)
+
+    @classmethod
+    def create(cls, text, offset, reference):
+        return {cls.TEXT: text, cls.OFFSET: offset, cls.REFERENCE: deepcopy(reference)}
