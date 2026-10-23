@@ -33,6 +33,7 @@ class OutputOperation(StrEnum):
 
 class OutputContract:
     EMPTY_TEXT = ""
+    NO_DATA = None
     INITIAL_SEQUENCE = 0
     PARTIAL = False
     FINAL = True
@@ -91,7 +92,7 @@ class EngineOutput:
     INVALID_FIELDS: ClassVar[str] = "Stored output requires all current fields, including output_id"
     output_id: str = field(default_factory=new_id)
     text: str = OutputContract.EMPTY_TEXT
-    data: Any = None
+    data: Any = OutputContract.NO_DATA
     step_id: Optional[str] = None
     visibility: str = OutputVisibility.USER.value
     metadata: dict = field(default_factory=dict)
@@ -109,6 +110,10 @@ class EngineOutput:
         copied = deepcopy(copied)
         object.__setattr__(self, data, copied[data])
         object.__setattr__(self, metadata, copied[metadata])
+
+    @property
+    def has_data(self):
+        return self.data is not OutputContract.NO_DATA
 
     def apply(self, delta: EngineDelta) -> "EngineOutput":
         """UI/저장소가 공유하는 증분 적용 규칙. 중복·역순과 소유자 변경을 거부한다."""

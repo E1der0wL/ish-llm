@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 492,
+    "files": 493,
     "unreviewed_files": 294,
     "stale_files": 0,
-    "unclassified": 22512,
+    "unclassified": 22423,
     "violations": 0,
-    "incomplete_contracts": 4,
+    "incomplete_contracts": 5,
     "unreviewed_dynamic_paths": 296,
     "unreadable_files": 0,
-    "candidates": 28379,
+    "candidates": 28321,
     "issues": 0
   },
   "files": [
@@ -2266,7 +2266,7 @@
     {
       "path": "llm/core/results.py",
       "status": "reviewed",
-      "sha256": "3840ced460d184dbe703e80e9e488d037c68acdb1fb28bf89b7e70af0d0ab517",
+      "sha256": "788299f90d78eeab39b85470b1a2c819ee1ad25925fe15267c7ee8bc369a5a3a",
       "candidates": 97
     },
     {
@@ -2372,10 +2372,16 @@
       "candidates": 13
     },
     {
+      "path": "llm/engines/agent_values.py",
+      "status": "reviewed",
+      "sha256": "54cf203e9cad4ddb1bb298dda0e02646fe468b06385581dc33f1fab6313190ea",
+      "candidates": 31
+    },
+    {
       "path": "llm/engines/agents.py",
       "status": "unreviewed",
-      "sha256": "91d4465887e4ebca6b86b1ed02d5a1056879a0bdadc302ed7526717d61e66519",
-      "candidates": 250
+      "sha256": "4e824e180b6a17456311a54dcba202d9fcb6368ae5c8b414a01e5c5f937692a6",
+      "candidates": 161
     },
     {
       "path": "llm/engines/base.py",

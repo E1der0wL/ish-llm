@@ -27,11 +27,13 @@ from llm.core.results import EngineOutput
 from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime, ToolUsageError
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode, agent_mode
 from llm.core.steering import SteeringMode
-from llm.core.schema import object_schema, field
 from llm.engines.registry import EngineRegistry
 from .graph.engine import _GraphPause
 from .graph.checkpoints import EngineCheckpointScope
 from .agent_resources import AgentResourceResolver
+from .agent_values import (AgentNodeDefinition, AgentExecutionBinding, AgentStepMetadata,
+                           AgentInvocationIdentity, AgentInvocationBinding, AgentExecutionRevision,
+                           AgentOutputValue)
 
 
 from llm.core.agent_views import AgentDefinitions
@@ -51,17 +53,16 @@ class AgentExecution:
     resumable_container = True
     selection_binding = True
     USAGE_FIELD = "agent_usage"
-    AGENT_ID_FIELD = "agent_id"
 
     @classmethod
     def step_agent_id(cls, step):
         """Read this execution Owner's top-level Step selection for deletion guards."""
-        return step.metadata.get(cls.AGENT_ID_FIELD)
+        return AgentStepMetadata.selected_id(step.metadata)
 
     @staticmethod
     def agent_references(node):
         """The action owner interprets its stored selection without resolving an Engine."""
-        return (AgentDefinition.identifier(node["agent"]),)
+        return AgentNodeDefinition(node).references()
 
     @staticmethod
     def referenced_agents(record):
@@ -78,8 +79,7 @@ class AgentExecution:
 
     @staticmethod
     def describe_config():
-        return object_schema({"agent": field("string", minLength=1), "emit_text": field("boolean"),
-                              "output_format": field("string", enum=["text", "json"])}, required=["agent"])
+        return AgentNodeDefinition.describe_config()
 
     def __init__(self, *, engines, revision: str = "1"):
         if not isinstance(revision, str) or not revision:
@@ -93,9 +93,7 @@ class AgentExecution:
                 self.engines.register(name, engine)
 
     def _profile(self, definition, capabilities):
-        identifier = definition.get("agent")
-        if not isinstance(identifier, str) or not identifier:
-            raise ValueError("Agent node requires an agent ID")
+        identifier = AgentNodeDefinition(definition).agent_id
         profile = AgentDefinitions.selected(capabilities.get(AgentDefinition.CAPABILITY, ()), identifier)
         return AgentProfile(identifier, profile)
 
@@ -149,37 +147,32 @@ class AgentExecution:
         profile = self._profile(definition, context.capabilities)
         engine = self._engine(profile)
         describe = getattr(engine, ConfigurationView.RESOLVE_METHOD, None)
-        binding = {"agent_id": definition["agent"], "agent": profile.to_dict(),
-                "agent_revision": profile.revision, "engine": profile.engine,
-                "handler_revision": self.revision,
-                "configuration": describe(context.project.config, profile.engine, session_config=context.session.config)
-                                 if describe else ConfigurationView.unavailable().to_dict()}
+        configuration = (describe(context.project.config, profile.engine, session_config=context.session.config)
+                         if describe else ConfigurationView.unavailable().to_dict())
+        from llm.core.configuration import UNSET
+        workflow = resources = execution = UNSET
         if agent_mode(engine) == AgentMode.WORKFLOW:
-            binding["workflow_id"] = engine.workflow
+            workflow = engine.workflow
         else:
-            binding["resources"] = self._resources(profile, context)[1].to_dict()
+            resources = self._resources(profile, context)[1]
         bind_execution = getattr(engine, "bind_execution", None)
         if callable(bind_execution):
-            binding["execution"] = bind_execution(context)
-        Component.serialize(binding)
-        return binding
+            execution = bind_execution(context)
+        return AgentExecutionBinding.create(AgentNodeDefinition(definition).agent_id, profile,
+            self.revision, configuration, workflow=workflow, resources=resources, execution=execution).to_dict()
 
     def validate(self, definition, context):
         """Validate the selected Agent before its approval or external work."""
         profile = self._profile(definition, context.capabilities)
         engine = self._engine(profile)
         if agent_mode(engine) == AgentMode.WORKFLOW:
-            if any(key in definition for key in ("output_format", "emit_text")):
-                raise ValueError("Graph Agent nodes do not support output_format or emit_text")
+            AgentNodeDefinition(definition).validate_workflow()
             return
         self._resources(profile, context)
         resources = profile.resources
         if (resources.skills or resources.prompt) and not callable(getattr(engine, "with_instructions", None)):
             raise ValueError("Agent Prompt/Skill composition requires Engine.with_instructions")
-        if definition.get("output_format", profile.output_format) not in ("text", "json"):
-            raise ValueError("Agent output_format must be text or json")
-        if type(definition.get("emit_text", False)) is not bool:
-            raise ValueError("Agent emit_text must be boolean")
+        AgentNodeDefinition(definition).validate_behavior(profile)
 
     def validate_selection(self, definition, context, *, owner, records, checkpoint_name, wrapped_graph=False):
         """Validate selected descendants through their Engine, including completed containers."""
@@ -253,21 +246,20 @@ class AgentExecution:
         if node.invoke_graph is None:
             raise ValueError("Graph Agent requires a parent Graph execution scope")
         self.validate(node.definition, node.context)
-        binding = self.binding(node.definition, node.context)
+        binding = AgentExecutionBinding(self.binding(node.definition, node.context))
         inputs = node.inputs if node.inputs is not None else node.state
         step_id = new_id()
-        context = replace(node.context, state={"agent": deepcopy(binding)},
+        context = replace(node.context, state=binding.state(),
                           output_step_id=step_id, output_visibility=OutputVisibility.INTERNAL)
         if context.steering is not None:
             context = replace(context, steering=context.steering.child(target_id=step_id,
-                scope=node.checkpoint_key, engine=binding["engine"], mode=steering_mode(engine),
+                scope=node.checkpoint_key, engine=binding.engine, mode=steering_mode(engine),
                 node_id=node.node_id, node_path=node.node_path))
         await node.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="agent",
-            name=binding["agent_id"], metadata={**binding, "inputs": inputs}))
+            name=binding.agent_id, metadata=AgentStepMetadata.started(binding, inputs)))
         async def forward(event):
             if event.type == EngineEventType.STEP_STARTED:
-                event = replace(event, metadata={**event.metadata,
-                    "agent_step_id": event.metadata.get("agent_step_id", step_id)})
+                event = replace(event, metadata=AgentStepMetadata.graph_child(event.metadata, step_id))
             await node.emit(event)
         try:
             async with aclosing(BaseEngine.open_instructions(context)) as events:
@@ -284,7 +276,7 @@ class AgentExecution:
             raise
         await node.emit(BaseEngine.step_completed_event(context, step_id,
             EngineOutput(data=output, visibility=OutputVisibility.INTERNAL)))
-        return {"text": "", "data": output}
+        return AgentOutputValue.workflow(output).to_dict()
 
     async def __call__(self, node):
         """업무의 입력/출력을 검증하고 연결 세션과 실행 스코프를 호출별로 정리한다."""
@@ -295,10 +287,11 @@ class AgentExecution:
         tools, resources = self._resources(profile, node.context)
         inputs = node.inputs if node.inputs is not None else node.state
         profile.validate_input(inputs)
-        binding = self.binding(node.definition, node.context)
+        binding = AgentExecutionBinding(self.binding(node.definition, node.context))
         step_id = new_id()
         await node.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="agent",
-                                   name=node.definition["agent"], metadata={**binding, "inputs": inputs}))
+                                   name=AgentNodeDefinition(node.definition).agent_id,
+                                   metadata=AgentStepMetadata.started(binding, inputs)))
         try:
             policy = profile.policy
             async with timeout(policy.timeout_seconds), AsyncExitStack() as stack:
@@ -324,10 +317,10 @@ class AgentExecution:
                     for name in discover({**node.context.capabilities, ToolRegistry.CAPABILITY: tools}):
                         if name in node.context.capabilities and name != ToolRegistry.CAPABILITY:
                             capabilities[name] = node.context.capabilities[name]
-                visibility = (OutputVisibility.USER if node.definition.get("emit_text", False)
+                visibility = (OutputVisibility.USER if AgentNodeDefinition(node.definition).emit_text
                               and node.context.output_visibility == OutputVisibility.USER else OutputVisibility.INTERNAL)
                 context = replace(node.context, messages=(message,), tools=tools,
-                                  state={"agent": deepcopy(binding)}, capabilities=capabilities,
+                                  state=binding.state(), capabilities=capabilities,
                                   checkpoint=None, tool_scope=scope,
                                   output_step_id=step_id, output_visibility=visibility)
                 if context.steering is not None:
@@ -363,12 +356,8 @@ class AgentExecution:
                             raise ValueError("Agent engine requires a checkpoint scope to pause")
                         raise _GraphPause(node.checkpoint_key)
                     if event.type == EngineEventType.STEP_STARTED:
-                        event = replace(event, metadata={**event.metadata,
-                            "agent_id": event.metadata.get("agent_id", binding["agent_id"]),
-                            "agent_revision": event.metadata.get("agent_revision", binding["agent_revision"]),
-                            "engine": event.metadata.get("engine", binding["engine"]),
-                            "node_id": event.metadata.get("node_id", node.node_id),
-                            "agent_step_id": event.metadata.get("agent_step_id", step_id)})
+                        event = replace(event, metadata=AgentStepMetadata.behavior_child(
+                            event.metadata, binding, node.node_id, step_id))
                     # 자식 엔진 결과를 Agent 계약 검증 전에 확정하지 않는다. 내부 델타도
                     # 관찰 가능하되 visibility로 대화/UI의 사용자 출력과 구분한다.
                     if event.type == EngineEventType.OUTPUT:
@@ -403,22 +392,18 @@ class AgentExecution:
                     raise ValueError("Agent engine must emit an EngineOutput")
                 if engine_output is not None and engine_output.visibility == OutputVisibility.INTERNAL:
                     visibility = OutputVisibility.INTERNAL
-                result = {"text": engine_output.text if engine_output is not None else ""}
-                if engine_output.data is not None:
-                    result["data"] = engine_output.data
-                elif node.definition.get("output_format", profile.output_format) == "json":
-                    result["data"] = json.loads(result["text"])
-                Component.serialize(result)
-                profile.validate_output(result)
+                result = AgentOutputValue.from_output(engine_output, AgentNodeDefinition(node.definition).output_format(profile))
+                Component.serialize(result.to_dict())
+                profile.validate_output(result.to_dict())
         except (asyncio.CancelledError, _GraphPause):
             raise
         except Exception as error:
             await node.emit(BaseEngine.step_failed_event(step_id, error))
             raise
         await node.emit(BaseEngine.step_completed_event(context, step_id,
-            EngineOutput(text=result["text"], data=result.get("data"), visibility=visibility),
+            EngineOutput(text=result.text, data=result.engine_data, visibility=visibility),
             metadata={"tool_calls": scope.calls, "completed_tools": scope.completed}))
-        return result
+        return result.to_dict()
 
 
 class AgentInvocation:
@@ -467,14 +452,12 @@ class AgentInvocation:
         configuration = (revision_token(describe(context.project.config, self.binding.engine,
                          session_config=context.session.config)) if callable(describe) else None)
         execution = getattr(self.engine, "bind_execution", None)
-        self.runtime_binding = {
-            "agent_id": self.binding.agent_id, "revision": self.binding.revision,
-            "engine": self.binding.engine, "mode": self.mode.value,
-            "configuration": configuration, "resources": self.resources.to_dict() if self.resources is not None else None,
-            **context.tools.execution_binding(context.tool_scope.binding()),
-            "execution": revision_token({"value": execution(context)}) if callable(execution) else None,
-        }
-        Component.serialize(self.runtime_binding)
+        self.runtime_binding = AgentInvocationBinding(
+            AgentInvocationIdentity(self.binding.agent_id, self.binding.revision, self.binding.engine,
+                self.mode.value, configuration, self.resources.to_dict() if self.resources is not None else None),
+            context.tools.execution_binding(context.tool_scope.binding()),
+            AgentExecutionRevision(execution(context)).token if callable(execution) else AgentInvocationBinding.NO_EXECUTION,
+        ).to_dict()
         # Root identity is already in Run admission evidence. The Engine owns
         # its private state; binding must not seed or persist application state.
         return context
@@ -506,13 +489,11 @@ class AgentInvocation:
                     if event.type == EngineEventType.OUTPUT and event.output is not None:
                         if policy.require_tool and not context.tool_scope.completed:
                             raise ValueError("Agent requires at least one successfully completed Tool")
-                        value = {"text": event.output.text}
-                        if event.output.data is not None:
-                            value["data"] = event.output.data
-                        elif self.profile.output_format == AgentDefinition.OutputFormat.JSON:
-                            value["data"] = json.loads(event.output.text)
-                            event = replace(event, output=replace(event.output, data=value["data"]))
-                        self.profile.validate_output(value)
+                        value = AgentOutputValue.from_output(event.output, self.profile.output_format)
+                        output = value.apply_to(event.output)
+                        if output is not event.output:
+                            event = replace(event, output=output)
+                        self.profile.validate_output(value.to_dict())
                     yield event
 
 
@@ -532,14 +513,14 @@ class AgentDelegation:
 
     def bind_arguments(self, arguments, context):
         """Selected definition, not the discoverable Agent catalogue, owns resume identity."""
-        definition = {"agent": arguments["agent_id"]}
+        definition = AgentNodeDefinition.for_agent(arguments["agent_id"])
         context = self.runtime.prepare_context(definition, context)
         self.runtime.validate(definition, context)
         return self.runtime.binding(definition, context)
 
     def validate_selection(self, arguments, context, *, request_key, checkpoint_name):
         owner = json.dumps([request_key, "agent", arguments["agent_id"]], separators=(",", ":"))
-        self.runtime.validate_selection({"agent": arguments["agent_id"]}, context, owner=owner,
+        self.runtime.validate_selection(AgentNodeDefinition.for_agent(arguments["agent_id"]), context, owner=owner,
             records=CheckpointRecords.records_or_empty(context.checkpoint), checkpoint_name=checkpoint_name, wrapped_graph=True)
 
     def additional_capabilities(self, capabilities):
@@ -557,7 +538,7 @@ class AgentDelegation:
         context = replace(context, steering=None)
         owner = json.dumps([request_key, "agent", arguments["agent_id"]], separators=(",", ":"))
         records = deepcopy(CheckpointRecords.records_or_empty(context.checkpoint))
-        definition = {"agent": arguments["agent_id"]}
+        definition = AgentNodeDefinition.for_agent(arguments["agent_id"])
         context = self.runtime.prepare_context(definition, context)
         self.runtime.validate(definition, context)
         binding = self.runtime.binding(definition, context)

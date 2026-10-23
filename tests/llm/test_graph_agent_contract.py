@@ -52,11 +52,16 @@ class GraphEnvironmentTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_graph_agent_uses_distinct_handlers_and_preserves_parent_scope(self):
         seen = []
+        selections = []
+        class SelectedAgentNode(AgentNode):
+            def binding(self, definition, context):
+                selections.append(definition["agent"])
+                return {**super().binding(definition, context), "host_selection": {"explicit": None}}
         async def review(node):
             seen.append(node.context.tool_scope)
             return {"answer": "checked"}
         child = GraphEngine(handlers={"review": review})
-        handler = AgentNode(engines={"review_environment": child})
+        handler = SelectedAgentNode(engines={"review_environment": child})
         main = nested.action_graph("agent", agent="review",
             inputs={"query": "/request"}, input_schema={"type": "object", "required": ["query"]},
             output_schema={"type": "object", "required": ["data"]})
@@ -72,3 +77,5 @@ class GraphEnvironmentTests(unittest.IsolatedAsyncioTestCase):
         step = next(s for s in await run.steps.alist() if s.kind == "agent")
         self.assertNotIn("resources", step.metadata)
         self.assertEqual(step.metadata["workflow_id"], "child")
+        self.assertTrue(selections)
+        self.assertEqual(step.metadata["host_selection"], {"explicit": None})

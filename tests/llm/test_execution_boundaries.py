@@ -68,8 +68,10 @@ class ObservationTests(unittest.TestCase):
                 def for_agent(self, definition):
                     return Bound()
             runtime = AgentExecution(engines={"custom": Factory()})
+            profile = runtime._profile({"agent": "selected"},
+                {"agents": [{"records": {"selected": {"engine": "custom"}}}]})
             with self.subTest(registered=registered, selected=selected), self.assertRaisesRegex(ValueError, "preserve Engine steering mode"):
-                runtime._engine({"engine": "custom"})
+                runtime._engine(profile)
 
     def test_external_component_hooks_do_not_require_local_storage(self):
         from llm.services.runtime.usage import component_usage

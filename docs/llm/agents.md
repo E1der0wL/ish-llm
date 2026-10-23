@@ -86,6 +86,17 @@ MCP 연결·Prompt/Skill 합성을 사용한다. AgentResources/AgentMCPResource
 실행 책임은 기존 실행 Owner에 남는다. 부모 Tool 허용 목록의 포함 판단은
 ToolPolicyValues.permits_selection이 소유하며 자원 사전 검사와 자식 scope 생성이 공유한다.
 
+AgentNodeDefinition은 Graph action의 Agent 선택·출력 옵션과 공개 Schema를 소유한다.
+Graph 공통 필드나 Application 확장 필드를 별도 Schema로 정규화하지 않는다.
+AgentExecutionBinding은 handler binding과 자식 실행 state, AgentStepMetadata는 Step의
+선택/입력/부모 관찰값 Projection을 제공한다. 공개 binding override를 그대로 호출한 뒤
+확장 필드까지 보존하며, 기존 metadata의 명시 null을 기본 선택값으로 덮어쓰지 않는다.
+Root AgentInvocationBinding은 ToolRegistry의 공개 binding을 같은 순서로 합성하고,
+기존 실행 revision/hash를 유지한다. 이 증거는 Run admission 권한이나 Engine private 상태를
+대체하지 않는다. AgentOutputValue는 text/data 출력을 소유하며 data 생략과 JSON으로
+파싱된 null을 구분한다. EngineOutput.has_data는 공통 출력의 데이터 유무만 판별한다.
+Agent 출력 Schema 검증 이후 확정 출력 전달, 사용량/승인/효과 기록 순서는 유지한다.
+
 AgentRecord, AgentCatalog, AgentBinding은 각자의 버전·필수 필드·identity 검증을 소유한다.
 저장 목록과 Run admission 증거의 누락을 빈 데이터나 생성 기본값으로 복원하지 않는다.
 
