@@ -1460,3 +1460,37 @@ incomplete 계약 2개로 전체 완료를 선언하지 않는다.
 이 소단계는 Level 2다. 9adb2b3의 실행 중인 전체 게이트에는 이 변경이 포함되지 않는다.
 남은 Tool 등록/실행 binding 계약과 관련 소비자를 묶어 다음 현재 통합 Level 3를 진행한다.
 전체 대상의 미전환 항목과 정확한 SHA 원격 CI까지 계속 확인한다.
+
+
+## 9adb2b3 전체 게이트 통과와 정확한 SHA Push (2026-10-23)
+
+고정 SHA `9adb2b307be395a86c0fbca5c84359e158878449`의 group10 전체 실행은 LLM 2408/2408/2408 pass, exit 0, 1390.162882초; Hub 586/586/586 pass, exit 0, 1122.808029초였다. failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. 앞선 두 전체 실행의 실패 기록은 보존한다.
+
+명령은 각 suite에 대해 `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm|hub --output /workspace/llm-clean-resume/b/whole-owners-group10-l3/llm|hub.json`이었다. 전후 source `2c2bd8d70f15bf758039b8b3034fbd134bf53757492afaa0481b5d748de2daa4`, input `2f8c8338b1c2b931a033f646a4d1d0ebcecb8df505e0c51e4ed1dc9b9509a012`은 동일하다. group10-auxiliary의 정적 S1–S7·문서·R3·SDK·양 suite 환경은 각각 exit 0이다.
+
+검증된 이 SHA만 작업 브랜치에 정상 Push했다. [원격 실행](https://github.com/E1der0wL/ish-llm/actions/runs/39937635858)은 10:14:46 UTC 확인 시 진행 중이며 성공으로 선언하지 않는다. 이후 Tool 함수/선택 변경은 이 게이트에 포함되지 않는다.
+
+## Tool 선택과 공통 사용량 증거의 Owner 연결 (2026-10-23)
+
+[선택/사용량 증거 계약](tool-selection-evidence.md)에 따라 선택 payload와 공통 논리 사용량을 각 Owner의 타입/Reader/Writer로 연결했다. Registry와 실행기는 필수 selection·state·request/checkpoint identity를 검증하고 속성으로 소비한다. ToolExecutionScope의 기존 사용량 API는 단일 Owner에 위임하며 승인·한도·영수증·복원 순서는 유지한다.
+
+초기 smoke는 20개 중 error 3/exit 1이었다. 선택 Reader가 서비스가 부착한 runtime_tool_usage를 알 수 없는 필드로 거부했다. 실패는 tool-binding-draft/smoke.log에 보존했다. ToolUsageCheckpoint에서 필수 사용량을 검증하고 선택 payload만 투영하도록 수정했으며 원본 기록과 증거는 보존한다. 수정 후 같은 20개가 12.722초 pass/exit 0, 새 독립 wire·누락/손상·사본·복원 원자성·실제 파일 효과 시험 6개는 0.024초 pass/exit 0이었다. 기존 Assertion을 제거하지 않았다.
+
+- `whole-tool-binding-01`: 발견/시작/pass 128/128/128, exit 0, 50.856919초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-binding-01/llm.json --modules tests.llm.test_tool_selection_records tests.llm.test_agent_delegation tests.llm.test_agent_execution tests.llm.test_tool_constraints tests.llm.test_tool_selection tests.llm.test_current_contracts tests.llm.test_retry tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+
+  source `f7b549376725e7230cb00b3354fe24ac16f73f6510296286b3bd1353537fb8be`, input `3bdf6051d36d2cc19bea133c4d6ba88847f248b445719243044c1019390bf447`.
+
+- `whole-tool-binding-hub-01`: 발견/시작/pass 28/28/28, exit 0, 117.331326초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-tool-binding-hub-01/hub.json --modules tests.hub.test_agent_graph tests.hub.test_tool_retry tests.hub.test_question_tools tests.hub.test_interaction_updates`.
+
+  source `f7b549376725e7230cb00b3354fe24ac16f73f6510296286b3bd1353537fb8be`, input `3bdf6051d36d2cc19bea133c4d6ba88847f248b445719243044c1019390bf447`.
+
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. LLM은 실제 중첩 Agent·승인/예산·재시도·삭제·효과·Checkpoint·RAG·수명 안전성, Hub는 Agent Graph·인자 수정 후 재승인·질문/상호작용 경로를 검증했다. 손상된 선택 기록은 Checkpoint 갱신·승인 호출·실제 파일 효과 전에 거부한다. 전후 manifest가 같고 Python 3.12.14/Clang·고정 Host·의존성·namespace/X11을 유지했다. 서로 다른 실행을 전체 실행으로 합산하지 않는다.
+
+정적 발생 추가/삭제는 없으며 영향받은 기존 근거 19건을 재검토했다. 새 두 Owner 파일과 실제 동적 소비 경로만 전수 판정을 추가했고 Registry/Runtime 전체 파일은 아직 미완료로 추적한다. 감사 자체 시험 16개는 pass/exit 0, tool-binding-auxiliary의 S1–S7 145건·문서·R3·SDK·양 suite 환경도 각각 exit 0이다.
+
+현재 464개 파일, 미검토 400개, 미분류 30064개, incomplete 계약 2개다. 전체 완료는 계속 차단된다.
+
+이 집중 검증 결과는 Level 2 증거다. 공통 사용량 Reader 변경을 포함하므로 다음 현재 통합 Level 3를 필수 게이트로 지정하며, 그 성공 전 이 변경을 Push하지 않는다. Tool 등록 정보와 남은 실행 계약 소비자도 계속 정리한다.

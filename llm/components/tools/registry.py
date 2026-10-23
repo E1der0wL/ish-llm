@@ -13,6 +13,8 @@ from typing import Any, Optional
 from jsonschema import Draft202012Validator
 from llm.core.model_protocol import ToolDefinition, copy_model, json_copy
 from llm.core.tool_contracts import ToolClassification, ToolContract, ToolEffect, ToolIsolation
+from llm.core.tool_selection_records import ToolBindingRecord
+from llm.core.checkpoint_records import CheckpointRecords
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,18 +92,20 @@ class ToolRegistry:
 
     def validate_selections(self, context):
         """Validate only durably selected invocation bindings, including nested scopes."""
-        for record in (context.checkpoint or {}).get("records", {}).values():
-            if record.get("node_type") != "tool_binding":
+        for key, value in CheckpointRecords.records_or_empty(context.checkpoint).items():
+            if not ToolBindingRecord.is_entry(key, value):
                 continue
-            selected = record["selection"]
-            handler = self.get(selected["tool"]).handler
+            record = ToolBindingRecord.from_checkpoint(value)
+            record.require_key(key)
+            selected = record.selection
+            handler = self.get(selected.tool).handler
             bind = getattr(handler, "bind_arguments", None)
-            if not callable(bind) or bind(deepcopy(selected["arguments"]), context) != selected["binding"]:
+            if not callable(bind) or bind(selected.arguments, context) != selected.binding:
                 raise ValueError("Selected Tool execution configuration changed; start a new request")
             validate = getattr(handler, "validate_selection", None)
             if callable(validate):
-                validate(deepcopy(selected["arguments"]), context, request_key=record["request_key"],
-                         checkpoint_name=record["checkpoint_name"])
+                validate(selected.arguments, context, request_key=record.request_key,
+                         checkpoint_name=record.checkpoint_name)
 
     def definitions(self, *, constraints=None) -> tuple[ToolDefinition, ...]:
         from .constraints import constrained_parameters

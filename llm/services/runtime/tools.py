@@ -1,6 +1,8 @@
 """Engine 간에 공유하는 Tool 호출기. 실행 인자·결과·실패를 Step 이벤트로 보고한다."""
 
 from llm.core.tool_contracts import ToolContract
+from llm.core.tool_selection_records import ToolBindingRecord, ToolInvocationSelection
+from llm.core.tool_usage_records import ToolUsageError, ToolUsageRecord, ToolUsageCheckpoint
 
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
 
@@ -139,18 +141,12 @@ class ToolRuntime:
             raise TypeError("Tool adapters must be callable")
 
 
-class ToolUsageError(CodedError, ValueError):
-    """복원할 사용량의 무결성 오류. 승인·실행 권한·예산 소진과 구분한다."""
-
-    code = ToolErrorCode.USAGE_CORRUPT
-
-
 class ToolExecutionScope:
     """한 Run의 Graph 분기·Agent가 공유하는 호출 예산. asyncio 루프에서만 접근한다."""
 
-    USAGE_COUNTERS = ("calls", "completed", "revision")
-    USAGE_COLLECTIONS = ("pending_approvals", "invocations")
-    CHECKPOINT_FIELD = "runtime_tool_usage"
+    USAGE_COUNTERS = ToolUsageRecord.counter_fields()
+    USAGE_COLLECTIONS = ToolUsageRecord.collection_fields()
+    CHECKPOINT_FIELD = ToolUsageCheckpoint.FIELD
 
     def __init__(self, runtime: ToolRuntime, *, policy=None, retry=None, operations=None, parent=None):
         # 외부 dict 편집으로 실행 중 승인/제약의 사본이 바뀌지 않게 한다.
@@ -204,31 +200,22 @@ class ToolExecutionScope:
     @classmethod
     def initial_usage(cls):
         """새 논리 scope의 초기 상태. 저장 기록의 누락 필드를 채우는 용도가 아니다."""
-        return {**dict.fromkeys(cls.USAGE_COUNTERS, 0),
-                **{key: [] for key in cls.USAGE_COLLECTIONS}}
+        return ToolUsageRecord.initial().to_dict()
 
     def checkpoint(self):
         self.revision += 1
-        return {**{key: getattr(self, key) for key in self.USAGE_COUNTERS},
-                **{key: sorted(self.invocations) if key == "invocations" else list(getattr(self, key))
-                   for key in self.USAGE_COLLECTIONS}}
+        return ToolUsageRecord(calls=self.calls, completed=self.completed, revision=self.revision,
+                               pending_approvals=list(self.pending_approvals),
+                               invocations=sorted(self.invocations)).to_dict()
 
     def checkpoint_record(self, value):
         """서비스의 모든 durable record에 같은 소유자 스냅샷을 기록한다."""
-        return {**value, self.CHECKPOINT_FIELD: self.checkpoint()}
+        return ToolUsageCheckpoint.attach(value, self.checkpoint())
 
     @classmethod
     def checkpoint_usage(cls, records):
         """Engine payload를 해석하지 않고 필수 공통 사용량을 복원한다."""
-        if not isinstance(records, dict):
-            raise ToolUsageError("Tool usage requires checkpoint records")
-        values = []
-        for key, value in records.items():
-            if not isinstance(value, dict) or cls.CHECKPOINT_FIELD not in value:
-                raise ToolUsageError(f"Tool usage missing from checkpoint record: {key}")
-            values.append(value[cls.CHECKPOINT_FIELD])
-        cls.validate_usage(values)
-        return values
+        return ToolUsageCheckpoint.read_records(records)
 
     def restore_checkpoint(self, records):
         self.restore(self.checkpoint_usage(records))
@@ -251,30 +238,17 @@ class ToolExecutionScope:
     @classmethod
     def validate_usage(cls, records):
         """저장 상태만 검증한다. 권한 부여·예산 예약·외부 효과 조회를 하지 않는다."""
-        if not isinstance(records, list):
-            raise ToolUsageError("Tool usage records must be a list")
-        fields = {*cls.USAGE_COUNTERS, *cls.USAGE_COLLECTIONS}
-        for item in records:
-            if not isinstance(item, dict) or item.keys() != fields:
-                raise ToolUsageError("Tool usage requires the complete current record")
-            if any(type(item[key]) is not int or item[key] < 0 for key in cls.USAGE_COUNTERS):
-                raise ToolUsageError("Tool usage counters must be nonnegative integers")
-            for key in cls.USAGE_COLLECTIONS:
-                values = item[key]
-                if not isinstance(values, list) or any(not isinstance(value, str) or not value for value in values):
-                    raise ToolUsageError("Tool usage reservations must be lists of nonempty strings")
-            if len(set(item["invocations"])) != len(item["invocations"]):
-                raise ToolUsageError("Tool usage invocation identities must be unique")
+        ToolUsageRecord.read_many(records)
 
     def restore(self, records):
         """검증을 모두 마친 뒤 사용량만 복원한다. 현재 한도·승인 정책은 변경하지 않는다."""
-        self.validate_usage(records)
-        if records:
-            latest = max(records, key=lambda item: (item["revision"], item["calls"]))
+        values = ToolUsageRecord.read_many(records)
+        if values:
+            latest = max(values, key=lambda item: item.order)
             for key in self.USAGE_COUNTERS:
-                setattr(self, key, latest[key])
-            self.pending_approvals = list(latest["pending_approvals"])
-            self.invocations = set(latest["invocations"])
+                setattr(self, key, getattr(latest, key))
+            self.pending_approvals = list(latest.pending_approvals)
+            self.invocations = set(latest.invocations)
 
     def child(self, *, allowed_tools, max_calls=None, argument_constraints=None):
         """Agent 한도를 추가하되 부모의 승인, 실행기, 원장과 예산을 유지한다."""
@@ -726,18 +700,21 @@ class ToolExecutor:
         from inspect import getattr_static
         bind = getattr(tool.handler, "bind_arguments") if getattr_static(tool.handler, "bind_arguments", None) is not None else None
         if callable(bind):
-            selected = {"tool": tool.name, "arguments": deepcopy(arguments), "binding": bind(deepcopy(arguments), context)}
-            JsonObject.validate(selected)
+            selected = ToolInvocationSelection(tool.name, arguments, bind(deepcopy(arguments), context))
             name = (metadata or {}).get("checkpoint_name")
             if context is None or not request_key or not name:
                 raise ToolInvocationError("Selected Tool execution binding requires a durable checkpoint")
-            key = "@tool-binding:" + request_key
+            key = ToolBindingRecord.key_for(request_key)
             saved = CheckpointRecords.records_or_empty(context.checkpoint).get(key)
-            if saved is not None and saved.get("selection") != selected:
-                raise ToolInvocationError("Selected Tool execution configuration changed")
+            if saved is not None:
+                saved = ToolBindingRecord.from_checkpoint(saved)
+                saved.require_key(key)
+                saved.require_checkpoint(name)
+                if saved.selection != selected:
+                    raise ToolInvocationError("Selected Tool execution configuration changed")
             # Selection is durable before ASK, authorization, or any Tool effect.
-            yield EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(name, key, {"node_type": "tool_binding", "status": CheckpointStatus.COMPLETED.value, "container": True, "selection": selected,
-                          "request_key": request_key, "checkpoint_name": name}).to_dict())
+            yield EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(
+                name, key, ToolBindingRecord.create(selected, request_key, name).to_dict()).to_dict())
         decision, resumed = self._request_state(tool, arguments, context, decision, request_key, classification)
         if scope is not None and request_key is not None:
             invocation = json.dumps([getattr(context, "checkpoint_scope", None), request_key])

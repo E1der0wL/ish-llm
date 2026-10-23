@@ -5065,5 +5065,229 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/tool_selection_records.py",
+    "sha256": "87960fd22b59b03f675dfe4209ec6e0f3f5c463a7c0b1c92f663324694871068",
+    "reason": "Reviewed complete Owner, runtime writer and registry/resume consumers. Original selection JSON is validated before normalization; mandatory state/container/request/checkpoint identities are closed and detached. Common usage is validated by its Owner before projection, with no persistence of a second source. Reserved binding keys cannot conceal missing kind fields. Registry and executor consume typed selection properties.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "97132a3bfaf9c19d9314698bc034ef21d2e853a8f8422f218af80a84bafa0d42",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "3dd6cde4efdc413870ceada9a6a00cee2b230b66f945fe40313285e385b4549d",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "4122a630aefef4e6452173618ee1328c4882fe31a0d654ab6000bc03db74a8db",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "480377360b83fc6177de9e3c2e80cdf7e21596d0d68864a122aee3fbeb552204",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "2484eaf8f582e4aef7221ba150810c4357e36a1c147c9394048a00ba4ca4b046",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "3e6c8343007c0832ac62bc17070660b79f287743b7f15530f699606d0c690faf",
+        "classification": "declaration",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "41dc14d516d9def340ed61e8bd41af45e65ac9bc2dd13ba44b23a867e0e66033",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "2ec0241811c89262242501e34751d5be16d3b1838087dfbdbf75be43db36f4e5",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "a3f812d701012211b630c76e6632982f5709faecb09ede2682abc30015ff650f",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "073433c19e68db6573361031b8b1a682f8172a2b73d0f8bc0b494644a39525fa",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "9777fd6e5dcaad8beaefa72aa12f7f02df13a33daa8292812e35581d59c973be",
+        "classification": "non_contract",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "dab963b33c120d370ebd8a6c1a25213fff685fbb598763bab52dfbc877315cf8",
+        "classification": "declaration",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "e7185779a1d664c9d8bf47036411ace7a383430aaefd3859de140dabd5accb4f",
+        "classification": "declaration",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "fbc09f177562ac812a74019aeea88d5ea99dd09cda42c0975b15cc334f11e7c9",
+        "classification": "declaration",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "d1ba5867e9fa9e4f0b6f6864ebacb8c8def78edbd70411c659987eb8ab402c0c",
+        "classification": "declaration",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "687ba4b95138cc7aa5aa6172380b2b37b7358ccc6c0778f822b8fd24beda5ebb",
+        "classification": "declaration",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "0d35d38a2f7da19cfe93d3c2bc43830436c598020231f50062d2587ebfd519bd",
+        "classification": "declaration",
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolInvocationSelection and ToolBindingRecord",
+        "declaration": "llm/core/tool_selection_records.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/tool_usage_records.py",
+    "sha256": "ba368f4df0a754687dc59394cb79c2534c52eae97021eeda0eaa58c4c6b83b98",
+    "reason": "Reviewed mandatory usage counters/reservations and all runtime scope delegates and Agent/steering restoration callers. Fresh initial usage is explicit; stored reads never synthesize missing fields. Complete collection validation precedes scope mutation; latest revision/calls selection and reservations remain. Common payload projection validates usage and leaves the original durable record intact.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7cf8001eecad146a468132b45a8c9efe36ca509dd84bc1fc53b408f6b74a71ce",
+        "classification": "non_contract",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "6d6a4bdd0816141faed2ab8c51b0b1d03615f6673168ed6c417ec18fc3bb3521",
+        "classification": "non_contract",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Python dataclass code-generation options (frozen/slots/init), not stored fields, policy defaults, state or authority."
+      },
+      {
+        "id": "ff2dd46526552c4937fa4aab2af59f37562f7d940dce5870255ed52ffbf47877",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "56804619237941255d76134d1e56bbfcf07a0a248ee729215965c6c62ccf8244",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "f033e02ca8a8b462866988543039d09c0a83557f7f25c4ded8af1282811b4966",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "9874a3802435286d437ec2d6dc79e1bcd0df81b8289eb94f9a2dfb7e10bd8ff4",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "0778f967c2f5f74b674b653e5902ecf9058be194467b39b4f25c670e9467c5b9",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "0106409069b6fdd2a1e8788c8c4e5135f9c937d15d3eba557988d1a1a9aa4802",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "d5b162a913ff0485894c2ee2fdc4f2a22ed9d4a59f9468a04f868e2c5185ef26",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "4704b235feee5837521a07940d31245719548d8486af6650f592a97c137afd6e",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "25f6c104ab68ed2bb15d540377f5773655f00d981e1041532d806202a6545b84",
+        "classification": "declaration",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Owner declares its record kind, key namespace, exact state/container discriminator, fresh-only counter initial value and diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "0ec3488ec16b995e92c761e20634719467533129ae204010cc1bacd2b834e5e1",
+        "classification": "non_contract",
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "reason": "Absence of an optional diagnostic context label only; it is never a stored default, missing-evidence replacement, policy value or execution decision. Required usage is still checked unconditionally."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolUsageRecord and ToolUsageCheckpoint",
+        "declaration": "llm/core/tool_usage_records.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/core/tool_selection_records.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/steering.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]
