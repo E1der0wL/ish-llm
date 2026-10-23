@@ -28940,8 +28940,8 @@
   },
   {
     "path": "llm/components/skills/records.py",
-    "sha256": "1e46552348a0bf95fe46010acf0b7509e8f35f43cde2dd1fc39dfd9ce6a9f872",
-    "reason": "Read complete canonical Schema/reader and detached snapshot/reference/lineage/file projections. Stored Markdown remains the only definition. Data/Tool target selectors refer to their registration Owners; lineage field declarations generate its unchanged Schema. 89 record cases, 26 valid wire/revision roundtrips and independent deep-copy/omission/invalid-evidence tests preserve behavior. This contract remains incomplete because SkillStorage still constructs and reads operational catalog/entry and record containers directly; typed storage closure is the next phase, not an exemption.",
+    "sha256": "c85cf24070c11d32ae41075bbc471b3dce5f62500922a5051df2c6f9338448af",
+    "reason": "Reviewed complete Skill Record/Resource/Lineage/Snapshot and its storage builders. Schema and raw Markdown/omission/revision input remain unchanged. Storage now uses typed mandatory catalog/entry readers and Record factories/accessors for all container construction/mutation; no second definition or legacy path exists. Source/files/lineage edits preserve original immutability and declaration semantics. Independent record cases, exact old/new physical tree comparisons, malformed operational evidence and real transaction/rollback/reference/usage/Resume tests close the previously recorded storage consumer gap.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -29437,19 +29437,31 @@
         "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
       },
       {
-        "id": "1c8e1b32b78048b5d6fb00b14cfc50ae563752df48fc18feac9fadfad011eb0a",
+        "id": "1cbcb2d046e55db61be007983eff1dfcfc4d47496d620d1f1a3251df7b4d4dd2",
+        "classification": "non_contract",
+        "owner": "SkillRecord",
+        "reason": "Optional declared lineage/source omission or discard of an explicitly replaced file projection. Required operational containers were already validated by SkillOperationalRecord; absence is never restored as authoritative evidence."
+      },
+      {
+        "id": "311c3d92fdb572690fe391725b7e5a3f1ada5db5c8386bcebd4ab9f5626ff088",
+        "classification": "non_contract",
+        "owner": "SkillRecord",
+        "reason": "Optional declared lineage/source omission or discard of an explicitly replaced file projection. Required operational containers were already validated by SkillOperationalRecord; absence is never restored as authoritative evidence."
+      },
+      {
+        "id": "8195ce8238c4a972bc45c8fc7fabd55346e35f0f416112b08f3dd1677684c666",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
       },
       {
-        "id": "fcd96d5802727bb3408436bdc03aa2876127d73fbece9ff29e396fec89425fc6",
+        "id": "8f652d74523ba2f1407b2d1a96b4c3b3275d97b45580bacbcf4d10669801cc28",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
       },
       {
-        "id": "1fd62439cd1993c6c2cf0b60c1cb2d23c1335ec4ea2411dd8fa9cbe6482239fe",
+        "id": "d71933013ddf3d8b0c056d1cc7aaa6a7e75834f9e719d872269c06e7371adf8f",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
@@ -29472,9 +29484,587 @@
           "tests/llm/test_agent_skills.py",
           "tests/llm/test_typed_contracts.py",
           "tests/llm/test_refinement.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_skill_state_values.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/file_ranges.py",
+    "sha256": "25488f93268a43e81aff8ee174004a45c2c0f07819618ff2589da6fce28c9fcc",
+    "reason": "Read complete shared binary selection declaration/validation. Same start/to-end/read-remainder values and exact-int nonnegative rule; existing lookup occurs before validation and opening after it. 128 old/new actual file range cases and Data/Skill file tests preserve bytes and exceptions.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2bbfbbc336dfc85ebcae4a11e70f0ff2dbbfa7a622f4f6bbba2e6423d7a7576b",
+        "classification": "non_contract",
+        "owner": "FileRange",
+        "reason": "Dataclass decorator declares Python immutability/slots, not an execution permission."
+      },
+      {
+        "id": "64191a552407e1014057f8906fd6d2d8c634465c60871103262320d5eee1d34c",
+        "classification": "non_contract",
+        "owner": "FileRange",
+        "reason": "Dataclass decorator declares Python immutability/slots, not an execution permission."
+      },
+      {
+        "id": "30cc75780b101b6da95e6189179d6199f1160cd635928eb8735a03cd813f31d4",
+        "classification": "declaration",
+        "owner": "FileRange",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "f9ab1ff64225d399eac203ae01a7e8554f3077906f5ee56f1ba2522ddbbbce5f",
+        "classification": "declaration",
+        "owner": "FileRange",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "5de5d5f220d4b70f512462d843031feff1f11c52a38b9f10119d4d9b8fc31086",
+        "classification": "declaration",
+        "owner": "FileRange",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "e11086e4753f973172e2b8c5258a79ccef52de545a1f6e194af4e74c505eb0af",
+        "classification": "declaration",
+        "owner": "FileRange",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "7a613f5717ae4487041488476bc41c6ae71051b25cd3fa7bfcf1e5f23014d738",
+        "classification": "declaration",
+        "owner": "FileRange",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "01a8c68c5dd4c67c84f52b8bf34c1fd44f55818aea37c46ea9f57e31d4142620",
+        "classification": "declaration",
+        "owner": "FileRange",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "f064b5955d1761853ba0785d4627a2101cd1000fbc3531180665b9ace7cfd419",
+        "classification": "declaration",
+        "owner": "FileRange",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FileRange",
+        "declaration": "llm/components/file_ranges.py",
+        "consumers": [
+          "llm/components/files.py",
+          "llm/components/skills/storage.py",
+          "llm/components/skills/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_state_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_component_storage_integrity.py",
           "tests/hub/test_resource_tools.py"
         ],
-        "complete": false
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/state.py",
+    "sha256": "d027b1db65ac264754d6217cac75f822f8c9c2f369194965d8182addfa3f5203",
+    "reason": "Read every required operational field, identity/digest/directory/container validator, Writer and serialization. Fields alone define the storage shapes; no Markdown definition is stored. Component-specific file/reference/lineage meaning delegates to its Owners. Missing required containers and cross-owner/version evidence fail, never become empty/default data. Source input and output copies remain detached.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a4c17c077ac1e6bd520f7a44448e1aab40afdbf64a6990cd9eecff6d50593280",
+        "classification": "non_contract",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Dataclass decorator declares Python immutability/slots, not an execution permission."
+      },
+      {
+        "id": "7e96446ff0ab49da55c618feeecca03d5ccfbe9e1356fb8cbff0c7d244de8baf",
+        "classification": "non_contract",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Dataclass decorator declares Python immutability/slots, not an execution permission."
+      },
+      {
+        "id": "0759622e968be1303a76e68df01071627b5d9d0c01d28c347d41303f09aa41b8",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "098e826ba095050225ad9d9359e6bb080ccc79bb01e7ce08c19a891eb3d2b3d8",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c96cbe1f75e604ad9bb4050656879be5118d06e7777afdcab6dc64a1dc0e5e28",
+        "classification": "non_contract",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Dataclass decorator declares Python immutability/slots, not an execution permission."
+      },
+      {
+        "id": "64acd57cdd24586c794daeec8ef61faae314f173ff3c7cc0472ee92cb329293e",
+        "classification": "non_contract",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Dataclass decorator declares Python immutability/slots, not an execution permission."
+      },
+      {
+        "id": "bc0298170d9cf24f5ced56472528a6db0eb813f9ebbdab43b68c45f090d0224b",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "3c9656c636c0dfdd47ed5ffe39653825b02fc2796734e37d67aa1da04c6041e5",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "be5b5571b174578103353b2aedc57f637b32668ef51c55b28c9f2b2282e5d0b1",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "47eeae6946bec1527abfb2ac14e9cba1255be97186d1616ccf29fa8e7a0e59c8",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "64d18739a96398df439ab27e0a86957661aee92fca4e53fac06828358da85b14",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "ae890db1093fc753fe4e3d7a60a4f5584bcd6076d7d6c30cbd9f277887662373",
+        "classification": "non_contract",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Dataclass decorator declares Python immutability/slots, not an execution permission."
+      },
+      {
+        "id": "1237df020156d44ea212bb792e30446be3ae1c3388d93fc16d2d13c8f208222b",
+        "classification": "non_contract",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Dataclass decorator declares Python immutability/slots, not an execution permission."
+      },
+      {
+        "id": "c002949475613b96ab557f2cdc16dac7a943f4630ab77d5aef93e5ae9a0f4059",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "71eb5f6bee768af44e2138065646e138cbe0bb0c48b8fffece81f0a5e2c69873",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "b147f0e4c599eb8f179979a929d4b9dbeb25e9ff2b84f306704057f97eaee54d",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "12d4ac72a7fbe4fbd062085bcd3e43d5a4e3862debc2504ab4040480b1815a0b",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "1244d2e36eb7d01dc918a717f3cd54c535cc5acf970de0793510f140c16a9617",
+        "classification": "declaration",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "94511e199db3ac8a111577d1ff7102d29be0093252ee90ee5dfcce34cac561d1",
+        "classification": "non_contract",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "15df58a140dcf110ff9e912f8ea06a1270eacf94a9deb87556c58dad57f0875f",
+        "classification": "non_contract",
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SkillStateIdentity / SkillCatalog / SkillOperationalRecord",
+        "declaration": "llm/components/skills/state.py",
+        "consumers": [
+          "llm/components/skills/storage.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_state_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/storage.py",
+    "sha256": "0f0f3b75efd9c83db465dd71df7b9b7f3e85eb16ba9d33065c330c91ee0e5001",
+    "reason": "Read complete native directory inventory/read/write/import/export/delete flow. Paths/default mode/diagnostics precede methods; typed state and Record APIs replace direct container interpretation. Exact directory declarations, raw digests, byte/mode comparisons, original-before-write validation, fsync/rename order, protected references, export exclusion and transaction integration are retained. Eight physical old/new tree states and 31 injected corruptions match; original real rollback/crash assertions remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "329a5ec3e8df5d34da807643c161d3424ceb6b2bd22c2181c93ceecba92a710a",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "08e757c061a4c3b82e0adf5c73543e125bab9a984d8eae2fa3e806e59522790c",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "2caf353ad5174c2d071792babfa245461738e408da1e127f1231bcc394de0192",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "8c2c2ba155eae913f9bbecf7df665026460a3aa477f1e2c9d67fbe66d81714f3",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c246ede4948663ff829b58a78b4bacdd66d9f6bfdccd42d95201b0611c1ca0bb",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "6c5356ad8b2df69b0f892e49641f4517c8cdbb96faae048e4e6d83849972d19c",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "25248e5376ffc7cc30a6e46e5531c1f3d7cd95d4e6440cc6f2e1a30ec7be71f0",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "bd913224176c4aa14a5c1d7c3f11dc9bc2ba18373e6f55159b69e51c37ff2359",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "d60486d1c2febbdcaeebc5cf3c651242ec88cd7f1ac76b8712a8e330a3699e58",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c6808a9b7c9560fb5a795248e51c9e105ff0f35920e48c82a3dd4240af7bf10c",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "6f73058728be8726765e18b703b50d2eeb806e29416658f774f9518247315f73",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "66b9cdd9ac1edb72f2a5e22cd5209e690d66af283698ff171014702c9384dd32",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "0210a75c4934b4d9f74aacc3c6ca8c2ab1a1296a1637726aefd7befbcc87e147",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "9f0cd468f1c1a36353b8520b0e6c4382e87d7cb90505dd703f883b9e8a84d5a7",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "64311458b7e839251f9879f4c4755101e8e20f913ad99416515ae98c4423c1d1",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "34aedc59807074c630c3a18d366d14d304f3e4ae53db804ff395963e87d51aaa",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "1b53667338618b87413b5f4597df7b08de99e01e7b754091f8a4c6eb6d09c47e",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "0dc1837dc4ae341d8a7c0895d926f3f441bc1438628adad2267dc8938e00ee8d",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "c6bd7aa1c938e5763fa05bc186527b25f8b94b835d41e07e33539dade6694b8a",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "4de178210bdcffa8e1c6d1d188065aa525403cf75219e66d9e1b994cced54f02",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "da64b3a6d082602095d23f6e60bfa0bb32c8b5518de5dfb6aa6b3062bd752078",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "b0a36ca5076218b7284aa06285e2d39d93f4534330c05d8f6b9a63cc4ca84e4b",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "a69c7934916c9a6a4043c4bd801305dcc8abc75e566a52f6034a1024cdfb2d3f",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "5ad682044a830682497a9711cd77b3e11926ab0668d36bd46cd5148e733dfeab",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "46eab88a468eb178ef77dc412623ca96ca0d6c941bd0993eb203cc91af4cb6d8",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "223b8156b4b10a5b4113551d516a8636b34270b2c917785035e8efd7066fe8ed",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "898804f65ead397b3417d7ab4989550f44bee94e0974398a879dbcca451de06b",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "5a7e8f55f729e0870041460de93659b02e8b5a5f30d642d548d51be4185c37ba",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "4687d4ed8cc1d7b39116ddd0d7aa0a86752cb9ef0576bb6ab1c2bd8a4105db75",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "4b33c1f6e00df747c44d03c8122672a7a6e2a9a929152575525a2926d258acc1",
+        "classification": "declaration",
+        "owner": "SkillStorage",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "1c8d704564b65cd4e2f9ff2d567802bf0eec55cf200b9ba0d3a08873a2939486",
+        "classification": "non_contract",
+        "owner": "SkillStorage",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "61ae781f48e03eaf7e7f6a895bad2b93e46264f76053c36cdbbce56af90ea066",
+        "classification": "non_contract",
+        "owner": "SkillStorage",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "24d56b93420b6f4568788eeb79c50b83d068472f018b67311b5ea23b47f91d2b",
+        "classification": "non_contract",
+        "owner": "SkillStorage",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "884d1182b7b52c078b7852c3c7e2bc22222d8c21df7e1da95cde94ced947289d",
+        "classification": "non_contract",
+        "owner": "SkillStorage",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "00b4e02a702a326e2f63bdae6c47b0b8e09d1802852765ca9d60868631e428db",
+        "classification": "non_contract",
+        "owner": "SkillStorage",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "2e81e154f8375272cf85caebee8e72a9b428a83edabd31dbf364c3f4930790ea",
+        "classification": "non_contract",
+        "owner": "SkillStorage",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SkillStorage",
+        "declaration": "llm/components/skills/storage.py",
+        "consumers": [
+          "llm/components/skills/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_state_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/component.py",
+    "sha256": "dadf651fecc41e9b78ff92a51d0b9aa47ee0473cbe86e1ea75fb630d95d1fde1",
+    "reason": "Read complete Component/native-storage adapter and reference capability flow. All operational/raw field interpretation delegates to typed Record/state Owners; file input/range semantics share FileComponent/FileRange. Existing initialization, empty uninitialized store rule, clone/fork naming and runtime reference validation/Tool registration stay in order. No resource read enables a Tool or changes Component selection.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a8d7f977516f2b76a7bccda832ad978c9301471764e38fddf60b68ae8af0fb72",
+        "classification": "declaration",
+        "owner": "SkillComponent",
+        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
+      },
+      {
+        "id": "34d8cfb34f3bddebe26866dfec545a2c5284997c3f09b4d93569059c7c1e6696",
+        "classification": "non_contract",
+        "owner": "SkillComponent",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "07c3f64de6292e8892217bc37e2ef1a89b8de5a985a40cf03953a9bcd48a952c",
+        "classification": "non_contract",
+        "owner": "SkillComponent",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "1f73856257f165d4d1619379fa64eed69a69a436f4ec3e10a4a0bce699ad8108",
+        "classification": "non_contract",
+        "owner": "SkillComponent",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "a229d1731ec58b6954e585eed0163f184928f2d0ec9efa7de8dbeff059f29d02",
+        "classification": "non_contract",
+        "owner": "SkillComponent",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "30db0143722b03c250382261c54292f0a798c4c7ceff2152d8cc92c3df971880",
+        "classification": "non_contract",
+        "owner": "SkillComponent",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      },
+      {
+        "id": "f38563db1f1b12819c7476dd0e66e07f7b4e1e2d8ab532f94b6618d4cd82a088",
+        "classification": "non_contract",
+        "owner": "SkillComponent",
+        "reason": "Explicit optional API/temporary object absence, not a missing stored container fallback. Storage read requires every operational field; existing optional lineage/source None is preserved by its declared schema/projection."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SkillComponent",
+        "declaration": "llm/components/skills/component.py",
+        "consumers": [
+          "llm/components/skills/data.py",
+          "hub/backend/tools/skills.py",
+          "llm/components/skills/__init__.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_state_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/README.md",
+    "sha256": "933e07c4b454fe3f79994689abbc225531629215d5040c683d53370202749cd4",
+    "reason": "Read the complete API/structure/examples document against current implementation. Added state/range Owner links and corrected retained Agent-domain wording. Literal JSON examples are independent public wire examples, not executable duplicate declarations; native-only Markdown, mandatory evidence, references, CAS, fork/deletion and Tool non-authority contracts remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Skill native API documentation",
+        "declaration": "llm/components/skills/README.md",
+        "consumers": [
+          "llm/components/skills/component.py",
+          "llm/components/skills/data.py",
+          "llm/components/skills/storage.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_state_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
       }
     ]
   }

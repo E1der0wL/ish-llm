@@ -5,11 +5,11 @@ from llm.components.tools.registry import ToolRegistry
 from llm.core.resource_references import ResourceTarget, StoredResourceReference
 
 from copy import deepcopy
-import io
 from pathlib import Path
 
 from llm.components.definitions import DefinitionComponent
 from llm.components.files import FileComponent
+from llm.components.file_ranges import FileRange
 from .records import SkillRecord as Record
 from .storage import SkillStorage
 from .data import SkillData
@@ -20,7 +20,7 @@ class SkillComponent(DefinitionComponent):
     capabilities = (name, ToolRegistry.CAPABILITY)
     data_class = SkillData
     schema = Record.SCHEMA
-    INVALID_FILE_CONTENT = "File content must be bytes or text"
+    INVALID_FILE_CONTENT = FileComponent.INVALID_FILE_CONTENT
 
     def storage(self, project):
         return SkillStorage(project, self)
@@ -44,7 +44,8 @@ class SkillComponent(DefinitionComponent):
     def list(self, project):
         if not self._has_storage(project):
             return {}
-        return self.storage(project).inventory()[1]
+        _, records = self.storage(project).inventory()
+        return records
 
     def save(self, project, identifier, data):
         self.storage(project).save(identifier, data)
@@ -57,13 +58,11 @@ class SkillComponent(DefinitionComponent):
     def delete(self, project, identifier):
         self.storage(project).delete(identifier)
 
-    def read_file(self, project, identifier, path, *, offset=0, length=None):
+    def read_file(self, project, identifier, path, *, offset=FileRange.START, length=FileRange.TO_END):
         return self.storage(project).read_file(identifier, path, offset=offset, length=length)
 
     def write_file(self, project, identifier, path, content):
-        if not isinstance(content, (str, bytes)):
-            raise TypeError(self.INVALID_FILE_CONTENT)
-        with io.BytesIO(content.encode(Record.TEXT_ENCODING) if isinstance(content, str) else content) as stream:
+        with FileComponent.content_stream(content) as stream:
             self.storage(project).write_file(identifier, path, stream)
 
     def import_file(self, project, identifier, path, source):

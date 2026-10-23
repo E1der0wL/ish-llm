@@ -22,6 +22,13 @@ instructions/title/tags 형태의 구 입력은 지원하지 않는다. 표준 �
 SkillDocument/SkillName이 표준 해석을, SkillRecord가 운영 정보와 Projection을,
 SkillStorage가 디렉터리·필수 목록·바이트 저장을 소유한다. 소비자는 Owner API를 사용한다.
 
+운영 외형은 SkillStateIdentity·SkillCatalog·SkillOperationalRecord의 필드 선언에서 읽고
+직렬화한다. 모든 필수 필드와 identity를 확인한 뒤 SkillRecord가 원문·참조·계보 Projection을
+만든다. 저장된 빈 컨테이너와 누락된 필수 컨테이너를 구분하며, 누락을 생성자로 보완하지 않는다.
+파일 증거는 FileEvidence/SkillFileEvidence, 공개 파일 범위는 FileRange가 검증한다.
+SkillData·Refinement·Tool은 같은 Record의 속성·변경 API를 사용하고 운영 파일 키를 재해석하지 않는다.
+이 타입들은 기존 저장 형식과 메모리 Projection의 선언이며 별도 정의·실행 원장을 만들지 않는다.
+
 ## 디렉터리와 운영 증거
 
 ```text

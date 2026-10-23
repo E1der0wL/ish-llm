@@ -18,6 +18,7 @@ from .base import validate_name
 from .usage import ModelUsageRecord
 from .definitions import DefinitionComponent
 from .file_evidence import FileEvidence
+from .file_ranges import FileRange
 
 
 FILE_MANIFEST = FileEvidence.manifest_schema()
@@ -36,6 +37,9 @@ class FileComponent(DefinitionComponent):
     """정의와 검증된 files manifest가 하나의 revision을 구성한다."""
 
     record_name = "record.json"
+    MANAGED_MANIFEST = "File manifests are managed by file APIs"
+    INVALID_FILE_CONTENT = "File content must be bytes or text"
+    TEXT_ENCODING = "utf-8"
 
     def _package(self, project, identifier):
         identifier = validate_name(identifier)
@@ -142,7 +146,7 @@ class FileComponent(DefinitionComponent):
 
     def create(self, project, data, *, identifier=None):
         if "files" in data:
-            raise ValueError("File manifests are managed by file APIs")
+            raise ValueError(self.MANAGED_MANIFEST)
         identifier = new_id() if identifier is None else identifier
         if self._package(project, identifier).exists():
             raise FileExistsError("Package already exists")
@@ -164,7 +168,7 @@ class FileComponent(DefinitionComponent):
     def save(self, project, identifier, data):
         old = self.load(project, identifier)
         if old.get("files") != data.get("files"):
-            raise ValueError("File manifests are managed by file APIs")
+            raise ValueError(self.MANAGED_MANIFEST)
         self._write(project, identifier, data)
 
     def delete(self, project, identifier):
@@ -174,20 +178,23 @@ class FileComponent(DefinitionComponent):
     def _remove_record(self, project, identifier):
         remove_named_tree(self.root(project), self._package(project, identifier), identifier)
 
-    def read_file(self, project, identifier, path, *, offset=0, length=None):
+    def read_file(self, project, identifier, path, *, offset=FileRange.START, length=FileRange.TO_END):
         value = self.load(project, identifier)
         if file_path(path) not in value.get("files", {}):
             raise FileNotFoundError(path)
-        if type(offset) is not int or offset < 0 or length is not None and (type(length) is not int or length < 0):
-            raise ValueError("File ranges must be nonnegative integers")
+        selection = FileRange(offset, length)
         with self._stream(self._file(project, identifier, path)) as stream:
-            stream.seek(offset)
-            return stream.read(-1 if length is None else length)
+            stream.seek(selection.offset)
+            return stream.read(selection.read_size)
+
+    @classmethod
+    def content_stream(cls, content):
+        if not isinstance(content, (str, bytes)):
+            raise TypeError(cls.INVALID_FILE_CONTENT)
+        return io.BytesIO(content.encode(cls.TEXT_ENCODING) if isinstance(content, str) else content)
 
     def write_file(self, project, identifier, path, content):
-        if not isinstance(content, (str, bytes)):
-            raise TypeError("File content must be bytes or text")
-        with io.BytesIO(content.encode("utf-8") if isinstance(content, str) else content) as stream:
+        with self.content_stream(content) as stream:
             self._write_file(project, identifier, file_path(path), stream)
 
     def import_file(self, project, identifier, path, source):
@@ -235,7 +242,7 @@ class FileData(ComponentData):
         return deepcopy(self.load(identifier).get("files", {}))
 
     @workspace_locked
-    def read_file(self, identifier, path, *, expected_revision=None, offset=0, length=None):
+    def read_file(self, identifier, path, *, expected_revision=None, offset=FileRange.START, length=FileRange.TO_END):
         project, component = self._current()
         check_revision(component.load(project, identifier), expected_revision)
         return component.read_file(project, identifier, path, offset=offset, length=length)

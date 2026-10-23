@@ -2281,3 +2281,50 @@ Draft PR #1은 변경하지 않았다. 원격 실행은
 [39973856496](https://github.com/E1der0wL/ish-llm/actions/runs/39973856496)이며,
 2026-10-23T15:00:25Z 확인은 in_progress다. 실제 종료 결과 전에는 원격 통과를 선언하지 않는다.
 a8fff13 및 이번 Skill 변경은 gate17/해당 원격 SHA에 들어 있지 않으며 별도 후속 검증 대상이다.
+
+
+## Skill 운영 저장 Reader/Writer 연결 완료 (2026-10-23)
+
+SkillStateIdentity·SkillCatalog·SkillOperationalRecord의 필드 선언으로 필수 운영 외형을
+읽고 직렬화한다. 누락 필드, exact int가 아닌 version, 다른 Project/Component, 잘못된 이름·
+digest·directory 목록·필수 file/resource container를 같은 경계에서 거부한다. SkillStorage는
+typed 속성을 사용하며 Record의 source/lineage/files/본문 조립·변경 API를 호출한다.
+앞 단계에서 명시한 SkillRecord의 저장 소비자 미완료 항목을 닫았다.
+
+경로 선언·파일 suffix·mode·복사/정리 옵션·진단은 저장 Owner의 메서드 앞에 둔다.
+공통 FileRange가 Data/Skill 파일 조회의 기존 기본값과 exact-int 범위 검증을 소유하며,
+FileComponent.content_stream이 기존 text/bytes 확인과 UTF-8 입력 변환을 공유한다.
+저장 형식·표준 디렉터리·원문·null/빈 컨테이너와 공개 Projection 생략을 유지한다.
+운영 entry는 정의 본문을 저장하지 않으며 legacy Reader나 별도 실행 이력을 만들지 않는다.
+
+d8b324c 대비 Record Schema와 운영 필드 집합이 같다. 같은 실제 Linux 환경에서 이전/현재
+저장소의 initialize/create/write/read/reference 보호/save/delete 8개 지점의 전체 상대 경로·
+파일 바이트·권한이 정확히 같다. 파일 digest를 실제로 다시 계산해 주입한 손상 31개는 같은
+예외 종류/문구로 실패한다. 실제 파일 범위 128개 및 내용 입력 7개도 이전 결과와 같다.
+새 독립 시험 4개는 모든 필수 필드 소실, bool/future version, cross-owner, 잘못된 digest/
+directory/document/container, 분리된 사본 및 검증 후 선택 정보의 생략을 확인한다.
+기존 파일 효과·중단·원본 복구·사용량 보호 Assertion을 제거하지 않았다.
+초기 smoke 49개 pass/exit 0(26.221초), 최종 보강 smoke 55개 pass/exit 0(7.334초)다.
+
+- `whole-skill-state-01`: 발견/시작/pass 193/193/193, exit 0, 72.186010초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-skill-state-01/llm.json --modules tests.llm.test_skill_state_values tests.llm.test_skill_record_values tests.llm.test_agent_skills tests.llm.test_skill_packages tests.llm.test_skill_references tests.llm.test_skill_tools tests.llm.test_data_component tests.llm.test_component_storage_integrity tests.llm.test_typed_contracts tests.llm.test_definition_components tests.llm.test_refinement tests.llm.test_stability_refinement tests.llm.test_resource_references tests.llm.test_agent_resource_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `fa75d55de416db14f2343d5e3f29403041023dd7fc1e8369baca156360d35eee`, input `9393312585593b95942c448c383eccca4ea4ba8d2dd66b46b6defa9ac09708cf`.
+
+- `whole-skill-state-hub-01`: 발견/시작/pass 20/20/20, exit 0, 185.088906초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-skill-state-hub-01/hub.json --modules tests.hub.test_resource_tools tests.hub.test_coding_skill tests.hub.test_component_managers tests.hub.test_usage_definitions_system`. source `fa75d55de416db14f2343d5e3f29403041023dd7fc1e8369baca156360d35eee`, input `9393312585593b95942c448c383eccca4ea4ba8d2dd66b46b6defa9ac09708cf`.
+
+각 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 전후 manifest가 같다.
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11 환경을 유지했다. Skill/Data 원본·운영
+증거·Agent/Refinement/Hub·파일 API의 직접 소비자, 장애 rollback·삭제/참조·사용량·승인·
+예산·효과·Checkpoint·RAG·Resume 안전성을 검증했다. 문서는 집중 실행 뒤 Owner 연결과
+보존된 Agent 도메인 표현만 갱신했고 제품 코드/시험/환경은 같으며 문서 검사를 별도로 통과했다.
+서로 다른 집중 실행을 전체 회귀로 합치지 않는다.
+
+정적 발생은 119개다. 새 S4 한 건은 typed 운영 identity의 의도된 정확한 version/Project/
+Component 비교이며, 필수 필드·bool/교차 identity·실제 rollback 시험으로 개별 검토했다.
+이전 의존 증거는 실제 바뀐 3개 검토만 갱신했다. 정적·문서·R3 mutation·SDK·양 환경 각각
+exit 0, 감사 자체 16개 pass/exit 0이다. 전체 코드를 읽은 5개 파일과 Record 변경분을 기록하고
+나머지 FileComponent 주변 코드는 완료 처리하지 않았다. 현재 485개 파일 중 미검토
+333, 미분류 24597, incomplete 2개로 전체 완료는 차단된다.
+
+이번 소단계는 Level 2 완료다. a8fff13의 Component 값 정리, d8b324c의 Skill Projection과
+이번 운영 저장 연결을 포함한 현재 통합 소스를 고정해 gate18 전체 LLM/Hub·정적·문서·R3·
+실환경 검증을 실행한다. 전체 성공 뒤 정확한 SHA만 작업 브랜치에 Push하고 원격 결과를
+확인한다. 기존 main/refactor/llm-backend/Draft PR #1 보호와 전체 잔여 작업을 유지한다.

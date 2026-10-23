@@ -11,13 +11,16 @@
 | --- | --- |
 | [__init__.py](__init__.py) | SkillComponent 공개 import입니다. |
 | [component.py](component.py) | Skills 저장 Owner와 skills/tools capability를 연결합니다. |
-| [records.py](records.py) | 운영 관계와 메모리 Projection schema를 소유합니다. |
+| [records.py](records.py) | 운영 관계 Schema와 분리된 Record·참조·lineage Projection을 소유합니다. |
+| [state.py](state.py) | 필수 운영 catalog/entry 필드·identity 검증과 직렬화를 소유합니다. |
 | [storage.py](storage.py) | 표준 디렉터리와 필수 운영 증거를 원자적으로 저장합니다. |
 | [SkillDocument](../../core/skills.py) | 표준 frontmatter·이름·본문 검증과 원문 보존입니다. |
 | [data.py](data.py) | 파일 API, 버전 참조 검증·조회, fork와 삭제 보호입니다. |
 | [tools.py](tools.py) | Run 스냅샷의 목록·본문·참고 자료를 조회하는 읽기 전용 Tool입니다. |
 
 파일 스트림·경로 검증은 [files.py](../files.py), 원자성은 기존 workspace transaction을 재사용합니다.
+파일 범위의 기본값·검증은 [FileRange](../file_ranges.py)를 공유합니다. 누락된 운영 컨테이너는
+빈 값으로 복구하지 않으며, 소비자는 Record의 속성과 변경 API로 참조·파일·계보를 읽고 조립합니다.
 
 ## 사용 예
 
@@ -84,7 +87,7 @@ create/save/update 및 Run capability 구성 시 대상이 존재하고 revision
 전체 사용 예는 [skill_data.py](../../../examples/llm/skill_data.py)에 있습니다.
 
 `await skills.aimpact(id)`는 현재 Agent 정의에서 해당 Skill을 참조하는 ID/revision을 계산합니다.
-선택 해제된 Agent Component의 보존된 참조도 표시하며, 조회가 Component를 다시 활성화하지는 않습니다.
+모든 보존된 Agent 정의의 참조를 표시하며, 조회가 Component 선택을 변경하지는 않습니다.
 삭제 보호와 동일한 저장 참조를 사용하고 별도 역참조 인덱스는 없습니다.
 FORK는 `lineage={"parent": id, "parent_revision": hash}`를
 저장하며 생성 시 부모 버전을 검사합니다. lineage는 생성 후 바꾸지 않고 부모 업데이트를

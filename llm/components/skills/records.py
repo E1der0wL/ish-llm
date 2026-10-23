@@ -178,6 +178,14 @@ class SkillRecord:
     def files(self):
         return {path: SkillFileEvidence.from_dict(value) for path, value in self._value.get(self.FILES, {}).items()}
 
+    @property
+    def source(self):
+        return deepcopy(self._value.get(self.SOURCE))
+
+    @property
+    def has_files(self):
+        return self.FILES in self._value
+
     def resource(self, index):
         resources = self.resources
         if type(index) is not int or index < self.FIRST_RESOURCE_INDEX or index >= len(resources):
@@ -188,12 +196,47 @@ class SkillRecord:
         """Omitted and explicit empty manifests retain their distinct edit meaning."""
         return self._value.get(self.FILES) == other._value.get(self.FILES)
 
+    def same_authorship(self, other):
+        return all(self._value.get(key) == other._value.get(key) for key in (self.LINEAGE, self.SOURCE))
+
     def with_lineage(self, parent, parent_revision):
         return {**self.to_dict(), self.LINEAGE: SkillLineage(parent, parent_revision).to_dict()}
 
     @classmethod
     def markdown_change(cls, markdown):
         return {cls.MARKDOWN: markdown}
+
+    @classmethod
+    def from_storage(cls, markdown, *, files, resources, lineage, source, identifier):
+        value = cls.markdown_change(markdown)
+        if files:
+            value[cls.FILES] = deepcopy(files)
+        if resources:
+            value[cls.RESOURCES] = deepcopy(resources)
+        for key, selected in ((cls.LINEAGE, lineage), (cls.SOURCE, source)):
+            if selected is not None:
+                value[key] = deepcopy(selected)
+        return cls.read(value, identifier=identifier)
+
+    def with_file(self, path, evidence):
+        value = self.to_dict()
+        value.setdefault(self.FILES, {})[path] = evidence.to_dict()
+        return value
+
+    def without_file(self, path):
+        value = self.to_dict()
+        del value[self.FILES][path]
+        return value
+
+    @classmethod
+    def without_files(cls, value):
+        value = deepcopy(value)
+        value.pop(cls.FILES, None)
+        return value
+
+    @classmethod
+    def with_files(cls, value, files):
+        return {**deepcopy(value), cls.FILES: {path: evidence.to_dict() for path, evidence in files.items()}}
 
     def to_dict(self):
         return deepcopy(self._value)
