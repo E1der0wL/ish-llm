@@ -38,7 +38,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Union
 
 from llm._platform import require_linux
-from llm.core.models import ConversationStorage, ProjectConfig, Run, RunStatus, Session
+from llm.core.models import ConversationStorage, ConversationStorageInput, ProjectConfig, Run, RunStatus, Session
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent
 from llm.core.diagnostics import ErrorClassification, classify_diagnostic
 from llm.core.checkpoints import CheckpointError
@@ -766,7 +766,7 @@ class LargeLanguageModel:
         self.provider_calls = (self.services.provider_calls if self.services.provider_calls is not None
                                else ProviderCalls(self.services.provider_limits))
         if conversation_storage is not None:
-            ConversationStorage.validate(conversation_storage, nullable=False)
+            ConversationStorage.validate(conversation_storage, nullable=ConversationStorageInput.EXPLICIT)
             if self.services.conversations not in (conversation_store, ConversationStorage.FILE):
                 raise ValueError("Choose conversation_storage or BackendServices.conversations, not both")
             self.services = replace(self.services, conversations=conversation_storage)

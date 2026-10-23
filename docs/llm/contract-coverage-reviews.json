@@ -35801,5 +35801,1024 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/models.py",
+    "sha256": "6642a25e1972d4666e65cfc0838d59cbdd087837bd923760986eb0ee332dd491",
+    "reason": "Read complete model file and consumer connections: current-format field/version validation, timezone requirements, pure transition validation, extensible configuration and its closed sections, every Project/Session/Message/Run/Step declaration and Reader. Run edges now use a read-only map of frozensets; Step edges a frozenset; exact allowed transitions/reasons/diagnostics remain. ConversationStorage schema uses canonical Schema declarations and input policy; llm bootstrap and ProjectConversations explicit choice paths share it. Project/Session JSON copies/target validation, components initialization, Agent binding and active Run identity/evidence remain. Dynamic configuration/record fields derive from their schema/type declarations. Step observations delegate the existing typed envelope Owner; clocks/UUIDs are generated only by creation, never missing-record repair.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "414710b4c46167f201d30d9e184d5e9cfc6803cc5382d378bf4a101e908a8ba4",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "5381234e85989c1d6b30894ed4ea1a8338fed428c18cfc07913293caab102fa5",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "2792126eace62aecea62bf361fd7fba90b565c918066eaa6267e8c1788697e52",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "b4a577e5bf4580a8daf4ad33306678a3f34abecb1ccff9a026c38b1d88e6662a",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "2a5b208ce6d46937009fe76f020d8e7d5f8b713840eb0fb4790335d14877ae28",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "71aab3f226f3977b58507803e732d694add30b8539f2eb68a27216b143252402",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "515bb71f456ac03e401461ece7fdc0c7fcce5b278011e1f3b5af0f35b995554b",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "137993b6ca33cbae4ef1aec20cd0676ecddbcfb8dea009f8e3e09c733f4e2cf6",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "2432e326151e3130ca7a43ca849f66993f462a4467db7084cd9e939c3520777a",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "741d0c493a90c9c0e1a048168163cfd0548c6288ad2110303ce041c1bacdfe64",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "945fed6cdf34d7c06c3dba6b4198d02f7e8b03d20fa4158ad4a339c07cb1482a",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "da9546d30797c5fa9e4bc0b74b4ebf49981760d8e16c68db417ee477731daf38",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "90feef11dc6802e8f6b76f8dcec796a0eba78328b1e6b8ed43cc06254a6a51d3",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "c1f059c9b7cb43d16331b39f8d4f61feac7b4033b02301bc4351a7132e9859ba",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "6c5a784dbc380ba8369cffe6d549f313d658adca9d876e5962c3c494cc0585bb",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f46742168e29fb10380e056f28636e603cb414264639e2b442a217cf98111787",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "8bbc5a7c4031f8faf9cdb95eadac8ed3e47947d17fc2b2976a6f3ec01ae680b6",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "faec9c41b3742207ea2ee2bd299f1c51fbe234f77030fc26ce67637edb8eea5e",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "113b6ef583a4abe562696ddcfec19b33f217daf48b2d51c23138b4abf9f6c803",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "a05367a3c25947869a2ab7eaa1cb8bfdc05cf7d2fdf8dcee2bb14d8f2abf604a",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "1dab005d39fd88c5f949cce8904351d9c0f5859ccdbf9e7856607d30a255e8c1",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "757e38958b47717d5b72ca976b8223fa04c8fe78ee65dae8e698b6f8346ee538",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f9a5068e64c95af240032f2cbe1ad8d941b615fe3fbf686e1cb583cdfa3bd13e",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "aed56bb10681b21136835c2ec9ada44f78255c2edcfad24d6d920754456500de",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "0a2cab88a7006de87891d3d578de24f9e8091449623528bcf28219e32707888f",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f0dfba5e9528ba11498f4de581f0044728cd1495aeb59cd998626e0668b8d5d7",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "914fd61bd2bb325b70e5da3fb35360b5526327e40ec2be194d85e1abd2bc4f23",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "de3214afe41e0412124f29445d0cbca8b9017890a91bf8774ffbdbf7b40a63f5",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "5b08031d6b4b6e71dd4ad8fbd67135be5922a425d49f8e92e2bc57c5f257e56e",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "3b22fcd348991a084cd71dbc37cabccff6e649a68497effeb443a88e492c318f",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "904c2838407d8e15cc16407bb0abf5962a944060fb3048ea7d6a2686f360b6ec",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f9a1e1e2bb4e0d175166a841cf6d971282562d9d83618e70718547d8a57338ae",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ae32d080230a71f4a39bd8135dccbbeac6489af7bdd72c232697c1ccb8b415cb",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "12226acbf5729e0cef7481f808b63c03b46ed2400b2db3bd25897b92104b6d0f",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "5d3df4e471e8d556bc12d3019b4b2f490ad8e5e42317a799b0b23b9773e18a52",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "e0dd30bc3f3cad0c68d1ddd3dd00900a7f6c62f5ee778bc46ba9522fe62e658c",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "c13a1ddc95e018c55a9ef89146761411a1866d9a89b0c659eefe75bba9225b05",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "43e21ea98a10ca86c42fcdf1eca55969aad2bd9a33bbe9809b21dc8b08ff92eb",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "7e52d852c78ea2731053b0fed337f7efbd1d8ebb5355a3daf5f21d3f8d87f383",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "74f8c27e18147795ea707c783d303a4dd9b4ab790a1b39b6165a725f75451efa",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "a1902203e7a692cb37e1161f5bc318abe5effecce56b887f5f294b81ffef86ed",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "586c9d001b2ba2268cad85936530722f156eb372ec394ecf24b605ed0824d911",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "59c829fb939e3f96eb5e820dffea2b93110cf0ef1d0df46d3e3d9f9c6b8125a7",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "a90c94eaf89b4352ed2b47a1d25e8b5df39546e5f4dcc61925ae91433d1e4c29",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f257631e65759287b820988d764c2b7f98c351bd64b1b46ad1657575ba57669c",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "3cb143896a60d4f375dc58ba87687a6c21944a43c6d0ef1e9c004738b3178dcc",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ba529172650fa02643be41beba0b377c1df3cbe9f07e8ddf9c4cb1ade36e4869",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "26471486a736d7ba21b8c9efd86023d6aae8dff0fcfc662b0a66b77b338b46f2",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ae5ebee0ffbfc7d1e39cb135120f7529dca251c815ebdb961b5e596e78c0a968",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "448e9bc863e4917b80b62e9450e85911e1359f520222a2a2d31ae5b0d05985a6",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "6220caa9486d730bee2316977bc3784b8ed4d80b09703b5698a8fac5626a6bcf",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "b2848c31c9770e5932953b1a4fb394b0ce8d248f48233b39feafffe0a8ce7e1f",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "73ce6a00ecc4897fbbada5f95d88e70e907e62bdf4c2eee2c13c3dfd973cb083",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ed70bd8e68a2f5c269d13fcba1f468d87b9eaf87944083f5eb964e6e1ac71dc8",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "0ecd2fa03936f10e0961e8d63d21b4fe69937f03d032d8cc3908b15e73a32e62",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "05970d144784606c54617b24fe167d85de35e382f54437ca880a071344e8bd11",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "1870d66eb9f616fdd844def710cf19fdaf60386b9a1da5d5ffdb114d9241c953",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ff8c103c11f30458f1144c1e517f1904bbbaebf209b08cf514eded0f27c11811",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f113cb892811b58ceb16b012df02d5b1fb5b4488e245d9548694d2bb0b303e35",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "dfe4fb1783ca5f545bf154302807c28ce83b1a7b64b250db23636402d9d6e49b",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "92daff228d46307f3a31e775ad5330a8fb9472049d64e24fd10adff5db592450",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "238107c07fd97a93faa9ec95b4e900540a27a12e2dcf21ee3c3b75f74042a1bd",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "a7b46fc8e350c75ed23f112b5143c594a9f7f3dd3a34f46425eb4bdad0009965",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "3c75181abf19c358817f5ee913463996f16b35648dc571e9166434d71a7e1ffa",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "1102a536bb197961686759fa5a82476ae881ef774981e1a2adc910b101e80e16",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "e340bc5e81e603689e5d961f4784bdf35f661f67de400d11adab7eea18832130",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "6c830d00996e41238e4b105353b05a9e8fc91843aed1949e4370c3ed2a733629",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "be4bdca8d0e8bc4824202fba95dd08542302f4fea1328ef19e35eadf9869aa20",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "fa982cf6cb0151b7b9436010603a913f1350d0438c9fe5293a7528b36391f389",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "75955c0cd1ab04ca5d4a269690c06211cb4ffee37e34f41acdacba53088f5161",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "0859e84ca08295a12b77c1910eedf9a1d14c205285e595d2b1bd533892bd749b",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ad7267c762a9b76fe23f3501ce28dc1743e6eb46bafc89d7448da5b5b8c8f7f3",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "145a25c2b216084e5d52df69049c5474ba75893f7bd0fd8c0e1dc47665ef1f54",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "b4e477135ffa38ad082aa40f5b828625fb68137ffb704bd34fe1ce55ef64941a",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "d8b24f9275e15f8c626685a531dac02fa899adadedb80d708b5833515462410a",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "0502aa7b06cc1a155ce5a5a7cc24fe6d14a3028e385d6534f28759e4097baf3f",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "a61aeea226777939f34391d8a25dc0c791e5c1337790083ba5c0ca1244fcc53b",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "0393127ab6c3fa87480828cbef71a8c66d2d5dcec5b431c2c4f23fb278e17feb",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "cbc4e7749d69c24f9275e69ac1ecf4173c002365af12132f24b2d8e04dce044f",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "d150bd33523a4b16860905eed16dcba5d4f9657b591b3d69faa8bad9e6afcfd6",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "842a4eac892ccbf2afc834f383b20089cd8b9f94a77bca47dd8a87f9e22d0f47",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "d3789c795872135ec6f3ae1accaa7908ab77d6c0bd94ff37c97ecd6ec3948459",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "48cd35b07105a65ed990de29a6c2a3d4fe29828058aa8f37779bac0f6d4cd2e3",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "e95b799d7d1644e14e7bba85b6a416a48bd46a2627c58e4654525ca279336fc3",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "844f3e1fa69975a0b8c54ad26190487242d8c80d7bfcfaa5c2462ccfb061f770",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "161c72e4ef85ac7bbbd3de7874a4d050a61901ef377d668c2b786dba36cb1f0f",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "c303a19c11dcde9a53117c12167f1100404e082a06bfe6d65aa0f7ba5872efa1",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "cbeccd8a4330788a3390155da0369ac0a583113e3acba03a793b24d825d05793",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "d0e8cdba27db0c31791189be79784867580db3d4bef1dc465f8223411746c761",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "c7aed2720f7f696de5e690dabb7e6cc358744cb96cba42899bc9acc5f17f9896",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "d76b75476106185ae1702b671a2d4e41006a7cfcd755bc092951b543d11a47d0",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "c8ef0a1cece8566589f32d7be561a96e5680ae0a18f6eae0ed333ae529310295",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "e2cea31918f35cb8dae42ee232b21574037a363f4f293461343632c8d1a10870",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f96bcdfbf9bde00041942707130ffcfe8b61865dd60cf8d7f3e084a32f949606",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "207a3de51930dcf259998255cebe2844f645b4bfad763a80da9ec4afe5957d7b",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "b3042fec2c680e5ce4115c56e915af17bda1faf944380db7108406a4e921411e",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "e2dd338783362ead8451cd3c2b538cae57d8dd894ed5e0c0eff89006563e8b9b",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "5d3821ca58e88a32744da601b985f716bbe45a6924b3996cb1239579c3f16a9a",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "e6e16e6e56af371327dd2d2cd64484192bb77631b55b443f8b7b852fd297f3aa",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "34788b607eecfecc4b5d580d050276e811c99c5aebea4c9f3a06fb4c1de13489",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "d8875c7225457b7ac9a4fa4ac1b0be7a40f8466488c8c6eb55677c05ef5252b4",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "3bebb0824aa08574cb93e9ec705b2f2c0d40bdcdcb093b09b4c0217352db855c",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "869cfdb088ef087f9c07c1e99aded619ec951362c2615522805f98df9d11a6a4",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "46b0af41707b0f397acb85fcf35abbdfa7cd92506a0816eeadf31a3c2e41963a",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "d826b3ef301493b12459759971357ba9efbe7869f2208278171730756e5c1e8d",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "a64715289f153b3dee3c6df46837b86d39c835bfe3ef0796996278a4ee534032",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "874d6ebb4e87a0db891c821912de5c4d277e59f2a48013a5b40cabd8ce2012a5",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "7358844d52c32500dec4623107fa7d1045e9ccf5b3c41bd72c1873f82031485b",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "0f8ae8463fbe3bdd5d2250667c19fed3815c24210193ef142da7bb63719aab87",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "c178c14673a2ae9c82ac69f51ab2bb9cf30f93fb01b75c181613be4585eba6fd",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "0525b8ad3ce42b781929e6b57ef3a16f615f8c623ba28739c4f811efa6fea0c1",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "fdd164b8ed088e5b9b8146400e71d9776422fe8a31f50d5e392a87fe87a15a73",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "77d02ef3fb2d9fc4a1e76c374b0022d96a245c5a7cf4e88c8bca8bad32cd6840",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python forward type annotation, not a reflection key or external protocol name."
+      },
+      {
+        "id": "df41eff7f886f9061a48dc1d4328e17237f08f2ef993321174a6d15f407c85a4",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "a8b12ce3283f60772e35d128dbfbfefe19ec7b931b4b34ad7be4eecf12d8f0a7",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "54a3363c446649572e14d9eae7018df49bb8c1cb6fcc27c7d0278f89ef90bf80",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python forward type annotation, not a reflection key or external protocol name."
+      },
+      {
+        "id": "bfa08c25fc6d61915804322a041b9c54807e804baab15731639a5bbbaa337424",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
+      },
+      {
+        "id": "4b4db195320fd4837041a1e9fe7ea5eb649d2bc3da21a0ace52629b7e0c75279",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "1a3bc4659a3250c309d9ed85cbb8a9f10f5feb0f97d0953090a7238955b71447",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "3327efea6bc1b5ad800e7c7636c0d719f380fd9e6bbe8ca76460752fc9660cc3",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "11861ba9ad71693480a2d825f21b7ab415ca689e91435b964bc5c74ca7fb4356",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f53c9d979c186967510b457e0eaed52dbece0e087e97b78102f17890913db960",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "377dec40297ee4723f6773e1ff4fb84d5a2feac9c18f4e25797470f3a0c915f3",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "08ab642611ea43f5dea366d2c541c00871d3329ad13c0a9b0eb43edee7e811ed",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "73c10fccf982690a5a7e18c7d5a3a05625638e2d21828205afdbef85c3253add",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "b217fa0db65410592b90d3932ff383038eb5a913595552c35a902f5621b45d90",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "024649727ea028ecab2665a82e700f887c15bbb2fc4a81f92f571c218f160bea",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "5ed9d45d81d33dc64b5f6aaf3539e84ab211a8ceaa18084e24b1a5ef5b22f4b2",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "87d0303e7078f76e8370fad9ebacd6ca23b1c6beb9f9a0816ec8195f01e31d6e",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python forward type annotation, not a reflection key or external protocol name."
+      },
+      {
+        "id": "6b96a0933c6d1f551cb5bdc5f80cbd15d92104d2ef6ac14b8fd3b12e623fe74e",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "5954f5d6d4c5abcad936421fba4bc906d1af0a86fa64d383bd01bb82614cd4a9",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "ef77dbd46093c416f5de2f9db26dcfc98a0a0eca7359b5a57a825c3627b16b44",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "0985830b13ef30502a4330c80a5f43d111214ddeeea1cf9ab086127f755f843d",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
+      },
+      {
+        "id": "195235134a43bfc2be3156ddff282db960df648334798aead2811c420ce11736",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "5e9b5cb8fc2e4654a22e0885283f10099c4250119bac016d63879f9a92523bef",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "993283ea63e2222b2dbdf8b726cd4ca51c50c17d0c856bfe8cf9a7af7ed19c1e",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "721fcbd4caed07b736473b37c144124da8c1108be6fddeb293d6f861df5bea40",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
+      },
+      {
+        "id": "4cc4004ff6d70107a8c34cda35062a5cb694ed78a82549f1eaa8411bbc2db758",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "63416f664df19df287b87742fd161f33cdb74b2f8687cac09781043bb9442e8d",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "39c9c8ec643d7bc506cc771a50bfc0781b8272e0f87addfc2eb376df171ab047",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f038a6faad090cdf0d31d52d5bdbdecdcefb30d2e317ddd1491914f686261d54",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
+      },
+      {
+        "id": "389e7e92ae6eacf552b72f9521594944fb7c474f8bac4ac46efc82bb1a03629b",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
+      },
+      {
+        "id": "5c6fd774d81e175e761bef20d953942fbe6aac3eb8b8845816c6dbbd4e9f759d",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
+      },
+      {
+        "id": "9dd88f5b6ac5fc4624c1739235d12d44840446805605a76bc928d3f5ff307bcd",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "4ea43639642d7b5410d8aa658734f27ac8735b1031d9f281e8f8c1605251cf3f",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "effe2f597bff068cb068bec684a18f5197b672fbe097afa6800807c31674686c",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ff9d843069fa497d851fdb99ddd3f6228081365f686e05f0659545faf0c273a7",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "f75f57e3224bfcfa8d5a536c31a3959f1fa4b45e3d2edbe4521981496ab05725",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "279154d65eab67d337d2b97afd28c56a9a5962075e4947160c1babb459a12d17",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "516cb3efe16541ec761ac7565de72c4154a79488e733addee869a29b5a7cd9b2",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "42d613ea0606681beded8a22c16912190008f6427e53370b6c04bcd7fa9ed48b",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "2cf5c550e1294a5facea63b2301441155830cfcf58e45b650a0d7f9f6e3beabb",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "fa3bf4fb5b0e725427900dccbedf3aaf16c93b81348a6531c33b8adecb46a39f",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "fc7eab52989644d7c3b4b98c73eb3bd760247de8d58ef69f469c0014c31097fe",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
+      },
+      {
+        "id": "59b4a71915dd498616f021122eadd8b522e28120a9a62e26c59615e016c6a476",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "edfb9ec9cbaad3af28c0ec227b921b0873111328ac249a06e21e742c6a9221bb",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "87fce8c81b8546f193cf5dbc5163a2d708c75ed86398d740ea431c7d58b076cb",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ca3871ecefa643b517e0ec9c07342470133a716a384989c733a7fe56340b80ab",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "d6ce76dcff3047ec0051958f2251dddb86589a2274362355de6f0d29a47b8221",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "61232afbf848a72519e5d95fb920a7fafcd1eb4a6fcd4275a22016962c12b9da",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "e6c9fd5bd9d37afde892de73d0c1a116fff68a973ec988db8ae386bc3c23e3cf",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "2f962d35090074e117e7b700866ad01f7aa1ea45ed850fd68649ab0a967ee490",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "f80f5607e5b2a5dc164df76fa1dcc3d29ed6b115ba8ba66e9073a7b9c4d1c0e4",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
+      },
+      {
+        "id": "51063d234bcf69f75bac6a834a640ca217db7aef36de3f1eab71b0e5c1d729ee",
+        "classification": "non_contract",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Python forward type annotation, not a reflection key or external protocol name."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "declaration": "llm/core/models.py",
+        "consumers": [
+          "llm/llm.py",
+          "llm/services/history/conversation.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/lifecycle/steps.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/recovery.py",
+          "llm/services/schema.py"
+        ],
+        "tests": [
+          "tests/llm/test_domain_state_integrity.py",
+          "tests/llm/test_domain_record_values.py",
+          "tests/llm/test_run_transitions.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_project_conversation_storage.py",
+          "tests/llm/test_repositories.py",
+          "tests/hub/test_state_owners.py",
+          "tests/hub/test_conversation.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

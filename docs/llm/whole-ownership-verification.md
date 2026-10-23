@@ -2598,3 +2598,39 @@ Clang·Host d833790·의존성·namespace/X11 환경이다. 기존 출력/영수
 2개다. Level 2 완료이며 영향 범위의 동등성·실제 효과/실행 검증에 따라
 소단계 전체 회귀를 유예한다. 앞 Checkpoint 변경과 다음 llm 묶음의 gate21에서 전체 통합 검증을
 수행한다. gate20은 이전 b9de4c2까지만 검증하며 현재 결과와 하나의 전체 실행으로 합치지 않는다.
+
+
+## llm 도메인 모델·전이·저장 선택 선언 전체 검토 (2026-10-23)
+
+DomainRecord, ProjectConfig와 Project/Session/Message/Run/Step 전체를 읽고 필수 저장 필드,
+version·시각·상태·Agent binding·active Run 목록·설정 대상·동적 접근을 실제 소비자와 대조했다.
+RunLifecycle의 읽기 전용 map/frozenset과 StepLifecycle의 frozenset이 기존 전이·진단을
+선언부에서 소유한다. ConversationStorageInput이 기존 nullable/명시 선택/주입 null/설명/
+오류를 선언하고 SchemaKeyword/SchemaType을 사용한다. Project의 scope는 ParameterTargets를,
+LLM 초기화와 ProjectConversations의 명시 선택은 같은 저장 Owner 입력을 참조한다.
+
+허용 전이·취소/재개 의미·저장 형식·필수 원본·시각 생성·현재 설정 합성은 변경하지 않는다.
+Run/Step 상태는 조회 관찰과 구분하며 종료한 시도를 다시 열지 않는다. 저장 Reader가 생성
+기본값을 적용하지 않고 사전 검증한다. public 설정의 동적 접근은 선언된 외형과 Application
+확장을 구별하며 기존 JSON/상태 검증을 유지한다. Hub 제품은 변경하지 않았다.
+
+f194360 대비 Run 전이(잘못된 상태/이유 포함) 1,000개, Step 전이 81개, 저장 선택 45개,
+Schema 1개와 설정 5개가 같은 결과 또는 정확한 예외를 낸다. 전이 선언의 mutation 거부도
+확인했다. 기존 실제 영속 Owner·상태 시험을 재사용했고 초기 smoke 25개 pass/exit 0(1.341초)다.
+
+- `whole-domain-closure-01`: 발견/시작/pass 120/120/120, exit 0, 35.720519초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-domain-closure-01/llm.json --modules tests.llm.test_domain_state_integrity tests.llm.test_domain_record_values tests.llm.test_run_transitions tests.llm.test_owner_declarations tests.llm.test_project_conversation_storage tests.llm.test_repositories tests.llm.test_persistence tests.llm.test_session_domain tests.llm.test_configuration_objects tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `ab88d5bb829ad0a104097cbae8fd296da607e6395259457d267ff84636fa052f`, input `cc371b4df4f2d29b12b577238de774ab8d770f9f0e1d1ff36a16860aa92648fb`.
+
+- `whole-domain-closure-hub-01`: 발견/시작/pass 27/27/27, exit 0, 32.090432초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-domain-closure-hub-01/hub.json --modules tests.hub.test_state_owners tests.hub.test_conversation tests.hub.test_settings`. source `ab88d5bb829ad0a104097cbae8fd296da607e6395259457d267ff84636fa052f`, input `cc371b4df4f2d29b12b577238de774ab8d770f9f0e1d1ff36a16860aa92648fb`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. 고정 Python 3.12.14/
+Clang·Host d833790·의존성·namespace/X11 환경이다. 상태·Schema·저장/복원·설정·Session·
+핵심 안전성·Hub 직접 소비자를 실행했다. 정적 119개 동일, 바뀐 의존 검토 24개만 갱신했다.
+정적·문서·R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다. 전체 검토한 models 1개만
+완료 기록했으며 llm.py와 conversation.py는 명시 선택 경로만 바뀌어 전체 완료 처리하지 않는다.
+현재 487개 중 미검토 306, 미분류 23467, incomplete
+2개다.
+
+Level 2 완료다. 이번 단계와 앞 Checkpoint·Completion/출력 소단계를 현재 통합 소스로 묶는
+Level 3 gate21을 실행한다. 전체 LLM/Hub·정적·R3·문서·실환경 성공과 정확한 SHA의 CI는
+별도 기록하며 통과 전에 Push/통합 완료로 간주하지 않는다. b9de4c2 gate20의 결과는 그
+수정본에만 적용한다. 계속 llm/을 우선하고 Hub 추가 구현은 llm/ 전수 완료 이후 진행한다.

@@ -10,6 +10,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from enum import StrEnum
+from types import MappingProxyType
 from uuid import uuid4
 
 from .paths import ProjectPaths, RunPaths, StepPaths, SessionPaths
@@ -90,6 +91,14 @@ def _stored_fields(model, data):
 # 영속 역할과 수명 주기 상태
 # ---------------------------------------------------------------------------
 
+class ConversationStorageInput:
+    ALLOW_INJECTED = True
+    EXPLICIT = False
+    INJECTED = None
+    INVALID = "Conversation storage must be 'file' or 'memory'"
+    DESCRIPTION = "null은 주입 저장소 전용. Session이 존재하면 변경할 수 없다."
+
+
 class ConversationStorage(StrEnum):
     """Project-owned storage selection; None preserves an injected factory."""
 
@@ -97,16 +106,18 @@ class ConversationStorage(StrEnum):
     MEMORY = "memory"
 
     @classmethod
-    def validate(cls, value, *, nullable=True):
-        if value is None and nullable:
+    def validate(cls, value, *, nullable=ConversationStorageInput.ALLOW_INJECTED):
+        if value is ConversationStorageInput.INJECTED and nullable:
             return
         if not isinstance(value, str) or value not in tuple(cls):
-            raise ValueError("Conversation storage must be 'file' or 'memory'")
+            raise ValueError(ConversationStorageInput.INVALID)
 
     @classmethod
     def schema(cls):
-        return {"type": ["string", "null"], "enum": [member.value for member in cls] + [None],
-                "description": "null은 주입 저장소 전용. Session이 존재하면 변경할 수 없다."}
+        from .schema import SchemaKeyword, SchemaType
+        return {SchemaKeyword.TYPE: [SchemaType.STRING, SchemaType.NULL],
+                SchemaKeyword.ENUM: [member.value for member in cls] + [ConversationStorageInput.INJECTED],
+                SchemaKeyword.DESCRIPTION: ConversationStorageInput.DESCRIPTION}
 
 
 class ResourceKind(StrEnum):
@@ -194,6 +205,18 @@ class RunTransition(StrEnum):
     RECOVERY = "recovery"
 
 
+class RunLifecycle:
+    UNKNOWN_REASON = "Unknown Run transition reason: {reason}"
+    INVALID = "Invalid Run transition ({reason}): {current} -> {target}"
+    EDGES = MappingProxyType({
+        RunTransition.START: frozenset(((RunStatus.PENDING, RunStatus.RUNNING),)),
+        RunTransition.PENDING_CANCEL: frozenset(((RunStatus.PENDING, RunStatus.CANCELLED),)),
+        RunTransition.FINISH: frozenset((RunStatus.RUNNING, status) for status in (
+            RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.PAUSED)),
+        RunTransition.RECOVERY: frozenset((status, RunStatus.INTERRUPTED) for status in (RunStatus.PENDING, RunStatus.RUNNING)),
+    })
+
+
 def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: str | None = None) -> None:
     """Run 상태 변경의 순수 검증. 저장·시각 생성·다른 도메인 변경은 하지 않는다.
 
@@ -202,19 +225,12 @@ def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: st
     fan-out 후 미시작 Run은 pending_cancel로만 CANCELLED가 될 수 있다.
     """
     current, target = RunStatus(current), RunStatus(target)
-    transitions = {
-        RunTransition.START: {(RunStatus.PENDING, RunStatus.RUNNING)},
-        RunTransition.PENDING_CANCEL: {(RunStatus.PENDING, RunStatus.CANCELLED)},
-        RunTransition.FINISH: {(RunStatus.RUNNING, status) for status in (
-            RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.PAUSED)},
-        RunTransition.RECOVERY: {(status, RunStatus.INTERRUPTED) for status in (RunStatus.PENDING, RunStatus.RUNNING)},
-    }
-    if reason is not None and reason not in transitions:
-        raise ValueError(f"Unknown Run transition reason: {reason}")
-    edges = transitions.values() if reason is None else (transitions[reason],)
+    if reason is not None and reason not in RunLifecycle.EDGES:
+        raise ValueError(RunLifecycle.UNKNOWN_REASON.format(reason=reason))
+    edges = RunLifecycle.EDGES.values() if reason is None else (RunLifecycle.EDGES[reason],)
     allowed = any((current, target) in values for values in edges)
     if not allowed:
-        raise ValueError(f"Invalid Run transition ({reason}): {current.value} -> {target.value}")
+        raise ValueError(RunLifecycle.INVALID.format(reason=reason, current=current.value, target=target.value))
 
 
 class StepStatus(StrEnum):
@@ -231,17 +247,18 @@ class StepErrorCode(StrEnum):
     TIMEOUT = "step_timeout"
 
 
+class StepLifecycle:
+    INVALID = "Invalid Step transition: {current} -> {target}"
+    EDGES = frozenset({(StepStatus.PENDING, StepStatus.RUNNING), (StepStatus.RUNNING, StepStatus.COMPLETED)}
+        | {(current, target) for current in (StepStatus.PENDING, StepStatus.RUNNING)
+           for target in (StepStatus.FAILED, StepStatus.INTERRUPTED, StepStatus.CANCELLED)})
+
+
 def validate_step_transition(current: StepStatus, target: StepStatus) -> None:
     """The Step owner permits pre-start failure, interruption and cancellation."""
     current, target = StepStatus(current), StepStatus(target)
-    allowed = (
-        current == StepStatus.PENDING and target == StepStatus.RUNNING
-        or current == StepStatus.RUNNING and target == StepStatus.COMPLETED
-        or current in (StepStatus.PENDING, StepStatus.RUNNING)
-        and target in (StepStatus.FAILED, StepStatus.INTERRUPTED, StepStatus.CANCELLED)
-    )
-    if not allowed:
-        raise ValueError(f"Invalid Step transition: {current.value} -> {target.value}")
+    if (current, target) not in StepLifecycle.EDGES:
+        raise ValueError(StepLifecycle.INVALID.format(current=current.value, target=target.value))
 
 
 # ---------------------------------------------------------------------------
@@ -437,7 +454,7 @@ class Project:
     def from_record(cls, data: dict, paths: ProjectPaths) -> "Project":
         """Read the current record without applying creation defaults."""
         _stored_fields(cls, data)
-        ProjectConfig.validate_session(data[cls.config.__name__], project=True)
+        ProjectConfig.validate_session(data[cls.config.__name__], project=ParameterTargets.PROJECT_SCOPE)
         if not isinstance(data[cls.config.__name__], dict) or data[cls.config.__name__].keys() != set(ProjectConfig.SECTIONS):
             raise ValueError(Project.STORED_CONFIG)
         if type(data[cls.deleted.__name__]) is not bool:

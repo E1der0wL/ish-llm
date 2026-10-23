@@ -13,7 +13,7 @@ from collections import Counter, OrderedDict
 from pathlib import Path
 from io import StringIO
 
-from llm.core.models import ConversationStorage, Message, MessageRole, MessageStatus, Session, new_id
+from llm.core.models import ConversationStorage, ConversationStorageInput, Message, MessageRole, MessageStatus, Session, new_id
 from llm.core.paths import SessionPaths
 from llm.services.infrastructure.logging import log_event
 from llm.services.infrastructure.storage import record, sync_directory, append_bytes, prepare_replace, temporary_file
@@ -409,7 +409,7 @@ class ProjectConversations:
         if default is conversation_store:
             default = ConversationStorage.FILE.value
         if isinstance(default, str):
-            ConversationStorage.validate(default, nullable=False)
+            ConversationStorage.validate(default, nullable=ConversationStorageInput.EXPLICIT)
             self.default_storage: Optional[str] = default
             self._custom = None
         elif callable(default):
