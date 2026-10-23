@@ -17,6 +17,9 @@ total=None입니다. 단계 비율은 계산할 수 있지만 전체 남은 시�
 
 Markdown 문서를 분할하고 임베딩과 관계를 추출하여 Chroma/BM25/Kuzu 색인을 관리합니다. 하나의 검색에서 관련 문서와 관계·출처를 같은 데이터 세대에서 반환합니다. embedding, rerank, 추출 모델 클라이언트도 이 Component가 소유합니다.
 
+공개 capability와 Tool 이름은 [identity.py](identity.py)가 선언합니다. Component·Tool 등록과
+Agent 선택은 같은 선언을 사용하며 모델/저장 경계에는 기존 문자열 값을 전달합니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |

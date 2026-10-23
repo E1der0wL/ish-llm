@@ -77,6 +77,15 @@ Component 설정만 ProjectConfig.parameters["components"]에 저장한다.
 AgentDefinition이 정의 필드·리소스 선택·자체 policy·출력 형식과 제약을 선언한다.
 공개 Schema에는 enum 객체 표현을 노출하지 않고 기존 문자열 키/값을 제공하여 검증 순서와
 진단을 유지한다. 정의 revision의 JSON 정렬·UTF-8·비 ASCII 처리와 바이트 의미는 바꾸지 않는다.
+AgentProfile은 같은 정규 검증기를 거친 정의 사본을 속성·정책·자원 선택·입출력 검증 API로
+제공한다. 선택되지 않은 옵션을 원본에 채우지 않으며 `to_dict()`는 생략/null/명시값을 그대로
+반환한다. AgentPolicy와 AgentResourceSelection은 그 검증된 정의의 메모리 Projection이다.
+Root/Graph/Tool 위임의 AgentResourceResolver는 같은 정의 선택·alias/부모 Tool 범위 검사와
+MCP 연결·Prompt/Skill 합성을 사용한다. AgentResources/AgentMCPResource는 기존 binding의
+자원 snapshot을 직렬화하며 추가 영속 정의가 아니다. 사용량 복원·승인·checkpoint ACK와
+실행 책임은 기존 실행 Owner에 남는다. 부모 Tool 허용 목록의 포함 판단은
+ToolPolicyValues.permits_selection이 소유하며 자원 사전 검사와 자식 scope 생성이 공유한다.
+
 AgentRecord, AgentCatalog, AgentBinding은 각자의 버전·필수 필드·identity 검증을 소유한다.
 저장 목록과 Run admission 증거의 누락을 빈 데이터나 생성 기본값으로 복원하지 않는다.
 

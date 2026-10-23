@@ -158,6 +158,104 @@ class AgentDefinition:
             raise ValueError(cls.REQUIRED_TOOL)
 
 
+class AgentPolicy:
+    """Optional declared Agent ceilings; absence never creates a second limit."""
+
+    NO_TIMEOUT = None
+    NO_TOOL_LIMIT = None
+    NO_REQUIRED_TOOL = None
+
+    def __init__(self, value):
+        self._value = deepcopy(value)
+
+    @property
+    def timeout_seconds(self):
+        return self._value.get(AgentDefinition.PolicyField.TIMEOUT_SECONDS, self.NO_TIMEOUT)
+
+    @property
+    def max_tool_calls(self):
+        return self._value.get(AgentDefinition.PolicyField.MAX_TOOL_CALLS, self.NO_TOOL_LIMIT)
+
+    @property
+    def require_tool(self):
+        return self._value.get(AgentDefinition.PolicyField.REQUIRE_TOOL, self.NO_REQUIRED_TOOL)
+
+
+class AgentResourceSelection:
+    """Presence-preserving view of the resources in an already validated definition."""
+
+    NO_PROMPT = None
+    NO_RAG = None
+
+    def __init__(self, value):
+        self._value = deepcopy(value)
+
+    @property
+    def skills(self):
+        return deepcopy(self._value.get(AgentDefinition.ResourceField.SKILLS, []))
+
+    @property
+    def prompt(self):
+        return self._value.get(AgentDefinition.ResourceField.PROMPT, self.NO_PROMPT)
+
+    @property
+    def mcp(self):
+        return deepcopy(self._value.get(AgentDefinition.ResourceField.MCP, {}))
+
+    @property
+    def rag(self):
+        return self._value.get(AgentDefinition.ResourceField.RAG, self.NO_RAG)
+
+
+class AgentProfile:
+    """Validated detached definition for execution; serialization preserves omission."""
+
+    DEFAULT_OUTPUT_FORMAT = AgentDefinition.OutputFormat.TEXT
+
+    def __init__(self, identifier, definition):
+        AgentDefinition.validate(identifier, definition)
+        self._value = deepcopy(definition)
+
+    @property
+    def engine(self):
+        return AgentDefinition.engine(self._value)
+
+    @property
+    def revision(self):
+        return AgentDefinition.revision(self._value)
+
+    @property
+    def tools(self):
+        return deepcopy(self._value.get(AgentDefinition.Field.TOOLS, []))
+
+    @property
+    def policy(self):
+        return AgentPolicy(self._value.get(AgentDefinition.Field.POLICY, {}))
+
+    @property
+    def resources(self):
+        return AgentResourceSelection(self._value.get(AgentDefinition.Field.RESOURCES, {}))
+
+    @property
+    def output_format(self):
+        return self._value.get(AgentDefinition.Field.OUTPUT_FORMAT, self.DEFAULT_OUTPUT_FORMAT)
+
+    def validate_input(self, value):
+        if AgentDefinition.Field.INPUT_SCHEMA in self._value:
+            Draft202012Validator(self._value[AgentDefinition.Field.INPUT_SCHEMA]).validate(value)
+
+    def validate_output(self, value):
+        if AgentDefinition.Field.OUTPUT_SCHEMA in self._value:
+            Draft202012Validator(self._value[AgentDefinition.Field.OUTPUT_SCHEMA]).validate(value)
+
+    @property
+    def has_input_schema(self):
+        return AgentDefinition.Field.INPUT_SCHEMA in self._value
+
+    def to_dict(self):
+        return deepcopy(self._value)
+
+
 @dataclass(frozen=True, init=False)
 class AgentRecord:
     """Validated storage snapshot; wire dictionaries never escape through properties."""

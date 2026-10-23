@@ -21,6 +21,7 @@ from llm.components.definitions import DefinitionComponent
 from llm.services.infrastructure.storage import atomic_json, read_json, remove_named_tree, recover_deletions, revision_token, tree_snapshot, check_revision
 from llm.services.infrastructure.logging import log_event
 from .data import RAGData
+from .identity import RAGIdentity
 from .indexing import build_index, update_index
 from .search import search, search_schema
 from .splitting import split_markdown, CHUNK_FIELDS
@@ -67,9 +68,8 @@ class RAGComponent(DefinitionComponent):
         "graph_complete", "graph_diagnostics", "graph", "extraction_manifest",
         "preparation_configuration", "preparation_fingerprint"))
 
-    name = "rag"
-    directory = "rag"
-    capabilities = ("rag", ToolRegistry.CAPABILITY)
+    name = directory = RAGIdentity.CAPABILITY
+    capabilities = (RAGIdentity.CAPABILITY, ToolRegistry.CAPABILITY)
     data_class = RAGData
     # 일반 record CRUD는 Application 메모만 보관한다. 문서 색인은 document API가 소유한다.
     schema = object_schema({"metadata": metadata_schema()})

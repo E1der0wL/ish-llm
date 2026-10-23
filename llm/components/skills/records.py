@@ -84,6 +84,7 @@ class SkillResource:
 
 @dataclass(frozen=True, slots=True, init=False)
 class SkillRecord:
+    CAPABILITY = "skills"
     MARKDOWN = "markdown"
     FILES = "files"
     RESOURCES = "resources"

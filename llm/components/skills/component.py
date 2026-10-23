@@ -16,7 +16,7 @@ from .data import SkillData
 
 
 class SkillComponent(DefinitionComponent):
-    name = directory = "skills"
+    name = directory = Record.CAPABILITY
     capabilities = (name, ToolRegistry.CAPABILITY)
     data_class = SkillData
     schema = Record.SCHEMA

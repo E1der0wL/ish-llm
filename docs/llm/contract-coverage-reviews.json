@@ -13665,8 +13665,8 @@
   },
   {
     "path": "llm/core/policies.py",
-    "sha256": "f9f09dc12e54395db93627efc6e2545202d36dbd9172c223ebee18e8d8950bbc",
-    "reason": "Reviewed all Schema generation, field declarations, runtime observations, normalization and argument constraint parsing/narrowing. Fixed policy views use typed attributes; only this Owner interprets its wire rules, dynamic Tool/argument maps and selected opaque parameter values. Standard Schema vocabulary is shared. Full Schema and errors/omission match the prior implementation across 446 cases. Approval keeps order/IDs/risk checks; Tool policy/Retry readers, context/Run/output consumers and binding serializer use declared fields. Explicit defaults are observations, never materialized settings. No legacy ToolPolicy type or execution path is restored.",
+    "sha256": "d8c65957e182cd2dbce1ec99215eaa35b0ad77ac67f0bee93e9a626a894bbe59",
+    "reason": "Reviewed all Schema generation, field declarations, runtime observations, normalization and argument constraint parsing/narrowing. Fixed policy views use typed attributes; only this Owner interprets its wire rules, dynamic Tool/argument maps and selected opaque parameter values. Standard Schema vocabulary is shared. Full Schema and errors/omission match the prior implementation across 446 cases. Approval keeps order/IDs/risk checks; Tool policy/Retry readers, context/Run/output consumers and binding serializer use declared fields. Explicit defaults are observations, never materialized settings. No legacy ToolPolicy type or execution path is restored. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -14480,169 +14480,169 @@
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "675bc717dee8b24e4f8f2d4e4f03734785f89121d293beab11b9ef8f11d9f216",
+        "id": "f30e6b41a76404f531cc063f53228ccff0cf4a3acc82306fd7b9440a2b01304d",
+        "classification": "declaration",
+        "owner": "ToolPolicyValues",
+        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+      },
+      {
+        "id": "74f436d7a183b25fc3d03e9f95aed37fee8d2455071971f514331b4226e9b60b",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "48c91c323d4a3fde1ae7e61a1e7362fbeda46a22e3998af506c61bfe509662fd",
+        "id": "c296186ed07f632852b4c4fd8e1ed98c7db78380b1e04c95887a9fc428a50072",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "4cc2e5f45fd99fd1a13b8d07e2a58926b7f33a1a8917e4b628eaf9c0a8f087dd",
+        "id": "2948341215e0ea21dde20e6500600e868fdc3bda0edbd9219c90f15f349f447d",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "c3d47484148248a237ac9348d7f062af1b1a6c95c65f24f6fcc5de5e2aa6aee2",
+        "id": "81e28f8acaf01af5d19d6fa374364c711684a90df55944ce17e2607b7efd3dfd",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "dd1787a10efb4d6fa1ec99e1efc67077d7ee601bed1ad16b83363a8ef99d9ad0",
+        "id": "7e3b93bbbbbada1156fec0bd1639dd8e09a80bb2fd0ced98ce80a7d61709dd31",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "d7229a07b962b74e725bf9a7d64af1380a4e887e69333dbf693ef6a4460f8c4c",
+        "id": "dd5ccdc520cded4500d4cfa9498287f4023a11b1f60cc1ee9267c2af8e80b13c",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "97390fba802e47bce6ae07dbd0e1c23ce8078abe2465c94bdc72f3ad01298640",
+        "id": "dccff8866f0ababb7f21267a2c8b97398c49211c499dec23eba8031d51213bf5",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "7e6ee283e7167590b77289e1c9654c59fb3425240f657ef754e790f3e0ae9569",
+        "id": "1328fbcf3eefaf2a414c0e7aa001bd0d09c6f702805fdeacd6224640967c3e76",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "559964fc853162fbb9921936411b73644a2f71ec27b765031c5f818deb267781",
+        "id": "bdceeed8ce77bb50264f287d30666be3ca94d4ef8bb8bf7aa32642bb4507ff93",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "0c9031e184a65378b1f658533af813357e596a48f2e8e2373aa725fc3c72020c",
+        "id": "28b059689dfeaffa2b95fe6fc9b394e4a11cb16c49fb2c6162de51b27e9e5dcd",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "9b98174fa91204c115c21db3dc2e431ee5045211477db167cacb67bc2ff1aa6a",
+        "id": "60912efffe738625432d0cde7a052210f41ee92fa80f6dda6ea6dc8de6f8004d",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "04caaa138b9d1adcff22838af4668f330549390c9bf296cc899194f265b38879",
+        "id": "abaae0eca8b2d866fdf58eda5eb04e5c5d3610f81f32666168effbe31b14eb69",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "435efaa9d525e3ba44dcd2335682ef899a6aa7ea4ab5dfdcd1a932984b709d9c",
+        "id": "d69f01a8db6727af03361bd44dc0cd8db73e6ff7ecfd1a3ab0f39d161ac09437",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "8b0684e8f53f4ad1c25781b58367732a8b1a7cb15c5e0831041afb42e405e603",
+        "id": "ff3f95d2a171ff75c129f6e82ff649a25a747f234fe51be565075fb2dfa99fb7",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "ccd7881782d14751be066260d729fca91f8e6fa839571388f9d5cb246ca16efa",
+        "id": "4ef258184926c101e54e81723e79ba66b3271b16db7a8076f0e23a74e27c46f8",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "0943957f9f399efa5c572bcb189941b5838338fbf75578204a100919e45c3229",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "1dd9c2f2bdb803e24912c585369b230c273e607fe632c92c3c61c510ed245aa9",
+        "id": "0fe06e659f22646091afaf4cab70c8aaa52db0cdd832cfe91de303fa417a9196",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "de606e4221e6c63fbfda6403227a7f8c8421c2055d300b159c943ab326bc047c",
+        "id": "bf953bcdc3c951c5bef23bd894a379514de733e0040b4a0029f95ebfc49d5186",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "f43b1a9f1bcaaa44e60a4efcab195756f493f43ada4ad0ef8b8d73442cfeeb9f",
+        "id": "16f5adf2fa8b75ec3564fa816f5365d05c046811497ea2674f335115a19a5f80",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "9136bfd17c025614ecd34bcf8beffcb1d63b4149be03283e1114e1f5faf42b62",
+        "id": "aefbc6958ba2af216caeb01f194a81ee7e130a874f5d6863fd711fc771184c82",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "f91a813bc2baedb3f7c8fcc56ce0591bbf08a48fe31ac06dce2db2a17007ee95",
+        "id": "7fb69b69ef491b731b0ece912481b7603b6e01a47c44bffd38d8e6de2d1db04f",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "1a212a61c0e546bad8b988adae98172323240c07b534ce52bdf859c520130894",
+        "id": "22ea4bcb2f6cdc49ac5cbaf577de12f434a39cb7c7f6778e8179f09138816b3f",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "54672824d12515bb46e847b94f2e7bb7223a65a3f373cb1275efcfd864919afb",
+        "id": "ad39ed96a04b3e9cb6f868b732c68dc442fcbd47700ed288e6e9a36f3e158e29",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "6dc3cd4328976e1984195a506d7bc09dde84cc618eeec86c6059c1748c2b7c6a",
+        "id": "02631ee8728ba82f5ba158f1f1809c442b576c01dfc668edbb38146c0c5eb68f",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "5d061c4a98c35c11c0b13f70fd1f5338ccd96780e01eb814d498fed9ca1db823",
+        "id": "59cf521d95bc09b594217d02413f50470ac082fd3781ebc4d956c9b041e62823",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "a11c096bc96a35ca53664254715dfe9341cbac503f3962f2806ce70fd2d13251",
+        "id": "d5f1a2b5ea32821f0accad271f6197f3ff81ff458089557729893d40cc4c58d5",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "eba576539a1c9f9f70c4c7c0b0513091bdf0c8fdd779708014c1d2a77f2ef1e0",
+        "id": "6a1ec0b6be38c9adb033a7f86752f98508799ac0940fdf0663e578ed41f9fcb8",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "dec812a2d0ee25d4bdb0042c4877ef9c9d4abd02784ae23796b5b8faea8c7e2d",
+        "id": "04a1f5f9d1e5665b842eb41af23c740d5c99f3791fdf9501a5dc4e218f90bc0c",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
@@ -14660,7 +14660,8 @@
           "llm/services/schema.py",
           "llm/components/tools/constraints.py",
           "hub/backend/execution/retries.py",
-          "hub/backend/execution/tool_recovery.py"
+          "hub/backend/execution/tool_recovery.py",
+          "llm/engines/agent_resources.py"
         ],
         "tests": [
           "tests/llm/test_policy_values.py",
@@ -29067,8 +29068,8 @@
   },
   {
     "path": "llm/components/skills/records.py",
-    "sha256": "8b05d5230f6a120963dde2c5d8c0443ddb1647bc30910188a0c3b02d0fc88ff8",
-    "reason": "Reviewed complete Skill Record/Resource/Lineage/Snapshot and its storage builders. Schema and raw Markdown/omission/revision input remain unchanged. Storage now uses typed mandatory catalog/entry readers and Record factories/accessors for all container construction/mutation; no second definition or legacy path exists. Source/files/lineage edits preserve original immutability and declaration semantics. Independent record cases, exact old/new physical tree comparisons, malformed operational evidence and real transaction/rollback/reference/usage/Resume tests close the previously recorded storage consumer gap. Document encoding, description and explicit fork rename now delegate to SkillDocument. 28 old/new forks preserve exact composed text, optional metadata and unchanged source objects; no raw frontmatter interpretation remains in Record.",
+    "sha256": "e9ca44ed300a33489662d3c26e7fdbc97a3fcd9751b1cd9a34a571098c0dadb2",
+    "reason": "Reviewed complete Skill Record/Resource/Lineage/Snapshot and its storage builders. Schema and raw Markdown/omission/revision input remain unchanged. Storage now uses typed mandatory catalog/entry readers and Record factories/accessors for all container construction/mutation; no second definition or legacy path exists. Source/files/lineage edits preserve original immutability and declaration semantics. Independent record cases, exact old/new physical tree comparisons, malformed operational evidence and real transaction/rollback/reference/usage/Resume tests close the previously recorded storage consumer gap. Document encoding, description and explicit fork rename now delegate to SkillDocument. 28 old/new forks preserve exact composed text, optional metadata and unchanged source objects; no raw frontmatter interpretation remains in Record. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -29192,397 +29193,403 @@
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
       },
       {
-        "id": "b2a3b18f04adb69078c228909d3ef0c6872a36ef02877e234e62387eaacf7b6f",
+        "id": "05ff812b07a011bf20c485b2ea60518d7e9fbfa597c7f34cf6f9f218374b9aa3",
+        "classification": "declaration",
+        "owner": "SkillRecord",
+        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+      },
+      {
+        "id": "4a470559cef7df0c2784a02d969f971271366b4940793017a59aa900f49738cd",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "6ac97a9d675e698c8725b245922c9c2ebfa0694bcfe453b4bddf44a19bdd48b8",
+        "id": "762101824ee4bb2a83911038e199e22ab3a40ae169d25bfc3ac5cdac21e5ec20",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "b8c9e3315037d6ed6cfd433574ac04cce30e04368c017838e73237ac1e80517b",
+        "id": "5ffeed95c08368c7425958818ebff600346f31abd94ad75d8d7108544c64646d",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "00fa8d4c5bd321921a2976a8c803365ed6cae7efb5614dded1d2329154d31d81",
+        "id": "359d35bc2d3a435f87b5f60dd278adbb12369285f5c34c195ea1b76f361b8bbe",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "9ed03543b36da11f2d312a621ee916062bdff17df61c2097c9f94332109feac1",
+        "id": "749c9053fead85a18d4b412cb764082bcf55d343b69ab52a3307362d988633cf",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "6ff9b5ccd7a7ed0345de23a469bf2ac5dad87b72751471577faf828379c9e4ce",
+        "id": "780f73d38fd4a7ab54a9b229d53c7c1913e6430f987b3ab35193e310bb2726e9",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "1c50d4dc47e597088f92a228a6531cede8f7f4b1fd95615286958d5b56671599",
+        "id": "9358c5004880f8d5d87cedc3a139bb1eae20b1444910bfefe757d72fc3dfa3bd",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "d0a130dff3e9bdc7e1e0687c1483246ecab55d1ba6b5faeef1470fdb1eea167d",
+        "id": "3c851c08eea8e9c8e8fefe2034ca123de32b8f7448c3bcc8e8f2e9b38c0da78f",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "8371a42c7fa6bc63052cc184e13540b6d326c2b2ea9133f1d203fb9169cf1462",
+        "id": "1268b93e5bd207e42de74cdb6464949ca46d902c47a506b4f7adc632c16ff267",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "5ba00a6f973303cd4437069c85a5b831feea7c214a0c7edf7dbf386a1d60f702",
+        "id": "b7a2236108defef58dcd317a06b7259a155ac40e5eae1f614c401c88d5bc2857",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "8f5616ea94d504a2f29587c9b8e71ad173353e93258af56e1c8e5092f85db9be",
+        "id": "baa1caf8a4b306a3613f585cce6d27cb769026e62caac3afc8cc07406ea40b46",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "3f2010ad530b14e9c81ef22478c978adee9de6338206bb1ba5afcb58e699f010",
+        "id": "5f1f9610b79a772df7aa4613ae6230ad1a1fee096666349b20df164effea025c",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "95f171ad8d6daf9fb092eabf84968a08b8e5d38a15a562e30faa6978c18f1492",
+        "id": "dfd1d107ad3e240f97906659e0672da278f5489fc02193b10368462c34633e25",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "77d6ba7da95d9d0505d7ee583e4042413c743fe5a36a460ed06f1e3cc229a442",
+        "id": "b42c042c85fa46ac799a57f759871183eff88c8e78cc3ab808e4ca16ad6ddece",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "6a461a91223ac020febdd9b1d5865f4478e9571fafb0dba8c511ab78d20d71e9",
+        "id": "cc264a9778fb085640c304ed9f724a8c9cef0153ff48212c1f49d71be56c502a",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "5594f1c093d5d2a9d9d9361d5c85e874e90906392b8bd579a4c5eef729ad6e46",
+        "id": "dbb537dd70aa557fe2ff22709cc812fbe9526c587341a5a6835e31b842c4794b",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "7500744633b3f2311413b0152dd22ecd469722ac6384d28457bbd5609c36f4be",
+        "id": "7f64360cd807bec0d8694b06e3be85daba3c5f25a87a5179dec3dc03ded739f3",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "03f50c8398ab6b79967931c0e06e293ebbb967d56f97d18006320545c3747d34",
+        "id": "8cabb56acea410cdf5694d1afe45b093806cb95ba5f29e9b297102eb1365ee31",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "a366286a5bcb889ead8d42499a01d1b5af6e8a2b7d7d318ff2f83a4984f158de",
+        "id": "22aa13de5c0dc11ff7204b40c9d43d669c5ad373337c37e2c63440aef969013a",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "93bf0a78078d521f92f7501bb92bc07376310a4cdcf307180579ced58e7f328c",
+        "id": "858e3a2af7a8804246a38e4636c78d0fb6f7b203be34d929f10bd088bfdb566f",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "71dcecb5f795bbe7308b0b880bfd29b33999c360b1ab31e8a684dc1880cd6360",
+        "id": "08d8039e72c18ed82f57a12d4de5da6cc0268917911362b494ab4ca2a2f215d2",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "a8b1b325707578d3b704d36dc2b6ecba3f2bf2ca50e2511d6378b432358d8381",
+        "id": "89e4b877cfa843080b067f6526cb5c6966fb6f831365f5e3a77b969eeb506587",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "9549fffb4ff6c22e0ebb174821517581cd7a1f0d3072ac091050345ec1afac80",
+        "id": "3f3ba2e82908c7d64ab5e3fe51bda0adb7b5164b8ef3fbb758324ed9520c491a",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "7464dcddc784781944084ba4fda5114319055d624809cea3f255fd2878cc697b",
+        "id": "18cc09a1087f0071c592cb586fcbbfff841fc6cf453d975a0054033ff96d21a5",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "8ae5c49da9c0004d80bbb795a655d36356d0c41c7dc5f03f0cefaca6e412d217",
+        "id": "4be569eb85abd7fc932fe6641114426b3c92cc0b48d3970012a9bf512a753bf8",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "c76c2db4c7dca30f32bee734198d8eba51f656b3878cc9c1310a1b5b6cca86cf",
+        "id": "5ff620d79f3af1d8c52975f6e3b4d328d331675c9e0587ac05a64aea468bfe02",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "a2ddc11ff0063515f2e2c7fc258f843b5d5779ca10e4668851c9f85ab4b5f373",
+        "id": "75984307612705579d336fba83d710905a5193cdb36f88e48a04f1a1ef6f2b40",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "ad6dcae6ce9d72f7aea3009dadb76140cedf8f41145b2ba5942584d7149858f5",
+        "id": "5827e0bda6a4600da8dd21c4d9201eec240be0c85b1e34fc7e7e0598f4fe5244",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "3d5784221d9cf7e55745a4c92630492ff45f38814bd64bd54416ba4e7470fa9c",
+        "id": "3a4d0807d75e29eccb036909e3d2a863c7eb91cd60b1075b0e7436842ce73669",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "8a70219916d95845edc6da0bca63c84a3978c1876aae0447fa4e9ff4fed2cfe7",
+        "id": "f5fd3ebf9d16a26fade95bc26f020eb42a1e20d56bf8c4b2faff3c2dd344dd54",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "17c9bd0648838531c82130b86dfa4d8b841681bff3f011a35c17b2a1650ba330",
+        "id": "2febe631afddcce7df3d4664169225877aa406a2b5ac897f3176b3cbc63f4c10",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "184b89d95ff36f68de76d15c8aba3dc5752a2d6c7b766cfc6c7c1e83aca41f01",
+        "id": "740837ccc079599523112ef2dda88e591d4e280ca785f673a1a0001a87af4f66",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "d1e1c71f54a9bc869ffc855496ede8725a4b4deeb499df93b331941993c5edff",
+        "id": "425e95937725a0fb2c3e7eab124a2699268af55bd0ab1f4980089b9b85390cd8",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "e44e57e66380c8cf753e244ba78efdbdca09d8eeaf4beb25b48587f77f30a476",
+        "id": "1ae85260641b593e154dfece8fc221ce96a1a702d5d09a2c6e8b451490a178c2",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "3ee8d57d6af6c51b06517eab35b031ada9898c0831c84ac3226f5c204d4959a4",
+        "id": "d77adaaace817db1ac3d40e583ae4309848c645dd9b19d287175a13f8c6fff4c",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "b4dc73dd724aaaa0f1b85a44c3e83e1befcb123adc5f196b0424dd572da856bf",
+        "id": "da36a45970faeaad1b5c167d10aab3e18c67f9e01b0c27438c0056289de71aa5",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "0ca240c7ca386a91e01e2c21eab1f1d3ab7aa2709eac26bb1c046544c3169e3e",
+        "id": "fd543009db958db4f8fb1e6e409de44df153aa24572709834d280c4ffa1ea2dd",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "06f0a6035f9ae589c1bcaed108491f24f23a7148f88fac4261172ffb43db2183",
+        "id": "b28fe2a9ed8f08e18526a80d59cf3a90d352c8ef2bb6f48b2b51471949a90b1b",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "e01d86e874c424c3f73d809b8799ec1f1882a86ed3e60c6880c25a87b557f674",
+        "id": "22123645925f1a31a5575968ce83339994242efce84dde2ba1568d896fd5ef44",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "98ccc219bf27739520b56d28a384eb34d67077e619b003b3c955cb1ddc0a2a47",
+        "id": "a0676d0eb86e985f7d8f16dc0b3783caa540747df88e36d4a6fea10a0875c0f2",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "f45e7774a5afae1d10a4b3e3a02394ce10a096034db5b1ff61164a2ce0e6c436",
+        "id": "b5099ac3581779d07a7d2e4367b9e0b2f1178b8774b7d33dbae8ea7b90c8ab8b",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "338c05854741f0dd2f2d6766536ed4cf1e82763155cfb044d716da264d0fb3fa",
+        "id": "7212783cca565909af12ca830ed8a6379f7a98563e0447e9c260b9e8701f1bf8",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "4da2e4f2fa583b329b8dffefb4ab016a9261f404abaa4ca0db84049ca264ea26",
+        "id": "a3ffc4b79af6f2e1c77ad9ab301882ed47490e72783bea4bd8057baafacf51b0",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "9f00fa0d6d1b2e8f644918944949a6a08304788090c8a0770f6d1be77079a544",
+        "id": "3434ed7f00e6b94c64bd8b5ea306592026b55221d47d15aa1bfcb0fb405c0f06",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "90adc0353ac31a19d1a4306899970cf3c50c013b8f69c09383a9195327a8201d",
+        "id": "cb0fc0a5f3b98e9a3a8e465a7634174b4fb44ba70d96363ed2ff6dc5b507cf06",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "00aa8d0ebb57c511bd66a8eb8bf95c1d3f7a1c9db12a851a431ceeb4017ce0a1",
+        "id": "cf0f7d22d6797191899e9c9338751aeb405222c49e975502f753b85753ff2491",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "067b2315db0907892d8d8d6e87170d3de3d0b4d86b8f3205b6c407d7d2fc2b63",
+        "id": "f29a3b8e52dec777a9b6cd5ceb9fb28f81ad43d1b4ccf1d361598c154f024383",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "528dc271d12a73edfd959aae42c27eeb0238c0ad6e2d81b7d98f2cd1dbc3527f",
+        "id": "697453096a77d7a4e73700d9c101a2505a5529abf4e134a9635e8929b6c3e200",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "08981850aa0ab827b9b71cc6897f99ddae8372ada6c440eb00f301dc8b660847",
+        "id": "c8a6314c03e403d44506665dd75f974272d5e9ef73859f56cec0d22d5b771533",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "2d1f43b4386c121c171fc52f3498c4fcdbd574b5c51a767b6efe3b3e8690519e",
+        "id": "ae9ab59c43e80948f93bcfb912509ea81c41932778b1a3aa718ae47c56c04e9c",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "af3af9db25a73034500d2f4b1a59ad9d550c5811e780a76a30f5e744b4bee53e",
+        "id": "10d3ddcb21a51ad502edf01e122f3ee539c7702bb204c78b11dd2e64fa970f6e",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "967f3e81166df991a21e30e53d8aaaf61475036f46ed009b1b4af90bb155b09e",
+        "id": "ac55726c1b0edd79db6e9916af4624e6540a684cc2c706914199052d8a253473",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "6f80e27ca05d424fee4b770b808acf38da1673eb81b29e81bcb126c367ec8dd6",
+        "id": "864d8fdbb5decc198973e81d5f58525c738c7d231b1aa37783b44cedc01349a2",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "f523cf1be47dac13ac326b7a6b716e5210ee0f8f4dae56883e011e62a7c65859",
+        "id": "bda9222ff9bfd8d7f78121cf353953027e0cf127951ae10a37fb4457bf1799e5",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "fbee8f03bd480c6da5e24a52b0c71396e5378007798a1c5683a16d4926e4c744",
+        "id": "072674b8cc44bb43ac244bd7bd81524a8f4287be5f1b86075a6e0c788418940d",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "13cdf54a078eadce1722dd8150960f2e8e12d5f8d81e511a4f47d29dc9ad968d",
+        "id": "b91f5a250d59fb9061abc5b1e9aa091a37df10f19c887b3a33641cbd1c504fc1",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "32b496c97aec793d84c66b39cf968334dfbf88889220febb53e1048f7fbc7003",
+        "id": "ceebba20b01ca2bc80c875c838e51217943a441c6394d3a5e9ad57e8e5a0577c",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "752524e60ee1302f5ab93badc0098ab4d48d57304cdfae3bd602d5bfd4e50516",
+        "id": "a08402107071e3fb2f44053a775785a59b28cba31e60015a06f584032e1a60e1",
         "classification": "declaration",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
       },
       {
-        "id": "0f6c341400a81eac437e662e2349287b35ede933bb4841a66083140926e0a9b8",
+        "id": "9c1c816a538327afd21f884ffced4133893f6592dbe2d8204ce3e0b8553aede3",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
       },
       {
-        "id": "b65d447d2cb0334ead9a7b5d75bf4858ab875282ec4b4de74a187ba7c6194977",
+        "id": "4fc1e622469e4239b179b43e0a786cff336bfddc298af2f6cd6dc6f48502e50d",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
       },
       {
-        "id": "425f0a2e12fb21a75031d58714b5cd199735a2a3c359cd795420b45ae30826f1",
+        "id": "60925e66330502afad9bc936932562699b78da8d60d6a94af8267d00010fe1c3",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
       },
       {
-        "id": "1cbcb2d046e55db61be007983eff1dfcfc4d47496d620d1f1a3251df7b4d4dd2",
+        "id": "cf3201c8b40a48db24030567364fb0940039cfc718f2a49a9d8c42902b6edb1a",
         "classification": "non_contract",
         "owner": "SkillRecord",
         "reason": "Optional declared lineage/source omission or discard of an explicitly replaced file projection. Required operational containers were already validated by SkillOperationalRecord; absence is never restored as authoritative evidence."
       },
       {
-        "id": "311c3d92fdb572690fe391725b7e5a3f1ada5db5c8386bcebd4ab9f5626ff088",
+        "id": "97b029ff65a940b295d254fe001030e670a625f658eb3a38d5e08fd84a3cfde7",
         "classification": "non_contract",
         "owner": "SkillRecord",
         "reason": "Optional declared lineage/source omission or discard of an explicitly replaced file projection. Required operational containers were already validated by SkillOperationalRecord; absence is never restored as authoritative evidence."
       },
       {
-        "id": "26825df8fe45136dd422d2dcf5a94ae512cc3f2394eaa1139978c5509e21b00b",
+        "id": "194b797210072ce3295452f56cd2a0ac2ece02bb38232c9cca4811b91a87b90e",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
       },
       {
-        "id": "f2c5d277c0fad16da83aa8a3243ef8f7e6e3e9def7577b8e0c2d23736e2a066d",
+        "id": "12310db2f0b4afd9d58764e7827996d0542ebdd99327374270fee89e7a450656",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
       },
       {
-        "id": "d5168b480d3b6e4e66387d1924ae813301cb8defbf93bbbe2408e218822bbedf",
+        "id": "7e4d601e1153b56db22a14f39e65d6106c6b9e7de0df3de33fd462130d92ddf8",
         "classification": "non_contract",
         "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
         "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
@@ -29596,7 +29603,8 @@
           "llm/components/skills/data.py",
           "llm/components/skills/component.py",
           "llm/components/skills/storage.py",
-          "llm/components/refinement/data.py"
+          "llm/components/refinement/data.py",
+          "llm/engines/agent_resources.py"
         ],
         "tests": [
           "tests/llm/test_skill_record_values.py",
@@ -30090,16 +30098,10 @@
   },
   {
     "path": "llm/components/skills/component.py",
-    "sha256": "dadf651fecc41e9b78ff92a51d0b9aa47ee0473cbe86e1ea75fb630d95d1fde1",
-    "reason": "Read complete Component/native-storage adapter and reference capability flow. All operational/raw field interpretation delegates to typed Record/state Owners; file input/range semantics share FileComponent/FileRange. Existing initialization, empty uninitialized store rule, clone/fork naming and runtime reference validation/Tool registration stay in order. No resource read enables a Tool or changes Component selection.",
+    "sha256": "2300eaee39a5541cf5463585ef999a8c03cb247fae0541c472568dca9ffc64f1",
+    "reason": "Read complete Component/native-storage adapter and reference capability flow. All operational/raw field interpretation delegates to typed Record/state Owners; file input/range semantics share FileComponent/FileRange. Existing initialization, empty uninitialized store rule, clone/fork naming and runtime reference validation/Tool registration stay in order. No resource read enables a Tool or changes Component selection. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain.",
     "dynamic_paths_reviewed": true,
     "decisions": [
-      {
-        "id": "a8d7f977516f2b76a7bccda832ad978c9301471764e38fddf60b68ae8af0fb72",
-        "classification": "declaration",
-        "owner": "SkillComponent",
-        "reason": "Canonical storage field, identity/version constraint, path/mode, file range or diagnostic declaration before implementation."
-      },
       {
         "id": "34d8cfb34f3bddebe26866dfec545a2c5284997c3f09b4d93569059c7c1e6696",
         "classification": "non_contract",
@@ -38219,8 +38221,8 @@
   },
   {
     "path": "llm/core/agents.py",
-    "sha256": "d5bec6d67e01126af4600aef6d7c99f03a31abfa6720d5086474631a7ba423b9",
-    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete.",
+    "sha256": "62d56d56c245d1bef7d8956584106b5cfd6f8195ce2cb95e56daa5fdf7318327",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -38500,247 +38502,277 @@
         "reason": "Select the first already sorted validation error; positional indexing, not a domain default or threshold."
       },
       {
-        "id": "a30acf82840a97a1aadeb97236333a22afe2317462a8bd526aaa8f108914b12f",
+        "id": "641f583e8d5f8e9b781d9bbba4a9b9fe0be7c37628244b835aa02c718bfa9b3e",
+        "classification": "declaration",
+        "owner": "AgentPolicy",
+        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+      },
+      {
+        "id": "c46108cd64373a1019146d82e53693455413a3752d95ed2726b57ef733c7d88b",
+        "classification": "declaration",
+        "owner": "AgentPolicy",
+        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+      },
+      {
+        "id": "96c634de1a1bd700343d5e39cb90ff706fccd67e6ce4eb1d6de1ce6256564b0f",
+        "classification": "declaration",
+        "owner": "AgentPolicy",
+        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+      },
+      {
+        "id": "8f4a11717fce8ec39d60e39d2ca97513550c5f09676a0a3c46b09379ae25c1bc",
+        "classification": "declaration",
+        "owner": "AgentResourceSelection",
+        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+      },
+      {
+        "id": "c61fc775f87a3c82463330e3b9e8f8f2e26607594d1fcef25b65860b7ffdd626",
+        "classification": "declaration",
+        "owner": "AgentResourceSelection",
+        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+      },
+      {
+        "id": "e43f9adcc15e5cbe0cbf45724897b05001909b0d4aa3941cd5bfb1295a56196a",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "79963cf1fbde8abe739cdb06b79c739a194cec5fc16c591615bbf5c57d8ddbfe",
+        "id": "b1fc87e55767b88dc03c7e2ebe54cbf8cfb68b1cb9aec7d6b437b9b831b452c2",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "13a99ee6c492fc099c3f20d611cc9d7b5b36ee3caf96e72ef49c22fb47e0c53c",
+        "id": "bc8644e8819baf16841e708f339b8f565db2476bbcaac5d8e4d758531dd4625e",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "362900f456a46c330b182bd56ec2827149a6e135be17c8a1156f09f99da13cc1",
+        "id": "eb744bd1c796e75c063c2b0121a3540f48097b80a53ced89cbcd3b8b93e92238",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "cae33e407e7d9edcf4d99e53716c3eb070147bc50a3166bf13d3c8e3921988f5",
+        "id": "d47a9d81a506f8cdd59f345c46f1a2ad0827961f6048c60baa8196119cd00342",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "17ace6d88c6da8c903ce0ba95f230cc82368aa6de4e8ab107881659b76e5f46f",
+        "id": "f53cd55dcfe7f89e340ba852ed42ffd66d2bfc7c10f98acd378118cc8b0f8710",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "517efe77c87afc0f50f74350706f9a6a05201b8b02d1867987aea20103132ae2",
+        "id": "d6530c3b6f183908c01cdfd52bef9e7b6e4b88578ccfbf88aaa88ca3ff470cf6",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "74fa13a950b0bc8944160882c41c17321645e349363aea19ca9bc5205a96c387",
+        "id": "9c9d422428b5e2c1f8244bb9e0c8f2df271ce97afefdc175db5c7081ff5d393d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "5ede8e40faca33abeb366694dc6e0a7ad844aead41615b9650e843a2507f5079",
+        "id": "f2408baa88e9ee635e27324dc7f30f5d4c7ce5f87b002c5aa3a0c9f1c8e6cfe6",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "3e80b68f594529ef7dc3d537bf1b68bb1f5481cb9fa847943f6bbfd5df75ba85",
+        "id": "c84371994ad53840e4ae5c36b65db305667b11dd755d8f9f88910eac1379eae4",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "873531e58b1bd06a7b91be8729f5dd40725aa6828fa7f06fcc47ca3091e2aafb",
+        "id": "c6a4ca1232c5118184c776796f11f2f63c4bb968a2c5c1616cd0b427583ff73d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "26ba2d5c490d0fb43999d7b08ab9d89e9e818240126c9625cbcf46a111b66c7b",
+        "id": "b3aed8898ff4b5c7d7e4a47a1f5c873b0043177c2dfcfa760a42aa7eacc7c071",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "fa15b41c153a156ee61425080701bb60d7d091895980307bfb9be1370662f088",
+        "id": "86ee0aea76151db4eaea332d8de8408e650cf35023c3318524cce72d17e41a02",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "4e556458cae2a4b243ee030289a432d5591818e88c87eedcfa994f8d692eafb6",
+        "id": "2302cf01cb159cc532df6789901025621f92a5f720103978dee454272186c23d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "c40647c5fb2d7fb21b26ef6f8b688a5bfbf939af29b8da161285916990f09f23",
+        "id": "2ee3ae5842c5180f72a4244b074661a82698b938fc182101009230c958093a93",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "a7dea30c8a9dd5174bdf409436ac0b3299a10c9c3bdc34cc7d53d34a1c452dd3",
+        "id": "ea4a4f2e3b540868b685e0ea1fd4e7865078750e03e037a8c3d93790a69420cc",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "14e9d313677ea69392ac15e744b40f743e7b2918b592d46b5ea31bf1a9e63822",
+        "id": "b77084b178480b51b0498bc1d960d2df5fefe7a21ee369ef0b33d465f8e17a6b",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "d3bc608a1eb85aa8772966c00f94c0ae0fe8c38e5f4dd651f71167cccebf1afa",
+        "id": "1abf59a0a0afaa9d9b9edc47d71ffbec4e7804eb93dceedd4f6c567597b6db4f",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "670c32e49f2a4ae9640327b87880051cb0300a14b5865d09144621a9db3b1025",
+        "id": "90e693adaa085d4823017fb4ae846520f15436793332a810d96da263567133f1",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "7701782bd9b0e3dc7fc56d444def9d78790d5e10833d7a5b42dbf1b0dd7e6df0",
+        "id": "ba314eafefc79597e430d8aa9e9b2831fe0b9b3a803ae7f419ccbafb12c3e336",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "ab5462d226553a9bfcc0ca856e0f59eae6c684161fdc0485126c0fd3e14e5160",
+        "id": "b1fa8eba6ba6c851d272d897a2626b3c95ff86f4e0429266b4025a6d981f5be6",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "1d0b76882e99df1d77b03727a07ab58ce5c26540ff3089708634c439cf7ddb2a",
+        "id": "b4258287b54e8adedf12e557cf719aff723fde6ca0db49d25d5a5d5166a8d5cf",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "185c15cc8ea238939282e6c65d68ec5f4a9db92401654478087b4b6a283897d7",
+        "id": "a88d7688734e39d0549c8e06851a674e3275558a937123c13d6519d8500bf2ae",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "2ba819e24c2c9378b3e2fc5f767a55e38117fabe85d2082a6d71c3f289f9a844",
+        "id": "122bcaa30b2a9e18947a09d78b058f04683eaf7082ed50e22d677e8dd1589457",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "4ac235c98c62ab8f7010a337d96a4aac3f2101613b1b135ea34efdb6de055960",
+        "id": "fffc4cc2d789d44162ec2cc59902ba92a32298dc079bcfe996b03e3fbcb105d1",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "40b32c35882457684f38c554ee157cf441693da4bae82856f109c15fd827b7b0",
+        "id": "ec7b321dc9362ee20591d7976cfb212f06b37dfcaa4316ab3c69b92976dbaa4d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "bb0828047b0214f2a2230fca52bb9e3f4d4e3915ba461990e77178c3520e90aa",
+        "id": "81b12fc9b547abc9dc224077b86a59ceae90f1a1f12a6166b68f06e4fe86d612",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "0ec2659de2bcfecb69e2251ff53f2bffa80d82ab220a0e63d2acd76205518fb5",
+        "id": "b0857fb5fd00dff7f2437e60f76677f7cb9c373c4e23a2faf1ca784975c4d66e",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "d7fd8810f796cc7de0edc18d5cbc8558259cf9422ff160680cce17328f5e1455",
+        "id": "ab020763569258f5b57f50ea2954b451d3c8eb9239e622aad483dc990a03367e",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "f331c440958cace36a43ae2e3fbde310d098df8a80983d41bd2088162561e813",
+        "id": "a00177d6514f95ed178d241bbf2c0e38bce88fa6bcbd8ada865cc20e50a007f0",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "2478a5c4edc76633d4b75592c2bf34b346abe447f028bb29c3f13a500c8e9888",
+        "id": "0620029697574bc9e3cde6c2319c90ae80d61cd16509a777ea55064b4b822cf2",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "2acb0b320fda3322dcb3c8d3031f2533f8a87e3f988005b96b6d4566c8b99e92",
+        "id": "905caadb762a3be7b76fd3442270f6de840261d3950105ce58ed93e0466f5d78",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "fbd53d43ecf6d89c143d29934dfd68dec51cf99af62ce6d33f68e7a5c9fae6dc",
+        "id": "f63ae53cff720f8a12af9c9b7576632781781d03d7bbc200a15838d29eff9347",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "942c3ffd9275b068f4e6ed295b71dc8269c78f2b250394f7db15ee4b2a56cc41",
+        "id": "4f2a4fd186997fcc89e41e606b29ce1eee4a578d6e37f2ca96f739145e90fb23",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "c6274c5c1a407b0a2bdd4b9e4f1a72c82cd59d5a650eab8dcbbdbe9c38961237",
+        "id": "02446d50d217e817837819cb6742633adcdeaaf6f23e9b8b25aa8df99d90daa6",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "a01530fa62592529e304b7748bc6b3745f9a0c9e6f999b0bb1c289baa5b05f81",
+        "id": "261891915d7f416cef9eab1e0bfb2885b08fef73b2c4aa21efa78d2a3a32259d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "20017e76185f2913702f83ad5bdc3d32cae8def4059eb5c778e549407220995d",
+        "id": "d25c620235c67507c74b5b0d34410e8194ec433552d542758b7f88f3bb15c2fe",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "e897dbf529eaa14f56ddee9f325e8f2325357d5acbdc36debe02ab8305e55979",
+        "id": "5dbe53d55a87a81254a24463d642592943bc8fb62f70c11071a066dcfe0c248d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "65e85227befcf8157034e451a72c2cccbe6c5aebfb256b25a17a693816d7dba7",
+        "id": "f7ee891b4cfae8fc92590f0aedbb6fb23cdff263290cf1600cd3731b7988d37f",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "43ecb9b480093707a352a651e055320573d091c5c574610e2f8ef91fc407c946",
+        "id": "05290cac8962634c118ffd330e69915aa996f44156b33b651cf58b5988378cdf",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "ad5afcc7061b13d086e49dc16b0044514bd85261e69878086c6066a26f2c6dc1",
+        "id": "b92244ccbe102da1902b84b6c743cc4329504a6a88c4a38f2a9bf00137fa27f8",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
@@ -38778,6 +38810,21 @@
           "tests/llm/test_agent_resource_integrity.py",
           "tests/llm/test_multi_agent_crash.py",
           "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "AgentProfile / AgentPolicy / AgentResourceSelection",
+        "declaration": "llm/core/agents.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/engines/agent_resources.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_nested_graph.py"
         ],
         "complete": true
       }
@@ -39056,8 +39103,8 @@
   },
   {
     "path": "llm/components/prompts/records.py",
-    "sha256": "191d8a551044827147e73302e18e8a2efbe7b07ad1e18a3abb7773c14c09c668",
-    "reason": "Read all Schema, message projection, explicit construction and model normalization. Stored definitions keep their original required nonempty message array, exact three-role subset, string content, closed fields and open metadata. The Owner supplies typed messages for Agent reference rendering and model conversion for RAG; runtime explicit empty selection remains distinct from persisted definitions. Required keys are indexed without fallback; no stored repair, normalization at read, template execution, instruction elevation or second schema is introduced. Both public Schema and default RAG example retain exact key order/JSON; invalid projections preserve failure type/message and source.",
+    "sha256": "86fb0ce3f49dfaa6eded3dd4082fb1fff1a316da85fed2877b3db3c79b3e4018",
+    "reason": "Read all Schema, message projection, explicit construction and model normalization. Stored definitions keep their original required nonempty message array, exact three-role subset, string content, closed fields and open metadata. The Owner supplies typed messages for Agent reference rendering and model conversion for RAG; runtime explicit empty selection remains distinct from persisted definitions. Required keys are indexed without fallback; no stored repair, normalization at read, template execution, instruction elevation or second schema is introduced. Both public Schema and default RAG example retain exact key order/JSON; invalid projections preserve failure type/message and source. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -39079,25 +39126,31 @@
         "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
       },
       {
-        "id": "4d41514f78dfaf3c61c1cb9ef51c6414249598c1932d317b0bcc823daaf7b109",
+        "id": "5c4e227cfb3ed2c4259e6d765af1c42090ab94b3da49706e8c4a9a0bb83a86bf",
+        "classification": "declaration",
+        "owner": "PromptDefinition",
+        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+      },
+      {
+        "id": "0c5e7a0dbda2120d2b05a3dc1c86a254afae55f2bae42d7b6bd8660acddbf6ec",
         "classification": "declaration",
         "owner": "PromptDefinition / PromptMessage",
         "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
       },
       {
-        "id": "c62e3579fe473664fe6cabd702d1c51ef4d0d90e781ddfbab6a5a6586d18abc2",
+        "id": "f0e9e58ad93d17e1537067dae3d2c63e56d511b857708a4336ff0f4efe7b5b06",
         "classification": "declaration",
         "owner": "PromptDefinition / PromptMessage",
         "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
       },
       {
-        "id": "ee62ba1325d8c6ec8dc06b7ca7569fd3276a8e626c92396d18a45648257cdf02",
+        "id": "1cf5b6e70b6bfb704ac5b91757fe9457067c3e8dad16cfb4e85b6de9c8ccdf81",
         "classification": "declaration",
         "owner": "PromptDefinition / PromptMessage",
         "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
       },
       {
-        "id": "a8bdfbb33b9ecce600d3be8e79c0c0398c40083240bbb10daf2f8f05fca4b37f",
+        "id": "b792a80a19e281efdc906dc5a3a180ecff6c067f101d794bb76345ed324a39a4",
         "classification": "declaration",
         "owner": "PromptDefinition / PromptMessage",
         "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
@@ -39111,7 +39164,8 @@
           "llm/engines/agents.py",
           "llm/components/rag/prompts.py",
           "llm/components/rag/extraction.py",
-          "llm/components/rag/data.py"
+          "llm/components/rag/data.py",
+          "llm/engines/agent_resources.py"
         ],
         "tests": [
           "tests/llm/test_definition_components.py",
@@ -39126,17 +39180,10 @@
   },
   {
     "path": "llm/components/prompts/component.py",
-    "sha256": "a8b4007e8c243051f0ded2354817c2a1bb8017747a3feeb300090c57d1cbc4e8",
-    "reason": "Read complete Component declaration and inherited DefinitionComponent contract. Component name/directory/capability have one local declaration; canonical PromptDefinition Schema replaces the copied inline declaration. Persistence, definition CRUD and reference protection remain inherited and unchanged; no new data/operation files or defaults.",
+    "sha256": "319411d0aecffc5b6902d6cda6aad476de4c01c6a96eb98b2683302159f0e65e",
+    "reason": "Read complete Component declaration and inherited DefinitionComponent contract. Component name/directory/capability have one local declaration; canonical PromptDefinition Schema replaces the copied inline declaration. Persistence, definition CRUD and reference protection remain inherited and unchanged; no new data/operation files or defaults. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "596c31468885a48a329d2d4de3bc1636e9ae542b976f187a46e3eacc375afda0",
-        "classification": "declaration",
-        "owner": "PromptComponent",
-        "reason": "Canonical Prompt fields, stored role subset/constraints, schema and Component identity are declared before implementation."
-      }
-    ],
+    "decisions": [],
     "contracts": [
       {
         "owner": "PromptComponent",
@@ -39895,6 +39942,198 @@
           "tests/hub/test_components.py"
         ],
         "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/agent_resources.py",
+    "sha256": "b0fcd1408c644a0afa679123c712f40f0e3ea3910d7de795c2832e77811b078f",
+    "reason": "Read complete selection/connect/compose flow, typed source/definition and resource/binding projections. Resolves one stored definition, preserves mandatory identity and exact revision/hash, derives only explicitly selected capabilities, checks alias uniqueness and parent restrictions before effects. Root, Graph Agent and Tool delegation share this flow. Connections remain inside the explicit execution stack after admission; no model/Tool work at selection. Prompt/Skill Owners render existing source content; RAG selects the same whole-corpus Tool name as a plain string. JSON snapshots are detached and runtime handles remain outside serialization. None semantics are declared, single-result index is an algorithmic access after exact cardinality validation. No dictionary-field parsing remains outside its Owner.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3e0cba4002ea015e7a02ec5a004a3a73fa6f0c83ab483148128c63928345a1ab",
+        "classification": "non_contract",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "c015abeaa81de3ba76560ecc0cfdd67b891f43a18c339c104712725092b1567f",
+        "classification": "non_contract",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "74885b7ee3c651de9500de302a8849334880eb61f7400558a9a30178f44e240d",
+        "classification": "non_contract",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "52c61938611c382875b1ff6d8aa6639e7af922b8ae2c8262bb707dad6d3e5767",
+        "classification": "non_contract",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "72984ca194ff8fed8200c0b377d4384a49c3f1ac2c079f2dc9ab1f298c1dfde9",
+        "classification": "non_contract",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "5cac7362acc7459700355f9afaefb2e80d0a5a4caf0f5fb4b39898b5fa9ff19f",
+        "classification": "non_contract",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
+      },
+      {
+        "id": "e4b20d7c092117d9b1eb17c54bb296a45e3951b39dd09a3a5b3e1c2bd0293830",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "91e6feee44ce26707522dd28226f768ba555a2ffe0db1976dd5480463a35d46e",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "75e1dffefb0cd08555cee88c2307ee4f51eb5e9b3bd32f7b1f1529088194f194",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "bf17a5fc58eea2badae7dc72537b0fa22d3b1bfe9c9fcd177760dbcbf04ed639",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "54fe18724805cec3fc04161302790bbe2587fd480a5f874cf99bae4a6c33f15d",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "e3ca9ba6427e36f6c7857376c980881ae9038b3d92ca2fa1182b79f046051749",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "a7c50946eba43b6e5f60df04b97ad820001a2fff07767d534a8496465a34ebd0",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "99f72ecbcfd9679dbf8fe8757bbf0f036db57da2f7f6409398cf432b93750044",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "17267500c51686cbc9f38f99393afbcd05e0b79112e9cef0be5d61408b5cdb71",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "4717e7e9bb5def30fd0e62da9071df739dfc5fe1d404ef3069079c8ba4e6ef27",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "be5766eeb32faf7fa55eac925cc735527d94af2b72b2ca5ab4582f4d490c0238",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "bbdccb9a9e3deadcd60bde77ddea86d38f8bec818612667472094d83db0abc55",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "177e75b58565cb68d992f211aec0f04e00ad1e619e89e0980b37aa2eaaea1aa5",
+        "classification": "declaration",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "8a161fc19e24723b5d10d1e9dce9e23d373417ec0405e6402e67a2c85751b5f2",
+        "classification": "non_contract",
+        "owner": "Agent resource selection and execution projections",
+        "reason": "First element of a list already validated to contain exactly one typed selection; no business field ordinal or default."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Agent resource selection and execution projections",
+        "declaration": "llm/engines/agent_resources.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_agent_resource_integrity.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/identity.py",
+    "sha256": "86fe0765836dc2d74a69ebe0f5dd7431bb979ca63ae72bbcb082fcc077b25ae1",
+    "reason": "Read pure public identity declarations and changed Component/Tool/Agent consumers. Existing wire strings and plain-string registration are unchanged. Other RAG and application literal consumers remain in the whole-scope work; this declaration does not complete the RAG contract or waive pending files.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9197ac2edff8b5a0ceac21f66300e7d4382f2c828a5d519854a6470bebd1582a",
+        "classification": "declaration",
+        "owner": "RAG capability and Tool identities",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "e0f29b2b05bf95203ed8b401e29036a9249ff064b2d2787968b37fcc477afcd0",
+        "classification": "declaration",
+        "owner": "RAG capability and Tool identities",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      },
+      {
+        "id": "882177f789e1caf39d653af4f9e1881466360b009d0c37c4b5c1271aa487ac97",
+        "classification": "declaration",
+        "owner": "RAG capability and Tool identities",
+        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAG capability and Tool identities",
+        "declaration": "llm/components/rag/identity.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_agent_resource_integrity.py"
+        ],
+        "complete": false
       }
     ]
   }

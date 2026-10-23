@@ -175,7 +175,7 @@ class ToolExecutionScope:
         if parent is not None and parent.allowed_tools is not None:
             if self.allowed_tools is None:
                 self.allowed_tools = parent.allowed_tools
-            elif not set(self.allowed_tools).issubset(parent.allowed_tools):
+            elif not ToolPolicyValues.permits_selection(parent.allowed_tools, self.allowed_tools):
                 raise ValueError("Child Tool selection widens its parent")
         self.max_calls = policy.max_calls
         if parent is not None and parent.max_calls is not None:

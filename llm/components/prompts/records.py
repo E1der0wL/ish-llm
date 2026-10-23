@@ -40,6 +40,8 @@ class PromptMessage:
         return {type(self).role.__name__: self.role, type(self).content.__name__: self.content}
 
 class PromptDefinition:
+    CAPABILITY = "prompts"
+
     class Field(StrEnum):
         MESSAGES = "messages"
         DESCRIPTION = "description"

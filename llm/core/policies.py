@@ -472,8 +472,9 @@ class ApprovalPolicy(PolicyValue):
 @dataclass(frozen=True, slots=True)
 class ToolPolicyValues(PolicyValue):
     SECTION = PolicySection.TOOLS
+    UNRESTRICTED = None
 
-    allowed_tools: list[str] | None = policy_field(default=None, metadata={PolicyDeclaration.SCHEMA: {
+    allowed_tools: list[str] | None = policy_field(default=UNRESTRICTED, metadata={PolicyDeclaration.SCHEMA: {
         SchemaKeyword.TYPE: [SchemaType.ARRAY, SchemaType.NULL], SchemaKeyword.DESCRIPTION: "Project에서 허용할 Tool 이름",
         SchemaKeyword.UNIQUE_ITEMS: SchemaBoolean.ACCEPT,
         SchemaKeyword.ITEMS: {SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.MIN_LENGTH: 1}}})
@@ -487,6 +488,12 @@ class ToolPolicyValues(PolicyValue):
         SchemaKeyword.TYPE: [SchemaType.INTEGER, SchemaType.NULL], SchemaKeyword.DESCRIPTION: "각 Tool 결과 문자 한도",
         SchemaKeyword.MINIMUM: 1}})
     argument_constraints: dict = policy_field(default_factory=dict, metadata={PolicyDeclaration.SCHEMA: tool_constraints_schema()})
+
+
+    @classmethod
+    def permits_selection(cls, allowed_tools, selected):
+        """One explicit parent Tool set governs preflight and child scope creation."""
+        return allowed_tools is cls.UNRESTRICTED or set(selected).issubset(allowed_tools)
 
 
 @dataclass(frozen=True, slots=True)
