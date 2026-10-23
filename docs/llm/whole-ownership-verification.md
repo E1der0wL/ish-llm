@@ -3640,3 +3640,67 @@ bb0946257ab6bcabb9a3ef04d3d854e5333b07d5가 그대로임을 원격 조회로 확
 그 SHA의 [CI 40018903169](https://github.com/E1der0wL/ish-llm/actions/runs/40018903169)는
 2026-10-23T20:24:11Z 확인 시 두 job 모두 in_progress이며 아직 통과로 선언하지 않는다.
 다음 gate27은 고정 6b2a10a877e3125bd1e39be1de2cdeb1819b2cd4에서 실행 중이다.
+
+
+## llm Goal 전체 Owner closure
+
+기준 42b28d0 이후 Goal의 records.py가 정의·scope·Run 참조·상태·설정·문맥/clone Projection을,
+tool_values.py가 Tool 인자·이름·전송 schema·효과 선언을 소유한다. Component/Data/processor/
+Tool의 모든 실행 경로를 해당 Owner에 연결했다. AgentExecutionBinding은 중첩 Agent 선택의
+기존 선택적 조회를 제공한다. 누락/명시 null/진릿값/정확한 True opt-in·검증/조회/복사 순서와
+기존 CAS·잠금·참조·승인·Tool 효과 경계를 유지한다. GoalStatus의 기존 data.py import는
+같은 canonical 타입을 재노출한다. 기존 저장 파일과 wire 값·필드 존재·정렬 순서도 유지한다.
+
+Goal의 구현부에 남은 리터럴 후보는 이벤트를 내보내지 않는 async generator의 `if False:
+yield` 구문 하나다. Goal 전체 Python 파일과 README를 검토했으며 README의 예제 값은
+실행 선언이 아니다. 다른 Component·서비스·Hub 전체의 완료를 뜻하지 않는다.
+
+### 실패 증거와 검증
+
+추가 Tool 시험 작성 중 fixture의 responses 필드를 scripts로 잘못 참조한 오류 3개
+(tool-smoke-01, 1 test/exit 1/0.473초)와 거부된 Run을 completed로 기대한 Assertion 실패
+2개(tool-smoke-02, 1 test/exit 1/3.025초)를 보존했다. 기존 계약대로 failed와 구체적 오류,
+저장 0회·추가 모델 호출 0회를 확인하도록 새 시험을 수정했다. 기존 시험 Assertion은 제거하지
+않았다. 이후 `python -m unittest tests.llm.test_goals` 6개 pass/exit 0/4.934초였다.
+
+Schema 대조가 Tool의 identifier 등에 의도하지 않은 빈 description 추가를 검출했다
+(equivalence-schema-failure.log, exit 1). 저장/form Schema와 별개인 Tool 전송 Projection을
+수정하여 원래 생략 상태를 보존했다. 이 수정 이후 아래 집중 실행을 수행했다. 외부
+`PYTHONPATH=. python /workspace/llm-clean-resume/whole-ownership/goal-closure-draft/equivalence.py`
+exit 0: 정의/설정 wire 각 1, Tool 이름 2/정의 6, 설정 검증 11, scope 정확 비교 21,
+참조 callback 순서 35, clone 35, 문맥 4, 중첩/명시 선택 32, Tool 호출·실패 순서 72개를
+42b28d0과 대조했다. 동등성 검사는 실제 실행 안전성 시험을 대체하지 않는다.
+
+- `whole-goal-closure-01`: 발견/시작/pass 123/123/123, exit 0, 105.663756초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-goal-closure-01/llm.json --modules tests.llm.test_goals tests.llm.test_completion_processing tests.llm.test_agent_values tests.llm.test_agent_execution tests.llm.test_refinement tests.llm.test_history_retention_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+
+- `whole-goal-closure-hub-01`: 발견/시작/pass 20/20/20, exit 0, 57.671844초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-goal-closure-hub-01/hub.json --modules tests.hub.test_component_catalog tests.hub.test_component_managers tests.hub.test_history_retention tests.hub.test_deletion_feedback tests.hub.test_tool_history`.
+
+- `whole-goal-tools-hub-01`: 발견/시작/pass 6/6/6, exit 0, 99.760991초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-goal-tools-hub-01/hub.json --modules tests.hub.test_resource_tools`.
+
+세 실행은 별도 결과다. failure/error/skip/xfail/xpass/누락/추가/중복은 각각 0이다.
+소스 해시 b94b57dbd772fec349b435ce9b5fe6d3efef1f35b21399d3812e770ff3e0cef3,
+입력 해시 c682d69ca1dbf73afd125215fcd26cc48481953583e6beac68c69490474606bd가 전후 동일하다.
+Python 3.12.14/Clang, Host d833790, 동일 의존성·실제 namespace/X11 환경이다.
+실행 후 제품/시험 코드는 그대로이며 README·감사 근거·검증 기록만 최신화했다.
+
+영향 범위는 Goal CRUD·clone·문맥·Tool 소비자, Agent 중첩 선택, Refinement,
+원본/참조 삭제 보호와 승인·예산·효과·Checkpoint·RAG·수명 무결성으로 정했다.
+실제 Run 시험은 승인 전 저장 0회, 승인 후 실제 Component save 1회와 결과 version 변경,
+오래된 CAS/다른 Session 목표의 save 0회·원본 snapshot 보존·모델 후속 호출 0회를 확인한다.
+Hub의 실제 Resource Tool 실행과 승인/재개/영수증 소비자도 통과했다.
+
+정적 finding 114→117: inline True의 기존 S3 하나는 Owner 선언으로 이동해 제거됐다.
+새 S5 네 개는 retired JSON key가 아닌 GoalSettings 지역 변수의 정확한 발생 지점이다.
+현행 ImplementationParameters만 읽는 typed view임을 각각 source/test에 고정해 검토했으며
+raw finding을 숨기지 않았다. `python -m unittest tests.llm.test_architecture_reviews
+ tests.llm.test_contract_coverage`는 16개 pass/exit 0/3.313초다.
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py goal-closure-auxiliary`의
+S1–S7·문서·R3 mutation·Provider SDK·LLM/Hub 환경 6개도 각 exit 0이다.
+
+전체 505개 중 미검토 285, 미분류 21531, incomplete 4; stale/위반/감사 오류 0. Goal 7개 파일을 새로 전수 검토했으며 기존 __init__ 검토는 그대로 유효하다.
+
+Level 2 완료이며 전체 회귀는 공통 history 참조 closure와 묶은 gate28에서 수행한다.
+범위 동등성과 관련 통합·핵심 안전성 검증으로 이 소단계의 전체 회귀를 유예했다.
+실행 중 gate27은 6b2a10a이며 Goal 변경의 검증 증거로 사용하지 않는다. 새 commit은
+전체 게이트 성공 후에만 Push하고 해당 정확한 SHA의 원격 필수 두 job/artifact를 확인한다.
+llm/ 전체 완료 전에는 Hub 구현 변경에 착수하지 않고, Hub 소비자 검증은 계속 유지한다.

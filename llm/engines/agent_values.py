@@ -165,6 +165,11 @@ class AgentExecutionBinding:
         return {self.STATE_FIELD: self.to_dict()}
 
     @classmethod
+    def selected_in_state(cls, state):
+        """Read only the public nested selection, preserving missing/null behavior."""
+        return state.get(cls.STATE_FIELD, {}).get(cls.Field.AGENT_ID)
+
+    @classmethod
     def references(cls, value):
         return {value[cls.Field.AGENT_ID]} if cls.Field.AGENT_ID in value else set()
 

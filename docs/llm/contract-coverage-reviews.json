@@ -40534,7 +40534,7 @@
   },
   {
     "path": "llm/engines/agent_values.py",
-    "sha256": "088e292c9b6977cabd7a8ff4cc3a429f6b2b0cdb9965a03790607dad4eff11d7",
+    "sha256": "aff38209fed1157c2687108caafcf7d02eab67bfdd0ec55491347f469f026a96",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -40658,115 +40658,115 @@
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "0e0bbbd70e842183fac8c6bd8c5ca989a804498ab06bab8a4d943d8ebd39a165",
+        "id": "3426961454eb70d5fcb4d2758347916f495038de628a23c5aaacb8f474214f4c",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "c41edcb1b3b5a5a3d2692b86e98bd2b751a3807fd15a0693f4de3fc6c74c938e",
+        "id": "88eede6a6a2b86a35b2dd59f26b7e1674d79a3f2b3147a159f8274c4d2f6fb57",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "b286b95a145567e8902097475ac1e130b430ad0b74ba8fbf9a65a374bd48117a",
+        "id": "184f0cc4bafc8b87004e26947b6c7771a32bad76a67e388376d5dd17eb9b42e1",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "2251fed9ff3b706863db874c49b04c123839ead0613da3c7b36e735553a692ff",
+        "id": "7f64840b315e6f268a5411af88beafd00f9a572feb48460f3abdf3624d1ea250",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "a0954e4246c1bd0b8bdb6ed16486c02f08257502d812f3b49aa93838c9e8a99b",
+        "id": "bc192d196b476e8904bad38db4625dd306ee267033ab69461248a8122ecd9987",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "ffbb63114917e30aa981970a11ba7475805133e5b3536fa6fb0320dd337dfa45",
+        "id": "f398ea905ae2dc2deff3a646e8b4a1e904bc0de002c66afe79ef78015b7a0619",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "015fc4ec312c6074bbbb7e246ae3d306f7ee2e53fdcef0fa6354b2876037e04c",
+        "id": "45822ba9e6fbbc8afe63f46b913d31df2aefd1e13eeaf1b51f67bde79c381570",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "5199178780610a9c0f33fb6635de9fc20e1f3d192e2485da1350ce01c6a2c43c",
+        "id": "cad38e27f196d9415cb3cbd413c6c062780e044955b9f2e9f71282bab4a5e12a",
         "classification": "non_contract",
         "owner": "AgentInvocationIdentity",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "fb94ed2e7c76fe980bad7d7bd5a75837a33259b7ec0c7aa7f2d2e0543d19eb6f",
+        "id": "a8c6363df2c988dd1cf48a080927a92a6e4b73e6f5d841fcf2b1e6aca810a407",
         "classification": "non_contract",
         "owner": "AgentInvocationIdentity",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "1607cb3a14e69d2d38bc14aaccdf72e1f4c1323bed18806f07c78d26aaa138e2",
+        "id": "363856d1392c45b242dae830bd6df620e7409243562a706e0088906efbd2ab50",
         "classification": "declaration",
         "owner": "AgentInvocationIdentity",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "30e7e4ed88c051d8d82dbf202872e8b3dd7a469509956f7c3cef67c4519989ce",
+        "id": "9d9a14fe57c575d9e444abb98fafb5ef9f59c80d9310cec0cf2b4d6bb5259ccb",
         "classification": "declaration",
         "owner": "AgentInvocationIdentity",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "1a70bba99c93c10e2bc32b5e4edfe46fe75a2c06ac82ff97b5cfabd7c67bc7f4",
+        "id": "67f194a69ae0ca6b2c26360335bb3f3addfca33ff8cab86ebaae734b21ff810a",
         "classification": "non_contract",
         "owner": "AgentExecutionRevision",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "99b0e56acb8ba2533a86fd316dd3af3419b8a1d20f0de906c99c611e2cb6f9c3",
+        "id": "df7b5c8dbce1bf7c2c412edb7ec0d35f3a485d8eb025c25f6489ae0734b4a8e0",
         "classification": "non_contract",
         "owner": "AgentExecutionRevision",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "259c3e08866af3fadf34afbdaa16dc95753b610bb15e2abc864d07970113adf6",
+        "id": "e2cfa468e982a54a493516e1519385e9b76a4a6bc2eadde747f257ce27832fdc",
         "classification": "non_contract",
         "owner": "AgentInvocationBinding",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "5ec020f34de710b03301a8915828ec3712f7a22221b24d574a9c47b1ded91729",
+        "id": "1a7de113b12c495b5f3678b32c91b75344566f671ca22e95add81108f55654bb",
         "classification": "non_contract",
         "owner": "AgentInvocationBinding",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "7a382fda0be1348bff7996b85c3094631ffedcf3bc2651edc9d4e8e66a9d87e8",
+        "id": "aaea2670ec278ee5c20a1b5a07cc47bbcbd26462a4f5b08eb9c8107b7e94ac17",
         "classification": "declaration",
         "owner": "AgentInvocationBinding",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "070d104416662ec97d420bebe41765aceccf64b2bf1fe7760a8ab4eb2d8155f9",
+        "id": "9c1689f80ee4dd0d3ae7129bdf4ff19cb2514f98f7f5f48bb483f8f3c6a899ed",
         "classification": "declaration",
         "owner": "AgentInvocationBinding",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "52be45e4c82360042f5baa38bcf11f0861d4c568d7d66a9a0b49401d186f8481",
+        "id": "d77a636ef09b50768326f889985c033547c5529d49e63993579dd087c32f8674",
         "classification": "non_contract",
         "owner": "AgentOutputValue",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "94d8ebb79b7e6584adde1ce0d93cbabd04b00d96b8ac262646d2b48f4c52a78b",
+        "id": "9be4147385d39e668f5ea4401bdbbfcb43ae171421cc7c69c7cf405d83149084",
         "classification": "non_contract",
         "owner": "AgentOutputValue",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
@@ -40793,7 +40793,8 @@
         "owner": "AgentExecutionBinding / AgentStepMetadata",
         "declaration": "llm/engines/agent_values.py",
         "consumers": [
-          "llm/engines/agents.py"
+          "llm/engines/agents.py",
+          "llm/components/goals/processing.py"
         ],
         "tests": [
           "tests/llm/test_agent_values.py",
@@ -40801,7 +40802,8 @@
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_engine_outputs.py",
-          "tests/llm/test_output_integrity.py"
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_goals.py"
         ],
         "complete": true
       },
@@ -40820,7 +40822,7 @@
         "complete": true
       }
     ],
-    "reason": "Read whole node selection/Schema/validation, open execution evidence/state, Step inheritance, root identity/hash and output projections. Public dictionaries retain key order and extensions; omitted output data differs from parsed null, explicit Step null is not filled, public handler/registry overrides remain in execution path. Required selected identities are never restored from defaults. Dataclasses do not normalize opaque Engine hash values or Tool overrides. Complete new node/root/output projections; binding reference extraction and remaining delegation/usage Step consumers are explicitly incomplete for the next Agent closure. This does not mark agents.py or all Engines complete. Closed remaining Agent binding reference extraction and delegation/completion Step consumers through their Owners. AgentDelegationArguments now owns matching Tool Schema and required argument projection; AgentHandlerBinding owns its unchanged revision evidence. Original explicit null, private extension values, Schema validation and source omission remain. Agent implementation still has unrelated unfinished runtime hook/diagnostic declarations, tracked as an unreviewed file."
+    "reason": "Read whole node selection/Schema/validation, open execution evidence/state, Step inheritance, root identity/hash and output projections. Public dictionaries retain key order and extensions; omitted output data differs from parsed null, explicit Step null is not filled, public handler/registry overrides remain in execution path. Required selected identities are never restored from defaults. Dataclasses do not normalize opaque Engine hash values or Tool overrides. Complete new node/root/output projections; binding reference extraction and remaining delegation/usage Step consumers are explicitly incomplete for the next Agent closure. This does not mark agents.py or all Engines complete. Closed remaining Agent binding reference extraction and delegation/completion Step consumers through their Owners. AgentDelegationArguments now owns matching Tool Schema and required argument projection; AgentHandlerBinding owns its unchanged revision evidence. Original explicit null, private extension values, Schema validation and source omission remain. Agent implementation still has unrelated unfinished runtime hook/diagnostic declarations, tracked as an unreviewed file. Goal nested selection now uses AgentExecutionBinding.selected_in_state, preserving the original lazy optional agent/agent_id reads and present-null errors. It does not validate or manufacture an admitted binding."
   },
   {
     "path": "llm/core/tool_event_result.py",
@@ -42854,6 +42856,549 @@
           "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_lifecycle_deletion_integrity.py",
           "tests/llm/test_turn_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/goals/tools.py",
+    "sha256": "b0ef6f7bddaa4bc332ff05f18a4e94965101a38377aa140d302b4d3fa1468c69",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "GoalDefinition / GoalRecord / GoalScope / GoalSettings / GoalToolArguments / GoalToolContract",
+        "declaration": "llm/components/goals/records.py",
+        "consumers": [
+          "llm/components/goals/component.py",
+          "llm/components/goals/data.py",
+          "llm/components/goals/processing.py",
+          "llm/components/goals/tools.py",
+          "llm/components/goals/tool_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_goals.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/goals/data.py",
+    "sha256": "abd3efc3a834a1cb70bc81785e15b69d3a5ce7abfc01c918c9e39e030ae117c1",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "950499c754158e1112299127d25a73676289eacfcf9775e77578589455da29c5",
+        "classification": "declaration",
+        "owner": "GoalData",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "d2183bb9990fa9fa7bbd8530e7b565224a0aa4235eb7d586167f41d1f4cf27db",
+        "classification": "declaration",
+        "owner": "GoalData",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GoalDefinition / GoalRecord / GoalScope / GoalSettings / GoalToolArguments / GoalToolContract",
+        "declaration": "llm/components/goals/records.py",
+        "consumers": [
+          "llm/components/goals/component.py",
+          "llm/components/goals/data.py",
+          "llm/components/goals/processing.py",
+          "llm/components/goals/tools.py",
+          "llm/components/goals/tool_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_goals.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/goals/tool_values.py",
+    "sha256": "cc9f9b0f7b3b40aa47fb190eda90fe95d1d82178b265ed3bcd1f8b5ca514418e",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "21a84683bd74d26ab5de9836c45a3dbce3e3043c4cabe4458e5bb3b94ac1bc97",
+        "classification": "declaration",
+        "owner": "GoalToolArguments",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "52f920ac84aa11080525e159c39581125befed8c370888122890c8dce04ce2bd",
+        "classification": "declaration",
+        "owner": "GoalToolArguments",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "d1b2fb06aad358932442151eadc4d4ff36946108099dbe107806aca11c4a66fa",
+        "classification": "declaration",
+        "owner": "GoalToolArguments",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "7dc89cb9134ccee2ed440ed0a8d54a857be88bf3009d04be8ad66bf91e4b9998",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "b1d62ab359e595c2005b84b3b4b8cd88cc255e0e880b57e1087536137782da53",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "6ddb62a6f909ac32759b6accf7db276e33c09b93421a39a7e77b4275e90c2d9e",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "0b30f0e8da2b82c22bf2dbf59b6c7879ac68438b9a82d0ae368ac2a6fd475ef1",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "206705dbdc5aa0afbd41f967bfb9b0678c4d62ccc2280c9d08bafb2d9ac11ced",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "c431fdb2a4010cd47a0c157996bd0ac8a1479672769c57a81c489e52da87b55c",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "e9fe0b971aa04c5348f81e500f163681de1502a7e5582635c71ffe2b4245affc",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "7cfa4545da189509989c17669f4d461e91b9c2c521101f0c0bd9afa2e876a190",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "ecf09da82ed7e300517c35a748799896ce816484c1aa18852a8202483737451a",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "7cf05d178e6e2e52a58f10cff2542c36b1c4fe179a2c110d17d634404cc7129f",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "ae9ebaaa676c06cc7f1104c513292270547fa7f8b8e0e1441ff6ad1dbda87615",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "55c701a838a3a13679acced330e7743236382436ce770d8e4cb18bb6de424cc4",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "130baa4a8b543c1a55445802cc499c02347eb09f926ac633cdf93456aed1163e",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "0c4019a7d06bcc1b643195316c8af997f504a13e7c6779b68c293ea8d92a9db5",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "ba455256b03497186f271809b65c2ce11e856cbdd10208bb7c1394f7c56f071c",
+        "classification": "declaration",
+        "owner": "GoalToolContract",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GoalDefinition / GoalRecord / GoalScope / GoalSettings / GoalToolArguments / GoalToolContract",
+        "declaration": "llm/components/goals/records.py",
+        "consumers": [
+          "llm/components/goals/component.py",
+          "llm/components/goals/data.py",
+          "llm/components/goals/processing.py",
+          "llm/components/goals/tools.py",
+          "llm/components/goals/tool_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_goals.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/goals/component.py",
+    "sha256": "9d26f9c79e87c33b4bc91bf5271188264f84b01b59c5f22e5ec05c7d53b1b1d8",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7e6c673aed634c6a14aa32476f75a6c1dac733d11e18a74514d9a666880e6bfe",
+        "classification": "declaration",
+        "owner": "GoalComponent",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GoalDefinition / GoalRecord / GoalScope / GoalSettings / GoalToolArguments / GoalToolContract",
+        "declaration": "llm/components/goals/records.py",
+        "consumers": [
+          "llm/components/goals/component.py",
+          "llm/components/goals/data.py",
+          "llm/components/goals/processing.py",
+          "llm/components/goals/tools.py",
+          "llm/components/goals/tool_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_goals.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/goals/records.py",
+    "sha256": "e1df4602f5a361135f08901a13d6a8e904d9ec994544d43030754117af6c0cb0",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "84bf04d36076b8e43e712648f9d8ab878069451da7b5a2985e70dc83893c6c7a",
+        "classification": "declaration",
+        "owner": "GoalStatus",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "c240ef10d3f71b72347b042902b3299d5dceae4a19e733ae2bc728a3314e65a3",
+        "classification": "declaration",
+        "owner": "GoalStatus",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "e41ebb30a42f1e5f5d62dd0c78623e3ee1983346971c127b8ecc65aecfda0dde",
+        "classification": "declaration",
+        "owner": "GoalStatus",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "6e1b0ab7c52d434eac225463b1819be21f209ecd4e6d8daafb53e2cd09cd227a",
+        "classification": "declaration",
+        "owner": "GoalScope.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "4deb3cdd5a14c96330fb27d094bc56d6e15e020ea35b837ea52d2493e29e1ed9",
+        "classification": "declaration",
+        "owner": "GoalScope.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "d2715fb3ff82a0f57717d019ca80846031cb7a419afb6eb90894e80b281745ed",
+        "classification": "declaration",
+        "owner": "GoalRunReference.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "19973f5dcc90abcb3b23e85506ab4221fbc5f1b03a3364c9dc2fee5285bb8212",
+        "classification": "declaration",
+        "owner": "GoalRunReference.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "ba9dc63d369b87b70129e232c5866cb4dd34313ed21e174a138db5553f95e37b",
+        "classification": "declaration",
+        "owner": "GoalRunReference.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "46cd34a3202b541b674b4a902eca15cf6afd2f03ad81fb6d16b85517f4c4e530",
+        "classification": "declaration",
+        "owner": "GoalDefinition",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "37b4b58e316582c5f4972676a10d45c6ab7decd91f4e430d844ec4e9d1568fb3",
+        "classification": "declaration",
+        "owner": "GoalDefinition",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "9e9331f4cac11f8a07509f5da003c8ed0cbb17d22e6cce29da6e065e6b7d0ecf",
+        "classification": "declaration",
+        "owner": "GoalDefinition",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "fc8aaa4dbbbb9931af6593ff2de8d341d2eb4c9e03a6d227f1f51c5f84b56c67",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "79beed788d61389e1169dc97585208398de068b76c7c00f88a73a2814f025a3c",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "4b9a6bf3bda98819cc43ab26e341b288857fa3e785713f41da86793866bf7917",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "eeddfc1efd22a10e3b6b87d7384391914b8cbdccf1945bb9ff1f85228d22462a",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "476835b311d02b9eaf954932d3bb23d325853f23298f166304a7218c4146387c",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "c12d70774942aa3779e65fffafb0f25c1342bb26ebf885e7199c5c3fd5b4fa43",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "0673bd1740cde6e988d5cf36197585168ff8879f5c00a630878e6c5cc147abdc",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "8583a05add6b9feafcc2c301d059140ef23bc9a68835de6cababa800582b5af8",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "76bb6191b25865903fa4069d8b156c20bb17d237b26eae7c5e47ccd0dee43faa",
+        "classification": "declaration",
+        "owner": "GoalDefinition.Field",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "724c68f04ea6dcb93eb0549ce0721b4ddd83c6e8eafa812931f437b8b0c2e09d",
+        "classification": "declaration",
+        "owner": "GoalContextReference",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "3ea9f531e5561b8f659e7d2e3ba9bb0e84caf161e1f94f744ab8ca6f05d15eb6",
+        "classification": "declaration",
+        "owner": "GoalContextReference",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "6c0bbfc4aab3adb386bf4ecfcc7988a5e4edf69d8c163f49b1bbb38dbfcfdf55",
+        "classification": "declaration",
+        "owner": "GoalCloneOrigin",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "c328cb484e7ab151a69ecd576dac670156dffa05aee2704828912a49689ff793",
+        "classification": "declaration",
+        "owner": "GoalCloneOrigin",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "06e5b056f43d8fc71ff9265904071d9d6cc254b84396c1f1ca927e88b781a8ee",
+        "classification": "declaration",
+        "owner": "GoalSettings",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "377079bee940d7fbc7a74ada88d63a6c04d330284593e0cb8caffd00e4b5bf9a",
+        "classification": "declaration",
+        "owner": "GoalSettings",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "e22335596fa536d5bfbde7143dc681e649b12514c1cd6380c09fa36c25e8a079",
+        "classification": "declaration",
+        "owner": "GoalSettings",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "77d7200a1570f2a0e871afebaa0273abc9990e02b524b009b354dd47c3fc7700",
+        "classification": "declaration",
+        "owner": "GoalSettings",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "e28cd78777348250b06395465e4cb5a1cf7ee264b80d8521227e0a6baf8326ad",
+        "classification": "declaration",
+        "owner": "GoalSettings",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "cf7bb743478134d7d187bebaea9468972d9f1c3b6463176ee119a79332f331db",
+        "classification": "declaration",
+        "owner": "GoalSettings",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "cfd0abab6cce2950a8d3e240f49dd32a4e76091ca47f0fb8dc99791ef23ae2ac",
+        "classification": "declaration",
+        "owner": "GoalSettings",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "9cf64bb11ff69e9857d7f0e4e2335b615c398e6872bbc7e205b28e4ed21e9551",
+        "classification": "declaration",
+        "owner": "GoalSettings",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GoalDefinition / GoalRecord / GoalScope / GoalSettings / GoalToolArguments / GoalToolContract",
+        "declaration": "llm/components/goals/records.py",
+        "consumers": [
+          "llm/components/goals/component.py",
+          "llm/components/goals/data.py",
+          "llm/components/goals/processing.py",
+          "llm/components/goals/tools.py",
+          "llm/components/goals/tool_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_goals.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/goals/processing.py",
+    "sha256": "abd15642b50a24970e65f0bcb82a15d8474809a73e4b033a92e078b30b4fb45f",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1bb003251655ba4a65f4f229c97a693f52f872b3f3f5b92bec49a11c78e47bc8",
+        "classification": "declaration",
+        "owner": "GoalProcessor",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "7bbdc69dfdf050adcaf3d2f264281d9e552be8ddbb7ceb6bb995844e1c1890ba",
+        "classification": "declaration",
+        "owner": "GoalSession",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "fc4f58edb2857cf6ff3b659d300f5cc0732a75b5e00f4d0c89a075327868f7ca",
+        "classification": "declaration",
+        "owner": "GoalSession",
+        "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
+      },
+      {
+        "id": "7c50e9922eb95cd843d18d0270760c970fb3654f5c5a237282388d5d73f2d1a4",
+        "classification": "non_contract",
+        "owner": "GoalSession.prepare",
+        "reason": "Unreachable yield establishes Python async-generator syntax for a processor that emits no events; not a Goal field, policy or selection value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GoalDefinition / GoalRecord / GoalScope / GoalSettings / GoalToolArguments / GoalToolContract",
+        "declaration": "llm/components/goals/records.py",
+        "consumers": [
+          "llm/components/goals/component.py",
+          "llm/components/goals/data.py",
+          "llm/components/goals/processing.py",
+          "llm/components/goals/tools.py",
+          "llm/components/goals/tool_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_goals.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/goals/README.md",
+    "sha256": "13c2574dd24831daffef94420c956c9467c7745da3efbe1fcb0a23f975fbc2f4",
+    "reason": "Goal README examples retain the public wire vocabulary as documentation, not executable duplicate declarations. Owner links and roles now identify records.py/tool_values.py, with CAS, scope, opt-in and approval unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "GoalDefinition / GoalRecord / GoalScope / GoalSettings / GoalToolArguments / GoalToolContract",
+        "declaration": "llm/components/goals/records.py",
+        "consumers": [
+          "llm/components/goals/component.py",
+          "llm/components/goals/data.py",
+          "llm/components/goals/processing.py",
+          "llm/components/goals/tools.py",
+          "llm/components/goals/tool_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_goals.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }

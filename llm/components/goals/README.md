@@ -4,7 +4,7 @@ Goal은 Project가 선택하는 목표 리소스다. 실행 소유 계층은 Pro
 `goals/records/<id>.json`이 목표 상태의 원본이며 `run_refs`는 같은 Project의 Run 참조다.
 Run을 생성하거나 재개·완료시키지 않는다. 목표 상태 변경은 과거 Run을 수정하지 않는다.
 
-목표 상태는 `data.py`의 `GoalStatus`가 소유한다. 레코드 Schema, 상태 변경과 문맥 선택,
+목표 상태는 `records.py`의 `GoalStatus`가 소유하며 `data.py`는 같은 타입을 재노출한다. 레코드 Schema, 상태 변경과 문맥 선택,
 목록 Tool의 허용 값은 같은 선언을 사용하며 저장·반환 값은 기존 문자열이다.
 
 ```python
@@ -38,7 +38,14 @@ Project clone은 project-scope 목표만 복제하고 run_refs를 비운다. Ses
 복제하지 않는다. 원본 위치는 metadata.cloned_from으로 남는다. Component 선택 해제는
 자료를 보존하고 재선택하면 다시 사용할 수 있다. 영구 제거는 기존 Component API를 따른다.
 
-- component.py: 닫힌 레코드/설정 schema, Application metadata, clone, capability 제공.
+- records.py: Goal 정의·상태·scope·Run 참조·설정의 선언과 검증·Projection. 저장 형식과 생략 의미를 보존한다.
+- component.py: Owner schema 연결, Application metadata, clone, capability 제공.
 - data.py: 잠금·버전 검사·진행 상태·검증된 Run 참조.
 - processing.py: 명시적 completion_processors 참고자료 주입.
 - tools.py: 현재 Run 범위의 읽기/승인 대상 쓰기 Tool.
+- tool_values.py: Tool 인자·공개 이름·전송 schema·효과 계약 선언. 저장 Schema의 표시용 필드를 전송 인자에 추가하지 않는다.
+
+필수 필드 조회는 Owner의 지연된 Reader를 사용한다. 누락을 기본값으로 복구하지 않는다.
+설정은 기존 config/policy envelope만 읽으며 새 설정 경로나 암묵적 opt-in을 만들지 않는다.
+실제 Run 검증은 승인 전 저장 0회, 승인 후 저장 1회, 오래된 version/다른 Session scope의
+저장 0회와 오류 이후 추가 모델 호출 0회를 확인한다. 기존 원본·삭제·예산·Checkpoint 계약도 유지한다.
