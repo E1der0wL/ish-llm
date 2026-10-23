@@ -7,9 +7,28 @@ from jsonschema import Draft202012Validator
 from urllib.parse import urlsplit
 
 
+class ModelParameters:
+    MODEL = "model"
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def optional_model(self):
+        return self._value.get(self.MODEL)
+
+    @property
+    def model(self):
+        return self._value[self.MODEL]
+
+    @property
+    def has_model(self):
+        return self.MODEL in self._value
+
+
 def completion_schema():
     return open_schema("LiteLLM completion adapter / SDK", category="provider", properties={
-        "model": {"type": "string", "minLength": 1, "description": "공급자/모델 이름"},
+        ModelParameters.MODEL: {"type": "string", "minLength": 1, "description": "공급자/모델 이름"},
         "api_key": {"type": ["string", "null"], "description": "공급자 인증 인자"},
         "api_base": {"type": ["string", "null"], "description": "공급자 API 주소"},
         "temperature": {"type": ["number", "null"], "description": "공급자가 지원하는 생성 온도"},
@@ -31,7 +50,7 @@ def model_schema(operation):
     if operation == "acompletion":
         return completion_schema()
     return open_schema(f"LiteLLM {operation} adapter / SDK", category="provider", properties={
-        "model": {"type": "string", "minLength": 1},
+        ModelParameters.MODEL: {"type": "string", "minLength": 1},
         "api_key": {"type": ["string", "null"]}, "api_base": {"type": ["string", "null"]},
         "timeout": {"type": ["number", "null"], "exclusiveMinimum": 0},
         "num_retries": {"type": ["integer", "null"], "minimum": 0},
@@ -44,9 +63,9 @@ def validate_model_params(params, *, operation="acompletion", require_model=Fals
     """값을 변형하지 않는다. provider 주소/모델 해석은 adapter 경계가 소유한다."""
     if json_contract:
         Draft202012Validator(model_schema(operation)).validate(params)
-    if require_model and (not isinstance(params.get("model"), str) or not params["model"].strip()):
+    if require_model and (not isinstance(ModelParameters(params).optional_model, str) or not ModelParameters(params).model.strip()):
         raise ValueError("Completion model is required" if operation == "acompletion" else "Model is required")
-    if "model" in params and (not isinstance(params["model"], str) or not params["model"].strip()):
+    if ModelParameters(params).has_model and (not isinstance(ModelParameters(params).model, str) or not ModelParameters(params).model.strip()):
         raise ValueError("Model must be nonempty text")
     if params.get("api_base") is not None:
         url = urlsplit(params["api_base"])

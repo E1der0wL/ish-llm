@@ -5,6 +5,7 @@ from llm.components.goals.records import GoalContextReference, GoalDefinition
 from .snapshot import MemoryProcessingSnapshot
 from .summary_records import SummaryRecord
 from .records import MemoryRecord
+from .configuration import MemoryConfiguration
 
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
@@ -26,7 +27,7 @@ class MemoryData(ComponentData):
     def _processing_snapshot(self, session_id, *, include_records=True):
         project, component = self._current()
         return MemoryProcessingSnapshot.create(identity=component.identity(project), configuration=component.get_config(project),
-                has_search=component.search_fn is not None or component._options(project).get("search_strategy") is not None,
+                has_search=component.search_fn is not None or MemoryConfiguration(component._options(project)).search_strategy is not None,
                 records=component.list(project, include_deleted=True, session_id=session_id) if include_records else {},
                 summary=component.summary(project, session_id))
 
@@ -100,16 +101,16 @@ class MemoryData(ComponentData):
     def _tool_write(self, operation, arguments, source):
         # 설정 검사와 쓰기를 하나의 잠금 범위에서 수행한다. Tool 인자로 상태를 승격할 수 없다.
         project, component = self._current()
-        config = component._options(project)
-        if operation != "delete" and "tool_write_status" not in config:
-            raise ValueError("Missing required setting: memory.tool_write_status")
+        config = MemoryConfiguration(component._options(project))
+        if operation != "delete" and not config.has_tool_write_status:
+            raise ValueError(MemoryConfiguration.MISSING_WRITE_STATUS)
         arguments = dict(arguments)
         if operation == "create":
             if arguments.get("scope") == "session":
                 arguments["session_id"] = source["session_id"]
-            arguments = {"data": {**arguments, "status": config["tool_write_status"]}}
+            arguments = {"data": {**arguments, "status": config.tool_write_status}}
         elif operation == "update":
-            arguments["changes"] = {**arguments["changes"], "status": config["tool_write_status"]}
+            arguments["changes"] = {**arguments["changes"], "status": config.tool_write_status}
         elif operation != "delete":
             raise ValueError("Unsupported memory Tool mutation")
         if operation != "create":

@@ -44683,5 +44683,458 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/memory/configuration.py",
+    "sha256": "2999f78984e175240165c78bac94113af71a3246ee1ce2c24a7446357e5d2f0c",
+    "reason": "Read the complete processing/Component configuration Owner, ordered required-field groups, schema, parameter layout, typed readers and Tool destination view. Missing/null/explicit values, copy boundaries, Adapter ownership/validation order, provider handling and exact integer semantics are unchanged. Public Processor schema customization is resolved at its original callback points. Current Component/Data/Session/Tool selection consumers use typed properties; no new implicit model/retry/default/authority. The fixed options projection still in tool_results.py remains explicitly incomplete and will be connected with its Compaction options Owner. Provider schema.py has only its model-field contract moved and is not claimed fully reviewed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5340a68986900a72877622b40852fe1a1ecec58f868eb1ee277d0a566d08289e",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "7856e75b43d2d15e035f51d64157d92b92c2f85dbff2bdbe57b50717b6968c33",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "81f3f19898fa43045b378c2b97580fd6b4bcc9b10959d7346455db59ba7ce593",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "f93f31a39965edf18ffe3d2400817a1af288ffb31c6b32a71e5769eca68d9229",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "cbba7835807b014b51fda0eaa3aad995fab9c7a21e291a754f4c789e4f0e04ad",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "23de101d4b522ca6ccd5af7e31326070880a34d6042369b74980a11a4a587a08",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "87b64f70a391e7462c0f0d0cd40b93c19d60efb790c0b4fd707d5e264495a9cb",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "2c499f5230a7b776659c18205361de10717b2e972e93b5cf9f9abffc140f266d",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "bb7429cdc77b2734db79d883ba6bdec761b3fdd94afd631b868b5e2a81f24d48",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "c67d441458b0973319d5018105beb9575285f0395140f3542701b0ca4df98b0e",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "ec4ae8db8f75f9f0021d8f580cea8168d70f701e9384b51aed000c234040bdd8",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "eb099d874ab7b72cac7e6186c85527bdc1ad1a69c39da6a27a16fb8bd1a9697f",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "eb0678631d5521e9781d5c85cf6069f9c05e6604d3d9b8d77f4a021f750f01a5",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "e7ab7063e737621f3f27a5a1829d61fe91534858235ac0a496cfcbba7218aa9b",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "e23c96bcc58352a4314b5b8bccba5d96abf68fe4b0e81695ce478ae9a464e131",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "b89c11008b85b8072045ffd2e60cf9765018fe356b0d2e1da7020db1d2f26fe1",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "620299ee89f83dc2f165549a89fb8f46fbd394f878d5d8ce42012945e0382a9f",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "4bde00b98e0211f10693992abf6dc290e631952635f65ab5c1c93087e5fc7da0",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "3596ea267e80c4153ed4810afbfa0ad2b42e1ad2cd63ea9d12ba8c4a2fbfb386",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "04a9352540b2eebc92f07b4159f836a1f0dc15afdb7b05a816d814029933a52f",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "249572d61a927cf2b64cd2e2a982f02c7df750348e01af0d3ba689a5e1a155e5",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "40faffd50aa6e6b7fb7714cc79382f13daabaa3a55f98864fce9f8054c7eb21a",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "25542f23e4a772cc626406b2babc6959ad34876634e1626db89593b6b7cd4a7c",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "d46f71a38685925b699a2313f8599651034d67e398af0b5b3a96c77feb4592fb",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "c0a299c40df75e6c43e7aeed97f3a4009e3ce7a5a8a8eabb4b2d75438de4c4a3",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "7a24f794cfc0eff6e9cbbdbb587d0336f2413f63a42a845f7164d1636fc91d8e",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "e8722904e3daa26191289d416a6fd86f72ad701f8ff4507488f929c95c5556e2",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "b03fe420d3bb68d3e16a474b76d4b54f30bfd2aa565622f139fe95495c0166db",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "6fc07a8cf8eb8431dbf62f56af0aa6b5c8bc62f38428969f08249404ff33acdc",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "763a5fe57c8eb5e096b5fae59b993216830ef35a106a43302309e052440c480c",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "cbc146f4fdfa16a6a4044cccc9846e4a3f06641edc0fb42822dd319848eaaea7",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "ee62e62a39cae10e83e664081f69177c77644959abe11f1788f4e6fe37a9f84c",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "1a06601e5667cf64a23bb56818a5d9fabcb36c398f8dd54cc0649b0e22fb53cd",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "28515b6dfcf7d926b899f3c643eac9c16a608c9d21deae751feb94ded63ce22d",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "75d798e72e970de41f01311682252a56833ac891497646a448601bf92b5a205d",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "1e3bc756ed7ad69cde82676c5fc0518fee73873ba40b3f661a6002b8f689cfd9",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "db276844221fc737e4490adac4cdb11275df25e89c53558dd18c630dc970d01d",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "5e16d7a602e61e7c45747ea04e15b5e0a40ea27a1ed5a2eb56d6bfff72e32040",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "4f21af23bb4080f0c955396475facda454bb30307b2d093ffd04712005c2ae64",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "e0cf15d50710543fe88fef5bdd35f43015e50b23f55903b6e9dd3f79d269cb75",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "d16c318bf7930f88c731a0cfd0748bf6d1f5ec999cf7a4e1044cdc3ce2d9f9ff",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "198310ed4ed92f49426bc6aa711c052b2fba67fb7e48e06b9f74e10e337b4660",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "d18432d73482454e05d4493d809fb8a9e7453cf0b4379438930999b2638074b5",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "1016ceeb1119c793df6aaa1e6b6a780b299400357456a689325798f065b17ec1",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "d42850b64f8b1cb3ded7cd61065fd192150305c305c3a1c2731a37de5bf3d18c",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "4b951df8de4f376f5d6b5492ba0e4dfd31e9962d19517a0c6b88ec0a27be635b",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "986521b29b9653b0b46920dc174b26982d485d257484d386fa1611ffd86f58e4",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "6a0c5490eba52ce96fc18454893dd5016eb018386800c2a225f95e6d5f5ab951",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "3d28c8304c76b528352fe98cc83e163310d2a1af7b2602c44f422c3774b49f41",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "d127a7f14eda6150c3e2324d5b6c9f44dd89dae5bc0cfd053621c258cd84c4ae",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "0609b244f6d00e97a7f4019561359278040e2c8fec4984ee9ca493b0f3481c5f",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "4066e9bb6a78f5a213611fd234c3778a2f7e93848b6ab86d2fb3da83084faa73",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "9cdd21e09b83f0eb53880016a7cb01a1cd3ba1171bc82f929717113cefef3dcf",
+        "classification": "declaration",
+        "owner": "MemoryProcessingConfig.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "8aa064bd9a2ad5abbe93ac8b86673d03309c8cdbf4fce6b7fb7d9f075f8a641d",
+        "classification": "declaration",
+        "owner": "MemoryToolData",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "fd8f23ffde8b2b07fedd20ebf9b736992feb714056fb4d0ec1d2c38bdc8809d1",
+        "classification": "declaration",
+        "owner": "MemoryToolData.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "2716fde55e1fcc33371641befe1a5beba45354c21e905804887f3296faf9e8d5",
+        "classification": "declaration",
+        "owner": "MemoryToolData.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "7a1e400e289f657956076a72c570ba94aa2990c2412c1c34ac8c6fc7f63e8853",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "fe64a10c9513163e75ea4b8f90125cb524995d667422c7503cc7df0d0a97c48a",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "c115c8590a14d1819abd9c52edfeb6c0181a0426c9fd94660f8b7eb26d729c9f",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "88274624845b0b9131c2cc0143b64d0490343dc4b234c8cc037eb970364ca7a1",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "f2b08213ac721d0260503bd1cfe858cd3a20d5d0a44d6bbe1b60783f746e1be3",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "d61762862573711ac2ee5ffaf2df0411bcebf6f1ba02092af70a6c8eac42ef4e",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "c8b871198f60b2bfa01ab2b4a2f62733304bb1983eeb8650b9342bc84cd1b115",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "5fe96cea87804cfa426ad715f5ac85bc3c08ebcc1a79cca26f13daceaaa10b6f",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "03c38964151231b90d431fc21b3c37b0cbf8f25ac3ee7b077c6f419f37ab8016",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "c8e443f43d8e4807663126325edc20c832d8e43b9b8d234d929db77d9c10b4bc",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "f560728a0f2d28dde5f735ca7174bbf61369cf02865e3e0d24baaec9b5704eec",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "5c57e42b7903dfd3af22e8efaafc6646f6c0b678e84bf9162e4ad01f5d4a59d4",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "f07c773e06ea35ce40776d814e44e9e9e92f34f387ac27d3fc1d6e5bb597a7dc",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      },
+      {
+        "id": "c048511cd8ce8b43c80be3e6f74074eb09030e7ee86aa3b4b71646962f03fa0d",
+        "classification": "declaration",
+        "owner": "MemoryConfiguration.Field",
+        "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryProcessingConfig / MemoryConfiguration / MemoryToolData",
+        "declaration": "llm/components/memory/configuration.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/processing.py",
+          "llm/components/memory/tools.py",
+          "llm/components/memory/tool_results.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_adapter_boundaries.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_memory_manager.py"
+        ],
+        "complete": false
+      }
+    ]
   }
 ]

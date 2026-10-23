@@ -25,6 +25,7 @@ from .summary_records import SummaryRecord
 from .records import MemoryRecord, MemorySearchHit
 from .history import MemoryHistory, MemoryEnvelope
 from .processing import MemoryProcessor
+from .configuration import MemoryConfiguration, MemoryProcessingConfig
 from llm.services.infrastructure.storage import atomic_json, read_json
 
 
@@ -49,7 +50,7 @@ class MemoryComponent(Component):
     ALL = MemoryRecord.ALL
     PROJECT_SCOPE, SESSION_SCOPE = MemoryRecord.PROJECT_SCOPE, MemoryRecord.SESSION_SCOPE
     SCOPES = MemoryRecord.SCOPES
-    KEYWORD = "keyword"
+    KEYWORD = MemoryConfiguration.KEYWORD
     CREATE, SAVE, UPDATE, DELETE, RESTORE = (MemoryHistory.CREATE, MemoryHistory.SAVE,
                                            MemoryHistory.UPDATE, MemoryHistory.DELETE, MemoryHistory.RESTORE)
     OPERATIONS = MemoryHistory.OPERATIONS
@@ -57,11 +58,7 @@ class MemoryComponent(Component):
     HISTORY_IDENTITY = MemoryRecord.IMMUTABLE
     capabilities = ("memory", ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
     data_class = MemoryData
-    parameter_layout = ParameterLayout(
-        config=("cache_records", "search_status", "search_limit", "search_strategy", "min_score"),
-        policy=("tool_write_status", "max_search_results"),
-        paths={**{"processing." + key: "config.processing." + key for key in MemoryProcessor.CONFIG_FIELDS},
-               **{"processing." + key: "policy.processing." + key for key in MemoryProcessor.POLICY_FIELDS}})
+    parameter_layout = MemoryConfiguration.layout()
     _managed = MemoryRecord.MANAGED
     content_schema = MemoryRecord.content_schema(scopes=SCOPES, statuses=STATUSES)
 
@@ -86,7 +83,7 @@ class MemoryComponent(Component):
         self._assert_ready(project)
         if not self._has_storage(project):
             return
-        limit = self._options(project).get("cache_records", 0)
+        limit = MemoryConfiguration(self._options(project)).cache_records
         _, records = self._record_inventory(project)
         for identifier, raw in records.items():
             path = self._record_path(project, identifier)
@@ -262,23 +259,17 @@ class MemoryComponent(Component):
         from jsonschema import Draft202012Validator
         error = next(Draft202012Validator(self.describe_config()).iter_errors(data), None)
         if error is not None:
-            raise ValueError("Invalid memory configuration: " + error.message)
+            raise ValueError(MemoryConfiguration.INVALID_CONFIGURATION + error.message)
         original = data
         data = self.parameter_layout.unpack(data)
-        if data.get("search_limit") is not None and data.get("max_search_results") is not None and data["search_limit"] > data["max_search_results"]:
-            raise ValueError("Memory search_limit exceeds max_search_results")
+        MemoryConfiguration(data).validate_search_limits()
         from .processing import resolve_processing_config
         resolve_processing_config(original, token_counter=self.token_counter, completion_adapter=self.completion_adapter)
 
     def describe_config(self):
-        return self.parameter_layout.schema(object_schema({
-            "cache_records": field("integer", minimum=0),
-            "tool_write_status": field("string", enum=list(self.STATUSES)),
-            "search_status": field("string", enum=[*self.STATUSES, self.ALL]),
-            "search_strategy": field("string", enum=[self.KEYWORD]),
-            "min_score": field("number"),
-            "search_limit": field("integer", minimum=1), "max_search_results": field("integer", minimum=1),
-            "processing": MemoryProcessor.describe_config(completion_adapter=self.completion_adapter)}))
+        return self.parameter_layout.schema(MemoryConfiguration.schema(
+            statuses=self.STATUSES, all_status=self.ALL, keyword=self.KEYWORD,
+            processing_schema=lambda: MemoryProcessor.describe_config(completion_adapter=self.completion_adapter)))
 
     def _validate_transition(self, previous, entry):
         return MemoryHistory.validate_transition(previous, entry, create=self.CREATE,
@@ -348,15 +339,15 @@ class MemoryComponent(Component):
     def search(self, project, query, *, limit=None, status=None, session_id=None):
         if not isinstance(query, str) or not query.strip():
             raise ValueError("Memory query must be nonempty text")
-        config = self._options(project)
-        if self.search_fn is None and config.get("search_strategy") != self.KEYWORD:
+        config = MemoryConfiguration(self._options(project))
+        if self.search_fn is None and config.search_strategy != self.KEYWORD:
             raise ValueError("Memory search requires config.search_strategy or a host search_fn")
-        limit = config.get("search_limit") if limit is None else limit
-        if limit is not None and (type(limit) is not int or limit < 1 or config.get("max_search_results") is not None and limit > config["max_search_results"]):
+        limit = config.search_limit if limit is None else limit
+        if limit is not None and (type(limit) is not int or limit < 1 or config.maximum_results is not None and limit > config.required_maximum_results):
             raise ValueError("Memory search limit is outside configured bounds")
         if limit is None:
-            limit = config.get("max_search_results")
-        records = self.list(project, status=config.get("search_status") if status is None else status, session_id=session_id)
+            limit = config.maximum_results
+        records = self.list(project, status=config.search_status if status is None else status, session_id=session_id)
         records = {key: record for key, record in records.items() if not self._expired(record)}
         scores = (self.search_fn(query, deepcopy(records)) if self.search_fn is not None else
                   {key: self.score(query, record) for key, record in records.items()})
@@ -367,7 +358,7 @@ class MemoryComponent(Component):
         # 직접 소유하므로 0점도 보존한다. 추가 cutoff는 명시된 경우에만 적용한다.
         hits = [MemorySearchHit.create(score, records[key]) for key, score in scores.items()
                 if (self.search_fn is not None or score > 0)
-                and ("min_score" not in config or score >= config["min_score"])]
+                and (not config.has_min_score or score >= config.min_score)]
         return sorted(hits, key=lambda hit: MemorySearchHit(hit).rank)[:limit]
 
     def consolidate(self, project, identifier, *, expected_revision, expected_generation, session_id=None, source=None):
@@ -412,15 +403,16 @@ class MemoryComponent(Component):
             from .processing import resolve_processing_config
             data = data_factory(self.name)
             config = resolve_processing_config(data.get_config(), token_counter=self.token_counter, completion_adapter=self.completion_adapter)
-            if "tool_result_mode" in config:
-                selection = config["tool_data"]
-                files = data.related(selection["component"])
+            selected = MemoryProcessingConfig(config)
+            if selected.has_tool_result_mode:
+                selection = selected.tool_data
+                files = data.related(selection.component)
                 if not all(callable(getattr(files, name, None)) for name in ("read_file", "write_file", "snapshot")):
                     raise ValueError("tool_data requires a file Component public interface")
-                files.snapshot(selection["identifier"])
+                files.snapshot(selection.identifier)
             return MemoryProcessor(data, completion_adapter=self.completion_adapter,
                                    token_counter=self.token_counter,
-                                   priority=config.get("priority", MemoryProcessor.UNCONFIGURED_PRIORITY))
+                                   priority=selected.priority_or(MemoryProcessor.UNCONFIGURED_PRIORITY))
         if capability == "memory":
             return data_factory(self.name)
         if capability == ToolRegistry.CAPABILITY:

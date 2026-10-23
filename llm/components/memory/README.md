@@ -9,6 +9,7 @@
 | [__init__.py](__init__.py) | MemoryComponent, MemoryData 및 관련 공개 타입을 노출합니다. |
 | [records.py](records.py) | Memory 레코드·범위·상태·CAS·내용 schema와 참조/검색 투영의 정규 선언을 소유합니다. |
 | [history.py](history.py) | 수정 이력과 record/history envelope, 상태 전이 및 원본 동일성 검증을 소유합니다. |
+| [configuration.py](configuration.py) | Memory 설정의 schema·필수 입력·config/policy 배치·타입 검증과 지연 속성 조회를 소유합니다. |
 | [component.py](component.py) | 기억 레코드·revision·출처·상태·설정과 저장 구조를 관리합니다. |
 | [summary_records.py](summary_records.py) | 요약·metadata·부분 cursor의 정규 필드/검증과 profile·문맥/Step 투영을 소유합니다. |
 | [summary_storage.py](summary_storage.py) | Session 요약의 필수 존재 목록과 원자 저장·명시 삭제를 소유합니다. |
