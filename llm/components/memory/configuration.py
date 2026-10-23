@@ -92,6 +92,9 @@ class MemoryProcessingConfig:
         Field.EXTRACT: (Field.MODEL_INPUT_CHARS, Field.MAX_CANDIDATES, Field.SUMMARY_CHARS, Field.EXTRACT_SCOPE),
     }
 
+    TOOL_SUMMARY_OPTIONS = (Field.COMPLETION, Field.PROVIDER, Field.SUMMARY_CHARS,
+        Field.MODEL_INPUT_CHARS, Field.MAX_SUMMARY_CALLS, Field.TIMEOUT_SECONDS, Field.MAX_OUTPUT_CHARS)
+
     def __init__(self, value):
         self._value = value
 
@@ -323,6 +326,21 @@ class MemoryProcessingConfig:
 
     def priority_or(self, default):
         return self._value.get(self.Field.PRIORITY, default)
+
+    @property
+    def tool_result_mode(self):
+        return self._value.get(self.Field.TOOL_RESULT_MODE)
+
+    @property
+    def tool_summary_prompt(self):
+        return self._value[self.Field.TOOL_SUMMARY_PROMPT]
+
+    @property
+    def tool_data_record(self):
+        return self._value[self.Field.TOOL_DATA]
+
+    def tool_summary_options(self):
+        return {key: deepcopy(self._value[key]) for key in self.TOOL_SUMMARY_OPTIONS if key in self._value}
 
 
 class MemoryToolData:

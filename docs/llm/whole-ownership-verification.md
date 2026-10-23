@@ -4101,3 +4101,48 @@ Memory Component/Data/Processing 전체 완료를 주장하지 않는다.
 Level 3를 실행한다. 범위를 입증하지 못하거나 안전성 계약에 영향이 생기면 즉시 승격한다.
 
 추출·Tool 묶음 후속 감사: `python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16 pass/3.323초/exit 0, `check_architecture`·`check_docs` exit 0, `check_budget_mutation` exit 0(의도한 한도 제거 2건의 실패 및 실제 효과 Assertion으로 검출). 전체 목록은 513파일, 미검토 282, 미분류 후보 20,438, 미완료 계약 8, stale/issues 0이다. 후보/미완료 수를 성공 기준에서 제외하지 않는다.
+
+
+## llm 명시 압축 설정·cursor·상태와 Tool 결과 소비자 — Level 2
+
+기준 `7d1d47f` 이후 CompactionOptions가 명시 압축 schema·검증·조회와 Tool 옵션 Projection을,
+SummaryCheckpoint가 cursor의 6개 필드·정확한 정수·digest·생성을 소유한다. 저장 상태의 기존
+검증은 CompactionState로 이동하며 Compactions의 source/options/cursor callback과 공개 선언
+조회는 유지한다. cursor 저장·발행/재개 소비자는 Owner 속성을 사용한다. 원래 검증 호출·순서,
+잠금·트랜잭션·IO·모델 호출 위치를 유지한다. keep_turns의 압축 최소 0과 자동 처리 최소 1을
+합치지 않는다. 생략/null/명시값·선택 옵션만 사본 생성·실패 cause를 보존한다.
+
+Tool 결과 처리는 설정·요청·완료 상태를 typed Owner로 소비하고 identity/관측/응답 Projection을
+Owner에 위임한다. 원본 Tool 결과·효과 영수증·모델 문맥 사본의 경계는 같다. 부분/취소/중단 후
+상태와 명시 재개를 보존하며 Tool 또는 모델 효과를 자동 재실행하지 않는다.
+최초 설정/cursor 이동 직후 실제 무결성 smoke는 9 pass/17.833초/exit 0이었다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/memory-compaction-draft/equivalence.py`
+exit 0: 순서 포함 schema 1, 설정 거부/Adapter callback 122, 누락·손상·재해시 cursor 132,
+저장 상태 검증/오류 cause 438, cursor 저장·발행 순서 240, Tool 옵션 생략·순서·중첩 사본 256,
+실제 Tool 처리 coroutine의 claim·부분/취소/중단·발행·wire 48개가 기존 구현과 같다.
+같은 디렉터리의 `consumer-ast.py` exit 0: Data의 `_finish_compaction`/`_prepare_tool_summary`,
+`summarize_request`/`prepare_compaction` 4개 함수 전체가 Owner 접근만 원래 표현으로 해석하면
+기존 AST와 동일하다. 호출·저장·발행 순서가 그대로임을 추가 확인했다.
+
+- `whole-memory-compaction-values-01`: 발견/시작/pass 136/136/136, exit 0, 283.267371초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-compaction-values-01/llm.json --modules tests.llm.test_large_data tests.llm.test_memory_compaction_integrity tests.llm.test_memory_processing tests.llm.test_memory_processing_config tests.llm.test_history_retention_integrity tests.llm.test_naming_contract tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `eb07f7d4a7eebeed9d13ea1bc9e2be1a62bc640b90da47eb8710722159b7e370`, input `7070a42d0b18599c43a0ef437e0063647b0be7e8b8607e7f02655b664a9244ec`.
+
+- `whole-memory-compaction-values-hub-01`: 발견/시작/pass 25/25/25, exit 0, 85.949667초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-memory-compaction-values-hub-01/hub.json --modules tests.hub.test_summary_api tests.hub.test_provider_recovery tests.hub.test_rag_retention`. source `eb07f7d4a7eebeed9d13ea1bc9e2be1a62bc640b90da47eb8710722159b7e370`, input `7070a42d0b18599c43a0ef437e0063647b0be7e8b8607e7f02655b664a9244ec`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+Python 3.12.14/Clang·Host d833790, 동일 의존성과 실제 namespace/X11 입력은 manifest에 기록했다.
+대용량 fragment/명시 resume/실제 효과 횟수, 취소 중 늦은 발행, 원본과 참조의 원자적 복구,
+cursor·manifest 소실·변조, 실제 프로세스 중단·재열기, 기존 Memory 처리/설정/삭제 참조와
+공통 승인·예산·효과·Checkpoint·RAG·수명 안전성, Hub 공개 요약/복구/참조 소비자를 실행했다.
+기존 테스트·Assertion과 최종 완료 기준을 변경하지 않았다.
+
+정적 finding 110개 유지, 새/제거 0. 새 values/state/Tool projection의 25/46/30 후보는 선언 영역,
+Tool 처리 모듈의 후보는 0이다. 저장 상태 Owner의 다른 Writer/관리 소비자와 Compactions의
+manifest/경로/전이 조율은 계속 연결해야 한다. 설정 Owner에는 압축 실행용 임시 failure_mode
+Projection 연결이 남아 있다. 전체 Memory/llm 완료는 아니다.
+저장·재개 위험 때문에 실제 장애·효과 시험을 포함했으며, 동작·형식·순서의 한정된 이동을 비교
+검증으로 입증해 이번 범위는 Level 2로 검증했다. 다음 Level 3는 기존 Memory Summary/Record/
+Configuration/추출·Tool과 이번 압축 묶음의 현재 통합 소스에 수행한다. 성공 후에만 작업 브랜치에
+묶어 Push하고 정확한 SHA의 전체 원격 CI를 확인한다. gate28의 이전 실패 기록은 유지한다.
+
+압축 묶음 후속 감사: `python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16 pass/3.159초/exit 0, `check_architecture`·`check_docs` exit 0, `check_budget_mutation` exit 0(실제 효과 Assertion으로 의도한 한도 제거 2건 검출). 전체 516파일, 미검토 281(llm 104/hub 177), 미분류 후보 20,160, 미완료 계약 8, stale/issues 0이다. Level 3 group30은 이 커밋의 고정 소스에서 실행한다. group29는 시작 전 동결본만 있으며 실행하지 않았고, group28 실패를 성공으로 바꾸지 않는다.

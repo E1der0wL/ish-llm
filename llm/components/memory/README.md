@@ -13,6 +13,9 @@
 | [extraction.py](extraction.py) | 추출 Prompt·모델 후보·입력·관측 Projection과 후보 검증을 소유합니다. |
 | [sources.py](sources.py) | Memory API·Tool·처리 출처와 기존 이력 참조 수집을 소유합니다. |
 | [tool_values.py](tool_values.py) | Memory Tool 선언·인자·schema·응답 Projection을 소유합니다. |
+| [compaction_values.py](compaction_values.py) | 명시 압축 설정·schema와 누적 요약 cursor의 필수 증거·digest를 소유합니다. |
+| [compaction_records.py](compaction_records.py) | 저장 압축 상태의 단일 검증과 typed 요청·발행 Projection을 소유합니다. |
+| [tool_result_values.py](tool_result_values.py) | Tool 결과 요약의 identity·관측·문맥 Projection과 일시 처리 결과를 소유합니다. |
 | [component.py](component.py) | 기억 레코드·revision·출처·상태·설정과 저장 구조를 관리합니다. |
 | [summary_records.py](summary_records.py) | 요약·metadata·부분 cursor의 정규 필드/검증과 profile·문맥/Step 투영을 소유합니다. |
 | [summary_storage.py](summary_storage.py) | Session 요약의 필수 존재 목록과 원자 저장·명시 삭제를 소유합니다. |

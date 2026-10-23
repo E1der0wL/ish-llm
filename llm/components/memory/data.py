@@ -5,8 +5,9 @@ from llm.components.goals.records import GoalContextReference, GoalDefinition
 from .snapshot import MemoryProcessingSnapshot
 from .summary_records import SummaryRecord
 from .records import MemoryRecord
-from .configuration import MemoryConfiguration
+from .configuration import MemoryConfiguration, MemoryToolData
 from .extraction import MemoryExtractionPrompt
+from .compaction_values import SummaryCheckpoint
 from .history import MemoryHistory
 from .sources import MemorySource
 from .tool_values import MemoryToolArguments, MemoryToolDefinition
@@ -164,8 +165,8 @@ class MemoryData(ComponentData):
         if applied is not None:
             storage.check_sources(state["request"])
             checkpoint = state["request"].get("checkpoint")
-            if (checkpoint is None or checkpoint["offset"] != checkpoint["total_chars"]
-                    or checkpoint["summary"] != applied["summary"]):
+            if (checkpoint is None or SummaryCheckpoint(checkpoint).offset != SummaryCheckpoint(checkpoint).total_chars
+                    or SummaryCheckpoint(checkpoint).summary != applied["summary"]):
                 raise ValueError("Cannot publish an incomplete summary")
         state["request"].update(status=status, error=error)
         if applied is not None:
@@ -210,13 +211,14 @@ class MemoryData(ComponentData):
         if state:
             storage.check_sources(state["request"])
             return state
-        files = self.related(destination["component"])
-        snapshot = EditableSnapshot.read(files.snapshot(destination["identifier"]))
+        selected = MemoryToolData(destination)
+        files = self.related(selected.component)
+        snapshot = EditableSnapshot.read(files.snapshot(selected.identifier))
         path = f"tool-results/{session_id}/{identifier}.txt"
         if path in snapshot.data.get("files", {}):
             raise ValueError("Source file already exists without a summary request")
         snapshot = EditableSnapshot.read(files.write_file(
-            destination["identifier"], path, text, expected_revision=snapshot.version))
+            selected.identifier, path, text, expected_revision=snapshot.version))
         reference = {**destination, "path": path, "revision": revision_token(snapshot.data["files"][path])}
         state = {"request": {"id": identifier, "status": Compactions.APPLIED if mode == Compactions.REFERENCE else Compactions.PENDING,
             "mode": mode, "options": deepcopy(options), "reference": reference, "tool_call_id": call_id}}

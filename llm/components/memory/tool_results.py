@@ -4,79 +4,79 @@ The selected policy controls processing. Tool effects/receipts and the original
 Loop transcript are never changed. MCP results use the same completed Tool path.
 """
 
-from llm.core.model_protocol import ModelMessage, ModelRequest, ModelRole, copy_model
+from llm.core.model_protocol import ModelRole
 
 from contextlib import aclosing
-from copy import deepcopy
 import json
 
 from llm.components.summarization import SummaryResult
 from llm.services.infrastructure.storage import revision_token
 from .compaction import Compactions, CompactionStopped, summarize_request
+from .compaction_values import CompactionOptions
+from .configuration import MemoryProcessingConfig
+from .tool_values import MemoryToolDefinition
+from .compaction_records import CompactionState
+from .tool_result_values import (ToolSummaryExecution, ToolSummaryIdentity, ToolSummaryOutcome,
+                                 ToolSummaryObservation, ToolSummaryView)
 
 
 async def prepare_tool_results(session, request):
     config, context, data = session.config, session.context, session.data
-    mode = config.get("tool_result_mode")
-    if mode is None:
+    selected = MemoryProcessingConfig(config)
+    mode = selected.tool_result_mode
+    if mode is MemoryProcessingConfig.ABSENT:
         return
     names = {call.id: call.name for item in request.messages
              for call in item.message.calls}
     for index, message in enumerate(request.messages):
         value = message.message
         text = value.text
-        if value.role != "tool" or not isinstance(text, str) or len(text) <= config["tool_result_chars"]:
+        if value.role != ModelRole.TOOL or not isinstance(text, str) or len(text) <= selected.tool_result_chars:
             continue
         # Rereading a slice is already explicit; never replace the reader's result
         # with another reference and create a recursive read/summary loop.
-        if names.get(value.result.call_id) == "memory_read_source":
+        if names.get(value.result.call_id) == MemoryToolDefinition.Name.READ_SOURCE:
             continue
-        options = {key: deepcopy(config[key]) for key in
-            ("completion", "provider", "summary_chars", "model_input_chars", "max_summary_calls", "timeout_seconds", "max_output_chars") if key in config}
-        if mode == Compactions.SUMMARY:
-            options["prompt"] = config["tool_summary_prompt"]
-        identity = revision_token({"scope": context.checkpoint_scope, "call_id": value.result.call_id,
-            "text": text, "mode": mode, "options": options, "destination": config["tool_data"]})
+        options = CompactionOptions.from_tool_processing(selected, mode)
+        identity = revision_token(ToolSummaryIdentity.create(scope=context.checkpoint_scope, call_id=value.result.call_id,
+            text=text, mode=mode, options=options, destination=selected.tool_data_record))
         state = await data._async_call(data._prepare_tool_summary, context.session.id, identity,
-            text, options, config["tool_data"], mode, value.result.call_id)
-        pending = state["request"]
-        if pending["status"] == Compactions.PENDING:
-            claim = await data._async_call(data._claim_compaction, context.session.id, None,
-                pending["id"], context.run.id, tool_id=identity)
+            text, options, selected.tool_data_record, mode, value.result.call_id)
+        pending = CompactionState(state).request
+        if pending.status == Compactions.PENDING:
+            claim = await data._async_call(data._claim_compaction, context.session.id, ToolSummaryExecution.SCOPE,
+                pending.identifier, context.run.id, tool_id=identity)
             if claim:
-                outcome = {}
+                outcome = ToolSummaryOutcome()
                 async def action(result, source):
                     summary = SummaryResult()
                     try:
-                        async with aclosing(summarize_request(session, pending, text, "", summary,
-                                                             scope=None, tool_id=identity)) as events:
+                        async with aclosing(summarize_request(session, pending.to_record(), text, ToolSummaryExecution.EMPTY_SUMMARY, summary,
+                                                             scope=ToolSummaryExecution.SCOPE, tool_id=identity)) as events:
                             async for event in events:
                                 yield event
                     except CompactionStopped:
-                        result.update(cancelled=True)
+                        result.update(ToolSummaryObservation.cancelled())
                         return
-                    outcome.update(complete=summary.complete, text=summary.text)
-                    result.update(request_id=identity, completed=summary.complete, offset=summary.offset,
-                                  blocked=summary.blocked)
+                    outcome.record(summary)
+                    result.update(ToolSummaryObservation.progress(identity, summary))
                 try:
-                    async with aclosing(session._step("Tool result summary", action)) as events:
+                    async with aclosing(session._step(ToolSummaryExecution.STEP, action)) as events:
                         async for event in events:
                             yield event
-                    applied = {"summary": outcome["text"]} if outcome.get("complete") else None
+                    applied = outcome.applied
                     status = Compactions.APPLIED if applied else Compactions.PARTIAL if outcome else Compactions.FAILED
-                    await data._async_call(data._finish_compaction, context.session.id, None, pending["id"],
-                        status, applied, None, run_id=context.run.id, tool_id=identity)
+                    await data._async_call(data._finish_compaction, context.session.id, ToolSummaryExecution.SCOPE, pending.identifier,
+                        status, applied, ToolSummaryExecution.NO_ERROR, run_id=context.run.id, tool_id=identity)
                 except CompactionStopped:
                     pass
                 except BaseException:
-                    await data._async_call(data._finish_compaction, context.session.id, None, pending["id"],
-                        Compactions.INTERRUPTED, None, "Explicit summary resume required", run_id=context.run.id, tool_id=identity)
+                    await data._async_call(data._finish_compaction, context.session.id, ToolSummaryExecution.SCOPE, pending.identifier,
+                        Compactions.INTERRUPTED, ToolSummaryExecution.NO_APPLIED, ToolSummaryExecution.RESUME_REQUIRED, run_id=context.run.id, tool_id=identity)
                     raise
-            state = await data._async_call(data._compaction_state, context.session.id, None, tool_id=identity)
-        if "applied" in state:
+            state = await data._async_call(data._compaction_state, context.session.id, ToolSummaryExecution.SCOPE, tool_id=identity)
+        if CompactionState(state).has_applied:
             # Publication is durable before the model-only copy is changed.
-            result = {"reference": {"id": identity, "tool": "memory_read_source",
-                "revision": state["request"]["reference"]["revision"]},
-                "original_chars": len(text), "source_call_id": value.result.call_id,
-                "notice": "Derived reference data; original Tool result is unchanged.", **state["applied"]}
-            request.messages[index] = message.with_text(json.dumps(result, ensure_ascii=False))
+            result = ToolSummaryView.create(CompactionState(state), identifier=identity,
+                                            text=text, call_id=value.result.call_id)
+            request.messages[index] = message.with_text(json.dumps(result, ensure_ascii=ToolSummaryExecution.ENSURE_ASCII))

@@ -44689,8 +44689,8 @@
   },
   {
     "path": "llm/components/memory/configuration.py",
-    "sha256": "2999f78984e175240165c78bac94113af71a3246ee1ce2c24a7446357e5d2f0c",
-    "reason": "Read the complete processing/Component configuration Owner, ordered required-field groups, schema, parameter layout, typed readers and Tool destination view. Missing/null/explicit values, copy boundaries, Adapter ownership/validation order, provider handling and exact integer semantics are unchanged. Public Processor schema customization is resolved at its original callback points. Current Component/Data/Session/Tool selection consumers use typed properties; no new implicit model/retry/default/authority. The fixed options projection still in tool_results.py remains explicitly incomplete and will be connected with its Compaction options Owner. Provider schema.py has only its model-field contract moved and is not claimed fully reviewed.",
+    "sha256": "dd0988e5d69fd2bc751a7d872d125b6ef5dc52d9f68999409ea5a93818ac8fa3",
+    "reason": "Read the complete processing/Component configuration Owner, ordered required-field groups, schema, parameter layout, typed readers and Tool destination view. Missing/null/explicit values, copy boundaries, Adapter ownership/validation order, provider handling and exact integer semantics are unchanged. Public Processor schema customization is resolved at its original callback points. Current Component/Data/Session/Tool selection consumers use typed properties; no new implicit model/retry/default/authority. The fixed options projection still in tool_results.py remains explicitly incomplete and will be connected with its Compaction options Owner. Provider schema.py has only its model-field contract moved and is not claimed fully reviewed. Tool result fixed option projection, mode/prompt and opaque destination export now use this Owner; Data destination reads use MemoryToolData. The temporary failure_mode projection in prepare_compaction remains explicitly incomplete until its execution consumer is connected.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -45012,103 +45012,103 @@
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "8aa064bd9a2ad5abbe93ac8b86673d03309c8cdbf4fce6b7fb7d9f075f8a641d",
+        "id": "24a7c2b558e428127f5b2e1525dbc308276781aa062255c58115bf9d3ff561f8",
         "classification": "declaration",
         "owner": "MemoryToolData",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "fd8f23ffde8b2b07fedd20ebf9b736992feb714056fb4d0ec1d2c38bdc8809d1",
+        "id": "3606626f9561500a53e7c728ed8be23b0f381a4523b164ccdd3bb7148d36222b",
         "classification": "declaration",
         "owner": "MemoryToolData.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "2716fde55e1fcc33371641befe1a5beba45354c21e905804887f3296faf9e8d5",
+        "id": "34c857d443161a52170fc66cfc89df5e2fd69173e58cf1749c462d4a13cccc6d",
         "classification": "declaration",
         "owner": "MemoryToolData.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "7a1e400e289f657956076a72c570ba94aa2990c2412c1c34ac8c6fc7f63e8853",
+        "id": "8f3c7ee3548cd1b1d437e1a9d4226dfb215748297aed1c55d9d3a8bf1bf3a72f",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "fe64a10c9513163e75ea4b8f90125cb524995d667422c7503cc7df0d0a97c48a",
+        "id": "fc6be085cff060d37dddb23391902ab9ad4fc32a913a209c65f2e37ac00d80d6",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "c115c8590a14d1819abd9c52edfeb6c0181a0426c9fd94660f8b7eb26d729c9f",
+        "id": "23637de9342220c26fc04293263eaea7714d936fbfaae2904f0be420c1db19ed",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "88274624845b0b9131c2cc0143b64d0490343dc4b234c8cc037eb970364ca7a1",
+        "id": "f9d480a676c09e479009d99c5d70990bd1c064578cf1baf84fe9205131595f63",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "f2b08213ac721d0260503bd1cfe858cd3a20d5d0a44d6bbe1b60783f746e1be3",
+        "id": "9b48711a4455371f232da45fe56ba04f7656860803f4ddf201e88c5e3453e312",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "d61762862573711ac2ee5ffaf2df0411bcebf6f1ba02092af70a6c8eac42ef4e",
+        "id": "b0b9ddc7b11fc4403b1fc9207dbf55edb188afdc7c2de75c91ee032b6675c219",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "c8b871198f60b2bfa01ab2b4a2f62733304bb1983eeb8650b9342bc84cd1b115",
+        "id": "29bd7e3ccf5a766ba0f14f34a1b7f1ed7df7cad9a008bc79a2df27eb4ccfd535",
         "classification": "declaration",
         "owner": "MemoryConfiguration",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "5fe96cea87804cfa426ad715f5ac85bc3c08ebcc1a79cca26f13daceaaa10b6f",
+        "id": "1c26b724c0931c98d73cccaddec577c9b2af63cb82342df1d6c9d45324ed3f91",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "03c38964151231b90d431fc21b3c37b0cbf8f25ac3ee7b077c6f419f37ab8016",
+        "id": "8107cd1d94d47e7c30c5f4aa08749a07905e46f4b8b87c345cc5eefac9c53c3f",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "c8e443f43d8e4807663126325edc20c832d8e43b9b8d234d929db77d9c10b4bc",
+        "id": "e7de33bed8a15c97c9f83b7873ba94a6468e465bec1c83fb6d4008ced264b94b",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "f560728a0f2d28dde5f735ca7174bbf61369cf02865e3e0d24baaec9b5704eec",
+        "id": "8e7466874041cefe7d68f8052c2fbf7ef5ce8dd6ff2a8c040b5eefe41bce5e0b",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "5c57e42b7903dfd3af22e8efaafc6646f6c0b678e84bf9162e4ad01f5d4a59d4",
+        "id": "ed342f6ef27efbc19e2b595b4c4c8c5e1d763069ed83b4b29f5cf5f598c8c45a",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "f07c773e06ea35ce40776d814e44e9e9e92f34f387ac27d3fc1d6e5bb597a7dc",
+        "id": "3cf60aa0beeb2b271b681c3066b01a9fa94ff614f90e0c6348e822c891522413",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
       },
       {
-        "id": "c048511cd8ce8b43c80be3e6f74074eb09030e7ee86aa3b4b71646962f03fa0d",
+        "id": "6aa2004fe3f6bafcb392e21f7e4874fc230c203ed742ecfe4dfdd9d45bd89237",
         "classification": "declaration",
         "owner": "MemoryConfiguration.Field",
         "reason": "Memory configuration/Tool destination fields, states, constraints, diagnostics and existing absence/cache choices are declared above implementation; schema and typed readers share these declarations."
@@ -45407,7 +45407,7 @@
   {
     "path": "llm/components/memory/tool_values.py",
     "sha256": "d3bca7f2804e707b12147f9bb6648f6b8277b215866eb9270c6a77fa3dc3c7c1",
-    "reason": "Read the complete file and changed writer/reader/handler consumers. Extraction candidates are a distinct model-response contract sharing Record field declarations and validation, not a second persisted Record reader. Tool arguments/schema are the explicit invocation boundary; source projections keep old API/Tool/processing shapes. Differential traces check missing/corrupt inputs, validation order, copies and zero publication/callbacks on denial. Shared execution authorization and storage/transaction order remain in existing owners. Sources consolidation consumer and Tool name consumption by tool_results remain incomplete where marked.",
+    "reason": "Read the complete file and changed writer/reader/handler consumers. Extraction candidates are a distinct model-response contract sharing Record field declarations and validation, not a second persisted Record reader. Tool arguments/schema are the explicit invocation boundary; source projections keep old API/Tool/processing shapes. Differential traces check missing/corrupt inputs, validation order, copies and zero publication/callbacks on denial. Shared execution authorization and storage/transaction order remain in existing owners. Sources consolidation consumer and Tool name consumption by tool_results remain incomplete where marked. Tool result processing now uses the canonical read-source Tool name for recursion exclusion and public reference projection; actual pipeline and LargeData/Hub summary consumers are verified.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -45651,7 +45651,7 @@
           "tests/hub/test_memory_manager.py",
           "tests/hub/test_resource_tools.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -45677,6 +45677,731 @@
           "tests/llm/test_history_retention_integrity.py",
           "tests/hub/test_memory_manager.py",
           "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/compaction_values.py",
+    "sha256": "25b50109e075d9e887cb01517b68a4131d53e7cbccfdc71cb2de188e34da4ce5",
+    "reason": "Read the full Owner/consumer file and affected schema, storage validation, cursor save/resume/finish, Tool pipeline and configuration paths. Stored state has one validation implementation; typed views of already validated storage do not provide a fallback reader. Differential invalid-input/ordering/copy/cause and actual coroutine traces plus real fault/effect tests preserve explicit resume, required cursor and source evidence. CompactionState consumer wiring outside Tool processing is explicitly incomplete; this does not claim all Compactions or Memory is finished.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e43894ab0638fc117445cd9a3e0fae94b2ff87e610d52fcd587a4961bebf8eb3",
+        "classification": "declaration",
+        "owner": "CompactionMode",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "0aaec81576f2f84013328b0e21e5d5e56c4ff5245ee902315aa5a2724c1d6a55",
+        "classification": "declaration",
+        "owner": "CompactionMode",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "559e6a37eadf7cf923b54bddd8fd01c49c0c503db023a65c2b71e4fb5de38d9f",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "f74dd880edc54e7de80a790e70ef4521981b57f830d3d28e37f2012505b0ab18",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "583dabe8f11c23364c897634e8b924b8f1a2f68bf1986888f56ad7dbe289e0e2",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "fead609efb9e149a2a2989bd227bf1902d002d0365aebe7ab9ce352055fbaa59",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "2ef5c2ffeae9a24c9601e61b4cc04cfb34b8b5d4e0da651970f75826b92e4077",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "6a9bad7aebb7276f61a8ae2159b1e9dd180dc890c84ec083fac622997a558e27",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "31cf89cc7325db7326aa8a202d7bceab6fdfd658b0abcef0c9dfb02980a4d8d2",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "add814dfa0078dbe58d2eab377e3599282045f55deed54077609fa4baee38639",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "a05a90ae7470176441399aeac10f59133808c3ca9cc03e18ef400290d014808e",
+        "classification": "declaration",
+        "owner": "CompactionOptions",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "a765a4c075e25ad001c5ab10bf3248f9b4c9ba24b57fb6e06bd0f12026440a09",
+        "classification": "declaration",
+        "owner": "CompactionOptions.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "da001e28f9e2260b4319a637f12a318fda3e78055377214939f29b869b6a13f8",
+        "classification": "declaration",
+        "owner": "CompactionOptions.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "1ea5590c6400c2f93db88a2df3fc9c9baf29f065c4e28dce464a1f2bc295d88b",
+        "classification": "declaration",
+        "owner": "CompactionOptions.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "abafb46f9720475e3cc29d11daaa91746f7dd4fb36a7dae697345d62d20ca594",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "cd1b241ad3eeb3979b24d683412d03aefbe559e479a2943e0b354c03b8c8cef1",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "f278d4454fa29263dd6e3e66f60d2a1fd84db3fafd2fd9980c3e6f5d9e0503a7",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "2c4838c2da35e9dd5a23ae07df6f0bf1f113c4a5f0b9fe043976a79abb207ccd",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ea3babac1bf1c4f156d34be12fab62d6ac6d62a51f0113b0bf77478ffb92c004",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "513100b857ff190c1e848506b38e4f47b0959892c479fb2a37b945809c1ca78b",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "c810b5b67b4076a6990ce6bd27402f5d33e385be40742c3454ea2755727a16d3",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "39c3a83df2ccf14fc29afe8e410fd4ab3c3704712832266f9d791f85a2271d67",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "4d36315fa5d7a2c21fcaf0cc9793479027556321c44d546ea1fdc1b86ca3bc52",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "d724128e95d096e41619b6daf7c5da18adef9366c07a39d0236b9c638f9b8338",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "c00b0bf6153febcf91919a4e08fc26a706126e1ce3b0cbd9ad77d63367fd206a",
+        "classification": "declaration",
+        "owner": "SummaryCheckpoint",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompactionOptions / CompactionMode / SummaryCheckpoint",
+        "declaration": "llm/components/memory/compaction_values.py",
+        "consumers": [
+          "llm/components/memory/configuration.py",
+          "llm/components/memory/compaction.py",
+          "llm/components/memory/compaction_records.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/tool_results.py"
+        ],
+        "tests": [
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/compaction_records.py",
+    "sha256": "e73bf1a1845c1ed26e31fa3eb35831283c9c172a238e58b1f73b9854fa30bf6c",
+    "reason": "Read the full Owner/consumer file and affected schema, storage validation, cursor save/resume/finish, Tool pipeline and configuration paths. Stored state has one validation implementation; typed views of already validated storage do not provide a fallback reader. Differential invalid-input/ordering/copy/cause and actual coroutine traces plus real fault/effect tests preserve explicit resume, required cursor and source evidence. CompactionState consumer wiring outside Tool processing is explicitly incomplete; this does not claim all Compactions or Memory is finished.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6c1cf7e1f8c4367ec11026e42efa27bd2ef5ac66f689b1bf7d30d49e9d7d919d",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "1c915b9848e9e2aacf3261e1b49445d2a0b5d4e50cfe90eea61e4be6632a9e30",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "eef32194c7b6528762ae0e7755fb99925e670d940be25383aabd3881d89dae28",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "cb95cba246983e39ab1b4934be939dc60b91712b7f9ada5603e4a64467febfae",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ac295a2911c75782643b8b90cb21527467727e86ba981056500de6a26206ea3a",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "768b55bde0a5250704c95ee020b6d87d7f88a393eddebb08c89c7438fe8b3c2c",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "5d53cfe9fcba220cefc0c01a2c2ea7cd5e5fe0e66917a9f9e82d0e058099685f",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "d2b0d7a28b61a0bdba14e5108d63ca194eff9c027f9c948676d6a357725c53b0",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "63426fdec160af79f883bf49e619942919c3a7b19689a382a580aa905bf20930",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ce41aef14e7174a60fe6e991e9fa90e454cf720018e30bda46271e7734293e29",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "07c8daa238bd6fe17fcfb77d94ff09f43e32c359b37767680205881aac83707f",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "09d59f6ed16b04505b708f05aa47fd428ba5022b0ed078df1eeac6b274de38f5",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "7055a8b9ec6dc7b34cefc2507d7dcab52a03434268438dc6abca5f1f48c7f390",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "9c313638147eeb584798e23b98218ec9e3fca5497a096836c90d9d438f1e81d4",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "98bef8fc7e7e611b09ae05af5584c78020920ef689acd4891a2fcf638a8acb23",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "38ff4dd62f24a4f9401a8fcba4b4cc139c779a320fa8834fecbb5e40003f4079",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "8f0bc8bf9c49abf7cda1ced61c1317afb2f7b3e6b7f4cf5ddf3283c7ec519c01",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "926a02ff2da1ddf84f5509f78200c94a549b16c0b3942e21f5074641771cfc13",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "e964e705965e938a3b476bcc4635fefe58b0b08bfc4a9c256ec688c1c676c221",
+        "classification": "declaration",
+        "owner": "CompactionState",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ef0fd36c72df5f92f40ccb7f0acbe29757c0957017696e5705d242847d96384b",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "d9038e35c124beedcb70aec105602c10c6c903721c12fb0129e8375454a3d20f",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ef80b78279deb1a1d342de8c8c9ee29b9996d6b5278747473678b41c78ec97a3",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "26ce141bf864b1467f02d5d15b7a673f22a8c41a39627afadaf4bd783c84fd16",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "4e46a3790ef890af3ca31e35115156399bb6d7cce44710a7945425b5e860dd47",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "50ea39dc9ff2a5f7ad7bbc8ddc7e1778970ed66996dd44fe9690b51f76da8641",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "e38a0954af2f20cdc42829fe963f1781fd87ead5fde5fef0c089fd6ba85837e7",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "98315d33e6235102f9bc57b6f3ed7d2b6c86793a167a5f42d2a766904548c854",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "4d176cb87eb40bd1bb80f0bfe47606249c0381f934f7bb2ebd322b775ebd5d82",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "3be94489c1b23f7bd632b6ad696886ab1b3f8dddff1ba28c81886a13a6d2a0aa",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "66fca948e08a9d845b2f4ac13387fe9e81ea23366d2bd863cbb747554be837fc",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ee1f8d41a3cd479ab10b0c287eb2568d513d4bf54a9ff1da910ecd96c20ac386",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "f6fb7af4eba500ec5bcfee26a65d9138db6a03c00ea8749fc890652c136f0767",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "6b5cfbfc6a3091456ea4e4e4fab047db7ba92c21eebfe2cfbdb07009da9648a7",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "97aaeac3dd682a85d78e9c894bf89fbcd4629ff6c4d46c27eb977bf107f15bc2",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "8d89fe974eedc69dd65c874fdf6546a7b93b19421870575a841e1e63bf6f2634",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "d1be4c1da31ecf3c6212472ff0f1c331896dbed19be9d86eee309511332f68c6",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "87287b4aa6a2db40f393c0827d183f1b40dc8f7a312a5cdf50cacf2b1c8bbe00",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "011b567d15a4ed55dc9027313cb29234927c616a601a67f04df3ae3df7785608",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "4c3f8ee06ba9e01945b64997f654d851ae93251e196b90e9654d204a8ced67b1",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "bb32fbb5172f38bb8980b4214197af877485e5c594bfe4887eea89d9c1aecfa7",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "83a9cb475c290d424ae64fa03f8bd80929d18ac0f133d6eef1759a4bc83e9202",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "eca6fdd252331cd683da2daf52fa96c8bdaae5ace4d5241c1cc09c089f92d10c",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "9789501669fa6a93e7e448d91558c976506f24a90a4871b5de898173735359a4",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "77f002b75c0af85da2a30d647ef24d7555c3777ee39eb078c59324c8426878af",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "6de64a296f0553127fdeaec5467f25d31af9cd837ff6c509d2230be09ea7ef68",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "4111ce27e82b50e1dce58fe14e14fe3cbfc875f4506f8977f336660c5716601f",
+        "classification": "declaration",
+        "owner": "CompactionState.Field",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompactionState / CompactionRequest / CompactionApplied",
+        "declaration": "llm/components/memory/compaction_records.py",
+        "consumers": [
+          "llm/components/memory/compaction.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/component.py",
+          "llm/components/memory/tool_results.py",
+          "llm/components/memory/tool_result_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/tool_result_values.py",
+    "sha256": "1bd88df52a7d696d63de4d768ae2e565e5dbb45978422089580ee4cd52da0e2d",
+    "reason": "Read the full Owner/consumer file and affected schema, storage validation, cursor save/resume/finish, Tool pipeline and configuration paths. Stored state has one validation implementation; typed views of already validated storage do not provide a fallback reader. Differential invalid-input/ordering/copy/cause and actual coroutine traces plus real fault/effect tests preserve explicit resume, required cursor and source evidence. CompactionState consumer wiring outside Tool processing is explicitly incomplete; this does not claim all Compactions or Memory is finished.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ead8bec99433bfc8799ec6a5e37f1edec2db09835c2b98440c5aac8209cfaf50",
+        "classification": "declaration",
+        "owner": "ToolSummaryExecution",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "cd4e73f7e13536ca982e0f475ef75154e600ef6b1a84b65bb9eb10c7fc0b7294",
+        "classification": "declaration",
+        "owner": "ToolSummaryExecution",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "9a045f05f8b4dbdffb062c5695e61d52670cd2d807cb6a78a3b894ccca4c562f",
+        "classification": "declaration",
+        "owner": "ToolSummaryExecution",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "4abdf3ec724321438273da9f84fd2b603d0c34bd8a210bd95277dd49bf019964",
+        "classification": "declaration",
+        "owner": "ToolSummaryExecution",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "adc0297014fd53da415c2a2fd44e363d5a27900b3af873d4c760f797ab2ad917",
+        "classification": "declaration",
+        "owner": "ToolSummaryExecution",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "a527c3231f0059bf12e8aa5162dbb371826ca706393f9cdb1e9ccc1780a7f744",
+        "classification": "declaration",
+        "owner": "ToolSummaryExecution",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "93382c13afca496402131bbafb5b02191ee53caa6bd73cd6fd6ab37c556db43d",
+        "classification": "declaration",
+        "owner": "ToolSummaryExecution",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "a6dd4e0a1da33b9a7d1eb0bac60c093ab8ac0e4d92d8737e63b953031712ca42",
+        "classification": "declaration",
+        "owner": "ToolSummaryIdentity",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "8c8543696d9d81c88ca169300cbb4efb616ae63a35d7a707cfd1dbf6d65a0574",
+        "classification": "declaration",
+        "owner": "ToolSummaryIdentity",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "e8daee56970b3ef1875a58bed3b9cad6643dda4eb078f563a0744d83f0a9ba60",
+        "classification": "declaration",
+        "owner": "ToolSummaryIdentity",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "15b2e50effa2871dead3d4be735a5158209d7ae859f6967c112949496bfeaa65",
+        "classification": "declaration",
+        "owner": "ToolSummaryIdentity",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "0e277d4348eaaf5d0a67dd47796bbad17635a1e555bf43b8f6cb2a3c2e376a27",
+        "classification": "declaration",
+        "owner": "ToolSummaryIdentity",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ab0989ac2378d52ab045e05b087102100166af1a64a9ab5778a355e6785ef642",
+        "classification": "declaration",
+        "owner": "ToolSummaryIdentity",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "77754f00adc26fb550be7de71cf0222fecf50b0226b6ac888d2ea652ab1283f9",
+        "classification": "declaration",
+        "owner": "ToolSummaryOutcome",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "3536ecfc253f18372c70306c47e43f50165c15b26f7f951cf7d5d0dfb43947f8",
+        "classification": "declaration",
+        "owner": "ToolSummaryOutcome",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ba62fca4b89be0aa3dcea96e77684d5f2d6bbe2ab6434c75673acf50e99fb801",
+        "classification": "declaration",
+        "owner": "ToolSummaryOutcome",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "94a345bb55a05104b38b893aa8ec1457f5e1559422861f451d0bf72a096440c2",
+        "classification": "declaration",
+        "owner": "ToolSummaryObservation",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "b2432daa29963b7b4a5251017797cd7063eb158941c0aec88c862075f4dbe30d",
+        "classification": "declaration",
+        "owner": "ToolSummaryObservation",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "b028b0d519fe3da074e3b358e0f81d0060cf817e93b7928c47b7e83bd581bda5",
+        "classification": "declaration",
+        "owner": "ToolSummaryObservation",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "046766d6da85898e0c4a93f46e085ebfc09afc63d41b301932cb0fe268100d91",
+        "classification": "declaration",
+        "owner": "ToolSummaryObservation",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "84cda18d593ac70efb8f0e00327f0f63cc5f104e885486225daa6734a1233b39",
+        "classification": "declaration",
+        "owner": "ToolSummaryObservation",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "bb3d42b5cdc712405736f6825b558e329a344d4574ff868d6d65b4dd80163438",
+        "classification": "declaration",
+        "owner": "ToolSummaryObservation",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "4cd277daf69f5045d8213def6bef9456e635a628aa0b242c30d7158504c639ea",
+        "classification": "declaration",
+        "owner": "ToolSummaryView",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "21774f258ff6acbe7022e49ece43e864311770d205e9e2f29b0628bc199fea1b",
+        "classification": "declaration",
+        "owner": "ToolSummaryView",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "e8843fa03b95b3c66de3f6b3512dd3d7cc9cfda3f058c4112b99febb13084ef6",
+        "classification": "declaration",
+        "owner": "ToolSummaryView",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "0ff57b44fc9924dbc58e4423493e7ce4b533d6b3b9538f0c5cb0d895ec2e041a",
+        "classification": "declaration",
+        "owner": "ToolSummaryView",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "707448961cd3ce5179ad135da3c6804519d0dd1858f9aac488e99402946147e0",
+        "classification": "declaration",
+        "owner": "ToolSummaryView",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ec45786ff059087c42eb87978a640a2a1d567d3d709b5c9f30cb28b7704da604",
+        "classification": "declaration",
+        "owner": "ToolSummaryView",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "ad063e0dd1bb899f34bc2429507b0f469787e6e8229234a3ddd29944acee053f",
+        "classification": "declaration",
+        "owner": "ToolSummaryView",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      },
+      {
+        "id": "30e7a32479ebf40ef23b6aa6f5ce3e477e27e8e1e32b494a3d2ff741d35aa7dd",
+        "classification": "declaration",
+        "owner": "ToolSummaryView",
+        "reason": "Canonical compaction option/cursor/state/Tool view declaration above implementation. Processing options, Tool names and model roles refer to existing Owners; missing/null and transient observations preserve their original meanings."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Tool summary identity, outcome, observation and model-only view",
+        "declaration": "llm/components/memory/tool_result_values.py",
+        "consumers": [
+          "llm/components/memory/tool_results.py"
+        ],
+        "tests": [
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/tool_results.py",
+    "sha256": "b66a093db4a3fbcfe3069aa3984d9520150d1c70a8c0b715656b8d31ded43021",
+    "reason": "Read the full Owner/consumer file and affected schema, storage validation, cursor save/resume/finish, Tool pipeline and configuration paths. Stored state has one validation implementation; typed views of already validated storage do not provide a fallback reader. Differential invalid-input/ordering/copy/cause and actual coroutine traces plus real fault/effect tests preserve explicit resume, required cursor and source evidence. CompactionState consumer wiring outside Tool processing is explicitly incomplete; this does not claim all Compactions or Memory is finished.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Tool result processing",
+        "declaration": "llm/components/memory/tool_results.py",
+        "consumers": [
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py"
         ],
         "complete": true
       }
