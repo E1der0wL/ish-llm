@@ -200,7 +200,8 @@ class TripleExtractor(ModelClient):
         from llm.providers.requests import error_code
         from llm.providers.runtime import diagnostic
         mode = self.extraction.get("json_mode")
-        wall_timeout = self.provider_options.get("wall_timeout")
+        from llm.providers.options import ProviderOptions
+        wall_timeout = ProviderOptions(self.provider_options).wall_timeout
         from llm.policies.retry import RetryPolicy
         repair = RetryPolicy(self.extraction.get("repair_attempts", 0) + 1,
                              deadline=RetryPolicy.end(wall_timeout))

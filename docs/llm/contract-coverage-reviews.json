@@ -42146,5 +42146,123 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/providers/options.py",
+    "sha256": "4b3f567f99facfb2458d944b831e1b262bab60750fe575aa932198d84f06b27f",
+    "reason": "Read entire ProviderOptions Schema/resolve/property implementation and every consumer of these Provider policy keys: request/invoke, Base completion, retry_delay and RAG extraction deadline. Public provider_schema/resolve_provider_options delegate once to this Owner. Validation preserves dict-before-copy, ordered Draft202012 validation, exact integer attempt check, finite timing check and shallow returned copy. The selected mapping view never validates or rewrites data; absence remains None and retry-after/jitter select only True. Same-spelled Review policy max_attempts and SDK retry fields remain separate contracts. No implicit retry, wider timeout or default request/store key.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d5b47828b0d281ab3c68099f28b83d91ccaefa7f0c77a0fbd72b8f3829a966b1",
+        "classification": "declaration",
+        "owner": "ProviderOptions.Field",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "97bf2e2e5c6ca7218642ce0c756a8d04b4e2d957decef1b8fd9b5ee80254e28c",
+        "classification": "declaration",
+        "owner": "ProviderOptions.Field",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "881486cd9ccfc32173f57e67691cac3c7343d504687c206b4141038d793a270a",
+        "classification": "declaration",
+        "owner": "ProviderOptions.Field",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "5731f614a6dbd3994261864ff972deec9738da9740fbfa4c08e13300cfa462eb",
+        "classification": "declaration",
+        "owner": "ProviderOptions.Field",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "ce93c756556022ea7fb8315a86ae1789bfba1ea44717fafb243d950c67c4d29d",
+        "classification": "declaration",
+        "owner": "ProviderOptions.Field",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "1fc11267e3656396c4be8a7c6c286b41aba10657d2144d538b481eb64c652010",
+        "classification": "declaration",
+        "owner": "ProviderOptions.Field",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "13e3e0afc0c74fa3c4fce9fad0c68c7012b78317706e330bffd9308384bbcd52",
+        "classification": "declaration",
+        "owner": "ProviderOptions",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "0a10196cb954dc67c95139c3388c317c04e7ced4e532912fcec88b62f3d23034",
+        "classification": "declaration",
+        "owner": "ProviderOptions",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "f17db03bfe764fccb42af87b3e1c0ca3fa6e9cfe72e1effcef6c5a7777111560",
+        "classification": "declaration",
+        "owner": "ProviderOptions",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "14e3c85d18327c810f708e40723752cf547879d77e72b4ff5448358f55ff1f81",
+        "classification": "declaration",
+        "owner": "ProviderOptions",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "1b9f0c6dfdb7a1d744f18014061b83fed5b640c29767eb9ccfc787c258abd903",
+        "classification": "declaration",
+        "owner": "ProviderOptions",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "2d3606f0e9700e68312017184c664df36511f3dd43fd7dfa94a3c9c0d6db4ed4",
+        "classification": "declaration",
+        "owner": "ProviderOptions",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "77531c30ee95a9d074e6d31f9e05cd10687ef835f639152fae26cde78c192e3d",
+        "classification": "declaration",
+        "owner": "ProviderOptions",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      },
+      {
+        "id": "d52aea6b1292b368fe7d37c32d185ceca090efce1cb702db1674fa4ed1513c3c",
+        "classification": "declaration",
+        "owner": "ProviderOptions",
+        "reason": "Provider configuration field, explicit-selection sentinel, timing bound, validation diagnostic or schema help text is declared by its canonical Owner. RetryPolicy.INITIAL_ATTEMPTS supplies the existing minimum and no missing setting is inserted."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProviderOptions",
+        "declaration": "llm/providers/options.py",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/retry.py",
+          "llm/engines/base.py",
+          "llm/components/rag/extraction.py",
+          "llm/engines/loop/engine.py",
+          "llm/components/rag/component.py",
+          "llm/components/vision/component.py",
+          "llm/components/memory/processing.py",
+          "llm/components/memory/compaction.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_retry_presence.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

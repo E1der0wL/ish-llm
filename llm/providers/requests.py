@@ -3,9 +3,9 @@
 from llm.core.model_protocol import copy_model
 
 from .codes import ProviderErrorCode
+from .options import ProviderOptions
 import asyncio
 import time
-import math
 from uuid import uuid4
 
 from .observations import observed_call
@@ -16,28 +16,11 @@ from llm.policies.retry import RetryBackoff, RetryPolicy, RetryFailure, select_r
 
 
 def provider_schema():
-    from llm.core.schema import object_schema, field
-    return object_schema({
-        "max_attempts": field("integer", minimum=RetryPolicy.INITIAL_ATTEMPTS, **{"x-narrowing": "maximum"}),
-        "wall_timeout": field(["number", "null"], exclusiveMinimum=0, **{"x-narrowing": "maximum"}),
-        "delay_seconds": field("number", minimum=0),
-        "max_delay_seconds": field("number", minimum=0),
-        "respect_retry_after": field("boolean", description="서버 Retry-After를 최소 대기로 존중. 대기 상한을 넘으면 재시도 중단"),
-        "jitter": field("boolean", description="명시된 백오프 범위에서 대기를 분산. Retry-After 최소 대기는 유지"),
-    }, additionalProperties=False)
+    return ProviderOptions.describe_config()
 
 
 def resolve_provider_options(options):
-    from jsonschema import Draft202012Validator
-    if not isinstance(options, dict):
-        raise TypeError("Provider options must be an object")
-    result = dict(options)
-    Draft202012Validator(provider_schema()).validate(result)
-    if "max_attempts" in result and type(result["max_attempts"]) is not int:
-        raise ValueError("Provider max_attempts requires an integer")
-    if any(result.get(key) is not None and not math.isfinite(result[key]) for key in ("wall_timeout", "delay_seconds", "max_delay_seconds")):
-        raise ValueError("Provider timing configuration must be finite")
-    return result
+    return ProviderOptions.resolve(options)
 
 
 class ProviderError(CodedError, RuntimeError):
@@ -90,7 +73,8 @@ async def request_model(operation, request, options, *, call=None, deadline=None
     """SDK 선택/초기화는 Provider 내부에서만 한다. 상위 모델 클라이언트는 호출 계약만 사용한다."""
     from .schema import validate_model_params
     options = resolve_provider_options(options)
-    deadline = RetryPolicy.end(options.get("wall_timeout"), deadline)
+    provider_policy = ProviderOptions(options)
+    deadline = RetryPolicy.end(provider_policy.wall_timeout, deadline)
     validate_model_params(request, operation=operation, require_model=True, json_contract=False)
     sdk_defaults = call is None
     call_id = uuid4().hex
@@ -111,11 +95,12 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
                  decide=None, changeable=(), call_id=None):
     """각 실제 시도를 관찰한다. 전체 deadline에는 대기·backoff·사용량 관찰도 포함된다."""
     options = resolve_provider_options(options)
+    provider_policy = ProviderOptions(options)
     started = time.monotonic()
-    end = RetryPolicy.end(options.get("wall_timeout"), deadline)
-    attempts = effective_attempts(request, RetryPolicy(options.get("max_attempts")).attempts,
+    end = RetryPolicy.end(provider_policy.wall_timeout, deadline)
+    attempts = effective_attempts(request, RetryPolicy(provider_policy.max_attempts).attempts,
                                   sdk_defaults=sdk_defaults)
-    policy = RetryPolicy(attempts, options.get("delay_seconds"), options.get("max_delay_seconds"), end, RetryBackoff.EXPONENTIAL)
+    policy = RetryPolicy(attempts, provider_policy.delay_seconds, provider_policy.max_delay_seconds, end, RetryBackoff.EXPONENTIAL)
     request = copy_model(request)
     call_id = call_id or uuid4().hex
     for attempt in range(attempts):

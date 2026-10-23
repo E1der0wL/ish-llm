@@ -3451,3 +3451,49 @@ Level 2 완료다. Engine factory·Agent 실행·이벤트/문맥 변경을 gate
 전체 LLM/Hub·정적·R3·문서·실환경 검증한다. 그 성공 SHA만 Push하고 원격 필수 job과
 엄격 집계 artifact를 실제 확인한다. llm/ 잔여 Provider/Engine/Component/서비스를 먼저 이어간다.
 Hub 제품 구현은 llm/ 완료 이후이며 전체 범위와 최종 완료 조건은 유지한다.
+
+
+## llm Provider 재시도·기한 설정 Owner
+
+기준 f4eb038 이후 providers/options.py의 ProviderOptions가 max_attempts/wall_timeout/
+delay_seconds/max_delay_seconds/respect_retry_after/jitter의 선언·Schema·검증·조회 규칙을
+소유한다. 기존 provider_schema/resolve_provider_options는 같은 단일 Owner에 위임한다.
+Provider request/invoke·retry_delay·Base completion·RAG extraction deadline 소비자를 연결했다.
+Review의 max_attempts와 SDK num_retries/max_retries는 별도 계약이므로 합치지 않았다.
+
+dict 여부를 먼저 검사한 뒤 얕은 사본을 만들고 원래 순서대로 JSON Schema·정확한 정수 시도
+횟수·유한한 시간 값을 검증한다. 선택된 설정의 property 조회는 새 검증/사본/기본값을 만들지
+않으며 명시 bool True만 retry-after/jitter로 선택한다. 원본 요청·저장 설정의 생략/null/0/false를
+보존한다. RetryPolicy가 총 시도 횟수와 생략 시 최초 1회를 계속 단독 계산하며 별도 기본값을
+선언하지 않는다. SDK 전송 인자, 명시 SDK 재시도 중첩 방지, 부분 응답 후 재시도 금지,
+기한·취소·사용량 및 승인·효과 영수증 정책은 바꾸지 않았다.
+
+### 검증
+
+smoke `python -m unittest tests.llm.test_provider_choices tests.llm.test_provider_transport
+ tests.llm.test_provider_diagnostics`는 30개 pass, 13.051초, exit 0이다. 실제 SDK/HTTP 요청 횟수와
+기존 원본 생략 보존 Assertion을 유지했다. 외부 equivalence.py는 이전 소스와 Schema JSON 1,
+검증 결과/오류 94, 값 조회 344, retry-after/jitter 각 87, 지연 callback trace 48,
+시도 계산/원본/사본 보존 각 3개를 대조해 exit 0이다. 생략·잘못된 falsey·null·음수·비유한값·
+잘못된 타입의 원래 검사 순서와 진단을 비교했다.
+
+- `whole-provider-options-01`: 발견/시작/pass 185/185/185, exit 0, 62.715692초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-options-01/llm.json --modules tests.llm.test_provider_choices tests.llm.test_provider_transport tests.llm.test_provider_runtime tests.llm.test_provider_diagnostics tests.llm.test_common_provider_acceptance tests.llm.test_provider_codec tests.llm.test_model_protocol tests.llm.test_rag_extraction_repair tests.llm.test_rag_retry_presence tests.llm.test_base_engine tests.llm.test_engine_requests tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `cc138ce90ff4893f551e93b5036b818d5abdb4e05d5625c796d4a9184934c3d5`, input `9d95f094f2cebc923735949e77d246294f222001e578cca4b2db50c2f395be2d`.
+
+- `whole-provider-options-hub-01`: 발견/시작/pass 15/15/15, exit 0, 11.721831초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-provider-options-hub-01/hub.json --modules tests.hub.test_retry_observations tests.hub.test_retry_ui`. source `cc138ce90ff4893f551e93b5036b818d5abdb4e05d5625c796d4a9184934c3d5`, input `9d95f094f2cebc923735949e77d246294f222001e578cca4b2db50c2f395be2d`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 source/input 전후 동일이다.
+Python 3.12.14/Clang·Host d833790·동일 의존성·실제 namespace/X11 환경이다.
+실제 SDK HTTP/주입 client·모델 프로토콜/스트리밍·Provider 진단/취소/한도·RAG repair/presence,
+승인/예산/효과/Checkpoint/삭제/RAG/수명 안전성과 Hub 재시도 소비자로 범위를 정했다.
+
+정적 finding 115개 동일, 변경된 의존 근거만 갱신했다.
+`python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16개와
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py provider-options-auxiliary`의
+정적 S1–S7·문서·R3·SDK·양쪽 환경 6개가 각 exit 0이다. 기록 후 문서/diff를 최종 검사한다.
+
+현재 전체 501개 중 미검토 291, 미분류 21989, incomplete 4개이며 stale/위반/감사 오류 0이다. ProviderOptions 전수 검토이며 나머지 Provider/Engine/Component 전체 완료가 아니다.
+
+Level 2 완료다. 이 설정 이동은 Schema·검증·조회 동등성과 소비자 검증으로 영향 범위를
+제한했고 실제 재시도 알고리즘과 SDK 전송 규칙은 바꾸지 않았다. 다음 Base completion 관련
+closure와 gate27 전체 회귀로 통합한다. 실행 중인 gate26은 고정된 f4eb038만 대상으로 하며
+이번 변경을 포함하지 않는다. 전체 검증·정확한 SHA 원격 CI 조건과 llm/ 우선순위를 유지한다.

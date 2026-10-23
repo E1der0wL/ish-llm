@@ -19,6 +19,7 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |
 | [schema.py](schema.py) | provider 소유 Completion/Embedding/Rerank 설정 계약과 검증입니다. SDK 확장 인자는 변형하지 않고 전달합니다. |
 | [codes.py](codes.py) | SDK/runtime에 의존하지 않는 정규 Provider 오류 코드 선언입니다. |
+| [options.py](options.py) | Provider의 명시적 재시도·기한 설정 Schema/Reader입니다. 생략을 보존하고 실제 시도 횟수 계산은 RetryPolicy에 위임합니다. |
 | [requests.py](requests.py) | request_model 호출 경계와 invoke의 비스트리밍 시도, 명시적 wall timeout/outer retry, ProviderError 분류입니다. |
 | [retry.py](retry.py) | 일시적 오류와 명시적 SDK retry를 판단하고 중첩 retry를 방지합니다. |
 | [calls.py](calls.py) | ProviderCalls/ProviderLimits가 호스트의 명시적 동시 호출·대기 제한을 적용합니다. |

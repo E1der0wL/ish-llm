@@ -294,6 +294,7 @@ class BaseEngine:
         no Run policy is implicitly inherited and SDK request options stay separate.
         """
         from llm.providers.retry import retry_delay
+        from llm.providers.options import ProviderOptions
         from llm.providers.requests import resolve_provider_options, ProviderError
         from llm.policies.retry import RetryBackoff, RetryPolicy, RetryFailure, select_retry, change_arguments
         if not isinstance(request, ModelRequest):
@@ -305,10 +306,11 @@ class BaseEngine:
             if value is not None and (type(value) is not int or value < 1):
                 raise ValueError("Completion limits must be positive integers")
         policy = resolve_provider_options(provider if provider is not None else {})
+        provider_policy = ProviderOptions(policy)
         adapter = self.completion_adapter
-        attempts = adapter.effective_attempts(request, RetryPolicy(policy.get("max_attempts")).attempts)
-        retry = RetryPolicy(attempts, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
-                            RetryPolicy.end(policy.get("wall_timeout")), RetryBackoff.EXPONENTIAL)
+        attempts = adapter.effective_attempts(request, RetryPolicy(provider_policy.max_attempts).attempts)
+        retry = RetryPolicy(attempts, provider_policy.delay_seconds, provider_policy.max_delay_seconds,
+                            RetryPolicy.end(provider_policy.wall_timeout), RetryBackoff.EXPONENTIAL)
         request = copy_model(request)
         call_id = new_id()
 
