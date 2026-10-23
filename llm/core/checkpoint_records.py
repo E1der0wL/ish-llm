@@ -376,6 +376,10 @@ class CheckpointStep:
         return self._value.get(self.Field.STATUS)
 
     @property
+    def required_status(self):
+        return self._value[self.Field.STATUS.value]
+
+    @property
     def requires_retry(self):
         return bool(self._value.get(self.Field.REQUIRES_RETRY))
 

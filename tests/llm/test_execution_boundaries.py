@@ -134,6 +134,57 @@ class ObservationTests(unittest.TestCase):
 
 
 class ExecutionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_trusted_event_handler_result_is_shared_and_null_receipt_prevents_replay(self):
+        from tests.llm.test_long_running import LongRunningTests
+        with tempfile.TemporaryDirectory() as directory:
+            effect = Path(directory) / "effect.txt"
+            class HostHandler:
+                resumable_container = True
+                async def __call__(self, arguments):
+                    raise AssertionError("Event handler must use its declared event contract")
+                async def execute_events(self, context, arguments, *, request_key, checkpoint_name, step_id, result):
+                    with effect.open("a") as stream:
+                        stream.write("effect\n")
+                    yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id, metadata={"phase": "running"})
+                    result["value"] = None
+            app, session, model = await LongRunningTests.setup_app(self, HostHandler(), [
+                [chunk(calls=[call("{}", name="act")], finish="tool_calls")],
+                [ConnectionError("after completed effect")], [chunk("done", finish="stop")]])
+            failed = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
+            self.assertEqual(failed.data.status, "failed")
+            self.assertEqual(effect.read_text(), "effect\n")
+            self.assertEqual(len(model.requests), 2)
+            resumed = (await (await session.run.resume(failed.id, agent_id="loop")).wait())[0]
+            self.assertEqual(resumed.data.status, "completed", resumed.data.error)
+            self.assertEqual(effect.read_text(), "effect\n")
+            self.assertEqual(len(model.requests), 3)
+            self.assertEqual(model.requests[-1]["messages"][-1]["content"], "null")
+            reused = [step for step in await resumed.steps.alist() if step.metadata.get("reused")]
+            self.assertEqual(len(reused), 1)
+            self.assertIsNone(reused[0].output.data)
+
+    async def test_trusted_event_handler_missing_result_is_not_restored_as_null(self):
+        from tests.llm.test_long_running import LongRunningTests
+        with tempfile.TemporaryDirectory() as directory:
+            effect = Path(directory) / "effect.txt"
+            class HostHandler:
+                resumable_container = True
+                async def __call__(self, arguments):
+                    raise AssertionError("Event contract was bypassed")
+                async def execute_events(self, context, arguments, **kwargs):
+                    with effect.open("a") as stream:
+                        stream.write("effect\n")
+                    if False:
+                        yield
+            app, session, model = await LongRunningTests.setup_app(self, HostHandler(), [
+                [chunk(calls=[call("{}", name="act")], finish="tool_calls")]])
+            failed = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
+            self.assertEqual(failed.data.status, "failed")
+            self.assertEqual(effect.read_text(), "effect\n")
+            self.assertEqual(len(model.requests), 1)
+            self.assertFalse(any(step.status == "completed" and step.kind == "tool"
+                                 for step in await failed.steps.alist()))
+
     async def test_broken_code_observer_does_not_stop_queue_or_shutdown(self):
         class Broken(Exception):
             @property

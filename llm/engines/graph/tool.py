@@ -1,6 +1,7 @@
 """GraphEngine의 tool 노드를 공통 ToolExecutor에 연결한다."""
 
 from llm.components.tools.registry import ToolRegistry
+from llm.core.tool_event_result import ToolEventResult
 
 import json
 
@@ -75,4 +76,4 @@ class ToolNode:
             # ToolExecutor rejects requests raised after effects. Only this trusted
             # pre-effect boundary may declare a resumable waiting node.
             await node.pause(error.request)
-        return {definition.get("result_key", node.node_id): result["value"]}
+        return {definition.get("result_key", node.node_id): ToolEventResult(result).value}

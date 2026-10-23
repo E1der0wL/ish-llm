@@ -18,6 +18,8 @@ from llm.core.checkpoints import CheckpointConversation
 from llm.components.workflows.graph import ControlNodeType, ConditionOperator, LoopLimit
 
 from .checkpoints import GRAPH_CHECKPOINT_FORMAT, GRAPH_CHECKPOINT_NAME
+from .selections import GraphHandlerSelection
+from llm.engines.agent_checkpoints import AgentCheckpoint
 
 from llm.core.continuations import ResumeRecord
 
@@ -461,8 +463,7 @@ class _WorkflowRuntime:
                                           path + "/" + engine.workflow, step_id, emit)
 
             async def record_usage(usage):
-                record = deepcopy(self.records[key])
-                record.setdefault("agent_usage", {})[key] = deepcopy(usage)
+                record = AgentCheckpoint.with_usage(self.records[key], key, usage)
                 await self._record(key, record)
 
             async def pause(request):
@@ -527,11 +528,11 @@ class _WorkflowRuntime:
                         getattr(self.handlers.get(kind), "resumable_container", False) is True)}
             handler = self.handlers.get(kind)
             if getattr(handler, "selection_binding", False) is True:
-                selection = {"environment": self.engine._environment(), "definition": deepcopy(definition),
-                             "binding": handler.binding(deepcopy(definition), context)}
-                if saved is not None and saved.get("handler_selection") != selection:
+                selection = GraphHandlerSelection.create(self.engine._environment(), deepcopy(definition),
+                                                         handler.binding(deepcopy(definition), context))
+                if saved is not None and not selection.matches(saved):
                     raise GraphExecutionError("Selected handler configuration changed; start a new request")
-                info["handler_selection"] = selection
+                selection.attach(info)
             plan = _plan_node(definition, state, saved=saved, resuming=self.resuming,
                               decisions=ResumeRecord.decisions_for(context.run.metadata), key=key)
             if plan.action == "reuse":
@@ -732,23 +733,22 @@ class GraphEngine:
         # Resolve actual selected environments, not hypothetical Agent configurations.
         # A parent selection makes its nested environment available for descendants.
         environments = [item for item in prepared if not item[3]]
-        pending = {key: record["handler_selection"] for key, record in records.items()
-                   if "handler_selection" in record}
+        pending = GraphHandlerSelection.pending(records)
         while pending:
             advanced = False
             for key, selected in list(pending.items()):
-                matches = [item for item in environments if item[0]._environment() == selected["environment"]]
+                matches = [item for item in environments if item[0]._environment() == selected.environment]
                 if not matches:
                     continue
                 for engine, _, child_context, _ in matches:
-                    definition = deepcopy(selected["definition"])
+                    definition = deepcopy(selected.definition)
                     handler = engine.handlers.get(definition["type"])
                     if getattr(handler, "selection_binding", False) is not True:
                         raise ValueError("Selected handler is unavailable")
                     prepare = getattr(handler, "prepare_context", None)
                     if callable(prepare):
                         child_context = prepare(definition, child_context)
-                    if handler.binding(definition, child_context) != selected["binding"]:
+                    if handler.binding(definition, child_context) != selected.binding:
                         raise ValueError("Selected handler configuration changed; start a new request")
                     validate = getattr(handler, "validate_selection", None)
                     if callable(validate):

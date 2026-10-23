@@ -34009,8 +34009,8 @@
   },
   {
     "path": "llm/core/checkpoint_records.py",
-    "sha256": "045421fe1f18fed7d3da47d2d5a197d1b5698fa5b44df8684c1960cc33cc6d64",
-    "reason": "Read complete manifest/record projections and validation, paired name/revision witnesses, permanent deletion evidence, operation event Writer and common step observation. Fixed fields come from dataclass slots or Owner Field declarations; record keys and revisions are dynamic validated identities. Only absent fresh checkpoint/initialization can supply empty records. Exact current schema/owner/revision and saved interactions remain mandatory. Retirement uses Run active-state declaration and its declared terminal exceptions; abandonment evidence stays required for failed/interrupted/paused Runs. Common step reads do not interpret private payloads or grant resume permission. Nested scope projection review: existing CheckpointEnvelope lifecycle validation and new construction reuse the same retry-required predicate; Reader rejects contradictory explicit evidence as before. CheckpointContent emits a validated runtime content projection in the existing header/records order. CheckpointStep owns required interaction attachment and separate nullable waiting observation, retaining original values without normalizing opaque input. No storage schema, lifecycle, authority or ACK boundary changes.",
+    "sha256": "ff399d766783327be56f084a7c94d65829148b79793ea16a27c578faeab8ec8a",
+    "reason": "Read complete manifest/record projections and validation, paired name/revision witnesses, permanent deletion evidence, operation event Writer and common step observation. Fixed fields come from dataclass slots or Owner Field declarations; record keys and revisions are dynamic validated identities. Only absent fresh checkpoint/initialization can supply empty records. Exact current schema/owner/revision and saved interactions remain mandatory. Retirement uses Run active-state declaration and its declared terminal exceptions; abandonment evidence stays required for failed/interrupted/paused Runs. Common step reads do not interpret private payloads or grant resume permission. Nested scope projection review: existing CheckpointEnvelope lifecycle validation and new construction reuse the same retry-required predicate; Reader rejects contradictory explicit evidence as before. CheckpointContent emits a validated runtime content projection in the existing header/records order. CheckpointStep owns required interaction attachment and separate nullable waiting observation, retaining original values without normalizing opaque input. No storage schema, lifecycle, authority or ACK boundary changes. Agent usage Reader obtains mandatory lifecycle status through CheckpointStep.required_status, retaining the original KeyError and no missing-record fallback; no other record/interaction behavior changed.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -34386,13 +34386,13 @@
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "1a5a1e7041bad6f34ba87145cb3b6c60e0e507012a33b0d5109452fe8d7b33d5",
+        "id": "b3ab2f2d3cea171a9b8d617ba9a178271de6582e05b25f0bf8c9e9459b1d412d",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "fa00fc556241e6563383de0a85b648f597d630283315128d4b57ff99bb301b9d",
+        "id": "fa4e2af64d60ece9c35e8fcd37c57821f77273338fb4246697e5f641b3bf2293",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
@@ -34406,7 +34406,8 @@
           "llm/services/runtime/checkpoints.py",
           "llm/services/runtime/runs.py",
           "llm/services/runtime/interactions.py",
-          "llm/engines/graph/checkpoints.py"
+          "llm/engines/graph/checkpoints.py",
+          "llm/engines/agent_checkpoints.py"
         ],
         "tests": [
           "tests/llm/test_checkpoint_values.py",
@@ -40299,7 +40300,7 @@
   },
   {
     "path": "llm/engines/agent_values.py",
-    "sha256": "54cf203e9cad4ddb1bb298dda0e02646fe468b06385581dc33f1fab6313190ea",
+    "sha256": "088e292c9b6977cabd7a8ff4cc3a429f6b2b0cdb9965a03790607dad4eff11d7",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -40351,139 +40352,187 @@
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "ac13736678f07bf49649b07dcf47d0d433fadd076d4b8cdfd694784256012a13",
+        "id": "2c8795b43fe88c0cd4ed8fa6fefc641381e2f224d6899b367a3ed79c373ddcc7",
+        "classification": "declaration",
+        "owner": "AgentDelegationArguments",
+        "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
+      },
+      {
+        "id": "b521716069776e60a47c5676331be75a0a96c70348f800979c1d1dc010cf4486",
+        "classification": "declaration",
+        "owner": "AgentDelegationArguments",
+        "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
+      },
+      {
+        "id": "785bbcb45dd9c15581581f4980a59ae769b05ddcf91f6b62a2cf70161b4855ad",
+        "classification": "non_contract",
+        "owner": "AgentHandlerBinding",
+        "reason": "Frozen/slots Python dataclass layout, not a runtime/storage policy."
+      },
+      {
+        "id": "2934a7ad4478c33111e2c154753c4469f1aec0ae5e38027e9d9531df937d9c63",
+        "classification": "non_contract",
+        "owner": "AgentHandlerBinding",
+        "reason": "Frozen/slots Python dataclass layout, not a runtime/storage policy."
+      },
+      {
+        "id": "f29ffb30adca516a6b61853dd3bda6960da19aa253d79fa22f9929b13b0ed203",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "459ecb9f2734cf069dc085fb943b76e1c5b3fa4e9898239dfedc353cc7c71b58",
+        "id": "ce2343067ad5ee29b7db954dcbc95864b602090a6a7ca408c2a73ab44711050f",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "82e561c9fe846e8b56ad2def50a85c8b8ffa371d91ef43dd6ee5339b589b7fb5",
+        "id": "3a25258af303123ebce6e492d848834101021bf161bd73ccd5442fb684687455",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "4a1ddc5669f1a7948f39e46b43fb06e8210b986700b2ceb169ac7ee2bac2edd6",
+        "id": "43e4afbb50d745b2038fa68ba50e9b1689113d0a9646d1c8219d2b2a5eb3d0bf",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "cc400b985d1ced28e2703622a048228deda809df10326ea0533257e44ea62945",
+        "id": "b35fc7518ce842fd22496fbfb7c46a641b44f475724b9ef0cc49c75f77274d25",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "087a3c49074dfeb15d83725df5b2da1c8fffc3842f6607d0e60e210d7c4e1c73",
+        "id": "a27b4a762f7bec08117e4ec8b651037a130b7346c1ba940474a21dc9818acd41",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "ef96af73247ea5c75c09e6ef540310bee9fb14c1026a39f211023bf0bb1f1f29",
+        "id": "dacede7c6d18b0fd859318dc299f745e8cbce1f54e114a34fc9a9398368cbff5",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "2813075c5bb09eb1e9b6697163cebc3809b23ab9f6e346ff694265a07da8cffc",
+        "id": "f7447eefc68bdfc04efab3a1bbdfae2cefad1fe8f0b04bb5300e43124e75fa61",
         "classification": "declaration",
         "owner": "AgentExecutionBinding",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "0f557c5d61f3c4deada6cea278ca650a8498e7990e14c1a95bfada37e3907f50",
+        "id": "0e0bbbd70e842183fac8c6bd8c5ca989a804498ab06bab8a4d943d8ebd39a165",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "67a5b67d2386f63df706cd1f88ee92561188edfa1e8df39d6969128a497becd1",
+        "id": "c41edcb1b3b5a5a3d2692b86e98bd2b751a3807fd15a0693f4de3fc6c74c938e",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "a9b22faead8c83dc731c4a757739d97bafa106a33626ff1fbc5251eafeb8efa0",
+        "id": "b286b95a145567e8902097475ac1e130b430ad0b74ba8fbf9a65a374bd48117a",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "68e6eb64d5f65078770a64f790f2de06a2092a4abea5aa42b96913d6463c5cf1",
+        "id": "2251fed9ff3b706863db874c49b04c123839ead0613da3c7b36e735553a692ff",
+        "classification": "declaration",
+        "owner": "AgentStepMetadata",
+        "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
+      },
+      {
+        "id": "a0954e4246c1bd0b8bdb6ed16486c02f08257502d812f3b49aa93838c9e8a99b",
+        "classification": "declaration",
+        "owner": "AgentStepMetadata",
+        "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
+      },
+      {
+        "id": "ffbb63114917e30aa981970a11ba7475805133e5b3536fa6fb0320dd337dfa45",
+        "classification": "declaration",
+        "owner": "AgentStepMetadata",
+        "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
+      },
+      {
+        "id": "015fc4ec312c6074bbbb7e246ae3d306f7ee2e53fdcef0fa6354b2876037e04c",
+        "classification": "declaration",
+        "owner": "AgentStepMetadata",
+        "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
+      },
+      {
+        "id": "5199178780610a9c0f33fb6635de9fc20e1f3d192e2485da1350ce01c6a2c43c",
         "classification": "non_contract",
         "owner": "AgentInvocationIdentity",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "4506988952e1a9e17a11f0004f19be8ed924a00656485111bb1539dc4b9aa899",
+        "id": "fb94ed2e7c76fe980bad7d7bd5a75837a33259b7ec0c7aa7f2d2e0543d19eb6f",
         "classification": "non_contract",
         "owner": "AgentInvocationIdentity",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "5bf543c6e597df4bc0566bc282e98c14514af652e498e6384e36054b4110007d",
+        "id": "1607cb3a14e69d2d38bc14aaccdf72e1f4c1323bed18806f07c78d26aaa138e2",
         "classification": "declaration",
         "owner": "AgentInvocationIdentity",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "9edc92c879455d66347c422d885480fda48fb7468366999c99011192181d05ee",
+        "id": "30e7e4ed88c051d8d82dbf202872e8b3dd7a469509956f7c3cef67c4519989ce",
         "classification": "declaration",
         "owner": "AgentInvocationIdentity",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "4dbb4b4632463fb4f6eee92a8526c03ac3cdc2f2724e61065930116732e4f2b8",
+        "id": "1a70bba99c93c10e2bc32b5e4edfe46fe75a2c06ac82ff97b5cfabd7c67bc7f4",
         "classification": "non_contract",
         "owner": "AgentExecutionRevision",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "1765c65c475aef97c553a10c03de61cb8c50ab4ced28825f423c2e7b3b4aef0f",
+        "id": "99b0e56acb8ba2533a86fd316dd3af3419b8a1d20f0de906c99c611e2cb6f9c3",
         "classification": "non_contract",
         "owner": "AgentExecutionRevision",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "4c7c4f22a6dbc7ab86a1a393c8d6fa6d69ff973848909dc14dee59ebf5aa23be",
+        "id": "259c3e08866af3fadf34afbdaa16dc95753b610bb15e2abc864d07970113adf6",
         "classification": "non_contract",
         "owner": "AgentInvocationBinding",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "1d2e35b0f1f29c8c62a581c5939943c0b4ffedd634c65048d48350910a476262",
+        "id": "5ec020f34de710b03301a8915828ec3712f7a22221b24d574a9c47b1ded91729",
         "classification": "non_contract",
         "owner": "AgentInvocationBinding",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "ce1630ca74bfda8e3586fa505226a8d03a3c95a4c292f99ad6e846bd20380bd7",
+        "id": "7a382fda0be1348bff7996b85c3094631ffedcf3bc2651edc9d4e8e66a9d87e8",
         "classification": "declaration",
         "owner": "AgentInvocationBinding",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "9324862f4cd20b83f959a5227cb74cc44ef765c8fa6ac5fd903cbd6b1bc2cc8c",
+        "id": "070d104416662ec97d420bebe41765aceccf64b2bf1fe7760a8ab4eb2d8155f9",
         "classification": "declaration",
         "owner": "AgentInvocationBinding",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "6cbdf02fde4053ba640eb6577478f409559892e0232f539cb0a90c4ca3b131be",
+        "id": "52be45e4c82360042f5baa38bcf11f0861d4c568d7d66a9a0b49401d186f8481",
         "classification": "non_contract",
         "owner": "AgentOutputValue",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "362d795142870ee32633fde1ab8f69ab1b224cc0f7a4ae623b5d4148d41028de",
+        "id": "94d8ebb79b7e6584adde1ce0d93cbabd04b00d96b8ac262646d2b48f4c52a78b",
         "classification": "non_contract",
         "owner": "AgentOutputValue",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
@@ -40520,9 +40569,252 @@
           "tests/llm/test_engine_outputs.py",
           "tests/llm/test_output_integrity.py"
         ],
-        "complete": false
+        "complete": true
+      },
+      {
+        "owner": "AgentDelegationArguments / AgentHandlerBinding",
+        "declaration": "llm/engines/agent_values.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/engines/agent_tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_agent_values.py"
+        ],
+        "complete": true
       }
     ],
-    "reason": "Read whole node selection/Schema/validation, open execution evidence/state, Step inheritance, root identity/hash and output projections. Public dictionaries retain key order and extensions; omitted output data differs from parsed null, explicit Step null is not filled, public handler/registry overrides remain in execution path. Required selected identities are never restored from defaults. Dataclasses do not normalize opaque Engine hash values or Tool overrides. Complete new node/root/output projections; binding reference extraction and remaining delegation/usage Step consumers are explicitly incomplete for the next Agent closure. This does not mark agents.py or all Engines complete."
+    "reason": "Read whole node selection/Schema/validation, open execution evidence/state, Step inheritance, root identity/hash and output projections. Public dictionaries retain key order and extensions; omitted output data differs from parsed null, explicit Step null is not filled, public handler/registry overrides remain in execution path. Required selected identities are never restored from defaults. Dataclasses do not normalize opaque Engine hash values or Tool overrides. Complete new node/root/output projections; binding reference extraction and remaining delegation/usage Step consumers are explicitly incomplete for the next Agent closure. This does not mark agents.py or all Engines complete. Closed remaining Agent binding reference extraction and delegation/completion Step consumers through their Owners. AgentDelegationArguments now owns matching Tool Schema and required argument projection; AgentHandlerBinding owns its unchanged revision evidence. Original explicit null, private extension values, Schema validation and source omission remain. Agent implementation still has unrelated unfinished runtime hook/diagnostic declarations, tracked as an unreviewed file."
+  },
+  {
+    "path": "llm/core/tool_event_result.py",
+    "sha256": "a982a0c92f50056e66b68265f6f9686bb680d1c30c2017f93c1ef0e4410d5705",
+    "reason": "Read complete live-result channel: required value/content reads, optional pause, plain handler yield, detached completion/retry snapshots. Wraps the original public dict; no copying the sink, no value normalization, no repaired missing result. Trusted handlers still write their public output dict, and actual-file-effect tests verify null receipt reuse and failure on absence. SDK wire ToolResult, durable operation ledger and retry policy remain distinct Owners.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "017e1f45d95b14ae6173963cb5928ab753ed28297b7927bc23ea64c5f55c5ac6",
+        "classification": "declaration",
+        "owner": "ToolEventResult",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "a7384dd23ca76730962988bba4ea32e3a2049359ac0054ac358f1c4e0fe27a68",
+        "classification": "declaration",
+        "owner": "ToolEventResult",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "5d272ae0ea29ad0b067eefe8d799c48df529db6e966cb6c4be1286ae1f774065",
+        "classification": "declaration",
+        "owner": "ToolEventResult",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "d8448edb7110d604a65b2f485b5a98a16cc3d77acc008eed01c105f1fe816244",
+        "classification": "declaration",
+        "owner": "ToolEventResult",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "c14a3b94c1a68a0fd111ac51c547c44d58aed62886c7c1a3cdec2226ce289b2b",
+        "classification": "declaration",
+        "owner": "ToolEventResult",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolEventResult",
+        "declaration": "llm/core/tool_event_result.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/engines/agents.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/tool.py"
+        ],
+        "tests": [
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_long_running.py",
+          "tests/llm/test_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/agent_checkpoints.py",
+    "sha256": "1914e454835b47132cf39b0f0b94b11e5ba6051e2f5be61cc8c0bbb17cec4b28",
+    "reason": "Read all delegation key, required usage read/write, selected nested envelope and instruction separation, container lifecycle and binding extraction. Same compact key/ASCII encoding, selected-only usage collection, required marker evidence, ToolUsageRecord validation and original copy boundaries. Marker uses common lifecycle declarations; callbacks retain pre-effect usage and persisted ACK ordering. No zero default, usage reset or stored identity migration.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3e761582a98187538cdf02e902153e693691494eed1d76078cc0511b520a0b65",
+        "classification": "declaration",
+        "owner": "AgentCheckpoint",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "d5b21e0f5f6fc3e2f4fe4eddef3f43511df031e7cb7f84dd614fe88e701e1741",
+        "classification": "declaration",
+        "owner": "AgentCheckpoint",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "e7101c4ad0452e50699565fb9d262ee5a61d10134d8fec89bd0c18e36962d469",
+        "classification": "declaration",
+        "owner": "AgentCheckpoint",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "89c9f559419281b707c0d08b5de679d230ff11e0a39fe7d840b0486a765e7025",
+        "classification": "declaration",
+        "owner": "AgentCheckpoint",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "ec51dad559eb789ed6a2554a2f642347d694d32b66b27610c3aef2d01cabef70",
+        "classification": "declaration",
+        "owner": "AgentCheckpoint",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "6eaf2cf7220b030afcf5d84c55a1acf3fcc575bd3907527b063983b275f6a2e9",
+        "classification": "declaration",
+        "owner": "AgentCheckpoint",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "ff463a9d87e46da9d399107d5cffcd0a76063fc17a177570831dae92eda263f2",
+        "classification": "declaration",
+        "owner": "AgentCheckpoint",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "d04eb49480d1ea5d1a929e5db7c5cfc9651c247e16dcb25f97f437396dee0da3",
+        "classification": "declaration",
+        "owner": "AgentCheckpoint",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AgentCheckpoint",
+        "declaration": "llm/engines/agent_checkpoints.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py"
+        ],
+        "tests": [
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/selections.py",
+    "sha256": "497b828577cc5555ebdd5b6e16e386e07f49e99157d0ece4a23b7d30204dbd96",
+    "reason": "Read complete selected environment/definition/opaque binding projection, comparison, attachment and pending selection traversal. Required fields are read at their original traversal boundary; missing fields still fail without reconstructing evidence. Preserves original parent-before-descendant environment availability and handler callbacks, unknown private values and identity comparison. Does not interpret Agent or other handler policy.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fd75aea7361b95cffd25e5c50e30f7dfeb5aa7eb861dcd37da0ca64ca324ecf0",
+        "classification": "declaration",
+        "owner": "GraphHandlerSelection",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "83c7d17a1a359e77687b52e84c40e9b8b340d8ab47d3213eb9b92f679105de52",
+        "classification": "declaration",
+        "owner": "GraphHandlerSelection",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "717af4235853a793079bd082d72527e6fd1d4e9db5f88a7375052daa854e8a26",
+        "classification": "declaration",
+        "owner": "GraphHandlerSelection",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "3d88592a845ffd98e34f23cc98ee1f9d6a5ddd49e409620b9babda797d71a2c1",
+        "classification": "declaration",
+        "owner": "GraphHandlerSelection",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphHandlerSelection",
+        "declaration": "llm/engines/graph/selections.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_nested_graph.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/agent_tools.py",
+    "sha256": "9c1dc913e2c946521c2065b31f92d4bf792accb1a5a3222deb2a6e44fe6931ce",
+    "reason": "Read all Tool declaration/factory wiring. Stable name, description, revision/effect/isolation/approval/operation-key/retry contract precede execution and exact old Tool definition/contracts JSON matches. Argument Schema comes from AgentDelegationArguments, handler remains shared AgentExecution/Delegation; no new authority or configuration default.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e48ad7e6b5f17f27e7c05416adb63b1ee8ab6a3c4ecd884119d5517ff4406534",
+        "classification": "declaration",
+        "owner": "AgentDelegationTool",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "f3bc1f68ba09309373166367545de3db1774bb2c908ae3b42d60a3a269173aed",
+        "classification": "declaration",
+        "owner": "AgentDelegationTool",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "bfc930dee1b4ff133590bce86fd0f964d042b054b5ce848e447be3e8dc9ae7f0",
+        "classification": "declaration",
+        "owner": "AgentDelegationTool",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "035bea42558d75065c30eb0184bf5ee7553dc6a1bc1c690de9a461d51e6170d3",
+        "classification": "declaration",
+        "owner": "AgentDelegationTool",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      },
+      {
+        "id": "b435c1026764ff7a79bafcb60d58099a095d2ff7cce6cb9c59b82ddd1f58e972",
+        "classification": "declaration",
+        "owner": "AgentDelegationTool",
+        "reason": "Canonical result/selection/usage/Tool contract field, marker, key encoding, diagnostic, absence or explicit Tool policy declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AgentDelegationTool",
+        "declaration": "llm/engines/agent_tools.py",
+        "consumers": [
+          "llm/engines/registry.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_tool_selection.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -3,6 +3,7 @@
 from llm.core.tool_contracts import ToolContract
 from llm.core.tool_selection_records import ToolBindingRecord, ToolInvocationSelection
 from llm.core.tool_usage_records import ToolUsageError, ToolUsageRecord, ToolUsageCheckpoint
+from llm.core.tool_event_result import ToolEventResult
 from llm.core.policies import ToolPolicyValues, ToolRetryPolicy, PolicySection
 from llm.core.tool_policy_binding import ToolExecutionBinding
 from llm.components.tools.bindings import ToolHandlerBindings
@@ -569,11 +570,11 @@ class ToolExecutor:
                                     if event.type == EngineEventType.PAUSED:
                                         yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
                                             metadata={"phase": "waiting_child"})
-                                        result["paused"] = True
+                                        ToolEventResult(result).pause()
                                         yield event
                                         return
                                     yield event
-                            value = nested["value"]
+                            value = ToolEventResult(nested).value
                         else:
                             async with timeout(remaining):
                                 with ToolCallContext.scope(call):
@@ -662,9 +663,9 @@ class ToolExecutor:
                 raise ValueError("Tool output limit exceeded")
             if call.operation_key is not None and not reservation["reused"]:
                 await scope.operations.complete(call, value)
-            result.update(value=deepcopy(value), content=content)
+            ToolEventResult(result).complete(value, content)
             if retry_state["attempt"]:
-                result["retry"] = deepcopy(retry_state)
+                ToolEventResult(result).record_retry(retry_state)
             scope.record_completion()
         except (asyncio.CancelledError, GeneratorExit):
             raise
@@ -743,13 +744,13 @@ class ToolExecutor:
                     if event.type == EngineEventType.PAUSED:
                         status = ObservationStatus.PAUSED.value
                     yield event
-            if result.get("paused"):
+            if ToolEventResult(result).paused:
                 status = ObservationStatus.PAUSED.value
         except ToolApprovalRequired:
             status = ObservationStatus.APPROVAL_REQUIRED.value
             raise
         except (asyncio.CancelledError, GeneratorExit):
-            if not result.get("paused"):
+            if not ToolEventResult(result).paused:
                 status = ObservationStatus.CANCELLED.value
             raise
         except Exception as error:

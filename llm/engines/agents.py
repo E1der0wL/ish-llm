@@ -3,6 +3,7 @@
 from llm.core.configuration_views import ConfigurationView
 
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords
+from llm.core.tool_event_result import ToolEventResult
 
 from llm.core.continuations import ResumeRecord
 
@@ -12,28 +13,28 @@ import asyncio
 import json
 from contextlib import AsyncExitStack, aclosing, nullcontext
 from copy import deepcopy
-from dataclasses import replace
-from types import SimpleNamespace
+from dataclasses import dataclass, replace
 
 
 from asyncio import timeout
 from llm.core.agents import AgentBinding, AgentDefinition, AgentMode, AgentProfile
 from llm.components.base import Component
 from llm.components.tools import ToolRegistry
-from llm.core.checkpoints import CheckpointStatus
 from llm.core.models import new_id
 from llm.services.infrastructure.storage import revision_token
 from llm.core.results import EngineOutput
-from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime, ToolUsageError
+from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode, agent_mode
 from llm.core.steering import SteeringMode
 from llm.engines.registry import EngineRegistry
-from .graph.engine import _GraphPause
+from .graph.engine import _GraphPause, GraphNodeContext
 from .graph.checkpoints import EngineCheckpointScope
 from .agent_resources import AgentResourceResolver
+from .agent_checkpoints import AgentCheckpoint
+from .graph.selections import GraphHandlerSelection
 from .agent_values import (AgentNodeDefinition, AgentExecutionBinding, AgentStepMetadata,
                            AgentInvocationIdentity, AgentInvocationBinding, AgentExecutionRevision,
-                           AgentOutputValue)
+                           AgentOutputValue, AgentDelegationArguments, AgentHandlerBinding)
 
 
 from llm.core.agent_views import AgentDefinitions
@@ -52,7 +53,6 @@ class AgentExecution:
     # Graph 모드의 준비/매핑은 외부 효과를 수행하지 않고 자식 작업만 조율한다.
     resumable_container = True
     selection_binding = True
-    USAGE_FIELD = "agent_usage"
 
     @classmethod
     def step_agent_id(cls, step):
@@ -70,12 +70,8 @@ class AgentExecution:
         from llm.core.checkpoints import CheckpointEnvelope, unwrap_record
         while CheckpointEnvelope.is_record(record):
             record, _ = unwrap_record(record)
-        selections = []
-        if "agent_binding" in record:
-            selections.append(record["agent_binding"])
-        if "handler_selection" in record:
-            selections.append(record["handler_selection"]["binding"])
-        return {value["agent_id"] for value in selections if "agent_id" in value}
+        selections = (*AgentCheckpoint.bindings(record), *GraphHandlerSelection.bindings(record))
+        return set().union(*(AgentExecutionBinding.references(value) for value in selections))
 
     @staticmethod
     def describe_config():
@@ -197,32 +193,7 @@ class AgentExecution:
     @classmethod
     def _checkpoint_usage(cls, records, owner, name):
         """선택한 Agent의 실행 기록만 해석하고 필수 사용량을 검증한다."""
-        from llm.core.checkpoints import CheckpointEnvelope, unwrap_record
-        from llm.core.steering import InstructionCheckpoint
-
-        values = []
-        def append(record):
-            usage = record.get(cls.USAGE_FIELD)
-            if not isinstance(usage, dict) or owner not in usage:
-                raise ToolUsageError(f"Tool usage missing from Agent checkpoint: {owner}")
-            values.append(usage[owner])
-
-        selected = [record for record in records.values()
-                    if record.get("engine_scope") == owner and record.get("checkpoint_name") == name]
-        for record in selected:
-            payload, _ = unwrap_record(record)
-            if InstructionCheckpoint.is_record(payload):
-                # 지시는 실행 사용량의 소유자가 아니다. 해당 소유자의 계약으로만 구분한다.
-                InstructionCheckpoint.read(payload)
-                continue
-            append(record)
-        marker = records.get(owner)
-        if marker is not None:
-            if (cls.USAGE_FIELD in marker or marker.get("node_type") == "agent_container"
-                    or marker["status"] == CheckpointStatus.STARTED):
-                append(marker)
-        ToolExecutionScope.validate_usage(values)
-        return values
+        return AgentCheckpoint.selected_usage(records, owner, name)
 
     def prepare_context(self, definition, context):
         """Request only the selected Agent's public capabilities, before approval/effects."""
@@ -340,17 +311,16 @@ class AgentExecution:
                     nonlocal engine_output
                     if event.type == EngineEventType.STEERING and bridge is not None:
                         event = bridge.wrap_instruction(event)
-                    if event.type == EngineEventType.CHECKPOINT or event.checkpoint is not None:
+                    if event.type == EngineEventType.CHECKPOINT or event.has_checkpoint:
                         if bridge is not None:
                             event = bridge.wrap(event)
                         else:
                             raise ValueError("Agent engines cannot own Workflow checkpoint lifecycle")
-                        receipt = event.checkpoint or event
+                        receipt = event.checkpoint_receipt
                         write = CheckpointWrite(receipt.metadata)
-                        value = write.record.value
-                        value.setdefault(self.USAGE_FIELD, {})[node.checkpoint_key] = scope.checkpoint()
+                        value = AgentCheckpoint.with_usage(write.record.value, node.checkpoint_key, scope.checkpoint())
                         receipt = replace(receipt, metadata=write.with_record(value).to_dict())
-                        event = replace(event, checkpoint=receipt) if event.checkpoint is not None else receipt
+                        event = replace(event, checkpoint=receipt) if event.has_checkpoint else receipt
                     if event.type == EngineEventType.PAUSED:
                         if bridge is None:
                             raise ValueError("Agent engine requires a checkpoint scope to pause")
@@ -368,7 +338,7 @@ class AgentExecution:
                     await node.emit(event)
                     if bridge is not None and event.type == EngineEventType.STEERING:
                         bridge.accepted_instruction(event, context.steering)
-                    if bridge is not None and (event.type == EngineEventType.CHECKPOINT or event.checkpoint is not None):
+                    if bridge is not None and (event.type == EngineEventType.CHECKPOINT or event.has_checkpoint):
                         bridge.accepted(event)
                     if event.type in (EngineEventType.STEP_UPDATED, EngineEventType.STEP_FAILED,
                                                        EngineEventType.STEP_COMPLETED, EngineEventType.STEP_CANCELLED):
@@ -402,7 +372,7 @@ class AgentExecution:
             raise
         await node.emit(BaseEngine.step_completed_event(context, step_id,
             EngineOutput(text=result.text, data=result.engine_data, visibility=visibility),
-            metadata={"tool_calls": scope.calls, "completed_tools": scope.completed}))
+            metadata=AgentStepMetadata.completed_usage(scope.calls, scope.completed)))
         return result.to_dict()
 
 
@@ -497,6 +467,11 @@ class AgentInvocation:
                     yield event
 
 
+@dataclass(frozen=True, slots=True, kw_only=True)
+class AgentDelegationContext(GraphNodeContext):
+    checkpoint_name: str
+
+
 class AgentDelegation:
     """ToolExecutor용 저장 Agent 어댑터. 실행 알고리즘은 AgentNode와 공유한다.
 
@@ -509,18 +484,19 @@ class AgentDelegation:
 
     def __init__(self, runtime):
         self.runtime = runtime
-        self.execution_binding = {"revision": runtime.revision}
+        self.execution_binding = AgentHandlerBinding(runtime.revision).to_dict()
 
     def bind_arguments(self, arguments, context):
         """Selected definition, not the discoverable Agent catalogue, owns resume identity."""
-        definition = AgentNodeDefinition.for_agent(arguments["agent_id"])
+        definition = AgentDelegationArguments(arguments).definition
         context = self.runtime.prepare_context(definition, context)
         self.runtime.validate(definition, context)
         return self.runtime.binding(definition, context)
 
     def validate_selection(self, arguments, context, *, request_key, checkpoint_name):
-        owner = json.dumps([request_key, "agent", arguments["agent_id"]], separators=(",", ":"))
-        self.runtime.validate_selection(AgentNodeDefinition.for_agent(arguments["agent_id"]), context, owner=owner,
+        selected = AgentDelegationArguments(arguments)
+        owner = AgentCheckpoint.delegation_key(request_key, selected.agent_id)
+        self.runtime.validate_selection(selected.definition, context, owner=owner,
             records=CheckpointRecords.records_or_empty(context.checkpoint), checkpoint_name=checkpoint_name, wrapped_graph=True)
 
     def additional_capabilities(self, capabilities):
@@ -536,29 +512,27 @@ class AgentDelegation:
         # 동적 Tool 위임은 부모 Workflow의 사전 예약 경로가 아니다. 부모 Loop의 추가
         # 지시는 다음 부모 completion 경계에서 소비한다. 취소/예산/승인은 계속 공유한다.
         context = replace(context, steering=None)
-        owner = json.dumps([request_key, "agent", arguments["agent_id"]], separators=(",", ":"))
+        selected = AgentDelegationArguments(arguments)
+        owner = AgentCheckpoint.delegation_key(request_key, selected.agent_id)
         records = deepcopy(CheckpointRecords.records_or_empty(context.checkpoint))
-        definition = AgentNodeDefinition.for_agent(arguments["agent_id"])
+        definition = selected.definition
         context = self.runtime.prepare_context(definition, context)
         self.runtime.validate(definition, context)
         binding = self.runtime.binding(definition, context)
         marker = records.get(owner)
-        if marker is not None and marker.get("agent_binding") != binding:
+        if marker is not None and AgentCheckpoint.selected_binding(marker) != binding:
             raise ValueError("Delegated Agent configuration changed; start a new request")
         queue = asyncio.Queue(maxsize=1)
 
         async def emit(event):
             if event.type == EngineEventType.STEP_STARTED:
-                event = replace(event, metadata={**event.metadata,
-                    "delegation_step_id": step_id,
-                    "parent_step_id": event.metadata.get("parent_step_id", step_id)})
+                event = replace(event, metadata=AgentStepMetadata.delegated(event.metadata, step_id))
             ack = asyncio.get_running_loop().create_future()
             await queue.put((event, ack))
             await ack
 
         async def record_usage(usage):
-            value = {"node_type": "agent_container", "status": CheckpointStatus.STARTED, "container": True,
-                "requires_retry": False, "agent_binding": binding, AgentExecution.USAGE_FIELD: {owner: usage}}
+            value = AgentCheckpoint.delegation(owner, binding, usage)
             await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(checkpoint_name, owner, value).to_dict()))
 
         async def invoke_graph(engine, child, inputs, forward):
@@ -574,25 +548,25 @@ class AgentDelegation:
                         continue
                     if event.type == EngineEventType.PAUSED:
                         raise _GraphPause(owner)
-                    if event.type == EngineEventType.CHECKPOINT or event.checkpoint is not None:
+                    if event.type == EngineEventType.CHECKPOINT or event.has_checkpoint:
                         event = bridge.wrap(event)
                     elif event.type == EngineEventType.STEERING:
                         event = bridge.wrap_instruction(event)
                     await forward(event)
-                    if event.type == EngineEventType.CHECKPOINT or event.checkpoint is not None:
+                    if event.type == EngineEventType.CHECKPOINT or event.has_checkpoint:
                         bridge.accepted(event)
                     elif event.type == EngineEventType.STEERING:
                         bridge.accepted_instruction(event, child.steering)
             return output
 
         async def produce():
-            usage = ToolExecutionScope.initial_usage() if marker is None else marker[AgentExecution.USAGE_FIELD][owner]
+            usage = ToolExecutionScope.initial_usage() if marker is None else AgentCheckpoint.required_usage(marker, owner)
             await record_usage(usage)
-            node = SimpleNamespace(context=context, definition=definition, inputs=arguments["input"], state={},
-                node_id=arguments["agent_id"], node_path=owner, checkpoint_key=owner,
+            node = AgentDelegationContext(context=context, definition=definition, inputs=selected.input, state={},
+                node_id=selected.agent_id, node_path=owner, checkpoint_key=owner,
                 checkpoint_name=checkpoint_name, emit=emit, record_usage=record_usage, invoke_graph=invoke_graph)
             try:
-                result["value"] = await self.runtime(node)
+                ToolEventResult(result).yielded(await self.runtime(node))
             except _GraphPause:
                 await emit(EngineEvent(EngineEventType.PAUSED, metadata={"checkpoint": checkpoint_name}))
 

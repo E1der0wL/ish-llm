@@ -97,6 +97,20 @@ Root AgentInvocationBinding은 ToolRegistry의 공개 binding을 같은 순서�
 파싱된 null을 구분한다. EngineOutput.has_data는 공통 출력의 데이터 유무만 판별한다.
 Agent 출력 Schema 검증 이후 확정 출력 전달, 사용량/승인/효과 기록 순서는 유지한다.
 
+AgentCheckpoint는 위임 key·container 선택·Agent 사용량 기록을 소유한다. Graph와 Agent는
+같은 쓰기 Projection을 사용하며, Reader는 선택된 자식 envelope와 필수 container 사용량을
+검증한다. 사용량을 가진 실행 기록과 추가 지시 기록을 구분하고, 필수 사용량 누락·손상은
+ToolUsageRecord의 같은 검증기로 거부한다. GraphHandlerSelection은 실제 환경/정의/handler
+binding을 해석하며 자식 binding의 내부 의미는 해석하지 않는다. AgentDelegationArguments의
+Schema/Reader와 GraphNodeContext를 확장한 위임 문맥을 통해 입력과 checkpoint scope를
+전달한다. 사용량 복원·기록·효과·저장 ACK의 기존 순서를 보존하며 승인·예산을 새로 만들지 않는다.
+
+ToolEventResult는 ToolExecutor와 신뢰된 event handler의 기존 가변 결과 dict를 공유한다.
+이 dict를 별도 사본으로 교체하지 않는다. 필수 value/content 누락과 명시 null을 구분하고,
+완료/재시도 관찰값의 기존 사본 경계를 유지한다. Agent/Graph/Loop는 해당 Owner로 결과를
+조회하며 저장된 완료 영수증을 재사용할 때 handler를 다시 실행하지 않는다. SDK ToolResult의
+wire 메시지와는 별도 계약이며, 결과 관찰값이 실행 허가·효과 원장을 대체하지 않는다.
+
 AgentRecord, AgentCatalog, AgentBinding은 각자의 버전·필수 필드·identity 검증을 소유한다.
 저장 목록과 Run admission 증거의 누락을 빈 데이터나 생성 기본값으로 복원하지 않는다.
 

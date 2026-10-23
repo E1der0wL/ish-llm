@@ -20,6 +20,7 @@ from llm.core.models import ResourceKind, StepKind
 from llm.core.continuations import ResumeRecord
 
 from llm.core.results import OutputVisibility
+from llm.core.tool_event_result import ToolEventResult
 
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ModelRole, ToolMode, ToolResult, copy_model
 
@@ -570,13 +571,13 @@ class LoopEngine(BaseEngine):
                 else:
                     # 재사용도 새 Run에서 관찰·원본 조회할 수 있게 기록한다. 핸들러는 호출하지 않는다.
                     async def reuse(_context):
-                        return EngineOutput(data=deepcopy(result["value"]), visibility=OutputVisibility.INTERNAL)
+                        return EngineOutput(data=deepcopy(ToolEventResult(result).value), visibility=OutputVisibility.INTERNAL)
                     async with aclosing(self.step(context, reuse, name=tool.name, kind=StepKind.TOOL,
                             metadata={"iteration": iteration, "tool_call_id": call.id, "reused": True,
                                       "source_run_id": stored["run_id"], "source_step_id": stored["step_id"]})) as events:
                         async for event in events:
                             yield event
                 messages.append(CompletionMessage(ModelMessage(ModelRole.TOOL,
-                    result=ToolResult(call.id, result["content"], tool.name)), result_ref=result_ref))
+                    result=ToolResult(call.id, ToolEventResult(result).content, tool.name)), result_ref=result_ref))
             if durable:
                 yield self._record(f"iteration:{iteration}", {"status": CheckpointStatus.COMPLETED, "response": response.to_dict()})

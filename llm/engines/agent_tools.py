@@ -2,19 +2,21 @@
 
 from llm.core.tool_contracts import ToolContract
 from llm.components.tools import Tool, ToolRegistry
-from llm.core.schema import object_schema, field, open_schema
 from llm.engines.agents import AgentExecution, AgentDelegation
+from llm.engines.agent_values import AgentDelegationArguments
 from llm.core.tool_contracts import ToolEffect, ToolIsolation
+
+
+class AgentDelegationTool:
+    NAME = "agent_run"
+    DESCRIPTION = "Execute a saved Agent inside this Run without adding authority."
+    CONTRACT = ToolContract(revision='1', effect=ToolEffect.UNKNOWN,
+        isolation=ToolIsolation.NONE, approval_required=False,
+        operation_key_required=False, retry_fields=())
 
 
 def agent_tools(engines):
     runtime = AgentExecution(engines=engines)
     handler = AgentDelegation(runtime)
-    return ToolRegistry((Tool("agent_run", "Execute a saved Agent inside this Run without adding authority.",
-        object_schema({"agent_id": field("string", minLength=1),
-                       "input": open_schema("selected saved Agent input_schema", category="implementation")},
-                      required=["agent_id", "input"]),
-        handler, contract=ToolContract(
-            revision='1', effect=ToolEffect.UNKNOWN,
-            isolation=ToolIsolation.NONE, approval_required=False,
-            operation_key_required=False, retry_fields=())),))
+    return ToolRegistry((Tool(AgentDelegationTool.NAME, AgentDelegationTool.DESCRIPTION,
+        AgentDelegationArguments.describe_config(), handler, contract=AgentDelegationTool.CONTRACT),))

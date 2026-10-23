@@ -9,7 +9,7 @@ from llm.core.agents import AgentBinding, AgentDefinition
 from llm.core.configuration import UNSET
 from llm.core.json_data import JsonObject
 from llm.core.results import OutputContract
-from llm.core.schema import object_schema, field, SchemaKeyword, SchemaType
+from llm.core.schema import object_schema, field, open_schema, SchemaKeyword, SchemaType, OpenSchemaKind
 from llm.services.infrastructure.storage import revision_token
 
 
@@ -72,6 +72,42 @@ class AgentNodeDefinition:
             raise ValueError(self.INVALID_EMIT)
 
 
+class AgentDelegationArguments:
+    AGENT_ID = AgentBinding.Field.AGENT_ID.value
+    INPUT = "input"
+    INPUT_OWNER = "selected saved Agent input_schema"
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def describe_config(cls):
+        return object_schema({
+            cls.AGENT_ID: field(SchemaType.STRING, **{SchemaKeyword.MIN_LENGTH: AgentNodeDefinition.MINIMUM_AGENT_LENGTH}),
+            cls.INPUT: open_schema(cls.INPUT_OWNER, category=OpenSchemaKind.IMPLEMENTATION)},
+            **{SchemaKeyword.REQUIRED: [cls.AGENT_ID, cls.INPUT]})
+
+    @property
+    def agent_id(self):
+        return self._value[self.AGENT_ID]
+
+    @property
+    def input(self):
+        return self._value[self.INPUT]
+
+    @property
+    def definition(self):
+        return AgentNodeDefinition.for_agent(self.agent_id)
+
+
+@dataclass(frozen=True, slots=True)
+class AgentHandlerBinding:
+    revision: str
+
+    def to_dict(self):
+        return {self.__class__.revision.__name__: self.revision}
+
+
 class AgentExecutionBinding:
     """Detached open execution selection; public handler extensions remain intact."""
 
@@ -128,6 +164,10 @@ class AgentExecutionBinding:
     def state(self):
         return {self.STATE_FIELD: self.to_dict()}
 
+    @classmethod
+    def references(cls, value):
+        return {value[cls.Field.AGENT_ID]} if cls.Field.AGENT_ID in value else set()
+
 
 class AgentStepMetadata:
     """Observations inherited by child Steps; explicit null and extensions are retained."""
@@ -135,6 +175,10 @@ class AgentStepMetadata:
     INPUTS = "inputs"
     NODE_ID = "node_id"
     AGENT_STEP_ID = "agent_step_id"
+    DELEGATION_STEP_ID = "delegation_step_id"
+    PARENT_STEP_ID = "parent_step_id"
+    TOOL_CALLS = "tool_calls"
+    COMPLETED_TOOLS = "completed_tools"
 
     @staticmethod
     def selected_id(metadata):
@@ -147,6 +191,15 @@ class AgentStepMetadata:
     @classmethod
     def graph_child(cls, metadata, step_id):
         return {**metadata, cls.AGENT_STEP_ID: metadata.get(cls.AGENT_STEP_ID, step_id)}
+
+    @classmethod
+    def delegated(cls, metadata, step_id):
+        return {**metadata, cls.DELEGATION_STEP_ID: step_id,
+                cls.PARENT_STEP_ID: metadata.get(cls.PARENT_STEP_ID, step_id)}
+
+    @classmethod
+    def completed_usage(cls, calls, completed):
+        return {cls.TOOL_CALLS: calls, cls.COMPLETED_TOOLS: completed}
 
     @classmethod
     def behavior_child(cls, metadata, binding, node_id, step_id):
