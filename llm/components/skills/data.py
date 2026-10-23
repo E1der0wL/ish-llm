@@ -1,5 +1,10 @@
 """Skill 파일과 참조·lineage를 검증한다. 각 소유자의 정의가 참조의 원본이다."""
 
+from llm.core.resource_references import ResourceTarget
+from llm.core.agents import AgentDefinition
+from llm.core.agent_views import AgentDependency
+from .dependencies import SkillDependencies, SkillChild
+
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.core.agent_views import AgentSnapshot
 
@@ -100,29 +105,30 @@ class SkillData(FileData):
         """삭제 보호와 같은 저장 참조를 조회한다. 저장된 모든 Agent를 포함한다."""
         self.load(identifier)
         project, _ = self._current()
-        refs = [ref for ref in self.references.dependents(project, self.name, identifier)
-                if ref[Record.COMPONENT] == "agents"]
+        refs = [reference for value in self.references.dependents(project, self.name, identifier)
+                if (reference := ResourceTarget.from_dict(value)).component == AgentDefinition.REFERENCE_COMPONENT]
         if not refs:
             return []
         # workspace 잠금 안에서 Agent 소유자의 공개 읽기 계약만 사용한다.
         # 조회를 위해 Component를 선택하거나 runtime capability를 활성화하지 않는다.
         agents = self.agents()
-        return [{"agent_id": ref[Record.IDENTIFIER],
-                 Record.REVISION: AgentSnapshot.read(agents.snapshot(ref[Record.IDENTIFIER])).revision}
-                for ref in refs]
+        return [AgentDependency.from_snapshot(AgentSnapshot.read(
+                    agents.snapshot(ref.identifier))).to_dict() for ref in refs]
 
     @workspace_locked
     def dependencies(self, identifier):
         """Agent 참조와 child lineage를 원본 정의에서 조회한다. 중복 인덱스 없음."""
         self.load(identifier)
-        return {"agents": self.impact(identifier), "children": [
-            {"skill_id": key, "version": EditableSnapshot.read(self.snapshot(key)).version}
-            for key, value in self.list().items() if value.get(Record.LINEAGE, {}).get(Record.PARENT) == identifier]}
+        return SkillDependencies(
+            agents=[AgentDependency.from_dict(value) for value in self.impact(identifier)],
+            children=[SkillChild(key, EditableSnapshot.read(self.snapshot(key)).version)
+                for key, value in self.list().items()
+                if value.get(Record.LINEAGE, {}).get(Record.PARENT) == identifier]).to_dict()
 
     @workspace_locked
     def delete(self, identifier, *, expected_version=None):
-        refs = self.dependencies(identifier)
-        if refs["agents"] or refs["children"]:
+        refs = SkillDependencies.from_dict(self.dependencies(identifier))
+        if refs.has_dependents:
             raise ValueError("Skill is referenced by Agents or child Skills; remove references first")
         return super().delete(identifier, expected_version=expected_version)
 

@@ -4,6 +4,8 @@
 상태 채널에는 JSON만 전달하고 런타임 객체를 저장 형식에 노출하지 않는다.
 """
 
+from llm.core.resource_references import ResourceTarget
+
 from llm.core.configuration_views import ConfigurationView
 
 from llm.core.checkpoint_records import CheckpointWrite
@@ -913,7 +915,8 @@ class GraphEngine:
 
     def agent_references(self):
         """The selected Graph owns the meaning of its stored Workflow choice."""
-        return ({"component": "workflows", "identifier": self.workflow},)
+        from llm.components.workflows import WorkflowComponent
+        return (ResourceTarget(WorkflowComponent.name, self.workflow).to_dict(),)
 
     def discover_agent(self, definition):
         """Resolve only structural references before selecting private Agent options."""

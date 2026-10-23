@@ -4224,45 +4224,57 @@
   },
   {
     "path": "llm/core/agent_views.py",
-    "sha256": "fa8b060a62701759399040419d774f7f03bd92a998f915bcc41717d9526dff47",
-    "reason": "Read all fields, factory, Reader, properties and Writer. Projection delegates current identifier/definition and revision checks to AgentDefinition, protects nested copies, and retains public AgentRepository snapshot dispatch. No storage envelope or execution binding fallback exists.",
+    "sha256": "1c85fc282440c9f7641e583527bb11d2a806577944bcd88feb37e967b8048fbe",
+    "reason": "Read all fields, factory, Reader, properties and Writer. Projection delegates current identifier/definition and revision checks to AgentDefinition, protects nested copies, and retains public AgentRepository snapshot dispatch. No storage envelope or execution binding fallback exists. Read the added AgentDependency projection and its Skill impact/dependency consumers. Fields are a distinct public response shape; only the current validated AgentSnapshot supplies its values, with no authority or storage.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "ad2a3b3d9a07d42cb4306335b550c072423bacce3b6df415e23577432e27e157",
+        "id": "9c5d93d9de9135484227bb25b1207e4d46ea9904f25901b865f8599adab93014",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "50199c06b71d34b1c393b64e997b75ecf03aa8bfd9222a1475fb236c94a7db63",
+        "id": "2e1b7269668c6f840df223cb4f9c20f534c34987d5257eb68a761b062cb5a300",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "4b7b5ea00427f059fba06dfb36fa1681feae4bf565ce35ecfa3b0626af19da7b",
+        "id": "36f645abda2bacec5ac75b6f08bbba8267f42631e0bf8f2595505ee549488a21",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "234e5070c1d0b9a97f49753627ca5593dafe8ae01ac8f25ebbd686a73d155fcc",
+        "id": "e9345599dcafcfba635006a64cb7038c6dc4104b8b69072f400108359972fdeb",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "a225b9f94765661b45412eca1b136dc31f2abc16ffc33a555249e52e21f56e0b",
+        "id": "2a23cc15065d74844b8aa962faf0e4213da95d528f992c125a37ef57cc18ea21",
         "classification": "non_contract",
         "owner": "AgentSnapshot",
         "reason": "The dataclass decorator is the class declaration of frozen/slots/custom construction, not an implementation default or state comparison; nested immutability is enforced by explicit copy properties."
       },
       {
-        "id": "d1da911064ee10db6413f9e3e5f28b5a03faba0d0e8949f975b54b227b4621c0",
+        "id": "34cff155a880672ab053376b12fa9758dd70096804f06b3644d1345359297c19",
         "classification": "declaration",
         "owner": "AgentSnapshot",
         "reason": "Owner declares its diagnostic before methods."
+      },
+      {
+        "id": "c37165b4d931e277ca2e7ed7cd96183db26205a67409cf3cf2c94b0b2934abf2",
+        "classification": "non_contract",
+        "owner": "AgentDependency",
+        "reason": "Dataclass generation flags for frozen/slots are Python class mechanics, not business policy defaults or wire values."
+      },
+      {
+        "id": "c1aa7320a1386c4958bd2dbcfef1ba42f6ba1242b55415c8811803b85c7d98c1",
+        "classification": "non_contract",
+        "owner": "AgentDependency",
+        "reason": "Dataclass generation flags for frozen/slots are Python class mechanics, not business policy defaults or wire values."
       }
     ],
     "contracts": [
@@ -4278,6 +4290,19 @@
           "tests/llm/test_editable_snapshots.py",
           "tests/llm/test_agent_storage.py",
           "tests/llm/test_agent_domain.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "AgentDependency",
+        "declaration": "llm/core/agent_views.py",
+        "consumers": [
+          "llm/components/skills/data.py",
+          "llm/components/skills/dependencies.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_agent_resource_integrity.py"
         ],
         "complete": true
       }
@@ -4312,6 +4337,246 @@
         "tests": [
           "tests/hub/test_resource_tools.py",
           "tests/llm/test_editable_snapshots.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/resource_references.py",
+    "sha256": "67dddc85577a47cdfbe8f97c90e6b748d20a012b032e0746aaad6a25835df56b",
+    "reason": "Read every declaration/Reader/Writer/factory/matcher and all producer/consumer hooks. Required fields cannot be defaulted; component-wide null and absent/null path remain distinct on wire, opaque metadata stays detached and Owner-specific. One matcher preserves 432 current cases and actual malformed/disabled-source deletion tests preserve original files.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e68e25ca99be4fe8f5081ddab0244e891dac430835f0af49015ee03a1db32ac5",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "cc0049d11dd929ade91d7fce24d691d46baeffe94fc3d7b1063fd2d1faf7b709",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "39282e48904caac775338c260d56e8e92be32bd5dcc931c538ec5c40dfcba394",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "c627344bd16a5a8f443bfd16e57de9640e9b88e92ec77324d5df4b02e4c20478",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "ac120b0ef69ec5efc4bde07ddfdfd63f548b8df478566e5a3c5311db604db92c",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "72fc76b2ba1bee8672b6a2b5db39ed69fc472dec13dc96d910013caf87f00483",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "ea25fe6e66b9d3a44a993f218df4c195ab91f6cb9f2e4a2435057b4fcaff2059",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "958df63683d1fe49100a051f4970bda29ac010038e6451abda7566f54a015f93",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "b0d8e0a3995a5a90be17ca2e79fadaa8f0fbfe9131a6c2234879e0217d22842a",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "6e3707ab6e8f4529cb21236cb0d5d9b6225174bd33f720d6c7335f6b3ae54602",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "78a1596d1d3ad46c697eb19c041f493d8951c34ca2d55aa966cd7fbb3048f878",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "f395a6e0fdc01f3c736d9e54fd9a1724ba7d67f190cb522b7a7cab863c133ef8",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "bc91649bd1b959fe825362283583b13f0ad35235106428bb4ba939095e97ff50",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "6c3904f30bc641e6b389475e50066056b4e94a2d4b2ac1e102c6a7ecbc3ed787",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "5bccffec01a41ddcc1b8fa6f3dcc4e4a9a4a009ce78cfae174af56c0fd2f6e29",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "aeef6665571eceed083e6a6caa6415b05db87d2a47e33c1eb09ecd07fc00b42a",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "229937e10178f67fdcd3451e2ffc117387a375f348b026cfa36f4e8510944c49",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "3b3d14840a032002b5daa5240375ada92dd4c53dd6ed95f4b915de9860d63066",
+        "classification": "non_contract",
+        "owner": "Common resource reference observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "e6cef35a79d111f1575fcaba41d517fb8dec40d839df1eb3b062cd0894313ee2",
+        "classification": "declaration",
+        "owner": "Common resource reference observations",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Common resource reference observations",
+        "declaration": "llm/core/resource_references.py",
+        "consumers": [
+          "llm/components/registry.py",
+          "llm/services/lifecycle/references.py",
+          "llm/services/lifecycle/agents.py",
+          "llm/components/skills/component.py",
+          "llm/components/memory/component.py",
+          "llm/components/refinement/component.py",
+          "llm/components/workflows/component.py",
+          "llm/engines/graph/engine.py"
+        ],
+        "tests": [
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_memory_compaction_integrity.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/dependencies.py",
+    "sha256": "ddb091c7ceb5dc57f5a4baa85414f2075820954ff5dd2551758fb8cb25f91e2c",
+    "reason": "Read all four fields across the two projection types and the derived has_dependents predicate. Creation and deletion consumers use the typed shape; nested JSON conversions derive from JsonValue and no second source/index is stored.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fdfd0b67f8f097b48e38410059c57432ea80918fe3d467ed4c143b26d92e3084",
+        "classification": "non_contract",
+        "owner": "Skill deletion observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "7dc36be4bd0bc5809b107c3e43c13e2d82cd299676d152e90a66f600dd5535c7",
+        "classification": "non_contract",
+        "owner": "Skill deletion observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "89664deba06f04933951d54700cfd72737a5deb21902fe6cc1c9d62658ff641b",
+        "classification": "non_contract",
+        "owner": "Skill deletion observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      },
+      {
+        "id": "1d8e3cfbde7556cd643fd0a285b85a8e890a1cf1ec925bd2ae7b278803522cdb",
+        "classification": "non_contract",
+        "owner": "Skill deletion observations",
+        "reason": "Dataclass frozen/slots/custom-construction generation flags are Python class mechanics; they do not supply a wire field, execution policy or missing-evidence fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Skill deletion observations",
+        "declaration": "llm/components/skills/dependencies.py",
+        "consumers": [
+          "llm/components/skills/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_agent_resource_integrity.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/lifecycle/references.py",
+    "sha256": "7c9b12bea49610334a2ad939a7184858a7eb33e2c8e1ce4f94df374d95f45d92",
+    "reason": "Read the complete aggregator and ComponentRegistry/AgentManager source hooks. Both source lists are decoded by canonical Owners; matching is delegated once, Agent namespace comes from its domain, and diagnostics/presence defaults are declared before methods. Missing Agent reference capability with stored Agents still fails closed, disabled definitions still protect deletion, and current selection protection remains.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5b48adbd33db2c37330da6ec9c3716fe64cdb90b9f683356be311d1644a47851",
+        "classification": "declaration",
+        "owner": "ProjectReferences",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "ee9c3c6d3c5d405439d32a67948d7b2cbc67669241a32ddb9c08e017f07a91ac",
+        "classification": "declaration",
+        "owner": "ProjectReferences",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "14866003ffaab5993890c26b87afdef257a843f6f241e3fa396001d2fee081b9",
+        "classification": "declaration",
+        "owner": "ProjectReferences",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      },
+      {
+        "id": "223a7fd3c83d2dbf3cad50fe62b02dd70f63317e229d3ac48371d78ef16a0fab",
+        "classification": "declaration",
+        "owner": "ProjectReferences",
+        "reason": "Owner declares its field optionality, null query semantics or diagnostic vocabulary before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectReferences",
+        "declaration": "llm/services/lifecycle/references.py",
+        "consumers": [
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "llm/components/skills/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_skill_references.py"
         ],
         "complete": true
       }

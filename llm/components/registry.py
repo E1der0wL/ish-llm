@@ -2,6 +2,8 @@
 
 Resolve selected component identities without owning their path layouts."""
 
+from llm.core.resource_references import ResourceTarget, StoredResourceReference
+
 import re
 from copy import deepcopy
 from typing import Any
@@ -77,10 +79,10 @@ class ComponentRegistry:
             reader = getattr(component, "references", None)
             if reader is None:
                 continue
-            for ref in reader(deepcopy(project)):
-                if (ref["component"] == name and (identifier is None or ref["identifier"] == identifier)
-                        and (path is None or ref.get("path") in (None, path))):
-                    result.append({"component": owner, "identifier": ref["source"]})
+            for value in reader(deepcopy(project)):
+                reference = StoredResourceReference.read(value)
+                if reference.matches(name, identifier, path=path):
+                    result.append(reference.dependent(owner).to_dict())
         return result
 
     def require_unreferenced(self, project, name, identifier=None, *, path=None):
@@ -103,7 +105,7 @@ class ComponentRegistry:
     def validate_selection(self, project, names):
         """남길 소비자가 참조하는 영속 Component를 선택 해제하지 않는다."""
         for name in set(project.components) - set(names):
-            refs = [ref for ref in self.dependents(project, name) if ref["component"] in names]
+            refs = [ref for ref in self.dependents(project, name) if ResourceTarget.from_dict(ref).component in names]
             if refs:
                 raise ValueError(f"Component is referenced by selected components: {refs}")
 

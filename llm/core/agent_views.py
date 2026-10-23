@@ -8,6 +8,18 @@ from .contracts import JsonValue
 
 
 @dataclass(frozen=True, slots=True)
+class AgentDependency(JsonValue):
+    """Identity and current definition revision in a dependent-resource view."""
+
+    agent_id: str
+    revision: str
+
+    @classmethod
+    def from_snapshot(cls, snapshot):
+        return cls(snapshot.agent_id, snapshot.revision)
+
+
+@dataclass(frozen=True, slots=True)
 class AgentSnapshotFields(JsonValue):
     agent_id: str
     definition: dict

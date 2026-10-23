@@ -1,5 +1,7 @@
 """닫힌 Workflow 구조를 검증·저장한다. 실행과 handler별 설정 검증은 GraphEngine의 책임이다."""
 
+from llm.core.resource_references import AgentUse
+
 from llm.components.workflows.graph import ControlNodeType
 
 from pathlib import Path
@@ -52,5 +54,5 @@ class WorkflowComponent(DefinitionComponent):
                         reader = getattr(handler, "agent_references", None)
                         if reader is not None:
                             yield from reader(node)
-        return [{"identifier": agent, "source": identifier}
+        return [AgentUse(agent, identifier).to_dict()
                 for identifier, graph in self.list(project).items() for agent in sorted(set(selected(graph)))]

@@ -5,6 +5,9 @@ the Agent manager. Repository methods never execute an Engine or activate a
 Component. Every mutation validates the complete existing inventory first.
 """
 
+from llm.core.resource_references import ResourceTarget, StoredResourceReference
+from llm.core.resource_references import AgentUse
+
 from llm.core.agent_views import AgentSnapshot
 
 from llm.core.checkpoint_records import CheckpointRecords
@@ -153,17 +156,24 @@ class AgentRepository:
 
     @workspace_locked
     def references(self, project):
+        from llm.components.skills import SkillComponent
+        from llm.components.prompts import PromptComponent
+        from llm.components.mcp import MCPComponent
+        from llm.components.rag import RAGComponent
+
         references = []
         for identifier, definition in self.list(project).items():
             resources = definition.get("resources", {})
-            references.extend({"component": "skills", "identifier": skill, "source": identifier}
+            references.extend(StoredResourceReference.from_target(ResourceTarget(SkillComponent.name, skill), identifier).to_dict()
                               for skill in resources.get("skills", []))
             if "prompt" in resources:
-                references.append({"component": "prompts", "identifier": resources["prompt"], "source": identifier})
-            references.extend({"component": "mcp", "identifier": server, "source": identifier}
+                references.append(StoredResourceReference.from_target(
+                    ResourceTarget(PromptComponent.name, resources["prompt"]), identifier).to_dict())
+            references.extend(StoredResourceReference.from_target(ResourceTarget(MCPComponent.name, server), identifier).to_dict()
                               for server in resources.get("mcp", {}))
             if resources.get("rag"):
-                references.append({"component": "rag", "identifier": None, "source": identifier})
+                references.append(StoredResourceReference.from_target(
+                    ResourceTarget(RAGComponent.name, ResourceTarget.WHOLE_COMPONENT), identifier).to_dict())
         return references
 
 
@@ -194,10 +204,8 @@ class AgentManager:
             if not isinstance(references, tuple):
                 raise TypeError("Engine agent_references must return a tuple")
             for reference in references:
-                if (not isinstance(reference, dict) or reference.keys() != {"component", "identifier"}
-                        or any(not isinstance(value, str) or not value for value in reference.values())):
-                    raise ValueError("Engine Agent references require Component and record identifiers")
-                values.append({**reference, "source": identifier})
+                values.append(StoredResourceReference.from_target(
+                    ResourceTarget.from_engine(reference), identifier).to_dict())
         return values
 
     @workspace_locked
@@ -259,13 +267,14 @@ class AgentManager:
     def _require_unreferenced(self, project, identifier):
         from llm.engines.agents import AgentExecution
         from llm.services.runtime.checkpoints import CheckpointRepository
-        self.components.require_unreferenced(project, "agents", identifier)
+        self.components.require_unreferenced(project, AgentDefinition.REFERENCE_COMPONENT, identifier)
         for name in self.components.names():
             reader = getattr(self.components.get(name), "agent_references", None)
             if reader is not None:
-                for reference in reader(project, self.engines):
-                    if reference["identifier"] == identifier:
-                        raise ValueError(f"Agent is referenced by {name}/{reference['source']}")
+                for value in reader(project, self.engines):
+                    reference = AgentUse.from_dict(value)
+                    if reference.identifier == identifier:
+                        raise ValueError(f"Agent is referenced by {name}/{reference.source}")
         checkpoints = CheckpointRepository()
         for session in self.sessions.list(project, include_deleted=True):
             from llm.services.runtime.requests import RequestAdmission

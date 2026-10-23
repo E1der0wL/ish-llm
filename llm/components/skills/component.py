@@ -1,5 +1,7 @@
 """Standard Skill capability adapter; native storage and record meaning have Owners."""
 
+from llm.core.resource_references import ResourceTarget, StoredResourceReference
+
 from copy import deepcopy
 import io
 from pathlib import Path
@@ -103,9 +105,11 @@ class SkillComponent(DefinitionComponent):
     def references(self, project):
         refs = []
         for identifier, value in self.list(project).items():
-            refs.extend({**ref, "source": identifier} for ref in value.get(Record.RESOURCES, []) if Record.COMPONENT in ref)
+            refs.extend(StoredResourceReference.from_value(ref, identifier).to_dict()
+                        for ref in value.get(Record.RESOURCES, []) if Record.COMPONENT in ref)
             if Record.LINEAGE in value:
-                refs.append({"component": self.name, "identifier": value[Record.LINEAGE][Record.PARENT], "source": identifier})
+                refs.append(StoredResourceReference.from_target(
+                    ResourceTarget(self.name, value[Record.LINEAGE][Record.PARENT]), identifier).to_dict())
         return refs
 
     def resolve(self, project, capability):

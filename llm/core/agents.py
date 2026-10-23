@@ -23,6 +23,7 @@ class AgentMode(StrEnum):
 class AgentDefinition:
     """A selected Engine is required; application descriptions remain optional."""
 
+    REFERENCE_COMPONENT = "agents"
     ENGINE_FIELD = "engine"
 
     schema = {

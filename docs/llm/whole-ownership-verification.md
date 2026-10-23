@@ -1329,3 +1329,44 @@ incomplete 계약 2개이며 이번에는 새 Owner 3개만 전수 검토했다.
 이 소단계는 Level 2다. 진행 중인 9067faa 고정 통합 게이트에는 이 변경이 포함되지 않는다.
 참조/삭제 보호와 관련 후속 소단계를 묶은 현재 소스의 다음 Level 3에서 전체를 검증한다.
 payload의 Prompt·Memory·파일 의미, 참조 프로토콜과 Manager 고정 응답은 계속 후속 작업이다.
+
+
+## 공통 참조와 Skill 삭제 관찰 Owner (2026-10-23)
+
+[참조 계약](resource-references.md)의 대상·출처·선택적 경로를 ResourceTarget/
+StoredResourceReference로 읽고 ComponentRegistry와 ProjectReferences의 중복 일치 판정을
+통합했다. Component·Agent·Engine·Workflow handler는 여전히 자기 정의를 해석하며 공통
+계층이 사유 정책을 해석하지 않는다. Component 이름과 Agent 참조 namespace는 각 Owner를
+참조한다. AgentUse와 Skill의 impact/dependencies Projection도 타입으로 연결했다.
+
+원래 공개 JSON·path 생략/null·확장 근거·비활성 정의·필수 Owner 누락 거부·잠금/CAS/
+트랜잭션을 보존한다. 필수 참조 필드를 기본값으로 만들지 않는다. 신규 시험의 432개
+component/identifier/path 조합이 이전 판정과 같았고, 실제 저장에서 필수 출처 누락과
+비활성 참조 Owner가 삭제를 차단하며 파일 전체가 보존됨을 확인했다. 기존 직접 소비 smoke
+67개, 신규 시험 4개는 각각 pass/exit 0이며 공식 실행과 중복 합산하지 않는다.
+
+- `whole-resource-reference-01`: 발견/시작/pass 149/149/149, exit 0, 116.797363초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-resource-reference-01/llm.json --modules tests.llm.test_resource_references tests.llm.test_agent_resource_integrity tests.llm.test_agent_workflow tests.llm.test_skill_references tests.llm.test_refinement tests.llm.test_memory_compaction_integrity tests.llm.test_component_dependencies tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity`.
+  source `67a66155ddfadb9ee683b777f77ef4e7d1ae319188742a3adec2287e643da7d4`, input `d48b85d024c435b3a5ff6ea51c0bee72028a8b70d0e4214faa8bae238f2696cd`.
+
+- `whole-resource-reference-hub-01`: 발견/시작/pass 13/13/13, exit 0, 131.278023초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-resource-reference-hub-01/hub.json --modules tests.hub.test_component_managers tests.hub.test_resource_tools tests.hub.test_agent_graph`.
+  source `67a66155ddfadb9ee683b777f77ef4e7d1ae319188742a3adec2287e643da7d4`, input `d48b85d024c435b3a5ff6ea51c0bee72028a8b70d0e4214faa8bae238f2696cd`.
+
+두 실행 모두 failure/error/skip/xfail/xpass·누락/추가/중복 0이다. LLM은 실제 Agent/Workflow·
+Skill·Refinement·Memory compaction·Component 의존/삭제와 승인·예산 삭제·효과·Checkpoint·
+RAG·수명 안전성, Hub는 관리·Resource Tool·Agent Graph 소비 경로를 검증했다. source/input은
+전후 동일했고 Python 3.12.14/Clang·고정 Host·의존성·namespace/X11을 유지했다.
+
+기존 정적 근거 27건의 의존성을 재검토했고 발생 추가/삭제는 없다. Agent view의 이전 후보는
+동일 AST 발생에 연결해 기존 판정을 유지하고 새 Projection만 검토했다. 새 참조 Owner와
+ProjectReferences, SkillDependencies만 전수 검토했다. 감사 fail-closed 자체 시험
+`python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`는
+16개 pass/exit 0이었다. `references-auxiliary/results.json`의 S1–S7 145건·문서·R3·SDK·
+양 suite 환경은 각각 exit 0이다.
+현재 462개 파일, 미검토 404개, 미분류 30201개,
+incomplete 계약 2개로 전체 완료는 여전히 차단된다.
+
+이 소단계는 Level 2다. 이전 편집 snapshot과 묶은 현재 소스에서 다음 Level 3 전체 게이트를
+수행한다. 실행 중인 9067faa 전체 검증에는 두 소단계가 포함되지 않는다. Component 내부
+정의, history_references와 나머지 고정 구조/리터럴 전환도 계속 진행한다.

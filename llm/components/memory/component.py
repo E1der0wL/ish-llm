@@ -1,5 +1,7 @@
 """기억의 현재 값·출처·수정 이력을 한 JSON 파일로 원자적으로 저장한다."""
 
+from llm.core.resource_references import StoredResourceReference
+
 from copy import deepcopy
 from datetime import datetime, timezone
 import re
@@ -313,7 +315,7 @@ class MemoryComponent(Component):
         for key, state in Compactions.inventory(project, self)[1].items():
             if key.startswith(Compactions.TOOLS + "/"):
                 request = state["request"]
-                refs.append({**request["reference"], "source": request["id"]})
+                refs.append(StoredResourceReference.from_value(request["reference"], request["id"]).to_dict())
         return refs
 
     def validate_config(self, data):

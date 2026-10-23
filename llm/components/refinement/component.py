@@ -1,5 +1,8 @@
 """제안은 실행 기록의 참조 데이터다. 자동 모델 호출이나 Run 수명은 소유하지 않는다."""
 
+from llm.core.resource_references import ResourceTarget, StoredResourceReference
+from llm.core.agents import AgentDefinition
+
 from llm.core.implementation_parameters import ImplementationParameters
 
 from datetime import datetime
@@ -103,8 +106,10 @@ class RefinementComponent(DefinitionComponent):
 
     def references(self, project):
         """Agent proposals retain their target identity until the proposal is removed."""
-        return [{"component": "agents", "identifier": value["target"]["identifier"], "source": identifier}
-                for identifier, value in self.list(project).items() if value["target"]["component"] == "agents"]
+        return [StoredResourceReference.from_target(
+                    ResourceTarget(AgentDefinition.REFERENCE_COMPONENT, value["target"]["identifier"]), identifier).to_dict()
+                for identifier, value in self.list(project).items()
+                if value["target"]["component"] == AgentDefinition.REFERENCE_COMPONENT]
 
     def resolve(self, project, capability):
         raise ValueError("Refinement capabilities require a lifecycle-bound component data factory")
