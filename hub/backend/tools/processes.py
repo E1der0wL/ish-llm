@@ -1,6 +1,7 @@
 """Process defaults scoped to a captured shell environment, never os.environ."""
 
 from llm.components.tools.builtin.processes import ProcessTools
+from llm.components.tools.builtin.process_values import ProcessInvocation
 
 
 class ShellProcessTools(ProcessTools):
@@ -9,4 +10,4 @@ class ShellProcessTools(ProcessTools):
         self.environment = dict(environment)
 
     async def start(self, args):
-        return await super().start({"env": dict(self.environment), **args})
+        return await super().start(ProcessInvocation.with_environment(args, self.environment))

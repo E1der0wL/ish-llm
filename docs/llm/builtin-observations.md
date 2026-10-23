@@ -35,3 +35,32 @@ file_values의 타입으로 조립하고 공개 경계에서 직렬화한다. �
 
 프로세스/테스트 공간과 다른 등록 경로의 남은 전환은 [전수 기록](whole-ownership-verification.md)에서
 계속 추적한다. 진단/파일 Tool 전환을 내장 Tool 전체 완료로 해석하지 않는다.
+
+## 프로세스 Tool
+
+ProcessLimits·ProcessInvocation·작업별 입력 타입이 argv/환경/한도·조회·입력·shell/check 인자를
+선언한다. 공개 Schema와 typed 조회를 같은 필드에서 파생한다. shell/check의 내부 argv 요청은
+명시된 override만 전달하고 원본 요청·승인 binding을 수정하지 않는다. timeout/output 한도의
+생략과 명시 null은 기존 실행 의미를 유지하며 공개 Schema는 그대로다.
+
+ProcessEnvironment는 자식 환경의 검증·사본·공개 Schema를 소유한다. 생략은 각 실행 경계의
+기존 환경 선택, 명시 {}는 빈 환경이다. 부모와 병합하거나 key/value를 문자열로 변환하지 않는다.
+기존 copy_env 공개 함수 경로는 같은 Owner 메서드의 직접 참조다. 격리 실행기의 나머지 코드와
+spawn/승인/namespace 설정 순서는 변경하지 않는다.
+
+ProcessSession은 해당 Toolkit 수명 동안의 실제 process·task·stdout/stderr 버퍼·시작/종료·상태와
+입력 잠금을 소유한다. status는 process_values.ProcessStatus의 값이며 새로운 저장 기록을 만들지
+않는다. 모니터의 상태 변경, spawn 중 취소, monitor 시작 전 종료, stdin drain/close, 자식 그룹 회수,
+stdout/stderr 합산 byte 상한과 명시 timeout의 기존 순서를 유지한다.
+
+execute는 기존 공개 start/cancel 재정의 경로를 사용한다. Hub가 저장한 셸 환경의 주입을
+내부 메서드 직접 호출로 건너뛰지 않는다. ProcessSnapshot이 start 응답의 identity 투영을 소유한다.
+ProcessSnapshot·ProcessOutput·ProcessWritten이 공개 결과를 직렬화한다. OutputPage는 완성된
+Unicode 문자 단위의 cursor를 계산한다. 미완성 UTF-8은 실행 중에는 소비하지 않고 종료/잘림
+확정 시 기존 replacement 규칙을 쓴다. stdout/stderr는 각각의 offset/remaining을 가지며 전역 사건
+순서로 합치지 않는다. 인자 null/0/bool은 기존 규칙대로 거부하고 새로운 기본 한도는 만들지 않는다.
+
+테스트 내부의 process/task/buffer 접근은 타입 속성으로 갱신하되 독립 wire·실제 입력/출력·취소·
+효과 Assertion은 유지한다. 환경 값/오류와 전체 등록 정의/계약/binding의 이전·현재 동등성,
+실제 파일/격리/취소·필수 안전성 및 Hub 소비자 검증을 거친다. 공유 환경 Owner 변경은 다음
+현재 통합 Level 3의 필수 대상이며 소단계 결과를 원격 CI 통과로 승계하지 않는다.

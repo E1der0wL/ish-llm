@@ -1728,3 +1728,77 @@ incomplete 계약 2개이며 전체 완료는 계속 차단된다.
 이 결과는 Level 2다. 고정 SHA adb0c5c의 group12에는 포함되지 않는다. 남은 프로세스/등록/
 테스트 공간 전환과 다음 현재 통합 Level 3를 묶고 성공 후 Push/정확한 SHA CI를 확인한다.
 전체 대상의 미전환 항목을 계속 진행한다.
+
+
+## adb0c5c 전체 Level 3 통과·정확한 SHA Push (2026-10-23)
+
+고정 SHA `adb0c5c06422a23d9269e02013b819e6b251ef11`의 group12 전체 회귀가 통과했다.
+
+- llm: 발견/시작/pass 2426/2426/2426, exit 0, 1417.419787초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group12-l3/llm.json`.
+
+- hub: 발견/시작/pass 586/586/586, exit 0, 1134.278999초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group12-l3/hub.json`.
+
+failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이고 전후 source `d2b83addcfacf8cc2965e58d3a8c05a2dfeb739a5f43e5fdbd6e0e343387cda5`,
+input `308be07bb9d6016c97905771dee98d9691fcd1e0b848e99f095be402b08d78f4`은 동일하다. group12-auxiliary의 정적·문서·R3·SDK·양 suite 환경도 각각 exit 0이다.
+앞선 group11 실패는 보존하며 실제 descendant 회수와 nested payload/바깥 사용량 경계 수정까지
+현재 통합 상태로 확인했다. Python 3.12.14/Clang·고정 Host·namespace/X11 환경이다.
+
+검증된 이 SHA만 작업 브랜치에 정상 Push했다. Push 직전 main과 refactor/llm-backend는 보호한
+원래 SHA와 일치했다. [원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39947616773)는
+11:40:00 UTC 확인 시 두 필수 job이 진행 중이며 통과로 선언하지 않았다. 이후 진단/파일/
+프로세스 소단계는 이 SHA의 검증 범위가 아니다.
+
+## 프로세스 Tool의 상태·입력·출력과 실제 확장 경로 (2026-10-23)
+
+[내장 Tool 계약](builtin-observations.md)에 따라 ProcessSession이 실제 process/task/buffer와
+모니터 상태를 소유하고 ProcessSnapshot/Output/Written이 공개 결과를 직렬화한다. 입력 타입의
+같은 필드로 Schema와 조회/한도 검증을 연결한다. OutputPage는 완성된 Unicode 문자 cursor를
+처리하며 새 한도나 재시도는 없다. ProcessEnvironment의 단일 검증·사본·Schema를 사용하고
+copy_env는 직접 참조로 유지한다. 나머지 격리 실행기 AST는 동일하고 13개 환경 값/오류 사례가
+이전과 같았다. 최종 여섯 Host 구성의 전체 정의·계약·환경 binding도 동일하다.
+
+최초 runtime smoke 31개는 pass/exit 0(6.186초), 등록/격리 smoke 70개는 pass/exit 0(30.476초),
+독립 입력·출력 시험 4개는 pass/exit 0(0.002초)였다. 이후 Hub 통합에서 실제 회귀가 발견됐다.
+
+- `whole-builtin-process-01`: 발견/시작/pass 149/149/149, exit 0, 101.507311초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-builtin-process-01/llm.json --modules tests.llm.test_builtin_process_values tests.llm.test_builtin_tools tests.llm.test_test_workspaces tests.llm.test_isolated_tools tests.llm.test_execution_contexts tests.llm.test_linux_platform tests.llm.test_process_group_cleanup tests.llm.test_tool_workers tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `245e60166353790861af350a0461e337384aad0486d47d7c5304a74f925abf01`, input `19972e6087d1d6968d18a605fabd0b289237e15ed88dc5ae789de6b672703136`.
+
+- `whole-builtin-process-hub-01`: 발견/시작/pass 31/31/29, exit 1, 108.275460초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-builtin-process-hub-01/hub.json --modules tests.hub.test_shell_environment tests.hub.test_tool_history tests.hub.test_tool_retry tests.hub.test_interaction_updates`. source `245e60166353790861af350a0461e337384aad0486d47d7c5304a74f925abf01`, input `19972e6087d1d6968d18a605fabd0b289237e15ed88dc5ae789de6b672703136`.
+
+Hub failure 2/error 0은 ShellExecutionTests의
+`test_approval_resume_uses_persisted_snapshot_and_model_gets_only_cwd`와
+`test_files_processes_and_explicit_environment_are_scoped`다. execute를 private start 경로에
+직접 연결한 초안이 Hub의 공개 start override를 우회하여 저장된 환경을 적용하지 않았다.
+원래 Assertion을 유지하고 공개 start/cancel dispatch를 복원했다. 응답 identity는
+ProcessSnapshot이 투영하며 Hub 환경 주입은 ProcessInvocation.with_environment를 사용한다.
+명시 env가 캡처 환경보다 우선하는 규칙과 승인/재개 원본은 그대로다.
+
+수정 후 첫 unittest 실행은 46개/error 1/exit 1이었다. 환경 Assertion은 해결됐고 Hub fixture에
+남은 private sessions[...][task] 접근이 타입 변경과 맞지 않았다. 이 접근만 .task로 바꾸고
+독립 wire/실제 효과 Assertion은 그대로 유지했다. 공개 start/cancel override와 실제 자식 환경·
+취소/회수를 확인하는 추가 시험을 포함한 다음 실행은 47개 pass/exit 0(24.828초)였다.
+명령은 `/workspace/ish-llm/.venv-linux312/bin/python -m unittest tests.hub.test_shell_environment tests.llm.test_builtin_process_values tests.llm.test_builtin_tools`이며 두 결과는 override-fixed.log와 override-fixed-02.log에 보존한다.
+
+최종 소스 집중·직접/간접 소비자·필수 안전성 검증:
+
+- `whole-builtin-process-02`: 발견/시작/pass 150/150/150, exit 0, 101.998178초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-builtin-process-02/llm.json --modules tests.llm.test_builtin_process_values tests.llm.test_builtin_tools tests.llm.test_test_workspaces tests.llm.test_isolated_tools tests.llm.test_execution_contexts tests.llm.test_linux_platform tests.llm.test_process_group_cleanup tests.llm.test_tool_workers tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `21109abe4aa226236f1a00c3c86b273a60ac05e5007e3065bb4f712d056de94f`, input `4fb285afec3f75692739f8a5a438b9e86f14c8cc3db5ffaca00f6b54a6379fc0`.
+
+- `whole-builtin-process-hub-02`: 발견/시작/pass 31/31/31, exit 0, 107.748854초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-builtin-process-hub-02/hub.json --modules tests.hub.test_shell_environment tests.hub.test_tool_history tests.hub.test_tool_retry tests.hub.test_interaction_updates`. source `21109abe4aa226236f1a00c3c86b273a60ac05e5007e3065bb4f712d056de94f`, input `4fb285afec3f75692739f8a5a438b9e86f14c8cc3db5ffaca00f6b54a6379fc0`.
+
+최종 두 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이고 전후 manifest가 같다.
+실제 환경/출력/input·중단/회수·격리·worker·승인/예산/효과/Checkpoint/RAG/삭제와 Hub의 저장
+환경/재개/이력/인자 수정 경로를 포함했다. Python 3.12.14/Clang·Host·의존성·namespace/X11은
+유지했다. 실패한 소스와 후속 성공을 하나의 전체 성공으로 합산하지 않는다.
+
+초기 감사 자체 시험 16개 중 failure 1/exit 1은 inventory를 만든 뒤 수정한 README의 hash 불일치였다.
+검사가 이를 차단했으며 제품 코드는 바꾸지 않고 최종 README 바이트로 inventory를 갱신했다.
+최초 audit-tests.log와 수정 후 audit-tests-fixed.log를 별도로 보존한다.
+정적 발생 추가/삭제는 없고 fixture 의존 근거 3건을 재검토했다. 내부 상태 접근만 원래 형태로
+정규화하면 기존 LLM/Hub 시험의 전체 AST가 동일했다. 구현 전체와 공개 override 소비 경로를
+확인한 네 파일만 전수 판정을 추가했다. 감사 자체 16개와 builtin-process-auxiliary의
+S1–S7 143건·문서·R3·SDK·양 suite 환경은 각각 pass/exit 0이다.
+현재 471개 파일, 미검토 390개, 미분류 29159개,
+incomplete 계약 2개로 전체 완료는 계속 차단된다.
+
+이 결과는 Level 2와 발견된 회귀의 재검증이다. 공유 환경/실행 경계에 영향을 주므로 진단·파일·
+프로세스 변경을 묶은 group13 현재 고정 소스 Level 3를 필수로 수행하고 성공 후 Push한다.
+정확한 SHA CI와 테스트 공간/나머지 등록·전체 미전환 계약을 계속 진행한다.

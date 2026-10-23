@@ -16,6 +16,9 @@ from .file_values import (FileReadArguments, FileCreateArguments, FilePatchArgum
     FileMoveArguments, FileDeleteArguments, FileRestoreArguments)
 from llm.core.schema import SchemaKeyword
 from .processes import ProcessTools
+from .process_values import (ProcessStartArguments, ProcessWriteArguments, ProcessReferenceArguments,
+    ProcessOutputArguments, ShellArguments, CheckArguments)
+from llm.services.infrastructure.process_environment import ProcessEnvironment
 from .diagnostics import DiagnosticTools
 from .workspaces import TestWorkspaces
 from llm.core.tool_contracts import ToolEffect, ToolIsolation
@@ -80,10 +83,7 @@ class BuiltinTools:
         if test_workspaces is not None:
             self._execution_binding["test_workspaces"] = deepcopy(test_workspaces.execution_binding)
         path = string(minLength=1)
-        environment = open_schema("child process environment", category="adapter",
-            description="Complete child environment; replaces rather than merges. Omit to use the configured environment; {} passes no variables.",
-            propertyNames={"type": "string", "minLength": 1, "pattern": "^[^=\\u0000]+$"})
-        environment["additionalProperties"] = {"type": "string", "pattern": "^[^\\u0000]*$"}
+        environment = ProcessEnvironment.schema()
         # 효과를 낼 수 있는 Tool은 항상 결정이 필요하다. 자동 응답의 위험 기준은
         # Project가 소유하며, 이 계약은 사람의 승인만을 강제하는 정책이 아니다.
         mutation = self.MUTATION_CONTRACT
@@ -116,8 +116,6 @@ class BuiltinTools:
                 schema({**identity, "argv": {"type": "array", "minItems": 1, "items": string()}, "env": deepcopy(environment)}, ["workspace_id", "argv"]),
                 test_workspaces, contract=self.SANDBOX_CONTRACT))
 
-        limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
-                  "max_output_bytes": {"type": "integer", "minimum": 1}}
         commands = dict(checks or {})
         for name, argv in commands.items():
             if not isinstance(name, str) or not name or isinstance(argv, str) or not argv or any(not isinstance(item, str) or not item for item in argv):
@@ -125,35 +123,29 @@ class BuiltinTools:
             commands[name] = list(argv)
         if commands:
             async def check(args):
-                return await self.processes.execute({"argv": commands[args["name"]], **{key: args[key] for key in limits if key in args}})
-            for name in ("check_run", "test_run"):
-                self._register(name, "Run a developer-configured validation command.",
-                               schema({"name": {"enum": list(commands)}, **limits}, ["name"]), check,
+                return await self.processes.execute(CheckArguments.read(args).invocation(commands).supplied())
+            for name in CheckArguments.NAMES:
+                self._register(name, CheckArguments.DESCRIPTION, CheckArguments.choices_schema(commands), check,
                                contract=execution)
         if allow_commands:
-            process_schema = schema({"argv": {"type": "array", "minItems": 1, "items": string(minLength=1)}, "cwd": path, "env": deepcopy(environment), "stdin": {"type": "boolean", "description": "Explicitly open an input pipe for process_write. This is not a PTY."}, **limits}, ["argv"])
-            self._register("process_start", "Start an argv command; returns an ID for polling/cancellation.", process_schema, self.processes.start,
-                           contract=execution)
-            self._register("process_write", "Send exact text to a process started here with stdin=true, or close its input. No automatic newline. Do not replay uncertain writes.",
-                           schema({"process_id": string(), "text": string(), "close": {"type": "boolean"}}, ["process_id"]), self.processes.write,
-                           contract=execution)
+            self._register(ProcessStartArguments.NAME, ProcessStartArguments.DESCRIPTION,
+                           ProcessStartArguments.schema(), self.processes.start, contract=execution)
+            self._register(ProcessWriteArguments.NAME, ProcessWriteArguments.DESCRIPTION,
+                           ProcessWriteArguments.schema(), self.processes.write, contract=execution)
             prefix = list(shell) if shell is not None else []
             if isinstance(shell, str) or not prefix or any(not isinstance(item, str) or not item for item in prefix):
                 raise ValueError("shell must be a nonempty argv prefix")
             async def execute_shell(args):
-                return await self.processes.execute({"argv": prefix + [args["command"]],
-                    **{key: value for key, value in args.items() if key != "command"}})
-            self._register("shell_execute", "Execute a host shell command and wait for its result.",
-                           schema({"command": string(minLength=1), "cwd": path, "env": deepcopy(environment), **limits}, ["command"]), execute_shell,
+                return await self.processes.execute(ShellArguments.read(args).invocation(prefix).supplied())
+            self._register(ShellArguments.NAME, ShellArguments.DESCRIPTION, ShellArguments.schema(), execute_shell,
                            contract=execution)
         if allow_commands or commands or git:
-            for name, method in (("process_status", self.processes.status), ("process_cancel", self.processes.cancel)):
-                self._register(name, "Inspect or cancel a process started by this Tool collection.", schema({"process_id": string()}, ["process_id"]), method,
-                               contract=mutation if name == "process_cancel" else self.READ_CONTRACT)
-            self._register("process_output", "Read retained process output incrementally. Offsets count decoded Unicode characters independently in stdout/stderr. Use next offsets to avoid duplicate text. truncated means configured capture discarded output; stream ordering is not a global event timeline.",
-                schema({"process_id": string(), "stdout_offset": {"type": "integer", "minimum": 0},
-                        "stderr_offset": {"type": "integer", "minimum": 0}, "max_chars": {"type": "integer", "minimum": 1, "description": "Maximum characters per stream in this page."}},
-                       ["process_id"]), self.processes.output, contract=self.READ_CONTRACT)
+            for name, method in ((ProcessReferenceArguments.STATUS_NAME, self.processes.status),
+                                 (ProcessReferenceArguments.CANCEL_NAME, self.processes.cancel)):
+                self._register(name, ProcessReferenceArguments.DESCRIPTION, ProcessReferenceArguments.schema(), method,
+                               contract=mutation if name == ProcessReferenceArguments.CANCEL_NAME else self.READ_CONTRACT)
+            self._register(ProcessOutputArguments.NAME, ProcessOutputArguments.DESCRIPTION,
+                           ProcessOutputArguments.schema(), self.processes.output, contract=self.READ_CONTRACT)
         if diagnostics:
             inspector = DiagnosticTools(self.files.root)
             for declaration, operation in inspector.declarations():

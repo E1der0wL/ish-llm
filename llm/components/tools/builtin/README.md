@@ -12,6 +12,7 @@
 | [files.py](files.py) | 지정한 root 범위의 파일 조회·읽기·작성·수정·삭제를 구현합니다. |
 | [file_values.py](file_values.py) | 파일 Tool의 공통·작업별 입력 Schema, 조회·변경 결과와 휴지통 ID 계약을 선언합니다. |
 | [processes.py](processes.py) | 명령 실행·pipe 입력·출력 cursor와 프로세스 종료를 관리합니다. |
+| [process_values.py](process_values.py) | 프로세스 상태·입력 Schema·명시적 실행 인자·공개 결과를 선언합니다. |
 | [diagnostics.py](diagnostics.py) | Linux 시스템·프로세스·표준 I/O 연결을 읽기 전용으로 조회합니다. |
 | [diagnostic_values.py](diagnostic_values.py) | 진단 Tool의 입력 필드·Schema와 시스템/프로세스 관측 응답을 선언합니다. |
 | [arguments.py](arguments.py) | 내장 Tool 필드 선언에서 입력 조회와 공개 Schema를 파생합니다. |
@@ -55,7 +56,7 @@ stderr_offset, max_chars를 받고 next_stdout_offset/next_stderr_offset을 반�
 offset은 Unicode 문자 단위이며 분할 도착한 UTF-8 문자는 완성 후 공개합니다.
 max_output_bytes에 의해 버린 출력은 truncated로 표시하고 복원된 것처럼 반환하지 않습니다.
 프로세스 ID와 출력은 Toolkit 수명에 한정됩니다. 재시작 후 자동 재실행하지 않습니다.
-상태는 `processes.py`의 `ProcessStatus`가 소유하며 생성·감시·취소·출력·입력 경계가
+상태는 `process_values.py`의 `ProcessStatus`가 소유하며 생성·감시·취소·출력·입력 경계가
 같은 선언을 사용합니다. snapshot은 기존 문자열 상태를 반환합니다.
 
 shell_execute/process_start/test_workspace_execute는 선택적 문자열 딕셔너리 `env`를 받습니다.

@@ -247,7 +247,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(git["stdout"], "?? result.txt\n")
                 start = await registries[0].get("process_start").handler({"argv": ["/usr/bin/env"], "cwd": str(first)})
                 toolkit = next(t for t in runtime.builtin_tools.toolkits.values() if t.files.root == first)
-                await toolkit.processes.sessions[start["process_id"]]["task"]
+                await toolkit.processes.sessions[start["process_id"]].task
                 output = await registries[0].get("process_output").handler({"process_id": start["process_id"]})
                 self.assertIn("HUB_SHELL_TEST=A", output["stdout"])
                 self.assertNotEqual(registries[0].contracts(), registries[1].contracts())

@@ -6481,7 +6481,7 @@
   {
     "path": "llm/components/tools/builtin/arguments.py",
     "sha256": "452bd0ccebdd2d713263b1af581c79cae11abc7f2edbbbdb0ab29a71c88286da",
-    "reason": "Entire declared-field projection and Schema derivation reviewed. Required fields remain required, explicit null is retained, defaults are only local dataclass values, original input is untouched. Other boundary fields are not interpreted; ToolRegistry remains the admission validator. File inputs also consume the unchanged Reader/Schema projection: required paths, shared limits/traversal filters, optional range presence, original requests and Schema copies are covered.",
+    "reason": "Entire declared-field projection and Schema derivation reviewed. Required fields remain required, explicit null is retained, defaults are only local dataclass values, original input is untouched. Other boundary fields are not interpreted; ToolRegistry remains the admission validator. File inputs also consume the unchanged Reader/Schema projection: required paths, shared limits/traversal filters, optional range presence, original requests and Schema copies are covered. Process requests also consume the unchanged field projection; explicit env/limit overrides and omission are verified without changing admission validation.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -6497,12 +6497,14 @@
         "declaration": "llm/components/tools/builtin/arguments.py",
         "consumers": [
           "llm/components/tools/builtin/diagnostic_values.py",
-          "llm/components/tools/builtin/file_values.py"
+          "llm/components/tools/builtin/file_values.py",
+          "llm/components/tools/builtin/process_values.py"
         ],
         "tests": [
           "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_builtin_tools.py",
-          "tests/llm/test_builtin_file_values.py"
+          "tests/llm/test_builtin_file_values.py",
+          "tests/llm/test_builtin_process_values.py"
         ],
         "complete": true
       }
@@ -8564,6 +8566,1073 @@
           "tests/llm/test_builtin_file_values.py",
           "tests/llm/test_builtin_tools.py",
           "tests/llm/test_test_workspaces.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/tools/processes.py",
+    "sha256": "12b63fe7fcfaa4ca48903ec5ad46af52d76d3ce49b339c55eccb0db293ce69ce",
+    "reason": "Reviewed the entire captured-shell environment subclass. It still overrides public start, snapshots the supplied Host environment and preserves explicit invocation env precedence through ProcessInvocation.with_environment. Actual queued/concurrent/restarted approval flows and unchanged original environment Assertions verify the consumer.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "ShellProcessTools",
+        "declaration": "hub/backend/tools/processes.py",
+        "consumers": [
+          "hub/backend/tools/builtin.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_process_group_cleanup.py",
+          "tests/hub/test_shell_environment.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/process_environment.py",
+    "sha256": "77c3c5c97b3c500147763d3712bf39d9f7e1c484d7e7a440c109992094ff6059",
+    "reason": "Reviewed complete environment validation/copy and its single public Schema. Reader body retains Mapping/string/empty-key/separator/NUL behavior; 13 old/new value/error cases agree. Schema preserves exact old metadata and accepts no implicit merge/coercion. All other runtime runner AST is unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "20220d9256d5b8bd8c046791eb46a56f24c3796fd89bcec313e04de15ae507ac",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "f9e2c2216365c36abb078be0edadea3dcd90e7578eb7428a563f4863fcf6195d",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "0c8b8033b455ca0480801f983ee14cfa0b59dc3495b0cae9d9bb06f8c6ecfa1f",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "728c3876b660d9ee745dd50bfe23786343028727d1562d46b93359cf2f812ef8",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "df57f892d33fe70f5f1cbb03a09b12a204723e4806c9be888ab05eb3a62ac0dd",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "2191d992849a75a81caf33f96deeee5b4abda2b11b44127d3fae4e6d46a1f5ea",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "762b98d5e901e7fadaaa82274ad6ef55c189313d696242d66bf259a76f8f4b4d",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "2d749b34129a2af32dc42c4dd9fd539f0120fcbefb169fac0bb4a2f8054d405d",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "02ebeff9c09b51efda997e3d808cdba6e16b0a7fb93615bfb703ed5ca965891a",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "b9128fd4171ac9c348ad88813d22c8ea69a24ea44407fbd5e741d1efbd7860c8",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "3fc321cdd1dfe6d4d1ea16de0a3fe787f793aee0645d650abb1d9c49df3a4900",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "f8519fbd7ec9fb8eb91b8aa6366ea9016ece6d8e1d1e97d99b3497d59cd270ef",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "62a2935716dea615b71139156e2cd97286f93f4f8b750fbdf126ac43419f3bfd",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "eb2119706c16bd181adba74c725d60e3f5a527a208caf84e3bd289646583758a",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "6ee5d6794bae5d60ca883693c38d8130a4a5ec1af84b3cc1598639a966cb4516",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "6812e3300b9be30db00ad4706c81edf8fffa1ec9477edd4661420af8962797ac",
+        "classification": "declaration",
+        "owner": "ProcessEnvironment",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProcessEnvironment",
+        "declaration": "llm/services/infrastructure/process_environment.py",
+        "consumers": [
+          "llm/services/runtime/processes.py",
+          "llm/components/tools/builtin/process_values.py",
+          "llm/components/tools/builtin/catalog.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_process_group_cleanup.py",
+          "tests/hub/test_shell_environment.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/process_values.py",
+    "sha256": "3489ae3d30ea56a91f84399c6d81743081d86090b183c8ccd42a4791da67dba6",
+    "reason": "Reviewed all process/check/shell fields, Schema derivation, explicit-only invocation projection, effective limits/input validation and wire serialization. Environment semantics delegate to ProcessEnvironment. Six old/new catalog configurations preserve definitions/contracts/bindings. Output fields and status values are declared before conversion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "13aec3fac71f0158b957dc5d98eb2c679c699b3627fae4d3da4e6ec6bfecac78",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "cb0329d389baab7b414b921077b14ca6c8f3730099b54e11b57f4c92a7aaddfc",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "21681b3002399b67c5c7d776387f0d51bc82e37dd62bd011812ad08792612a10",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "7aa24fbc8d08a148fea6222f6bebc52fc4b038f784a60256e5bacf28be259e0b",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "9d0d0960610420f131d14c34b6bd1e03ed56cc7e5a360ae3340238e843e38a7e",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "95677fb63d083135a6d16d99b9a5a55db3ae3ac5badd1daae516934e5f83f1cd",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "5fcee66e4741d4fd6e57a31c976e6c198ab4089adc134ed21534b6288fdb6b11",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "1513376fb54820f3877bc7df0e700426cb8b471fb41d8e00dc9e94a6f0ff96d8",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "fb00bc6c27013ad06ab7c39b1154f312636c044dd9f86e9e75dab320fd012d6e",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "470f20317654e0a83fb632646dc9f322dfd43c054a18dbf942788f16291a1e6f",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "335467eecd07f7008b3649a3edc29794943cb82545e9ceba60693114f6fd0f46",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "1d891c83cdd4c1b2d01637bc73cb9b5d75213f74a921bcdcf8b612d434844913",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "2a29bcb8b5eb06f8c40d29551cbdba8274449d02692a648fbcfdc2bd9d2fc179",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "c60ead4caa80518528707228458f27bcf6cca8ec17a45750202f57bb04620f80",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "dbfd6047db089d4ccb49850637e3eac7d4fe03c288da4da5e09df47c068e1b3d",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "8ed691e8e24e93bcbf2318263517304f9b1186f3f081ecfc094c69fae7dea15b",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "fe687605ae9e20ccd71b2e77dec130e3cc6a163f1bf5afff94592c9d3721b8ea",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "b5a49c130902f54b5e8a1e661638afc4d048fe8d71ca69cd57fa21154801ad82",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "88a34fc7835292761e7a065db3cc03a1f1d8f7dc5351dd15d268a0236f0ac681",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "9884f66c3eacc1215aecf878118a30640799282e2d577fe652e9aadbd43cbbc0",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "4aba10c5bba77d3278d3f9df0603abc70716af13fc326796de82c822ca94dabc",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "04e78e3f613eb20767a935845a3e9dee6ab31c4d73c81f8a69907c00b2a291f1",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "3720b5e90b6e8145f0c32e1e0f761a2003c88817b10096c16d2d9fd3f5817f1c",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "af3ba59f45d66123222efc12b702b9090d0da1075fd9ea57e42b9de560c0d350",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "c6e5db16b96361a9ab931a9093818a553bd60c0e65a95ff2ad39eee696db8b76",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "b11828d323d4b0567f0876df3c4a08d48705e8f6c0b0d125588e7a7e60972f74",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "d5b11839f8865d4c33bb5ff8d654bfeb74dd378c79605377ea19a293368f1a0b",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "f32c8e2ef2212591f2d677a53662f46ca0a5c88066ffc173d170036bdf5c2299",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "09348deb1eba54fccd44c13c60f1b66d4ee61eac0b12183c53b49e913ede5e15",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "08488c7fd4010edfd6b15dafe80a508b6a5b9a075040d5aca6506158c30666b0",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "22a54a70a868fe00059926aacb7356f2432d3e3225c2ca07dc7bfafe2a638f6d",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "4832257fcf97ca98ab0ddee8e54763f6f3d07b7f54ea6ce52623ed8fd2b39a59",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "c8bbcab870e6a438f318a0b151e064a1e855fc1ad005c6e2281074f306df15e0",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "f18d605312dd267e2e5c8762244299ca4079bf078327f006ef30dbb634e0dd12",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "cab27c1b4c1a259088b992b31a5b4de740179d3893c722728ee7674aca4895fd",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "86055f334b173a7fba6891d610f966092a3d1111e5fdd9b769efdb3b815edfe9",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "08c4d0065b230ab57a93171c9c4a598da2b4c8e3c9b0197662b8ae6c3cbb789f",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "e657539f9d707322c5e4fdab33446ad5eb71ae92d3dc423a174d789b6a35da8e",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "b01d5521c7451397cfc2242ea4a7620d30f8943476e9cc1135cfa08a84cee0b2",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "bc70d514a3295c244b5b65d051c608eaa3338bac4856a431f4389cce5a6fb126",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "1fee0f55b234ae28b6b2ca4c9f707e561a840a85b6db5fed31f114736722f651",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "de7fb3e78e773d9476f1a6e2c73a53400889d756f9d8f29c6276f681e9a992d0",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "bef676e885e30496867d863e56695cd203cbf40c6a62c332e7e8534f61554e57",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "0c2979be514e34e3baafb4844785d6e8c8b21a9e06c8f60e71a9f4e5c9b58d10",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "74f9b7d09670ce4234696f38b39b6aa607c7e9280db581827c9819fd1eb05443",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "e715e083dff707d1b871cd6065044c3682a28391a1b38a2807730bb9eca4c31b",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "29cdc66272480baa09911dee706b040687c65db3eb22a84369e720a11b44bbf5",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "79fb5c8fb419027420b51a427f9a835ce2d0f65ae5f50c00ec9d90fe87da9ce8",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "11f974c5be74b92d86949b2c50bde3e6be6afb0563c6ddaeeaff7422c4b71a68",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "5eee65b2df1f365b7df6c27789a645bd083e05d8c7568a4526a927350f0eec7a",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "21b273c9a513b8a28ffe19ee5ab5cb7c848c7b79e5d24c7658af1b46f71951c1",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "f5d31efd8097a54a4d5656b1a690c69cc2b95f498bed7159e258ceb5b1ab2a73",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "80945961cd52e2bfa744c5f0cbfe656e7e3a537ca9fb9bb1c8e96d0d10ad5d0a",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "ddd2ab1c7b22aaae270a02abae3fcc25698c3d208ff167e8d1c3df2b0e5a2bc9",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "a8da5f71db7ddebe9b600f431e68f41ae9393e54628569d3be4da4534b0b58e5",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "57bdb391fa082011314b517a733d3570a0b53da35308399b477f73a4b185147a",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "aadd0663eac84af77ec0e71c9ddf31791ccdd46d352d335b5c72beb16f90ed15",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "e6ff28021a89df432a3ece27c708ae0a119898d121b518e436529c5dbce6d3cc",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "6673ee232607135add0b621ed8d63bbc391ce8fca20016386680952a8a6ec347",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "6d0c2876e8e307144134f0051841079422c29158394a5e4c0e5a0688f58c7e12",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "b345df9741f48555dad7f172e4eb1baf52c39854075d75e281eda0a76bc95092",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "712799b97a28ee27185360575649b9d156e1af08669c58f96fb0b90088b9e860",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "367f185417bd8246ddc4408d030d809c840887c0ee985557b962c3e3c351b236",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "e6612d4ee33df4d887e896d2365d2653dfa84eff806066fd3effe074fe61edc7",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "299338a64d7dc735130fc2ddb3826e031c03449f40d0c249e39047b2a4041bea",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "b262fca5e0ae3f476b513a020eaecff70abfc5a21234842c0de5ca111a71738c",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "0dab9658a89e2eecf2d01f8bc1085ceda9ae3f3aee1778b339e2abd27a8bef57",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "1cfc706ee87be7f4e7f6a9f411b95d105065e964db891fe62689c062110186d8",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "38201ce55faff7b36a9b373de727ba659b4c2bdd310dc3a77a2d649721007822",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "38fe3ee1c746daace49cd3fdb0f0af2e1e94d821c53b4565fc89046999c3e72a",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "339270829b80c14b68e8e697cf095067eaf41049192331ea8b7abd28ed31983a",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "f3b393e48ed28815c00fca0d24498416b2743d6f6823e4922182700c1e3b8ae8",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "524ba1cc233a347d72bde23db8abb9f3b3627c5bf46ac80356834b43cc108909",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "0b638046d537aab64e5a114a7210e283f2b57122dc0fd0ac9da8aae643328279",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "c2b3edfb40f98a6be2ee1a14e4571334f51d276a0ee697247836086db648c014",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "2baed931082e0264bfbc2b9a986fda343f36a614c114d087c0831e412c0311ba",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "e2cf0976d3a83b085a709a1d801feb61949dc79f653b05194768511181d685f9",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "ef967cafcb7c9d750e883cd50c6a2c18113f8e38b130dfa0f4706a9ac0f905b5",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "e1c122cd11e5a46ad546c07c99fc6d46c6195c99c9802f532271e2530e9e7ab5",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "c5bf271a8703041659cb58d8d748dcc42e23bf3e25475e0776872f8860018f8d",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "8347acf2814698206feb56ae9f2428467f44b2b1d9b83cfb0fbe93864b2957c8",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "25dca8b041956771151bbc98702db09c35c615be1ed3a5e0f84c5a85a562892d",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "47d2359c1ec8d14c4ddcfd1b6ae2332faa0559b24b9e51253c41a2108be57aed",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "848db6186f326193ae237bf241d2fda8e4ae171f89e83edc06b67a9eccb6cc11",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "33fd1c90c8253e3f8df999838038362998d37601ef0b637782ca0610b12e5af2",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "06423afec8d4d1b1aa38a55ef313bff1fb5db712d8ed788ecefa091c99ede2fe",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "7f27123ae44e8b57cdc19453a87c7a22d26e6a6122dee0301cb0edce1511f7a7",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "4093a8e798ebc3b7b30b4b24ac87dc8176b709ab71a180cb7bf713544ffe5442",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "4b2b66beb48e61411fa959fc734216a887c1aa61f9fc8e8175cfde814a91bc0b",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "62cebfa6500d5593ad6b6cf8b86e04a66daac69f31720d364df140476a9ca397",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "d9f15b6d136b6609f58033e7aad6a08e1168db51699ea97e7fcb39d9added958",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "e2ad0ccf19b5a1e2aefd9a8907651b67d4d3a2f1d74de44f3cd77425d2f16492",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "d627c05d629b020c6b845e9087ba1c29fa29d0b88de10a89dcca9607a885572a",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "86f1e1a93123c256b41b4cb5cbd99f6387c12edf55f9d64b931f55c3e0599fe3",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "0715a2878a890ab5ad133ed4a241164b76f6e84b351ceb3ec10b17fd5c4b7fe6",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "a6a699cb0cc7785ace44a90487b66ad0d5419206e71d5e6abcd2f080cfb3fed0",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "a8369126eb2664644592203a83e5dded22ebbb587fbe3e4b23e8b68a270b5a9f",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "ca4d8dd4dc5047238925b7cd8fe03112115e564c251ccfa02466b2763a183ab2",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "a7699307c4bec7217683f0d30797c7bdc3bc437ecad2f9900027f30609dd6d35",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "7e18bf399bc883ed1a684a20190544cd79e9edba1ade08e0f1d923b3d61e282f",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "e96aadc9e69af829664a2431f7e7f547fb2ff2e11b1d6d7918e3ca3536852e3b",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "97cc54a23f48e96e7160c80146a59ff23dcdcedc4b067cedf2e718701976b724",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "08e6e8b651a7e93bd2149994521704351514c62d50e953c2e0b0aad8d35345d1",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "1af71a52e3c2ed62eba76854cc5309df7b0a57b570a2cab2afa009318ea6879c",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "badf87b6ffd84bccc4b09676399fe1da18a3783ac99e570a50013fb281f116c0",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "02b71b0a7aaf45288ef90a7f0ded772c6d139b1857bb5e11a16e3b41893a8811",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "fca92ca6a26500cda37dbab745b0359bd23dc1bc97023f4560c91ed24cca86cc",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "38832b4c57944a0e74a64bf6e35e26fa0cc47e3bf07e16d5fceb3c1f06252d4b",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "ed31828740e16189ecacc9fcf2bd3e6183de4e24d5a41ac5bb3a66f4ce1741df",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "4cd10ec0290182c04f5c3339d7d12973a2df3ed530cc33381aee854dea0baba5",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "146f2e2668fffa16af255c8a5ba86c774776b8ba957470babcc0b07867150fd5",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "32c90ba99078d2d867acc03269cf466218d469cf43be1960002afb5dc9b5d494",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "bfcc22780d9eb30499a34c57ce63e907251a11230a0657b7c58a3e6c0b3f5a3f",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "ef695550f2f8baa246368e1f04470cfe499908c56c39122e415c1349c90ded21",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "b1644402e4fb0ec6cde13ea056f85174690d9bae9ba130c605731f82d31e1897",
+        "classification": "declaration",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "9aeb61d344ce24b7f50bc484af315666e8ac6ad69ff2a0c01ae4413887c0b5e4",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "78e0683527c3e47a458244888f9b2b57abcc145617f3ee4f17e09bdad89fbf4a",
+        "classification": "non_contract",
+        "owner": "Process input, limits and response Owners",
+        "reason": "Python dataclass construction flags."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Process input, limits and response Owners",
+        "declaration": "llm/components/tools/builtin/process_values.py",
+        "consumers": [
+          "llm/components/tools/builtin/processes.py",
+          "llm/components/tools/builtin/catalog.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_process_group_cleanup.py",
+          "tests/hub/test_shell_environment.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/processes.py",
+    "sha256": "8ced4ba0c575fd1b1a512a7ab684ba5b226a7f5e492449644100af67d2a6b136",
+    "reason": "Reviewed full spawn/monitor/read/input/stop/shutdown flow and every builtin consumer. Typed session state replaces internal dicts. Fixed stdout/stderr pairing replaces composed names. Snapshot/output/write values own serialization; execute/cancel preserve the public override hooks; ProcessSnapshot owns projection of the returned identity. Existing checks/cancellation/draining/timeout/byte bounds and state assignment ordering remain. Actual split UTF-8, input, spawn races, group cleanup and environment/effect tests pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7394068eb88a1c8e7274ca0c4c8da760b13e5f9e8b7338e7b23a2006cb0186b6",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "73d2c3e552f367a3b1a538f58c26537a0b6b04a761061b0c25d35c48599d4402",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "032e2f9dc66dd4a9b79fcf19de68a66c940597dbd137a449bdc8f799cef99e91",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "87a2ec3fb6bb5417addcdc47a579fcbf10c2c4703569b44daa2358cf9cd4a452",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "5514911fe9a25d88a06a793d1897b9c2d54f0f7255b394c48040d3b361b2acd4",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "9de1c59d8ea34c30f4ed2e937bb40997baa47d6821b803f73d8e45ff93b27aab",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "433c8b312270bcb4bb7ecaf6cfa32fb28142c051401029effee6981a46975720",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "609ab5751377ea08fda2513c17bcba9eb65d3784499cb0ea455243110958d5a2",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "065040ba7ed160490d2a74adbd3f607d82511e05f734c7fb725a5911635000ef",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Python dataclass construction flags."
+      },
+      {
+        "id": "59b063e9ec6f654d89ba989b45a20ee95725edeeb2079520b00def3877051aba",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "0fe403d4789e2bc6a154b2d7369e19146275b089fc3aecdb42ee4ee52656d64f",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "98c43fb2f2638d43b820c507998fc4eb276326dc6c1feeb149527c7cfa73ea36",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "55ebd206468c22b2e70fdf058ca816543284c9a2082897554b25300b2b41231e",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "7f259016a6ecc25e9b7f6ef2d92a505ff9d74e3854ca2037ed8b26f96bdf2869",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "73ce96b6697d19532e605ca6482163a3dd5341f4d1a9a9f0a41ad7d4718bbb79",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "86821e405ae71a0304b321df6869f9da0addd842a30cb046073cde88a217a930",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "cfb011bf0ab707be0c99b06ce64c0ef5982664186ea214449a4ea0714b771033",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "16281b2764296e45a8cad4e2835857c0f8ff881b2d3947de56b1893c58ae30a4",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "03270c99d61b39dabd18d587616ccdcd011356c5032cd16b8a36b7855c698e00",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "3ff4074c1fefa8599ba48835fad067895c1be483feed3b2982af4456df580018",
+        "classification": "declaration",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
+      },
+      {
+        "id": "135803b4d4964a711e9aa4d5f21073393494d6874c8c1a0b64dda7acfeae4a2a",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "180c4e400ad937af539bde896090903e4142d5ec2322e326973e3b13a5217879",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "db6b47038748b99480a4d1baddcbb56f11593cb06b6724b46ec380543e337621",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "c25790ef4da844c2a10b576ac2fc1f71892909ab75caf6124c6cecec96970222",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "2d7ae7ff790a76dd7fa0b43fb7ced6a0d6ee82552e3fdf94ec3a4dd616885ac8",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "6d66a90c3b6bf96a9ef57bac7727fb602a2684d43cc5fac683875c415ecfd08e",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      },
+      {
+        "id": "33e95530c5e98148bacb8246b8b0f90fba8a8bc7032833a2fcbce0f52d4d835a",
+        "classification": "non_contract",
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProcessSession, OutputPage and ProcessTools",
+        "declaration": "llm/components/tools/builtin/processes.py",
+        "consumers": [
+          "llm/components/tools/builtin/catalog.py",
+          "hub/backend/tools/processes.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_process_group_cleanup.py",
+          "tests/hub/test_shell_environment.py"
         ],
         "complete": true
       }

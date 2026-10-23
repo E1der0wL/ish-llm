@@ -11,6 +11,7 @@ from typing import Any, Mapping, Optional, Sequence, TYPE_CHECKING, Union
 
 from llm._platform import require_linux
 from llm.services.infrastructure.processes import kill_process_tree
+from llm.services.infrastructure.process_environment import ProcessEnvironment
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.policies import ExecutionLimitError
 from llm.core.tool_contracts import ToolIsolation
@@ -20,15 +21,7 @@ if TYPE_CHECKING:
     from llm.services.runtime.tools import ToolCall
 
 
-def copy_env(env: Mapping[str, str]) -> dict[str, str]:
-    """자식 환경을 검증·복사한다. 부모 환경 병합이나 값의 문자열 변환은 하지 않는다."""
-    if not isinstance(env, Mapping):
-        raise ValueError("env must be a mapping of strings")
-    result = dict(env)
-    if any(not isinstance(k, str) or not k or not isinstance(v, str)
-           or "=" in k or "\0" in k + v for k, v in result.items()):
-        raise ValueError("Invalid process environment")
-    return result
+copy_env = ProcessEnvironment.copy
 
 
 class ProcessToolRunner:

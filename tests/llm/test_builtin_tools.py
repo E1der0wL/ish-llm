@@ -204,13 +204,13 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             "import sys; print('ready', flush=True); text=sys.stdin.read(); print(text, end=''); print('diagnostic', file=sys.stderr)"])
         pid = started["process_id"]
         async with asyncio.timeout(5):
-            while b"ready\n" not in self.tools.processes.sessions[pid]["stdout"]:
+            while b"ready\n" not in self.tools.processes.sessions[pid].stdout:
                 await asyncio.sleep(.01)
         first = await self.invoke("process_output", process_id=pid)
         self.assertEqual(first["stdout"], "ready\n")
         sent = await self.invoke("process_write", process_id=pid, text="한글🙂\n", close=True)
         self.assertEqual(sent["bytes_written"], len("한글🙂\n".encode()))
-        await asyncio.wait_for(self.tools.processes.sessions[pid]["task"], 5)
+        await asyncio.wait_for(self.tools.processes.sessions[pid].task, 5)
         second = await self.invoke("process_output", process_id=pid,
             stdout_offset=first["next_stdout_offset"], stderr_offset=first["next_stderr_offset"], max_chars=2)
         third = await self.invoke("process_output", process_id=pid,
@@ -231,13 +231,13 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             "import os,sys; data='한'.encode(); os.write(1,data[:1]); sys.stdin.readline(); os.write(1,data[1:])"])
         pid = started["process_id"]
         async with asyncio.timeout(5):
-            while not self.tools.processes.sessions[pid]["stdout"]:
+            while not self.tools.processes.sessions[pid].stdout:
                 await asyncio.sleep(.01)
         first = await self.invoke("process_output", process_id=pid)
         self.assertEqual(first["stdout"], "")
         self.assertEqual(first["next_stdout_offset"], 0)
         await self.invoke("process_write", process_id=pid, text="continue\n")
-        await asyncio.wait_for(self.tools.processes.sessions[pid]["task"], 5)
+        await asyncio.wait_for(self.tools.processes.sessions[pid].task, 5)
         self.assertEqual((await self.invoke("process_output", process_id=pid))["stdout"], "한")
 
     async def test_input_is_opt_in_and_waiting_input_is_cancelled(self):
@@ -282,7 +282,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_process_output_limits_and_nonzero_exit(self):
         started = await self.invoke("process_start", argv=[sys.executable, "-c", "import sys; print('x'*5000); sys.exit(7)"])
-        await asyncio.wait_for(asyncio.shield(self.tools.processes.sessions[started["process_id"]]["task"]), 5)
+        await asyncio.wait_for(asyncio.shield(self.tools.processes.sessions[started["process_id"]].task), 5)
         result = await self.invoke("process_output", process_id=started["process_id"])
         self.assertEqual(result["returncode"], 7)
         self.assertTrue(result["truncated"])
@@ -300,7 +300,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
     async def test_immediate_shutdown_cleans_process_before_monitor_starts(self):
         started = await self.invoke("process_start", argv=[sys.executable, "-c", "import time; time.sleep(20)"])
         await self.tools.close()
-        process = self.tools.processes.sessions[started["process_id"]]["process"]
+        process = self.tools.processes.sessions[started["process_id"]].process
         self.assertIsNotNone(process.returncode)
         with self.assertRaises(RuntimeError):
             await self.invoke("file_list", recursive=False)
@@ -315,7 +315,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         pending.cancel()
         with self.assertRaises(asyncio.CancelledError):
             await pending
-        self.assertTrue(all(item["process"].returncode is not None for item in self.tools.processes.sessions.values()))
+        self.assertTrue(all(item.process.returncode is not None for item in self.tools.processes.sessions.values()))
 
     async def test_cancel_during_spawn_drains_full_output_pipe(self):
         create = asyncio.create_subprocess_exec
@@ -376,12 +376,12 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                     code = "import os; print(os.getenv('ISH_ENV_VALUE','missing')+'|'+os.getenv('ISH_ENV_PARENT','missing')); print(os.getcwd())"
                     started = await self.invoke("process_start", cwd="sub", **options,
                                                 argv=[sys.executable, "-I", "-c", code])
-                    await self.tools.processes.sessions[started["process_id"]]["task"]
+                    await self.tools.processes.sessions[started["process_id"]].task
                     result = await self.invoke("process_output", process_id=started["process_id"])
                     self.assertEqual(result["stdout"], expected + "\n" + str(folder) + "\n")
         self.assertEqual(dict(os.environ), before)
         empty = await self.invoke("process_start", argv=["/usr/bin/env"], env={})
-        await self.tools.processes.sessions[empty["process_id"]]["task"]
+        await self.tools.processes.sessions[empty["process_id"]].task
         self.assertEqual((await self.invoke("process_output", process_id=empty["process_id"]))["stdout"], "")
 
     async def test_environment_validation_precedes_spawn_and_is_scoped_to_execution_tools(self):
@@ -406,7 +406,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         first = await self.invoke("process_start", argv=[sys.executable, "-I", "-c", code], env=env)
         env["ISH_ENV_VALUE"] = "mutated"
         second = await self.invoke("process_start", argv=[sys.executable, "-I", "-c", code], env={"ISH_ENV_VALUE": "second"})
-        await asyncio.gather(*(self.tools.processes.sessions[item["process_id"]]["task"] for item in (first, second)))
+        await asyncio.gather(*(self.tools.processes.sessions[item["process_id"]].task for item in (first, second)))
         for item, expected in ((first, "first\n"), (second, "second\n")):
             self.assertEqual((await self.invoke("process_output", process_id=item["process_id"]))["stdout"], expected)
 
