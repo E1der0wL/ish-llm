@@ -44158,7 +44158,7 @@
   {
     "path": "llm/components/memory/records.py",
     "sha256": "cdb84d5ded4931896e5ef8a991eccda6c5fe235709e379ade2efc507d79ea9ae",
-    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete. Extraction and Tool candidate projection consumers are now connected. History uses Record typed properties and transition projections rather than foreign raw keys. Full old/new history checks were repeated on this source. Remaining consolidation and other unreviewed consumer paths are not claimed complete.",
+    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete. Extraction and Tool candidate projection consumers are now connected. History uses Record typed properties and transition projections rather than foreign raw keys. Full old/new history checks were repeated on this source. Remaining consolidation and other unreviewed consumer paths are not claimed complete. Consolidation metadata and journal consumers are now connected to the dedicated operation Owner. Direct Record field reads across Component/Data/Processing/History/Tools/extraction/consolidation were rechecked: remaining identity-file and model Tool-call id fields belong to separate contracts, not MemoryRecord. This closes the recorded cross-consumer Record follow-up, without claiming those complete files are reviewed.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -44486,7 +44486,8 @@
           "llm/components/memory/tools.py",
           "llm/components/memory/extraction.py",
           "llm/components/memory/tool_values.py",
-          "llm/components/memory/history.py"
+          "llm/components/memory/history.py",
+          "llm/components/memory/consolidation_records.py"
         ],
         "tests": [
           "tests/llm/test_memory_component.py",
@@ -44497,7 +44498,7 @@
           "tests/hub/test_memory_manager.py",
           "tests/hub/test_resource_tools.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -45312,75 +45313,87 @@
   },
   {
     "path": "llm/components/memory/sources.py",
-    "sha256": "7827e295b9f364a6fbe43462b7237d4a9be70877ec4b85b6718c4e6e08db7ae3",
-    "reason": "Read the complete file and changed writer/reader/handler consumers. Extraction candidates are a distinct model-response contract sharing Record field declarations and validation, not a second persisted Record reader. Tool arguments/schema are the explicit invocation boundary; source projections keep old API/Tool/processing shapes. Differential traces check missing/corrupt inputs, validation order, copies and zero publication/callbacks on denial. Shared execution authorization and storage/transaction order remain in existing owners. Sources consolidation consumer and Tool name consumption by tool_results remain incomplete where marked.",
+    "sha256": "a471bf5a89b27021f1e0bd8c14552d3f416242a6fd55212768b5e8c94666edfa",
+    "reason": "Read complete declarations and implementation plus actual writer/reader/validator/consumer paths. Canonical summary reply and instructions retain exact wire bytes; partial progress, explicit budgets, cancellation and no retry semantics are unchanged. Consolidation records and provenance retain original structural and reviewed-history checks, digest algorithm, lazy read order, required evidence, all-record preflight, effect order and explicit recovery under existing transactions. Independent wire/error and real file/coroutine tests support these classifications. Broader Memory Component/Data/Processing and File container work is not claimed complete.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "244234dea4744d2a81a60d3c8f9d322580f4128c2ab4d9ae2f93b08740dab126",
         "classification": "declaration",
         "owner": "MemorySource",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
         "id": "d18b3a32b2f85c98bbc920e70240e11d6a648ed0340fec6a90cda41091b48af2",
         "classification": "declaration",
         "owner": "MemorySource",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
         "id": "ae47dfb78bc08e53e27c68729a2a1f93b8872a236f021ada3dcd10f0d5f0d87e",
         "classification": "declaration",
         "owner": "MemorySource",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "dd2bc4b82d55640b27d5b911bbe00f4768fdafb0175791ec0e5ea58c49267021",
+        "id": "2ff93b4b80bb2cfd2c21481b1a441bda25034e7788e6916ba9f8fd963e9a36e8",
         "classification": "declaration",
-        "owner": "MemorySource.Field",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "owner": "MemorySource",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "02ff0329f170dfe37d80f7805bff389f210352f53dd60e62f81d05b1dcd41516",
+        "id": "d606eb2678044654bbe2688e02fd9efe27846d1c653558bfc805a3e55ed3bea2",
         "classification": "declaration",
         "owner": "MemorySource.Field",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "75691238cb2c479d13a39ce05bdaebea6e14b00fad31fbabc06dff96f5215b75",
+        "id": "c7f6dd938e084a714bbe1e1943bff6972774c307415d7a468549b8bc2fd242ce",
         "classification": "declaration",
         "owner": "MemorySource.Field",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "d86af742dca8c83ae17758095eb920f1c79efdce661b486bd7b2820f24549a00",
+        "id": "8f12cbb4b0effad3425ecc394762427bc278e31d0e8b920f09a60b2c47a5c56a",
         "classification": "declaration",
         "owner": "MemorySource.Field",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "1829f8644e8ee326f0e31302b702dd2f3822f361a2a9f45f21c425235276bea9",
+        "id": "32d0f170675924a550b39cd069c78604936e49b320156cbe9ae041e319046f39",
         "classification": "declaration",
         "owner": "MemorySource.Field",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "20c0c5d54fb644f8ad250ca9c00789509507ce039253cbbef71f82549c576095",
+        "id": "743aa4c8b3fe7d99713382bdcae1da669e499d904a7c68e1729c755a1d77878f",
         "classification": "declaration",
         "owner": "MemorySource.Field",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "51d817b26e8c1996b071af77f00a6471a924213eb02a986025f400bb5f83cc90",
+        "id": "585db36f956319ad9d91a53a28c11062f06bc12530aca89c1b1f6d7e5ff3c3d7",
         "classification": "declaration",
         "owner": "MemorySource.Field",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "4213a684c19339dd2c6f32418001854efffba87efd90cee2f9a8d8e093e2c549",
+        "id": "a16aef93e346370e0a0c2ebbf5b10dc09984024f02f5352e61435903b2ae0e7f",
         "classification": "declaration",
         "owner": "MemorySource.Field",
-        "reason": "Canonical Memory extraction/Tool/source field, diagnostic, schema constraint or explicit absence declaration above implementation; existing Record, Prompt and schema declarations are reused."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "c6f0028cbd12e9e64f70e4333b78ed1f785206122b380e911a486255791f1059",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "446dd0cb8454658dd44f60091ed02355f4ada98f3f00a06b264a40d011ff10d9",
+        "classification": "declaration",
+        "owner": "MemorySource.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       }
     ],
     "contracts": [
@@ -45393,18 +45406,22 @@
           "llm/components/memory/tools.py",
           "llm/components/memory/tool_values.py",
           "llm/components/memory/data.py",
-          "llm/components/memory/consolidation.py"
+          "llm/components/memory/consolidation.py",
+          "llm/components/memory/consolidation_records.py"
         ],
         "tests": [
+          "tests/llm/test_summarization.py",
           "tests/llm/test_memory_processing.py",
-          "tests/llm/test_memory_component.py",
-          "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_memory_consolidation_integrity.py",
-          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_work_state.py",
+          "tests/hub/test_summary_api.py",
           "tests/hub/test_memory_manager.py",
           "tests/hub/test_resource_tools.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -46618,278 +46635,283 @@
   },
   {
     "path": "llm/components/memory/compaction_runtime.py",
-    "sha256": "7a22aebbfb10403fdf7fc715000975ae06cb85dad28f670602e9cc5a201ff639",
-    "reason": "Read complete declarations and implementations plus changed Component/Data/runtime consumers. Mandatory state/manifest/cursor/source validation has one Owner; storage remains responsible for IO and transaction boundaries. Required lookup order, callback-before-target assignment, exact integer semantics, explicit resume, source/receipt protection, config restoration and original response copies are preserved. Independent normal-path assertions, differential actual-file/coroutine traces and real safety regression results support this classification. Remaining File snapshot container ownership belongs to the later File owner scope, not a second Memory reader. The fixed summary instruction still mentions the shared summary reply field; canonical reply declarations and parser integration in components/summarization.py remain explicitly incomplete.",
+    "sha256": "df493ee71681da5acafa214e6f93d9a07f2ad79beafdbf6ff58a6ee92b96215f",
+    "reason": "Read complete declarations and implementation plus actual writer/reader/validator/consumer paths. Canonical summary reply and instructions retain exact wire bytes; partial progress, explicit budgets, cancellation and no retry semantics are unchanged. Consolidation records and provenance retain original structural and reviewed-history checks, digest algorithm, lazy read order, required evidence, all-record preflight, effect order and explicit recovery under existing transactions. Independent wire/error and real file/coroutine tests support these classifications. Broader Memory Component/Data/Processing and File container work is not claimed complete.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "b93f4098e7960f5ebfbc760b15653e0e3d375c1f49e012047811ad2cc9af717c",
+        "id": "35c9b5bb8a0f3a68dbd6873b65eb1146d6325e9b9e335c7270b787920fbfc98e",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "f48606f2d2a8d6c58c5740a6d8c8b03c720665525d928902632fc3bdb91533ed",
+        "id": "3d209ab99c54c2feced7b2cfa5904d08c3267a3b1d457c3446276f58dc2f4d2a",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "ceae7aadc73718572644340da59b45cf54e86b31db78822d1e34472333556982",
+        "id": "df4e32d3806ec5598cb5ea793475699f37034279ecf3673532731e8b5e462be5",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "f9b0f780e2c9b54c1e8cc95dde287205063c9b8605e200fcae74d830d41bcdbe",
+        "id": "36cddb320dcb4d87f6fd2f0447242504af8a7a19c39d35aaac3a9b424270a7d7",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "f91b038ac5c1f60fa435c8826dae7cb7ac472610ff36f76ac0418082de877964",
+        "id": "4a9d58b9450ffff18ffbe61cff2d90f3004ffdbc2303f4f40bc439ad8bbd40f1",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "0eb6fc7acfebacb5194e804764506f2b70e2da336398d09d191da6bec9788ac6",
+        "id": "ac3fa27da333a41ae603369f9d2c7c2b82783b67767af1040a7107a4a835fabe",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "33290e17912a0d637d086a57a468373a42921a4ceb72e343a83301f3e6c559d6",
+        "id": "8c08c3c68b79160053cafddba33c804a36c7bf2c367b7764adb598597ac24da5",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "d15a5df630a5287b6a290057c30da47deeba8b81b806e425a07d87f1480117cb",
+        "id": "8ca294486049b8eda2aa6f8f48aa228ffcf1a7e9ce32d1a0e30412dd9c426611",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "7466aa1c940ea8521452dd79a368cbb4e4e3b5a70039999e9a543381f505e63d",
+        "id": "9ef50e6a8992cd027b9f0f498873b9c4afd7f63a676c846ef4502a86859e79a8",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "b85b2ce92607ddebdcab629592edaaae314f7dc1de42b97460c7f06ab31080b7",
+        "id": "dabc54d758ac9e9b6b3448bdda286467987227eadc00e2c54402296e47ea8b11",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "36fa5c5b35cf74e41ee296646863a366e8945e56fec7a058f31bb8186b29b6d1",
+        "id": "2ffd60af2178d2f1cb328abc35a09ab0abae965e1cfa4a51799f4f8f4227dddc",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "de1eb8bf44c34c07143160e0e887a18a9d4b4ed1c4efa16c048eb58a2e591521",
+        "id": "bd1c0da4993fbafc419a34d09cc56041445dea74a15340c294e0002aba8450b4",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "ffa94450c932e001d9ccd0215eba1390fcee43400943e66a8412f36a09ae796f",
+        "id": "16f3c3490bb27daa72d5ef8bb4443c713a609998e9c1663bc7a46cf940045c34",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "02e11c30abd6c7668ba5c1296861833001ddb954d015ac879e75b550ed482b38",
+        "id": "51089d4ce9b571a75411aa618ba3b55eaa1a19d1bb187c839ab5345ded184ad2",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "7d1370cfa9ff970d8af43e153f2dc8cf47dd5cd765bca2f98e4fbf21b5a38f52",
+        "id": "93a1dc4e3954253c5ce4e4d2ac11d196c185d6591e2003c1eb2984f7765321d7",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "06a0271cc142e5897d83c3118804a86d6051169105a11a904183084555f919d9",
+        "id": "efb63dab11bfd66feb42d31b9f5293869da37689db1aba3303ee36419d6f3b35",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "8c8328c92467e82a240efeca4cc5cfc43d8bb3a2442c99abda112004a9d9a018",
+        "id": "d621abb4430a1ef6af7ee8ccce695c32bd54e2ef4b326d703d9d9c39a9df7687",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "f7ffba18dde12ec622977db872339f700a2aabafe5c94e2ea3e0c68765a419eb",
+        "id": "60ab0aa24e8fd956c535dd034866c3da34a889f40897ece3013facc274c2615c",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "8517017fa61eb8ffd5450989346ef0e9e3db075747149aa43257b401a9eaf006",
+        "id": "3e2e82c9e0fba5c6e20650c3c70956a647d5b30e1cd254309b1f0c4a48f11f14",
         "classification": "declaration",
         "owner": "CompactionExecution",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "9fbdfcb8304e7c48f33f34d678cb448fa8c4c0d1f447146e1e2e6237440bf5d6",
+        "id": "7f63e6bc06b604512762121032bedcadc94fb11287c5f4b5dfa78d5faf8103c6",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "afe88fd63908da4ac84021161a80290fb183a65cdc7622b1adf29e24d3a445ff",
+        "id": "4eb66c23243ffda1c1f7f91475f861aef5ba7fc1e6ae86c84e8ea7401f1b4234",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "924c3aa6170890720b2bbd6fd4b790083626083d5486bb43f0d4585464077320",
+        "id": "dc15a27313bc22eafc2fa98b86eff3cde6e9340e642f4a29ea709f77cf9e9b94",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "778e36ddb5a4a6365d6156b686deb3d5e2f8d17aadb980a296cb138bff58f923",
+        "id": "127a5cfd379e5d1c3b784b9379df4536eca96f6593439bb5a80bfe5de8f46fc8",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "13194242f47aa0b4d2342fe07bb82a7816ccfed77dc7f473c0e9792927f24e6e",
+        "id": "6b46739920942c61afe5b6b36e65269d1ced36e15337dd4b076a36d6192e7189",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "620c334c735f35eb6dd60b93ff9385507cac6d29c84ad72c4252a98896dbc50b",
+        "id": "f3d7bf2644b354b62a6619935ce5a9eb335c2892d0c7c9cd6c67535b753f7aca",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "3c48e685fdc625796848f9d34aff5b1aedba082a17db32b3456dc00caf3aa2fa",
+        "id": "49eb76ed6d2d0982140a6db7f6353217a63fc9fdc862314510e59fd4f06cc06d",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "a7d6ac3889fbc519ba2b733cf03e397fa56b37fe041fecdec472a6f6329560db",
+        "id": "6a66b796076ee44d2ccf0f39482a1e32fe83805475944d32e1e3320e26f00a45",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "fd43f2d03b8694a83b749daccae7cc7c760c47d5488c8d0e7370a8c5eb5c6aa5",
+        "id": "de7c551e88887500899e2fd5ebe94c7dd1ccf76f0cd03984074cd80026808a7b",
         "classification": "declaration",
         "owner": "CompactionModelInput",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "103713b9f0ebc11b528c20bc7cf80c3ca0859e506997c88735acbecffc9c06a9",
+        "id": "82e7a23a4c0317dacbe856bc1db9a1bf0d0dca025fb3127ad71f36e6e3b58ffc",
+        "classification": "declaration",
+        "owner": "CompactionModelInput",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "d59ead88f7c914bf81ab1937c24ca10fe39824cf07976e2a06b35a3181065b7c",
         "classification": "declaration",
         "owner": "CompactionOutcome",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "2b4d0eaf0552a8679742d535a0ea5205ed019c84f68736c0b59cdfaa95f1a66f",
+        "id": "e0b4832360d917841bf7bf5f102c0ef070b3227556ad19fd48f318d58dba5ba7",
         "classification": "declaration",
         "owner": "CompactionOutcome",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "1c0a9e943cb0f02ffcc0cd5d4b6c5474bb61e4557a3fc560b0f0e3d197ca7faa",
+        "id": "56616c9c575e049b9f5dcb74820211577924bbb6a5cb1862d429e7a8bb0d40a3",
         "classification": "declaration",
         "owner": "CompactionOutcome",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "4f103573316cfaf540115b4ecde9cea699af2a9b6d4e9850adfdab921fa6e9dd",
+        "id": "c34ed4ace1956643a0c5ae76042f8d470fecaef55dea1acc26378672c5204703",
         "classification": "declaration",
         "owner": "CompactionOutcome",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "4eca759e9fa1e919db8d572c2e77302fcc4c33def7b73b6c65befd51be68d752",
+        "id": "86d9d1adc536233e1fa4bd34f4be36742e8ccec2859816286fffd80f3c3bce68",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "e32352b923b8e213204a7f5cc0943c8223fec0308f739943c5aa1d168179bb8e",
+        "id": "e2238b9e739b6c191d56ffeb8a81030192e185ecd8b9c7070ccb232cd9181b3d",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "02e06daedc18ff5173499ef34cced28104761f2dfe443151ee184e0c29985eae",
+        "id": "55738fedc6dea7535f8d2fd13531b8bf1393ac30e805afe0e4143f919c7b1748",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "68d6594a105ef14adf7da6b9fa4b648d7a8101e29f26b68c26329fbbc462a934",
+        "id": "7a595e69a098895ac81d5e18246e3f43300894c00c460843728f263d1eb09b0b",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "a4b12345ff5803cd917c7931b6247317198d9c7bb857d643a623e52e30a7685e",
+        "id": "51b8439265afe61bb2fa74391eacb4393ccadbdba47bf4fa4ae4e7c62b1bb773",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "127d18bd29ec75fd1ecead1afd9e8a5f9dedfec8d1a9221e9ad7a11b64c23016",
+        "id": "410205aee8c2d71b68ce7400ca9a20b2f54a576dde1fc85a793c98b506efce68",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "e9dcc57d92a80a3a1b4c8c82913c737c79d92e939c0b572d573035ec598435c4",
+        "id": "ffe571af46f4c14820ca0313440c167818f3b6486836ec5f87ee0518d7f1d98a",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "d9066af06353a5f025126ccb4224fc7f40769fd68560286f3fe0388a4ffc0ddb",
+        "id": "80daf9ced4929a213b3fd4dcb71fcc9b3a4b1462bd2e408a9f6930c22f86c6a7",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       },
       {
-        "id": "fd08ea66faf105663e7dc74a9f0c055fd6ea7661b73edfb4ca801d1a0ec49781",
+        "id": "4274dcd460ee43c6cc04625f8551759e83948f1709dd7f2cfdff19543ada56eb",
         "classification": "declaration",
         "owner": "CompactionObservation",
-        "reason": "Read the full Owner: explicit schema, fields, diagnostics, state, paths, absence or projection values are declared before implementation; consumers use typed APIs."
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
       }
     ],
     "contracts": [
       {
-        "owner": "Compaction execution/input/outcome/observations; shared summary reply follow-up",
+        "owner": "Compaction execution/input/outcome/observations",
         "declaration": "llm/components/memory/compaction_runtime.py",
         "consumers": [
           "llm/components/memory/compaction.py"
         ],
         "tests": [
-          "tests/llm/test_large_data.py",
-          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_summarization.py",
           "tests/llm/test_memory_processing.py",
-          "tests/llm/test_memory_processing_config.py",
-          "tests/llm/test_resource_references.py",
-          "tests/llm/test_data_component.py",
-          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_work_state.py",
           "tests/hub/test_summary_api.py",
-          "tests/hub/test_provider_recovery.py",
-          "tests/hub/test_rag_retention.py",
-          "tests/hub/test_history_retention.py"
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -47277,6 +47299,738 @@
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_rag_retention.py",
           "tests/hub/test_history_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/summarization.py",
+    "sha256": "7d38e9f824660a18dbf6562121d9a9852d4640da68dff0d74c292259ef8ba104",
+    "reason": "Read complete declarations and implementation plus actual writer/reader/validator/consumer paths. Canonical summary reply and instructions retain exact wire bytes; partial progress, explicit budgets, cancellation and no retry semantics are unchanged. Consolidation records and provenance retain original structural and reviewed-history checks, digest algorithm, lazy read order, required evidence, all-record preflight, effect order and explicit recovery under existing transactions. Independent wire/error and real file/coroutine tests support these classifications. Broader Memory Component/Data/Processing and File container work is not claimed complete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3306063aab0c5ad0d9f9dfac7f38458cdfe9beb348d017c9bd5628b319f333c9",
+        "classification": "declaration",
+        "owner": "llm.components.summarization.NO_PROGRESS",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "780678360efab2a7459ffbb5e17bf90ad2deca205b1d1178543945604ef104a3",
+        "classification": "declaration",
+        "owner": "SummaryAnswer",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "7ac3f2b70db938fa9ac53ab381397669cf55887380f0db277bf5e243e1056205",
+        "classification": "declaration",
+        "owner": "SummaryAnswer",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "714b3a6b2b21ca0db26ea5781a89821773edad3c650b03053bc5632398af46ac",
+        "classification": "declaration",
+        "owner": "SummaryAnswer",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "b8322213b5ddf44b7236632ed9de8923bdc838b01bf4186ef0143eaa2a626007",
+        "classification": "declaration",
+        "owner": "SummaryAnswer",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "f6578b3352ffccc25723e3fef45e427d6c8f424b189fb325929d5d3493b75d07",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "28da6018ff1165618ea4ae307ee1a9eb41ec0a622666334490f218cc3d5ccb7e",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "3978c0bfc6b71b3db3528cb19a669a2efdcdb418c673fa5a394c46bd02536b28",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "9444c550c8ec0ef4423aeee15be5c29ca2abffed33ac9c9b58e39cda555f8ecc",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "41b5d07db67ff4dd1d1012cd32f2661cad1c347cf5b5405e7243b521cb91f60e",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "5ac70f0ceb9aa979a776217f9ae2027f0b68042932509320739df089359ea2d5",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "9be213eafdbfd00246324b0b0fc0130383322645e7934f9e0448639bb6a28b68",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "9ea980c1b624770fb942cfb404c39545d187e481bcf47c6416cc29b6dbce862c",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "b68058a4266849d3be7e717be3ebfdbfad659cc7b864b7af4c3baac35b85d36c",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "3475f302eb7fd1494199cb5d350544855679f274f87ffae27556084d10ad554c",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "f642f9d6d796525f459cd0127792101e8a26bb929701631d9aeb3718dd4ef90d",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "2b1b2563ae461cb8cb3a48ac807b18316effb8763f9dca54a4de7a07bc3987a3",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "8c675833fc6e72728051cf881c4a144a483de7c1020eb8ef64af34663baa7f24",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "ead8a8657b4a7149198bb92557168457d3b14a5cb7b1522c7ff1bcaa829ed375",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "b834693c92512109cd706fee4c062acfed47a66efdc15af61f12456283072c4b",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "93c14271146d6294d336ec59bc4d0a8dd96e699c2e1ea58cbde78ef375932449",
+        "classification": "declaration",
+        "owner": "SummaryValidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "df8596aae053db45ad18273ce076e298a3e4247ce878e961d0eadd2ab8ba993e",
+        "classification": "non_contract",
+        "owner": "SummaryResult",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "c96c284c5e6a9ae3380f798720f9d3b0fd89819a120ec47f978054f64d45c2e5",
+        "classification": "declaration",
+        "owner": "SummaryResult",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "be6f3a61b6f180489579c2829f0646fbcd7f247499f8523d08d39a732ff74ec9",
+        "classification": "declaration",
+        "owner": "SummaryResult",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "d2558f907b4a8c0398e236fd986d595d44aea73698eabf39096ef1bd5bd897e8",
+        "classification": "declaration",
+        "owner": "SummaryResult",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "5da8b5e01e249ba91fdd58966c53174fc11293b7330207bf05936869c4091daa",
+        "classification": "declaration",
+        "owner": "SummaryResult",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "13374e6fdc4fccbe36776047b7db7200c27e9efae8219b24c05755c6b49c8dc8",
+        "classification": "declaration",
+        "owner": "SummaryResult",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "c3f1eb27ec9f0963aff734a385df665404032e4197a6f22f2a4749aed7c19d0e",
+        "classification": "declaration",
+        "owner": "SummaryResult",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "084024515f108247856d0e2b3308436da6563b33f10caf910878015f3b74b5dc",
+        "classification": "declaration",
+        "owner": "SummaryResult",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "e75c652c0de8955207f27b897ea23b7ddfca458ed4d33169ebb0947b2a975558",
+        "classification": "declaration",
+        "owner": "SummaryResult",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "f498230e3427489ab3dd6425a50f6116cc7587c14eefd1e71c0193e916e5afb4",
+        "classification": "non_contract",
+        "owner": "_positive",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "36593c22608534ade422c7ec7f39d7c2237cb3bd95e827122837423ae5d06cea",
+        "classification": "non_contract",
+        "owner": "fit_prefix",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "3175b01c6e6fe1c7e4d36ab0c1b659fcdf84ebd00ff88ddd2fba4eff669ee7c6",
+        "classification": "non_contract",
+        "owner": "fit_prefix",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "2b6627b56cdc1d79f504719fc27b60ec177df67a71285c1de880fd1f37da0582",
+        "classification": "non_contract",
+        "owner": "fit_prefix",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "20c50709a4beaf0ce8e79fe098721f91223d4f6a000604e4d5246ffebc898fd2",
+        "classification": "non_contract",
+        "owner": "fit_prefix",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "d48ebd0a8816fe5d9d22d4dabafbff9a066d459c998481b52b1452420e521acb",
+        "classification": "non_contract",
+        "owner": "fit_prefix",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "00359d29f4b6af8c1faa2e4f2c372fa2d11872df739839c721d64fe59e144b1f",
+        "classification": "non_contract",
+        "owner": "summarize_fragments",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "53fdf559e1e1451301094d184d5c6d5d73b0765d83333bb556968576a00c20f2",
+        "classification": "non_contract",
+        "owner": "summarize_fragments",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SummaryAnswer / SummaryValidation / SummaryResult",
+        "declaration": "llm/components/summarization.py",
+        "consumers": [
+          "llm/components/memory/processing.py",
+          "llm/components/memory/compaction.py",
+          "llm/components/memory/tool_results.py",
+          "llm/components/memory/compaction_runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_summarization.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_work_state.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/consolidation_records.py",
+    "sha256": "cefa6ae23f8a22a0e9ec8c2865d5a989951cc843e5b26daab3c519fa52810de2",
+    "reason": "Read complete declarations and implementation plus actual writer/reader/validator/consumer paths. Canonical summary reply and instructions retain exact wire bytes; partial progress, explicit budgets, cancellation and no retry semantics are unchanged. Consolidation records and provenance retain original structural and reviewed-history checks, digest algorithm, lazy read order, required evidence, all-record preflight, effect order and explicit recovery under existing transactions. Independent wire/error and real file/coroutine tests support these classifications. Broader Memory Component/Data/Processing and File container work is not claimed complete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1343b8dfd8766830c982f47a4be74a87569d2bb8dfc9e6e43f7e4e6a439e1654",
+        "classification": "declaration",
+        "owner": "ConsolidationOperation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "58088089d56972c480b9066a525bc905394b749dcb286fa0aeb551865d9a72e5",
+        "classification": "declaration",
+        "owner": "ConsolidationOperation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "8950320abb6d8cdc213b832d4ee8749f2e67a9a54db0ccba4a752bae828bd656",
+        "classification": "declaration",
+        "owner": "ConsolidationOperation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "4404d2e45bffe9d54e3e481469b21bb5979dd4db3d74d5e0d3ea85086e1e571d",
+        "classification": "declaration",
+        "owner": "ConsolidationOperation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "94a5d8f4c0811769b665a04a55555e9af022f1971e4b5d3f9920c8a4c8da5548",
+        "classification": "declaration",
+        "owner": "ConsolidationOperation.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "b6ac2e0847370a86a82b75d1826248d0f1ef347a5b51d2d92d03ab670eb7db4b",
+        "classification": "declaration",
+        "owner": "ConsolidationOperation.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "5638b6292a75c5c10ef222f38c0a4badd28a2b350c3381bc15264da245d8866a",
+        "classification": "declaration",
+        "owner": "ConsolidationOperation.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "6b97c301d4350914ba84a198c813e9623793fbe2b036d7af301229e7071fc717",
+        "classification": "declaration",
+        "owner": "ConsolidationOperation.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "45502fc035e78aa33ce2d9fda96ed2c81b15805a3ad5908ed1d60ed13e89d20a",
+        "classification": "non_contract",
+        "owner": "ConsolidationOperation.validate",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "b059e759f8dd5e36bf344ba5bb7e3aae9cdc78103fa05d7450c190297a4f6f21",
+        "classification": "declaration",
+        "owner": "ConsolidationMetadata",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "71f176a593da67d251df6fb12550eb1625b6ed624c6b130b7c3e657560f96dba",
+        "classification": "declaration",
+        "owner": "ConsolidationMetadata",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "a30a2476a92583681aa17442ef54eb0c7796470b5663ea8b68c79c051d614b4f",
+        "classification": "declaration",
+        "owner": "ConsolidationMetadata",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "4659d5e189694b2138ecc48ffc8c967327311287653898456e35170937d1647e",
+        "classification": "declaration",
+        "owner": "ConsolidationEntry",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "1e714e5ade1904a90c5e8f265e6ccae613ea16ef16fe39a3cf5f433127f837f8",
+        "classification": "declaration",
+        "owner": "ConsolidationEntry",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "565b251f88c6bd2676f0ed391b0bc50a353cba24c050dce6cfcc99d350896840",
+        "classification": "declaration",
+        "owner": "ConsolidationEntry.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "6187a8ab35a55d926d0a865bdd5933de36c2c48881e1898dec439eadb4483ba6",
+        "classification": "declaration",
+        "owner": "ConsolidationEntry.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "5885b11d73fd8289a9ce4b1010752cf971c72ce7c499483f05777e5781955c33",
+        "classification": "non_contract",
+        "owner": "ConsolidationEntry.validate",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "abd1083320e86bca5f83574542410c7fb76eef120ec495fc2d8496ccbb658f30",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "a1a8a3f89d86c403a02684c25a036909980cdbd86336ba7c233439ace32372b8",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "0b7c6fe1a0a14bcb5536ae295c88eafa021e6fb07db671d6d09e06639fdd7d00",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "12550b9602462bfc82eaa3c3b77a5e91f1b2d1d492aa5a88317fb36eaa6c186f",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "b84a28b0e1f52e3c0206e886f7e78dc2b3c9ebded39ed5e40b8869f0f156c718",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "3245d0600f6004cae9cb5123e5a4107b285f407426a559b5f64dcd0c517c5a61",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "646c4cdad14ad3bb2892e6e24e053bef0477ca1afb938a5241c62e02d7c6db71",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "ffd549fa5092c3780a0622593464f12b9ba96346a9309d3c0c66e98d60b6b553",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "9efd4579c410166596551a9f7a1c0d2cc598f8c7e4201113454b7c039156f28f",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "8344020d65962b62c99eb3ebf467238fc14683d5e1bea89f9b91b9df8b5245c9",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "f4ca309742291420d5806b737f95224de3b53bff34793821fed855ff0c79597b",
+        "classification": "declaration",
+        "owner": "ConsolidationJournal.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "7486a06c571531c2d04b2261a76b7b735a30b9a787f01e3d9d4476735a6d3435",
+        "classification": "non_contract",
+        "owner": "ConsolidationJournal.validate",
+        "reason": "This exact occurrence is Python type/slots syntax, binary-search index arithmetic, or the standard regex/timezone API absence sentinel. It is not a stored/wire field, a policy/config default, a completion status or an implicit retry/budget limit."
+      },
+      {
+        "id": "65b20864e21db087c88cb52e4b7a6c153d069ce08ed7b7ac1f7610d309a1aa03",
+        "classification": "declaration",
+        "owner": "ConsolidationReceipt",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "eaf531550d7e086f0ed853b9e3ead94907fb82a397e35739839a033e49fa7189",
+        "classification": "declaration",
+        "owner": "ConsolidationReceipt",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "8d6301fb1179186a4351b5f0355d16856bbd0dd7169c57de868c4ce72dddc34d",
+        "classification": "declaration",
+        "owner": "ConsolidationReceipt.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ConsolidationOperation / Journal / Entry / Receipt / Metadata",
+        "declaration": "llm/components/memory/consolidation_records.py",
+        "consumers": [
+          "llm/components/memory/consolidation.py",
+          "llm/components/memory/history.py"
+        ],
+        "tests": [
+          "tests/llm/test_summarization.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_work_state.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/consolidation_storage.py",
+    "sha256": "b44a0936e8d2656b014e53183e96645520903290f12e153abf82fa07a049bea1",
+    "reason": "Read complete declarations and implementation plus actual writer/reader/validator/consumer paths. Canonical summary reply and instructions retain exact wire bytes; partial progress, explicit budgets, cancellation and no retry semantics are unchanged. Consolidation records and provenance retain original structural and reviewed-history checks, digest algorithm, lazy read order, required evidence, all-record preflight, effect order and explicit recovery under existing transactions. Independent wire/error and real file/coroutine tests support these classifications. Broader Memory Component/Data/Processing and File container work is not claimed complete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "53f3fa984331aac3f210ce9bc9446bc82748bbf5f39a964f61fb46f32e13f4cd",
+        "classification": "declaration",
+        "owner": "ConsolidationManifest",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "711fca0ef16df1891ed6c441cd3385a13b9329d5021e0476087f8d9721dd2b27",
+        "classification": "declaration",
+        "owner": "ConsolidationManifest",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "041f53ade089eaee703f26a06746151cd8f1aff16391adc5e84449ccbd3fef8c",
+        "classification": "declaration",
+        "owner": "ConsolidationManifest.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "0b702c8eca3b7cbf868381a67eae02dd911b945319603122cb0fa13309c9f8cb",
+        "classification": "declaration",
+        "owner": "ConsolidationManifest.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "5cf5cb2a707ba09339de74d0915ba9ba1e9fc2615f06f1125ac47fb335448f6d",
+        "classification": "declaration",
+        "owner": "ConsolidationManifest.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "32d41e94fe44c294e75d8a5295ddd45e832509785184ef100a2981f44ce44ddf",
+        "classification": "declaration",
+        "owner": "ConsolidationManifest.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "7f0f06e2d77f5e9e7957b05b7a787295cbba34c4480ef920d16a1024123e9ddf",
+        "classification": "declaration",
+        "owner": "ConsolidationManifest.Field",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ConsolidationManifest / Inventory",
+        "declaration": "llm/components/memory/consolidation_storage.py",
+        "consumers": [
+          "llm/components/memory/consolidation.py"
+        ],
+        "tests": [
+          "tests/llm/test_summarization.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_work_state.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/consolidation.py",
+    "sha256": "f4fec22edee651ca36444bbf86a4fcde4e6f20312cec88f5a1e95c41977f9457",
+    "reason": "Read complete declarations and implementation plus actual writer/reader/validator/consumer paths. Canonical summary reply and instructions retain exact wire bytes; partial progress, explicit budgets, cancellation and no retry semantics are unchanged. Consolidation records and provenance retain original structural and reviewed-history checks, digest algorithm, lazy read order, required evidence, all-record preflight, effect order and explicit recovery under existing transactions. Independent wire/error and real file/coroutine tests support these classifications. Broader Memory Component/Data/Processing and File container work is not claimed complete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e2a9aa634356dbdd0e24d0f997bff38008e96b99f321782b2be563614f769958",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "4b58fa9a2f10bdfe0a1df8bb69af5b1a8f75a34fc8181c739587a5d752e2f0f8",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "be145a5c09bc486e475a99035be6135c4bd12e21b70819b45a707a4e8e4db4ac",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "3c7e7a4982f87aa4d2259d372f5dbda292813db031a656869a452c1b292b384e",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "f56e6b8b7d20b6a3cf70b1c3295bb0576995aad28c3568e2f49d52c3f9505fee",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "92cd5ff56f523f107c42e5d957e4bbeb4705ea05fb53b85827844b0ba8473cfe",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "9bc02f460c8a21d8a2fa04cabbf05699b8bc7d5a8f5d6e52d8f4c578d3fec567",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "0f2daac386bf58cd0dd4276be3bc505760af20365c09584efbb0954726753afa",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "3d8f6753cf9e82d81ea0fdbf12401c0d0b5865589c7c828d4ad109e4968fe1b7",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "8b404e8212558b8dc511cf8dbe239e1ad6189bbe1bd38c179d84cdfe01abf125",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "7e8878abfa146271848f8c8f6f3d7e69df6f288ce6f3821bd10913633b32fd2f",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "d3f19e354acb5c0b940711953c9b2d90dd242842e0d333ca6edf197612da3d64",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "0f04a1724cd7e231aee94d6fd1858a1b0d28a59d353f45a74377d8b709e2f5fa",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "61558a199ac0c337d65f9ccbebc1e75059c9abd00e4db24c2d9a40ef4fbe5d7c",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "e3c1d59d524c267061929a980c7500dbec93034d499ed20032ee219046178fab",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "b9a5e61c81bf431fbbd6f7fb347dc00cf14166858d57b2fef9395629d10cf6e4",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "baada9ec62a0342fea564eccf90e6f384278388cab59b93a074fb79ae98ba945",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "9089b0eb1273bcee6912dfe0cdffe0c80e9602160303556d63b61b977787d313",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "91f065b68151c890423b365f8aa8815dde67a2cb986a8ea35acfba08867b5c36",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "1ad7f0828d8d1a877f95afbc0f6aca5b95d947a1fd91f303367c2b7104fbd52b",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "107c835406cd42a449d5e08765947c1c14998ece41b5c413b8a7b9d917089c54",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "4ad33c377005a0c37ce40d5d9d7730b8fecf93c20208b9307b27de812bde2fc5",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "b3a1f743b630b856a22a03895f8adedc033cfaec43de2e1499db90668da1b898",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      },
+      {
+        "id": "5f6d302af6ea9f750a0cd3d33f6c49c1a7dae3fabb714ea2e0bf206249b0314f",
+        "classification": "declaration",
+        "owner": "MemoryConsolidation",
+        "reason": "Read the whole Owner and its consumers: canonical fields, diagnostics, paths, limits, absence/control and projection values are declared before implementation and used by typed APIs."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryConsolidation storage and explicit recovery",
+        "declaration": "llm/components/memory/consolidation.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/history.py"
+        ],
+        "tests": [
+          "tests/llm/test_summarization.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_work_state.py",
+          "tests/hub/test_summary_api.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }

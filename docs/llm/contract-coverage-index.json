@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 518,
-    "unreviewed_files": 280,
+    "files": 520,
+    "unreviewed_files": 278,
     "stale_files": 0,
-    "unclassified": 19833,
+    "unclassified": 19638,
     "violations": 0,
-    "incomplete_contracts": 7,
-    "unreviewed_dynamic_paths": 282,
+    "incomplete_contracts": 4,
+    "unreviewed_dynamic_paths": 280,
     "unreadable_files": 0,
-    "candidates": 26646,
+    "candidates": 26555,
     "issues": 0
   },
   "files": [
@@ -1354,7 +1354,7 @@
     {
       "path": "llm/components/README.md",
       "status": "unreviewed",
-      "sha256": "a321806d9502a5205775316e809e394fead5eb3c7ae45aa08554b68a1aefe1ec",
+      "sha256": "d05ea7b4fe5d42e17e66c42126c3749624cdf54dcec32ca006d344ddec7b1025",
       "candidates": 0
     },
     {
@@ -1504,7 +1504,7 @@
     {
       "path": "llm/components/memory/README.md",
       "status": "unreviewed",
-      "sha256": "9b6eb4efd45c9b88c7de9eb7456beaab1021a30090a255a6c866f3ec40bfb17c",
+      "sha256": "64c48327d74fe451c25035261a906dbc4b009027be3391cf25c0b49f3bb999e5",
       "candidates": 0
     },
     {
@@ -1528,8 +1528,8 @@
     {
       "path": "llm/components/memory/compaction_runtime.py",
       "status": "reviewed",
-      "sha256": "7a22aebbfb10403fdf7fc715000975ae06cb85dad28f670602e9cc5a201ff639",
-      "candidates": 41
+      "sha256": "df493ee71681da5acafa214e6f93d9a07f2ad79beafdbf6ff58a6ee92b96215f",
+      "candidates": 42
     },
     {
       "path": "llm/components/memory/compaction_storage.py",
@@ -1557,9 +1557,21 @@
     },
     {
       "path": "llm/components/memory/consolidation.py",
-      "status": "unreviewed",
-      "sha256": "e3e12f109905219e226848229cb894e18000c9be948c0301dd0cbb4e3326e932",
-      "candidates": 152
+      "status": "reviewed",
+      "sha256": "f4fec22edee651ca36444bbf86a4fcde4e6f20312cec88f5a1e95c41977f9457",
+      "candidates": 24
+    },
+    {
+      "path": "llm/components/memory/consolidation_records.py",
+      "status": "reviewed",
+      "sha256": "cefa6ae23f8a22a0e9ec8c2865d5a989951cc843e5b26daab3c519fa52810de2",
+      "candidates": 32
+    },
+    {
+      "path": "llm/components/memory/consolidation_storage.py",
+      "status": "reviewed",
+      "sha256": "b44a0936e8d2656b014e53183e96645520903290f12e153abf82fa07a049bea1",
+      "candidates": 7
     },
     {
       "path": "llm/components/memory/data.py",
@@ -1582,8 +1594,8 @@
     {
       "path": "llm/components/memory/processing.py",
       "status": "unreviewed",
-      "sha256": "00fa82e6c9a7a65d0840f747741d4378781e18117206b39801edf27600030f48",
-      "candidates": 223
+      "sha256": "55a0e164d607a6a82cfa9c64bb5fdbe491ec206ab9d9787296a79c67d53d2d04",
+      "candidates": 226
     },
     {
       "path": "llm/components/memory/records.py",
@@ -1600,8 +1612,8 @@
     {
       "path": "llm/components/memory/sources.py",
       "status": "reviewed",
-      "sha256": "7827e295b9f364a6fbe43462b7237d4a9be70877ec4b85b6718c4e6e08db7ae3",
-      "candidates": 11
+      "sha256": "a471bf5a89b27021f1e0bd8c14552d3f416242a6fd55212768b5e8c94666edfa",
+      "candidates": 13
     },
     {
       "path": "llm/components/memory/summary_records.py",
@@ -1917,9 +1929,9 @@
     },
     {
       "path": "llm/components/summarization.py",
-      "status": "unreviewed",
-      "sha256": "d55be9e0394b2cc3964d1c28317ae0cf24e57e12271f2cfe09a486f3d9a8d42d",
-      "candidates": 46
+      "status": "reviewed",
+      "sha256": "7d38e9f824660a18dbf6562121d9a9852d4640da68dff0d74c292259ef8ba104",
+      "candidates": 38
     },
     {
       "path": "llm/components/tools/README.md",

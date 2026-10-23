@@ -3,9 +3,12 @@
 from copy import deepcopy
 from .records import MemoryRecord
 from .history import MemoryHistory, MemoryEnvelope
+from .sources import MemorySource
+from .consolidation_records import (ConsolidationOperation, ConsolidationMetadata,
+                                    ConsolidationEntry, ConsolidationJournal, ConsolidationReceipt)
+from .consolidation_storage import ConsolidationManifest, ConsolidationInventory
 from datetime import datetime, timezone
 import hashlib
-import re
 
 from llm.components.base import Component, validate_name
 from llm.core.models import new_id
@@ -13,59 +16,66 @@ from llm.services.infrastructure.storage import atomic_json, make_directory, rev
 
 
 class MemoryConsolidation:
-    SCHEMA_VERSION = 1
+    NO_SESSION = None
+    NO_SOURCE = None
+    SCHEMA_VERSION = ConsolidationManifest.SCHEMA_VERSION
     MANIFEST = "manifest.json"
-    PENDING = "pending"
-    RECEIPTS = "receipts"
-    COMPLETED = "completed"
-    KIND = "consolidation"
-    MANIFEST_FIELDS = frozenset(("schema_version", "project_id", "component", PENDING, RECEIPTS))
+    PENDING = ConsolidationManifest.Field.PENDING
+    RECEIPTS = ConsolidationManifest.Field.RECEIPTS
+    COMPLETED = ConsolidationReceipt.COMPLETED
+    KIND = MemorySource.CONSOLIDATION
+    MANIFEST_FIELDS = ConsolidationManifest.FIELDS
+    EXISTING_STORAGE = 'Cannot adopt existing Memory consolidation storage'
+    NONREGULAR_FILE = 'Consolidation evidence must be a regular file'
+    INVALID_JSON = 'Invalid consolidation JSON'
+    UNDECLARED_STORAGE = 'Consolidation storage is missing or undeclared'
+    MISSING_DIRECTORY = 'Consolidation directory is missing'
+    INVALID_PATH = 'Invalid consolidation entry path'
+    UNDECLARED_EVIDENCE = 'Consolidation evidence is missing or undeclared'
+    CHANGED_IDENTITY = 'Consolidation identity or revision changed'
+    ALREADY_EXISTS = 'Consolidation already exists'
+    UNDECLARED_RECOVERY = 'Recovery requires the declared pending journal'
+    CHANGED_MEMORY = 'Memory changed outside the pending consolidation'
+    PENDING_EDIT = 'Recover pending consolidation before editing memories'
+    INVALID_CANDIDATE = 'Consolidation requires an unexpired candidate'
+    INVALID_REFERENCES = 'Invalid consolidation references'
+    DUPLICATE_REFERENCES = 'Consolidation references must be distinct'
+    CROSSED_SCOPE = 'Consolidation cannot cross memory scopes'
+    PENDING_CLONE = 'Recover pending consolidation before cloning'
+    NONEMPTY_DESTINATION = 'Destination consolidation storage is not empty'
+    DIRECTORY = 'consolidations'
+    SUFFIX = '.json'
+    ENCODING = 'utf-8'
 
     def __init__(self, component, project):
         self.component, self.project = component, project
-        self.root = component._checked(component.root(project) / "consolidations")
+        self.root = component._checked(component.root(project) / self.DIRECTORY)
 
     def initialize(self):
         if self.root.exists():
-            raise ValueError("Cannot adopt existing Memory consolidation storage")
+            raise ValueError(self.EXISTING_STORAGE)
         for group in (self.PENDING, self.RECEIPTS):
             make_directory(self.root / group)
-        atomic_json(self.root / self.MANIFEST, {"schema_version": self.SCHEMA_VERSION,
-            "project_id": self.project.id, "component": self.component.name, self.PENDING: {}, self.RECEIPTS: {}})
+        atomic_json(self.root / self.MANIFEST, ConsolidationManifest.create(schema_version=self.SCHEMA_VERSION,
+            project_id=self.project.id, component=self.component.name, pending=self.PENDING, receipts=self.RECEIPTS))
 
     def _json(self, path):
         path = self.component._checked(path)
         if not path.is_file():
-            raise ValueError("Consolidation evidence must be a regular file")
+            raise ValueError(self.NONREGULAR_FILE)
         try:
-            return Component.deserialize(path.read_text(encoding="utf-8"))
+            return Component.deserialize(path.read_text(encoding=self.ENCODING))
         except TypeError as error:
-            raise ValueError("Invalid consolidation JSON") from error
+            raise ValueError(self.INVALID_JSON) from error
 
     @classmethod
     def _operation(cls, value):
-        if (not isinstance(value.get("id"), str) or re.fullmatch(r"[a-f0-9]{32}", value["id"]) is None
-                or not isinstance(value.get("superseded"), list) or not isinstance(value.get("source"), dict)):
-            raise ValueError("Invalid consolidation operation")
-        proposal = validate_name(value.get("proposal"))
-        names = [validate_name(name) for name in value["superseded"]]
-        if proposal in names or len(set(names)) != len(names):
-            raise ValueError("Invalid consolidation targets")
-        if (value["source"].get("kind") != cls.KIND
-                or value["source"].get("operation_id") != value["id"]):
-            raise ValueError("Invalid consolidation provenance")
-        validate_name(value["source"].get("project_id"))
+        ConsolidationOperation.validate(value, kind=cls.KIND)
 
     @classmethod
     def deletion_metadata(cls, previous, record, source):
         """Validate the metadata change owned by a consolidation deletion."""
-        proposal = MemoryRecord(record).metadata.get("superseded_by")
-        cls._operation({"id": source.get("operation_id"), "source": source,
-                        "proposal": proposal, "superseded": [MemoryRecord(previous).identifier]})
-        expected = {**MemoryRecord(previous).metadata_or_empty, "superseded_by": proposal}
-        if MemoryRecord(record).metadata != expected:
-            raise ValueError("Consolidation deletion changed unrelated metadata")
-        return expected
+        return ConsolidationMetadata.deletion(previous, record, source, cls._operation)
 
     def _after(self, identifier, before, proposal, source, at, operation_id):
         after = deepcopy(before)
@@ -77,9 +87,9 @@ class MemoryConsolidation:
         current.deleted = identifier != proposal
         if identifier == proposal:
             current.status = self.component.CONFIRMED
-            current.ensure_metadata()["consolidation_id"] = operation_id
+            ConsolidationMetadata.confirm(record, operation_id)
         else:
-            current.ensure_metadata()["superseded_by"] = proposal
+            ConsolidationMetadata.supersede(record, proposal)
         selected.history.append(MemoryHistory.entry(revision=current.revision,
             operation=self.component.UPDATE if identifier == proposal else self.component.DELETE,
             at=current.updated_at, source=source, data=deepcopy(record)))
@@ -87,92 +97,50 @@ class MemoryConsolidation:
         return after
 
     def _validate_journal(self, value):
-        if value.keys() != {"id", "identity", "entries", "proposal", "superseded", "source"}:
-            raise ValueError("Invalid consolidation journal fields")
-        self._operation(value)
-        if value["identity"] != self.component.identity(self.project) or not isinstance(value["entries"], list):
-            raise ValueError("Invalid consolidation identity or entries")
-        identifiers, before_records = [], {}
-        for entry in value["entries"]:
-            if (not isinstance(entry, dict) or entry.keys() != {"id", "before", "after"}
-                    or not isinstance(entry["before"], str) or re.fullmatch(r"[a-f0-9]{64}", entry["before"]) is None):
-                raise ValueError("Invalid consolidation entry")
-            identifier = validate_name(entry["id"])
-            identifiers.append(identifier)
-            after = entry["after"]
-            if not isinstance(after, dict):
-                raise ValueError("Consolidation requires the complete after envelope")
-            self.component.validate_record(identifier, after)
-            if len(MemoryEnvelope(after).history) < MemoryHistory.MINIMUM_TRANSITION_ENTRIES:
-                raise ValueError("Consolidation requires a prior revision")
-            before = MemoryEnvelope(after).previous()
-            self.component.validate_record(identifier, before)
-            before_records[identifier] = MemoryEnvelope(before).record
-            at = MemoryRecord(MemoryEnvelope(after).record).updated_at
-            if not isinstance(at, str) or datetime.fromisoformat(at).utcoffset() is None:
-                raise ValueError("Consolidation time requires a timezone")
-            if (self._digest(before) != entry["before"] or MemoryRecord(MemoryEnvelope(before).record).deleted
-                    or after != self._after(identifier, before, value["proposal"], value["source"], at, value["id"])):
-                raise ValueError("Consolidation entry is not the reviewed change")
-            if identifier == value["proposal"] and MemoryRecord(MemoryEnvelope(before).record).status != self.component.CANDIDATE:
-                raise ValueError("Consolidation proposal was not a candidate")
-        if identifiers != [value["proposal"], *value["superseded"]]:
-            raise ValueError("Consolidation entries must exactly cover reviewed targets")
-        proposal = before_records[value["proposal"]]
-        references = [MemoryRecord.reference(name, MemoryRecord(before_records[name]).generation,
-                       MemoryRecord(before_records[name]).revision) for name in value["superseded"]]
-        if MemoryRecord(proposal).replacements != references or any(
-                MemoryRecord(record).scope_identity != MemoryRecord(proposal).scope_identity
-                for record in before_records.values()):
-            raise ValueError("Consolidation targets differ from the reviewed proposal")
+        ConsolidationJournal.validate(value, component=self.component, project=self.project,
+            operation=self._operation, after_record=self._after, digest=self._digest)
 
     def _validate_receipt(self, value):
-        if (value.keys() != {"id", "status", "proposal", "superseded", "source"}
-                or value["status"] != self.COMPLETED):
-            raise ValueError("Invalid consolidation receipt")
-        self._operation(value)
+        ConsolidationReceipt.validate(value, completed=self.COMPLETED, operation=self._operation)
 
     def inventory(self):
         manifest = self._json(self.root / self.MANIFEST)
-        if (manifest.keys() != self.MANIFEST_FIELDS
-                or type(manifest["schema_version"]) is not int or manifest["schema_version"] != self.SCHEMA_VERSION
-                or manifest["project_id"] != self.project.id or manifest["component"] != self.component.name
-                or not isinstance(manifest[self.PENDING], dict) or not isinstance(manifest[self.RECEIPTS], dict)
-                or manifest[self.PENDING].keys() & manifest[self.RECEIPTS].keys()):
-            raise ValueError("Invalid consolidation manifest")
+        ConsolidationManifest.validate(manifest, schema_version=self.SCHEMA_VERSION,
+            project_id=self.project.id, component=self.component.name, pending=self.PENDING,
+            receipts=self.RECEIPTS, fields=self.MANIFEST_FIELDS)
         if {self.component._checked(path).name for path in self.root.iterdir()} != {self.MANIFEST, self.PENDING, self.RECEIPTS}:
-            raise ValueError("Consolidation storage is missing or undeclared")
+            raise ValueError(self.UNDECLARED_STORAGE)
         groups = {}
         for group, validate in ((self.PENDING, self._validate_journal), (self.RECEIPTS, self._validate_receipt)):
             directory = self.component._checked(self.root / group)
             if not directory.is_dir():
-                raise ValueError("Consolidation directory is missing")
+                raise ValueError(self.MISSING_DIRECTORY)
             paths = {}
             for path in directory.iterdir():
                 self.component._checked(path)
-                if path.suffix != ".json" or not path.is_file():
-                    raise ValueError("Invalid consolidation entry path")
+                if path.suffix != self.SUFFIX or not path.is_file():
+                    raise ValueError(self.INVALID_PATH)
                 paths[validate_name(path.stem)] = path
-            if paths.keys() != manifest[group].keys():
-                raise ValueError("Consolidation evidence is missing or undeclared")
+            if paths.keys() != ConsolidationManifest(manifest).keys(group):
+                raise ValueError(self.UNDECLARED_EVIDENCE)
             records = {}
-            for identifier, revision in manifest[group].items():
+            for identifier, revision in ConsolidationManifest(manifest).items(group):
                 value = self._json(paths[identifier])
                 validate(value)
-                if value["id"] != identifier or revision_token(value) != revision:
-                    raise ValueError("Consolidation identity or revision changed")
+                if ConsolidationOperation(value).identifier != identifier or revision_token(value) != revision:
+                    raise ValueError(self.CHANGED_IDENTITY)
                 records[identifier] = value
             groups[group] = records
-        return manifest, groups[self.PENDING], groups[self.RECEIPTS]
+        return ConsolidationInventory(manifest, groups[self.PENDING], groups[self.RECEIPTS])
 
     def _store_journal(self, journal):
         manifest, pending, receipts = self.inventory()
         self._validate_journal(journal)
-        identifier = journal["id"]
+        identifier = ConsolidationJournal(journal).identifier
         if identifier in pending or identifier in receipts:
-            raise FileExistsError("Consolidation already exists")
-        manifest[self.PENDING][identifier] = revision_token(journal)
-        atomic_json(self.root / self.PENDING / (identifier + ".json"), journal)
+            raise FileExistsError(self.ALREADY_EXISTS)
+        ConsolidationManifest(manifest).declare(self.PENDING, identifier, revision_token(journal))
+        atomic_json(self.root / self.PENDING / (identifier + self.SUFFIX), journal)
         atomic_json(self.root / self.MANIFEST, manifest)
 
     def _digest(self, value):
@@ -185,79 +153,77 @@ class MemoryConsolidation:
     def _recover(self, journal):
         component, project = self.component, self.project
         manifest, pending, _ = self.inventory()
-        if pending.get(journal["id"]) != journal:
-            raise ValueError("Recovery requires the declared pending journal")
-        identifier = validate_name(journal["id"])
-        for item in journal["entries"]:
-            current = self._digest(self._envelope(item["id"]))
-            if current not in (item["before"], self._digest(item["after"])):
-                raise ValueError("Memory changed outside the pending consolidation")
-        for item in journal["entries"]:
-            if self._digest(self._envelope(item["id"])) != self._digest(item["after"]):
-                component._write(project, item["id"], item["after"])
-        receipt = {"id": identifier, "status": self.COMPLETED, "proposal": journal["proposal"],
-                   "superseded": journal["superseded"], "source": journal["source"]}
+        if pending.get(ConsolidationJournal(journal).identifier) != journal:
+            raise ValueError(self.UNDECLARED_RECOVERY)
+        identifier = validate_name(ConsolidationJournal(journal).identifier)
+        for item in ConsolidationJournal(journal).entries:
+            current = self._digest(self._envelope(item.identifier))
+            if current not in (item.before, self._digest(item.after)):
+                raise ValueError(self.CHANGED_MEMORY)
+        for item in ConsolidationJournal(journal).entries:
+            if self._digest(self._envelope(item.identifier)) != self._digest(item.after):
+                component._write(project, item.identifier, item.after)
+        receipt = ConsolidationReceipt.from_journal(identifier, journal, completed=self.COMPLETED)
         self._validate_receipt(receipt)
-        atomic_json(component._checked(self.root / self.RECEIPTS / (identifier + ".json")), receipt)
-        unlink_file(component._checked(self.root / self.PENDING / (identifier + ".json")))
-        del manifest[self.PENDING][identifier]
-        manifest[self.RECEIPTS][identifier] = revision_token(receipt)
+        atomic_json(component._checked(self.root / self.RECEIPTS / (identifier + self.SUFFIX)), receipt)
+        unlink_file(component._checked(self.root / self.PENDING / (identifier + self.SUFFIX)))
+        ConsolidationManifest(manifest).remove(self.PENDING, identifier)
+        ConsolidationManifest(manifest).declare(self.RECEIPTS, identifier, revision_token(receipt))
         atomic_json(self.root / self.MANIFEST, manifest)
         return receipt
 
     def pending(self):
         if not self.component._has_storage(self.project):
             return []
-        return [self.root / self.PENDING / (identifier + ".json") for identifier in sorted(self.inventory()[1])]
+        return [self.root / self.PENDING / (identifier + self.SUFFIX) for identifier in sorted(self.inventory().pending)]
 
-    def apply(self, proposal, *, expected_revision, expected_generation, session_id=None, source=None):
+    def apply(self, proposal, *, expected_revision, expected_generation, session_id=NO_SESSION, source=NO_SOURCE):
         from .component import MemoryConflictError
         if self.pending():
-            raise MemoryConflictError("Recover pending consolidation before editing memories")
+            raise MemoryConflictError(self.PENDING_EDIT)
         component, project = self.component, self.project
         candidate = component.load(project, proposal, session_id=session_id)
         component._check_revision(candidate, expected_revision, expected_generation)
         if MemoryRecord(candidate).status != component.CANDIDATE or component._expired(candidate):
-            raise ValueError("Consolidation requires an unexpired candidate")
+            raise ValueError(self.INVALID_CANDIDATE)
         references = MemoryRecord(candidate).replacements
         if not isinstance(references, list) or any(not isinstance(r, dict) for r in references):
-            raise ValueError("Invalid consolidation references")
+            raise ValueError(self.INVALID_REFERENCES)
         names = [MemoryRecord(r).optional_identifier for r in references]
         if len(names) != len(set(names)) or proposal in names:
-            raise ValueError("Consolidation references must be distinct")
+            raise ValueError(self.DUPLICATE_REFERENCES)
         for ref in references:
             record = component.load(project, MemoryRecord(ref).identifier, session_id=session_id)
             component._check_revision(record, MemoryRecord(ref).revision, MemoryRecord(ref).generation)
             if MemoryRecord(record).scope_identity != MemoryRecord(candidate).scope_identity:
-                raise ValueError("Consolidation cannot cross memory scopes")
+                raise ValueError(self.CROSSED_SCOPE)
         operation_id = new_id()
-        source = component._source(project, {**(source or {}), "kind": self.KIND, "operation_id": operation_id})
+        source = component._source(project, MemorySource.consolidation(source, operation_id, kind=self.KIND))
         entries = []
         for identifier in [proposal, *names]:
             before = self._envelope(identifier)
             after = self._after(identifier, before, proposal, source, datetime.now(timezone.utc).isoformat(), operation_id)
-            entries.append({"id": identifier, "before": self._digest(before), "after": after})
-        journal = {"id": operation_id, "identity": component.identity(project), "entries": entries,
-                   "proposal": proposal, "superseded": names, "source": source}
+            entries.append(ConsolidationEntry.create(identifier, self._digest(before), after))
+        journal = ConsolidationJournal.create(operation_id, component.identity(project), entries, proposal, names, source)
         self._store_journal(journal)
         return self._recover(journal)
 
     def recover(self):
         receipts = []
-        for journal in self.inventory()[1].values():
+        for journal in self.inventory().pending.values():
             receipts.append(self._recover(journal))
         return receipts
 
     def clone_receipts(self, destination):
         _, pending, receipts = self.inventory()
         if pending:
-            raise ValueError("Recover pending consolidation before cloning")
+            raise ValueError(self.PENDING_CLONE)
         target = MemoryConsolidation(self.component, destination)
         manifest, destination_pending, destination_receipts = target.inventory()
         if destination_pending or destination_receipts:
-            raise FileExistsError("Destination consolidation storage is not empty")
+            raise FileExistsError(self.NONEMPTY_DESTINATION)
         for identifier, receipt in receipts.items():
             target._validate_receipt(receipt)
-            atomic_json(target.root / self.RECEIPTS / (identifier + ".json"), receipt)
-            manifest[self.RECEIPTS][identifier] = revision_token(receipt)
+            atomic_json(target.root / self.RECEIPTS / (identifier + self.SUFFIX), receipt)
+            ConsolidationManifest(manifest).declare(self.RECEIPTS, identifier, revision_token(receipt))
         atomic_json(target.root / self.MANIFEST, manifest)

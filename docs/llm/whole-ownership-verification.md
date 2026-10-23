@@ -4243,3 +4243,70 @@ exit 0으로 6b2a10a→570ecb6을 Push했다. main 94229cb, refactor/llm-backend
 head SHA가 570ecb6 전체 SHA와 일치한다. 2026-10-23T23:09:02Z 조회에서 필수 LLM/Hub Job 모두
 진행 중이며 아직 원격 성공을 선언하지 않는다. 이후 압축 저장 변경의 Level 2 결과는 이
 전체 게이트에 포함되지 않으며, 다음 관련 묶음의 Level 3 대상으로 유지한다.
+
+
+## llm 공통 요약 응답·Memory 병합 기록 — 관련 변경 통합
+
+기준 917d926. SummaryAnswer가 모델 응답 필드·Writer/Reader·예시 형식을 소유하며,
+Memory 구조화 결과와 5개 기존 지시문이 같은 선언을 사용한다. 지시문 바이트, 명시 입력·호출
+예산, 실패/부분 응답 이후 무재시도, progress 실패·취소·iterator 종료와 독립 결과 사본을 보존했다.
+SummaryValidation/Result와 모듈의 NO_PROGRESS가 진단·범위·일시 상태·callback 부재를 선언한다.
+순수 이진 탐색의 증가·중간 인덱스, Python 타입/slots 표기는 비계약 언어 표현으로 개별 확인했다.
+
+ConsolidationOperation/Journal/Entry/Receipt/Metadata가 필드·Provenance·검토된 변경 검증을,
+ConsolidationManifest가 정확한 버전·Project/Component·pending/receipt의 배타적 존재 목록을
+소유한다. 저장 Owner는 typed projection으로 생성·읽기·복구하며 파일 효과와 기존 경계를 유지한다.
+모든 대상의 현재 before/after digest를 먼저 확인한 다음에만 쓰기를 시작한다. record 쓰기,
+완료 receipt 쓰기, pending unlink, manifest 확정의 기존 순서를 유지한다. hash는 기존
+Component.serialize 기반이며 별도 revision 알고리즘으로 대체하지 않았다. 자동 재개·기본값·
+레거시 Reader·새 정책은 없다. None 기본 인자도 공개 저장 Owner의 명시 선언을 참조한다.
+
+요약 비교: `PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/summary-answer-draft/proof.py`
+exit 0. 공통 알고리즘 5, Memory 처리 25, 압축 runtime 11개 함수 본문이 Owner 확장 후 동일하다.
+압축 지시문 1개 및 독립 reply/초기 결과 4개도 확인했다. 테스트의 독립 문자열 기대값은 바꾸지 않았다.
+병합 비교: 같은 명령의 `memory-consolidation-draft/proof.py`, exit 0. 실제 after envelope 2,
+operation 필드/오류 51, receipt 51, journal 61, entry 손상 62, provenance 31, source projection 7,
+실제 쓰기/실패 후 파일 바이트 12, 모든 대상 검사 전 쓰기 금지 2, 실제 manifest 손상/원본 보존 51.
+정상 경로의 실제 effect 순서를 별도 기대값으로 확인했으며, 단순 old/new 동일 실패를 통과로
+보지 않는다. 실제 rollback·명시 복구 2개 smoke도 pass/exit 0/0.541초다.
+
+검증은 아래 실행을 구분한다. 최초 요약 Level 1 이후 병합 공통 조회가 변경되어 해당 Memory
+소비자 근거가 무효화됐으므로 현재 통합 Level 2에서 다시 실행했다. Level 2 후 선언 위치 최종
+점검에서 callback/문자 범위/공개 optional 인자를 선언으로 마무리했고, 마지막 집중·안전성 실행과
+후속 Level 3를 구분한다. 서로 다른 소스의 결과를 단일 전체 회귀로 합산하지 않는다.
+
+- `whole-summary-answer-l1-01`: discovered/started/pass 66/66/66, exit 0, 208.618022초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-summary-answer-l1-01/llm.json --modules tests.llm.test_summarization tests.llm.test_memory_processing tests.llm.test_work_state tests.llm.test_memory_compaction_integrity`. source `e828e55e7b7e726b2f0467e2d0a622619a548256737ce557de82ffee751c22ec`, input `4500803c289e926835a99b1c6bf9fa4bab524b400415c402cf0c3eaaa81ff065`.
+
+- `whole-memory-summary-consolidation-01`: discovered/started/pass 222/222/222, exit 0, 307.420846초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-summary-consolidation-01/llm.json --modules tests.llm.test_summarization tests.llm.test_memory_processing tests.llm.test_work_state tests.llm.test_memory_compaction_integrity tests.llm.test_memory_consolidation_integrity tests.llm.test_memory_history_integrity tests.llm.test_memory_component tests.llm.test_memory_runtime_choices tests.llm.test_history_retention_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_nested_graph tests.llm.test_transactions`. source `7094608976fb9257cc00867f8b0d2602b242e47539cfc8a4590a5ecaf2b2a54b`, input `02f79086591ace5d7c01e8d29ee90568c3ef0f0fb27ab6aac14d6105c0053cc0`.
+
+- `whole-memory-summary-consolidation-hub-01`: discovered/started/pass 33/33/33, exit 0, 173.784875초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-memory-summary-consolidation-hub-01/hub.json --modules tests.hub.test_memory_manager tests.hub.test_resource_tools tests.hub.test_summary_api tests.hub.test_provider_recovery tests.hub.test_history_retention`. source `7094608976fb9257cc00867f8b0d2602b242e47539cfc8a4590a5ecaf2b2a54b`, input `02f79086591ace5d7c01e8d29ee90568c3ef0f0fb27ab6aac14d6105c0053cc0`.
+
+- `whole-memory-summary-consolidation-final-01`: discovered/started/pass 88/88/88, exit 0, 42.376451초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-summary-consolidation-final-01/llm.json --modules tests.llm.test_summarization tests.llm.test_memory_consolidation_integrity tests.llm.test_memory_history_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `68d50d09497883faaf55a13cc24fca731be058c9e815854bf48950895fcc3b73`, input `00dd22c94263c5c749aa74f340275827a9df9d07fe7ec41264f62154ff6dcc0f`.
+
+모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+Python 3.12.14/Clang·Host d833790·고정 의존성과 실제 namespace가 가능한 셸에서 수행했다.
+최종 세부 결과와 상위 게이트는 뒤의 delta에 남긴다. 기존 테스트·Assertion은 수정하지 않았다.
+Memory 저장·복구·history/CAS·실제 각 쓰기 실패·프로세스 중단과 공통 승인·예산·효과·Checkpoint·
+RAG·수명·중첩 실행·트랜잭션, 직접 Hub 관리/요약/참조/복구 소비자를 검증했다.
+
+정적 S4의 ConsolidationManifest.validate 버전 비교 한 위치는 정확한 int 검사·필드 집합
+검사 후 비교한다. bool/null/누락·다른 버전 거부와 원본 보존의 실제 시험을 근거로 개별 검토했다.
+정적 예외 범위를 확대하거나 규칙·테스트를 비활성화하지 않았다. Source/Record의 남은 병합
+소비자와 공통 summary reply 연결을 닫았지만 전체 Memory Component/Data/Processing·File
+snapshot 계약과 llm/ 전수 작업은 미완료다. hub/ 제품 리팩터링 우선순위는 여전히 뒤다.
+
+압축 저장(917d926)·공통 요약 응답·명시 병합을 하나의 현재 통합 소스 Level 3 게이트로 묶는다.
+개별 선언마다 전체 회귀/Push를 실행하지 않는다. 로컬 전체 성공 후 정확한 SHA만 Push하고,
+해당 원격 필수 CI의 실제 성공까지 확인한다. 570ecb6의 이전 전체 성공은 새 소스의 증거가 아니다.
+
+최종 점검 delta: 마지막 집중 집합 88/88 pass, exit 0, 42.376451초.
+`python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` 최초 실행은
+모듈 NO_PROGRESS 선언의 review Owner 이름 누락으로 16개 중 1 failure였다. 제품이나 Assertion을
+바꾸지 않고 해당 검토 항목에 실제 Owner를 지정했다. 최초 실패 로그를 보존했으며 재실행은
+16/16 pass, exit 0, 3.170초다. S1–S7 정적 검사·문서 검사 exit 0, R3 mutation exit 0이며
+한도 누락을 주입한 2개 실제 효과 Assertion 실패를 정상 검출했다. 이 의도적 mutation 실패를
+제품 회귀 통과/실패 수와 섞지 않는다.
+최종 inventory는 520파일, 미검토 278(llm 101/hub 177), 미분류 19,638,
+미완료 계약 4, stale/검토 오류 0이다. 정적 finding은 111→112이며 새 비교 한 위치만 검토했다.
+최종 소스의 Level 3·원격 CI는 아직 대기다. 570ecb6 원격 CI는 2026-10-23 23:27 UTC 확인 시
+정확한 head SHA의 LLM/Hub 전체 실행 중이었다.

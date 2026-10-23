@@ -11,7 +11,7 @@
 | [history.py](history.py) | 수정 이력과 record/history envelope, 상태 전이 및 원본 동일성 검증을 소유합니다. |
 | [configuration.py](configuration.py) | Memory 설정의 schema·필수 입력·config/policy 배치·타입 검증과 지연 속성 조회를 소유합니다. |
 | [extraction.py](extraction.py) | 추출 Prompt·모델 후보·입력·관측 Projection과 후보 검증을 소유합니다. |
-| [sources.py](sources.py) | Memory API·Tool·처리 출처와 기존 이력 참조 수집을 소유합니다. |
+| [sources.py](sources.py) | Memory API·Tool·처리·병합 출처와 기존 이력 참조 수집을 소유합니다. |
 | [tool_values.py](tool_values.py) | Memory Tool 선언·인자·schema·응답 Projection을 소유합니다. |
 | [compaction_values.py](compaction_values.py) | 명시 압축 설정·schema와 누적 요약 cursor의 필수 증거·digest를 소유합니다. |
 | [compaction_records.py](compaction_records.py) | 저장 압축 상태의 단일 검증과 typed 요청·발행 Projection을 소유합니다. |
@@ -27,6 +27,8 @@
 | [tool_results.py](tool_results.py) | 완료 Tool/MCP 결과의 원문 참조·분할 요약과 모델 입력 사본 적용입니다. |
 | [work_state.py](work_state.py) | 선택적 구조화 요약의 형식·검증·출처 데이터를 정의합니다. |
 | [tools.py](tools.py) | 모델이 호출할 Memory Tool 정의와 실행 출처 연결입니다. |
+| [consolidation_records.py](consolidation_records.py) | 검토된 병합 Operation·Journal·Entry·Receipt·metadata의 정규 필드·Projection·검증을 소유합니다. |
+| [consolidation_storage.py](consolidation_storage.py) | 병합 manifest의 필수 목록·버전·Project/Component 및 inventory 반환형을 소유합니다. |
 | [consolidation.py](consolidation.py) | 검토된 병합 journal·완료 영수증의 존재 목록, 명시 복구와 원자 저장·복제를 소유합니다. |
 
 ## 읽고 쓸 때
