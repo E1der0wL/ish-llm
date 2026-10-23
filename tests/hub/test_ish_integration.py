@@ -8,6 +8,7 @@ import unittest
 
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.application.current import set_app
+from prompt_toolkit.completion import Completer
 from prompt_toolkit.widgets import Label
 
 from examples.hub.preview import install_preview
@@ -196,10 +197,34 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x00second line")
                 await eventually(lambda: replacement.view.composer.text == "ui draft\nsecond line")
                 replacement.view.composer.text = ""
-                pipe.send_text("/age")
-                await eventually(lambda: replacement.view.composer.buffer.complete_state is not None)
+                buffer = replacement.view.composer.buffer
+                original_completer = buffer.completer
+                started, release = asyncio.Event(), asyncio.Event()
+
+                class DelayedCompleter(Completer):
+                    def get_completions(self, document, event):
+                        return original_completer.get_completions(document, event)
+
+                    async def get_completions_async(self, document, event):
+                        started.set()
+                        await release.wait()
+                        async for completion in original_completer.get_completions_async(document, event):
+                            yield completion
+
+                buffer.completer = DelayedCompleter()
+                try:
+                    pipe.send_text("/age")
+                    await asyncio.wait_for(started.wait(), 3)
+                    # PTK publishes an empty state before the threaded results
+                    # arrive. That is not yet a menu the user can select from.
+                    self.assertIsNotNone(buffer.complete_state)
+                    self.assertEqual(buffer.complete_state.completions, [])
+                finally:
+                    release.set()
+                await eventually(lambda: buffer.complete_state and buffer.complete_state.completions)
                 pipe.send_text("\x1b[B\t")
                 await eventually(lambda: replacement.view.composer.buffer.complete_state is None)
+                buffer.completer = original_completer
                 self.assertEqual(replacement.view.composer.text, "/agent")
                 self.assertIsNone(replacement.view._dialog)
                 replacement.view.composer.text = "ui draft"

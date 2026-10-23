@@ -1254,3 +1254,37 @@ incomplete 계약 2개로 전체 완료는 계속 차단된다.
 이 소단계는 Level 2다. 실행 중인 1e29e66 고정 전체 게이트에는 이번 문맥 변경이 포함되지
 않았으며, 이후 관련 조회/실행 계약과 묶은 현재 통합 Level 3에서 검증한다. 소단계 완료로
 전체 대상 작업을 종료하지 않는다.
+
+
+## 1e29e66 통합 게이트 실패와 실제 Host 자동완성 준비 검증 (2026-10-23)
+
+고정 SHA `1e29e66aacf276e53b37ae64d6628f7c27dfc747`의 group8 전체 회귀는 실패했다.
+LLM 발견/시작/pass 2397/2397/2397, exit 0, 1384.799290초였지만 Hub는
+586/586/585, error 1, exit 1, 1124.586482초였다. 실패 이외의 failure/skip/xfail/xpass·
+누락/추가/중복은 0이다. 실패한 `test_actual_host_focus_keys_and_reinstallation`은
+Tab 이후 완료 상태 해제를 기다리다 timeout이 발생했다. 이 전체 실행을 통과로 기록하거나 Push하지 않았다.
+전후 source `0c5b3a7f6378552e6d70cb7754d0a25a7f0baaa8332eba5bc85cd8dd8c1edd89`,
+input `af7ee79b9db9e6fa31e9f4c758c9ea7c3091cb47d45e9e498257107fadbf3b16`은 동일했다.
+group8-auxiliary의 정적·문서·R3·SDK·양 suite 환경은 각각 exit 0이었다.
+
+같은 고정 소스의 Host 집중 재현 `whole-host-repro-01`은 5개 pass/exit 0이었다.
+이 재실행을 실패 취소 근거로 삼지 않았다. 설치된 prompt_toolkit Buffer는 threaded 후보를
+읽기 전에 빈 CompletionState를 공개한다. 기존 테스트는 상태 존재만으로 후보 준비를 판단해
+후보가 없는 상태에서 Down/Tab을 보낼 수 있었다. 제품의 입력 처리·완료 기준은 변경하지 않고
+테스트가 실제 후보를 기다리도록 수정했다. 동일 실제 Host 시험에서 Event로 후보 생성을
+의도적으로 중단하고 빈 상태를 확인한 다음 해제해 재현 조건을 강제했다. 기존 shell dispatch
+방지·실제 키 입력·완성 문자열·재설치/초점 복원 Assertion은 모두 유지했다.
+
+초기 `whole-host-completion-01`은 존재하지 않는 모듈명을 지정해 discovery exit 2였다.
+성공으로 집계하지 않으며 원본 로그를 보존한다. 실제 모듈을 확인해 다음 명령으로 검증했다.
+
+- 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-host-completion-02/hub.json --modules tests.hub.test_ish_integration tests.hub.test_completion_display tests.hub.test_popup_completion tests.hub.test_input_contract`.
+- 발견/시작/pass 13/13/13, exit 0, 10.159593초.
+- source: `a5e66b86307746319ef7700a6a0521cef3919aa45c3a5af90c36e8ced6c0805b`.
+- input: `69d4f242ff5b9a172b8b1b5593d3491929892435967022de9fe0ccd2757cf335`.
+
+failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. Python 3.12.14/Clang과
+고정 Host·의존성·실제 입력 환경은 이전 실행과 같다. `host-completion-auxiliary/results.json`의
+정적 S1–S7 145건·문서·R3·SDK·양 suite 환경도 각각 exit 0이다. 테스트 준비 동기화의
+Level 2 검증이며 앞선 전체 실패를 지우지 않는다. 실행 문맥 변경까지 포함하는 새 고정
+통합 Level 3를 실행하고 통과 후에만 작업 브랜치에 Push한다.
