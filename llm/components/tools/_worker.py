@@ -12,60 +12,62 @@ def load(request):
     from llm.components.tools.function import function_tool
     from llm.components.tools.packages import ToolPaths, read_package
     from llm.components.tools.process import fingerprint
-    source = Path(request["source_path"])
-    data = read_package(ToolPaths(source.parent.parent, request["project_id"]), request["tool_name"])
-    if (fingerprint(data["source"]) != request["source_hash"] or
-            fingerprint(data.get("requirements", "")) != request["requirements_hash"]):
+    source = Path(request.source_path)
+    data = read_package(ToolPaths(source.parent.parent, request.project_id), request.tool_name)
+    if (fingerprint(data["source"]) != request.source_hash or
+            fingerprint(data.get("requirements", "")) != request.requirements_hash):
         raise ValueError("Tool package changed after resolution; resolve again")
-    identity = "_ish_llm_tool_" + request["source_hash"]
+    identity = "_ish_llm_tool_" + request.source_hash
     module = types.ModuleType(identity)
     module.__file__ = str(source)
     sys.modules[identity] = module
     exec(compile(data["source"], str(source), "exec"), module.__dict__)
-    return function_tool(request["tool_name"], getattr(module, "main", None))
+    return function_tool(request.tool_name, getattr(module, "main", None))
 
 
 async def dispatch(request):
     from llm.core.json_data import JsonObject
+    from llm.core.tool_worker import (ToolWorkerDescriptor, ToolWorkerOperation, ToolWorkerFailureKind,
+        ToolWorkerFailure, ToolWorkerResponse, ToolWorkerProtocolError)
     from llm.errors import stable_error_code
     from llm.services.runtime.tools import ToolExecutionError
     try:
         tool = load(request)
-        descriptor = {"name": tool.name, "description": tool.description, "parameters": tool.parameters,
-                      "definition": tool.definition.to_dict(), "contract": tool.contract.to_dict()}
-        if request["operation"] == "inspect":
+        descriptor = ToolWorkerDescriptor.from_tool(tool).to_dict()
+        if request.operation == ToolWorkerOperation.INSPECT:
             value = descriptor
-        elif request["operation"] == "execute":
+        elif request.operation == ToolWorkerOperation.EXECUTE:
             from llm.components.tools.process import descriptor_fingerprint
             # 같은 source라도 import 시 동적으로 만든 default/contract가 바뀌면
             # 승인받은 descriptor와 다른 함수를 실행하지 않는다.
-            if descriptor_fingerprint(descriptor) != request["descriptor_hash"]:
+            if descriptor_fingerprint(descriptor) != request.descriptor_hash:
                 raise ValueError("Tool descriptor changed after inspection")
             # 읽기 전용 호출 출처/idempotency snapshot만 전달한다. 실행 scope/원장 owner는 부모다.
             from llm.services.runtime.tools import ToolCall, _tool_call
-            call = ToolCall(**request["call"]) if request.get("call") is not None else None
+            call = ToolCall(**request.call) if request.call is not None else None
             token = _tool_call.set(call)
             try:
-                value = await tool.handler(request["arguments"])
+                value = await tool.handler(request.arguments)
             finally:
                 _tool_call.reset(token)
         else:
-            raise ValueError("Unknown Tool worker operation")
-        JsonObject.validate({"value": value})
-        return {"ok": True, "value": value}
+            raise ValueError(ToolWorkerProtocolError.UNKNOWN_OPERATION)
+        response = ToolWorkerResponse.success(value).to_dict()
+        JsonObject.validate(response)
+        return response
     except asyncio.CancelledError:
         raise
     except Exception as error:
         if isinstance(error, ToolExecutionError):
-            record = {"kind": "tool_execution", "message": str(error), "code": ToolExecutionError.code,
-                      "effect": error.effect, "retryable": error.retryable, "recoverable": error.recoverable}
+            record = ToolWorkerFailure(ToolWorkerFailureKind.EXECUTION, str(error),
+                ToolExecutionError.code, error.effect, error.retryable, error.recoverable)
         elif (code := stable_error_code(error)):
-            record = {"kind": "coded", "code": code, "message": str(error)}
-        elif request["operation"] == "inspect":
-            record = {"kind": "inspection", "message": str(error)}
+            record = ToolWorkerFailure(ToolWorkerFailureKind.CODED, str(error), code)
+        elif request.operation == ToolWorkerOperation.INSPECT:
+            record = ToolWorkerFailure(ToolWorkerFailureKind.INSPECTION, str(error))
         else:
-            record = {"kind": "unknown", "message": "Project Tool execution failed"}
-        return {"ok": False, "error": record}
+            record = ToolWorkerFailure(ToolWorkerFailureKind.UNKNOWN, ToolWorkerProtocolError.EXECUTION_FAILED)
+        return ToolWorkerResponse.failure(record).to_dict()
 
 
 def main():
@@ -74,8 +76,10 @@ def main():
     protocol = os.fdopen(os.dup(1), "wb")
     os.dup2(2, 1)
     sys.path.insert(0, sys.argv[1])
-    if request.get("plugin_lib"):
-        sys.path.insert(1, request["plugin_lib"])
+    from llm.core.tool_worker import ToolWorkerRequest
+    request = ToolWorkerRequest.read(request)
+    if request.plugin_lib:
+        sys.path.insert(1, request.plugin_lib)
     response = asyncio.run(dispatch(request))
     protocol.write(json.dumps(response, ensure_ascii=True, allow_nan=False).encode())
     protocol.flush()

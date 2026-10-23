@@ -155,8 +155,8 @@ async def main(limit: int = count):
             executed = []
             original = process.invoke_worker
             async def observe(request):
-                if request["operation"] == "execute":
-                    executed.append(request["tool_name"])
+                if request.operation == "execute":
+                    executed.append(request.tool_name)
                 return await original(request)
             with patch.object(process, "invoke_worker", side_effect=observe):
                 paused = (await (await session.run.submit("act", recipients=["loop"])).wait())[0]
@@ -193,8 +193,8 @@ async def main(limit: int = count):
                     executions = []
                     original = process.invoke_worker
                     async def observe(request):
-                        if request['operation'] == 'execute':
-                            executions.append(request['tool_name'])
+                        if request.operation == 'execute':
+                            executions.append(request.tool_name)
                         return await original(request)
                     with patch.object(process, 'invoke_worker', side_effect=observe):
                         confirmation = (await (await session.run.submit('act', recipients=['graph'])).wait())[0]

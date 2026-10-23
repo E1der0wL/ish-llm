@@ -3345,5 +3345,463 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/tool_worker.py",
+    "sha256": "d3cebca330dfa406c5e8dc3d76e3f03856ae1b0a924cb80e51abd8735b3e38e4",
+    "reason": "Read the whole file, parent encoder/decoder, child bootstrap/load/dispatch and fingerprint consumers. Fixed IPC structures have typed internal values, one field declaration/Reader/Writer and detached inputs; nested Tool definitions delegate to their Owners. Unknown failure classifications are untrusted observations, not default authority. All runtime literal candidates are dataclass generation flags.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "60fe972f13806bf9a24b4ac88243d7b5ee9ffe4d86a23b20a60ef9a04732bb7e",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "28fef601a142e70b0a1ddd6efdb48359d3e61979f8f84429f935db2cbe9ef563",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "1ccb77c30ad061466e73d558563a3d054472f8afaa9d2b7bc4041f4ace15ea12",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "e5377dd6a4bbb4ac6fcae1948d42bca0462d452e84c0a346bd7e267e574991e3",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "e0aa38b58c4d7c733ba2099595b14c870f6891f6411fa3590911415c75df5396",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "1ec432a90eee32b68e6c8523114f0dbc7641912e1aa256023c12d14536c10338",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "c197518138ac0ed64d699bb574249514eac873deeeb8d276a310ab7b2b6e1a4e",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "56adcce0b2cd78cdb5a9624b283b80b9577f894e8d54cbb5804bac1eaae097e0",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "d91395d81c27ea15eb7591becd1002e3f89e54f0bd318895056fca61d60513f3",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "c53edd6e7ed388ac2c84705ae57dfbddb6795657410f1bbfb186db70fc342d9e",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "f32a5c16c4abe1ea123b3ec9e273961c28fad69a7b94767b136b501ea48d9302",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "127195b50c6b7c95e10c991e4142f3b9fe49f0ec65846bddb437735933168d96",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "2aad239b9d51016eb5663b7e55e3a2a0ba756ba600d3a01688817c9e0e7b37d8",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "ef9f46c9658616d5bb5b9197f04afdd62ddd8fbb93b3f96cc3d774f0ec851000",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "d70fda7bb2c242cf6bfc5e7c1878410fc065c7fa29250fca0b85241b6cdcfd95",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "c1f790da5e4c3af112e86927e1ebfc80902c0167af139ef54ced4493b88e39b6",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "33960b16173e7a6a06d29e8cc89c567e38c12c43a7e26f9d5a616088949d2f44",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "af132b6d28c282e931730e7b6926eeee6549cea56bb2ad437d7bac367ca9e592",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "40ec354e3049a7f8e33b26dbb038d867637b9b8ca7419a196866b4be9d39e8c9",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "024b783fe89bfbfb1be8267f75c8b5af808a328b705ea6753748c41412cddcd7",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "1f41f1bd2caf6bc857f4b19235279fcb2268605a44c959d60da456bf7d42c69c",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "941651dbd44d83d004730ce7b2504ff5499934dd83e19bfb488793ca903fe545",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "4c10797983dd99ac00c1d419dafd4cebc905a2f8f5d72065b72bde4922532dbf",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "bb081add899150f6b710beefde015f37dd6728c1e52eee1c568894cdb8448474",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "1fa3f537e473891a23914c9ec3b1937df57b578047996be1101652778f7850cb",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "d8828217481f97915a52a5e61ffe40fa314b731450526042f09da3c1ca89804d",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "64badffaf0cc46bfeae017d595e3a630050c8794a386f482d0a3419ca998b5d6",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "1eda2fb74ccfe9363708dfe00dc52c7759314383d4b3ab7a10cfeaad47959416",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "53fc5c79553324664b81a13b7aeb777c9014e951b1176948a5e06b64ba760cb8",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "cee3cf198306c2111a608f5e6d4ab5ee8d8397d8841d9b923f5c47840b9ea067",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "2b182e331ca5fa794a2fb7cf2708877c3fbcb49b982bd48908d0d01c981b6236",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "c8124291c218cecc47ea764c5fe2ae50aab39e576ee0687cbf8edb9433c98da7",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "67b87919a286ec2fdca99667fea26b46964fc2cd5e34381a3b68c563d9eb04ff",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "1cbf03f6be1fa29e6eb6e1b96bfda847b9367c5bf2a1841d838d6d539198a785",
+        "classification": "non_contract",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "3b9b82393a668f0d2edd6c9c91df4cdb6cb5511a00313c087b25f896c62788a4",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "d5f8845a2c437d761c22afcf8ca3d131163ffe4bae14f702e19e347a8012fd3f",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "586d0e713766f2db749d04f819e29eaf7f7d2e6833b2c0f041089f9a8489e5bb",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "3878d1422d704e26ab61b6a8b368a728937b1ee02a310937cfdcf1eadf3fa0bc",
+        "classification": "declaration",
+        "owner": "Tool interpreter protocol values",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Tool interpreter protocol values",
+        "declaration": "llm/core/tool_worker.py",
+        "consumers": [
+          "llm/components/tools/process.py",
+          "llm/components/tools/_worker.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_tool_package_integrity.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/_worker.py",
+    "sha256": "765588a72c2699b72e91c82d0de0c11020ac6606937fc19959743398c25d88b1",
+    "reason": "Read the complete stdlib-only entrypoint and both actual launch paths. The parent retains policy validation; one DTO owns the five mandatory transport fields and detached JSON conversion. Command flags, parent-death prctl values, PID argument, exit classification and JSON encoding are declared before implementation. No user command starts before death-signal/PID checks and stdin receipt.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fe193772257016c73fa9987501143e90bd437071065e8b37e9f33f5a0404dfd9",
+        "classification": "non_contract",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "d9604c3c58ec29761c2812e6a8b7ac5ad42a9ba2ed4affb0adccfcdab4a0b85b",
+        "classification": "non_contract",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Dataclass frozen/slots generation, not stored data or execution policy."
+      },
+      {
+        "id": "eebcc73d6c7990461ad3ee5595ce24c049ef94905e76e3cfe046687ca9683167",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "2e985de82904c6aca63df4f25574d022939ad3a0e248fb351b8bcc551aad3071",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "e05e99a9e64620ca1383f5c826fe38f53c2fe5f161e15328eea0e96914a57877",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "46ea0d2df07f561f295fddff2484b9bc6b24999c1f8a4a59adb67f015632fcb1",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "ef54e2c4bd21a22d70947cd7ef8aa6d9e3d9f7b1b3db01902cc786128d000505",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "b8b01012512ca1121569150be53bafe26a90291a109f636afce9b259c2c1cf71",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "470bf9d1f24293385499860ae6e7b2dd60e6e7f7b7487dfbf169ca097120b95c",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "39bb410aba9f87d958dcda4e99f732c55bf9ba601f63eac9a6bac885776f31fb",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "8ef02f90896d8cf6402fcd31e4ded06f79d9a0e0af8bcc656d1db93fd12c32a8",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "afdf131788c4429b4b9e5e5c57fcb195b3ba21978714cbce59672b6a3daa746a",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "258eb6c1a970ec24584a0a099adbf0db79919f77b11eb42af3397fcff834f733",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "0b75e29550d5aaf1bc1373515639e28d1f921930038f12cf49f07027a49ebb42",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "04e101679bf7e42ba9d93a3a431c374e3583eaac5747802a6b86a4946099dc84",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "59951a71920b6a8a7aa79f2af9210f2acd41220da5e886ef99e3bab3b3ac355d",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "dfe819fb6a7f749c93fe40a0e839af33ce23bb42a83ad9e000fad76d7b752606",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "2ee22854137e5f3ec3129f237c99861dcf92a55a0e12fc4fe3027cd43b612d86",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "d95cb703d10db93dba11d1db28e8673b784cf6452f17abad4a1d791b91b9a45f",
+        "classification": "declaration",
+        "owner": "ProcessLaunch / ProcessGate",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProcessLaunch / ProcessGate",
+        "declaration": "llm/services/runtime/_worker.py",
+        "consumers": [
+          "llm/services/runtime/processes.py",
+          "llm/components/tools/process.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_isolated_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/tool_codes.py",
+    "sha256": "f241426436d0a2c4bd4e78447572d6785ea4a69817004d55967fdfea12e87551",
+    "reason": "Read every enum declaration and searched all matching production literals/references. Tool execution/runtime/worker failure codes have one declaration; the protocol counter references it. ErrorReason.TOOL_FAILED is a separate diagnostic observation vocabulary, and the Markdown example is independent documentation, neither an alternate execution-code declaration. The surrounding runtime and observability implementations remain separately unreviewed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "51427005143184adcb2798c7be0c9ecc198e033c817aaac2d9f510f0f71eb0e5",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "f8d1acece075dcd6722fd1e4c942f9aef782bd770524bd01e95e7b919465113f",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "e28549acafc5d5c9765aafc8a94dde72ddd7d3b90a982ff82fd9e208c47c099b",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "c089c6dc98dfd003034094b2e2322e8b0730a5087b935cb06e440da3732bdd77",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "ee20e630417ae6fee1c77b5cbdf5c6d6b5c4c99820509f5e95b3ffe9a442eadb",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "6ec4c2fd9c5a3aae856098ff90b9377c869ec3ee216454fc3eb07863650b9ba0",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      },
+      {
+        "id": "cd7de3adf5b4568dc5e32fff199d1959647fe9a97e750b061aecf18d31520c6f",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolErrorCode",
+        "declaration": "llm/core/tool_codes.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/components/tools/process.py",
+          "llm/services/infrastructure/observability.py",
+          "llm/core/contracts.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_observability.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -11,21 +11,37 @@ import os
 from pathlib import Path
 import sys
 import time
-from types import MappingProxyType
 
 from llm.errors import CodedError
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
-from llm.core.tool_contracts import ToolContract
+from llm.services.runtime._worker import ProcessGate, ProcessLaunch
 from .registry import Tool, ToolRegistry
 from llm.core.tool_codes import ToolErrorCode
+from llm.core.tool_worker import (ToolWorkerRequest, ToolWorkerResponse, ToolWorkerOperation,
+    ToolWorkerDescriptor, ToolWorkerFailureKind, ToolWorkerProtocolError)
 
 # IPC/capture의 유한 메모리 계약이다. 출력은 자르지 않고 한도 초과 시 실패한다.
 PROTOCOL_BYTES = 8 * 1024 * 1024
 CAPTURE_BYTES = 1024 * 1024
+READ_BYTES = 8192
+REAP_INTERVAL_SECONDS = 0.02
+WIRE_ENCODING = "utf-8"
+WIRE_ENSURE_ASCII = True
+WIRE_ALLOW_NON_FINITE = False
+PLUGIN_ROOT_DEPTH = 3
+WORKER_FILENAME = "_worker.py"
+INTERPRETER_ARGUMENTS = ("-I",)
+INTERPRETER_ENVIRONMENT = {"LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"}
+NORMAL_EXIT = 0
 
 
 class WorkerError(CodedError, RuntimeError):
+    OUTPUT_LIMIT = "Tool worker output exceeded IPC capture limit"
+    EXIT = "Tool worker exited abnormally"
+    INVALID_JSON = "Tool worker returned invalid JSON"
+    COMMUNICATION = "Cannot communicate with Tool worker"
+
     def __init__(self, code, message):
         super().__init__(message)
         self.code = code
@@ -42,39 +58,36 @@ class RemoteToolError(CodedError, RuntimeError):
 
 
 def fingerprint(text):
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return hashlib.sha256(text.encode(WIRE_ENCODING)).hexdigest()
 
 
 def descriptor_fingerprint(value):
-    return fingerprint(json.dumps(value, sort_keys=True, ensure_ascii=True, allow_nan=False))
+    return fingerprint(json.dumps(value, sort_keys=True, ensure_ascii=WIRE_ENSURE_ASCII, allow_nan=WIRE_ALLOW_NON_FINITE))
 
 
 def _decode(payload, operation):
     from llm.services.runtime.tools import ToolExecutionError
-    if not isinstance(payload, dict) or type(payload.get("ok")) is not bool:
-        raise WorkerError("tool_worker_protocol", "Invalid Tool worker envelope")
-    if payload["ok"]:
-        if set(payload) != {"ok", "value"}:
-            raise WorkerError("tool_worker_protocol", "Invalid Tool worker result")
-        return payload["value"]
-    error = payload.get("error")
-    if not isinstance(error, dict) or not isinstance(error.get("message"), str):
-        raise WorkerError("tool_worker_protocol", "Invalid Tool worker error")
-    kind, message = error.get("kind"), error["message"]
-    if kind == "inspection" and operation == "inspect":
-        raise InspectionError(message)
-    if kind == "tool_execution" and error.get("code") == ToolExecutionError.code:
-        if (error.get("effect") not in ToolExecutionError.EFFECTS or type(error.get("retryable")) is not bool
-                or type(error.get("recoverable")) is not bool
-                or error.get("recoverable") and error.get("effect") != ToolExecutionError.NO_EFFECT):
-            raise WorkerError("tool_worker_protocol", "Invalid Tool failure classification")
-        raise ToolExecutionError(message, effect=error["effect"], retryable=error["retryable"], recoverable=error["recoverable"])
-    if kind == "coded" and isinstance(error.get("code"), str) and error["code"].strip():
-        raise RemoteToolError(error["code"], message)
-    if kind == "unknown":
-        raise ToolExecutionError(message, effect=ToolExecutionError.UNCERTAIN_EFFECT, retryable=False)
-    raise WorkerError("tool_worker_protocol", "Unknown Tool worker error envelope")
-
+    try:
+        response = ToolWorkerResponse.read(payload)
+    except ToolWorkerProtocolError as error:
+        raise WorkerError(ToolErrorCode.WORKER_PROTOCOL, str(error)) from error
+    if response.ok:
+        return response.value
+    error = response.error
+    if error.kind == ToolWorkerFailureKind.INSPECTION and operation == ToolWorkerOperation.INSPECT:
+        raise InspectionError(error.message)
+    if error.kind == ToolWorkerFailureKind.EXECUTION and error.code == ToolExecutionError.code:
+        try:
+            classified = ToolExecutionError(error.message, effect=error.effect,
+                retryable=error.retryable, recoverable=error.recoverable)
+        except ValueError as cause:
+            raise WorkerError(ToolErrorCode.WORKER_PROTOCOL, ToolWorkerProtocolError.CLASSIFICATION) from cause
+        raise classified
+    if error.kind == ToolWorkerFailureKind.CODED and isinstance(error.code, str) and error.code.strip():
+        raise RemoteToolError(error.code, error.message)
+    if error.kind == ToolWorkerFailureKind.UNKNOWN:
+        raise ToolExecutionError(error.message, effect=ToolExecutionError.UNCERTAIN_EFFECT, retryable=False)
+    raise WorkerError(ToolErrorCode.WORKER_PROTOCOL, ToolWorkerProtocolError.UNKNOWN_ERROR)
 
 async def invoke_worker(request):
     from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
@@ -98,7 +111,7 @@ async def invoke_worker(request):
         status = ObservationStatus.CANCELLED.value
         raise
     finally:
-        record(ObservationKind.WORKERS.value, status, code=code, name=request["operation"],
+        record(ObservationKind.WORKERS.value, status, code=code, name=request.operation,
                duration_seconds=time.monotonic() - started)
 
 
@@ -107,16 +120,15 @@ async def _invoke_worker(request):
     from llm._platform import require_linux
     from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
     require_linux()
-    root = Path(__file__).resolve().parents[3]
-    worker = Path(__file__).with_name("_worker.py")
-    gate = root / "llm/services/runtime/_worker.py"
+    root = Path(__file__).resolve().parents[PLUGIN_ROOT_DEPTH]
+    worker = Path(__file__).with_name(WORKER_FILENAME)
     # 부모 환경을 복사하지 않는다. -I는 PYTHONPATH/user site 주입도 차단한다.
-    env = {"LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"}
-    command = [sys.executable, "-I", str(worker), str(root)]
+    env = dict(INTERPRETER_ENVIRONMENT)
+    command = [sys.executable, *INTERPRETER_ARGUMENTS, str(worker), str(root)]
     # 기존 handler의 상대 경로 의미를 유지한다. import 경로와 작업 디렉토리는 별개다.
-    data = {"argv": command, "cwd": os.getcwd(), "env": env, "payload": request, "memory_bytes": None}
+    data = ProcessLaunch(command, os.getcwd(), env, request.to_dict(), ProcessLaunch.UNLIMITED_MEMORY)
     pending = asyncio.create_task(asyncio.create_subprocess_exec(
-        sys.executable, "-I", "-S", str(gate), str(os.getpid()),
+        *ProcessGate.command(sys.executable, os.getpid()),
         stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE, env=env, start_new_session=True))
     process, readers = None, []
@@ -125,7 +137,7 @@ async def _invoke_worker(request):
         nonlocal spawned
         if not spawned:
             spawned = True
-            record(ObservationKind.WORKERS.value, ObservationStatus.SPAWNED.value, name=request["operation"])
+            record(ObservationKind.WORKERS.value, ObservationStatus.SPAWNED.value, name=request.operation)
     try:
         process = await asyncio.shield(pending)
         note_spawn()
@@ -133,17 +145,17 @@ async def _invoke_worker(request):
         async def read(stream, limit):
             pieces, size = [], 0
             while True:
-                block = await stream.read(8192)
+                block = await stream.read(READ_BYTES)
                 if not block:
                     return b"".join(pieces)
                 size += len(block)
                 if size > limit:
-                    raise WorkerError("tool_worker_output_limit", "Tool worker output exceeded IPC capture limit")
+                    raise WorkerError(ToolErrorCode.WORKER_OUTPUT_LIMIT, WorkerError.OUTPUT_LIMIT)
                 pieces.append(block)
 
         readers = [asyncio.create_task(read(process.stdout, PROTOCOL_BYTES)),
                    asyncio.create_task(read(process.stderr, CAPTURE_BYTES))]
-        process.stdin.write(json.dumps(data, ensure_ascii=True, allow_nan=False).encode())
+        process.stdin.write(json.dumps(data.to_dict(), ensure_ascii=WIRE_ENSURE_ASCII, allow_nan=WIRE_ALLOW_NON_FINITE).encode())
         await process.stdin.drain()
         process.stdin.close()
         # Reap the leader before waiting for pipe EOF: children may still hold the pipes.
@@ -151,21 +163,21 @@ async def _invoke_worker(request):
             # Process.wait 자체는 상속된 pipe EOF를 기다릴 수 있다. leader의 exit를
             # 관찰한 뒤 그룹을 회수해야 정상 반환한 Tool의 자식도 남지 않는다.
             while process.returncode is None:
-                await asyncio.sleep(0.02)
+                await asyncio.sleep(REAP_INTERVAL_SECONDS)
             await kill_process_tree(process)
         readers.append(asyncio.create_task(reap()))
         stdout, _, _ = await asyncio.gather(*readers)
-        if process.returncode != 0:
-            raise WorkerError("tool_worker_failed", "Tool worker exited abnormally")
+        if process.returncode != NORMAL_EXIT:
+            raise WorkerError(ToolErrorCode.WORKER_FAILED, WorkerError.EXIT)
         try:
             payload = json.loads(stdout, parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
             from llm.core.json_data import JsonObject
-            JsonObject.validate({"response": payload})
+            JsonObject.validate(ToolWorkerResponse.success(payload).to_dict())
         except (ValueError, TypeError, UnicodeError) as error:
-            raise WorkerError("tool_worker_protocol", "Tool worker returned invalid JSON") from error
-        return _decode(payload, request["operation"])
+            raise WorkerError(ToolErrorCode.WORKER_PROTOCOL, WorkerError.INVALID_JSON) from error
+        return _decode(payload, request.operation)
     except (OSError, BrokenPipeError) as error:
-        raise WorkerError("tool_worker_failed", "Cannot communicate with Tool worker") from error
+        raise WorkerError(ToolErrorCode.WORKER_FAILED, WorkerError.COMMUNICATION) from error
     finally:
         async def cleanup():
             nonlocal process
@@ -179,7 +191,7 @@ async def _invoke_worker(request):
                 reader.cancel()
             await asyncio.gather(*readers, return_exceptions=True)
             async def discard(stream):
-                while await stream.read(8192):
+                while await stream.read(READ_BYTES):
                     pass
             drains = [asyncio.create_task(discard(s)) for s in (process.stdout, process.stderr)]
             try:
@@ -196,27 +208,25 @@ async def _invoke_worker(request):
 
 class ProjectToolHandler:
     """함수 대신 검증된 소스 fingerprint만 보관하는 trusted execution adapter."""
-    def __init__(self, request):
-        self._request = MappingProxyType(dict(request))
+    def __init__(self, request, descriptor_hash):
+        self._request, self._descriptor_hash = request, descriptor_hash
 
     @property
     def execution_binding(self):
-        return {key: self._request[key] for key in ("source_hash", "requirements_hash")}
+        return self._request.binding().to_dict()
 
     async def __call__(self, arguments):
         from llm.services.runtime.tools import current_tool_call
         call = current_tool_call()
-        return await invoke_worker({**self._request, "operation": "execute", "arguments": arguments,
-                                    "call": asdict(call) if call is not None else None})
+        return await invoke_worker(self._request.execute(self._descriptor_hash, arguments,
+                                    asdict(call) if call is not None else None))
 
 
 def inspect_tool(project, name, data, plugin_lib=None):
     from .packages import ToolPaths
-    request = {"operation": "inspect", "tool_name": name, "project_id": project.id,
-               "source_path": str(ToolPaths.for_project(project).source(name).absolute()),
-               "source_hash": fingerprint(data["source"]),
-               "requirements_hash": fingerprint(data.get("requirements", "")),
-               "plugin_lib": str(plugin_lib) if plugin_lib is not None else None}
+    request = ToolWorkerRequest(ToolWorkerOperation.INSPECT, name, project.id,
+        str(ToolPaths.for_project(project).source(name).absolute()), fingerprint(data["source"]),
+        fingerprint(data.get("requirements", "")), str(plugin_lib) if plugin_lib is not None else None)
     def run():
         return asyncio.run(invoke_worker(request))
     try:
@@ -227,19 +237,15 @@ def inspect_tool(project, name, data, plugin_lib=None):
         # 동기 API를 직접 호출한 경우에도 backend loop에서 source를 실행하지 않는다.
         with ThreadPoolExecutor(max_workers=1) as executor:
             descriptor = executor.submit(copy_context().run, run).result()
-    if not isinstance(descriptor, dict) or set(descriptor) != {"name", "description", "parameters", "definition", "contract"} or descriptor["name"] != name:
-        raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor")
-    if (not isinstance(descriptor["description"], str) or not descriptor["description"].strip()
-            or any(not isinstance(descriptor[key], dict) for key in ("parameters", "definition", "contract"))):
-        raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor fields")
     try:
-        from llm.core.model_protocol import ToolDefinition
-        definition = ToolDefinition.from_dict(descriptor["definition"])
-        contract = ToolContract.from_dict(descriptor["contract"])
-        request["descriptor_hash"] = descriptor_fingerprint(descriptor)
-        tool = Tool(name, descriptor["description"], descriptor["parameters"],
-                    ProjectToolHandler(request), definition, contract=contract)
+        value = ToolWorkerDescriptor.read(descriptor, name=name)
+    except ToolWorkerProtocolError as error:
+        raise WorkerError(ToolErrorCode.WORKER_PROTOCOL, str(error)) from error
+    try:
+        tool = Tool(name, value.description, value.parameters,
+                    ProjectToolHandler(request, descriptor_fingerprint(descriptor)),
+                    value.definition, contract=value.contract)
         registry = ToolRegistry((tool,))
         return registry.get(name)
     except Exception as error:
-        raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor contract") from error
+        raise WorkerError(ToolErrorCode.WORKER_PROTOCOL, ToolWorkerProtocolError.DESCRIPTOR_CONTRACT) from error

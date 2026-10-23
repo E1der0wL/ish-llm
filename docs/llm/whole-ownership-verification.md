@@ -1050,3 +1050,56 @@ incomplete 계약 2개로 전체 완료는 계속 차단된다.
 이 소단계는 Level 2다. 수정된 현재 통합 소스로 Level 3를 새로 실행하며, 앞선 실패와
 다른 실행을 합쳐 하나의 전체 pass로 표현하지 않는다. 성공한 정확한 Push SHA의 CI를 별도로
 확인하고 Tool worker/정책·나머지 제품 전수 작업을 이어간다.
+
+
+## Tool IPC와 공통 프로세스 시작 계약 (2026-10-23)
+
+[worker 프로토콜](tool-worker-protocol.md)의 요청·응답·descriptor·소스 binding을 Owner 타입으로
+연결했다. 부모와 자식이 고정 필드를 중복 조립/해석하지 않는다. 실패 효과 검증은 기존
+ToolExecutionError로 위임한다. worker 실패 코드는 ToolErrorCode를 관측 소비자까지 공유한다.
+일반 명령과 Tool interpreter의 ProcessLaunch도 동일 Owner로 연결했다. 시작 인자·부모 사망
+검사·None payload/메모리 의미를 유지하고 Reader의 중첩 입력 사본을 검증했다.
+
+기존 worker bootstrap FD/root/plugin/Component import 순서를 보존했다. 새 프로토콜 Owner는
+stdlib-only이며 독립 -I/-S 프로세스에서도 SDK/Component를 import하지 않는다. 신규 요청 및
+응답의 독립 wire/필수 필드·효과 분류 누락·descriptor 지문 검증을 추가했다. 기존 실제 실행
+횟수·승인 거부·fresh approval·자식 회수·취소·출처 Assertion은 유지하고 mock 요청의 키 접근만
+typed 속성으로 변경했다. 이전 290c576의 decoder와 3,858개 오류/결과 사례가 동일했다.
+기존 실패 envelope 확장 허용과 성공 envelope 확장 거부도 바꾸지 않았다.
+
+초기 실제 worker/선언 smoke 22개, worker/격리 smoke 34개, wire/bootstrap smoke 4개가 exit 0이었다.
+이 결과는 뒤의 엄격한 discovery 집계와 합치지 않는다. 공식 집중 실행은 아래와 같다.
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이며 전후 manifest가 동일하다.
+
+- `whole-worker-protocol-01`: 발견/시작/pass 160/160/160, exit 0, 122.075496초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-worker-protocol-01/llm.json --modules tests.llm.test_tool_worker_protocol tests.llm.test_tool_workers tests.llm.test_tool_packages tests.llm.test_tool_package_integrity tests.llm.test_isolated_tools tests.llm.test_tool_constraints tests.llm.test_execution_boundaries tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `501f1fd6f62863da5bcb15a369115f3ad8af9866262b55e062c9b9dc217b51ec`, input `4644970f73cd6970bed71f906b9955a18b461227a74e0b259cf78ea59902cfb0`.
+
+- `whole-worker-protocol-hub-01`: 발견/시작/pass 31/31/31, exit 0, 216.730455초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-worker-protocol-hub-01/hub.json --modules tests.hub.test_question_tools tests.hub.test_tool_retry tests.hub.test_tool_history tests.hub.test_resource_tools`.
+  source `501f1fd6f62863da5bcb15a369115f3ad8af9866262b55e062c9b9dc217b51ec`, input `4644970f73cd6970bed71f906b9955a18b461227a74e0b259cf78ea59902cfb0`.
+
+- `whole-worker-observability-01`: 발견/시작/pass 26/26/26, exit 0, 7.374887초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-worker-observability-01/llm.json --modules tests.llm.test_observability tests.llm.test_tool_worker_protocol`.
+  source `b1a49a97e5f5468163c077ee28594de75746cdf76fff78bb76f1494a23939c7b`, input `22868ab973d348ab5043277236ce3d36573020060ec4e2639c62959abef1462e`.
+
+- `whole-worker-values-02`: 발견/시작/pass 23/23/23, exit 0, 9.332947초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-worker-values-02/llm.json --modules tests.llm.test_tool_worker_protocol tests.llm.test_isolated_tools`.
+  source `82fd104e97aa82034feba184f933b6783c856148afa01fb98ecaa254c2b27191`, input `6820a7ff8802b347ad3e6d1fa3b97b01761c5d964784cbfc0b5c55ab64b69c04`.
+
+첫 LLM/Hub 검증은 실제 worker·패키지 무결성·격리·인자 제약·실행 경계와 승인 저장·예산 삭제·
+효과 원장·Checkpoint·RAG·수명 안전성, Hub 승인/재시도/재개/Component Tool 소비자를 포함한다.
+후속 관측 코드 연결은 26개로, 시작 요청 Reader의 중첩 사본 보강은 wire 및 실제 격리 23개로
+추가 검증했다. 각 변경 후 해당 소스에서 실행했으며 서로 다른 실행을 하나의 전체 pass로
+표현하지 않는다. 로컬 Python 3.12.14/Clang·고정 host/의존성·namespace/X11은 유지했다.
+
+변경된 정적 근거 113건을 개별 재검토했고 발생 ID의 추가/삭제는 없었다.
+`worker-protocol-auxiliary/results.json`의 정적 S1–S7 145건, 문서, R3 Mutation, SDK,
+LLM/Hub 실제 환경 6개 명령은 모두 exit 0이었다. 코드/실제 소비를 검토한 Tool IPC Owner,
+ProcessLaunch/ProcessGate, ToolErrorCode 3개 파일만 전수 판정을 추가했다.
+현재 파일 454개, 미검토 406개, 미분류 30463개,
+incomplete 계약 2개이며 전체 완료는 계속 차단된다.
+
+이 소단계는 Level 2다. 실행 중인 290c576 고정 전체 게이트에는 이번 IPC 변경이 포함되지
+않았다. Tool 패키지/선택 설정과 묶은 후속 현재 통합 소스의 Level 3 및 정확한 SHA CI를
+수행한다. 전체 대상·핵심 안전성·후속 단계 완료 기준은 유지한다.

@@ -15,6 +15,7 @@ from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.policies import ExecutionLimitError
 from llm.core.tool_contracts import ToolIsolation
+from ._worker import ProcessGate, ProcessLaunch
 
 if TYPE_CHECKING:
     from llm.services.runtime.tools import ToolCall
@@ -112,11 +113,10 @@ class ProcessToolRunner:
 
     async def _launch(self, command, input_value, *, pass_fds=()):
         env = {} if self.isolation == ToolIsolation.SANDBOX else copy_env(self.env)
-        data = {"argv": command, "cwd": str(self.cwd), "env": env, "payload": input_value, "memory_bytes": self.memory_bytes}
-        payload = json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8")
-        worker = Path(__file__).with_name("_worker.py")
+        data = ProcessLaunch(command, str(self.cwd), env, input_value, self.memory_bytes)
+        payload = json.dumps(data.to_dict(), ensure_ascii=False, allow_nan=False).encode("utf-8")
         pending = asyncio.create_task(asyncio.create_subprocess_exec(
-            self.python, "-I", "-S", str(worker), str(os.getpid()), stdin=asyncio.subprocess.PIPE,
+            *ProcessGate.command(self.python, os.getpid()), stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, env={}, start_new_session=True,
             pass_fds=pass_fds))
         process, readers = None, []

@@ -10,6 +10,8 @@ import math
 import re
 import threading
 
+from llm.core.tool_codes import ToolErrorCode
+
 class ObservationKind(StrEnum):
     """관찰 사실의 집계 경계. 실행 권한이나 영속 도메인이 아니다."""
 
@@ -97,7 +99,7 @@ class Observability:
                     self._counts[kind][status] += 1
                 if kind == ObservationKind.TOOLS.value and status == ObservationStatus.EXECUTIONS.value and retry:
                     self._counts[kind][ObservationStatus.RETRIES.value] += 1
-                if kind == ObservationKind.WORKERS.value and status == ObservationStatus.FAILED.value and code == "tool_worker_protocol":
+                if kind == ObservationKind.WORKERS.value and status == ObservationStatus.FAILED.value and code == ToolErrorCode.WORKER_PROTOCOL:
                     self._counts[kind]["protocol_failed"] += 1
                 if status == ObservationStatus.FAILED.value and "code" in event:
                     self._failures[code] += 1
