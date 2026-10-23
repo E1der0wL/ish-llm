@@ -59,13 +59,7 @@ class ProjectRepository:
             raise ValueError("Project path mismatch")
         project.config.validate()
         project.validate_conversation_storage()
-        data = record(project)
-        data["config"] = project.config.to_dict()
-        for key in Project.COMPONENT_FIELDS:
-            if not isinstance(data[key], (tuple, list)):
-                raise ValueError("Project Component identities must be a sequence")
-            data[key] = list(data[key])
-        Project.from_record(data, project.paths)
+        data = project.to_record()
         atomic_domain_json(project.paths.record, data)
         log_event(project.paths.logs, "project.saved", entity_id=project.id)
 

@@ -8,7 +8,6 @@ from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from enum import StrEnum
 from uuid import uuid4
-from types import SimpleNamespace
 
 from .paths import ProjectPaths, RunPaths, StepPaths, SessionPaths
 from .policies import normalize_policies, describe_policies
@@ -22,11 +21,33 @@ if TYPE_CHECKING:
 DOMAIN_STORAGE_VERSION = 1
 
 
+class DomainRecord:
+    """Shared current-format mechanics; each model owns its complete record rules."""
+
+    UNSUPPORTED_VERSION = "Unsupported domain storage_version"
+    REQUIRED = "{model} record requires all current fields"
+    WRONG_FIELDS = "{model} record requires all current fields; missing={missing}, unexpected={unexpected}"
+    INVALID_FIELD = "Invalid {model} {field}"
+    TIMEZONE_REQUIRED = "{model} {field} requires a timezone"
+
+    @staticmethod
+    def fields(model):
+        return tuple(item for item in fields(model) if item.name != Project.paths.__name__)
+
+    @classmethod
+    def serialize(cls, model):
+        return {item.name: getattr(model, item.name) for item in cls.fields(model)}
+
+    @classmethod
+    def validate_version(cls, data):
+        key = Project.storage_version.__name__
+        if not isinstance(data, dict) or type(data.get(key)) is not int or data[key] != DOMAIN_STORAGE_VERSION:
+            raise ValueError(cls.UNSUPPORTED_VERSION)
+
+
 def validate_domain_version(data):
-    """One exact current-format guard for domain Readers and Writers."""
-    if (not isinstance(data, dict) or type(data.get("storage_version")) is not int
-            or data["storage_version"] != DOMAIN_STORAGE_VERSION):
-        raise ValueError("Unsupported domain storage_version")
+    """Shared Project/Session/Run/Step current storage version guard."""
+    DomainRecord.validate_version(data)
 
 # ---------------------------------------------------------------------------
 # 공통 ID와 UTC 시각 생성
@@ -41,26 +62,25 @@ def now() -> str:
 
 def _stored_fields(model, data):
     """The domain's serialized fields are mandatory even when creation has defaults."""
-    declarations = [item for item in fields(model) if item.name != "paths"]
+    declarations = DomainRecord.fields(model)
     if not isinstance(data, dict):
-        raise ValueError(f"{model.__name__} record requires all current fields")
+        raise ValueError(DomainRecord.REQUIRED.format(model=model.__name__))
     expected = {item.name for item in declarations}
     if data.keys() != expected:
-        raise ValueError(f"{model.__name__} record requires all current fields; "
-                         f"missing={sorted(expected - data.keys())}, "
-                         f"unexpected={sorted(data.keys() - expected)}")
-    if "storage_version" in expected:
+        raise ValueError(DomainRecord.WRONG_FIELDS.format(model=model.__name__,
+            missing=sorted(expected - data.keys()), unexpected=sorted(data.keys() - expected)))
+    if Project.storage_version.__name__ in expected:
         validate_domain_version(data)
     for item in declarations:
         value = data[item.name]
         if item.type in (str, dict, bool) and not isinstance(value, item.type):
-            raise ValueError(f"Invalid {model.__name__} {item.name}")
+            raise ValueError(DomainRecord.INVALID_FIELD.format(model=model.__name__, field=item.name))
         if item.type == Optional[str] and value is not None and not isinstance(value, str):
-            raise ValueError(f"Invalid {model.__name__} {item.name}")
-    for name in ("created_at", "started_at", "ended_at"):
+            raise ValueError(DomainRecord.INVALID_FIELD.format(model=model.__name__, field=item.name))
+    for name in (Run.created_at.__name__, Run.started_at.__name__, Run.ended_at.__name__):
         if name in data and data[name] is not None:
             if datetime.fromisoformat(data[name]).tzinfo is None:
-                raise ValueError(f"{model.__name__} {name} requires a timezone")
+                raise ValueError(DomainRecord.TIMEZONE_REQUIRED.format(model=model.__name__, field=name))
 
 
 # ---------------------------------------------------------------------------
@@ -370,7 +390,13 @@ class ProjectConfig(dict):
 @dataclass(slots=True)
 # 프로젝트의 영속 데이터. 직접 실행하거나 런타임 객체를 저장하지 않는다.
 class Project:
-    COMPONENT_FIELDS = ("components", "initialized_components")
+    STORED_CONFIG = 'Stored Project configuration requires policies, parameters and data'
+    INVALID_DELETED = 'Project deleted must be a boolean'
+    INVALID_COMPONENTS = 'Invalid Project Component identities'
+    UNINITIALIZED_COMPONENTS = 'Selected Components require initialized storage'
+    INVALID_TITLE_TIME = 'Invalid Project title or creation time'
+    INVALID_TIMEZONE = 'Project creation time requires a timezone'
+    INVALID_COMPONENT_SEQUENCE = 'Project Component identities must be a sequence'
 
     id: str
     title: str
@@ -390,26 +416,36 @@ class Project:
     def from_record(cls, data: dict, paths: ProjectPaths) -> "Project":
         """Read the current record without applying creation defaults."""
         _stored_fields(cls, data)
-        ProjectConfig.validate_session(data["config"], project=True)
-        if not isinstance(data["config"], dict) or data["config"].keys() != {"policies", "parameters", "data"}:
-            raise ValueError("Stored Project configuration requires policies, parameters and data")
-        if type(data["deleted"]) is not bool:
-            raise ValueError("Project deleted must be a boolean")
-        for key in cls.COMPONENT_FIELDS:
+        ProjectConfig.validate_session(data[cls.config.__name__], project=True)
+        if not isinstance(data[cls.config.__name__], dict) or data[cls.config.__name__].keys() != {"policies", "parameters", "data"}:
+            raise ValueError(Project.STORED_CONFIG)
+        if type(data[cls.deleted.__name__]) is not bool:
+            raise ValueError(Project.INVALID_DELETED)
+        for key in (cls.components.__name__, cls.initialized_components.__name__):
             values = data[key]
             if (not isinstance(values, list) or any(not isinstance(name, str) or not name for name in values)
                     or len(set(values)) != len(values)):
-                raise ValueError("Invalid Project Component identities")
-        if not set(data["components"]) <= set(data["initialized_components"]):
-            raise ValueError("Selected Components require initialized storage")
-        if not isinstance(data["title"], str) or not isinstance(data["created_at"], str):
-            raise ValueError("Invalid Project title or creation time")
-        created = datetime.fromisoformat(data["created_at"])
+                raise ValueError(Project.INVALID_COMPONENTS)
+        if not set(data[cls.components.__name__]) <= set(data[cls.initialized_components.__name__]):
+            raise ValueError(Project.UNINITIALIZED_COMPONENTS)
+        if not isinstance(data[cls.title.__name__], str) or not isinstance(data[cls.created_at.__name__], str):
+            raise ValueError(Project.INVALID_TITLE_TIME)
+        created = datetime.fromisoformat(data[cls.created_at.__name__])
         if created.tzinfo is None:
-            raise ValueError("Project creation time requires a timezone")
-        return cls(**{**data, "paths": paths, "components": tuple(data["components"]),
-                      "initialized_components": tuple(data["initialized_components"]),
-                      "config": ProjectConfig.from_dict(data["config"])})
+            raise ValueError(Project.INVALID_TIMEZONE)
+        return cls(**{**data, cls.paths.__name__: paths, cls.components.__name__: tuple(data[cls.components.__name__]),
+                      cls.initialized_components.__name__: tuple(data[cls.initialized_components.__name__]),
+                      cls.config.__name__: ProjectConfig.from_dict(data[cls.config.__name__])})
+
+    def to_record(self):
+        value = DomainRecord.serialize(self)
+        value[type(self).config.__name__] = self.config.to_dict()
+        for name in (type(self).components.__name__, type(self).initialized_components.__name__):
+            if not isinstance(value[name], (tuple, list)):
+                raise ValueError(self.INVALID_COMPONENT_SEQUENCE)
+            value[name] = list(value[name])
+        type(self).from_record(value, self.paths)
+        return value
 
     def __post_init__(self) -> None:
         self.validate_conversation_storage()
@@ -426,6 +462,9 @@ class Project:
 @dataclass(slots=True)
 # 대화 세션의 영속 데이터. 큐와 실행 태스크는 SessionRuntime에 둔다.
 class Session:
+    INVALID_AGENTS = 'Session agent_ids must be a list'
+    NONCANONICAL_AGENTS = 'Session agent_ids must be unique and canonical'
+    INVALID_EXECUTION_STATE = 'Session execution state requires its exact active Run declarations'
     id: str
     project_id: str
     title: str
@@ -442,23 +481,23 @@ class Session:
     def validate_agents(values):
         from .agents import AgentDefinition
         if not isinstance(values, list):
-            raise ValueError("Session agent_ids must be a list")
+            raise ValueError(Session.INVALID_AGENTS)
         for identifier in values:
             AgentDefinition.identifier(identifier)
         if values != sorted(set(values)):
-            raise ValueError("Session agent_ids must be unique and canonical")
+            raise ValueError(Session.NONCANONICAL_AGENTS)
 
     @classmethod
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
-        ProjectConfig.validate_session(data["config"])
-        cls.validate_agents(data["agent_ids"])
-        status = SessionStatus(data["status"])
-        active = data["active_run_ids"]
+        ProjectConfig.validate_session(data[cls.config.__name__])
+        cls.validate_agents(data[cls.agent_ids.__name__])
+        status = SessionStatus(data[cls.status.__name__])
+        active = data[cls.active_run_ids.__name__]
         if (not isinstance(active, list) or any(not isinstance(value, str) or not value.strip() for value in active)
                 or active != sorted(set(active)) or ((status == SessionStatus.RUNNING) != bool(active))):
-            raise ValueError("Session execution state requires its exact active Run declarations")
-        return cls(**{**data, "status": status, "paths": paths})
+            raise ValueError(Session.INVALID_EXECUTION_STATE)
+        return cls(**{**data, cls.status.__name__: status, cls.paths.__name__: paths})
 
 
 # ---------------------------------------------------------------------------
@@ -490,16 +529,29 @@ class Message:
     @classmethod
     def from_record(cls, data):
         _stored_fields(cls, data)
-        return cls(**{**data, "role": MessageRole(data["role"]), "status": MessageStatus(data["status"])})
+        return cls(**{**data, cls.role.__name__: MessageRole(data[cls.role.__name__]), cls.status.__name__: MessageStatus(data[cls.status.__name__])})
 
 
 # ---------------------------------------------------------------------------
 # Run: 확정된 요청 하나에 대한 Engine 실행
 # ---------------------------------------------------------------------------
 
+@dataclass(frozen=True, slots=True)
+class RunIndex:
+    """Ordering/cache projection; selecting a row still invokes the full Run Reader."""
+
+    id: str
+    session_id: str
+    status: RunStatus
+    started_at: Optional[str]
+    ended_at: Optional[str]
+
+
 @dataclass(slots=True)
 # 하나의 사용자 요청에 대응하는 실행 기록.
 class Run:
+    INVALID_BINDING = 'Run Agent identity must match its original binding'
+    INVALID_EXECUTION_STATE = 'Run state requires its original start and end evidence'
     ACTIVE_STATES = frozenset((RunStatus.PENDING, RunStatus.RUNNING))
     STARTED_STATES = frozenset((RunStatus.RUNNING, RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.PAUSED))
 
@@ -519,26 +571,26 @@ class Run:
     error_code: Optional[str] = None
     storage_version: int = DOMAIN_STORAGE_VERSION
 
-    @staticmethod
-    def index_record(data):
+    @classmethod
+    def index_record(cls, data):
         """Read-only ordering projection; selected rows still use the complete Reader."""
-        return SimpleNamespace(id=data["id"], session_id=data["session_id"],
-                               status=RunStatus(data["status"]),
-                               started_at=data["started_at"], ended_at=data["ended_at"])
+        return RunIndex(id=data[cls.id.__name__], session_id=data[cls.session_id.__name__],
+                               status=RunStatus(data[cls.status.__name__]),
+                               started_at=data[cls.started_at.__name__], ended_at=data[cls.ended_at.__name__])
 
     @classmethod
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
         from llm.core.agents import AgentBinding
-        binding = AgentBinding.from_metadata(data["metadata"])
-        if data["agent_id"] != binding.agent_id or data["engine"] != binding.engine:
-            raise ValueError("Run Agent identity must match its original binding")
-        status = RunStatus(data["status"])
-        if ((status in cls.STARTED_STATES and data["started_at"] is None)
-                or (status == RunStatus.PENDING and data["started_at"] is not None)
-                or ((status not in cls.ACTIVE_STATES) != (data["ended_at"] is not None))):
-            raise ValueError("Run state requires its original start and end evidence")
-        return cls(**{**data, "status": status, "paths": paths})
+        binding = AgentBinding.from_metadata(data[cls.metadata.__name__])
+        if data[cls.agent_id.__name__] != binding.agent_id or data[cls.engine.__name__] != binding.engine:
+            raise ValueError(Run.INVALID_BINDING)
+        status = RunStatus(data[cls.status.__name__])
+        if ((status in cls.STARTED_STATES and data[cls.started_at.__name__] is None)
+                or (status == RunStatus.PENDING and data[cls.started_at.__name__] is not None)
+                or ((status not in cls.ACTIVE_STATES) != (data[cls.ended_at.__name__] is not None))):
+            raise ValueError(Run.INVALID_EXECUTION_STATE)
+        return cls(**{**data, cls.status.__name__: status, cls.paths.__name__: paths})
 
 
 # ---------------------------------------------------------------------------
@@ -548,6 +600,7 @@ class Run:
 @dataclass(slots=True)
 # Run 내부의 관찰 가능한 작업 기록.
 class Step:
+    INVALID_EXECUTION_STATE = 'Step state requires its original start and end evidence'
     ACTIVE_STATES = frozenset((StepStatus.PENDING, StepStatus.RUNNING))
     STARTED_STATES = frozenset((StepStatus.RUNNING, StepStatus.COMPLETED))
 
@@ -567,12 +620,12 @@ class Step:
     @classmethod
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
-        status = StepStatus(data["status"])
-        if ((status in cls.STARTED_STATES and data["started_at"] is None)
-                or (status == StepStatus.PENDING and data["started_at"] is not None)
-                or ((status not in cls.ACTIVE_STATES) != (data["ended_at"] is not None))):
-            raise ValueError("Step state requires its original start and end evidence")
-        return cls(**{**data, "status": status, "paths": paths})
+        status = StepStatus(data[cls.status.__name__])
+        if ((status in cls.STARTED_STATES and data[cls.started_at.__name__] is None)
+                or (status == StepStatus.PENDING and data[cls.started_at.__name__] is not None)
+                or ((status not in cls.ACTIVE_STATES) != (data[cls.ended_at.__name__] is not None))):
+            raise ValueError(Step.INVALID_EXECUTION_STATE)
+        return cls(**{**data, cls.status.__name__: status, cls.paths.__name__: paths})
 
     @property
     def progress(self):

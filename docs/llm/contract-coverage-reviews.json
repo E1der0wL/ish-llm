@@ -1602,5 +1602,208 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/paths.py",
+    "sha256": "6479b4300c63d73c4fcd592f3ef0a1af2349b6e6c3a2b0b8dfb4693d6487fe61",
+    "reason": "Each domain Paths class declares its existing filename/directory components before methods. Accessors compose these same values without new paths or normalization. RunPaths.output_path still supports injected structural state paths. Reviewed every accessor and actual file Reader/Writer, retention containment, backup and injected state-path consumers. Other workspace/Provider logs have separate roots and are not aliases of a domain path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "00fafd5a3c85f73c39ef1c7b3008f7866c07f04aea02dd0fb901734be22ed4ed",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
+      },
+      {
+        "id": "1204f8c92d95e52bfc8414e060f9ecf05ded4bf96643d987418f0b892b731192",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
+      },
+      {
+        "id": "625c73dd9ae325c8cfebaa0d2d5d18c539cf9053342568b36028efa54833f571",
+        "classification": "declaration",
+        "owner": "ProjectPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "758e60e61f49e2e01211edc23178f291773e3c0e01d3131f3363463667f87af1",
+        "classification": "declaration",
+        "owner": "ProjectPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "e389c2d9c80903f68779626623a4de1459c5a3f7492798d90eb03d1a1eb5820e",
+        "classification": "declaration",
+        "owner": "ProjectPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "fda17adaaaeaecb1a544de6aeb2e9ebee5e6cd22dcbe66bb842afc8fe99ec01f",
+        "classification": "declaration",
+        "owner": "ProjectPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "e2001f7191958ae87ce681b8b0058e3f71764787fe50bd23dcf1cc4e621c1e7b",
+        "classification": "declaration",
+        "owner": "ProjectPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "ed9a7386d253c870712fc7855f13b4208db81728fb78b3e838d532da73d1ec42",
+        "classification": "declaration",
+        "owner": "ProjectPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "aa46968bfebff303259b3439c5fca6f82e334eb6b29b44f6593342eaeeefdc48",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
+      },
+      {
+        "id": "29faa9b2f7b80ebe68e0bd1a2d96ca9d8489bb813233f2d573267af484b76006",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
+      },
+      {
+        "id": "3b2627fcaa3f36af566f2051d2abda6a7915fdd9a6c6caf3562ed9dcdd6003d7",
+        "classification": "declaration",
+        "owner": "SessionPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "e98f9a7271fe1035e6cac9c04f2d7dd06292432f30127bc8a14177b035d22a9f",
+        "classification": "declaration",
+        "owner": "SessionPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "95aa0f68e5fa2f03b05ca5aaff7d01302a1fa87fd46369821491d05eb8618c19",
+        "classification": "declaration",
+        "owner": "SessionPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "4c63a70efc490edd583c1fec15f4b7af7f2f2ba6038d89a0eef2ee14354e30d1",
+        "classification": "declaration",
+        "owner": "SessionPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "5cd40e29d8056c84d1bd60ef028060aefb443dfb8ad1577dfee46d1502c099ef",
+        "classification": "declaration",
+        "owner": "SessionPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "096ebedb74196a57cf1ec0bc6b5fc732572774845a186f83027a0884bff2da87",
+        "classification": "declaration",
+        "owner": "SessionPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "4e30ab7732a5aca51723fa3819ee729e566ef9c5a9bf8ebdd3babf0cb241bfd5",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
+      },
+      {
+        "id": "e95259d575b42ee9d9cef1f5f21f5320107dc4d06a1d3b78499d599da2c126ab",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
+      },
+      {
+        "id": "7a4d7fb3721caaa7744fed1e61c85b6b3cd8b86ab0ab0debd4b49c3d5f80949c",
+        "classification": "declaration",
+        "owner": "RunPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "03745a7ce6ee5774091569a2709fbfb4814437c2eedc68ae7fa47629d547575c",
+        "classification": "declaration",
+        "owner": "RunPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "118cc5e74b7b21d40900296e28a06a4148af8cdb66b32b891ceb5a45259ab1c5",
+        "classification": "declaration",
+        "owner": "RunPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "d7947a058b00b4cbd1ae9249815a586bfedc071e151a47116a5a0e1ad242db72",
+        "classification": "declaration",
+        "owner": "RunPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "1737af69f595eea8f6554ac8f41da34d4dfd2fb861607130590c180b7f45b240",
+        "classification": "declaration",
+        "owner": "RunPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "e7b498376466e5edf4d997cb969f45736aa2749cb4c1f81b7fefffb47063cd74",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
+      },
+      {
+        "id": "479c0dc0e95ce400dbe2c5b3f1ad1a9a12b8e5a4bdcff1cf7615f530719e8b4f",
+        "classification": "non_contract",
+        "owner": "Python dataclass generation",
+        "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
+      },
+      {
+        "id": "c391347dcc727fd65244491cecc8d6700772a5f4de3c9c1e05dce8d0e47d02b8",
+        "classification": "declaration",
+        "owner": "StepPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "cdf4e9a89b25dea262f6ddf788e025d007cbe2ce9d836d5b6271417514ed958b",
+        "classification": "declaration",
+        "owner": "StepPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "0032fa51444e7604d10220b2b989000effff8f79cea4b1f3947fb17cd367b3d5",
+        "classification": "declaration",
+        "owner": "StepPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      },
+      {
+        "id": "2f64ede68200cbb7a114ed188b01a3805105a486dc061d5a72a9c08304405071",
+        "classification": "declaration",
+        "owner": "StepPaths",
+        "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectPaths / SessionPaths / RunPaths / StepPaths",
+        "declaration": "llm/core/paths.py",
+        "consumers": [
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/lifecycle/steps.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/retention.py"
+        ],
+        "tests": [
+          "tests/llm/test_domain_record_values.py",
+          "tests/llm/test_persistence.py",
+          "tests/llm/test_repositories.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

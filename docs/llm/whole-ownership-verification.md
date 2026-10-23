@@ -565,3 +565,63 @@ S1–S7(147건)·문서·R3·SDK·양 suite 환경 검사 모두 exit 0이다. �
 새 continuation 파일의 후보 31개와 실제 소비자를 개별 분류했다. 전수 inventory는 448개 파일,
 417개 미검토 파일/31,276개 미분류 후보다. 부분 파일의 상단·다른 함수까지 완료로 승인하지 않았다.
 이 소단계는 Level 2 로컬 완료다. 현 통합 SHA에서 다음 전체 게이트를 수행하며 전체 리팩터링을 계속한다.
+
+
+## 영속 도메인 Record·경로 선언
+
+Project/Session/Message/Run/Step Reader가 자신의 dataclass slot 선언에서 키 이름을 파생한다.
+공통 DomainRecord는 필드 목록·paths 제외·직렬화·정확한 현재 버전 검사를 담당한다.
+기존 Project의 root record 선언이 공통 storage_version/paths 이름을 제공하며 Reader가
+별도 문자열 목록을 재선언하지 않는다. 원래 모델 필드·생성자 순서·JSON 값은 변경하지 않았다.
+Project.to_record가 설정과 Component identity 배열을 직렬화하고 전체 Reader로 검증한다.
+ProjectRepository는 그 결과를 기존 트랜잭션/atomic Writer에 전달한다. RunIndex는 불변 정렬
+Projection이며 선택한 원본의 전체 Reader 검증을 대체하지 않는다.
+
+각 Paths 클래스의 파일명·디렉터리 요소를 메서드 앞 선언부에 모았다. retention의 Run 경로
+검사도 SessionPaths를 사용한다. 구조적 state 경로를 주입하는 기존 RunPaths.output_path를
+보존했다. 다른 workspace/Provider 로그 루트는 도메인 경로와 같은 철자만으로 합치지 않는다.
+새 독립 시험은 기존 JSON shape·Component 수명·사본·버전 exact type·캐시 Projection과
+전체 Reader 구분·기존 파일 배치를 검증한다. 원본 손상·누락·실제 삭제 안전성 시험도 유지한다.
+
+첫 직접 smoke 명령에 존재하지 않는 tests.llm.test_storage를 지정해 ImportError/exit 1이었다.
+11개 Owner 시험의 pass와 이 발견 오류를 정식 집중 통과로 합산하지 않았다. 실제 존재하는
+persistence/repositories 모듈을 확인하여 아래 정식 실행을 수행했다.
+
+| 실행 | 발견/실행/pass | Failure / Error / Skip | xfail·xpass·누락·추가·중복 | Exit |
+|---|---|---|---|---|
+| whole-domain-records-01 | 60/60/60 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-domain-records-safety-02 | 124/124/124 | 0 / 0 / 0 | 모두 0 | 0 |
+| whole-domain-records-audit-03 | 16/16/16 | 0 / 0 / 0 | 모두 0 | 0 |
+
+실제 명령과 전후 동일한 hash:
+
+- `whole-domain-records-01`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-domain-records-01/llm.json --modules tests.llm.test_domain_record_values tests.llm.test_owner_declarations tests.llm.test_persistence tests.llm.test_repositories tests.llm.test_lifecycle_integrity tests.llm.test_history_retention_integrity tests.llm.test_project_conversation_storage`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-domain-records-safety-02`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-domain-records-safety-02/llm.json --modules tests.llm.test_domain_record_values tests.llm.test_repositories tests.llm.test_lifecycle_integrity tests.llm.test_history_retention_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+- `whole-domain-records-audit-03`: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-domain-records-audit-03/llm.json --modules tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`.
+  source `d226106b9a94583b74098ef5d14c28ba9a74bc8397e6a4e5e64a9a3fde44a377`.
+  input `fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7`.
+
+집중 범위는 Owner 선언·영속 모델·Repository 주입·Component 수명·retention·Project 대화 저장소다.
+안전성 범위에는 승인·누적 예산 삭제·Tool 효과·Checkpoint·RAG·부모 삭제·트랜잭션·감사를 포함했다.
+로컬 환경은 앞서 고정한 Python 3.12.14 Clang 22.1.3 및 host SHA다. 원본 파일 효과와 장애
+주입을 포함했다. 세 실행을 하나의 전체 회귀로 표현하지 않는다.
+
+정적 최초 검사는 변경된 소스 근거와 바뀐 발생을 거절했다. 30건 의존 근거를 의미별 재검토하고,
+더는 존재하지 않는 3개 발생의 이전 근거는 외부 로그에 보존했다. 새 S4는 필드 집합 membership이며,
+실제 값 검사는 DomainRecord.validate_version의 exact int→현재 값 비교다. 최초 새 검토의 owner
+이름이 실제 함수 심볼과 달라 보조 static이 exit 1이었다. owner를 _stored_fields로 바로잡은
+`domain-records-static-03.json`은 145건 검토, new/stale/outstanding/error 0, exit 0이다.
+정적 수정 뒤 감사/inventory 16개도 다시 통과했다. 제품 코드는 안전성 실행과 동일하다.
+`domain-records-auxiliary/results.json`에서 문서·R3·SDK·LLM/Hub 환경 검사는 각각 exit 0이다.
+명령은 위 보조 게이트와 같고 디렉터리만 domain-records-auxiliary다. 최초 static 실패는 보존했다.
+
+Paths 파일 후보 29개와 실제 소비 경로만 전수 완료로 분류했다. 전체 inventory는 448개 파일,
+416개 미검토 파일/31,186개 미분류 후보다. models.py의 설정·metadata 등 남은 작업을 전체
+파일 검토로 승인하지 않았다. 이 소단계는 Level 2이며 다음 관련 통합 게이트에서 전체 검증한다.
+현재 2f13412에서 실행 중인 전체 게이트는 그 뒤의 이 변경을 포함하지 않는다.

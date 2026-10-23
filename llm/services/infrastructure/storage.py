@@ -15,7 +15,7 @@ from dataclasses import fields
 from pathlib import Path
 from typing import Awaitable, Callable, TypeVar
 
-from llm.core.models import DOMAIN_STORAGE_VERSION, validate_domain_version
+from llm.core.models import DomainRecord, DOMAIN_STORAGE_VERSION, validate_domain_version
 from llm.services.infrastructure.locking import WorkspaceOwnership
 from llm.services.infrastructure.transactions import current_transaction, watch
 
@@ -177,8 +177,7 @@ def atomic_domain_json(path: Path, data: dict) -> None:
 
 
 def record(model: object) -> dict:
-    return {item.name: getattr(model, item.name) for item in fields(model)
-            if item.name != "paths"}
+    return DomainRecord.serialize(model)
 
 
 # Validated permanent removal of an owned domain directory.

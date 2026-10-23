@@ -1,5 +1,6 @@
 """History eligibility and explicit deletion; Application owns retention selection."""
 
+from llm.core.paths import SessionPaths
 from llm.core.models import ResourceKind
 
 from llm.core.continuations import ResumeRecord
@@ -246,7 +247,7 @@ class HistoryRetention:
                 raise ValueError("History targets require owned identifiers")
             session_path = child(project.paths.sessions, target["session_id"])
             if unit == RetentionUnit.RUN:
-                child(session_path / "runs", target["run_id"])
+                child(SessionPaths(session_path).runs, target["run_id"])
             keys.append(tuple(target[name] for name in sorted(fields)))
         if len(keys) != len(set(keys)):
             raise ValueError("History targets must be unique")

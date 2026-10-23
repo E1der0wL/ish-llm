@@ -7,6 +7,7 @@ from typing import ClassVar
 
 @dataclass(frozen=True, slots=True)
 class ProjectPaths:
+    RECORD: ClassVar[str] = 'project.json'
     AGENTS: ClassVar[str] = "agents"
     SESSIONS: ClassVar[str] = "sessions"
     STATE: ClassVar[str] = "state"
@@ -18,7 +19,7 @@ class ProjectPaths:
 
     @property
     def record(self) -> Path:
-        return self.root / "project.json"
+        return self.root / ProjectPaths.RECORD
 
     @property
     def agents(self) -> Path:
@@ -43,40 +44,51 @@ class ProjectPaths:
 
 @dataclass(frozen=True, slots=True)
 class SessionPaths:
+    RECORD: ClassVar[str] = 'session.json'
+    CONVERSATION: ClassVar[str] = 'conversation.jsonl'
+    RUNS: ClassVar[str] = 'runs'
+    ATTACHMENTS: ClassVar[str] = 'attachments'
+    STATE: ClassVar[str] = 'state'
+    LOGS: ClassVar[str] = 'logs'
     root: Path
 
     @property
     def record(self) -> Path:
-        return self.root / "session.json"
+        return self.root / SessionPaths.RECORD
 
     @property
     def conversation(self) -> Path:
-        return self.root / "conversation.jsonl"
+        return self.root / SessionPaths.CONVERSATION
 
     @property
     def runs(self) -> Path:
-        return self.root / "runs"
+        return self.root / SessionPaths.RUNS
 
     @property
     def attachments(self) -> Path:
-        return self.root / "attachments"
+        return self.root / SessionPaths.ATTACHMENTS
 
     @property
     def state(self) -> Path:
-        return self.root / "state"
+        return self.root / SessionPaths.STATE
 
     @property
     def logs(self) -> Path:
-        return self.root / "logs"
+        return self.root / SessionPaths.LOGS
 
 
 @dataclass(frozen=True, slots=True)
 class RunPaths:
+    RECORD: ClassVar[str] = 'run.json'
+    OUTPUTS: ClassVar[str] = 'outputs.jsonl'
+    STEPS: ClassVar[str] = 'steps'
+    STATE: ClassVar[str] = 'state'
+    LOGS: ClassVar[str] = 'logs'
     root: Path
 
     @property
     def record(self) -> Path:
-        return self.root / "run.json"
+        return self.root / RunPaths.RECORD
 
     @property
     def outputs(self) -> Path:
@@ -85,37 +97,41 @@ class RunPaths:
     @staticmethod
     def output_path(state: Path) -> Path:
         """Resolve the journal from the existing structural state-path contract."""
-        return state / "outputs.jsonl"
+        return state / RunPaths.OUTPUTS
 
     @property
     def steps(self) -> Path:
-        return self.root / "steps"
+        return self.root / RunPaths.STEPS
 
     @property
     def state(self) -> Path:
-        return self.root / "state"
+        return self.root / RunPaths.STATE
 
     @property
     def logs(self) -> Path:
-        return self.root / "logs"
+        return self.root / RunPaths.LOGS
 
 
 @dataclass(frozen=True, slots=True)
 class StepPaths:
+    RECORD: ClassVar[str] = 'step.json'
+    STATE: ClassVar[str] = 'state'
+    LOGS: ClassVar[str] = 'logs'
+    ARTIFACTS: ClassVar[str] = 'artifacts'
     root: Path
 
     @property
     def record(self) -> Path:
-        return self.root / "step.json"
+        return self.root / StepPaths.RECORD
 
     @property
     def state(self) -> Path:
-        return self.root / "state"
+        return self.root / StepPaths.STATE
 
     @property
     def logs(self) -> Path:
-        return self.root / "logs"
+        return self.root / StepPaths.LOGS
 
     @property
     def artifacts(self) -> Path:
-        return self.root / "artifacts"
+        return self.root / StepPaths.ARTIFACTS
