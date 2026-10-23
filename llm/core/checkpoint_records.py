@@ -4,7 +4,7 @@ from copy import deepcopy
 from dataclasses import dataclass, fields, replace
 from enum import StrEnum
 import re
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from .contracts import JsonValue
 from .configuration import UNSET
@@ -70,6 +70,12 @@ class CheckpointContent(CheckpointRecords):
         if not isinstance(self.header, dict):
             raise ValueError(self.INVALID)
         CheckpointRecords.__post_init__(self)
+
+    @classmethod
+    def engine_snapshot(cls, *, header, records):
+        """Current runtime content projection, preserving the Engine wire field order."""
+        value = cls(header=header, records=records)
+        return {cls.header.__name__: deepcopy(value.header), cls.records.__name__: deepcopy(value.records)}
 
 
 @dataclass(frozen=True, slots=True)
@@ -336,6 +342,24 @@ class CheckpointWrite:
         return CheckpointInteractions(self.name, {entry.key: entry.value})
 
 
+@dataclass(frozen=True, slots=True)
+class CheckpointWaitingObservation:
+    """Display projection for nested waiting records; never an approval decision."""
+
+    approval_required: bool = True
+    name: Any = None
+    arguments: Any = None
+    prompt: Any = None
+
+    @classmethod
+    def from_payload(cls, payload):
+        return cls(**{item.name: deepcopy(payload.get(item.name, item.default))
+                      for item in fields(cls) if item.name != cls.approval_required.__name__})
+
+    def to_dict(self):
+        return {item.name: deepcopy(getattr(self, item.name)) for item in fields(self)}
+
+
 class CheckpointStep:
     """Common lifecycle and approval evidence; Engine-private fields stay opaque."""
 
@@ -367,3 +391,10 @@ class CheckpointStep:
     def optional_interaction(self):
         raw = self._value.get(self.Field.INTERACTION)
         return None if raw is None else InteractionRequest.from_dict(raw)
+
+    def with_waiting_observation(self, envelope):
+        return {**deepcopy(envelope), **CheckpointWaitingObservation.from_payload(self._value).to_dict()}
+
+    @classmethod
+    def attach_interaction(cls, value, request):
+        return {**deepcopy(value), cls.Field.INTERACTION.value: request.to_dict()}

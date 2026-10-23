@@ -23,7 +23,7 @@ import time
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Mapping
 from copy import copy, deepcopy
 from dataclasses import dataclass, field, replace
-from typing import Any, Optional, Protocol, TypeVar, Union
+from typing import Any, ClassVar, Optional, Protocol, TypeVar, Union
 
 from enum import StrEnum
 from contextlib import aclosing
@@ -66,6 +66,9 @@ class EngineEventType(StrEnum):
 @dataclass(frozen=True, slots=True)
 # Engine에서 서비스로 전달하는 관찰 이벤트. 사용자 이벤트는 문자열 이름을 사용한다.
 class EngineEvent:
+    NO_CHECKPOINT: ClassVar[None] = None
+    NO_INTERACTION: ClassVar[None] = None
+
     type: Union[EngineEventType, str]
     delta: Optional[EngineDelta] = None
     step_id: Optional[str] = None
@@ -75,7 +78,7 @@ class EngineEvent:
     error: Optional[str] = None
     completion: Optional[CompletionResult] = None
     output: Optional[EngineOutput] = None
-    interaction: Optional[InteractionRequest] = None
+    interaction: Optional[InteractionRequest] = NO_INTERACTION
     diagnostic: Optional[Diagnostic] = None
     progress: Optional[OperationProgress] = None
     # 실행 중 fail-fast 합성용. Diagnostic의 임의 관찰 code와 달리 명시적 CodedError만 전달한다.
@@ -83,14 +86,22 @@ class EngineEvent:
     failure_code: Optional[str] = None
     # A completed Step and its resume receipt commit in one service transaction.
     # Only record operations are attachable; initialization remains a separate boundary.
-    checkpoint: Optional["EngineEvent"] = None
+    checkpoint: Optional["EngineEvent"] = NO_CHECKPOINT
+
+    @property
+    def has_checkpoint(self):
+        return self.checkpoint is not self.NO_CHECKPOINT
+
+    @property
+    def checkpoint_receipt(self):
+        return self.checkpoint or self
 
     def __post_init__(self):
-        if self.checkpoint is not None and (self.type != EngineEventType.STEP_COMPLETED
+        if self.has_checkpoint and (self.type != EngineEventType.STEP_COMPLETED
                 or not isinstance(self.checkpoint, EngineEvent)
                 or self.checkpoint.type != EngineEventType.CHECKPOINT
                 or not CheckpointWrite(self.checkpoint.metadata).is_record
-                or self.checkpoint.checkpoint is not None):
+                or self.checkpoint.has_checkpoint):
             raise ValueError("A Step completion can attach one checkpoint record")
         # Step 상태 표시를 공통 계약으로 제공한다. 실제 상태 전이는 서비스가 수행한다.
         if self.diagnostic is not None and not isinstance(self.diagnostic, Diagnostic):

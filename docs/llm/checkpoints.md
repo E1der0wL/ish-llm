@@ -77,6 +77,15 @@ RunManager가 다른 소유자의 payload를 추측하거나 예외 목록으로
 manifest 리비전도 대조하며 빈 초기 기록은 명시적인 빈 객체/디렉터리다. 개별 기록 소실을
 미실행으로 바꾸지 않는다. EngineContext처럼 오래된 Run snapshot으로 조회해도
 RunRepository는 현재 저장된 Run의 리비전을 검증한다.
+EngineCheckpointScope는 중첩 key와 연결 순서만 소유하고, header/records snapshot은
+CheckpointContent, 상태에 따른 requires_retry는 CheckpointEnvelope의 정규 판정으로 만든다.
+승인 요청은 CheckpointStep/InteractionRequest로 읽고 원래 선택지에 대응시킨다. 중첩 대기의
+approval_required/name/arguments/prompt는 CheckpointWaitingObservation의 관찰 Projection이며
+승인 결정이나 실행 권한이 아니다. 생략된 관찰값의 null 표현과 원본 값·저장 모양은 유지한다.
+EngineEvent는 첨부 checkpoint 유무와 실제 receipt 조회를 제공한다. 저장 ACK 전에는 자식
+snapshot을 갱신하지 않으며, 초기화의 유일성·부모/자식 fingerprint·선택·재시도 범위를
+재검증한다. 자식 private payload를 부모가 업무 정책으로 해석하지 않는다.
+
 부분 출력과 중첩 기록의 전달 계약은 [공통 경계](shared-contracts.md)를 참고한다.
 
 `CheckpointPlan`은 다음 필드를 가진 JSON 직렬화 가능한 관찰 계약이다.

@@ -88,8 +88,16 @@ class CheckpointEnvelope:
             raise ValueError(self.INVALID_IDENTITY)
         if (self.status not in CheckpointLifecycle.STATES
                 or type(self.container) is not bool or type(self.requires_retry) is not bool
-                or self.requires_retry != (self.status == CheckpointStatus.STARTED and not self.container)):
+                or self.requires_retry != self.retry_required(self.status, self.container)):
             raise ValueError(self.INVALID_LIFECYCLE)
+
+    @staticmethod
+    def retry_required(status, container):
+        return status == CheckpointStatus.STARTED and not container
+
+    @classmethod
+    def for_lifecycle(cls, *, engine_scope, checkpoint_name, local_key, status, container):
+        return cls(engine_scope, checkpoint_name, local_key, status, container, cls.retry_required(status, container))
 
     def to_dict(self):
         return {self.KIND_FIELD: self.KIND, **asdict(self)}

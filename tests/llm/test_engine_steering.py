@@ -399,6 +399,7 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
             def for_agent(self, definition):
                 return bound
         node = AgentNode(engines={"custom": Factory()})
+        profile = node._profile({"agent": "selected"}, {"agents": [{"records": {"selected": {"engine": "custom"}}}]})
         for mode, name, resume in (("invalid", "custom", lambda *a: None),
                                    (SteeringMode.CONSUME, " ", lambda *a: None),
                                    (SteeringMode.CONSUME, "custom", None)):
@@ -406,7 +407,7 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
                 bound = BaseEngine()
                 bound.steering_mode, bound.checkpoint_name, bound.validate_resume = mode, name, resume
                 with self.assertRaises(ValueError):
-                    node._engine({"engine": "custom"})
+                    node._engine(profile)
 
     async def test_standalone_loop_still_accepts_at_run_started_notification(self):
         model = Model([chunk("done", finish="stop")], gate=False)
