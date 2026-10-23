@@ -29,12 +29,12 @@ class GoalSession(CompletionSession):
         self.processor, self.context = processor, context
 
     async def prepare(self, request):
-        settings = GoalSettings(self.processor.config)
-        if not settings.inject:
+        parameters = GoalSettings(self.processor.config)
+        if not parameters.inject:
             return
-        if self.context.output_step_id is not EngineEvent.NO_STEP and AgentExecutionBinding.selected_in_state(self.context.state) not in settings.nested_agent_ids:
+        if self.context.output_step_id is not EngineEvent.NO_STEP and AgentExecutionBinding.selected_in_state(self.context.state) not in parameters.nested_agent_ids:
             return
-        refs = await self.processor.data.acontext_references(self.context.session.id, identifiers=settings.identifiers)
+        refs = await self.processor.data.acontext_references(self.context.session.id, identifiers=parameters.identifiers)
         if refs:
             index = next(i for i, m in enumerate(request.messages) if m.source_id == self.context.run.input_message_id)
             current = request.messages[index]

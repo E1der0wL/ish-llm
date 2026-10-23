@@ -3889,3 +3889,38 @@ Level 2 완료다. 선언 참조/필드 접근/Projection과 호출 순서 동�
 그 이후다. gate28(fdb50ee)은 현재 Memory 변경을 포함하지 않는다. 원격 6b2a10a의
 [CI 40023218986](https://github.com/E1der0wL/ish-llm/actions/runs/40023218986)는 진행 중이며
 실제 필수 job/artifact 완료를 확인하기 전에는 통과로 선언하지 않는다.
+
+
+## gate28 실패와 Goal 명명 계약 수정 / 통합 검증 묶음 조정
+
+전체 gate28은 실패다. 소스 fdb50ee2348f8bee2bc8b5af022d5302a192518f에서
+LLM 발견/시작 2491, pass 2490, failure 1, exit 1(1495.132787초),
+Hub 588/588 pass, exit 0(1166.608639초)였다. error/skip/xfail/xpass/누락/추가/중복은
+각각 0이고 보조 검사 6개는 통과했다. source
+`b94b57dbd772fec349b435ce9b5fe6d3efef1f35b21399d3812e770ff3e0cef3`, input
+`c33eb5ebbea9c94af2a4c5b449c0e54c12eab6438ff7651cc203f60f98a55386` 전후 동일이다.
+원본 로그/결과는 외부 `whole-ownership/group28-gate.log`와
+`b/whole-owners-group28-l3`에 보존했다. 다른 실행의 성공으로 이 실패를 대체하지 않는다.
+
+실패 시험은 `test_naming_contract.NamingContractTests.test_removed_symbols_have_no_production_aliases`다.
+GoalSession.prepare의 지역 변수 settings도 기존 금지 심볼 계약에 해당했다. 이전 정적 검토의
+지역 변수 예외 판단이 잘못됐으므로 정확한 S5 검토 4개를 제거하고 parameters로 변경했다.
+시험·원래 Assertion은 수정하지 않았다. Owner/저장 형식/정책/호출 순서는 바뀌지 않는다.
+`goal-naming-fix/equivalence.json`은 이 이름을 역치환한 전체 모듈 AST의 동일성을 증명한다.
+
+`/workspace/ish-llm/.venv-linux312/bin/python /workspace/llm-clean-resume/b/focus.py llm whole-goal-naming-fix-01 tests.llm.test_naming_contract tests.llm.test_goals tests.llm.test_work_state tests.llm.test_completion_processing tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`
+실행은 발견/시작/pass 90/90/90, exit 0, 62.409173초다. 나머지 모든 집계는 0이다.
+source `4bc7f580b58bc51b66af90b28db850fbd7d7cba96122f572d8c3dd7272a4f592`, input
+`195a95e8e69d675af1432d6ab1edc8e25b923b32257b83af2ecb21065ec15b35` 전후 동일,
+Python 3.12.14/Clang, Host d833790, 동일 의존성이다. Memory 진행 변경과 분리된 b41a9ff 기반
+worktree에서 검사했다. 감사 시험 `python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage`
+16개 pass/3.203초/exit 0이다. 정적 finding은 118→114, 검토 예외 4개 제거 외 추가/누락이 없다.
+
+최신 작업 지침에 따라 이 이름 수정만을 위한 전체 회귀/Push는 수행하지 않는다.
+이미 시작한 집중 검증을 완료했고, 앞으로 Memory SummaryStorage·WorkState·Snapshot·SummaryRecord와
+관련 Component/Data/Processing 소비자를 충분히 묶어 다음 Level 3 게이트를 구성한다.
+기존 gate29 checkout은 실행하지 않았으며 검증 근거가 아니다. 로컬 소단계 완료와 전체/원격 완료를
+구분하고, 위험이 제한됨을 증명할 수 없는 승인·예산·효과·Checkpoint·저장 경계 변경은 즉시 승격한다.
+소단계별 환경·SDK 전수 검사를 기계적으로 반복하지 않고 변경된 의존 범위와 실제 소스/시험/환경
+동일성에 따라 선택한다. R3 및 최종 정적·문서·전체 LLM/Hub·정확한 SHA 원격 CI 기준은 유지한다.
+현황은 506개 중 미검토 283, 미분류 21419, incomplete 4이며 전체 완료가 아니다.

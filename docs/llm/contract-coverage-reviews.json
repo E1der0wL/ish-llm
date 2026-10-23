@@ -43338,8 +43338,8 @@
   },
   {
     "path": "llm/components/goals/processing.py",
-    "sha256": "abd15642b50a24970e65f0bcb82a15d8474809a73e4b033a92e078b30b4fb45f",
-    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path.",
+    "sha256": "6093c90c51b4af5c3604d5a47e9eb33f53ec79cd4fd03a6d8b05bee24efefdf6",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path. Gate28 exposed a forbidden local symbol: settings was renamed to parameters. Original naming assertions remain unchanged. The prior S5 local-variable classification was incorrect and is removed; targeted naming/Goal/WorkState and safety tests pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
