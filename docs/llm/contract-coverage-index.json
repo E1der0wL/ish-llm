@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 485,
-    "unreviewed_files": 322,
+    "unreviewed_files": 320,
     "stale_files": 0,
-    "unclassified": 24527,
+    "unclassified": 24432,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 324,
+    "unreviewed_dynamic_paths": 322,
     "unreadable_files": 0,
-    "candidates": 28981,
+    "candidates": 28945,
     "issues": 0
   },
   "files": [
@@ -2115,9 +2115,9 @@
     },
     {
       "path": "llm/core/configuration.py",
-      "status": "unreviewed",
-      "sha256": "c50f97c52b89f695fb3ece6fdea871a1d315cea9d7976caf711e9741c92e104a",
-      "candidates": 29
+      "status": "reviewed",
+      "sha256": "d669fc7115e5c0e943e106c5e4f6eda6b418ffc9f7450e5893c71baf585ea19d",
+      "candidates": 23
     },
     {
       "path": "llm/core/configuration_targets.py",
@@ -2451,9 +2451,9 @@
     },
     {
       "path": "llm/policies/retry.py",
-      "status": "unreviewed",
-      "sha256": "9306bf09b03c6c7be811a7eec2f415e5bc07b34588eed3eebeda6d0f8957cb65",
-      "candidates": 66
+      "status": "reviewed",
+      "sha256": "d7336bafc1d8bb8b41f1a00afb8fb50b03dc64be31ef87a0399869ca384a6f3c",
+      "candidates": 36
     },
     {
       "path": "llm/policies/usage.py",

@@ -2380,3 +2380,45 @@ hub/ 추가 구현은 이후 진행하되 필수 Hub 소비자·전체 회귀와
 failure/error/skip/xfail/xpass/누락/추가/중복 0이다. 원격 Python 3.12.14/GCC 13.3.0은
 로컬 Clang 환경과 구분한다. 이 증거는 81c671a에만 적용하며 이후 미Push 소스나 전체
 계약 리팩터링의 완료 증거로 승계하지 않는다.
+
+
+## llm 공통 재시도·설정 선언 (2026-10-23)
+
+RetryDecision·RetryPolicy·RetrySelection이 기존 생략/변경 없음·최초 시도·대기/기한 경계·
+jitter 선택·진단을 선언부에서 소유한다. changes 필드는 슬롯 선언을 사용한다. ConfigurationInput이
+공개 적용 입력의 생략 및 부모 상한의 미설정 의미를 선언한다. 정책값·계산·선택기·deadline/
+backoff·copy·전체 후보 검증과 설정 합성/출처/host 우선순위/narrowing 순서는 그대로다.
+SDK 전송 기본값·원본 요청·저장 설정은 변경하지 않는다. Hub 제품 파일도 수정하지 않았다.
+
+66f1653 대비 정책 유효/무효 입력 80개, 대기 계산 25,920개(overflow·cap·jitter·기한·최소값),
+절대 기한 20개, decision 9개와 허용 필드 조합, selector 10개, 설정 합성/narrowing 212개가
+같은 결과 또는 정확한 예외 종류/문구를 낸다. 사본과 입력 원본도 보존된다. 기존 독립 시험으로
+실제 HTTP 1회/2회·명시 SDK 중첩 방지·부분 응답/취소·Tool 승인/재개·원장/예산을 확인했다.
+
+- `whole-retry-configuration-01`: 발견/시작/pass 163/163/163, exit 0, 60.396085초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-retry-configuration-01/llm.json --modules tests.llm.test_retry tests.llm.test_provider_transport tests.llm.test_provider_choices tests.llm.test_provider_diagnostics tests.llm.test_configuration_objects tests.llm.test_configuration_results tests.llm.test_configuration_targets tests.llm.test_configuration_values tests.llm.test_configuration_validation tests.llm.test_explicit_configuration tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `a4a0593cd0960ff3a7f7cc3de7933f55aaefc4f645ac8d9f57126d13d5573cbd`, input `8c4fd2aa123e00a0d43c62479eca79778c6b0c6de1c360bea47dd04e76a8fe0d`.
+
+- `whole-retry-configuration-hub-01`: 발견/시작/pass 56/56/56, exit 0, 179.182598초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-retry-configuration-hub-01/hub.json --modules tests.hub.test_retry_observations tests.hub.test_provider_stabilization tests.hub.test_provider_recovery tests.hub.test_tool_retry tests.hub.test_settings`. source `a4a0593cd0960ff3a7f7cc3de7933f55aaefc4f645ac8d9f57126d13d5573cbd`, input `8c4fd2aa123e00a0d43c62479eca79778c6b0c6de1c360bea47dd04e76a8fe0d`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. Python 3.12.14/
+Clang·고정 Host·의존성·namespace/X11을 유지했다. 초기 smoke도 exit 0이며 독립 Assertion은
+제거하지 않았다. 정적 119개 동일, 실제 두 소스의 영향이 있는 13개 기존 검토만 갱신했다.
+정적·문서·R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다. 두 파일을 전체 검토했으며
+현재 미검토 320, 미분류 24432, incomplete 2개다.
+
+Level 2 완료다. 공유 계산을 사용하는 실제 Provider/Tool/Engine/Hub 소비자를 검증했으며
+선언 참조 외 정책·알고리즘 변화가 없음을 비교 증거로 확인했다. 전체 회귀는 이 변경과
+다음 llm 소단계를 묶는 gate19에서 수행한다. 소단계 결과를 전체 실행으로 합치지 않는다.
+
+## gate18 로컬 전체 완료·정확한 SHA Push (2026-10-23)
+
+고정 worktree의 8ae9aa618e9f09554fafb855caea69179e66ea5a에서 전체 runner를 각각
+`python -m tests.llm.run_regression --suite llm|hub --output <suite>.json`으로 실행했다.
+LLM 2472/2472 pass, exit 0, 1464.992061초; Hub 588/588 pass, exit 0, 1148.552873초다.
+failure/error/skip/xfail/xpass/누락/추가/중복은 각 0이다. 전후 source manifest
+`fa75d55de416db14f2343d5e3f29403041023dd7fc1e8369baca156360d35eee`, validation input
+`3ed60528a8d9db50135979c6477f3278a9f9ea389699f518b97613f393308f56`가 동일하다.
+Python 3.12.14/Clang·Host d833790·고정 의존성/namespace/X11의 실행이며 정적·문서·R3·
+Provider 및 LLM/Hub 실환경 6개 게이트도 exit 0이다. main 94229cb 및 refactor/llm-backend
+bb09462 보존과 이전 CI 완료를 확인한 뒤 정확한 8ae9aa6을 refactor/llm-clean에 Push했다.
+이 문서 작성 시 원격 필수 CI는 아직 통과 확인 전이다. 이후 Skill 문서/재시도 선언 변경은
+gate18에 포함되지 않으며 이 결과를 현재 통합 소스 전체 통과로 승계하지 않는다.

@@ -30720,5 +30720,419 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/policies/retry.py",
+    "sha256": "d7336bafc1d8bb8b41f1a00afb8fb50b03dc64be31ef87a0399869ca384a6f3c",
+    "reason": "Read complete retry value/selection/argument change flow and direct providers/Tool/Engine consumers. Policy owns the existing initial call, omitted values, zero delay/deadline boundary, jitter default, backoff and diagnostics. Decision uses its declared field descriptor; arbitrary argument keys remain the selected caller Schema, not a duplicate fixed Record. Full candidate validation, detached copies, asynchronous cancellation, same-request choice and corrected arguments preserve existing semantics. No retries or limits are added. HTTP counts, nested SDK suppression, approval/receipts/Resume and consumer tests pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b54bddfe584be52dbb6e76003a02f54e9ee0c9e8f347d5caa22c34737626cd89",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "b830613e6105acbf2a4995544a778669983ca815c6829ed8ddfbfa4d1f7c2c29",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "2003c6cec02726e67ada273698a770c18b48c493a2a97d675d91ceeee192bb84",
+        "classification": "non_contract",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Python dataclass frozen/slots layout, not execution or retry authority."
+      },
+      {
+        "id": "1a7b70a02f70a6e09b899f979ac97cacd7a6362af07117333d1b8e5fa818bb7b",
+        "classification": "non_contract",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Python dataclass frozen/slots layout, not execution or retry authority."
+      },
+      {
+        "id": "bb999fea6bbafd3c4d7c038633922891edd6c44a2dbfd900e8f481b0d96b5f2d",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "b83fe9ab77ccaf06993854017a47b672f7574b5495335ecb6043bdd971dbccff",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "f5a135d666153b897676f270de0fb95dc68a2b32638f91c02ff373be6e130420",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "1a05524b188688fca4ff6d360e25abc9781e2ab1f09ed5e7e6537e457c1eac8f",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "31cf4b78c532db790fc28a5f3733725f8e280a5843cef59de0bda59d7393a513",
+        "classification": "non_contract",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Python dataclass frozen/slots layout, not execution or retry authority."
+      },
+      {
+        "id": "1455f330d3a11f2062802ba10d73afcd52311f335c3a5b9cde99edab7a4de1eb",
+        "classification": "non_contract",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Python dataclass frozen/slots layout, not execution or retry authority."
+      },
+      {
+        "id": "771ae098ad8970d4b9cb057e885de2df3ea0445c62dc3dc4354846a7564567a9",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "0ab24bdf6e2667fc4bc5589e354824324d7bd943ecb404fa1f159edd8697d4f0",
+        "classification": "non_contract",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Python dataclass frozen/slots layout, not execution or retry authority."
+      },
+      {
+        "id": "12bad099ab7bc270893f1c92e911b48d68ccc73c8ada525e06aa0d7ab7d031a2",
+        "classification": "non_contract",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Python dataclass frozen/slots layout, not execution or retry authority."
+      },
+      {
+        "id": "9b00a7c4d47a18b932125ad0245e0acd20088ba263447de9cecb2327841f81e7",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "3108ae3d0a2081e227d9446a7ddda75746261cf31be776883a414a3c9faac478",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "05d3f62a4566c4cb7ed0ec08643f6171029244d1e2f2aace129596c2863fa1c8",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "7a21a6f2c0551a2201656d0b0cea48fe196fbe41aa22d4e26483afafa8a111f3",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "83dacd62529d3bef28984f6369fb9babc66169ca2270047d494247cf9cf3b582",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "ab87ecbcf39251f069e886dd675ae80d32fcf51e7985d2825af3c994ccfbc9c1",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "2bb529687be84c4e99c646bd44c80d98fdebd3106dc075a2ee9bb23a96733905",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "bba2bdfeeef572af31e8208dce14bd25a5b124eee10de3d55682485b9f1eb3a2",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "5ebf24236edd4b8ce1c0eb17d92f1620ad1530a0ff0f67f6542e5a07522adb26",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "d6c8d919ad20ad4acbda264d7ffb93865e3bea8929cbc52271bec6e51664d7c4",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "5eb7c6aa2e6dcb5f7b115bb7dcfce3133c6efe859a3a46fda73de2c9d06a78f4",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "239d9f2f2f7022e38b229309f154cbfac8481c71685e2370cb9aa6da90851d9b",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "e3cdfef3fd2a0d2a4478387f27fcb8cb9b33dcc23b554d06f844d44df3d1d15e",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "0a31ba1f594d5e9502c206fee5dc8167ed483411b031805f818a479e98ac04e7",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "2ac3ee8d2b7f5ada44f0e586a4482c33412a2b27f13db0ab852a957bce90b5cd",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "cf6a326b5bbec72c65e054920a2b07dc235471b39d0889d6ba183cfcef55c4d0",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "fa8c8b4d2ad7d4595047ca8bd9ff260518807f87a0a6d4d77591201ff0a260f8",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "cad15ab41ef06f6de7ae94d16dd8d832e149d685a24e72c95e4a5e868985207c",
+        "classification": "non_contract",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "None in a Python union type annotation; actual retry/selector defaults are declared separately by their Owners."
+      },
+      {
+        "id": "df56d839e83eb19cc178f560b0d3732d64d06a3ad4ed7bcb1fa3f64f9ec4cb49",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "d31ca6d0f256a4a1c79b15936a00c545cbc9bfcb81f2e2cc84e2f6153593d1d0",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "7127078e1055233294c6df336a8e73d46ddd1b0a38d1d1babf8f51d6f4017bd5",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "34266c632f93ae62d117abe623f6528f6e331a50388b11ed807e6d0dc4258810",
+        "classification": "declaration",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "e465dc3f9c83b7de8e19809e9c8c63091b8eceb6a0caa0aeae287ac4ff62e865",
+        "classification": "non_contract",
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "reason": "None in a Python union type annotation; actual retry/selector defaults are declared separately by their Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RetryDecision / RetryPolicy / RetrySelection",
+        "declaration": "llm/policies/retry.py",
+        "consumers": [
+          "llm/engines/base.py",
+          "llm/services/runtime/tools.py",
+          "llm/providers/requests.py",
+          "llm/providers/retry.py",
+          "llm/components/rag/extraction.py"
+        ],
+        "tests": [
+          "tests/llm/test_retry.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/configuration.py",
+    "sha256": "d669fc7115e5c0e943e106c5e4f6eda6b418ffc9f7450e5893c71baf585ea19d",
+    "reason": "Read complete layered merge/provenance, configured narrowing, selected Component resolver and required-setting paths. Fixed source/diagnostic/absence semantics are declared; source/pointer and schema-defined user parameter maps remain open data. Host/Project/Session/Agent values, explicit null overriding, no added defaults, caller detachment and parent limit checks are unchanged. Typed ConfigurationView/Override, SessionConfiguration and Project parameter targets own internal fixed structures and serialization. 212 old/new configuration cases and direct schema/configuration consumer tests pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "14381279c71c4193bb7c75616406ca5887ad760f0e204bd11a123de93816b5a7",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "7aaaffc1ed6a3d0f1ccd1b6eabe1ace92dd7c1700cc7dc9464682813574ab08d",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "8eddc804884be118afa1335d836edd76660516647bd97419bc0f170df37ee152",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "a2cc45f6503f8ffec8f3ce59b037eeb43df080e391e275df65bd13a1185ad633",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "4a6f7b8bc19c006bc5ec2629250c4e4a78632ea0be3a6b79a098e3cf4773d80c",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "f303aae95154ac482ecaa66f14b899b21695ad79a0b04a21f2dbb3be95c8603f",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "32cc05f0dafca3ab18c9e0bb2fe5c30c02eb2e1930c51020d5966e8ef9880033",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "1a069b0787a351f666a6e37ff8c127425e48b4fa8f5af23b446f965cd1a95bcf",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "525ee793bc3a307da417356d7672d7173232ec837c2530bfc7c2355ab1eada33",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "aa3b9f4dc06296c26e347b8b75993814363e749b592b494eee8df2931e018150",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "d5ab87307686054e37b6c20ddfd193dc8fa98c166156b3ea158330668910f9ea",
+        "classification": "declaration",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Owner declaration of field/default/source/constraint/selection or diagnostic before implementation."
+      },
+      {
+        "id": "63e51f0557d58d4eb41c582ce227f1f4c69b6b02aaeef635ec131bff777f7033",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "bf6b6d92cf3ec492e9c23da0401d7b85964d5e6c4b918c315eac5ed8cae66694",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "8cd78e0ca1ee52c02902c19e8624a9cc8b23941e2708c79ae7c3c732301df0ad",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "26fa5f8b9bb0873485cf0193c7ad45d781f6f994c262be456085e207fca7339a",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "517faab68e73753480f98aa457b53df4ce3438b1fc9f349921b3d6e32eca75b7",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "2de9964effa914e1f5a450259e3ea21dc7b4eea5a252500f5a8e25627ce1b6a7",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "f281c851400834e422682d92e9e2bce0f40feaad20ef729f0de308a41c905c40",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "4272587d49cdc9dc4a2ecc937900ffe162a1d903528695aa3f74da1d686ca28c",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "a9f3eb9d571d5fa7d91023b348f9b2f6dae0c1f5dff47bdbc7253819f23fbea0",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "a0e0efcbac17f815eb66995fbbc6a5700bc54513d3f29fff5455e38202153dcc",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "b1c27614f913baa89687468778933bf65f6787b038361834a2408736b126d615",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      },
+      {
+        "id": "96f817ba77c9aee903e0625f32fe07021b6bd95fded469d038705aff8bc97976",
+        "classification": "non_contract",
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "reason": "Python absence/null check for optional Schema/host/Agent object, validator result, missing callable or optional map removal. These checks do not create a stored value or synthesize policy. Explicit argument absence is declared by ConfigurationInput; JSON null remains a caller value, and unbounded limit semantics are separately declared and checked in narrowing."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ConfigurationSource / ConfigurationInput / resolution API",
+        "declaration": "llm/core/configuration.py",
+        "consumers": [
+          "llm/core/models.py",
+          "llm/core/configuration_views.py",
+          "llm/components/base.py",
+          "llm/engines/base.py",
+          "llm/services/schema.py"
+        ],
+        "tests": [
+          "tests/llm/test_retry.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/hub/test_tool_retry.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

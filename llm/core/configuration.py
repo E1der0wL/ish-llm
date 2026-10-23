@@ -29,7 +29,12 @@ class ConfigurationError:
     DEFAULT_SCOPE = "configuration"
 
 
-def resolve_config(layers, *, schema=None, host=None):
+class ConfigurationInput:
+    UNSPECIFIED = None
+    UNBOUNDED_LIMIT = None
+
+
+def resolve_config(layers, *, schema=ConfigurationInput.UNSPECIFIED, host=ConfigurationInput.UNSPECIFIED):
     """뒤의 계층이 우선한다. 호스트 지정 필드는 JSON 경로별로 편집 불가를 표시한다."""
     values, sources, overridden = {}, {}, {}
 
@@ -62,7 +67,8 @@ def resolve_config(layers, *, schema=None, host=None):
         {path: source != ConfigurationSource.HOST for path, source in sources.items()}).to_dict()
 
 
-def resolve_engine_config(config, name, *, session_config=None, agent=None, schema=None):
+def resolve_engine_config(config, name, *, session_config=ConfigurationInput.UNSPECIFIED,
+                          agent=ConfigurationInput.UNSPECIFIED, schema=ConfigurationInput.UNSPECIFIED):
     """Project → Session → Agent. child는 schema가 지정한 authority를 넓힐 수 없다."""
     config = ProjectConfig.from_dict(config)
     session = SessionConfiguration.read({} if session_config is None else session_config)
@@ -78,7 +84,7 @@ def resolve_engine_config(config, name, *, session_config=None, agent=None, sche
     def read(value, path):
         for key in path:
             if not isinstance(value, dict) or key not in value:
-                return None
+                return ConfigurationInput.UNBOUNDED_LIMIT
             value = value[key]
         return value
 
@@ -91,7 +97,7 @@ def resolve_engine_config(config, name, *, session_config=None, agent=None, sche
                 raise ValueError(ConfigurationError.INVALID.format(message=error.message))
         for path in limits:
             parent, child = read(prior, path), read(merged, path)
-            if parent is not None and (child is None or child > parent):
+            if parent is not ConfigurationInput.UNBOUNDED_LIMIT and (child is ConfigurationInput.UNBOUNDED_LIMIT or child > parent):
                 raise ValueError(ConfigurationError.WIDENING.format(source=source, path=JsonPointer.SEPARATOR.join(path)))
         prior = merged
     return ConfigurationView.read(resolve_config(layers, schema=schema)).with_engine_key(name).to_dict()

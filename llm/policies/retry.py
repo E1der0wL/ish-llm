@@ -23,13 +23,16 @@ class RetryDecision:
     선택기가 None을 반환하면 중단한다. null 값은 삭제가 아니라 명시적 값이다.
     """
 
-    changes: dict | None = None
+    UNCHANGED: ClassVar[None] = None
+    INVALID_CHANGES: ClassVar[str] = "Retry changes must be a string-keyed object"
+
+    changes: dict | None = UNCHANGED
 
     def __post_init__(self):
-        if self.changes is not None and (not isinstance(self.changes, dict)
+        if self.changes is not self.UNCHANGED and (not isinstance(self.changes, dict)
                 or any(not isinstance(k, str) for k in self.changes)):
-            raise TypeError("Retry changes must be a string-keyed object")
-        object.__setattr__(self, "changes", deepcopy(self.changes))
+            raise TypeError(self.INVALID_CHANGES)
+        object.__setattr__(self, RetryDecision.changes.__name__, deepcopy(self.changes))
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,24 +57,35 @@ class RetryPolicy:
     """
 
     INITIAL_ATTEMPTS: ClassVar[int] = 1
+    UNSPECIFIED: ClassVar[None] = None
+    NO_DELAY: ClassVar[int] = 0
+    EXPIRED: ClassVar[int] = 0
+    NO_JITTER: ClassVar[bool] = False
+    INVALID_ATTEMPTS: ClassVar[str] = "Retry max_attempts must be a positive integer"
+    INVALID_DELAY: ClassVar[str] = "Retry delay must be finite and nonnegative"
+    INVALID_DEADLINE: ClassVar[str] = "Retry deadline must be finite"
+    UNKNOWN_BACKOFF: ClassVar[str] = "Unknown retry backoff"
+    DEADLINE_EXCEEDED: ClassVar[str] = "Retry deadline exceeded"
+    INVALID_MINIMUM: ClassVar[str] = "Retry minimum delay must be finite and nonnegative"
+    UNBOUNDED_DELAY: ClassVar[str] = "Retry delay is not finite; configure max_delay_seconds"
 
-    max_attempts: int | None = None
-    delay_seconds: float | None = None
-    max_delay_seconds: float | None = None
-    deadline: float | None = None
+    max_attempts: int | None = UNSPECIFIED
+    delay_seconds: float | None = UNSPECIFIED
+    max_delay_seconds: float | None = UNSPECIFIED
+    deadline: float | None = UNSPECIFIED
     backoff: str = RetryBackoff.FIXED.value
 
     def __post_init__(self):
-        if self.max_attempts is not None and (type(self.max_attempts) is not int
+        if self.max_attempts is not self.UNSPECIFIED and (type(self.max_attempts) is not int
                                              or self.max_attempts < self.INITIAL_ATTEMPTS):
-            raise ValueError("Retry max_attempts must be a positive integer")
+            raise ValueError(self.INVALID_ATTEMPTS)
         for value in (self.delay_seconds, self.max_delay_seconds):
-            if value is not None and (type(value) not in (int, float) or not math.isfinite(value) or value < 0):
-                raise ValueError("Retry delay must be finite and nonnegative")
-        if self.deadline is not None and (type(self.deadline) not in (int, float) or not math.isfinite(self.deadline)):
-            raise ValueError("Retry deadline must be finite")
+            if value is not self.UNSPECIFIED and (type(value) not in (int, float) or not math.isfinite(value) or value < self.NO_DELAY):
+                raise ValueError(self.INVALID_DELAY)
+        if self.deadline is not self.UNSPECIFIED and (type(self.deadline) not in (int, float) or not math.isfinite(self.deadline)):
+            raise ValueError(self.INVALID_DEADLINE)
         if self.backoff not in tuple(RetryBackoff):
-            raise ValueError("Unknown retry backoff")
+            raise ValueError(self.UNKNOWN_BACKOFF)
 
     @property
     def attempts(self) -> int:
@@ -79,65 +93,72 @@ class RetryPolicy:
 
         This is a calculation; the explicit configuration remains absent.
         """
-        return self.INITIAL_ATTEMPTS if self.max_attempts is None else self.max_attempts
+        return self.INITIAL_ATTEMPTS if self.max_attempts is self.UNSPECIFIED else self.max_attempts
 
     @staticmethod
-    def end(timeout=None, deadline=None):
+    def end(timeout=UNSPECIFIED, deadline=UNSPECIFIED):
         """이미 존재하는 상위 절대 기한을 넓히지 않는다."""
-        end = None if timeout is None else time.monotonic() + timeout
-        return deadline if end is None else end if deadline is None else min(end, deadline)
+        end = RetryPolicy.UNSPECIFIED if timeout is RetryPolicy.UNSPECIFIED else time.monotonic() + timeout
+        return deadline if end is RetryPolicy.UNSPECIFIED else end if deadline is RetryPolicy.UNSPECIFIED else min(end, deadline)
 
     def allows(self, attempt: int) -> bool:
         """attempt는 완료/실패한 호출의 1-based 번호다."""
-        return self.max_attempts is not None and attempt < self.max_attempts
+        return self.max_attempts is not self.UNSPECIFIED and attempt < self.max_attempts
 
     def remaining(self):
-        if self.deadline is None:
-            return None
+        if self.deadline is self.UNSPECIFIED:
+            return self.UNSPECIFIED
         value = self.deadline - time.monotonic()
-        if value <= 0:
-            raise TimeoutError("Retry deadline exceeded")
+        if value <= self.EXPIRED:
+            raise TimeoutError(self.DEADLINE_EXCEEDED)
         return value
 
-    def delay(self, attempt: int, *, minimum: float | None = None, jitter: bool = False) -> float:
+    def delay(self, attempt: int, *, minimum: float | None = UNSPECIFIED, jitter: bool = NO_JITTER) -> float:
         """대기 가능한 간격을 계산한다. 기한 밖의 재시도를 관찰자에게 예약했다고 알리지 않는다."""
-        value = self.delay_seconds if self.delay_seconds is not None else 0
+        value = self.delay_seconds if self.delay_seconds is not self.UNSPECIFIED else self.NO_DELAY
         if value and self.backoff == RetryBackoff.EXPONENTIAL:
             # 큰 지수도 overflow로 작업 경계를 깨뜨리지 않게 cap/기한에서 처리한다.
             try:
-                value = math.ldexp(value, attempt - 1)
+                value = math.ldexp(value, attempt - self.INITIAL_ATTEMPTS)
             except OverflowError:
                 value = math.inf
-        if self.max_delay_seconds is not None:
+        if self.max_delay_seconds is not self.UNSPECIFIED:
             value = min(value, self.max_delay_seconds)
         if jitter and math.isfinite(value):
-            value = random.uniform(0, value)
-        if minimum is not None:
-            if not math.isfinite(minimum) or minimum < 0:
-                raise ValueError("Retry minimum delay must be finite and nonnegative")
+            value = random.uniform(self.NO_DELAY, value)
+        if minimum is not self.UNSPECIFIED:
+            if not math.isfinite(minimum) or minimum < self.NO_DELAY:
+                raise ValueError(self.INVALID_MINIMUM)
             value = max(value, minimum)
         remaining = self.remaining()
-        if remaining is not None and value >= remaining:
-            raise TimeoutError("Retry deadline exceeded")
+        if remaining is not self.UNSPECIFIED and value >= remaining:
+            raise TimeoutError(self.DEADLINE_EXCEEDED)
         if not math.isfinite(value):
-            raise ValueError("Retry delay is not finite; configure max_delay_seconds")
+            raise ValueError(self.UNBOUNDED_DELAY)
         return value
 
     async def wait(self, attempt: int):
         await asyncio.sleep(self.delay(attempt))
 
 
-async def select_retry(failure: RetryFailure, decide: Callable | None = None):
+class RetrySelection:
+    ABSENT = None
+    INVALID_DECISION = "Retry selector must return RetryDecision or None"
+    REQUIRED_CORRECTION = "This failure requires corrected arguments, not an unchanged retry"
+    UNDECLARED_CHANGES = "Retry cannot change arguments: {fields}"
+
+
+async def select_retry(failure: RetryFailure, decide: Callable | None = RetrySelection.ABSENT):
     """Application이 선택한다. 선택기가 없으면 기존 명시적 동일 인자 retry만 유지한다."""
-    if decide is None:
-        return RetryDecision() if failure.retryable else None
+    if decide is RetrySelection.ABSENT:
+        return RetryDecision() if failure.retryable else RetrySelection.ABSENT
     result = decide(failure)
     if inspect.isawaitable(result):
         result = await result
-    if result is not None and not isinstance(result, RetryDecision):
-        raise TypeError("Retry selector must return RetryDecision or None")
-    if result is not None and not result.changes and not failure.retryable:
-        raise ValueError("This failure requires corrected arguments, not an unchanged retry")
+    if result is not RetrySelection.ABSENT and not isinstance(result, RetryDecision):
+        raise TypeError(RetrySelection.INVALID_DECISION)
+    if result is not RetrySelection.ABSENT and not result.changes and not failure.retryable:
+        raise ValueError(RetrySelection.REQUIRED_CORRECTION)
     return result
 
 
@@ -146,7 +167,7 @@ def change_arguments(arguments, decision, *, allowed, validate, copy=deepcopy):
     changes = decision.changes or {}
     unknown = changes.keys() - set(allowed)
     if unknown:
-        raise ValueError(f"Retry cannot change arguments: {sorted(unknown)}")
+        raise ValueError(RetrySelection.UNDECLARED_CHANGES.format(fields=sorted(unknown)))
     result = copy(arguments)
     result.update(copy(changes))
     validate(result)
