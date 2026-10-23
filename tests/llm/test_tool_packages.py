@@ -17,6 +17,8 @@ from llm.components.tools.function import function_tool
 from llm.components.tools import packages
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.components.tools import ToolContract, ToolEffect, ToolIsolation
+from llm.services.runtime.tool_context import ToolCallContext
+from llm.services.runtime.tools import ToolCall
 
 
 SOURCE = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
@@ -153,7 +155,10 @@ class PackageTests(unittest.TestCase):
         self.data.save("search", {"source": "# incomplete"})
         with self.assertRaisesRegex(ValueError, "async main"):
             self.data.prepare("search")
-        with patch("llm.services.runtime.tools.current_tool_call", return_value=object()), self.assertRaises(RuntimeError):
+        call = ToolCall("search", {}, "step", contract=ToolContract(
+            revision="2", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE,
+            approval_required=False, operation_key_required=False, retry_fields=()).to_dict())
+        with ToolCallContext.scope(call), self.assertRaises(RuntimeError):
             self.data.prepare("search")
 
     def test_inspection_never_executes_source_in_backend(self):

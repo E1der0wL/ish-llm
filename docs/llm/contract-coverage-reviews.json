@@ -4581,5 +4581,280 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/tools/packages.py",
+    "sha256": "ad7dab48c35e46b31f32825c7892146b52f19f63fb3fc0be2ca76b67800b8b7c",
+    "reason": "Read every class/helper and the Component, ToolData, parent/child inspection, host installer and fault-injection consumers. Stored source/manifest values use their existing typed Owners; only dynamic package/distribution maps remain dictionaries. Metadata/marker/Host fields are handled solely at their external boundary. Original bytes, missing/empty requirements, pin/extra semantics, explicit preparation and storage commit order remain. No execution literal candidates remain beyond dataclass flags.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "124b5a70b6b1c5b98020a943506eeb86d586db336a387bfcffb277d0eab41470",
+        "classification": "non_contract",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Dataclass frozen/slots generation flags are Python class mechanics; storage and preparation policy values are separately declared by the actual Owner."
+      },
+      {
+        "id": "f4e4bf62b83fe8b02b56d9b22e0b9e06c92272ab268a360d5ba19e2f063c2456",
+        "classification": "non_contract",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Dataclass frozen/slots generation flags are Python class mechanics; storage and preparation policy values are separately declared by the actual Owner."
+      },
+      {
+        "id": "d33fcdf8d3306c440c0b0788f6f8f1911a258c5b8652ede80abea6245ec6af4a",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "7c436754111bd2b7c5585281cafca48b2c1daf71102cf67620cf6ddb3f9105b1",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "7fd5b2b6d823f3fb71e7dfa9709f22753ece110b75341b6f4b3d4127b70b3695",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "96e647c202a8bdc95e9601af13290117f330a2a6484897c5b9553cf9662964f5",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "0e55f6153c9363b654534263b6f251c6f3967cbddf62045577fb1b2a3afb352e",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "a249bb47cc1b337681600d3c7c52a143c29f6976891f3a2284dd5020ec64c182",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "f798db2674b3156629b2cdb0cf4199f0169a38a2211a7a74615f983e2ed6c51e",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "59160d6e321b6cf9222e33c5cc53d106138254ea5969de72427ee79cfc3099c0",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "d63950d4956f9edb685fb0023f9f595a20f66ab3c4d2b48a2879372317e8a9bc",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "5dacc0f0df7e16f5872a3d545c4f0ef60fb4961732d4d3b644a3ca4e2cfa2d20",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "a9e4643df6b482f91079573bdc3b10bb7369ffc1a5519e796a802c392b4958df",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "a4abd7bc0cb70d5b9f5f18c3c6cf5532cf48fbd6a11e5178a295baea2767d5c6",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "99daaa82199592fae41ddc6dc6f74affcd77138e0bd243c7c0021d703b0f13b7",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "f27046a4d907817b69a24eb46190c8ebd593f197653433eb327ee79834102a0a",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "50e2b130606e00acb8449159d89864538e303dc819ed304f9136cd7d2ba025b0",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "a5882bd530a03c69c43d533932e81059e6afe579c1d4e77c21463eb11c84e708",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "ab386144bc9656420fa44d85321fd7fcfc936dc442a70065f10a9c9694cbadd2",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "c8ee98af67c1e00e6568ed11a43385620b85f20b53110f47ab8791584b779b20",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "03edf24411c8a00da19b063992f0ea4bac2f1969bad616d66357d6154007ecc8",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "4a0fcfdbdfb6067f9ef07bbf5b08e56e622ff906ac2eee180af4d8da40c6446e",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "1f879e2a22eae217bc298b80da82ffb0b41d8b9d67a5645d821527c7fb638d7b",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "0b769ad1d5c6e751ca35a334b00de4f7c851334112b0c45eecb95143fa0359ff",
+        "classification": "non_contract",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Dataclass frozen/slots generation flags are Python class mechanics; storage and preparation policy values are separately declared by the actual Owner."
+      },
+      {
+        "id": "a9a0cc1098e693a5b29c5a743bc36a3e9e7867967c73a3969c02b2ba6af42210",
+        "classification": "non_contract",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Dataclass frozen/slots generation flags are Python class mechanics; storage and preparation policy values are separately declared by the actual Owner."
+      },
+      {
+        "id": "8cff2b6f2576070408b6af42f2a343b146e296840ec5251f9737765dfc6f4755",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "0822da958401383937b5e15daa3eaaa72819d1dd8109fb27c802bbeec685a10a",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "6849dc15e03f7ea50bb1f8e7e3e8313e5b845e3754ebb8f12d188f9234ebe1a7",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "cbdaa01d34e4320b212d84dbada3c2e66a6bbc2bfee431cb6c8efd7447e19e42",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "39f871d51aa10294eb7fbd8740255cce40b3185883f1fa2aeb48213d1ce6930a",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "d6f728555b006740f6de5828ee596d6d0f7d69e525a46e68ac0603033cb40a88",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "e35f69c40092ca63e067c92f6d3fb3e04dcb9f86b2a01997a6a70669b469f255",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "dbea25d05108b67ecc825da074a3f22a1ec7a21cd5b3d1275af68cbdd8f17c7e",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "88ed514c371ab53670a6a71922e13baf3260e20572f859f0e2f06a72f9a90aa6",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "97a291ee3898bd8ae3a3f50925414203dc9ac8a970abb73d88e97f7a7a1fd56f",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "50468730c179a4b5481f10677690a3bb1ac850df2197e71f74de2734de512dad",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "697a39b123ed1737819ed8b314beb58227d21b779512416cd7e36df0bff8ca39",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "4c5d21dcfa8b48a9141a41e21e0589559ac8ae7695cd148ebc2535552a821177",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "eb6a9e04866242e157c150447f9e1b5df16857fa7996eeed15e121fd9437a81f",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "676b7b6ce072e7e470f4e44671786e7ad5ddd1f33b5aa279960cb45ffbe0bcc0",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      },
+      {
+        "id": "ce4e54a21abba5669f6e179dab0cff5f3bfc273f3e86ca3c5655e06defe8f9e2",
+        "classification": "declaration",
+        "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
+        "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Tool package storage and shared dependencies",
+        "declaration": "llm/components/tools/packages.py",
+        "consumers": [
+          "llm/components/tools/component.py",
+          "llm/components/tools/data.py",
+          "llm/components/tools/_worker.py",
+          "llm/components/tools/process.py",
+          "hub/backend/tools/management.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/hub/test_interaction_updates.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -7216,7 +7216,7 @@
       "id": "1b5c3d395ad276e1a46ed59affea26041a24160c3fc7b4684b3dad1d4a628c01:1",
       "rule": "S4",
       "owner": "ToolPackageManifest.read",
-      "reason": "The manifest Reader requires the exact current field set, rejects bool/non-int versions, compares the sole declared VERSION, and verifies current Project/component identity before repository files are accepted. This is a mandatory format check, not fallback, migration, or a new version. Missing/corrupt evidence and real interrupted writes remain rejected/preserved.",
+      "reason": "The manifest Reader requires the exact current field set, rejects bool/non-int versions, compares the sole declared VERSION, and verifies current Project/component identity before repository files are accepted. This is a mandatory format check, not fallback, migration, or a new version. Missing/corrupt evidence and real interrupted writes remain rejected/preserved. Tool package boundary dependency review: Read the entire storage/dependency module and call sites. ToolPaths declares unchanged path/file/diagnostic values and checks. ToolDependencies owns the identical installed/marker/conflict/host logic, RequirementEnvironment serializes the existing extra marker field, and load_tool retains explicit prepare/constraints/installer/worker order. Existing private injection points alias the same implementations. Compared 336 old/new dependency results/errors with unchanged inputs; real crash and install assertions are preserved.",
       "contracts": [
         "docs/llm/tool-package-records.md",
         "docs/llm/contract-ownership.md"
@@ -7228,18 +7228,21 @@
       ],
       "sources": {
         "llm/components/tools/package_values.py": "726ed9603acf35f058ec1f2490b9be2e6177649c1e0fc0b1afda0791b73fa2ba",
-        "llm/components/tools/packages.py": "c48e932ce04ef71360ba7545a1441c4834843a8bb6d3e61946c5206d33b76b85",
+        "llm/components/tools/packages.py": "ad7dab48c35e46b31f32825c7892146b52f19f63fb3fc0be2ca76b67800b8b7c",
         "docs/llm/tool-package-records.md": "b4b22fe90a6bbc98a12127abd2c62e48ca12d27af16274d9e795fbc9b8be3337",
         "docs/llm/contract-ownership.md": "269ccb7d5ccb42734f64bf65d1badb61d414564a108a4e69920d19b30d036b91",
         "tests/llm/test_tool_package_values.py": "52e676c9c1fb4bfb919e9a394c64b286209161a4fd7e1b9dcca17c5ba686f3f4",
-        "tests/llm/test_tool_package_integrity.py": "d37d5efcc313d60ec644f3933eefc843cf7c602c829eef397343df22a5e6eab5"
+        "tests/llm/test_tool_package_integrity.py": "d37d5efcc313d60ec644f3933eefc843cf7c602c829eef397343df22a5e6eab5",
+        "docs/llm/package-boundaries.md": "27497285932f4bbd66343fe7ec2bebea64bd7f33c3255e274c2de005e4fe9c69",
+        "tests/llm/test_execution_contexts.py": "503334f2b3350188f17061fce0de4de49b6c5180629492f09947c7d6b52186c2",
+        "tests/llm/test_tool_packages.py": "954d60c8a140f0ddd26e3160dde6a106d38cebaf483846f4dcc3b45b1f5d9c7c"
       }
     },
     {
       "id": "daa5ee1f7ad422eb7a1486102adaa13b68a947d266608c9a423b7e105fcf3099:1",
       "rule": "S4",
       "owner": "ToolPackageManifest.read",
-      "reason": "The manifest Reader requires the exact current field set, rejects bool/non-int versions, compares the sole declared VERSION, and verifies current Project/component identity before repository files are accepted. This is a mandatory format check, not fallback, migration, or a new version. Missing/corrupt evidence and real interrupted writes remain rejected/preserved.",
+      "reason": "The manifest Reader requires the exact current field set, rejects bool/non-int versions, compares the sole declared VERSION, and verifies current Project/component identity before repository files are accepted. This is a mandatory format check, not fallback, migration, or a new version. Missing/corrupt evidence and real interrupted writes remain rejected/preserved. Tool package boundary dependency review: Read the entire storage/dependency module and call sites. ToolPaths declares unchanged path/file/diagnostic values and checks. ToolDependencies owns the identical installed/marker/conflict/host logic, RequirementEnvironment serializes the existing extra marker field, and load_tool retains explicit prepare/constraints/installer/worker order. Existing private injection points alias the same implementations. Compared 336 old/new dependency results/errors with unchanged inputs; real crash and install assertions are preserved.",
       "contracts": [
         "docs/llm/tool-package-records.md",
         "docs/llm/contract-ownership.md"
@@ -7251,11 +7254,14 @@
       ],
       "sources": {
         "llm/components/tools/package_values.py": "726ed9603acf35f058ec1f2490b9be2e6177649c1e0fc0b1afda0791b73fa2ba",
-        "llm/components/tools/packages.py": "c48e932ce04ef71360ba7545a1441c4834843a8bb6d3e61946c5206d33b76b85",
+        "llm/components/tools/packages.py": "ad7dab48c35e46b31f32825c7892146b52f19f63fb3fc0be2ca76b67800b8b7c",
         "docs/llm/tool-package-records.md": "b4b22fe90a6bbc98a12127abd2c62e48ca12d27af16274d9e795fbc9b8be3337",
         "docs/llm/contract-ownership.md": "269ccb7d5ccb42734f64bf65d1badb61d414564a108a4e69920d19b30d036b91",
         "tests/llm/test_tool_package_values.py": "52e676c9c1fb4bfb919e9a394c64b286209161a4fd7e1b9dcca17c5ba686f3f4",
-        "tests/llm/test_tool_package_integrity.py": "d37d5efcc313d60ec644f3933eefc843cf7c602c829eef397343df22a5e6eab5"
+        "tests/llm/test_tool_package_integrity.py": "d37d5efcc313d60ec644f3933eefc843cf7c602c829eef397343df22a5e6eab5",
+        "docs/llm/package-boundaries.md": "27497285932f4bbd66343fe7ec2bebea64bd7f33c3255e274c2de005e4fe9c69",
+        "tests/llm/test_execution_contexts.py": "503334f2b3350188f17061fce0de4de49b6c5180629492f09947c7d6b52186c2",
+        "tests/llm/test_tool_packages.py": "954d60c8a140f0ddd26e3160dde6a106d38cebaf483846f4dcc3b45b1f5d9c7c"
       }
     }
   ]

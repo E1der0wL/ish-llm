@@ -1370,3 +1370,55 @@ incomplete 계약 2개로 전체 완료는 여전히 차단된다.
 이 소단계는 Level 2다. 이전 편집 snapshot과 묶은 현재 소스에서 다음 Level 3 전체 게이트를
 수행한다. 실행 중인 9067faa 전체 검증에는 두 소단계가 포함되지 않는다. Component 내부
 정의, history_references와 나머지 고정 구조/리터럴 전환도 계속 진행한다.
+
+
+## 9067faa 통합 게이트 실패와 실제 실행 문맥 재현 보강 (2026-10-23)
+
+고정 SHA `9067faa`의 group9 전체 실행은 실패했다. LLM 발견/시작/pass
+2401/2401/2399, error 2, exit 1, 1399.690179초; Hub는 586/586/586 pass,
+exit 0, 1130.669857초였다. 다른 failure/skip/xfail/xpass·누락/추가/중복은 0이다.
+전후 source `a5e66b86307746319ef7700a6a0521cef3919aa45c3a5af90c36e8ced6c0805b`,
+input `cfc9a348954063fbe1ae06f94b6f8bcbb10c5fe208e2392d4c64330c9e5be332`은 동일했다.
+group9-auxiliary의 정적·문서·R3·SDK·양 suite 환경은 각각 exit 0이었다.
+
+오류는 `tests.llm.test_tool_packages.PackageTests`와 이를 상속한 `DependencyTests`의
+`test_prepare_validates_without_dependency_or_run`이었다. 실행 문맥 Owner 전환 후에도 시험이
+이전 current_tool_call 함수만 mock하여 실제 문맥을 만들지 못했다. 준비 금지의 원래
+RuntimeError Assertion은 유지하고 유효한 ToolCall로 ToolCallContext.scope에 진입하도록
+fixture를 수정했다. 기존 실제 import 파일 효과 0·Tool/usage 각각의 문맥·중첩/취소 복원
+시험도 유지한다. 현재 패키지 경계 smoke 역시 47개 중 같은 error 2/exit 1이었으며, 수정 후
+해당 2개와 실행 문맥 4개는 6 pass/exit 0이었다. 실패와 수정 로그를
+package-boundaries-draft/smoke.log 및 context-repro-fixed.log에 각각 보존한다.
+이 실패한 전체 실행은 Push하지 않으며 이후 성공 결과로 덮어쓰지 않는다.
+
+## Tool 패키지 저장·공용 dependency 경계의 선언 소유 (2026-10-23)
+
+[경계 계약](package-boundaries.md)에 따라 경로/파일/진단은 ToolPaths, 설치된 배포판과
+marker/Host 해석은 ToolDependencies가 소유한다. SDK marker extra는 정규 필드에서
+직렬화한다. 기존 주입점은 단일 구현의 직접 별칭이며 새 Reader나 호환 실행 분기는 없다.
+저장/manifest 커밋·원자적 복원·공유 설치 pin/constraints·명시적 prepare·최종 worker
+검사 순서는 같다. 이전 구현과 336개 dependency 입력에서 결과/오류·입력 비변경이 같았다.
+
+- `whole-package-boundary-01`: 발견/시작/pass 123/123/123, exit 0, 100.458329초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-package-boundary-01/llm.json --modules tests.llm.test_tool_packages tests.llm.test_tool_package_integrity tests.llm.test_tool_data tests.llm.test_tool_workers tests.llm.test_execution_contexts tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`.
+  source `2c2bd8d70f15bf758039b8b3034fbd134bf53757492afaa0481b5d748de2daa4`, input `d56a37639d632363dcb922c28b1db215424addfa09e523088c8f77d4e31ed23c`.
+
+- `whole-package-boundary-hub-01`: 발견/시작/pass 17/17/17, exit 0, 45.956046초.
+  명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-package-boundary-hub-01/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_question_tools`.
+  source `2c2bd8d70f15bf758039b8b3034fbd134bf53757492afaa0481b5d748de2daa4`, input `d56a37639d632363dcb922c28b1db215424addfa09e523088c8f77d4e31ed23c`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이다. LLM은 실제 패키지
+저장·장애 주입·공용 dependency 설치/충돌·ToolData/worker·실행 문맥과 승인·예산 삭제·
+효과·Checkpoint·RAG·수명 안전성, Hub는 실제 패키지 관리·질문 승인 경로를 검증했다.
+전후 source/input은 동일했으며 로컬 Python 3.12.14/Clang·고정 Host·의존성·namespace/X11을
+유지했다. 서로 다른 실행 결과를 전체 통과로 합산하지 않는다.
+
+기존 정적 근거 2건을 재검토했고 발생 추가/삭제는 없다. 감사 자체 시험 16개는 pass/exit 0이며
+package-boundary-auxiliary의 S1–S7 145건·문서·R3·SDK·양 suite 환경도 각각 exit 0이다.
+packages.py의 전체 구현과 실제 소비를 검토했으며 남은 실행 후보 4개는 dataclass 생성 옵션이다.
+현재 462개 파일, 미검토 403개, 미분류 30154개,
+incomplete 계약 2개로 전체 완료는 계속 차단된다.
+
+이 소단계는 Level 2다. 실행 문맥 시험 수정과 편집 snapshot·공통 참조·패키지 경계를 모두
+포함한 고정 현재 소스에서 다음 전체 Level 3를 실행한다. 성공 후 작업 브랜치에 Push하고
+그 정확한 SHA의 실제 원격 CI를 확인한다. 이후 미전환 전체 범위도 계속 진행한다.
