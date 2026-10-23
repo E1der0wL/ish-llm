@@ -1689,3 +1689,42 @@ incomplete 계약 2개로 전체 완료를 선언하지 않는다.
 이 소단계는 영향이 진단 입력/관측에 제한된 Level 2다. 공유 실행/회수 변경을 검증 중인
 고정 SHA adb0c5c의 group12에는 포함되지 않으며 다음 내장 Tool 묶음 Level 3에서 통합한다.
 전체 대상 정리와 각 Push의 정확한 SHA 원격 CI 확인을 계속 진행한다.
+
+
+## 파일 Tool 입력·결과·동적 등록의 Owner 연결 (2026-10-23)
+
+[내장 Tool 계약](builtin-observations.md)에 따라 공통 한도/경로/탐색 필드를 상속한 작업별
+입력 타입에서 Schema와 Reader를 파생하고 FileTools 내부는 속성으로 소비한다. 조회/수정 결과는
+고정 응답 타입으로 조립한다. read 범위의 생략/명시값·필수 필드 순서·입력 원본·Schema 사본을
+보존한다. 카탈로그는 같은 이름/설명/Schema를 등록하며 file_read retry_fields도 path 선언을
+참조한다. 휴지통 ID의 Schema pattern과 실제 복원 검증을 같은 Owner에 연결했다.
+
+실제 경로 보호·잠금·버전 검사·쓰기/fsync/replace·휴지통 이동·취소 drain 순서는 유지했다.
+원자적 교체 실패 주입으로 원본 bytes/mode 보존과 임시 파일 회수를 확인했다. 잘못된 ID·한도가
+새 파일이나 원본 변경을 만들지 않으며 기존 실제 효과 Assertion은 유지한다. 허용되는 문자열
+ID 집합은 같고 비문자열 입력은 기존 공개 Schema가 거부한다. 테스트 공간 선택은 기존 Owner가
+계속 담당한다. 두 실행 경로 모두 같은 FileTools와 byte 한도 검증을 사용한다.
+
+테스트 공간 유무를 포함한 여섯 Host 구성에서 이전/현재 전체 Tool 정의·계약·환경 binding이
+일치했다. 초기 기존 smoke 51개는 pass/exit 0(21.957초), 신규 독립 wire·필드 존재·필터·원본/실패
+시험을 포함한 최종 smoke 55개는 pass/exit 0(21.954초)이며 아래 공식 실행에 합산하지 않는다.
+
+- `whole-builtin-files-01`: 발견/시작/pass 125/125/125, exit 0, 54.196815초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-builtin-files-01/llm.json --modules tests.llm.test_builtin_file_values tests.llm.test_builtin_tools tests.llm.test_test_workspaces tests.llm.test_tool_constraints tests.llm.test_tool_selection_records tests.llm.test_process_group_cleanup tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `edb0674c53fb694dd0f0cf2c7a05fa8bce8849e2d5e3d84a69913069bb38129c`, input `ae04a475d3af20004167595a2bf66753e6ae0048afaa25a3bf227a68f92da2e7`.
+
+- `whole-builtin-files-hub-01`: 발견/시작/pass 31/31/31, exit 0, 99.234164초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-builtin-files-hub-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_tool_advice tests.hub.test_shell_environment tests.hub.test_interaction_updates`. source `edb0674c53fb694dd0f0cf2c7a05fa8bce8849e2d5e3d84a69913069bb38129c`, input `ae04a475d3af20004167595a2bf66753e6ae0048afaa25a3bf227a68f92da2e7`.
+
+각 실행의 failure/error/skip/xfail/xpass·누락/추가/중복은 모두 0이며 전후 manifest가 같다.
+LLM은 실제 파일/격리 공간·제약/선택·자식 회수·승인/예산/효과/Checkpoint/RAG/삭제, Hub는
+인자 수정 후 재승인·실패 안내·shell 환경·상호작용 소비자를 검증했다. Python 3.12.14/Clang·
+고정 Host·의존성·namespace/X11을 유지했고 서로 다른 실행을 전체 실행으로 합산하지 않는다.
+
+정적 발생은 retry_fields 선언 이동 1건 제거/추가 0건이다. 과거 근거는 외부 removed-static-reviews.json에
+보존했다. 실제 전체 구현·동적 호출 경로를 검토한 파일 두 개만 전수 판정을 추가했고 변경되지
+않은 BuiltinArguments에 새 소비자와 시험 근거를 연결했다. 감사 자체 16개 및
+builtin-files-auxiliary의 S1–S7 143건·문서·R3·SDK·양 suite 환경은 각각 pass/exit 0이다.
+현재 469개 파일, 미검토 392개, 미분류 29403개,
+incomplete 계약 2개이며 전체 완료는 계속 차단된다.
+
+이 결과는 Level 2다. 고정 SHA adb0c5c의 group12에는 포함되지 않는다. 남은 프로세스/등록/
+테스트 공간 전환과 다음 현재 통합 Level 3를 묶고 성공 후 Push/정확한 SHA CI를 확인한다.
+전체 대상의 미전환 항목을 계속 진행한다.

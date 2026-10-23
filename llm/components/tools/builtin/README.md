@@ -10,6 +10,7 @@
 | [catalog.py](catalog.py) | Tool schema와 구현을 조립하고 명시적으로 주입한 서비스 어댑터를 연결합니다. |
 | [component.py](component.py) | 호스트 Toolkit을 Project의 명시적 enabled 선택에 연결합니다. |
 | [files.py](files.py) | 지정한 root 범위의 파일 조회·읽기·작성·수정·삭제를 구현합니다. |
+| [file_values.py](file_values.py) | 파일 Tool의 공통·작업별 입력 Schema, 조회·변경 결과와 휴지통 ID 계약을 선언합니다. |
 | [processes.py](processes.py) | 명령 실행·pipe 입력·출력 cursor와 프로세스 종료를 관리합니다. |
 | [diagnostics.py](diagnostics.py) | Linux 시스템·프로세스·표준 I/O 연결을 읽기 전용으로 조회합니다. |
 | [diagnostic_values.py](diagnostic_values.py) | 진단 Tool의 입력 필드·Schema와 시스템/프로세스 관측 응답을 선언합니다. |

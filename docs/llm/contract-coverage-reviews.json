@@ -6481,7 +6481,7 @@
   {
     "path": "llm/components/tools/builtin/arguments.py",
     "sha256": "452bd0ccebdd2d713263b1af581c79cae11abc7f2edbbbdb0ab29a71c88286da",
-    "reason": "Entire declared-field projection and Schema derivation reviewed. Required fields remain required, explicit null is retained, defaults are only local dataclass values, original input is untouched. Other boundary fields are not interpreted; ToolRegistry remains the admission validator.",
+    "reason": "Entire declared-field projection and Schema derivation reviewed. Required fields remain required, explicit null is retained, defaults are only local dataclass values, original input is untouched. Other boundary fields are not interpreted; ToolRegistry remains the admission validator. File inputs also consume the unchanged Reader/Schema projection: required paths, shared limits/traversal filters, optional range presence, original requests and Schema copies are covered.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -6496,11 +6496,13 @@
         "owner": "BuiltinArguments",
         "declaration": "llm/components/tools/builtin/arguments.py",
         "consumers": [
-          "llm/components/tools/builtin/diagnostic_values.py"
+          "llm/components/tools/builtin/diagnostic_values.py",
+          "llm/components/tools/builtin/file_values.py"
         ],
         "tests": [
           "tests/llm/test_builtin_diagnostic_values.py",
-          "tests/llm/test_builtin_tools.py"
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_builtin_file_values.py"
         ],
         "complete": true
       }
@@ -7074,6 +7076,1494 @@
         "tests": [
           "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_builtin_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/file_values.py",
+    "sha256": "8c24d9e8fd4c96ae94785854b22e71abd35d31ac6c3da198f8a3c59ff96e7307",
+    "reason": "Reviewed all eight Tool argument models and result records. Shared byte-limit, required path and traversal fields are inherited; digest format and trash identity have single declarations. Read ranges retain explicit presence through UNSET. Required field order and public schema/description stay identical in six old/new catalog configurations. Response fields, entry kinds and restored/end-of-search defaults are declared before serialization methods.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b06c6cbac063cc9028fb52494a99ebecaed55cf43490218fb12d6af59f27fe58",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "e3fa80aaa4154c0ab3feabb9aa7cb2b25aa4b625e1d3d3ea3aad909d873bc2e6",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "7e3e490204cb6759b158de102f747fab8a5d1454b710c778532e56ac97a783c8",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "c8faa742f60b2fff2a1b0fb951268b4c8c5e68793b6dbdb78b0cdee6a54045a5",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "e6b14cbc7ce864b8f03cf6c0f6ed86789c2e7a312734add7cc6874d4279bf82d",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "f10cb52edfa4265e727d849b37febadaaf067619a7e3324a9a4f14f509410135",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "561435a368a57988cb85bc12ae9513264192a157174b8d66476bc5b53b14f16e",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "1b1fec010a1eafad4648d2a306c6dad864998784f0fb6a56e9cc3c67b13b5b4e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "869a7466a0fca93f6fda0efe8feb54a9adb6aa539c2b7f9c2674fdb548111b11",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "e8d29deaf780a18866d9368aabb99aa66a0281c608c06ddbbfd0a6fa7a457d5f",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "6199782efe51f23bdea2d9d074059df85f27426de091187df28844671fc4283f",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "4815cce28edc1dd08ddd5a9f0b06bd107857fc4f6d641f135e25daeafcc05add",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "18cc42c002d0d055b0fc6dca9e1db92d1b24656d09786c91913e8030cec43683",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "4751a7fc21ca78c5044276c117489d4687ea060332076fe497f21a2af7a9f7cd",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "5e1f503c44082c94e79462205b6e0b79f3ed46127431a9ec9e4603581da7e24c",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "bd435d1ce176d53bb0ab91406e98c316662e1464452dee50153edab50557de28",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "3796e2eefe68439ae0d1ca9e1320aab4aeaf8de5ef11de8b28671543425f736b",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "7ceddb35200e350ba40d9d01a3ea3d4b2d1eed5d2b65a58d3f082dc02ccc2a83",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "c8b41e38f62cbadba8950a9a3057048df1d292913e999a2f121a9985d7f2e884",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "0326fb1f30fcea66c1f69e66c61180b31b7ef4ae4454824131a91e2bbd2005a3",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "67ac2aeab7496f33c60898b14f32cc4d39aa86abda53301cf0af4e896e0740fe",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "938d19b9dd42b9c55ff7bbeea4f206dabc3513149a68cb5e6bfe24b29ff41a1d",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "72afd48f2486b416a5fbfedf0024f0038b694ea9a205d8d5258ffee11dd2b6bd",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "511ddc0a75aee4c30e276160579807a8e2b0e87b3d59051d4e357b4f22f3a871",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "19e455a252eb0034f5701cf82da48eb7d9ef17c6f81f51336b5f0ba326a13eae",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "9d7aed956e6cf3855f21506c7066fd5fa41d76ed88e38165f1773cfd52ebb4a3",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "bf780e6656bff51bf60facf47bdaa217b582cfbb8b7539dad53cf88f63b4467c",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "1f80b4207b11c35b33c50c58cf4f43660ac2e69294f8e85b678162752a6e9bad",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "4fd75b8900d3f44c46391cc10175f1198977a5a8d11e84229bae3bad3b8ba03d",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "dbae35f6c889d11ebf7083bbde3edcfd2d0567d5f0f77163551048e86952f517",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "35e5f58945304dbce58b44997623cfcb6bf49a1ec0b33d980627a03d9f6992b6",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "6f6c2f18e1269405237fd4ea6cf6fcadcc481e02c10b952e746f113d5a6d5238",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "a43ebee9e367965b2cad17ea012001431ebc421f2d45170f7912345e8fa32392",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "c20c83c0cafa17acdac8b7d4d1a0b605cda3a79033bb64abee323aaa3ac6146e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "a8d1b693fa897f1511744002a7f0cb4df398656bbe0db9299f9729e48716c93e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "39bda62889deabafe657f81dfe40058cddea58e9817777a8276b082aa9f10457",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "f073d0904d334ed1be0962bcbad12753447affe2e5d5d99a7e7f81dd63aa6174",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "56ea509810908f184b72c2b00789203575cc07738d6ba1e79237ee68a248719c",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "e510f08656b440cd06e9059f394d108ba06170c706f7e5a94e26ee1f3d0ce3c7",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "64269b3a7cda7356b1f406c78344990a9c7692d4e9cf6811675fa28c7979cc18",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "8f17cc8f4a0726cee2f174c435ce0b7a7ae38081c952e65fc44f894ead14ac37",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "21988abfdc1765de96bfa63647f6d2552e92d306ce67d0c8f957c9cdd124b37a",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "519ef77981fae1d492c4fb41712feacca4041436dbff414c80bd0d37473e139a",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "44a27f9f6ed8be3d44838abb79319640f7bb4267d8282e597fd1efb5f36bbe18",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "5648992aa424d0c3610e35916b522ea21dcbe9db6d425826798b9ae5e5d1a4da",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "42fec05a49882892431fb56bae1fe66676ba01850ec98c36955f744e8c280a0e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "644945103cd8278a4d19a3eb88ee19f7fa4585053147bb7c511412894cea8ec5",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "770e7fa1da6404cea6fc85b541b2b7f6fb856b7290e4ac808b68ca07ad2d4dd2",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "0b23502916e38ea937999cca2cc6667301aba2255f519639d716e9e340a8722b",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "40d03c47aac2f59e1fbbdd20d61f15c6f76550c3a22f35313c075bb0b35e81a3",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "c7f39bd99f4630a3e6b13b5a8bdfbd5f9d14d4d657da494cb08349855fa4b68c",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "6a7f582d69bb0a045b39c28b604558fa5719ffefab6352343e947b9ea25d8af3",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "c0efe937352b9a5b31e5e70dd682c40d19f1427ef93eb0a1ae5ec263a383e592",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "2afb1eed5da5cea1912103ebfdd1e94bf48d8747809ffeab62e2ebcf5e2c94d4",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "41902db44a90b6fca147cfce6455735c1c6ce575eb3193260b360e0220d5b885",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ea640fdd77dc6efea1cc44f9e02cf9d3796a0acd797f6bf88c9c80213d74cd9c",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "1c7a33c13827f363a745882483c6f648341e3434d911e673aa84c191d47dcdf4",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "85b75eb58797060ea1d236697e656b7c1bd6da1b88654347730920890189ffb6",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "450b3d6d73524e4b3023601841681dbc3e790ae847e246d0b49dda1c5e36d034",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "bdf14d36f25afc96e1af89276cfc896c7b64997fd342504d1dba0b03dc70f6c2",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "1bd69d5746688ce3269414f41f7331723f5f3e44eb6f2204d74108eb827b3f3e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "0a1aff183fd629a759c60cb9abb6fac65a309ba90b8b9ae4dd72d7c772defc7e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "8f6cb1d720e88db96b0d0fe9e7d9fa4ee3e487fad787beb799a252880b5d7521",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "2ad51ec84100b9058f3c8895c5abf935e52814ba552a747fca5deb11181c2087",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "2fef1f149dac7248c46b4551467e3ea1eae212d3c02963eb88377b6bdb0052d9",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "b7ae50dae6ed3564b8456ba85b1c3802e486c030346468c85da09fa02c15b35b",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "bc8131c09eecbcdcf7c408cb674dd32d587f55849d0317a248c0907e9c2f09d4",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "036dda4107049f6ce06f29f897767026cd6703f1ca55c9be104949b4f37eed4c",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "88a151fc7855b98838b6b0cba2f26b4f6a4d96693fbab5233a99e287d90d96b5",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "026a7e2c55d4f43d03eb379d889bea5a0e3262d0201ef8f961b2691836702298",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "8d77eacd5de01b1e9c9cd870efb631018ae965aaafb67f2b56dbf10c3be75825",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "a0f8350359b191705049e2a3a302c972fb9734084ccae228d7601323117c2ec0",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "7e6fdc4f2bac4b561a7afb5e1c947d734e853be80abfe8ab652969cbfc08b527",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "dc3ce31d6788453031a51a69d83e5a5af951baa799f3b9669399413b5ff04913",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "8c638e0a323b1e023b8244caa719e0602488c6000cf3f6695a308fcfcd319dfa",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "da0253d18ef867b34a99bb9627bb36345396e12d4dbd2616b7b096a7f8782af5",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "5c66a2c2bbc5e0c5ef97bc3f7e67dd71dabe07f26aca85886d1658806f78a48a",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "66d68198ccfe31867057ef856aced5d0728db316929ddf11cc4eab4c93858796",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "99ecbd29f8a2beac14130519532fc6a805c69525ff34f3eb047c8386a8980fc3",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "9e5525e2e71d07b922cf409dec0c7f61e76568a45768a776f5a4079d8d6c7ec1",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "867f8a62f3b6377b12d69d8df0affae47e649860da737fafb48b5c9e5c2a234f",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "160065fcc0f9c5ccc21f20afd0a48ae422bfe9a04f418d020166dce7e0144e34",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "17b18793e30df0a67cea63bc69a27b9775573196e105b8c8d820cd8d8eb26de1",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "6db28687c823344f47977331456ff346f8e693f0714c16ddac868edcd3ee6d20",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "8d88e4ebc190661da180651792498a02c94c6b6cec097896edfaf252b207f006",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "d85c22586c57fe0e76e2a8f9ea0b16f3683c55c3d3276150e4190a80b0d87d1b",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "2f62d03221d017b36ea25060cbe2d3eeb3c3c000efd00c417a7b75f24c86248f",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "9dd6422f0fbab74d28cbd75755fcacc3a8cd8c92c51fbafb8ee36cc61bbbd67d",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "1d6b243eb11253ac187f6b24983130ec169de6de3b75f137ac2373a234ce7a7e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "4477a20db1aff45427887e3c251112ad2f1c4beb394bfde4cd351508aba57824",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "733feb9ef1aed39fbdc92bccce60151aa45f62ee0990a0902a8fa150872c0461",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "389ec761d9e87bc449cf0a6de242f92911a9b8a447744a2c395aecf7a28a4cec",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "d7dbbcef4df90978825245d41ab9a3b7fd239628743498e78d3c914fbfc7ff9d",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "880dd8277009c5fd1f2ea5379231e4d8de46e8776bb5379290b7e54652e2c208",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "0ff450ca521048a25ae6f63196dceae3ec17ad619e7d131ed17ddb9039a8211f",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "52a20919656e5cf2149209cda5b62394b89a3078e5f2b41f45b32d876a2e1c4e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "7ec4caeff112511ddd72a850c87c0713266e6676f07f48fc8dabc93ae56f1f72",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ad29588841c5ea1e1219fb84f0d2f39af2225c8a192678354ac91cdf4c30590c",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "eaeb5a5a5d2c651e1929955029ab59e474c41413c45214b2846fc3fe7af80bf4",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "f17bb8ad5c94d72d4c5eb6f38f79bcc38fb1f4447500c52fce15eb4bd3e7cb16",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ff85458f04d0024b6f873e5e559a5adabb9e0ef767e746d885b7ddb6c25d028b",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "fadc19c2d0781a93d07ce70fffe8702d9572be80fdd32eb1ff41a5eac8698189",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "89916a6cc3636d65e02fb20c9d22d7125231e153dcd4f5f5ff98543f19bb1f20",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "9551c084417639c1f01a252a7fecba689a698032c9615d4c5c5bd1a058acc5ce",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ad91c841e95dd1e83f83f9eb537726f377605c2aece2e33611b5573e59a54bb6",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "fb135d0253bda7d9dda9b1dfbf3455feb72b3bb010805bb66c835fb5855473c4",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "d956190b32e1704d61f0211581715c8cafc0c9b411c19aa000ef0abf09ffb4ad",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "4328ca9f08f097f5f585736e9201d6dce1de92fbd66abfd0c076b3c0465e3c3d",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "dab9ea5e9fba5a37c34a30ec20f5ea55577558aa64f454e27f765d38e8d95cc2",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "f88441301abdc2679904c5145dd52fe905ec20ae7d0c50c9549454d3729e752f",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "bf362314693e72d0fc1351c531e88e9043c52b2b8871ed0e794e40e62f990efb",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "91c0a62d833dbfb82b01c22b9363ab3984f0810cb852b64694462302d9cfa122",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "abd43d9f6b8f9f55176df3af9e82459b1e42cd565a7583e2ad0e092104f12c52",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ece786d2600947cec95a116279fec7aa58de154532cbd3ee98c8e6b7e7e9563a",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "8b1b6ed0f3d1cfcab5461975eb1bc11bbf7aa4a469e77a990db50b850b222385",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "72d1fb1ad7bd2297e23ce55ac4ae998b8e7c8e8853bf7de9c4eaebbe76ca5339",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "a16e068f55f4a5e3db56c602749de4c081ef2d0b9c792fded73c77171d471e13",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "c25d813b9b2fe5d804e70d9389c3299a91da8fb630e0b5991fec0aec0d1c41db",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ddbd1a5478cfc593b9b6d88cdb1680b3b29ce200c19be424099a01a16edae16c",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "76bbe610a634365c554b8fc3ee8c8be16fb7a6f717c5a0fe367c8147f1b87f6f",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "6f2e2e68130453a7e5396f7500ed62e1674878b2fedaf68a43efe84a88f52a31",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "3908a9d3fd58bb7fe536ec92c193bf28af9c22d8f36138ece9d0c345f886754b",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "6423db55521335a0b76798c6ceb8a1fdd6d9fbb74452260855a43254068ff482",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "9d52a01f03fd9a50ed9e1ef13af3979f8010a62dc3caf9a934baca1f32324587",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "de292c3e8ff32dd1ad0700eaed1067ed427dd5c0986932647b8d06afd4ebddfc",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "a2cdc192892859420120a1358f6f16355fbaf074c40594a4d1c83995e8b9eaa5",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "20de5f87cbfd80deef63c440df1e4ffbf3cb6e7ba4f042a943c4d2085f3c2ac4",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "a19a765070f1aa4d25c1d3c97279dae1d897784b4b103158439c61eb576282d5",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "b09440ccaa22e6e70b911cb57566182bf75d67a276b7d6af161d12f60b228212",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "80ef77725fa4c6df2dcfad72512f220332cca3ca621c2dacf3f9983487fb279b",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "c8fd5679b44d237f1925e7eb6e45bec6f9a700b388ecdc0980c3e0d449ed976e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "056226215ac0ace4643f99144262c2470774fa5c4bc83cd89e6e6c8f5ff75a26",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "b779c24c8ae36f1fd50deaa4fdb736737bb0b55ed5c608fa0956c25a5edbb6ab",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "25c8164b307fe453d0486d4328982382214aaa10db3b484202ca32c1caedd66b",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "aa5159c5a17a9f3831a4cdbba8a1c76c0bab2100a8621443d882ee1eb34ea34f",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "f4f09c40d00e656aea2c6475fd885112fd0f32b19aae684d6f0aff936d7805cc",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "854a89af9aeff1bca85e0ac105235ace49a97b7ef3c45680d841e725f8c030c0",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "a8ef0d47de4e496e4fbde67bd2127249660ae805def864847b4436a1c0c701f9",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "39a931ab55997ac1598d7184e7c27d90ec6c55708a094e15c594bbd1c880cd65",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "2891d8618e9965dbaa17531556568394b33822230c5e2f6789431c87cbdcad2d",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "49f8aa175076527fc1388648261c2a7fe40cd86a08f2cd49f8883f6f90a96f1a",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "045119062f7548568b6ba679d552f889f326678d0a15083d1bbd108e557d3346",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "7f9f594ee622917890d0c7d204736183b601f51d7c2726baed4949908ca61e92",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "86483a1cd3a2507fb19ec3744c52cd7556e7d0d31ce0a7def31ff6546acf6d5f",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "3a689b14a753cd2cbc598642174877c001eae1406a0b6d0b96842d7170732f01",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ce9d0fd3ee24fad313464dcb6968625d6f58ae0999400803efec25b28e07c019",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "54c714540a9b7fa5768247692d8fb95a66039fd4cdb7bb87b01cd1c00caa88c0",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "9b23948045668d1ad2d0f0cc5ed73e1031d36f1c7d649953c1cdf48d90da5302",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "608d16c09b4fa13f546986d2fecdcb2289c0a07e0a46b2a52cbd052526ac868a",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "7aa1edfdbbdc11943b16a8976c89df814721b7672580f2d37f3b76db7a7ed7bf",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "14db9e7a5e457768cb86b8f47cc9edd409463976e1910b5c024df7aa0cc06928",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "08cd7f6f25fe9265335bc04e9422de620714f282b5f2b12050dad632df1277ec",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "27d2277629b4828daf129d7c68dd6e43a63682cb7effef50bd53589ec64af5ed",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "a37524be98b0e358dc5cf621d43db0113ba2a23f4450eb3afc6581108995b87b",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "d545c8efd351b9cc82fdd0fb385f92f5bf227ac15ec617f795c187933e32784f",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "d9429e2fb8e8719141a045257f83a27989ea4b00723f03c370ae3f9cc8c5e326",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "76b316303f58d8e083923fc51a6d17c2b3f1426277e49c646183141e818f00dd",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "e1e725ba67b56e91957cc32333f247448b2523712615c2e3149524c910b32008",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "41d45e8075c0c1f9ce62d32e606758a039239032d9df403d8cd02624ba820329",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "7f2f714e7eb96c65c319cc42c2273c1557825fecb74287d2458da9a0e0b51aef",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "9078b3f6818b29a372f8c5ef2a569f24a9553fb3ee6e6c3cbd6643e31572ae8c",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "e5b4fd7b373a5c275c5ffcc6f557b40006bb25da7b448916b4768074b7400755",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "841427fe463743bba5525ab066b92be8f26d4b8d5ed4f8d4b2f7a1621078211e",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "186664fdc8a6168b4356cf1ddc396ae28dccd090f4529c697cf714f98b99deef",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "7f2068fa1dcb49cc81ed18a50684c95166f36bb34f4a88054d81458e25370976",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "8fce60915af5c09383bd0e9cc78b4c91ac059ccc259bda54e3a8985db9925b8a",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "8dc8b2f066c58941e3a0cd5226b9685ff77e1d48b56fb916a4b5aeb6d93f7a44",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "0395336dcde16e2bfbf7426ea6b35b1df180705e1dcdfe3482b7edd633e81085",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "e77cda61fece097a2a2247f978d98e9b0a94303488aea6eee2945e06c2716298",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "af2ebaa2899835622d23d70aa8346ec5926b8356fce7f37ebed5193025f839f2",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "dd405dc7db6b055b6df7314cb1b6005a75c345c0959fbe0049cfa8735423e9fe",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "271645bbde46528acf7cb4ee5ee5c1c9f29079c9c77d8af700b8fab9925b0762",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "c2afce521801ad956d1148ed50b64035aa5b998ceb1b698e936bea4bf4c0a394",
+        "classification": "declaration",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "fed09c282e3bad5507afcfe9fae85a3db3f986ceae05860ecdbe8fd0811056b8",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      },
+      {
+        "id": "a9ac91f4b778f71e9b208c83b3ac9245a8ca7ecf7d99f222fe432b6c14e4c5c7",
+        "classification": "non_contract",
+        "owner": "Builtin file request and response Owners",
+        "reason": "Python dataclass construction options; not Tool policy or output defaults."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Builtin file request and response Owners",
+        "declaration": "llm/components/tools/builtin/file_values.py",
+        "consumers": [
+          "llm/components/tools/builtin/files.py",
+          "llm/components/tools/builtin/catalog.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_file_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/files.py",
+    "sha256": "5445140b05e190ba2f22485daccd1eb1dd4c6a0115850e4863d5e071f2d704f3",
+    "reason": "Reviewed entire filesystem implementation and all actual catalog/test-workspace entry paths. Inputs are detached typed projections and outputs serialize through their Owners. Byte limit validation, latest hash checks, lock/write/fsync/replace order, symlink/reserved path protection, read line offsets, filters, scans, trash ownership and no-overwrite behavior remain. Trash syntax uses the declared exact Schema pattern. Pure slice/counter arithmetic stays local. Existing effect Assertions and new real commit-failure preservation tests pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "da4fd83adda52b13b495e5421647541e58824fa944caa8bc39f0ffa188cc0bfe",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ef0202d3edbb7c3f5c7f0990c1d9eb3eb16bcdc72502683a3025ac70a1aa8628",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ac0e4e8e2d0450b0f4e03be2b8c06ffb639751b76753a1a4d468a5b6da9e327f",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "a5b478599b534a5536ca9924d3e2bc7bae1c2bfb4d0afe3d13e6e681ea0c39b3",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "88a134bfd8b8cdd7f98ba93e54838da9b6cadbbcb9b4383b0e826ea53ebefccb",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "6a60e04f68051649124717ea5b501e345d40e9de918a9953019041669020f1bc",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "0e52484260614d86e9b1bca0ba8cd83d96a66662c9ce9420ade9dc6bd93d1b97",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "1e52d59efd5be7d22f5faf2f89b635e43091de431f3092cf9c540e60582894a1",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "ba2fa2e59168e958038ba877a0012e08ac40dcd63ba51b6047b002b50b223188",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "c845b72988355995d318f113f7f73185094b543f96f6fb9bb3db417d3e86996d",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "7288d5d4cbda0a9e30732359faa88cd972d405b3a0b33484122ebe39d046b11d",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "1c08b7d41fab6cab3e53d1565e9d34185388793b6a9dab5271c4d9f40af629b8",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "d34c0c29e5c05423e0c9f98d40bd34e7471796eeb2f6c75f883f7771ea04e3ef",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "f33846372f0551da232b1f8a64df4cdad5639f64b808f258aa4c3f34ce88f1f5",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "4172a826fd59c5a8effe87f619717e250eaf1fba3abc25cb6b34399bcb738776",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "137ebfcdd234a8f2e2180a3a77155ad0e96b71f00ed25c615eae55a0873483a9",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "318e872353af043b4bdde9a0d785f04092ecf519d7640dd1482dde9b89024404",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "e2b3bae5d5abb12666125b08f813ba9f49baef6eaabb70ae7335063a8f9be2e5",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "002c8982773a60aa8e611efbc5cdd0c17922400344a6ae7624555648981ad54a",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "f76d29ce7ad6a4ab5dd453ec1a688517518a7bf7085dd4cbecaa9f7fce4ddf35",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "27e70a65b4287b9598589695777d25383ff14352d9a90d576b4d726da338272e",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "1fa4ec4c175c6864e7caf1dd87d5731633906b7d3b8283c3dee3b7b76e5d8515",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "f61c6b13530a73b4e111bb6147e6b34213bd52d217541f86c1b3fca45b3f2256",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "9733e62d68013960337d49384bbae4d5467444c32b369ca130d7a2874b166047",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "04b7a93cda7b046ba1b7f3528d2e8921b7409542aacd425293eacb954d85464b",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "0e87e3009c60d26211480b2315d6f6ffdd6c14b9dd560623423be7d33f5b0c19",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "46132c7f0dd725afbb9802caf2faabd71018672f0e94f9bfad058fb1f182149e",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "dfa2f1ece67b0674cdc52d33e803e247a35fa1674c25f25f27f98ba8885cf2cd",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "6926d0710d44211a313e19c802c9ebf51e6b8e14d670768976fa6842ab4dcdb9",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "2ae99927ebe2b5e829378c00f4caccc40c44fde4895afb46150e5ef799181aa9",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "e9db6ed972a1feec09c23597100c51b12750cd83323252cd0ec84d2cb558a833",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "90e3c58bb6f895c164174e72498833330fd6c4e9c2f4156f6d204fbddc23604d",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "bbbc66f4a3d338ed767cf03817fdb4cd4ec14caed88a5adcce291d3dbd478ecb",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "00068859b434e17b8809275a28135d76823dcbb2f7de41a82d811055471785a6",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "e7d0ad4dceb091f8df11735cdc98b7e97b38a5eec788ae96f3126a8491190349",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "b261806ebef6bda42a87da5f578c0511260bdf051924dd136989e298304153e1",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "297c7f0a6b2a8151e6565d85ac4a7c405c4a2542885e3de0d95b506d957944a2",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "0b53ba449f4470d48fe5f5e999ee37f44da451162c123a015b0a97e7ad1c0594",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "fe50145d370d5f4dd304d3e58e1dbf00738ab1179fe3efe73c1c9ab17f7c6640",
+        "classification": "declaration",
+        "owner": "FileTools",
+        "reason": "Owner input/output field, Schema, absence/default, protocol/IO/identity/diagnostic declaration before methods."
+      },
+      {
+        "id": "30fe05f30a5aaf98d69de3ad2d8fc386319a8ab103e358818f9eb07c113442a4",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "9ab7439c4a94b8ef398202142057328dd6dff5ead801590f411404694fc287b8",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "2379b022177b4a42b0d0af7dec38c9f4a9658efc6369deba11c2765ac414b16e",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "bc51f4cafe4d18acbd3ff83a537dc0874d00247ddfa73a542b5cbd61e66603c0",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "030115c8ca5dca610a7d6aef4d8cb6e0d7d340f9b9fa68aacb46c3311419b4e8",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "90be5440b67f83436952230031c3feb447364488d23f865d752c052bc5c46125",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "d148484947fa92e8d34ab3d535c284892aab07cf36d184aaa65ce43aea7a0818",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "d55e0cbce3ee4316e45e512dcd200c47756b61af8259b7ee87c54caf926f54f2",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "0adb28863c38999f826d2e936f4895a7c480d39c6b1dec478f1541a4e882082b",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "661622960af381734c748ebe18fa8b083096b677d61e8e27c8aaf5e86b4da48c",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "39f26cede238c10fd8e4323dd97719c99edc9627c3f0b62b634a78aae805e05c",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "51e1016c7daa3e897c9d3cfc301844884144b19480042b8ec806b7e1aaeecf64",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "ad6b1085546b637998a76465eb666fc12a2bd4c1220ca44b14acfa380610b03d",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "d681129bec6d4fbc73156c0ca2937a422e4e6fa4f9f8e9bc42aece871fba1bdd",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "ec7a33b1f2c2b2da0a9e8c57ad28d04bc41e6ea9ac90e3053c9a8ea06dc64802",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "1bc8c1b9c122c79c8a3a535cdd6c8b4f0880f179ddc7d0a1ca750e3605d13e7c",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "1ed3e96a2bb4886f87d5263ea4a18eaaaa428391c211b98b59bf7bee73d53018",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "896bf1acc7a962257736ac7ae2d8bb8625f2df08733ba098122835721925f6d1",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "ec643d745e2d1ab30787e554a3de1662681d82c5e042895993369d8bb588d5db",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "ac3c6880ad771dfd5ea3959b930bfc29993eafa6dcf05570b4dca0e85329174f",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "5a0e19aa9956c9d1fcbe3f351664fa21a314c5ee9a465382e7c43629bfce884b",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "62ec70cb4a4659badcbe1d66042737177164cf4389b785fdaa85a6d23db282f3",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "f9dfa305d0fb168ffd0bd7830b80a41ab62d54c4ba165c51999c553582db4f8c",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "ca130711b054b8b86f40a845ad9b3edd8dd292743df0435436a063bf5298db99",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "0b9e9e6a3ba99dd6bffb31f6d20a57720341c996efb8719422c7a04f144a9a8c",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      },
+      {
+        "id": "403008b88cf04a7e564e0b74c11234145a9542a4764998a4ca74af870d6f2d6b",
+        "classification": "non_contract",
+        "owner": "FileTools",
+        "reason": "Annotation/local absence, regex non-match test, empty text concatenation identity, one extra byte for overflow detection, zero-based slice conversion or local scan/match counting. No domain state, effect permission or stored fallback is introduced."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FileTools",
+        "declaration": "llm/components/tools/builtin/files.py",
+        "consumers": [
+          "llm/components/tools/builtin/catalog.py",
+          "llm/components/tools/builtin/workspaces.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_file_values.py",
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_test_workspaces.py"
         ],
         "complete": true
       }

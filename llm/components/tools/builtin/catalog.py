@@ -12,6 +12,9 @@ from llm.components.tools.registry import Tool, ToolRegistry
 from llm.core.schema import open_schema
 from llm.services.infrastructure.storage import drain_on_cancel
 from .files import FileTools
+from .file_values import (FileReadArguments, FileCreateArguments, FilePatchArguments,
+    FileMoveArguments, FileDeleteArguments, FileRestoreArguments)
+from llm.core.schema import SchemaKeyword
 from .processes import ProcessTools
 from .diagnostics import DiagnosticTools
 from .workspaces import TestWorkspaces
@@ -52,6 +55,10 @@ class BuiltinTools:
         revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE,
         approval_required=False, operation_key_required=False, retry_fields=())
 
+    FILE_MUTATIONS = frozenset((FileCreateArguments.NAME, FilePatchArguments.NAME, FileMoveArguments.NAME,
+                               FileDeleteArguments.NAME, FileRestoreArguments.NAME))
+    FILE_READ_CONTRACT = replace(READ_CONTRACT, retry_fields=(FileReadArguments.path.__name__,))
+
     def __init__(self, root, *, allow_commands: bool = False, git: bool = False, diagnostics: bool = False,
                  checks: Optional[Mapping[str, Sequence[str]]] = None,
                  adapters: Optional[Mapping[str, Callable]] = None,
@@ -73,9 +80,6 @@ class BuiltinTools:
         if test_workspaces is not None:
             self._execution_binding["test_workspaces"] = deepcopy(test_workspaces.execution_binding)
         path = string(minLength=1)
-        digest = string(pattern="^[0-9a-f]{64}$")
-        patterns = {"type": "array", "items": string(minLength=1), "minItems": 1}
-        filters = {"include": patterns, "exclude": patterns}
         environment = open_schema("child process environment", category="adapter",
             description="Complete child environment; replaces rather than merges. Omit to use the configured environment; {} passes no variables.",
             propertyNames={"type": "string", "minLength": 1, "pattern": "^[^=\\u0000]+$"})
@@ -84,30 +88,19 @@ class BuiltinTools:
         # Project가 소유하며, 이 계약은 사람의 승인만을 강제하는 정책이 아니다.
         mutation = self.MUTATION_CONTRACT
         execution = self.EXECUTION_CONTRACT
-        file_mutations = {"file_create", "file_patch", "file_move", "file_delete", "file_restore"}
-        specs = {
-            "file_read": ("Read UTF-8 source or logs and the whole-file SHA-256. Use line ranges or tail_lines (mutually exclusive). expected_sha256 rejects a changed file.", schema({"path": path, "start_line": {"type": "integer", "minimum": 1}, "max_lines": {"type": "integer", "minimum": 1}, "tail_lines": {"type": "integer", "minimum": 1}, "expected_sha256": digest}, ["path"])),
-            "file_list": ("List working directory entries without following links. include/exclude are pathlib relative-path glob patterns; excluded directories are not traversed.", schema({"path": path, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1}, **filters}, ["recursive"])),
-            "file_search": ("Find literal text in UTF-8 sources or logs, with line numbers, file hashes and optional surrounding lines. include/exclude use pathlib globs. offset skips matches; paging rescans current files, so restart after edits.", schema({"path": path, "query": string(minLength=1), "case_sensitive": {"type": "boolean"}, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1}, "offset": {"type": "integer", "minimum": 0}, "context_lines": {"type": "integer", "minimum": 0}, **filters}, ["query", "case_sensitive", "recursive"])),
-            "file_create": ("Create a new UTF-8 file; never overwrite an existing file.", schema({"path": path, "content": string()}, ["path", "content"])),
-            "file_patch": ("Replace exactly one matching text after checking the file version.", schema({"path": path, "expected_sha256": digest, "old_text": string(minLength=1), "new_text": string()}, ["path", "expected_sha256", "old_text", "new_text"])),
-            "file_move": ("Move a version-checked file without overwriting the destination.", schema({"path": path, "destination": path, "expected_sha256": digest}, ["path", "destination", "expected_sha256"])),
-            "file_delete": ("Move a version-checked file to recoverable trash.", schema({"path": path, "expected_sha256": digest}, ["path", "expected_sha256"])),
-            "file_restore": ("Restore a trash item to an unused relative path.", schema({"path": path, "trash_id": string(pattern="^[0-9a-f]{32}$")}, ["path", "trash_id"])),
-        }
-        for name, (description, parameters) in specs.items():
-            parameters["properties"].update(FileTools.argument_schema())
+        for declaration in FileTools.ARGUMENTS:
+            name, parameters = declaration.NAME, declaration.schema()
             if test_workspaces is not None:
-                parameters["properties"]["workspace_id"] = string(pattern="^[0-9a-f]{32}$",
+                parameters[SchemaKeyword.PROPERTIES]["workspace_id"] = string(pattern="^[0-9a-f]{32}$",
                     description="Operate on this Project's test workspace instead of the source tree.")
             async def file_call(args, operation=name):
                 # 승인된 파일 변경은 완료를 기다린 뒤 취소를 전달한다.
                 if "workspace_id" in args:
                     return await self.test_workspaces.file_call(operation, args)
                 return await drain_on_cancel(asyncio.to_thread(getattr(self.files.for_arguments(args), operation), args))
-            self._register(name, description, parameters, file_call,
-                           contract=mutation if name in file_mutations else
-                           replace(self.READ_CONTRACT, retry_fields=("path",)) if name == "file_read" else self.READ_CONTRACT)
+            self._register(name, declaration.DESCRIPTION, parameters, file_call,
+                           contract=mutation if name in self.FILE_MUTATIONS else
+                           self.FILE_READ_CONTRACT if name == FileReadArguments.NAME else self.READ_CONTRACT)
 
         if test_workspaces is not None:
             identity = {"workspace_id": string(pattern="^[0-9a-f]{32}$")}
