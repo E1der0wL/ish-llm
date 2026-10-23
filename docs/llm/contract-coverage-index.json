@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 487,
-    "unreviewed_files": 303,
+    "unreviewed_files": 302,
     "stale_files": 0,
-    "unclassified": 23183,
+    "unclassified": 22995,
     "violations": 0,
-    "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 305,
+    "incomplete_contracts": 3,
+    "unreviewed_dynamic_paths": 304,
     "unreadable_files": 0,
-    "candidates": 28762,
+    "candidates": 28663,
     "issues": 0
   },
   "files": [
@@ -2097,9 +2097,9 @@
     },
     {
       "path": "llm/core/agents.py",
-      "status": "unreviewed",
-      "sha256": "7478cd412bf903540dde47ea9be699e1ed167f9ac2611270def6eaba5bf123ae",
-      "candidates": 188
+      "status": "reviewed",
+      "sha256": "d5bec6d67e01126af4600aef6d7c99f03a31abfa6720d5086474631a7ba423b9",
+      "candidates": 87
     },
     {
       "path": "llm/core/checkpoint_records.py",
@@ -2248,8 +2248,8 @@
     {
       "path": "llm/core/schema.py",
       "status": "reviewed",
-      "sha256": "8a9480cc44670e0cd86152f910183a6b6d5df652a6fd255cd346e2bd00ba32f7",
-      "candidates": 84
+      "sha256": "052f92453f0f4eee275ea9c8e58a995454c0724c0a474f21e7d6a7335cea55d9",
+      "candidates": 86
     },
     {
       "path": "llm/core/skills.py",

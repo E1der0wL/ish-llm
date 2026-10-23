@@ -2721,3 +2721,48 @@ Level 2 완료다. 앞 모델 프로토콜 소단계와 현재 통합 소스로 
 정적·문서·R3·SDK·실환경을 실행한다. 정확한 SHA의 로컬 전체 성공 후 작업 브랜치에
 Push하고 원격 CI 실제 결과를 별도 확인한다. 이전 gate21/20과 이번 결과를 합쳐 하나의
 전체 실행으로 표현하지 않는다. llm/ 전체 완료까지 Hub 제품 변경은 보류한다.
+
+
+## llm Agent 정의·영속 증거 선언 검토 (2026-10-23)
+
+core/agents.py 전체의 정의 Schema·검증·revision·mode, Record/Catalog/Binding의 생성·읽기·
+불변 갱신을 검토했다. AgentDefinition의 Field/ResourceField/PolicyField/OutputFormat과
+기존 제약·진단·revision 직렬화 설정을 선언했다. SchemaKeyword는 기존 minProperties와
+pattern 문법을 소유한다. private snapshot/catalog 속성은 각 Owner가 선언한다.
+저장 버전·필수 필드·정의 hash·catalog digest·Project identity·불변 Run 증거는 변경하지 않는다.
+
+acfdda6 대비 정의/정의 revision 각 378개, 식별자 11개, mode 20개, Record Reader 85개,
+Binding Reader 101개와 Writer 각 1개, Catalog Reader 35개/불변성 2개, metadata 3개,
+Run binding 54개·갱신 54개가 결과·정확한 예외·원본 보존에서 일치한다. Schema와 JSON
+순서도 각각 일치한다. 첫 대조에서 enum의 repr가 필수 engine 누락 진단에 나타나는 차이를
+검출했다. 공개 Schema의 키/enum 값과 ENGINE_FIELD를 원래 plain string으로 출력하게
+수정하여 진단·검증 순서를 보존했다. 실패 로그를 보존했고 최종 대조 exit 0이다.
+초기 smoke 13개 pass/exit 0(2.171초), 아래는 수정 후 최종 제품 소스의 엄격 실행이다.
+
+- `whole-agent-definition-closure-01`: 발견/시작/pass 182/182/182, exit 0, 106.807111초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-agent-definition-closure-01/llm.json --modules tests.llm.test_agent_storage tests.llm.test_agent_domain tests.llm.test_agent_execution tests.llm.test_agent_workflow tests.llm.test_agent_resource_integrity tests.llm.test_agent_delegation tests.llm.test_graph_agent_contract tests.llm.test_session_agents tests.llm.test_multi_agent tests.llm.test_multi_agent_parallel tests.llm.test_multi_agent_crash tests.llm.test_policy_ownership tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `3c1d389c88e99b91522275f25550e122a1ba9df4228eb133bb9f6fa4d4f73b29`, input `aaeda0f9e266ff6d21e6df7a135c7f5aa643fa73198e70049974249c6e647207`.
+
+- `whole-agent-definition-closure-hub-01`: 발견/시작/pass 12/12/12, exit 0, 27.970051초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-agent-definition-closure-hub-01/hub.json --modules tests.hub.test_agent_selection tests.hub.test_agent_graph tests.hub.test_multi_agent tests.hub.test_usage_definitions_system`. source `3c1d389c88e99b91522275f25550e122a1ba9df4228eb133bb9f6fa4d4f73b29`, input `aaeda0f9e266ff6d21e6df7a135c7f5aa643fa73198e70049974249c6e647207`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. Python 3.12.14/
+Clang·Host d833790·동일 의존성·실제 namespace/X11 환경이다. 저장 Reader/Writer·실제
+transaction 장애·Agent root/중첩/Workflow/병렬/중단·Session·핵심 안전성 및 Hub 직접
+소비자를 선정했다. 기존 assertion은 변경하지 않았다. 정적 117개 동일, 변경 의존 검토
+26개만 갱신했다. 정적·문서·R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다.
+
+선언 소단계 Level 2 완료이며 AgentDefinition 외부 소비자의 전체 이행 완료는 아니다.
+파일 자체의 전수 검토는 기록하되 Engine/수명 서비스/Hub의 정의 소비 계약은 incomplete로
+명시했다. 현재 487개 중 미검토 302, 미분류 22995,
+incomplete 3개다. 이 증가는 새 미완료 소비 계약을 숨기지 않고
+분리한 결과다. 다음 Agent 저장·Manager·조회 소비자와 묶는 gate23에서 전체 검증한다.
+동결한 acfdda6 gate22에는 이번 변경이 없으므로 그 결과를 이번 전체 증거로 사용하지 않는다.
+
+### gate21 실제 전체 결과
+
+7931e2701aaf17164b7a5b12eec22cf0ae768504에서 전체 LLM 2,482개(1474.974078초),
+Hub 588개(1150.788742초) pass/exit 0, 비성공·누락·추가·중복 각 0이다. source
+`ab88d5bb829ad0a104097cbae8fd296da607e6395259457d267ff84636fa052f`, input
+`9df32e49405d383472ff4aca6c004edf42672340a201bd7b785f195521bc0044` 전후 동일이다.
+명령은 고정 환경의 `python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group21-l3`,
+보조 검증은 `python /workspace/llm-clean-resume/whole-ownership/auxiliary.py group21-auxiliary`
+이며 보조 6개도 exit 0이다. 앞 Push의 필수 CI와 중복 취소되지 않도록 완료 확인 후 이
+정확한 SHA를 Push한다. 아직 gate21 원격 통과를 선언하지 않는다.

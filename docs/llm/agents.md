@@ -74,6 +74,16 @@ UI에서는 같은 JSON을 생성/수정하면 된다. 일반 CRUD는 create/loa
 `<project>/workflows/records/<id>.json`이다. Agent는 Component 선택과 독립되며
 Component 설정만 ProjectConfig.parameters["components"]에 저장한다.
 
+AgentDefinition이 정의 필드·리소스 선택·자체 policy·출력 형식과 제약을 선언한다.
+공개 Schema에는 enum 객체 표현을 노출하지 않고 기존 문자열 키/값을 제공하여 검증 순서와
+진단을 유지한다. 정의 revision의 JSON 정렬·UTF-8·비 ASCII 처리와 바이트 의미는 바꾸지 않는다.
+AgentRecord, AgentCatalog, AgentBinding은 각자의 버전·필수 필드·identity 검증을 소유한다.
+저장 목록과 Run admission 증거의 누락을 빈 데이터나 생성 기본값으로 복원하지 않는다.
+
+선언부 정리만으로 외부 소비자의 완료를 선언하지 않는다. Engine·수명 서비스·Hub의
+정의 필드 접근은 같은 Owner 선언/Projection/API로 이행해야 하며, 현재 단계별 현황은
+[전체 소유권 검증](whole-ownership-verification.md)과 coverage index에 별도로 기록한다.
+
 ## 정책과 리소스
 
 | 필드 | 의미 |

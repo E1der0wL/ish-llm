@@ -11,7 +11,8 @@ from enum import StrEnum
 
 from jsonschema import Draft202012Validator
 from llm.core.json_data import JsonObject
-from llm.core.schema import open_schema, metadata_schema, validate_local_refs
+from llm.core.schema import (open_schema, metadata_schema, validate_local_refs, SchemaKeyword,
+                             SchemaType, SchemaBoolean, OpenSchemaKind)
 from llm.core.configuration import UNSET
 
 
@@ -25,38 +26,91 @@ class AgentDefinition:
 
     REFERENCE_COMPONENT = "agents"
     CAPABILITY = REFERENCE_COMPONENT
-    ENGINE_FIELD = "engine"
+    class Field(StrEnum):
+        PURPOSE = "purpose"
+        DESCRIPTION = "description"
+        METADATA = "metadata"
+        ENGINE = "engine"
+        SYSTEM_PROMPT = "system_prompt"
+        COMPLETION = "completion"
+        ENGINE_OPTIONS = "engine_options"
+        INPUT_SCHEMA = "input_schema"
+        OUTPUT_SCHEMA = "output_schema"
+        TOOLS = "tools"
+        RESOURCES = "resources"
+        POLICY = "policy"
+        OUTPUT_FORMAT = "output_format"
+
+    class ResourceField(StrEnum):
+        PROMPT = "prompt"
+        SKILLS = "skills"
+        RAG = "rag"
+        MCP = "mcp"
+
+    class PolicyField(StrEnum):
+        TIMEOUT_SECONDS = "timeout_seconds"
+        MAX_TOOL_CALLS = "max_tool_calls"
+        REQUIRE_TOOL = "require_tool"
+
+    class OutputFormat(StrEnum):
+        TEXT = "text"
+        JSON = "json"
+
+    ENGINE_FIELD = Field.ENGINE.value
+    WORKFLOW_FIELDS = frozenset((Field.PURPOSE, Field.DESCRIPTION, Field.ENGINE,
+                                Field.ENGINE_OPTIONS, Field.METADATA))
+    JSON_SCHEMA_FIELDS = (Field.INPUT_SCHEMA, Field.OUTPUT_SCHEMA)
+    IDENTIFIER_PATTERN = r"[A-Za-z0-9_-]{1,64}"
+    RESOURCE_NAME_PATTERN = "^[A-Za-z0-9_-]{1,64}$"
+    MINIMUM_TEXT_LENGTH = 1
+    MINIMUM_RESOURCE_PROPERTIES = 1
+    MINIMUM_TOOL_CALLS = 1
+    MINIMUM_TIMEOUT_EXCLUSIVE = 0
+    COMPLETION_OWNER = "selected Agent Engine completion adapter"
+    OPTIONS_OWNER = "selected Agent Engine.for_agent"
+    INPUT_SCHEMA_OWNER = "Agent input JSON Schema"
+    OUTPUT_SCHEMA_OWNER = "Agent output JSON Schema"
+    UNSUPPORTED_WORKFLOW = "Graph Agent only orchestrates Workflows; unsupported fields: "
+    FIELD_SEPARATOR = ", "
+    INVALID_ID = "Invalid Agent ID"
+    ERROR_PATH_SEPARATOR = "."
+    RECORD_LOCATION = "record"
+    INVALID_DEFINITION = "agents/{identifier}: {location}: {message}"
+    REQUIRED_TOOL = "require_tool needs at least one allowed Tool"
+    REVISION_SORT_KEYS = True
+    REVISION_ENSURE_ASCII = False
+    REVISION_ENCODING = "utf-8"
 
     schema = {
-        "type": "object", "required": [ENGINE_FIELD], "additionalProperties": False,
-        "properties": {
-            "purpose": {"type": "string", "minLength": 1},
-            "description": {"type": "string"}, "metadata": metadata_schema(),
-            ENGINE_FIELD: {"type": "string", "minLength": 1},
-            "system_prompt": {"type": ["string", "null"]},
-            "completion": open_schema("selected Agent Engine completion adapter", category="provider"),
-            "engine_options": open_schema("selected Agent Engine.for_agent", category="implementation"),
-            "input_schema": {"anyOf": [{"type": "boolean"}, open_schema("Agent input JSON Schema", category="schema")]},
-            "output_schema": {"anyOf": [{"type": "boolean"}, open_schema("Agent output JSON Schema", category="schema")]},
-            "tools": {"type": "array", "uniqueItems": True,
-                      "items": {"type": "string", "minLength": 1}},
-            "resources": {"type": "object", "additionalProperties": False, "properties": {
-                "prompt": {"type": "string", "minLength": 1},
-                "skills": {"type": "array", "uniqueItems": True,
-                           "items": {"type": "string", "minLength": 1}},
+        SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.REQUIRED: [ENGINE_FIELD], SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
+        SchemaKeyword.PROPERTIES: {
+            Field.PURPOSE.value: {SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.MIN_LENGTH: MINIMUM_TEXT_LENGTH},
+            Field.DESCRIPTION.value: {SchemaKeyword.TYPE: SchemaType.STRING}, Field.METADATA.value: metadata_schema(),
+            ENGINE_FIELD: {SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.MIN_LENGTH: MINIMUM_TEXT_LENGTH},
+            Field.SYSTEM_PROMPT.value: {SchemaKeyword.TYPE: [SchemaType.STRING, SchemaType.NULL]},
+            Field.COMPLETION.value: open_schema(COMPLETION_OWNER, category=OpenSchemaKind.PROVIDER),
+            Field.ENGINE_OPTIONS.value: open_schema(OPTIONS_OWNER, category=OpenSchemaKind.IMPLEMENTATION),
+            Field.INPUT_SCHEMA.value: {SchemaKeyword.ANY_OF: [{SchemaKeyword.TYPE: SchemaType.BOOLEAN}, open_schema(INPUT_SCHEMA_OWNER, category=OpenSchemaKind.SCHEMA)]},
+            Field.OUTPUT_SCHEMA.value: {SchemaKeyword.ANY_OF: [{SchemaKeyword.TYPE: SchemaType.BOOLEAN}, open_schema(OUTPUT_SCHEMA_OWNER, category=OpenSchemaKind.SCHEMA)]},
+            Field.TOOLS.value: {SchemaKeyword.TYPE: SchemaType.ARRAY, SchemaKeyword.UNIQUE_ITEMS: SchemaBoolean.ACCEPT,
+                      SchemaKeyword.ITEMS: {SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.MIN_LENGTH: MINIMUM_TEXT_LENGTH}},
+            Field.RESOURCES.value: {SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT, SchemaKeyword.PROPERTIES: {
+                ResourceField.PROMPT.value: {SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.MIN_LENGTH: MINIMUM_TEXT_LENGTH},
+                ResourceField.SKILLS.value: {SchemaKeyword.TYPE: SchemaType.ARRAY, SchemaKeyword.UNIQUE_ITEMS: SchemaBoolean.ACCEPT,
+                           SchemaKeyword.ITEMS: {SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.MIN_LENGTH: MINIMUM_TEXT_LENGTH}},
                 # 현재 RAG는 Project 단위 corpus다. 문서 ID 필터로 해석하지 않는다.
-                "rag": {"type": "boolean"},
-                "mcp": {"type": "object", "additionalProperties": {
-                    "type": "object", "minProperties": 1,
-                    "propertyNames": {"pattern": "^[A-Za-z0-9_-]{1,64}$"},
-                    "additionalProperties": {"type": "string", "minLength": 1}}},
+                ResourceField.RAG.value: {SchemaKeyword.TYPE: SchemaType.BOOLEAN},
+                ResourceField.MCP.value: {SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.ADDITIONAL_PROPERTIES: {
+                    SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.MIN_PROPERTIES: MINIMUM_RESOURCE_PROPERTIES,
+                    SchemaKeyword.PROPERTY_NAMES: {SchemaKeyword.PATTERN: RESOURCE_NAME_PATTERN},
+                    SchemaKeyword.ADDITIONAL_PROPERTIES: {SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.MIN_LENGTH: MINIMUM_TEXT_LENGTH}}},
             }},
-            "policy": {"type": "object", "additionalProperties": False, "properties": {
-                "timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
-                "max_tool_calls": {"type": "integer", "minimum": 1},
-                "require_tool": {"type": "boolean"},
+            Field.POLICY.value: {SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT, SchemaKeyword.PROPERTIES: {
+                PolicyField.TIMEOUT_SECONDS.value: {SchemaKeyword.TYPE: SchemaType.NUMBER, SchemaKeyword.EXCLUSIVE_MINIMUM: MINIMUM_TIMEOUT_EXCLUSIVE},
+                PolicyField.MAX_TOOL_CALLS.value: {SchemaKeyword.TYPE: SchemaType.INTEGER, SchemaKeyword.MINIMUM: MINIMUM_TOOL_CALLS},
+                PolicyField.REQUIRE_TOOL.value: {SchemaKeyword.TYPE: SchemaType.BOOLEAN},
             }},
-            "output_format": {"enum": ["text", "json"]},
+            Field.OUTPUT_FORMAT.value: {SchemaKeyword.ENUM: [OutputFormat.TEXT.value, OutputFormat.JSON.value]},
         },
     }
 
@@ -65,25 +119,24 @@ class AgentDefinition:
     def engine(cls, definition):
         return definition[cls.ENGINE_FIELD]
 
-    @staticmethod
-    def validate_mode(definition, mode):
+    @classmethod
+    def validate_mode(cls, definition, mode):
         if AgentMode(mode) == AgentMode.WORKFLOW:
-            unsupported = set(definition) - {"purpose", "description", "engine", "engine_options", "metadata"}
+            unsupported = set(definition) - cls.WORKFLOW_FIELDS
             if unsupported:
-                raise ValueError("Graph Agent only orchestrates Workflows; unsupported fields: "
-                                 + ", ".join(sorted(unsupported)))
+                raise ValueError(cls.UNSUPPORTED_WORKFLOW + cls.FIELD_SEPARATOR.join(sorted(unsupported)))
 
-    @staticmethod
-    def identifier(value):
-        if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", value):
-            raise ValueError("Invalid Agent ID")
+    @classmethod
+    def identifier(cls, value):
+        if not isinstance(value, str) or not re.fullmatch(cls.IDENTIFIER_PATTERN, value):
+            raise ValueError(cls.INVALID_ID)
         return value
 
-    @staticmethod
-    def revision(definition):
+    @classmethod
+    def revision(cls, definition):
         JsonObject.validate(definition)
-        return hashlib.sha256(json.dumps(definition, ensure_ascii=False, sort_keys=True,
-                                         allow_nan=False).encode("utf-8")).hexdigest()
+        return hashlib.sha256(json.dumps(definition, ensure_ascii=cls.REVISION_ENSURE_ASCII, sort_keys=cls.REVISION_SORT_KEYS,
+                                         allow_nan=JsonObject.ALLOW_NON_FINITE).encode(cls.REVISION_ENCODING)).hexdigest()
 
     @classmethod
     def validate(cls, identifier, definition):
@@ -93,16 +146,16 @@ class AgentDefinition:
                         key=lambda error: str(list(error.path)))
         if errors:
             error = errors[0]
-            location = ".".join(str(part) for part in error.path) or "record"
-            raise ValueError(f"agents/{identifier}: {location}: {error.message}")
-        for name in ("input_schema", "output_schema"):
+            location = cls.ERROR_PATH_SEPARATOR.join(str(part) for part in error.path) or cls.RECORD_LOCATION
+            raise ValueError(cls.INVALID_DEFINITION.format(identifier=identifier, location=location, message=error.message))
+        for name in cls.JSON_SCHEMA_FIELDS:
             if name in definition:
                 validate_local_refs(definition[name])
                 Draft202012Validator.check_schema(definition[name])
-        if definition.get("policy", {}).get("require_tool") and not (
-                definition.get("tools") or definition.get("resources", {}).get("rag")
-                or definition.get("resources", {}).get("mcp")):
-            raise ValueError("require_tool needs at least one allowed Tool")
+        if definition.get(cls.Field.POLICY, {}).get(cls.PolicyField.REQUIRE_TOOL) and not (
+                definition.get(cls.Field.TOOLS) or definition.get(cls.Field.RESOURCES, {}).get(cls.ResourceField.RAG)
+                or definition.get(cls.Field.RESOURCES, {}).get(cls.ResourceField.MCP)):
+            raise ValueError(cls.REQUIRED_TOOL)
 
 
 @dataclass(frozen=True, init=False)
@@ -123,6 +176,8 @@ class AgentRecord:
         DEFINITION = "definition"
         REVISION = "revision"
 
+    VALUE_ATTRIBUTE = "_value"
+
     _value: dict
 
     @classmethod
@@ -136,7 +191,7 @@ class AgentRecord:
         cls.validate_project_id(project_id)
         AgentDefinition.validate(identifier, definition)
         result = object.__new__(cls)
-        object.__setattr__(result, "_value", {
+        object.__setattr__(result, cls.VALUE_ATTRIBUTE, {
             cls.Field.STORAGE_VERSION: cls.STORAGE_VERSION, cls.Field.PROJECT_ID: project_id,
             cls.Field.ID: identifier, cls.Field.DEFINITION: deepcopy(definition),
             cls.Field.REVISION: AgentDefinition.revision(definition)})
@@ -180,6 +235,7 @@ class AgentCatalog:
 
     SCHEMA_VERSION = 1
     DIGEST_PATTERN = r"[a-f0-9]{64}"
+    RECORDS_ATTRIBUTE = "records"
     INVALID_FIELDS = "Agent catalog requires all current fields"
     INVALID_VERSION = "Unsupported Agent catalog schema_version"
     INVALID_OWNER = "Invalid Agent catalog owner or records"
@@ -199,7 +255,7 @@ class AgentCatalog:
             AgentDefinition.identifier(identifier)
             if not isinstance(digest, str) or not re.fullmatch(self.DIGEST_PATTERN, digest):
                 raise ValueError(self.INVALID_DIGEST)
-        object.__setattr__(self, "records", MappingProxyType(dict(self.records)))
+        object.__setattr__(self, self.RECORDS_ATTRIBUTE, MappingProxyType(dict(self.records)))
 
     @classmethod
     def empty(cls, project_id):
@@ -252,13 +308,15 @@ class AgentBinding:
         REVISION = "revision"
         ENGINE = "engine"
 
+    VALUE_ATTRIBUTE = "_value"
+
     _value: dict
 
     @classmethod
     def create(cls, project_id, identifier, definition):
         record = AgentRecord.create(project_id, identifier, definition)
         result = object.__new__(cls)
-        object.__setattr__(result, "_value", {
+        object.__setattr__(result, cls.VALUE_ATTRIBUTE, {
             cls.Field.SCHEMA_VERSION: cls.SCHEMA_VERSION, cls.Field.PROJECT_ID: record.project_id,
             cls.Field.AGENT_ID: record.id, cls.Field.DEFINITION: record.definition,
             cls.Field.REVISION: record.revision, cls.Field.ENGINE: AgentDefinition.engine(definition)})

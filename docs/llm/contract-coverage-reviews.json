@@ -2372,8 +2372,8 @@
   },
   {
     "path": "llm/core/schema.py",
-    "sha256": "8a9480cc44670e0cd86152f910183a6b6d5df652a6fd255cd346e2bd00ba32f7",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete.",
+    "sha256": "052f92453f0f4eee275ea9c8e58a995454c0724c0a474f21e7d6a7335cea55d9",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete.",
     "dynamic_paths_reviewed": false,
     "decisions": [
       {
@@ -2419,463 +2419,475 @@
         "reason": "Single standard JSON Schema keyword declaration; policy field schemas and constraint bounds consume it."
       },
       {
-        "id": "3900a5bd6f9c3de54d4a04cb0fa47e4f1e9c182050bc3f123062fb89a02faa50",
+        "id": "9b2e6a54c2577956ad9e5ca36661f75e28e00973eaab1f95be04337267c72fcb",
+        "classification": "declaration",
+        "owner": "SchemaKeyword",
+        "reason": "Name the existing standard minProperties and pattern keywords; no Schema algorithm or constraint changed."
+      },
+      {
+        "id": "a98d282ba3e199496471151b015fa69cf32a4f6e39232c28a2bd7d8db5d89861",
+        "classification": "declaration",
+        "owner": "SchemaKeyword",
+        "reason": "Name the existing standard minProperties and pattern keywords; no Schema algorithm or constraint changed."
+      },
+      {
+        "id": "ce0eb3e72e9f24a2d18212b88847f521ff47cb9df6b73b4c93fffac85f0bd11e",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Canonical JSON Schema vocabulary, shared by selection field metadata and Schema consumers."
       },
       {
-        "id": "54e2e258ab98980e72f48b3bcc777c4c99549725bdb1549aad2026b8c901b602",
+        "id": "08caca326888f3569317584160d2a7c12a3b9bdaa69526978b3cab69a961c5cd",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Canonical JSON Schema vocabulary, shared by selection field metadata and Schema consumers."
       },
       {
-        "id": "0374f813ad704fcc01d28e6e2420dfce1b1249a583cf4adef595b699428dfdc5",
+        "id": "b8a71f0fb82e627cd195f5b730b05aece17c895ffee996fd720a033d2c73620a",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2bb23095486846773038142dc7826b48772aa9a7ee6b24b562f96c0327fd2f74",
+        "id": "8c15b650a6b680056cffa232b8f6d384b6b6bec30c280d2aeb04d44ad45427d1",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "68747bab6e4648a1143dba070eade653ca92c687a95bc6746f02959b9aa269f5",
+        "id": "366fa4f8dd955a0d38e6b133553edaad71d4b824d639da8f8776d87c566211f1",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7cb2305421595aa24ca11408eca695374bd56820bc0b8b39485c2edbe9c6eff6",
+        "id": "4e16d37aaa1e765f60f0b8ce6ff9214808c601f2159c4c5861d3b89f7b1e3019",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7f7dca8ad5c7bec7c74eaea0a28fe9e8ba813ab7929dc80495bae14ede206d6c",
+        "id": "a0bedd802696c1d126c1d618239cc704c896d49c52376c90e9476059e6c83016",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8d697fde32d5585ed0cd03720a40de85d9f88d88278d8fd0126b6db6b2da240c",
+        "id": "5b0a7f01863d7e7863cf8b1cb20d01a77d76d7418cc6a1deb23e2b9131f363dc",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "dbff7b872b4c468993f6149bd28d7972616162c4567b05f7578be812c19e3fb3",
+        "id": "36649accee7a514f7245c58156a33243dd4f4a2d8b01975bcb05309a799e94c7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8f2b1ef51d043382a50505ee5ab0f052f31b94a3ac39318a4faf01801600dcc4",
+        "id": "71639f9e391c23869e4761b0baa58e18af9bb21fffa35d4e2796fbaee21c4289",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "83c32f519031131cf7567d90d6c75ce2c2fae17d28d0d79eb799693ecd85a937",
+        "id": "d496907911b6961b41b267eae773b67fbca7bc6ed66678b6d6d1d452f311b989",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "91a8ed60f5476968fc79ec91c74c97ef7e374fb685f10ef79e3b6faa135c1914",
+        "id": "3ad42a985b1eb7e4876d26fdcca78720fb53fdb8f0403ad6d314da6f55f14591",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4972bca265686dd322c02afe0058955e6f03d8bea36312dad6d3b4f8ca916f7e",
+        "id": "99910605c9840ccdc608103a4c726e8ea7e73d3ff3ae131a19dbe316962464f4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ea940ac55f1456330d5ed9503ab7f98586028a628350cb61568751dd418ef79b",
+        "id": "b90660dbe12d9dc5f32ec556c9f90fd6f7efb6cb44d2740692d9b81ac22a1573",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7ad3b02e9bf97eea65fe28dee084d7a2729b7274869fa762bd98b4e283c5bcd6",
+        "id": "afc28cac9723835913a5ac91f894949d6d524d598d8d22639a3f4c1ac7c53b71",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3e21388223c430f6d540309680fe633e33bcb161866c2b263486cb348d4936b4",
+        "id": "9260b5dd591c940bd7fd0ddb7ba99b36328ad6f0ba6c42b3583c5096464d4299",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "32b1a2e8be7093d9c8aeaea38b87ad1f0573f1b1ee03fb07a8e2c3c7feebf39f",
+        "id": "a17e440aad651f52ba0f5e9b04905f1f7968e85a0854fc7d65768ba4ca5809f3",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "cac88f8910de489a4f36e8e8452d1aed768a3952563b4e74325c67717baac30a",
+        "id": "68c619fad01bad6dd3b17078a3549f080b52038b4a12068da3d26bcf5cbcf3de",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8bb9eb879876da8efcc12fa974819acb1bf493eb3e6600399e908f50427693be",
+        "id": "1f4c21b87380dd84768f210c056d1c0fc89aa4ef1a035a9f09151810d5874f08",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "79674f98f0decaa2b32d22ebdddb140c2673b655c227bdbd90200e7dd7ed9e25",
+        "id": "e09a8c25e0882a5103cedff5d4e62da3609065743e587d76bc3aef6e431d10d2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3f8a7ba1bdb63593cdb8217942ed62b89c3d1846ed210cefa1587515f7e8f77c",
+        "id": "ea9525e14d29fe0cdfbc5bcfa855cdb8a2b254abf0514f5daa92a5b6d83dea0e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4601aa4d0527d220c496f76611423b31406b11d8dbc748fa8f4bf97736dfa655",
+        "id": "d21f0686558e015c514de96b49087eae4b254e8f685236e0e9a0b056c492d855",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4f5a436378904af55924087fb6831815dacf03fc7b16c51fb714162e9381b1a9",
+        "id": "8e891c9e568de3347cc08d857b2a645b16ca92b1df5c352477ac56ba0c17ff47",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "011707c82582797e8700fa8a94e7bf7f27f700f2f20bb5f748a4322db8779f06",
+        "id": "3b4173dcf769ae0aa17ec1eb5d68f39b674527984feaa5178c42d32f37591aa4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2f6e69be36045f6b66a8ac517c3d539b36040457e052c4fd5335f554de0e5893",
+        "id": "dfdbd56d4454e2192606f0e4cab524d7fe19139519e4357c7f0bc4547433e5f8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "98ae333976a70f2c4971d516cc04be12734427f5bb977dba62294e43b9991d0f",
+        "id": "650b1695924d7d7edd98eff53cbd9be4b90ae79f1c79c3ba052178e8852b8876",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b0472cf3dec98051bb48bb22a7a1f235f379378aefe0d0cf93323aed1029fae7",
+        "id": "db8f3d94da649d221913cfcc60edee5cecb7ecb46f8d4d585a95a891b53e9d63",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "879f693f7ab48ed63180ee69399f29badf2fa8aa1abe3b0332b1ec02c03dea23",
+        "id": "1e9bfda48fe6a5182b0cc81da125cb2d81c7da466794e1bc982771d6fc531d8b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "676035d0dcc73756ce685e8fc788dde9bda9d217510852f78836f90d04d3feea",
+        "id": "b89cee67b16316a41179c0053584643aa8e91c36ef7d536e5f7dc1ae2087c56d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fc6c55384d056fd5d4171517956a55429f3266a6e029b587ed86f4a64cd3d0ab",
+        "id": "3b52cfdee42e9a47c6418d454e0bef8fb8c616e8adcde9b1e58c8502a84a7faf",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5419fe3ddcd9312d1f8b7b483abb7915d0429b2b6c202501f0434a0d9babd506",
+        "id": "8b626e889eff4985c5ca5f7bd988e6edefe2e679fd2cdbe0a5fe10dd993caabf",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "cfb2288d251f9e70a7e18fc4a2ecc8a290973d5f53ecb74902452f5eb16764e4",
+        "id": "d9ccff5cb4a33a0a6665eda26af448fdbd949f06e2e25e98d1d0ee6ac31793c9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "61d7539d286a342ae82dac88172b379d4dece080de6685d9548e6bf535e5a9b0",
+        "id": "a42a29da38a8a42ee6ae6ea779ea5c3a45faa975c78a5fe849666b35c92f92d3",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7624c724a3a85c8a3209cb3af098421ecb1c0801cdd40ebe56694caa86cf80f7",
+        "id": "de0ebe8713a24b057160466c3a8f657ae817e2b59b193f70e8d61d6576cc9c71",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "75915221ec8aa0a969c6d0fd2e3b0daee61753d11b27ba9eafdcb3347f654d23",
+        "id": "2fc6a1d13185411632c14a8d5731ffe253faa314942c7e16e5a45a7780a5b5f5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b9468652efebed362883f13f390902e83f17a4c8091af0adced4d32ebdd1596c",
+        "id": "b1a3b92736f5b6e46a8fc5d85856b299a76591cdd472a9d6dcc2288117298ddb",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fa6fc1ce7bb2398ebf28446de1cc3945afae170044da552436e4989cbd60f05e",
+        "id": "34a5d0d44351e816f6931d733676cb7d4adbf5178e73f96fd5ab8908e1f81ad1",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "54254549168ae3c59b44fed00d8910d2b9e1ffe0cf4bf996ba262c2973f07898",
+        "id": "ff2f69d9a3b63d9432eaf76ee882117d724c5d8490c21564016e7c0b55045d48",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "14e58698b7cf33c4b28095d187f2faa35f59ac5f36c0d606de30ae81f893ae7f",
+        "id": "b29ddc42e17352db32246347b2d0f13ec5593dc6605edc6d55b665cc17efe37e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4e714b9ed4415e97b53213dffa23bfc9d0d374b6427c4a9da041dc406170af55",
+        "id": "baf4257ffc96430a33f5e8d8ae57656a129f60f58d6408431a976335e3511416",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ff77c6a9fce6851f7e138523113c14e720755deeebf6c68cf66cd4fe48e67f55",
+        "id": "b28bb151d570176fb0fbf63e41756989e1ad8465fdb474d6a4e7fee22cc8b5ca",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c82aa2a99bb729a3b6658e50cd209adf2ef0ecbfee2cb494430375fe4b34bd74",
+        "id": "d0974d15eb9a9ba8338b8fd2f29d6a0f2182ca51d4e5c5f20d6292a452ec070d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7619df73f5d9e3a603a81dabc8094df40107c87a0eea025ffe40411df508b567",
+        "id": "e3358ab1a3a4b63e1e49a3745c795d606f8a9ed7e8823b0d9bd912efcd1395a3",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a643bec18c2d657ef88345982b880910f99a582b0425ff5f913b82f5985bd672",
+        "id": "6dec1a4010f73185f1628a99fed2629bcac18e5e77ae149423be842c483b88e6",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ef561b07252b0dfc16bdaf6c5e79bacf799de10eeddf749aca125e6b07feae52",
+        "id": "74ba87813b71a4838aaac103f6dc6a3e23421dc0f7fe49047458a0f7605bae36",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "90c22b6f55a02bf2fb9276bd3896e406e04479d56314a5299593c2d2106bab14",
+        "id": "08306f0b6445462bd5d54dc4f402363d8bec92b99a8f957f34fa20a156b755b8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "bb2d781e9a79124981f39a70af019d1852937de555e82fd28eb5e0a2c70b391d",
+        "id": "b1ffe0a5a79c86ab001ca825c9fbc35acca31218aac8df1d44e1c4fcad959b01",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d47677122ad5ae83d31b5f3f015ddce7ec2bc9a3bd8e4be12e3a7d90e92bf61c",
+        "id": "4c632a32b88ff36eb42adab27d3a56719bc80f5dd7d2f31ab7a76b118dab5e0c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "0614caaaed12c9f4f32e7934520c7b97b62a43815c8b18825e9778a45d2d6331",
+        "id": "97a6c5e8674286c762ea408e18d714cf5d195c4ba1bb1f3f090154ff73309b32",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "eaeff440ef6f414ec6c88d68496434a4c01902cba1742d6cdf44415403017d79",
+        "id": "b435f8289cd4ea01cbcc628a1d2b8d7333c18da0a73d0749519463895df06323",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "105b70c523ac6c83aae3a968f768fc49b1fbbd60a5be29e6c791e5350724f405",
-        "classification": "declaration",
-        "owner": "SchemaExtension / SchemaResource",
-        "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
-      },
-      {
-        "id": "0c4fe247038f14a12e495622c9b7cd1a0fec70ce6b460f695fda87a98d2bc3c1",
+        "id": "c0388bf5fd8b4efafab9a5c3c7fc50254a71d2f8dd98179d4c1b806cd36b17f4",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "61e98fb80be5851d31bad8c7765202fc2f4dc8a2e9f7fe3b066792e386f406cc",
+        "id": "b0cf6bface047d96546258eeef9f819cb18e615d31848e59ac92dd465827d7a4",
+        "classification": "declaration",
+        "owner": "SchemaExtension / SchemaResource",
+        "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
+      },
+      {
+        "id": "1a8e69beaf5ea9626d269f93a3f51aaa0601060e7d4ad7d8a39d09c1960c0988",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fb3718208d8c519d81b2e615123188acdad7bc05e8417016533af09c2d32b912",
+        "id": "f6365eab99c65a29430d7f24502ffe6439f9555db71923acc31300aeabda77e2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "9b5ff3c694dadf315a4a7df4aaeb39b9098f56b5672a997d3a2197e8682b57af",
+        "id": "b77bcf2440ca8d7084bfa006f710f509eecd00f8910176ce6e2283dc93707068",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "52805a8b136535bb6c3c07008ce4d50bff81501eba0e9215fab594b627e4f363",
+        "id": "8cdaef24e76149a1845b83b3a2fa866a7716134698836cb2374420d0d70614c5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "70fcb0288566945e7b01dec99ee5d318ea0e5bb9dc436535d0161c20bd05cde2",
+        "id": "fca4bf0c01d273fa815bb1d071dd87143666d547328ce3d524ecac293c60b94b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "31e84c4dfea33c163559cc1d0f21233e835999fb68880fd7ccbba438cdb976a3",
+        "id": "8789ae4faa28a1f30fe1a86165cf596ef2e26b55414466b41c79b0fd69b11ef2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c5c97ed592983abdddfc8a207c3d45a9476b58d0e576180d8bcc74142fb9f043",
+        "id": "7e0d015e9eaed5e69ec34ae02b9b71ad6402e88058aafdca506537fc2b3b14ce",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d9a4670253b54ac22d363b4633e5e26d539210952f11c474ac26759ff5775b02",
+        "id": "141783c6d27cc288598b5b2a269e6964928201d1732712be4797387a1603ac20",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3596cbb9914c710093aaed0f32ba6d5d3fac7c0afeecfa95639b6ed2d1604732",
+        "id": "e6c318b0a5c0a4a0f1c989066f9ee937a0ec8e37569b78f44426c021b84524ba",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "daa8a041fc8f2ad781b0d6f747ee9031e815f22eea801d1bc7aec001dce402a5",
+        "id": "5d304fd14903e9b964a8ccc65f58a07c9a554dacd248c21617fc5bfe276e31a8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c83cc03cbfe5b3e34e441b6f71b131fdc4c4de3cf1f522191874be0383333e08",
+        "id": "a57be96a73daa276d1a6c1f7de787ce1c4836e627549663cc23e531b0bb519df",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "399e99ff8da1189229c9d4d53a76baffcb32116916bfc6ebabeecc43aa9d19e7",
+        "id": "fdfe2334fee82d037a86f74bdde7585097c6cbd83587b9b36e5d92c563e200c5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fd2183873d0298e216e7d5596c8e66d57fee89d07abed80f97cdfae2f90ea778",
+        "id": "a7def40b77aedc6fbe2f29a4aca6dd4a5bbb5dc29f7239dc5f109177c3b1be95",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "9f3485cfeaeeb70ab65d0e45482a99d8652dfd417e9ccffe7e54cb73e621895d",
+        "id": "9cdc951accff420f1f1c09b1282c7ad3014286d94bd934226bbba6c57e8c3aac",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c5024802b25d6a7ae6a84ea253efdadc963f175b2324bcd3d13d20dcae00f598",
+        "id": "a9996fb8b3929521980a635c2183ec3dc7f94265744121fec2d6653574db4cad",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "15c7b8d27df9f64e95d5284b9c3a039f175d8053a708a6a386fc6a90fb89c9dc",
+        "id": "8fc5d4461142cf870b7730c8b966c90a629ed6a66e9d348c7516b3a9dce2a5de",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c8d94380deb544f2459d97302958595d1f96e8789bfbb640a16c92dc8385ad48",
+        "id": "3bab1053ec678541e24c88cfeb823c8b24acc7d04943aa73d4d25991899881b8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "84dc3904a275d92ed37fa1ab6af4a11c05c2000770b32694b8584f1780576ea7",
+        "id": "bae6641b802291bba7f577180b73dc6c2b332abf8de1ad272aa9956e511b9110",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "cbff292b293ee4cf1a1f668b87325d490887945622be7721880bf8a2fe1aca0d",
+        "id": "9b4ec7b36bf90892c6b44416efdc885d2114839cc455fd33dc16b1d758080137",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1c110a8ef7e22603efe1302859602bd36ac2ad6ebbca8bd656795d28ed978da9",
+        "id": "24f24bc7ebde6b3066148002c97a2262c9bb77a5858348c4645db40e08d5e7a8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7651501feefb9a444e824a948aa9f5ca902713c582085468009dbc0d9bfec4d9",
+        "id": "35239d2947b83bbf288d269d372797a942626ccb5980567dc8702fdf724aa6b7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "57fde1696b3bc39e2546ba7359cd963606c22cfa4f17e584ef69087c04d12727",
+        "id": "e9d1a2e17d7a3a80e8488d8d99a859a3acd00fcf6bf69c4e12c6c99cd24fb92e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "cef901bb80384bf35673796d946c9091fe0db14a28640221f940ee49d2e06e1a",
+        "id": "24788943d1d75762a3f6feba357db9a47b23746cb0c7b937bde1454b0f12891b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3ab3370d8a20757f7564e8b92ba052204845707388c4d0bfd4114a64db73218a",
+        "id": "50131d633477c09a0db325f758376397993a455e9a76d35b2ac95b228975dbbd",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
       },
       {
-        "id": "a949764255b22c73bc9a45663989f56bfb135f501cec11d7b5ba636f2a5d1615",
+        "id": "df1ac284d424db7b509c7be52b94ac9431d6cc3361d45fe1fe4e97130075b782",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
@@ -38104,6 +38116,572 @@
         "tests": [
           "tests/llm/test_policy_ownership.py",
           "tests/llm/test_runtime_reliability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/agents.py",
+    "sha256": "d5bec6d67e01126af4600aef6d7c99f03a31abfa6720d5086474631a7ba423b9",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ea54374669142b2cbcc0430dd81fe6b0f24b574780d9a5284ad37265287fe78c",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "8b54756ba87a84a80f1123f3b6a8c3451472a8b2e1062f8ebdabbd23fe7d3283",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "aae323910e9c1004458e636683c341456e928be07f65fb211bec6d1d4ed09779",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "b41a1d33d6082ea3bed8dcfe478d2540fcdd6a625bb20e00efc9d68d933adcc8",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "b673aafc5a9b76547480cc099cf3c3daee4a74df3c883f09f5f8621b76d24e3b",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "3c2363b16d98444e936cfb02ab804d8ef9c2d4fdc62f5dcefdaf54abb125a6e8",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d95e6cc7699cf4b9d12941495eadb19da7bf5baae0c1ed83a2713fd3796148ef",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "798798f35271e8b36ec859c23742f6b917cd4de709a0ff9a91515d219b8bbd00",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "47912073847e04468ded2172a9a8e53d858132349261362bff0009a8da68859b",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "4e5d2317a258bcb8e11cbfb3a58f454b15e6b8492169d29c043c7698b5a717e4",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "9a3aceab44341aeb0d2ce4328c7b0cafb591aa31d6ea58d5fec7946a43e009a1",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "4df65c00a2e6a9e9461ca2dacac769c2d468872331c8425c5e213380d9515cc7",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "63237a125a1c5ecbe77a3cd6b4160e50628a1642ef9041572515dae14b73d941",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "964782169967a407585155437e875a27b9f15ea2086da9460403cdc60d06e710",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "081647f2734ee7300fb3ffa766e70906013f2e424dc549374b30b2fd793403fb",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "0d914da5f940bda5627e99638beed000e44174c4dd110f96d584ca7f51fb83e1",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d2e7ea3e1defc7f9ece84901c8806566d33318049646ec676e8cf5455e9f0b2c",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "ca84569a07016f382386c1c234576f1fae2978a7baa18fc2626ada65644c2d48",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "a08cf20782eeee19b8218e84208d767926f67a31e57780b1f8b53dbb67e67cda",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "4f1f65af19f07bac7e9e41840d296f91ce33273539026cf8432fde5676b8e0c9",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d7fc63ff9788c158aabbbd7392b453896c9e32f317a0b5443289a1f2d065b9d6",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "4a87b03d4a0cf69e3c396f82b5529b69b500c011ca3cfcbc8fedf057545ee70e",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "715a9015f34a15b37cc725ce2f18c9431d92708a3bd944ad95d4d0d2312b50cd",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "30b854afa3b188f54326d7dd2cfff8a9899748847185250c0cc382295b5c5f7b",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "edda83f2b9d91abebb178786dfc2886b099d8a3e2317799bd9b53593bc7fe160",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "275b1904394bcea340e82de5497edd4d3c79acc9628d9e7e9e01830fae844450",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "72d47da9f32d7483357e2cf8aa33efc820482d5b0b7c59781062ff5c8c1c50e5",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d825bc891260cb413d353028e5709c75d1f61f4ba8cda735d88616ef80dd9120",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "fb19d563a6d3267e029bedbd994f62803059f0975a59ce161b540e5189e4f21c",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "57714484b182acb00b9a9c54082980fbe434b1e681bd3fa200aeee0cfdca8e18",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "90062110ed38b1739fe6fb20a30882538e24cdd711155874f97f6e60dbccf370",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "fb323b7d97cd34f450075491731078c5ec276033a1dd09c57b6c43ac405e453e",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "db2eaa06bcfa0370534ddec5bae40fcdc95864269231e2142754663b3d5788f0",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "11e6510cee8fa915ffcb50aab55dd18d1830d68f3336255a46fd2c8cba32b652",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "c0450c21ec507a72817ea0a2710a0590e2263cb363d3ebd86e36855be214eae5",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "9eb90886cd4ea4151949472d0848f834cb59cfa220287636f658a971573120b5",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d0658f3c099f1d2b864e44194dbcb40f302242791e416dd236d745a72645aec4",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "ab8723c8ffef940dd20cf1a32a9c6a3de2ecb20fb43f8a6461a8474fb7dcbea5",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "8b53c2b6337f3c917606e0dfc0605de8c592e3f5e3236f587950c1a44a4c0eb0",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "c7c06618e815d93a36628ec9b7bb51af868abf0702b9ce9529a3834623ef5346",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "9f19aee7c3d70a22a06a3ae890de20f92927e911cdd7c1ece575c44988ede90d",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d8a8388c67a25fc20d01983c9f2d01ce099f314c7a77ec09ff8a63bd9c20289f",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "25c498a49b083d29dd2ecdb441c162d04506141e0696a9e297ff587ddad620da",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "7ba5157035dfffcdbd30461e1e4e1e160728e899ffb08161fdb11055628c302f",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "b1c9481400a4d5bd74fcad99ae7ae9e10a9a76ed68dc6aba5b3e83848e71cb6d",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d88ab15706ef4f21ac58f84cc4cbd2c81a72eb6ab8d30b82f3072fa8ce08ad0c",
+        "classification": "non_contract",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Select the first already sorted validation error; positional indexing, not a domain default or threshold."
+      },
+      {
+        "id": "a30acf82840a97a1aadeb97236333a22afe2317462a8bd526aaa8f108914b12f",
+        "classification": "non_contract",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
+      },
+      {
+        "id": "79963cf1fbde8abe739cdb06b79c739a194cec5fc16c591615bbf5c57d8ddbfe",
+        "classification": "non_contract",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
+      },
+      {
+        "id": "13a99ee6c492fc099c3f20d611cc9d7b5b36ee3caf96e72ef49c22fb47e0c53c",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "362900f456a46c330b182bd56ec2827149a6e135be17c8a1156f09f99da13cc1",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "cae33e407e7d9edcf4d99e53716c3eb070147bc50a3166bf13d3c8e3921988f5",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "17ace6d88c6da8c903ce0ba95f230cc82368aa6de4e8ab107881659b76e5f46f",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "517efe77c87afc0f50f74350706f9a6a05201b8b02d1867987aea20103132ae2",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "74fa13a950b0bc8944160882c41c17321645e349363aea19ca9bc5205a96c387",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "5ede8e40faca33abeb366694dc6e0a7ad844aead41615b9650e843a2507f5079",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "3e80b68f594529ef7dc3d537bf1b68bb1f5481cb9fa847943f6bbfd5df75ba85",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "873531e58b1bd06a7b91be8729f5dd40725aa6828fa7f06fcc47ca3091e2aafb",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "26ba2d5c490d0fb43999d7b08ab9d89e9e818240126c9625cbcf46a111b66c7b",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "fa15b41c153a156ee61425080701bb60d7d091895980307bfb9be1370662f088",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "4e556458cae2a4b243ee030289a432d5591818e88c87eedcfa994f8d692eafb6",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "c40647c5fb2d7fb21b26ef6f8b688a5bfbf939af29b8da161285916990f09f23",
+        "classification": "non_contract",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
+      },
+      {
+        "id": "a7dea30c8a9dd5174bdf409436ac0b3299a10c9c3bdc34cc7d53d34a1c452dd3",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "14e9d313677ea69392ac15e744b40f743e7b2918b592d46b5ea31bf1a9e63822",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d3bc608a1eb85aa8772966c00f94c0ae0fe8c38e5f4dd651f71167cccebf1afa",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "670c32e49f2a4ae9640327b87880051cb0300a14b5865d09144621a9db3b1025",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "7701782bd9b0e3dc7fc56d444def9d78790d5e10833d7a5b42dbf1b0dd7e6df0",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "ab5462d226553a9bfcc0ca856e0f59eae6c684161fdc0485126c0fd3e14e5160",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "1d0b76882e99df1d77b03727a07ab58ce5c26540ff3089708634c439cf7ddb2a",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "185c15cc8ea238939282e6c65d68ec5f4a9db92401654478087b4b6a283897d7",
+        "classification": "non_contract",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
+      },
+      {
+        "id": "2ba819e24c2c9378b3e2fc5f767a55e38117fabe85d2082a6d71c3f289f9a844",
+        "classification": "non_contract",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
+      },
+      {
+        "id": "4ac235c98c62ab8f7010a337d96a4aac3f2101613b1b135ea34efdb6de055960",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "40b32c35882457684f38c554ee157cf441693da4bae82856f109c15fd827b7b0",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "bb0828047b0214f2a2230fca52bb9e3f4d4e3915ba461990e77178c3520e90aa",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "0ec2659de2bcfecb69e2251ff53f2bffa80d82ab220a0e63d2acd76205518fb5",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "d7fd8810f796cc7de0edc18d5cbc8558259cf9422ff160680cce17328f5e1455",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "f331c440958cace36a43ae2e3fbde310d098df8a80983d41bd2088162561e813",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "2478a5c4edc76633d4b75592c2bf34b346abe447f028bb29c3f13a500c8e9888",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "2acb0b320fda3322dcb3c8d3031f2533f8a87e3f988005b96b6d4566c8b99e92",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "fbd53d43ecf6d89c143d29934dfd68dec51cf99af62ce6d33f68e7a5c9fae6dc",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "942c3ffd9275b068f4e6ed295b71dc8269c78f2b250394f7db15ee4b2a56cc41",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "c6274c5c1a407b0a2bdd4b9e4f1a72c82cd59d5a650eab8dcbbdbe9c38961237",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "a01530fa62592529e304b7748bc6b3745f9a0c9e6f999b0bb1c289baa5b05f81",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "20017e76185f2913702f83ad5bdc3d32cae8def4059eb5c778e549407220995d",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "e897dbf529eaa14f56ddee9f325e8f2325357d5acbdc36debe02ab8305e55979",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "65e85227befcf8157034e451a72c2cccbe6c5aebfb256b25a17a693816d7dba7",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "43ecb9b480093707a352a651e055320573d091c5c574610e2f8ef91fc407c946",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      },
+      {
+        "id": "ad5afcc7061b13d086e49dc16b0044514bd85261e69878086c6066a26f2c6dc1",
+        "classification": "declaration",
+        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AgentDefinition fields and public Schema",
+        "declaration": "llm/core/agents.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/engines/loop/engine.py",
+          "llm/services/lifecycle/agents.py",
+          "hub/backend/project/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/hub/test_agent_selection.py"
+        ],
+        "complete": false
+      },
+      {
+        "owner": "AgentRecord / AgentCatalog / AgentBinding",
+        "declaration": "llm/core/agents.py",
+        "consumers": [
+          "llm/services/lifecycle/agents.py",
+          "llm/services/runtime/agents.py",
+          "llm/services/runtime/requests.py",
+          "llm/core/models.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_multi_agent_crash.py",
+          "tests/llm/test_agent_delegation.py"
         ],
         "complete": true
       }
