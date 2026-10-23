@@ -3,6 +3,8 @@
 from llm.core.implementation_parameters import ImplementationParameters
 from .work_state import WorkState, WorkStateMetadata, WorkStateProvenance
 from .snapshot import MemoryProcessingSnapshot
+from .summary_records import (SummaryRecord, SummaryMetadata, SummaryCursor, SummaryProfile,
+                              SummaryObservation, SummaryContextReference)
 
 from llm.core.models import RunErrorCode
 from llm.core.results import OutputVisibility
@@ -219,7 +221,7 @@ class MemorySession(CompletionSession):
         result["summary"] = json.dumps(state, ensure_ascii=False)
 
     def _summary_metadata(self, text, *, sources):
-        result = {"sources": sources}
+        result = SummaryMetadata.from_sources(sources)
         if self.config.get("summary_format") == MemoryProcessor.WORK_STATE:
             result.update(WorkStateMetadata.from_text(text))
         return result
@@ -398,18 +400,18 @@ class MemorySession(CompletionSession):
         signatures = [self._signature(message) for message in valid]
         cached = MemoryProcessingSnapshot(self.snapshot).summary
         # Keep the established fingerprint input stable across Python API renames.
-        profile = digest({"format": 5, "settings": self.config, "goals": self.goal_references})
+        profile = digest(SummaryProfile.project(self.config, self.goal_references))
         previous, covered = "", 0
         cache_usable = False
-        if cached and cached["metadata"]["profile"] == profile:
-            count = cached["metadata"]["coverage_count"]
-            if count <= len(signatures) and cached["metadata"]["coverage_hash"] == digest(signatures[:count]):
+        if cached and SummaryRecord(cached).metadata.profile == profile:
+            count = SummaryRecord(cached).metadata.coverage_count
+            if count <= len(signatures) and SummaryRecord(cached).metadata.coverage_hash == digest(signatures[:count]):
                 cache_usable = True
-                previous, covered = cached["content"] if count else "", count
+                previous, covered = SummaryRecord(cached).content if count else "", count
                 self.summary_record, self.covered = cached, covered
         remaining = valid[covered:]
         if not remaining or (not covered and not self.summary_due):
-            result.update(reused=bool(covered), covered=covered)
+            result.update(SummaryObservation.reused(covered))
             return
         # 큰 역사도 보조 모델 한 번에 무제한으로 넣지 않는다. 다음 호출에서 다음 구간을 처리한다.
         batch, groups = [], []
@@ -429,10 +431,10 @@ class MemorySession(CompletionSession):
         if not batch:
             group = [{"role": str(m.role), "status": str(m.status), "content": m.content, "truncated": False} for m in groups[0]]
             fragment = json.dumps(group, ensure_ascii=False)
-            saved = (cached["metadata"].get("partial") or {}) if cache_usable else {}
+            saved = SummaryRecord(cached).metadata.partial_cursor if cache_usable else SummaryCursor({})
             signature = digest(fragment)
-            offset = saved.get("offset", 0) if saved.get("digest") == signature else 0
-            text = saved["summary"] if offset else previous
+            offset = saved.offset_for(signature)
+            text = saved.summary if offset else previous
             def payload(value, start, total, previous):
                 return {"previous_summary": previous, "messages": [{"role": "reference", "status": self.PARTIAL_REFERENCE,
                     "content": value, "offset": start, "total_chars": total}],
@@ -448,13 +450,13 @@ class MemorySession(CompletionSession):
                 async for event in events:
                     yield event
             if summary.blocked:
-                result.update(reused=bool(covered), covered=covered, oversized_turn=True)
+                result.update(SummaryObservation.oversized(covered))
                 return
             offset, text = summary.offset, summary.text
             if summary.complete:
                 batch = group
             if offset < len(fragment):
-                partial = {"digest": signature, "offset": offset, "summary": text}
+                partial = SummaryCursor.create(signature, offset, text)
                 text = previous or "[Partial summary; original turn retained]"
         else:
             summary = SummaryResult()
@@ -468,11 +470,10 @@ class MemorySession(CompletionSession):
                     yield event
             text = summary.text
         covered += len(batch)
-        record = {"id": summary_id(self.context.session.id), "content": text, "metadata": {
-                  "coverage_count": covered, "coverage_hash": digest(signatures[:covered]), "profile": profile,
-                  "first_message_id": valid[0].id,
-                  "through_message_id": valid[max(covered - 1, 0)].id, "partial": partial,
-                  "input_truncated": any(m["truncated"] for m in batch)}}
+        record = SummaryRecord.create(identifier=summary_id(self.context.session.id), content=text,
+            metadata=SummaryMetadata.create(coverage_count=covered, coverage_hash=digest(signatures[:covered]), profile=profile,
+                first_message_id=valid[0].id, through_message_id=valid[max(covered - 1, 0)].id,
+                partial=partial, input_truncated=any(m["truncated"] for m in batch)))
         from .work_state import provenance
         # 긴 대화의 파생 캐시에 전체 ID 목록을 다시 복제하지 않는다. 원본 메시지
         # 범위 양 끝 + coverage_count/hash로 정확한 범위를 재조회/검증할 수 있다.
@@ -487,15 +488,15 @@ class MemorySession(CompletionSession):
         WorkStateProvenance.mark_range_boundaries(sources)
         # 부분 턴의 작업 상태는 완성된 요약으로 공개하지 않는다.
         if covered:
-            record["metadata"].update(self._summary_metadata(text, sources=sources))
+            SummaryRecord(record).metadata.update(self._summary_metadata(text, sources=sources))
         else:
-            record["metadata"]["sources"] = sources
+            SummaryRecord(record).metadata.sources = sources
         self.summary_record = await self.data._async_call(self.data._publish_summary, self.snapshot,
             record, session_id=self.context.session.id, source=source)
         MemoryProcessingSnapshot(self.snapshot).summary = self.summary_record
         self.covered = covered
-        result.update(covered=covered, generation=self.summary_record["generation"], revision=self.summary_record["revision"], summary_id=self.summary_record["id"],
-                      summary=text, source_range=deepcopy(record["metadata"]))
+        result.update(SummaryObservation.completed(SummaryRecord(self.summary_record), covered=covered,
+            summary=text, source_record=SummaryRecord(record)))
 
     async def _recall(self, result, source):
         from .component import MemoryComponent
@@ -532,9 +533,7 @@ class MemorySession(CompletionSession):
         # 다른 처리기가 원문을 바꿨으면 해당 편집을 요약으로 덮어쓰지 않는다.
         can_summarize = bool(covered) and present == covered
         if self.summary_record and can_summarize:
-            entries.append({"type": "conversation_summary", "content": self.summary_record["content"],
-                            "id": self.summary_record["id"], "generation": self.summary_record["generation"], "revision": self.summary_record["revision"],
-                            "sources": deepcopy(self.summary_record["metadata"].get("sources", {}))})
+            entries.append(SummaryContextReference.project(SummaryRecord(self.summary_record)))
             if not self._fits(render(entries)):
                 entries.clear()
         use_summary = bool(entries)

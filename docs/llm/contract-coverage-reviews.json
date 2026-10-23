@@ -43837,5 +43837,322 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/memory/summary_records.py",
+    "sha256": "a3d9a83554776b163f12389f27b76103cb1d1acba53f1c92f4ff592d26645383",
+    "reason": "Read the entire SummaryRecord, SummaryMetadata, SummaryCursor, SummaryProfile, SummaryObservation and SummaryContextReference implementations and changed Component/Data/Processing consumers. Stored validation is moved with original failure order and no new required id; observed absence remains limited to the original falsy prior, while truthy missing fields fail. Writers preserve dict order, identity, source deepcopies and in-place updates. Profile format and established settings wire key remain exact. CAS, lock, transaction, ID generation and storage effects remain in the original Component boundary and callback order. Optional WorkState semantics remain with WorkStateMetadata. Context/Step observations are projections, not new authoritative records. Differential proof and real integration/fault tests pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ccd435a60feaadc6eeac5636d5bbafd84bc00871fdbcc88783921f4ff97c7e1e",
+        "classification": "declaration",
+        "owner": "SummaryCursor",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "11569bc075371034db089cb8b2b98a5e84dd35921786749ba568b43dfa410abc",
+        "classification": "declaration",
+        "owner": "SummaryCursor",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "a735978313d6b016a8239e66af16689d43a952880f6431d7ebd9b79f43ae34b4",
+        "classification": "declaration",
+        "owner": "SummaryCursor",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "c23cc4dcf7597215b118637d0a358b7907d1a8706b89e8c00d91b2126eabaeaf",
+        "classification": "declaration",
+        "owner": "SummaryCursor.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "c9eb11c4c4d607f5ca83a8ea4d34293bd7dad3d91addbc9e54c756a12d161742",
+        "classification": "declaration",
+        "owner": "SummaryCursor.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "9d22fc6feeed692eb8122d6ee69fe2186f90ff913f358552ea1e12c4c0c28213",
+        "classification": "declaration",
+        "owner": "SummaryCursor.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "06efe9a4fddce17337de8ca15f1c10bcb505ba4fbd950d7e2394f2fb3169ee89",
+        "classification": "declaration",
+        "owner": "SummaryMetadata",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "36dcbf4b4182e0fa84c761e6a4a68c490bfe4159362c430fcd13ae7a70c9d2e8",
+        "classification": "declaration",
+        "owner": "SummaryMetadata",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "e843e07cd4ff74a670251b5705604f0dcf9cd089e787ee1c60cb537b8706910f",
+        "classification": "declaration",
+        "owner": "SummaryMetadata",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "1c22ec201cf329d2c65d0a756e334f623b11cc0e6a23c2eca33e043f753487c5",
+        "classification": "declaration",
+        "owner": "SummaryMetadata",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "820ccb282364375ce5ab418b91b7df0222ea05e72fbd530981018500640631bc",
+        "classification": "declaration",
+        "owner": "SummaryMetadata",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "d764c77c0ec0abdf342e353f938fd9769c94649b6ce0cdbfc1f74d083be56601",
+        "classification": "declaration",
+        "owner": "SummaryMetadata.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "abaed78ec8ca573ca8b64f93b9a21f5ce07273ac57df663f8795c84e52180430",
+        "classification": "declaration",
+        "owner": "SummaryMetadata.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "d33dfe057483129864a6ae7ded593d181b67353a36dfbec21390a7b364583977",
+        "classification": "declaration",
+        "owner": "SummaryMetadata.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "b321e5ad4265001f90da042dbf69679ab2923443b8ea4a35ed4be1ebea57d3be",
+        "classification": "declaration",
+        "owner": "SummaryMetadata.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "718acd595a4d669ddb871a5d9294047524c759539e7f5eb095ee001a9d4d3231",
+        "classification": "declaration",
+        "owner": "SummaryMetadata.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "d85600ee85e44ce9b111b611b32a003d23464b15c04bf026ff00c704f1461a35",
+        "classification": "declaration",
+        "owner": "SummaryMetadata.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "f63c4f1f794180ebf00602e5543b71f0e14fb4bebeada22fe5f4f7de3aaec29f",
+        "classification": "declaration",
+        "owner": "SummaryMetadata.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "76da166920fae5f6d533a044a78ae66e5d885cef6c0008038d69283dff581b7a",
+        "classification": "declaration",
+        "owner": "SummaryMetadata.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "54ff0b671bb760bacf5bae33609ec37b2a92653caf9dd4ba24753c74e9b28b50",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "2b66e456ece2d19e14b0c1150637997dae58f2682124e0176cc7b03f15f4188a",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "ecbb8134bee93fea17625a6e337d477c4b1b671c2e7ebc62afb7ff5c1ad9c736",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "ce244607d5c60c90ae02f3af31628a3ecc2514a5c8ea69fdbddb2f0ec8ce410c",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "18a3f104cb5b3932f40e61bcfebf1f63347b28347999c87e2967e233e0a84a01",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "2a0762fd341c10f5e36aa0488340289d1a5ed234cc32bc519fcfb8d0dfebc7c7",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "99dc3928e9b2598b345e5ef9d3cbd2e62fc598a44fb74a76e523ea8d6097fcf5",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "d684c88f14829377135a9f73e3d895a143605b9c38a5653970a241648f90263c",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "b29b63ed8cd8804b9910e98c1ccfb181602e8b685bc96cf94dc78ef4f2055bd8",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "d0578f332c92b8cd5b73ee559356b9cdbe8d8113e03ad7cec6ad396dfd5f497e",
+        "classification": "declaration",
+        "owner": "SummaryRecord",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "2d63a40bd5072f9ad9420d6d6b2c16bdf4fc30ace9f47bb38f2d9d0803d97ade",
+        "classification": "declaration",
+        "owner": "SummaryRecord.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "ee37b8a1c6ba555b68177060177dd7c382362224166ba3863f046489164fb50b",
+        "classification": "declaration",
+        "owner": "SummaryRecord.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "0e3d834b497e4cbbfe895cb4cc2ef3f800cc034d9f0571af336e2751d0d98918",
+        "classification": "declaration",
+        "owner": "SummaryRecord.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "783923e12257e6640390e3c4eb2ee684922b58249135abaf08d380ba002d71ae",
+        "classification": "declaration",
+        "owner": "SummaryRecord.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "ccfde48bdc272444f449036054ffd709ba26238207956c6493fbb3d366c45ceb",
+        "classification": "declaration",
+        "owner": "SummaryRecord.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "945d5dd0990469697a40920c29f39da0a50f6242543db584c5927fce5287e354",
+        "classification": "declaration",
+        "owner": "SummaryRecord.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "9476801af61300ae77e07d69c0cf134e8f925e30d4ba2e4e789de2ff67d90035",
+        "classification": "declaration",
+        "owner": "SummaryRecord.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "f4237539279a4eea5fd8167eec0258e3db8e89b5fd8c42a3bc8b870a266e8a36",
+        "classification": "declaration",
+        "owner": "SummaryProfile",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "5fbe29cc57a75955f810378b8008332a0e484c0649eb58e5e2dd90669f2428ff",
+        "classification": "declaration",
+        "owner": "SummaryProfile.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "a51ffb39165cf360a6033275d2116f23a7d6d0bbac485f6f026ce8bf13fa58d7",
+        "classification": "declaration",
+        "owner": "SummaryProfile.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "10c57a569ee3f40e6428701a20198c32490225c7cc86af874c22257b894f4de3",
+        "classification": "declaration",
+        "owner": "SummaryProfile.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "bdd88c80776d995527a7487a1ca55cef3d33a9504f8bd419835c6b8e12e3ea71",
+        "classification": "declaration",
+        "owner": "SummaryObservation",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "6bf93ba8b5d35422e57fbcd2e34fed9dd4df79a58c26da4e8a1d46ba7d2e9015",
+        "classification": "declaration",
+        "owner": "SummaryObservation.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "d9f3a4e7ba711ad5fb25671e7991749c2e725eb5d9588087f39e15423873d857",
+        "classification": "declaration",
+        "owner": "SummaryObservation.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "6958f47ebc17c7903ccf5cfcc8585863c5f55810b6e20710bd5f3904d83b81d9",
+        "classification": "declaration",
+        "owner": "SummaryObservation.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "ce2ff6ea879ce635200b95e0b3e951aae7bd7dc362db0e285c0d7168025905ab",
+        "classification": "declaration",
+        "owner": "SummaryObservation.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "085a6cfd056e64cacdbc547b5340ef4986ecb17288166cbd6697de6a17e821df",
+        "classification": "declaration",
+        "owner": "SummaryObservation.Field",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "1244d18a1eb6074a604b715db05d9184b59c4c3f6defd2e7091f8273efba6be4",
+        "classification": "declaration",
+        "owner": "SummaryContextReference",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      },
+      {
+        "id": "674ad85db9c8ae3b4546ce56df2a29a05a48b510233794c3180147a4674bf2cf",
+        "classification": "declaration",
+        "owner": "SummaryContextReference",
+        "reason": "Memory summary record/cursor/metadata/profile/observation declaration above implementation; producers and consumers use Owner properties, validation and projections."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SummaryRecord / SummaryMetadata / SummaryCursor / SummaryProfile / SummaryObservation / SummaryContextReference",
+        "declaration": "llm/components/memory/summary_records.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py",
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_summary_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_work_state.py",
+          "tests/llm/test_goals.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_memory_manager.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

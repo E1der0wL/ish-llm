@@ -3,6 +3,7 @@
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.components.goals.records import GoalContextReference, GoalDefinition
 from .snapshot import MemoryProcessingSnapshot
+from .summary_records import SummaryRecord
 
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
@@ -61,10 +62,10 @@ class MemoryData(ComponentData):
         if selected.has_goal_references and self._goal_references(session_id, selected.goal_ids) != selected.goal_references:
             from .component import MemoryConflictError
             raise MemoryConflictError("Goal changed during summary processing")
-        prior = selected.summary
-        record = {**deepcopy(record), "source": deepcopy(source)}
-        return component.publish_summary(project, session_id, record, expected_revision=prior["revision"] if prior else 0,
-                                         expected_generation=prior["generation"] if prior else None)
+        prior = SummaryRecord(selected.summary)
+        record = SummaryRecord.with_source(record, source)
+        return component.publish_summary(project, session_id, record, expected_revision=prior.observed_revision,
+                                         expected_generation=prior.observed_generation)
 
     @workspace_locked
     def _publish_candidates(self, snapshot, candidates, *, session_id, source):

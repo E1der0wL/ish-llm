@@ -21,6 +21,7 @@ from jsonschema import Draft202012Validator
 from llm.errors import CodedError
 from .data import MemoryData
 from .summary_storage import SummaryStorage
+from .summary_records import SummaryRecord
 from .processing import MemoryProcessor
 from llm.services.infrastructure.storage import atomic_json, read_json
 
@@ -106,32 +107,7 @@ class MemoryComponent(Component):
         return SummaryStorage(project, self).path(session_id)
 
     def _validate_summary(self, session_id, value):
-        if (not isinstance(value, dict) or not isinstance(value.get("generation"), str)
-                or re.fullmatch(r"[a-f0-9]{32}", value["generation"]) is None):
-            raise ValueError("Invalid Session summary generation")
-        if value.get("session_id") != session_id or type(value.get("revision")) is not int or value["revision"] < 1:
-            raise ValueError("Invalid Session summary identity")
-        if not isinstance(value.get("content"), str) or not value["content"].strip():
-            raise ValueError("Invalid Session summary content")
-        metadata = value.get("metadata")
-        if not isinstance(metadata, dict):
-            raise ValueError("Invalid Session summary metadata")
-        from .work_state import WorkStateMetadata
-        WorkStateMetadata.validate_present(metadata)
-        if type(metadata.get("coverage_count")) is not int or metadata["coverage_count"] < 0:
-            raise ValueError("Invalid Session summary coverage")
-        partial = metadata.get("partial")
-        if metadata["coverage_count"] == 0 and not partial:
-            raise ValueError("Empty summary requires a partial cursor")
-        if partial is not None and (not isinstance(partial, dict) or type(partial.get("offset")) is not int
-                or partial["offset"] <= 0 or not isinstance(partial.get("summary"), str)
-                or not isinstance(partial.get("digest"), str)):
-            raise ValueError("Invalid partial summary cursor")
-        for key in ("coverage_hash", "profile", "through_message_id", "first_message_id"):
-            if not isinstance(metadata.get(key), str) or not metadata[key]:
-                raise ValueError("Invalid Session summary source")
-        if not isinstance(value.get("source"), dict):
-            raise ValueError("Invalid Session summary provenance")
+        return SummaryRecord.validate(session_id, value)
 
     @classmethod
     def _visible(cls, record, session_id):
@@ -238,12 +214,12 @@ class MemoryComponent(Component):
 
     def publish_summary(self, project, session_id, value, *, expected_revision, expected_generation):
         current = self.summary(project, session_id)
-        if ((current["revision"] if current else 0) != expected_revision or
-                (current["generation"] if current else None) != expected_generation):
-            raise MemoryConflictError("Session summary changed during processing")
+        observed = SummaryRecord(current)
+        if observed.observed_revision != expected_revision or observed.observed_generation != expected_generation:
+            raise MemoryConflictError(SummaryRecord.CHANGED)
         result = self.deserialize(self.serialize(value))
-        result.update(session_id=session_id, revision=expected_revision + 1,
-                      generation=current["generation"] if current else new_id())
+        SummaryRecord.stamp(result, session_id=session_id, revision=SummaryRecord.next_revision(expected_revision),
+                            generation=observed.generation if current else new_id())
         self._validate_summary(session_id, result)
         SummaryStorage(project, self).write(session_id, result)
         return result
@@ -251,7 +227,7 @@ class MemoryComponent(Component):
     def clear_summary(self, project, session_id, *, expected_revision, expected_generation):
         current = self.summary(project, session_id)
         if current is None:
-            raise FileNotFoundError("Session summary does not exist")
+            raise FileNotFoundError(SummaryStorage.MISSING_SUMMARY)
         self._check_revision(current, expected_revision, expected_generation)
         SummaryStorage(project, self).clear(session_id)
 
@@ -298,8 +274,9 @@ class MemoryComponent(Component):
                 source(entry.get("source"))
         # 요약의 coverage hash는 전체 원본 접두부를 검증한다. 부분 삭제로 이를 깨지 않는다.
         for value in SummaryStorage(project, self).inventory().records.values():
-            sessions.add(value["session_id"])
-            source(value.get("source"))
+            summary = SummaryRecord(value)
+            sessions.add(summary.session_id)
+            source(summary.optional_source)
         from .compaction import Compactions
         for key, state in Compactions.inventory(project, self)[1].items():
             if not key.startswith(Compactions.CONTEXTS + "/"):

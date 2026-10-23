@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 506,
+    "files": 507,
     "unreviewed_files": 283,
     "stale_files": 0,
-    "unclassified": 21419,
+    "unclassified": 21314,
     "violations": 0,
     "incomplete_contracts": 4,
     "unreviewed_dynamic_paths": 285,
     "unreadable_files": 0,
-    "candidates": 27736,
+    "candidates": 27679,
     "issues": 0
   },
   "files": [
@@ -1504,7 +1504,7 @@
     {
       "path": "llm/components/memory/README.md",
       "status": "unreviewed",
-      "sha256": "03fa4860fa8ccf324bd1711cdb13296819f2d2e1b130686f43081a6664404c69",
+      "sha256": "7813ac80556bebd70062cb260e1e82d0b427c6308ce2f7846a0b457bb1dbbade",
       "candidates": 0
     },
     {
@@ -1522,8 +1522,8 @@
     {
       "path": "llm/components/memory/component.py",
       "status": "unreviewed",
-      "sha256": "d1802f0414a546be0108bcc317ae08d6fe0333009a40fed698747acbbc140f8a",
-      "candidates": 449
+      "sha256": "9a3995dfd36aefb4705ee623b88f510ac5e59258479fc1b1e3033b9e3c92ef60",
+      "candidates": 402
     },
     {
       "path": "llm/components/memory/consolidation.py",
@@ -1534,20 +1534,26 @@
     {
       "path": "llm/components/memory/data.py",
       "status": "unreviewed",
-      "sha256": "975558f083dd547e16ce8d02132d5a6c0a5530aba9014d1d32b141c5b0e8afbd",
-      "candidates": 208
+      "sha256": "9129f562a34c3f3d0dbf9baf0b994ea3934db190d871040fb6a2cb7b1515f337",
+      "candidates": 203
     },
     {
       "path": "llm/components/memory/processing.py",
       "status": "unreviewed",
-      "sha256": "b9b7c10c96075038cde7d6e772af9014b6b84a7e3d84f267f065971e1b56e0e0",
-      "candidates": 587
+      "sha256": "9b77669ae792e18f05b6b9c3d44e38684a519ac3608e13f831e73d05482c9cf0",
+      "candidates": 534
     },
     {
       "path": "llm/components/memory/snapshot.py",
       "status": "reviewed",
       "sha256": "20050a98a66470caf8d6eb323a46f3a5d4b53c2a4c19e838272971c047d8ba7f",
       "candidates": 7
+    },
+    {
+      "path": "llm/components/memory/summary_records.py",
+      "status": "reviewed",
+      "sha256": "a3d9a83554776b163f12389f27b76103cb1d1acba53f1c92f4ff592d26645383",
+      "candidates": 48
     },
     {
       "path": "llm/components/memory/summary_storage.py",

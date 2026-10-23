@@ -169,6 +169,12 @@ review = await memory.areview(session_id=session.id)
   contexts/<session-id>.json       # 현재 파생 요약, 고정 크기 원문 범위 해시, revision/generation
 ```
 
+요약 기록의 정규 필드·검증·Reader/Writer와 부분 cursor는
+[summary_records.py](../../llm/components/memory/summary_records.py)가 소유한다.
+Component는 기존 잠금·revision/generation 비교·저장 호출을 조정하고, Data/Processing은 Owner의
+속성·Projection을 사용한다. profile 입력의 기존 format=5 및 settings wire 키는 그대로 유지한다.
+선택적 작업 상태 의미는 WorkStateMetadata에 위임하며 새 기본값이나 필수 id 검증을 추가하지 않는다.
+
 Session 요약은 최신 캐시를 원자 교체한다. 전체 메시지 ID 목록이나 매번 커지는 요약 이력을
 중복 저장하지 않는다. 이전 요약 결과는 해당 Run의 Step에서 확인한다. generation과 revision을
 함께 비교하므로 캐시를 지우고 재생성한 뒤 오래된 요약 작업이 덮어쓰는 것도 거부한다.

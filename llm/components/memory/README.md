@@ -8,6 +8,7 @@
 | --- | --- |
 | [__init__.py](__init__.py) | MemoryComponent, MemoryData 및 관련 공개 타입을 노출합니다. |
 | [component.py](component.py) | 기억 레코드·revision·출처·상태·설정과 저장 구조를 관리합니다. |
+| [summary_records.py](summary_records.py) | 요약·metadata·부분 cursor의 정규 필드/검증과 profile·문맥/Step 투영을 소유합니다. |
 | [summary_storage.py](summary_storage.py) | Session 요약의 필수 존재 목록과 원자 저장·명시 삭제를 소유합니다. |
 | [data.py](data.py) | 잠금과 Project 수명 검사 아래의 MemoryData CRUD·검색·검토 API입니다. |
 | [processing.py](processing.py) | MemoryProcessor/MemorySession: 회상, 문맥·Tool 결과 축약, 요약·후보 추출을 조합합니다. |
