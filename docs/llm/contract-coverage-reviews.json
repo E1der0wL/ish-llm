@@ -28366,5 +28366,1116 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/skills/data.py",
+    "sha256": "c05f407dfd486ffee3b50ab1cef8e50386920c5f28f3738a19a27bd3d592b45c",
+    "reason": "Read complete Skill convenience API. Source fields/reference variants/lineage are interpreted through the Record Owner; current target validation, registry validation hooks, locks/CAS, original-file fork rules, dependencies/deletion and no-Tool-activation semantics remain. Direct malformed/stale/deletion/clone/backup/Resume/real-byte tests pass. Optional API arguments do not synthesize stored data.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8b61b8b4588aaed064f8da3cd432ef9fc792a3c03e82207f0f5afc18c08f15b0",
+        "classification": "declaration",
+        "owner": "SkillData",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "e73cb001f8f9f9f0c6f07002d9a774da7e8c756c3ea3bb5384938c9288aa35be",
+        "classification": "declaration",
+        "owner": "SkillData",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "5444997d6d873c70178647bdbda1f85559042a171a3e54477a8c4d1770a8c5af",
+        "classification": "declaration",
+        "owner": "SkillData",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "350d4880f904b8081780307c0d3a047e1a6151973327e90c76ba0f067abf0921",
+        "classification": "declaration",
+        "owner": "SkillData",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "7b328359b4ac1ea244d91c07bfdc0d11c60635c0e8bf8d0ac9a1f665e12415e9",
+        "classification": "declaration",
+        "owner": "SkillData",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "11d45346b3dfc7862c1060c0ff5cf84b5559a19b60ee4cf14e03dd510a4dbd2e",
+        "classification": "declaration",
+        "owner": "SkillData",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "10723f9d5c60c3b1ebbc0b94c41c15930d618c5dafb69ce67ab24b6f85973247",
+        "classification": "declaration",
+        "owner": "SkillData",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "3e704f3b11a7a4b913c87534bc08e7249939e97dbf5b1fc0a1a1084d96e82266",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "e39cf07e46579dffbaea963a35749e353122132ca083daefcec52d414c992260",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "2f1e4e2f446593bd4ed6ee52544ef00dc6d8cdb7c77837d4861eb25914d83faa",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "c49648bd5af35021a0c6c8f04b4f006ad79a72a695e158ce62e49dabe4e96980",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "fda60be9c2ae242f3a7dafab68838c58f2f341d00a10a104e07d77433dd157b0",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "0970443ef8b192c046ebb74b15fcaa8bc3c942e63491edbae2526bb4ef6cad76",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "99369e525d30c5d0f64fda9278bd353fd32fab9d16351425de126157a285b4cf",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "aa6e0b512ac17ab82fdff7768ed73281011900a5fd76bdda10def01ac7e09bab",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "7e95920a672967b240abb08c9cc2be918ac9ef99d9b43d3498d9cca82f9367e0",
+        "classification": "non_contract",
+        "owner": "SkillData",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SkillData",
+        "declaration": "llm/components/skills/data.py",
+        "consumers": [
+          "llm/components/skills/component.py",
+          "llm/components/refinement/data.py",
+          "hub/backend/tools/skills.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_typed_contracts.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/tools.py",
+    "sha256": "431b2cd1ca97d13c6140b34133c7f7beb0a582fe83ff6965e31d35b7aa412c13",
+    "reason": "Read complete Tool registration and callbacks. Request/response types own wire shape and descriptions, same read-only effect/isolation declarations and raw-record revision hash bind the Run snapshot. Callback availability/required revision and invalid index/path prevent external effects. No instructions grant authority; exact existing text/contract/wire output is preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c982afe6891d524e8bb9ba43cf7a4e36477ccc5c50bc9d5cb9ea7ad3ec7b9ade",
+        "classification": "declaration",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "aa594fccf279d4eccf7c430237ef0b2b5e9c5fbaf0c92e2dcdd2932496a67c38",
+        "classification": "declaration",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "cb968554f80c0069116fe604451231de131545600ea58be0cfce777088b7e36c",
+        "classification": "declaration",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "ca6aeeae69f0d5fdebfc9db05bc1a6231cd61b6d7fe88d0cc687d4b397a773bc",
+        "classification": "declaration",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "fcc6e446ee2ed2d1c9e91c0c87a85fdc2b56514a2a00a4955713210a436d96c8",
+        "classification": "declaration",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "0d36a9311f2bb808bdf275f7d78237fcc464dfd38f0217696b550c3447ff460b",
+        "classification": "non_contract",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "63973206514e184bdf492a97858288510c4e836b61bd1562fdc5c3cb9c1cc48e",
+        "classification": "non_contract",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "ca6c8f11419d6e97f11b7f39ba14e8605437d7e78c0c0cb9095165ebf2771597",
+        "classification": "non_contract",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "fe69d777287c986a87bd35f592e7af45ffaec13c65ca169cfba7455209f77102",
+        "classification": "non_contract",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "35291372d1a9b7d416f3248a308acfd1286efe9aa789be6ed0f83107e8e471e0",
+        "classification": "non_contract",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "c46e88cac45a7b0851fb977eaad3783deb15824c4781c4ab7b86116c3dc5fa5b",
+        "classification": "non_contract",
+        "owner": "SkillTool / skill_tools",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SkillTool / skill_tools",
+        "declaration": "llm/components/skills/tools.py",
+        "consumers": [
+          "llm/components/skills/component.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_typed_contracts.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/views.py",
+    "sha256": "12ac59b5a47c25366c663f0bc82e28768fe2ad288fb592458d701d6782e5839a",
+    "reason": "Read complete typed requests, Schema generation, pagination/search and file/reference response projections. Declaration metadata owns selector choice; common SchemaKeyword owns vocabulary. Three public schemas and 36 valid/invalid requests match the prior source; no missing option is stored. Pagination positional last-element selection and optional absence are ordinary value/algorithm expressions.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5a4519c77c6aa152b80171a4643c054c309dc6f48a7bba8725ffa02be41978af",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "3b50c990e14f90081c12386eaa31b958ad3034d221db0598431ceb5e87293acb",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "daf46514d18c4299c270b198308c1841fd7f3e4b28d0ebc03953e16b6997d59b",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "291305aed7664bffc38f7d97ae8945988908a154233337e8f308cbc4e383ef79",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "a910532261ffe174f56d47805c9a209b8dc7fc201fdba5c2304d434b5d43291f",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "12ed86f87ac6c0659238aac2c89f5afb0c3534425568d2d0e388d7fab4aa683d",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "d8abdc4ce1dd7ffe4e1e17448396fc9be2b613b075221676b0b80af4130840c4",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "782323b1ccb251e6b62fcfdb0f08811423d70288d21b0bb529d04bf7ba8c00db",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "096b492d0dfa14e9b681d2a68c12e6429e5c8ee6dc0cc8ca4ca8c3da413c813f",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "85a6d1211ec518b1b121bd52071c8347bc9b549e6b5bd26272a4c150f3db8a14",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "1cd8eca249e97bf9f095fae64046573589c03b7ecd2c474948f25a08e7a0c1f5",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "138106f267e0cf53019c1c68a71f382f561830044745b1e8a4e77bc0081cca2d",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "d9dea0c369ad675e27bdff470e0e4a273bb7e858cafeed78d09c912ae4a2379e",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "c0bddb2dd29f10fad4e83289feef6605eb8ecc49ebb250825fa419e00ebeb79e",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "891d5187200f61569b5cee603c0a96e07d1f26b9258af46b2f3fd7344ead2ba7",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "aed54734bc6d61b79cc4da8d43631ad320950caea48d2535e4caa996b3882f85",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "3d71d91557c726586d2549277d3a7a1b525317ba665731fd2772b0051390acbd",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "b57a396fd8e30837a062e41bf8d3e2fc0e42958ef3050372284a45c231fe527b",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "1169886312e6f1420eb14e2412206885e50f224af1a543424ab9c6d18377d86b",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "370c531c0fbfc3287381b1c7690d8c9cb1d382f1ddb8466a7d59b485b5c4ded1",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "d08f5be6d7a0f3e2bcb49fefde2ae9b102e745839087ba74f552952e5bb91cd7",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "07f83eacc79642b2acf91d9a17369acce7f2e856de6a195b6ee086d0bfcd3d19",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "e6507a59128d55d4ae89f98894f3c54f57b35b99448bb59b0a57a25ec7bdb92a",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "190a6a5a9d80719485abedfa78d0706ef1ca97a01be27adaf48c8510edc656a4",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "69a2f29ccd96ea2f8e1298464e287c63d4a139d3bb40df857a5a2d56afa4205a",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "dedc4fb1c186dbaba5c4eeb45e7943202ee220a44cc433260c3b1386e33849b0",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "8b1bff5cd028848084ebfa684786820b7109180df092b86c8d1a21beb3aacc7b",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "0fccfd146d6092676dc03fce7f85a8a085324943becc3d71f3ff24b4db3a791a",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "126837f120fc494484a6f156c73bff269de01e604c0c0e4e930a7018200c2529",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "8479c9cbe65fae9ecc79be9d96bbdbaf8675c0cb11c60e2be563ff9f972b4d2c",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "dd2d0a53ccbc4b536ac9927c15623ecd47cf58fc7e4c716e1857d76297ddc526",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "f67ee0e9bcefb95e8cee0d8db134a4176b80ff971fd4ffa1f387c86e318ebcfa",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "45e0d6fa56716d13d7750e0e849a71593e2fa16bd2d7acb71472f80bd50fe20e",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "652b5b770c257b1d04e323b0a6c62ad003a7f43ab3444685e82cbd668df6cce9",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "9c26f26dd0e4dc77a2a9701d0825a731047a7c1ff8c4b9528a8cf0f27c30e210",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "a069034f5d1b9563a209dfb9c670d1412afb8943d959c2f755a631eb842ce9e8",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "9ea5dd51680fb0deaf8919ecbf4d162fe58ed7a50d3c8f23f225e2e6ef4dce0b",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "ec2f6492413eb641833d87453a548fe3ded9f021da5a3153b62174fb6afc0db6",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "9e7d0fe2490f1d3f446c2e0dbd1a75f44319f3bd7238e092b1aab641e655421b",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "67fa6b2162226fa189dc92deb7f679ad0e4affba28aa1000ecf1cf051f8b4dea",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "81bd9963576a5647deea7513520671f278ff690fcbfa658c74515c5183e1b555",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "a8029bc21c0e04a664bda102286073cd3a330918200402887577a6d501a41c6b",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "01e5238d6e94f4929b479b76cee18d2032c3519edfd93e50b9efb4aedb66beff",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "ef42e1ba3006fe7c5cdf59fbc424622c0c9645a0baad452c7b6b678bea8586cd",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "9db031b927ef2b6a6cf3e6e51c2b9fd33946239476845d0d3d81e80083890075",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "557b19b64b84b4d50135bc1002e4226e3e04fd5f0e9f2da675a11a4d8435c92f",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "ca0d061ae518de6ae6752792f132f3fffa7e8281cb3bea11d5f126c396f4acc5",
+        "classification": "declaration",
+        "owner": "Skill request / response projections",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "acdc0595e5abbe9d50d600753647d08840a3a1b838789a182e5a1077f54329f5",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "826be86d8c5ef57c376dec2cbc91ce6b2d98f37fd77642947f9cc2c9a1f58a59",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Negative last-element index of the already selected nonempty page; not a page limit or stored identifier."
+      },
+      {
+        "id": "19a3905dc1922d78aaa6c5dcb1abe331c407724a6fde5d43d45be63114ac51bb",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "ce7a4effd0277e1e3fbb91a32d5d12e04fcd87396676b351502165943baf200c",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "dd3fc5764a829953b37f99fcff6907355941b5eff1be0d60b481e2d147c9d192",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "1beddac0671d1c25b45d92b7483ce7ce5d985542c6bad88f2a8749e8c8f80da1",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "24c19ce3793b00a7f600a1a1243c9d38796819b9fddebe0e9fd2acc08bb3c666",
+        "classification": "non_contract",
+        "owner": "Skill request / response projections",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Skill request / response projections",
+        "declaration": "llm/components/skills/views.py",
+        "consumers": [
+          "llm/components/skills/tools.py",
+          "llm/components/skills/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_typed_contracts.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/skills/records.py",
+    "sha256": "1e46552348a0bf95fe46010acf0b7509e8f35f43cde2dd1fc39dfd9ce6a9f872",
+    "reason": "Read complete canonical Schema/reader and detached snapshot/reference/lineage/file projections. Stored Markdown remains the only definition. Data/Tool target selectors refer to their registration Owners; lineage field declarations generate its unchanged Schema. 89 record cases, 26 valid wire/revision roundtrips and independent deep-copy/omission/invalid-evidence tests preserve behavior. This contract remains incomplete because SkillStorage still constructs and reads operational catalog/entry and record containers directly; typed storage closure is the next phase, not an exemption.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "89b29cd9478bc1518c2db1d3a78e0c2d04435bac70c6524813f512929bcd5a66",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "1c6055505193c1722aa391d512d8787fa0b33a710c1b9dd2fb2b14d83bfecde3",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "98fc97afe02d1c9d0f95ff01dd6e24b5d58e10c75f71e9b1fe004d7d9506fa8f",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "2b1dbe9fc24a9d07d701db23565abe4dca835cff7542c603110bef9b3599bb12",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "09d766d65e92c0f93ea77ccb963397f47297ea3340f901a938bb094e8d3ecac1",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "c048f822cf639a19a86894f01fba55821643df871033bf1dfd24cea716a2aab9",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "f19c80ff2dd631f546d0480a456eb3163513519ff950edf7b192c76582385eed",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "1141c323abbf10552989b70ed639190720fa5494f4e8ce800522d3884888f041",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "f5eda12b13d6a4a508547d006cf1b0b76e403d819254038ba736ad11b68997ff",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "11f035147d2345aa023763342a0131f4c7c0307ba26559c8ffc4543f28d747ce",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "1ba5df06009bf6951d324eeee33099db6cff41eba1e094f8d5a5ed31e589e042",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "e8c7031b426423a3dd65564d64dadea08a99c2a6f27b5a5b0078c6875c0e90b0",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "5a136e7685d30d625eaea14ebc0d4cfcb771ac19651fa1b8f45eb447b38c3322",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "b39095135c1381939580706c00da1d9a997976f6425bf62ca14fa0ab78be004b",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "25b0d9ec541a5b26608ddac7a2271682205fbe427934a13868a60cd680f097e8",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "1af15146624b3208ffc1f57c666c12f3f9f0a9363561ec7571093e44e24c9e44",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "300d3cc12e594241f15e3b7d67bdac3576c2561717a7dc7e24f6439462ae4d89",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "263ce81d750c8d278cdd92ad871003c424991dee552b5fdb729f06113fb1e0e2",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "29e27f329962f27c24c0ca8b98c66866c92fb2096515b24c13782cb1c4814d9d",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "bed92918ca135a49c419ee503a05ec2ae78754dc91a016f68f7ecc9971930315",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "b2a3b18f04adb69078c228909d3ef0c6872a36ef02877e234e62387eaacf7b6f",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "6ac97a9d675e698c8725b245922c9c2ebfa0694bcfe453b4bddf44a19bdd48b8",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "b8c9e3315037d6ed6cfd433574ac04cce30e04368c017838e73237ac1e80517b",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "00fa8d4c5bd321921a2976a8c803365ed6cae7efb5614dded1d2329154d31d81",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "9ed03543b36da11f2d312a621ee916062bdff17df61c2097c9f94332109feac1",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "6ff9b5ccd7a7ed0345de23a469bf2ac5dad87b72751471577faf828379c9e4ce",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "1c50d4dc47e597088f92a228a6531cede8f7f4b1fd95615286958d5b56671599",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "d0a130dff3e9bdc7e1e0687c1483246ecab55d1ba6b5faeef1470fdb1eea167d",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "8371a42c7fa6bc63052cc184e13540b6d326c2b2ea9133f1d203fb9169cf1462",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "5ba00a6f973303cd4437069c85a5b831feea7c214a0c7edf7dbf386a1d60f702",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "727c523efb32f7da13715071f4b6f41ecb62dac624265512651b6090230165de",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "8f5616ea94d504a2f29587c9b8e71ad173353e93258af56e1c8e5092f85db9be",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "3f2010ad530b14e9c81ef22478c978adee9de6338206bb1ba5afcb58e699f010",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "95f171ad8d6daf9fb092eabf84968a08b8e5d38a15a562e30faa6978c18f1492",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "77d6ba7da95d9d0505d7ee583e4042413c743fe5a36a460ed06f1e3cc229a442",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "6a461a91223ac020febdd9b1d5865f4478e9571fafb0dba8c511ab78d20d71e9",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "5594f1c093d5d2a9d9d9361d5c85e874e90906392b8bd579a4c5eef729ad6e46",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "7500744633b3f2311413b0152dd22ecd469722ac6384d28457bbd5609c36f4be",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "03f50c8398ab6b79967931c0e06e293ebbb967d56f97d18006320545c3747d34",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "a366286a5bcb889ead8d42499a01d1b5af6e8a2b7d7d318ff2f83a4984f158de",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "93bf0a78078d521f92f7501bb92bc07376310a4cdcf307180579ced58e7f328c",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "71dcecb5f795bbe7308b0b880bfd29b33999c360b1ab31e8a684dc1880cd6360",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "a8b1b325707578d3b704d36dc2b6ecba3f2bf2ca50e2511d6378b432358d8381",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "9549fffb4ff6c22e0ebb174821517581cd7a1f0d3072ac091050345ec1afac80",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "7464dcddc784781944084ba4fda5114319055d624809cea3f255fd2878cc697b",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "8ae5c49da9c0004d80bbb795a655d36356d0c41c7dc5f03f0cefaca6e412d217",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "c76c2db4c7dca30f32bee734198d8eba51f656b3878cc9c1310a1b5b6cca86cf",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "a2ddc11ff0063515f2e2c7fc258f843b5d5779ca10e4668851c9f85ab4b5f373",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "ad6dcae6ce9d72f7aea3009dadb76140cedf8f41145b2ba5942584d7149858f5",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "3d5784221d9cf7e55745a4c92630492ff45f38814bd64bd54416ba4e7470fa9c",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "8a70219916d95845edc6da0bca63c84a3978c1876aae0447fa4e9ff4fed2cfe7",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "17c9bd0648838531c82130b86dfa4d8b841681bff3f011a35c17b2a1650ba330",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "184b89d95ff36f68de76d15c8aba3dc5752a2d6c7b766cfc6c7c1e83aca41f01",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "d1e1c71f54a9bc869ffc855496ede8725a4b4deeb499df93b331941993c5edff",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "e44e57e66380c8cf753e244ba78efdbdca09d8eeaf4beb25b48587f77f30a476",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "3ee8d57d6af6c51b06517eab35b031ada9898c0831c84ac3226f5c204d4959a4",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "b4dc73dd724aaaa0f1b85a44c3e83e1befcb123adc5f196b0424dd572da856bf",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "0ca240c7ca386a91e01e2c21eab1f1d3ab7aa2709eac26bb1c046544c3169e3e",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "06f0a6035f9ae589c1bcaed108491f24f23a7148f88fac4261172ffb43db2183",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "e01d86e874c424c3f73d809b8799ec1f1882a86ed3e60c6880c25a87b557f674",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "98ccc219bf27739520b56d28a384eb34d67077e619b003b3c955cb1ddc0a2a47",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "f45e7774a5afae1d10a4b3e3a02394ce10a096034db5b1ff61164a2ce0e6c436",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "338c05854741f0dd2f2d6766536ed4cf1e82763155cfb044d716da264d0fb3fa",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "4da2e4f2fa583b329b8dffefb4ab016a9261f404abaa4ca0db84049ca264ea26",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "9f00fa0d6d1b2e8f644918944949a6a08304788090c8a0770f6d1be77079a544",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "90adc0353ac31a19d1a4306899970cf3c50c013b8f69c09383a9195327a8201d",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "00aa8d0ebb57c511bd66a8eb8bf95c1d3f7a1c9db12a851a431ceeb4017ce0a1",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "067b2315db0907892d8d8d6e87170d3de3d0b4d86b8f3205b6c407d7d2fc2b63",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "528dc271d12a73edfd959aae42c27eeb0238c0ad6e2d81b7d98f2cd1dbc3527f",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "08981850aa0ab827b9b71cc6897f99ddae8372ada6c440eb00f301dc8b660847",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "2d1f43b4386c121c171fc52f3498c4fcdbd574b5c51a767b6efe3b3e8690519e",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "af3af9db25a73034500d2f4b1a59ad9d550c5811e780a76a30f5e744b4bee53e",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "967f3e81166df991a21e30e53d8aaaf61475036f46ed009b1b4af90bb155b09e",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "6f80e27ca05d424fee4b770b808acf38da1673eb81b29e81bcb126c367ec8dd6",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "f523cf1be47dac13ac326b7a6b716e5210ee0f8f4dae56883e011e62a7c65859",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "fbee8f03bd480c6da5e24a52b0c71396e5378007798a1c5683a16d4926e4c744",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "13cdf54a078eadce1722dd8150960f2e8e12d5f8d81e511a4f47d29dc9ad968d",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "32b496c97aec793d84c66b39cf968334dfbf88889220febb53e1048f7fbc7003",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "752524e60ee1302f5ab93badc0098ab4d48d57304cdfae3bd602d5bfd4e50516",
+        "classification": "declaration",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Canonical Skill fields/Schema, request metadata/descriptions, diagnostics, resource selector or lineage constraints in the Owner declaration."
+      },
+      {
+        "id": "0f6c341400a81eac437e662e2349287b35ede933bb4841a66083140926e0a9b8",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "b65d447d2cb0334ead9a7b5d75bf4858ab875282ec4b4de74a187ba7c6194977",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "425f0a2e12fb21a75031d58714b5cd199735a2a3c359cd795420b45ae30826f1",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Optional API/runtime callback, formatter validation result, or absent declared optional field. Original omission remains distinct in the raw Record; required reference evidence is validated, never synthesized."
+      },
+      {
+        "id": "1c8e1b32b78048b5d6fb00b14cfc50ae563752df48fc18feac9fadfad011eb0a",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "fcd96d5802727bb3408436bdc03aa2876127d73fbece9ff29e396fec89425fc6",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      },
+      {
+        "id": "1fd62439cd1993c6c2cf0b60c1cb2d23c1335ec4ea2411dd8fa9cbe6482239fe",
+        "classification": "non_contract",
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "reason": "Dataclass decorator declares frozen/slots/custom construction Python behavior; not a permission or runtime policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SkillRecord / SkillResource / SkillLineage / SkillSnapshot",
+        "declaration": "llm/components/skills/records.py",
+        "consumers": [
+          "llm/components/skills/data.py",
+          "llm/components/skills/component.py",
+          "llm/components/skills/storage.py",
+          "llm/components/refinement/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_typed_contracts.py",
+          "tests/llm/test_refinement.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": false
+      }
+    ]
   }
 ]

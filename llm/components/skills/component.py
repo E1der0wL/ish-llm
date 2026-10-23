@@ -17,9 +17,10 @@ from .data import SkillData
 
 class SkillComponent(DefinitionComponent):
     name = directory = "skills"
-    capabilities = ("skills", ToolRegistry.CAPABILITY)
+    capabilities = (name, ToolRegistry.CAPABILITY)
     data_class = SkillData
     schema = Record.SCHEMA
+    INVALID_FILE_CONTENT = "File content must be bytes or text"
 
     def storage(self, project):
         return SkillStorage(project, self)
@@ -61,8 +62,8 @@ class SkillComponent(DefinitionComponent):
 
     def write_file(self, project, identifier, path, content):
         if not isinstance(content, (str, bytes)):
-            raise TypeError("File content must be bytes or text")
-        with io.BytesIO(content.encode("utf-8") if isinstance(content, str) else content) as stream:
+            raise TypeError(self.INVALID_FILE_CONTENT)
+        with io.BytesIO(content.encode(Record.TEXT_ENCODING) if isinstance(content, str) else content) as stream:
             self.storage(project).write_file(identifier, path, stream)
 
     def import_file(self, project, identifier, path, source):
@@ -107,11 +108,12 @@ class SkillComponent(DefinitionComponent):
     def references(self, project):
         refs = []
         for identifier, value in self.list(project).items():
-            refs.extend(StoredResourceReference.from_value(ref, identifier).to_dict()
-                        for ref in value.get(Record.RESOURCES, []) if Record.COMPONENT in ref)
-            if Record.LINEAGE in value:
+            record = Record.read(value, identifier=identifier)
+            refs.extend(StoredResourceReference.from_value(ref.to_dict(), identifier).to_dict()
+                        for ref in record.resources if ref.external)
+            if record.lineage is not None:
                 refs.append(StoredResourceReference.from_target(
-                    ResourceTarget(self.name, value[Record.LINEAGE][Record.PARENT]), identifier).to_dict())
+                    ResourceTarget(self.name, record.lineage.parent), identifier).to_dict())
         return refs
 
     def resolve(self, project, capability):

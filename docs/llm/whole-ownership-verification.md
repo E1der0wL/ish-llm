@@ -2215,3 +2215,69 @@ RAG·Agent/Graph·사용량·관측의 직접 소비자와 승인·예산·효�
 잔여는 계속 진행한다. 소단계 Level 2이며 전체 회귀는 후속 관련 게이트에 묶는다.
 진행 중인 81c671a gate17은 이번 변경을 포함하지 않는다. 아직 이번 변경의 Push/원격 통과를
 선언하지 않으며 이후 현재 통합 소스의 전체 검증 성공 뒤에 진행한다.
+
+
+## Skill 참조·lineage·파일 Projection의 단일 Reader (2026-10-23)
+
+SkillRecord.read가 원래 Schema로 검증한 분리된 원문/운영 Projection을 제공한다. SkillResource의
+속성, SkillLineage의 필드·Schema·직렬화, Record의 파일/본문/부모/선택 API를 SkillData와
+Component 참조, SkillSnapshot 및 Refinement fork의 lineage 조립이 공유한다. Target 종류는
+DataComponent와 ToolPaths의 등록 선언을 참조한다. Skill 본문의 유일한 원본은 계속 SKILL.md다.
+내부 JSON 정의를 새로 저장하거나 레거시 Reader를 추가하지 않았다.
+
+원문·생략/명시한 빈 파일 목록·revision 입력을 보존한다. 외부로 돌려주는 Resource/문서/JSON은
+분리된 사본이다. 조회는 Tool prepare/import/enable/execute를 하지 않는다. 대상 snapshot과
+pinned revision, 등록 파일, 부모 버전, immutable lineage, 참조 삭제 보호, workspace 잠금/CAS는
+그대로다. Refinement의 승인·효과 경로는 바꾸지 않고 기존 rename 뒤 lineage 조립만 위임했다.
+Tool 요청 타입은 기존 설명·Schema metadata를 선언하고 공통 SchemaKeyword를 참조한다.
+기존 read-only/승인/operation-key 계약과 모든 실패 재현 Assertion을 유지했다.
+
+a8fff13 대비 Record 전체 Schema·Resource/Lineage/File Schema와 Tool 요청 Schema 3개가 같다.
+Record 89개 입력의 값/예외 종류·문구, 정상 26개 원문/생략/revision roundtrip, 요청 36개와
+Tool 호출 9개 결과·오류·설명·계약을 비교했다. 독립 시험 3개는 사본 변조, 원본 생략, 누락된
+revision, 허가 필드 위조, 네 참조 종류, 잘못된 index/None과 lineage 사본을 확인한다.
+초기 기존 시험 42개 pass/exit 0(8.243초), 추가 보강 후 52개 pass/exit 0(32.055초)다.
+
+- `whole-skill-record-values-01`: 발견/시작/pass 167/167/167, exit 0, 69.988131초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-skill-record-values-01/llm.json --modules tests.llm.test_skill_record_values tests.llm.test_typed_contracts tests.llm.test_skill_tools tests.llm.test_skill_references tests.llm.test_skill_packages tests.llm.test_agent_skills tests.llm.test_refinement tests.llm.test_stability_refinement tests.llm.test_resource_references tests.llm.test_agent_resource_integrity tests.llm.test_definition_components tests.llm.test_engine_layout tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `6679c8083573fecf906893679182f89db6d7bafa75acd53ea87924bd74fdbaa8`, input `479322243456a19a00983da290117d914d40e5daf25575b4537c22f76c78c2f9`.
+
+- `whole-skill-record-values-hub-01`: 발견/시작/pass 22/22/22, exit 0, 189.853647초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-skill-record-values-hub-01/hub.json --modules tests.hub.test_resource_tools tests.hub.test_coding_skill tests.hub.test_components tests.hub.test_component_managers tests.hub.test_usage_definitions_system`. source `6679c8083573fecf906893679182f89db6d7bafa75acd53ea87924bd74fdbaa8`, input `479322243456a19a00983da290117d914d40e5daf25575b4537c22f76c78c2f9`.
+
+각 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0이며 전후 manifest가 같다.
+Python 3.12.14/Clang·고정 Host·의존성·namespace/X11 환경을 유지했다. 실제 파일·장애 주입·
+stale target/Resume·clone/backup·삭제·usage와 기존 승인·예산·효과·Checkpoint·RAG 안전성을
+검증했다. 두 실행을 전체 회귀로 합치지 않는다. Level 2 완료이며 후속 SkillStorage 및 관련
+Component 변경을 묶은 현재 통합 gate18에서 전체 LLM/Hub 회귀를 수행한다.
+
+정적 발생은 118개다. _target의 같은 S4 revision 비교가 속성 참조로 바뀐 한 발생을 다시
+검토하고 이전 근거를 보존했다. 바뀐 의존 증거 5개만 갱신했다. 감사 갱신 보조 스크립트의
+지역 변수 충돌로 첫 저장이 실패했으며, 당시 정적 검사는 exit 1로 차단했다. 스크립트만 수정하고
+다시 검증했으며 최초 실패 결과를 성공으로 바꾸지 않았다. 최종 정적·문서·R3·SDK·양 환경은
+각각 exit 0, 감사 자체 16개 pass/exit 0(3.103초)다.
+
+Data/Tool/조회 3개 파일의 전체 소비 경로를 검토했다. Record 파일도 전부 읽었지만 외부
+SkillStorage의 운영 catalog/entry 및 직접 container 조립이 남아 그 계약은 incomplete로 명시한다.
+Component/Refinement의 주변 미전환을 완료 처리하지 않았다. 현재 483개 파일 중
+미검토 336, 미분류 24692, incomplete 3개다.
+다음 단계는 이 저장 Reader/Writer 연결을 끝내며 전체 작업을 계속한다.
+
+### gate16 원격 결과와 gate17 Push
+
+7fc8404b3ed263322ff06ef11cf7c466a2605fa4의 원격 CI
+[39967504376](https://github.com/E1der0wL/ish-llm/actions/runs/39967504376)를
+2026-10-23T14:49:16Z에 실제 확인했다. LLM 2463/2463 pass(2026.885899초),
+Hub 586/586 pass(1475.405632초), 두 필수 Job success다. failure/error/skip/xfail/xpass/
+누락/추가/중복 0이다. 원격 Python 3.12.14/GCC 13.3.0이며 로컬 Clang 환경과 같다고 표현하지 않는다.
+현재 소스 전체 완료나 이후 변경의 원격 검증으로 승계하지 않는다.
+
+고정 81c671a096537dab69fdea1210b2547effb25b49의 gate17은 LLM 2463/2463 pass
+(1428.249490초), Hub 588/588 pass(1131.273635초), 각각 exit 0이다. 모든 비성공·누락·중복 0,
+source `6196a90929eede7f3a3bdc83da80af0a61069d76c4186eefb87f66ad47d703bb`,
+input `b0b52c5103482d34b15a9b5b530b805b9e90cf1604c56e4ae656561d743951af` 전후가 같다.
+명령: `python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group17-l3/llm.json`
+및 `--suite hub --output /workspace/llm-clean-resume/b/whole-owners-group17-l3/hub.json`.
+고정 checkout의 정적·문서·R3·SDK·양 환경도 각각 exit 0이다.
+main/refactor/llm-backend 원격을 확인한 뒤 이 정확한 SHA만 refactor/llm-clean에 Push했다.
+Draft PR #1은 변경하지 않았다. 원격 실행은
+[39973856496](https://github.com/E1der0wL/ish-llm/actions/runs/39973856496)이며,
+2026-10-23T15:00:25Z 확인은 in_progress다. 실제 종료 결과 전에는 원격 통과를 선언하지 않는다.
+a8fff13 및 이번 Skill 변경은 gate17/해당 원격 SHA에 들어 있지 않으며 별도 후속 검증 대상이다.

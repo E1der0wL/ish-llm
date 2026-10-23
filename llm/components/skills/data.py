@@ -9,7 +9,7 @@ from llm.core.editable_snapshot import EditableSnapshot
 from llm.core.agent_views import AgentSnapshot
 
 from llm.components.files import FileData
-from .records import SkillRecord as Record, SkillFileEvidence
+from .records import SkillRecord as Record
 from .views import SkillFileView, SkillReferenceView
 from llm.components.file_evidence import FileEvidence
 from llm.services.infrastructure.locking import workspace_locked
@@ -17,38 +17,47 @@ from llm.services.infrastructure.storage import async_method, check_revision
 
 
 class SkillData(FileData):
+    INVALID_LOCAL_RESOURCE = "Skill resource path must name a registered file"
+    STALE_REFERENCE = "Skill reference revision changed; explicitly update the reference"
+    INVALID_DATA_RESOURCE = "Skill Data reference must name a registered file"
+    IMMUTABLE_LINEAGE = "Skill lineage is immutable; create a fork instead"
+    FORK_FILES = "Fork must preserve parent files"
+    REQUIRED_REVISION = "Resource reads require expected_revision"
+    HAS_DEPENDENTS = "Skill is referenced by Agents or child Skills; remove references first"
+
     def _validate_resources(self, value):
-        for ref in value.get(Record.RESOURCES, []):
-            if Record.COMPONENT in ref:
+        for ref in value.resources:
+            if ref.external:
                 self._target(ref)
-            elif Record.PATH in ref and ref[Record.PATH] not in value.get(Record.FILES, {}):
-                raise ValueError("Skill resource path must name a registered file")
+            elif ref.path is not None and ref.path not in value.files:
+                raise ValueError(self.INVALID_LOCAL_RESOURCE)
 
     def _target(self, ref):
         """참조의 public snapshot/file 계약만 사용한다. 대상 저장 경로는 해석하지 않는다."""
-        target = self.related(ref[Record.COMPONENT])
-        snapshot = EditableSnapshot.read(target.snapshot(ref[Record.IDENTIFIER]))
-        if snapshot.version != ref[Record.REVISION]:
-            raise ValueError("Skill reference revision changed; explicitly update the reference")
-        if ref[Record.COMPONENT] == Record.DATA and ref[Record.PATH] not in target.list_files(ref[Record.IDENTIFIER]):
-            raise ValueError("Skill Data reference must name a registered file")
+        target = self.related(ref.component)
+        snapshot = EditableSnapshot.read(target.snapshot(ref.identifier))
+        if snapshot.version != ref.revision:
+            raise ValueError(self.STALE_REFERENCE)
+        if ref.data_reference and ref.path not in target.list_files(ref.identifier):
+            raise ValueError(self.INVALID_DATA_RESOURCE)
         return target
 
     @workspace_locked
     def create(self, data, *, identifier=None):
         self.registry.get(self.name).validate_record(identifier, data)
-        self._validate_resources(data)
-        if Record.LINEAGE in data:
-            lineage = data[Record.LINEAGE]
-            check_revision(self.load(lineage[Record.PARENT]), lineage[Record.PARENT_REVISION])
+        value = Record.read(data, identifier=identifier)
+        self._validate_resources(value)
+        if value.lineage is not None:
+            check_revision(self.load(value.lineage.parent), value.lineage.parent_revision)
         return super().create(data, identifier=identifier)
 
     @workspace_locked
     def save(self, identifier, data, *, expected_version=None):
         self.registry.get(self.name).validate_record(identifier, data)
-        self._validate_resources(data)
-        if self.load(identifier).get(Record.LINEAGE) != data.get(Record.LINEAGE):
-            raise ValueError("Skill lineage is immutable; create a fork instead")
+        value = Record.read(data, identifier=identifier)
+        self._validate_resources(value)
+        if Record.read(self.load(identifier)).lineage != value.lineage:
+            raise ValueError(self.IMMUTABLE_LINEAGE)
         return super().save(identifier, data, expected_version=expected_version)
 
     @workspace_locked
@@ -56,49 +65,49 @@ class SkillData(FileData):
         original = self.load(identifier)
         candidate = {**original, **changes}
         self.registry.get(self.name).validate_record(identifier, candidate)
-        self._validate_resources(candidate)
-        if Record.LINEAGE in changes and original.get(Record.LINEAGE) != changes[Record.LINEAGE]:
-            raise ValueError("Skill lineage is immutable; create a fork instead")
+        value = Record.read(candidate, identifier=identifier)
+        self._validate_resources(value)
+        if Record.read(original).lineage != value.lineage:
+            raise ValueError(self.IMMUTABLE_LINEAGE)
         return super().update(identifier, changes, expected_version=expected_version)
 
     @workspace_locked
     def fork(self, parent, data, *, identifier, expected_revision):
         """명시한 부모 버전의 참고 파일을 복사하고 새 정의를 저장한다."""
         project, component = self._edit(parent, expected_revision)
-        original = self.load(parent)
-        value = {**data, Record.LINEAGE: {Record.PARENT: parent, Record.PARENT_REVISION: expected_revision}}
-        if value.get(Record.FILES) != original.get(Record.FILES):
-            raise ValueError("Fork must preserve parent files")
-        self._validate_resources(value)
+        original = Record.read(self.load(parent))
+        candidate = Record.read(data)
+        value = candidate.with_lineage(parent, expected_revision)
+        if not candidate.same_files(original):
+            raise ValueError(self.FORK_FILES)
+        self._validate_resources(candidate)
         component.copy_record(project, project, parent, target_id=identifier, definition=value)
         return identifier
 
     @workspace_locked
     def validate_references(self, identifier):
-        self._validate_resources(self.load(identifier))
+        self._validate_resources(Record.read(self.load(identifier)))
 
     @workspace_locked
     def read_resource(self, identifier, index, *, expected_revision):
         if not isinstance(expected_revision, str) or not expected_revision:
-            raise ValueError("Resource reads require expected_revision")
+            raise ValueError(self.REQUIRED_REVISION)
         value = self.load(identifier)
         check_revision(value, expected_revision)
-        if type(index) is not int or index < 0 or index >= len(value.get(Record.RESOURCES, [])):
-            raise ValueError("Invalid Skill resource index")
-        ref = value[Record.RESOURCES][index]
-        if Record.COMPONENT in ref:
+        record = Record.read(value)
+        ref = record.resource(index)
+        if ref.external:
             target = self._target(ref)
-            if ref[Record.COMPONENT] == Record.TOOLS:
+            if ref.tool_reference:
                 # 내용 조회/참조 검증은 Tool 준비·활성화·실행·승인을 하지 않는다.
-                return SkillReferenceView(ref).to_dict()
-            content = target.read_file(ref[Record.IDENTIFIER], ref[Record.PATH], expected_revision=ref[Record.REVISION])
-            return SkillReferenceView(ref).with_content(content, FileEvidence.from_dict(
-                target.list_files(ref[Record.IDENTIFIER])[ref[Record.PATH]]))
-        if Record.PATH not in ref:
-            return SkillReferenceView(ref).to_dict()
-        content = self.read_file(identifier, ref[Record.PATH], expected_revision=expected_revision)
-        return SkillFileView.describe(ref[Record.PATH], content,
-                                      SkillFileEvidence.from_dict(value[Record.FILES][ref[Record.PATH]]))
+                return SkillReferenceView(ref.to_dict()).to_dict()
+            content = target.read_file(ref.identifier, ref.path, expected_revision=ref.revision)
+            return SkillReferenceView(ref.to_dict()).with_content(content, FileEvidence.from_dict(
+                target.list_files(ref.identifier)[ref.path]))
+        if ref.path is None:
+            return SkillReferenceView(ref.to_dict()).to_dict()
+        content = self.read_file(identifier, ref.path, expected_revision=expected_revision)
+        return SkillFileView.describe(ref.path, content, record.files[ref.path])
 
     @workspace_locked
     def impact(self, identifier):
@@ -123,13 +132,13 @@ class SkillData(FileData):
             agents=[AgentDependency.from_dict(value) for value in self.impact(identifier)],
             children=[SkillChild(key, EditableSnapshot.read(self.snapshot(key)).version)
                 for key, value in self.list().items()
-                if value.get(Record.LINEAGE, {}).get(Record.PARENT) == identifier]).to_dict()
+                if (lineage := Record.read(value).lineage) is not None and lineage.parent == identifier]).to_dict()
 
     @workspace_locked
     def delete(self, identifier, *, expected_version=None):
         refs = SkillDependencies.from_dict(self.dependencies(identifier))
         if refs.has_dependents:
-            raise ValueError("Skill is referenced by Agents or child Skills; remove references first")
+            raise ValueError(self.HAS_DEPENDENTS)
         return super().delete(identifier, expected_version=expected_version)
 
     @workspace_locked
@@ -147,12 +156,12 @@ class SkillData(FileData):
     def read_markdown(self, identifier, *, expected_revision=None):
         value = self.load(identifier)
         check_revision(value, expected_revision)
-        return value[Record.MARKDOWN]
+        return Record.read(value).markdown
 
     @workspace_locked
     def write_markdown(self, identifier, markdown, *, expected_revision):
         self._edit(identifier, expected_revision)
-        self.update(identifier, {Record.MARKDOWN: markdown}, expected_version=expected_revision)
+        self.update(identifier, Record.markdown_change(markdown), expected_version=expected_revision)
         return self.snapshot(identifier)
 
     aimport_directory = async_method(import_directory)

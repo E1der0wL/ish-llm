@@ -119,8 +119,8 @@ class RefinementData(ComponentData):
         result = {**deepcopy(current), **deepcopy(patch)}
         if proposal["operation"] == "fork":
             result = SkillRecord.renamed(result, target["identifier"])
-            result[SkillRecord.LINEAGE] = {SkillRecord.PARENT: proposal["parent"]["identifier"],
-                                          SkillRecord.PARENT_REVISION: proposal["parent"]["version"]}
+            result = SkillRecord.read(result).with_lineage(proposal["parent"]["identifier"],
+                                                          proposal["parent"]["version"])
         if result == current:
             raise ValueError("Refinement patch does not change the target")
         if target["component"] == "memory":

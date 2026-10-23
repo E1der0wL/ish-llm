@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 483,
-    "unreviewed_files": 340,
+    "unreviewed_files": 336,
     "stale_files": 0,
-    "unclassified": 24869,
+    "unclassified": 24692,
     "violations": 0,
-    "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 342,
+    "incomplete_contracts": 3,
+    "unreviewed_dynamic_paths": 338,
     "unreadable_files": 0,
-    "candidates": 29024,
+    "candidates": 29013,
     "issues": 0
   },
   "files": [
@@ -1708,7 +1708,7 @@
     {
       "path": "llm/components/refinement/data.py",
       "status": "unreviewed",
-      "sha256": "c306946233fe988b259f67df5ae6cd13ffdc0e4b02588bdbefb5d0436fc6f22a",
+      "sha256": "abf023cf78c4ea77683087875a372ea44f37b0d3470d1084eb9273665da2adcd",
       "candidates": 271
     },
     {
@@ -1750,14 +1750,14 @@
     {
       "path": "llm/components/skills/component.py",
       "status": "unreviewed",
-      "sha256": "93e5db56f41aaf952f6428d9890389668aec5e4ef90dc9ce1cd7c01b4f41f1d1",
-      "candidates": 12
+      "sha256": "de68d182b58c81952962248f678a973a886ab03f1ccf4dff2b7e870aa4036e9b",
+      "candidates": 11
     },
     {
       "path": "llm/components/skills/data.py",
-      "status": "unreviewed",
-      "sha256": "6875b8a400429a175662133a7c31de5e915e1fba00e8f2d429b48c5ea84e6fcd",
-      "candidates": 15
+      "status": "reviewed",
+      "sha256": "c05f407dfd486ffee3b50ab1cef8e50386920c5f28f3738a19a27bd3d592b45c",
+      "candidates": 16
     },
     {
       "path": "llm/components/skills/dependencies.py",
@@ -1767,9 +1767,9 @@
     },
     {
       "path": "llm/components/skills/records.py",
-      "status": "unreviewed",
-      "sha256": "fa0468a26a145333b92b79b7123a92f300126953210ea74a188dcf88fb9fe744",
-      "candidates": 78
+      "status": "reviewed",
+      "sha256": "1e46552348a0bf95fe46010acf0b7509e8f35f43cde2dd1fc39dfd9ce6a9f872",
+      "candidates": 85
     },
     {
       "path": "llm/components/skills/storage.py",
@@ -1779,15 +1779,15 @@
     },
     {
       "path": "llm/components/skills/tools.py",
-      "status": "unreviewed",
-      "sha256": "6d8a38255da5f56ba0ff4ebca7407efa8663ae87db42470fc306e9a271023111",
-      "candidates": 15
+      "status": "reviewed",
+      "sha256": "431b2cd1ca97d13c6140b34133c7f7beb0a582fe83ff6965e31d35b7aa412c13",
+      "candidates": 11
     },
     {
       "path": "llm/components/skills/views.py",
-      "status": "unreviewed",
-      "sha256": "3f7ecfabb4ef8bc37aafdce7347242ad933e3558a937a45683e482949a93203a",
-      "candidates": 68
+      "status": "reviewed",
+      "sha256": "12ac59b5a47c25366c663f0bc82e28768fe2ad288fb592458d701d6782e5839a",
+      "candidates": 54
     },
     {
       "path": "llm/components/summarization.py",
