@@ -36820,5 +36820,969 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/core/model_protocol.py",
+    "sha256": "c83094beb43953de78e4bdb1b55dc4b1d7bd718cf2ffa3c7c20dd314b99ab12a",
+    "reason": "Read all model invocation values, finite JSON/object/nested usage validators, exact current-record Reader, normalized enums, per-format serializers and runtime copy. Fields derive from owning slots instead of implementation strings; ModelRecord declares shared version field/versioned selection but each format keeps its separate VERSION. Writer retains exact field order, explicit null/false/zero, typed nested content/calls/results and opaque signed state. Strict role/result pairing, no interleaving/duplicate exchanges, nonnegative exact counts, ranking/embedding validation and no multimodal text destruction remain. Runtime parameters preserve injected client/callback identity while mutable containers detach, and serialization rejects runtime handles. These values cannot authorize tools/retries or release reservations; actual Adapter/Loop/RAG/processing/Hub consumers are tested.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a695fb5068d27112699d224d665ea96fb872c228c0711013704fa15e74d7e4bf",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "bb8535c18c824785de2347693c04033d45c6e36a1d410835039ff2eb37960851",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "fefaa50e2067fbd1798a3fb33715ce8f7c12f26b272e845da06a4fe9701b69ef",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "44bd2edd5b8df4f5ca8d6ce62c0ac0eec53d4900ebac4309e248602a17d441c9",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "82096fad4ed5191e0ac4d2f1d7bdd7369869d1a4cc848aee78f0c4effe2e6d4c",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "37a5a1dfb19da8f8f648b5dc37afaf30e1e21d148a2deed012d27d4a8e127958",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "6233b2b33e33752e1c0bcd6f84bd412ca8eef04c591dfc9dc77390c1d5f6c215",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "21d5bee88e97beb95d620d5158a6b6eb8ea89485ca59ed4cf478ddbcfab4f390",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f4d9aa0bb00a1a9aa19b6c55b87e905708a27d9ac88785cf16975cd957f65e74",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "fe7cee622a7f3417beeda7209cae5314e603cb09a387f72b00190f79ae709809",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "ee2a10464638cde10c4b7059b23a3e7a449cae4305ed1d731f1c8ba144d7eb78",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "2182385217343d5fb4bbc8195090bbf857708b1e4a806cae8f8d2d8f0a6c14b7",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "9be862eefacd8b4ac02d0f3d83b9164d5ac272d2d86e8eb5241e85bfc7fc3286",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "66a6f5f3be89a283ad03e8281d9a7df2c358ccbb413fd2ec2b4e1a567f2f083e",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1fdaf7a005ca2be54baab91e344a8ca650acc1513936160f89ddf66bce0002d5",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1392201e5f1f83342c65598fec2e39772ac1939cef28c592fe9df6074b911f22",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "59e10883b7e5df674b1f527445f72bd5e6b7148b67e5060e5a77e5646e9b7480",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "8063852216e19056962b1351d8d898cabbdd0d467ed1e5ac78d38fd8073fb390",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4aadb62ee63450fc8f3b459a2ffb580109303a93d9031db54382ce895ba8b92a",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "349484dd10d761ba2729ca94d75c8ae7dd31b9a358dd1ceec741d2724ca842b4",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a17f14a25802381c59579a3ade3e39037428ae00eeb263f0bb25595899cec361",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "8b2af405259c0da2c9413303df0712444af8f2bbe95e977453a3da1c6b1460dc",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "11ebebf93ced227a23d54d4aa31784e081abaab1904d99f692cab644e9d70c5d",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4d67a425e9323c55327e3b7a81db5bc93766c651c3146c36b3cd063bf7b3996a",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "e745c1f2d7da53f6608c9b5387bf9e904da3da90d65fdda2cca455c468fbfbd0",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "2d0fe0f4ce9604648eb4dabbcde15a64d0fddb4d40c8f651144eb0e6f4d1ef13",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f55c57497034a07e2904fa50c0e52c992bab7e59a5038c030ae1bc0e83129042",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "96e6579520f821fb884d4a8e38b321acdc0f217a0bb1ae7b1a39ac8cfe5d8950",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b3ee32928b2d908f7eac1dddafa4c3ebf46b9d01296ac226bb4f874b7b57331b",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "085b54dfed2406df1674b0d5738dd3027c44e06133920c229af821e7dac8456e",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "abcc8faf48c0391efa9ec5c2ca3f69eef438aaab493b87a514d4107973dd8f1f",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "272cfc0546a3437eaabfaca9a41c87adf83e806d03c99209a4cf5afc17fef984",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "8bba1aa8ee3e922c903fddc088d6bcfad2d831c04dce569347aacd49d760e621",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "45c6180f30fe40e3b51889448147460eff66f2197f9f85870452a4d0c2acc9ed",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4c61a80d75acb4b482d08147bad9fb7fc1e8e7110f1a6f7bdf9626e77b1b11cd",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5ded97c7194f376632c3c196f3d2c362942c356772209923b714377de633aabe",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7b6a94df3b19ffa763e0c0a9fa1311e0d5e8298edeef59979f56ca2ce4503301",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "7f0deb2b890a7e587031d340e53e43cee4ed12ff424b69817fdce3a41559a942",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "65e913b6a617e11955905da977be3714b4202e4860a7fadff6a234c5291284b7",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "7dea50dfe62adca8f8ad6f726425fcad50babdb52451d5f1af814c6483795259",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1414312fe6345e03e563bb3759276b173bc8e5f371df127cb319c32f821a3c91",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "8c011b4a58e33b80014a1359c6fecd5e5a9f08ef0351fab0562f0171c66b848d",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "53e48c8d51bb10beaff2fa6d39a386d0f27184b22ec3b008ac4d58eb62319787",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "056990a86b57039a9230ce6f1c48f4de2b5d41f6859a82152667531b4e4131d9",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1efc47dd4fe2480208832769221d7341bd754d3b50fd2bbe4aeaf50ab2d493aa",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "002e873d85281ddfe02584f68d81c4954e2ca1001e89061c39005572bbd499f5",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "8bd0e96a10df83d7afb124eafb0aad336927adc997227f5cd6c109b1c57495ac",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "89fdb3ea6b4daa63f015cac2bb465ec0e68699415a68cd1b9bcebfb738448c60",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "89291decc38607aa7127d27d5fc4094f27c3e07051e6989f53aa5670811792c4",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "af9c0277fee9f074a700de2f7642d3d54e39f3cc1f26e945d0b465a8aab5ab68",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "36aa506b1b30200a9879f6398f547d8098973345a73626f20e60b1b5203576a7",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f1ad4f50c0c3c5675c69a301c22eb8fbf8cc7fd202728ab82d8c0ebf66f9903c",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c44996a57846d9ea832fb27587e5d2f7831a7da8d58f4e39e2713a4acf67b511",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4507bd100135de199ebe248783b994127b878c64d29520126d5f0f7a97ec9966",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "856eb8eaa92b06c35910b1950708a9436f469cdf2aadd1b29130565bf8c59f34",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "3eb3e28ed020272cc64661d71a9793d814e85b4bf5ebbbc085b2300670be3d10",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "2ff5a10223e7aefee0dde36b99bce1a823a20b345f91163c3ce8e0d77e6dd229",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "ce3f829c3669c834c5e135f0e4edeac95f36b806e3f6b176724cf855590cbb6a",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "166a3186bc77b50ac4f81be97d9fd71b9a0de98f92a962c51c55a535bbe01641",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "aea7f8958e43cbac2d0d8092d87f4da9f7fc34919281226850d88fb767778067",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7edf017e1db8338bed1c0725107c8266c938d6cb6c3043231c7a5e88ad3eb27e",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7d903c5c39f310033e34073403af0e330ba226c23fbf4ea93c75f586d41f65d8",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c4458963b4540de0131d80c3a91ccc7a8d8ed2769383fe1e6af18eb84ac26332",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "0277333033228f177b6f1e9f849688c3ec8c2597e592154af7a7b2119319bb80",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "cac12c225f8084e474a61ee52e04aff62766cce3225a24cbe2a2bcc2b260c0a5",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b0d74606475c4176fab1651f139892d98f1c7f79efa31260470a429df7ca92aa",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "9d64b14722e8068c8624a1349ebdf8ba6f6dd7c5456d953a146971ccefdddfa4",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5f1019ad7842c026d23ed4a4acdef73e63d41321ac8954f113cc3dcf8744a937",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1a761ab9ac610576bcbdc730c3faf6f72cabd4deda72d003b731575e41eee671",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "ac9792b8603dcb7e5fd0a423b41c5e4edfd621a90f6105339ffbec8846381e0c",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1fa8aec6f000d8f38d82f272a62e4d105e538c697f15c1264b5fad87da43255c",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7c1f25f71ba37fdba9fbdcf12f78d66e228d624855447242be6130285c8e0669",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "83cba8b5e4f395ef9db46685b16677b167c67c8fa18dd49507ce1a029fee8343",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "6871f202a99a156acf3a99f95f70bcbfb761a900e7819b93720822e45fa08c7d",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "1e79657d528461f8fcfbfef01b861b3d0ad524a86ec41103e9390d81b79e700c",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "87ae8b4fd28d0235eb2e97c9a7fd3baeefeaef59ceb13abafebfc5e92b02e86d",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "4940b91598a3b0f37f6027763ffb9b4a3edd74b42fe5144981b52875923a1e8b",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "41549e97dae76169063ca2543dc511e771871513ff0b075809de865177181841",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "6db631d22323b4a732f7a7e25addad1dde6c6449c28fd4ffccc749e1732c58ee",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "eee4ba6c1a8da36e12c48d5efe71d357f4a4468780003f16b9cec45d1ce0ad7b",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "963a39c73ad47d0137edc15cb88a21ba3c76d9eb05e2145c0e19034c47cc2904",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "2fe2fc6c56d991be3662991ae7175b48ae19a7de76367fed0be0e838527ac2db",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "8a89da2dfc02a7c1bb922f8e379a258626804074b2af04757ddcd08518d5796f",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "5c4cd3a5bddb7483d5d7502acf22bcbab1147ee01c86fe6b934bd0b1787d0744",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7612def6a23f9218df6e08568ecb275bedbdb8eebc32349b325402895fc17879",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "bfb03829251032dd15376db69878dc5964a988dfa4940058c6a7b5d0e3f8611b",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7758082163ed29424fb3fc0008212e9a9d50316db5126ee41e437509e63de85e",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "010b985297382807768f7648a49a8364b0d520cb6ed33016f37662d73e988746",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "36618c43471937e60fefd32027b42340ae8edbab644b8547d49717ec344d79fa",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c0dd12c1cd7a95faf9addc2f159aeb2182d52c4e358155ff6f6599bd972932f1",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "9c0bbdd38a1148d04243f8c7b7528f3f6a9dd20a75398d457b6204ce2b7d2e87",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4e8ec02ca71770e583d7516d5987ad7fe4c6c3b698c8c251d0d79bd0dada0904",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f27deb0553a6093d0b00c48dcbabf9e54463103f21ead5aa2fbac1df6ba39e01",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "39878fe8d06c671e84afab3eb40d15cce30ab3db7d5625a3e9dcf8e825fb5d44",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "e6e69d5ade4afd548272364dd8902e2c462dedc98e2002eefcdb6361a026d0c6",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a5337fa9ec7cf327561ce66943e461d48dc1d87683ac36a3281fb701f3c10a02",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a300a0da868037a0a332d2de42729c8568e190984629bf0ca0255e7fa40709b1",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "9c569590872b100e75157e4fc4cd129d939467fd8408bb0e5ba796abbbde6c4c",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f4d01530666e05ddf13f1ec0a569cfb67e9d0c9c33931640b8035c1030323b48",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "a8c03aadb1e8301fb7c3e789869c0cc2750e28ad811c29aa9390ff4d62baad21",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "6c32d1786387ab652a46bb2bb08a763364a5653bbcfa09d712925b7714f1e958",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "d66b8be15d1fad2e951b36ed21534ba8bd571d5fc62c999394d55bb8835d03ae",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "e853cd6b533b168094fecc32f4d41fb3f8277f977de6cdf42377a936c4ef3150",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "334e20894f53981d6aea2b71dfd3494fa1e90dc9da37bd4fa7c74efa9d7dd959",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "0604099eeaa1578ce865db3bb7ae52a823e4a3f464d6c71ec17eb19187bfe288",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "5cb2af51edfcae0177e37cf8306548c8977006d40058b744c3e08663495e4bfd",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "68f1e32cfd67b4deb8726de2512b66f62dfa473a9368b8b342f1827426d2a927",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "f822d525b542efb540f8d15c987774cd3cb181be738d2b7d4c190042a31b0b27",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4f9f322cbe535ace8e26a76107d6f7778cd415865613cf09f97042b3445e7a87",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "bbae12cddc37b2ab3fbeb6f05510fe4993cfc19aaeb0ef3c8eacf5354086ea1f",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "5562b515f80dcc544bf88aa33a70684f643fbae3e7e8be27c3ac13c86f47cea0",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "6f7908df203938e05aaf4b6c264729c6434ed9aa024de40deeed835fdaf878e6",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "0021b70e2d797f422e4731db516dfb724e5a2534069eddf33f8aeda1e1aa62aa",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c033a284e81f69e196ca055e8b8fe501d287537622191bcbee69a8c264d0933b",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "cbc5bfc8188ded33e4507764159850c08ebcbb70c6cdf977cbe38725a2768e33",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "20e026b5a124bbc2dcafc8595c8b97d311ab9f142ccea0622af9bfa8ecd8a82e",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "88b867dac65a43b328683aa3b5d96664809fa341fc18f154663d097f21f7d5f2",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "8d6c1630d7bf444d82384b434233e5c1bfaed9d3dc468f348f8ca6afa47806bc",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "83626c3b427bf7fed0c2886017c358b385a04d5f37b2f48104e3326d5d4b565e",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "89641d0ce9d21a1fe5cb5f296aeb0fc28a4402584a7120a653ea93f84548d4f8",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c1570186ae618f7a9e977bd926f585644eca31949ccea3e37df3ee02e9175228",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "8aea7cf5c925132516a810e4501e004b62d69d8e41049fefa692192e3aa220c1",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "e5b319802b027e46ba516008712c8ef8c7c74dacaaf06f02ebb89e5f2b5e0bbf",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "af7c307e2353d478aae23efa506ee657eecc5ce76504ca93042ae7e9483efe0d",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1bc7030ce98bbdafd61da46a5fbd733c6729d88095ca9344d04fb58f313a649a",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "dad24a2af877db069d40bdeab578e6c48cafc245eecebcaa3dd64ea635d1003b",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Select the sole vector returned by the shared vector validator; positional indexing, not a dimension or count default."
+      },
+      {
+        "id": "4a021eb7171dd35ac5a3a2bcc883838ccb10f558dbfffae0db50dc9def6300a8",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "682e729ddba3dd7d994ee8cc3b37665b6110258e92565424b6ee6b8c2d90112c",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "a83860fd6c6442d7f72e168110ec001d39848fd8c1286b22fe6153594d3a8e07",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4d2143c997051ac443fa665d4a4c02a7097ec0f088d86c9e537352aab8acafc0",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4ac8a96f19aa3e03622b0cc741ee74cadc19b2f36abfe9a1f9981b709a1036d7",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "203f83624f050911a91f21d105f9b1bb96afab840614fb69947e90f5c4f51ac5",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "5955172d17b5fd7332c509771ef4b91846f7dcd1444171b95edb749b83f7c65f",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "583189dd7f68e4aa84a568354571ed0aa22bf9bcc6a368d026a98158e4a1cf76",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "ca33d21324b70f5437987a281c860496a4e36e6d0bca6c0b4795cb96cfea4c72",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b6afbc30c5425f61d4d72f1c5cffeea660a73f12ab5e5de0193bfe1769337910",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b582a25d25db2ab5b71944ea56bfff3f4ef316bb0a93be12ac711f6849ec609a",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "91edebad13708d744aa79ae5c5e266ba46774dbaf534f3f71eefe00d46cb1622",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "a516674a27f441ef7efe1686120dfe95a7d7f85f4ec0fcb8c2cb042810e904e5",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python dataclass frozen/slots layout, not protocol data or execution policy."
+      },
+      {
+        "id": "c5b31acf3737ea97fa97e5e728a314da969cfd8ccf394a990b3842d9ca135317",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "6001e7defc3ae967a47650d71ef201ec4a96928cc8046d8646a0ca7fe26925f4",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c10623589bb3022edac4befe4ba854ff77169d637b26a22d53a72dbe5f85ff3d",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "7f1c73b0702bced4189c9a7a78daffaa435575fbc114ef6ac6b6227068c0b208",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "4ee15b4053860ef139d345241810ace5bf272a8b6217a9b79d82fed5476c5aa1",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "1ce4265522dfcc1805cff693e76a9896179cf0192e1bc62d18be226dea869808",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b3bb337d159c2e777d4e74b893ca7f511d56fc00b3bd12826e11b98807b7923c",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "47fb5abe013f2eb1940eb494dca1bd3ddb318455949c5bc011bed46f8a1c908d",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "6334ca37564ed327104acf231b00df6ee288ff7a54ba805105645501f764d394",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "55c7bfc9857b3b982301f99f681f85f1249290110a39f8b0b61b66e5323d7399",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "b8f433bd6419a2ee48a7b9e09edf6bff9c829d37fa2d33b2c1018b41d8a9bb54",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "c4766b23efd884dcc3bccf54f615fbd5412fb013eebe79cf683836186b89b3f9",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "73578fef5cf86aeaefb111a430ccd8af7504be6aab055312d10b00409bffa3a2",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "758de8608c50a08885b7eb410e85f96a26cbbbc10e6f5ab2ebc06450b1ad94ba",
+        "classification": "declaration",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Canonical model protocol enum, dataclass field/default/version, codec key/flag, numeric constraint or diagnostic before implementation."
+      },
+      {
+        "id": "83cb07c6ebac1a9550923d94cb193f4063088470937ade7aded506f5d86e5880",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      },
+      {
+        "id": "82b8a1e637f2b292967a22f4269b9a0e025f5b44a6b91d8129c3526f42c3aff4",
+        "classification": "non_contract",
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "reason": "Python optional/JSON-null type check or absence return. Nullable values are declared on their owning fields and serialized from the source; missing persisted fields remain rejected before construction."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ModelJson / ModelRecord / ContentPart / ToolCall / ToolResult / ToolDefinition / ModelMessage / ModelRequest / ModelResponse / EmbeddingResult / RankedDocument / RerankResult / CompletionUpdate",
+        "declaration": "llm/core/model_protocol.py",
+        "consumers": [
+          "llm/providers/litellm.py",
+          "llm/providers/wire_codec.py",
+          "llm/providers/requests.py",
+          "llm/engines/base.py",
+          "llm/engines/loop/engine.py",
+          "llm/components/processing.py",
+          "llm/components/rag/embedding.py"
+        ],
+        "tests": [
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_adapter_boundaries.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_reasoning_observations.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/hub/test_provider_recovery.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

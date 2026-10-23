@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 487,
-    "unreviewed_files": 306,
+    "unreviewed_files": 305,
     "stale_files": 0,
-    "unclassified": 23467,
+    "unclassified": 23267,
     "violations": 0,
     "incomplete_contracts": 2,
-    "unreviewed_dynamic_paths": 308,
+    "unreviewed_dynamic_paths": 307,
     "unreadable_files": 0,
-    "candidates": 28846,
+    "candidates": 28801,
     "issues": 0
   },
   "files": [
@@ -2199,9 +2199,9 @@
     },
     {
       "path": "llm/core/model_protocol.py",
-      "status": "unreviewed",
-      "sha256": "7760b1c23829e6b9b5b52031141e60e6987cba7407c0449e6153754e5054edbc",
-      "candidates": 200
+      "status": "reviewed",
+      "sha256": "c83094beb43953de78e4bdb1b55dc4b1d7bd718cf2ffa3c7c20dd314b99ab12a",
+      "candidates": 155
     },
     {
       "path": "llm/core/models.py",

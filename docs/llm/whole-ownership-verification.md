@@ -2634,3 +2634,49 @@ Level 2 완료다. 이번 단계와 앞 Checkpoint·Completion/출력 소단계�
 Level 3 gate21을 실행한다. 전체 LLM/Hub·정적·R3·문서·실환경 성공과 정확한 SHA의 CI는
 별도 기록하며 통과 전에 Push/통합 완료로 간주하지 않는다. b9de4c2 gate20의 결과는 그
 수정본에만 적용한다. 계속 llm/을 우선하고 Hub 추가 구현은 llm/ 전수 완료 이후 진행한다.
+
+
+## llm 모델 프로토콜 선언 전체 검토 (2026-10-23)
+
+ModelMessage/Request/Response 및 ContentPart/ToolCall/ToolResult/ToolDefinition의 Reader·Writer·
+불변 갱신 키를 해당 dataclass slot 선언으로 통일했다. ModelRecord는 공통 version 키만,
+각 형식은 별도 VERSION 값을 소유한다. ModelJson은 기존 진단·카운트 경계를 선언한다.
+전체 파일과 Adapter/Loop/RAG/processing 소비자를 검토했다. 필수 필드 누락 거부, exact
+version/count, 유한 JSON, nullable/false/zero, signed opaque, 멀티모달, Tool 교환 순서와
+runtime client/callback identity를 유지한다. 별도 schema·저장 사본·retry/실행 권한은 없다.
+
+7931e27 대비 독립 wire 7개, 각 Reader 50/50/38/62/74/62/86개, JSON 12개, usage 10개,
+메시지 생성 48개, Tool 교환 162개, ranking 30개, embedding 4개, 갱신 14개와 runtime
+identity 2개가 같은 결과/정확한 예외와 원본 보존을 확인했다. 기존 실제 SDK/HTTP·소비자
+assertion은 그대로다. 초기 smoke 30개 pass/exit 0(3.570초), 집중 01 LLM 154개/Hub 35개
+pass 후 nullable Writer가 원본 속성을 직접 반환하도록 정리했다. 아래 02는 최종 제품
+소스의 별도 실행이다. 앞 결과와 합쳐 하나의 전체 실행으로 표현하지 않는다.
+
+- `whole-model-protocol-closure-02`: 발견/시작/pass 154/154/154, exit 0, 75.434915초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-model-protocol-closure-02/llm.json --modules tests.llm.test_model_protocol tests.llm.test_adapter_boundaries tests.llm.test_rag_models tests.llm.test_reasoning_observations tests.llm.test_provider_codec tests.llm.test_provider_transport tests.llm.test_common_provider_acceptance tests.llm.test_completion_processing tests.llm.test_loop tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `25bea8440484913cef8f1e14d7ae53ae80c7c969f63644bdd6de2d246ab23583`, input `510f1e6465c4952304002d1fe5b237d78dc02407cbd66aa9029002e8a8993269`.
+
+- `whole-model-protocol-closure-hub-02`: 발견/시작/pass 35/35/35, exit 0, 82.979728초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-model-protocol-closure-hub-02/hub.json --modules tests.hub.test_provider_stabilization tests.hub.test_provider_recovery tests.hub.test_engine_output`. source `25bea8440484913cef8f1e14d7ae53ae80c7c969f63644bdd6de2d246ab23583`, input `510f1e6465c4952304002d1fe5b237d78dc02407cbd66aa9029002e8a8993269`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0, 전후 manifest 동일이다. Python 3.12.14/
+Clang·Host d833790·의존성·namespace/X11 환경이다. 정적 S4의 version 리터럴 두 항목은
+실제 Owner 참조로 해소하여 이전 검토를 외부 증거에 보존했고 나머지 117개는 동일하다.
+정적·문서·R3·SDK·양 환경 각 exit 0, 감사 16개 pass/exit 0이다. 모델 프로토콜 한 파일만
+전체 완료로 기록했다. 전체 487개 중 미검토 305, 미분류
+23267, incomplete 2개가 남아 전체 완료는 아니다.
+
+Level 2 완료다. 현재 llm 정책/설정의 관련 소단계와 묶어 gate22 전체 LLM/Hub 검증을
+진행한다. 이미 동결한 7931e27 gate21에는 이번 변경이 포함되지 않으므로 이 소단계의
+전체 증거로 재사용하지 않는다. Hub 추가 구현은 llm/ 완료 이후다.
+
+### 앞선 통합 게이트의 실제 결과
+
+b9de4c26cdadf72f5bc8459eadabc10ea9966ac6 gate20은 전체 LLM 2,479개
+(1482.936153초), Hub 588개(1146.412525초) pass/exit 0, 모든 비성공·누락·중복 0이다.
+source `5feae868604c9e3505a79ac689ab4c3ddd93ac4c5b90bdb10768e107a13aabfe`,
+input `07f180f382f93ce228d3c6f797a8a63c4a8a0781112ad8b0d944eb4772af9407`의
+전후 동일성과 보조 6개 exit 0을 확인했다. 명령은 고정 환경에서
+`python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group20-l3`와
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py group20-auxiliary`다.
+정확한 b9de4c2를 작업 브랜치에 Push했다. main/backend ref는 동일하고 PR #1은 변경하지
+않았다. [원격 run 39991128573](https://github.com/E1der0wL/ish-llm/actions/runs/39991128573)은
+2026-10-23T17:06:30Z 두 필수 Job 실행 중이다. 원격 통과는 아직 선언하지 않는다.
+7931e27 gate21은 별도 동결 소스에서 계속 실행 중이다.

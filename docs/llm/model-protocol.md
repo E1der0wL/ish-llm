@@ -45,6 +45,12 @@ ModelMessage·ModelRequest·ModelResponse는 각 클래스가 VERSION을 소유�
 optional 필드를 포함한 모든 현재 필드가 있어야 한다. 생성자 기본값은 명시 생성에만 사용하고
 Reader가 소실된 opaque/strict/result 등을 기본값으로 복원하지 않는다.
 
+Reader·Writer·불변 객체 갱신의 필드명은 해당 dataclass의 slot 선언에서 가져온다.
+`ModelRecord`는 공통 version 키와 버전 검사 선택을 소유하고, 실제 버전 값은 각 형식의
+클래스에 남긴다. `ModelJson`은 JSON·사용량 검증의 진단과 수치 경계를 소유한다.
+선언 정리는 별도 schema나 저장 사본을 만들지 않으며 필드 순서·명시적 null·원본의
+생략 여부·런타임 객체 identity 및 기존의 엄격한 Reader 동작을 보존한다.
+
 Writer는 새 계약 전체를 출력하고 Reader는 같은 형식 하나만 읽는다. SDK message dict와
 구형 record를 추측하는 Reader, alias, 호환 투영은 없다. 유효하지 않은 입력을 수정하거나
 저장하지 않는다. 이 값의 버전은 Run/Checkpoint/작업 원장의 버전과 합치지 않는다.
