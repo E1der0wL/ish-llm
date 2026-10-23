@@ -4,7 +4,7 @@ from llm.core.execution_observations import ExecutionObservations
 from llm.core.steering_channel import SteeringChannel
 from llm.core.instruction_records import InstructionMessageRecord, InstructionReceipt
 from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringNotification
-from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
+from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords, CheckpointPause
 
 from llm.core.checkpoints import CheckpointConversation
 from llm.core.checkpoint_records import (CheckpointDeclarations, CheckpointDeletion, CheckpointInteractions,
@@ -52,6 +52,7 @@ from llm.services.runtime.agents import RunAgentResolver
 from llm.services.runtime.requests import RequestAdmission
 from llm.core.interactions import InteractionActor, InteractionRequest, InteractionResponse, InteractionView
 from llm.engines.base import EngineContext, EngineEvent, EngineEventType, SteeringInbox, required_capabilities, steering_mode
+from llm.engines.contracts import EngineHooks
 from llm.core.steering import InstructionStatus, RunInstruction, SteeringMode, SteeringRoute, is_instruction, is_queued_request
 from llm.services.runtime.steering import (finish_instructions, checkpoint_messages, steering_boundary,
     close_targets, reservation_receipts, resume_instructions)
@@ -1117,9 +1118,9 @@ class RunManager:
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume requires a paused/interrupted/failed Run and its original Engine")
         strategy = self.agents.strategy(binding, request_context=AgentBinding.request_context(source.metadata))
-        name = getattr(strategy, "checkpoint_name", None)
-        if not name or not callable(getattr(strategy, "validate_resume", None)):
-            raise ValueError("Engine does not support checkpoint resume")
+        name = EngineHooks.checkpoint_name(strategy)
+        if not name or not callable(EngineHooks.resume_validator(strategy)):
+            raise ValueError(EngineHooks.UNSUPPORTED_RESUME)
         checkpoint = self.repository.resolve_checkpoint(runtime.session, source, name)
         ToolExecutionScope.checkpoint_usage(CheckpointRecords.from_checkpoint(checkpoint).records)
         decisions, receipts, retry_nodes = self.repository.interaction_decisions(
@@ -1162,9 +1163,9 @@ class RunManager:
             if CheckpointRepository().deletion(source) is not None:
                 state = ResumeState.DELETED
                 raise ValueError("Checkpoints were explicitly deleted")
-            if not getattr(strategy, "checkpoint_name", None) or not callable(getattr(strategy, "validate_resume", None)):
+            if not EngineHooks.checkpoint_name(strategy) or not callable(EngineHooks.resume_validator(strategy)):
                 state = ResumeState.UNSUPPORTED
-                raise ValueError("Engine does not support checkpoint resume")
+                raise ValueError(EngineHooks.UNSUPPORTED_RESUME)
             state = ResumeState.CORRUPT
             with self.repository._interaction_scope(session, source):
                 checkpoint = self.repository.resolve_checkpoint(session, source, strategy.checkpoint_name)
@@ -1473,7 +1474,7 @@ class RunManager:
             values = self.capabilities.resolve(project, names)
             if not isinstance(values, dict) or any(name not in values for name in names):
                 raise ValueError("Capability resolver omitted a required capability")
-        request = getattr(engine, "additional_capabilities", None)
+        request = EngineHooks.discoverer(engine)
         for expansion in count() if request is not None else ():
             extra = request(values)
             if (not isinstance(extra, tuple) or any(not isinstance(name, str) or not name.strip() for name in extra)
@@ -1703,7 +1704,7 @@ class RunManager:
             self.repository.record_checkpoint(run, event)
         elif event.type == EngineEventType.PAUSED:
             # 일시정지를 알리기 전에 체크포인트가 실제로 존재해야 한다.
-            self.repository.checkpoint(run, event.metadata["checkpoint"])
+            self.repository.checkpoint(run, CheckpointPause.read(event.metadata).checkpoint)
         else:
             if event.output is not None:
                 self.repository.record_output(run, event.output)

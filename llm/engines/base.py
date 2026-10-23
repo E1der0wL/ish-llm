@@ -70,6 +70,7 @@ class EngineEventType(StrEnum):
 class EngineEvent:
     NO_CHECKPOINT: ClassVar[None] = None
     NO_INTERACTION: ClassVar[None] = None
+    NO_OUTPUT: ClassVar[None] = None
 
     type: Union[EngineEventType, str]
     delta: Optional[EngineDelta] = None
@@ -79,7 +80,7 @@ class EngineEvent:
     metadata: dict = field(default_factory=dict)
     error: Optional[str] = None
     completion: Optional[CompletionResult] = None
-    output: Optional[EngineOutput] = None
+    output: Optional[EngineOutput] = NO_OUTPUT
     interaction: Optional[InteractionRequest] = NO_INTERACTION
     diagnostic: Optional[Diagnostic] = None
     progress: Optional[OperationProgress] = None
@@ -160,6 +161,8 @@ class SteeringInbox:
 @dataclass(frozen=True, slots=True)
 # Run별 읽기 스냅샷과 임시 state/capability를 전달한다.
 class EngineContext:
+    NO_CHECKPOINT: ClassVar[None] = None
+    NO_STEERING: ClassVar[None] = None
     project: Project
     session: Session
     run: Run
@@ -171,7 +174,7 @@ class EngineContext:
     # Engine이 선언한 capability만 Run별로 구성한다. 런타임 값은 저장하지 않는다.
     capabilities: dict[str, Any] = field(default_factory=dict)
     # 명시적 재개에서만 제공하는 저장 스냅샷. 런타임 핸들은 포함하지 않는다.
-    checkpoint: Optional[dict] = None
+    checkpoint: Optional[dict] = NO_CHECKPOINT
     # 부모가 이벤트 저장을 중계하는 자식 실행 범위. Step 출력 소유권과 구분한다.
     checkpoint_scope: Optional[str] = None
     # 명시적 재개에서만 조회한 부분 출력. 완료/승인 증명이 아닌 scope별 참고 자료다.
@@ -185,7 +188,7 @@ class EngineContext:
     # 중첩 엔진의 최종 결과는 이 Step에 귀속한다. None은 최상위 Run이다.
     output_step_id: Optional[str] = None
     output_visibility: str = OutputVisibility.USER
-    steering: Optional[SteeringInbox] = None
+    steering: Optional[SteeringInbox] = NO_STEERING
     # Service-owned, Run-local capability lookup; not persisted and never expands Tool authority.
     capability_resolver: Optional[Callable] = None
 

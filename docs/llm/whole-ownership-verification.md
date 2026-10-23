@@ -3326,3 +3326,76 @@ Level 2 완료, 현재 변경의 전체/원격 완료는 아니다. 앞 통합 g
 실행하며 이번 Engine 계약은 포함하지 않는다. 이번 변경은 후속 Agent/Base 관련 closure와
 다음 전체 게이트로 묶는다. 최종 전체 완료와 정확한 SHA의 원격 필수 CI 조건은 유지한다.
 llm/ 우선으로 남은 Engine·Component·서비스를 계속 진행하고 Hub 제품 구현은 이후에 작업한다.
+
+
+## llm Agent 실행 경로 전수 closure
+
+기준 8f141c64fa071299f077339ad3e018dd9ff4c649 이후 AgentExecution/AgentInvocation/
+AgentDelegation을 파일 전체로 검토했다. 실행 진단·직렬화·큐 ACK 설정·선택적 핸들은 각 Owner의
+구현 앞 선언에 두고, 기존 Engine/Graph context의 부재 값은 해당 타입을 참조한다.
+SelectedAgentResources는 원래 pair unpacking을 보존하면서 위치 인덱스 대신 이름으로 조회한다.
+public binding override, 불투명 Host 값, Root/중첩/위임 실행 순서와 사본 경계는 유지한다.
+
+AgentPolicy.validate_completion이 Root/중첩 Agent의 require_tool 판단과 기존 오류를 소유한다.
+CheckpointPause는 공통 PAUSED 이벤트의 필수 checkpoint 참조만 투영하고, Loop/Graph의 private
+pause 키는 각 Engine이 소유한다. RunManager의 실제 checkpoint 존재 검사 이후 상태 전이는
+그대로다. 누락 필드를 빈 값으로 복구하거나 새로운 Reader 검증/저장 형식을 추가하지 않는다.
+RunManager의 남은 Engine discovery/resume hook도 EngineHooks로 연결했다. Component/Adapter/
+Graph handler의 같은 철자 hook은 다른 프로토콜이며 동일 Owner로 혼합하지 않는다.
+
+Agent 자식 예산·사용량 보존, checkpoint ACK 후 진행, 불확실한 효과의 중복 실행 금지,
+출력 소유권 검증, MCP 연결 후 재개 검증, 단일 미승인 이벤트 큐와 취소 정리 순서를 검토했다.
+원래 안전성 Assertion과 실제 파일 효과 검증은 수정하지 않았다. Engine/Base/Graph/Loop/
+서비스 파일 전체 완료로 확대하지 않으며 llm/ 잔여 작업을 계속한다.
+
+### Level 1·2 증거
+
+초기 smoke는 103개 pass/exit 0, 84.625초였다. 이후 named pair와 context 부재 선언을
+추가했으므로 아래 최종 집중 실행으로 다시 검증했다. 외부 equivalence.py는 기존 코드와
+필드/기본값 3, 필수 Tool 완료 56, pause Writer 8·필수 Reader 7, Graph parent 참조 5,
+Resume context 생략/호출 trace 12, revision 진단 7, resource pair 1개를 대조해 exit 0이다.
+대조 도구의 별도 module 로딩으로 생긴 타입 이름 차이는 비교 시 module 별칭만 정규화했다.
+
+첫 strict 명령 whole-agent-runtime-01은 실제 없는 test_agent_resources/test_checkpoint_protocol을
+포함하여 발견 단계에서 exit 2로 거부됐다. 실행/완료로 집계하지 않고 명령·원본 로그를 보존한다.
+실제 발견 목록으로 명령을 고쳤으며 테스트를 제거하거나 Skip하지 않았다. 아래 세 실행은
+서로 다른 선택 범위이며 하나의 전체 회귀로 합산하지 않는다.
+
+- `whole-agent-runtime-02`: 발견/시작/pass 204/204/204, exit 0, 126.506616초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-agent-runtime-02/llm.json --modules tests.llm.test_agent_execution tests.llm.test_agent_workflow tests.llm.test_agent_delegation tests.llm.test_agent_resource_integrity tests.llm.test_agent_values tests.llm.test_graph_agent_contract tests.llm.test_nested_graph tests.llm.test_engine_steering tests.llm.test_engine_requests tests.llm.test_execution_contexts tests.llm.test_execution_boundaries tests.llm.test_checkpoint_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `91458b4810f018c9b4f00a1fc07955e625632e1cafc237d5e4af2d42c9c9ea21`, input `6e69495aac796c5a611c129d9cc75dd22b1979ad1ba5c4a9a8a719b12308c987`.
+
+- `whole-agent-runtime-consumers-01`: 발견/시작/pass 79/79/79, exit 0, 35.565127초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-agent-runtime-consumers-01/llm.json --modules tests.llm.test_checkpoint_lifecycle tests.llm.test_graph_checkpoints tests.llm.test_engine_outputs tests.llm.test_base_engine`. source `91458b4810f018c9b4f00a1fc07955e625632e1cafc237d5e4af2d42c9c9ea21`, input `6e69495aac796c5a611c129d9cc75dd22b1979ad1ba5c4a9a8a719b12308c987`.
+
+- `whole-agent-runtime-hub-01`: 발견/시작/pass 10/10/10, exit 0, 43.743915초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-agent-runtime-hub-01/hub.json --modules tests.hub.test_agent_graph tests.hub.test_agent_selection tests.hub.test_creation_contracts`. source `91458b4810f018c9b4f00a1fc07955e625632e1cafc237d5e4af2d42c9c9ea21`, input `6e69495aac796c5a611c129d9cc75dd22b1979ad1ba5c4a9a8a719b12308c987`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 전후 manifest 동일이다.
+Python 3.12.14/Clang·Host d833790·동일 의존성·실제 namespace/X11 환경에서 실행했다.
+Agent Root/중첩/위임·Engine context·steering·출력·checkpoint lifecycle 직접 소비자,
+승인·예산·Tool 효과·삭제·RAG·수명 무결성과 Hub Agent/생성 소비자로 영향 범위를 선정했다.
+정적 115개 finding은 동일하며 바뀐 의존 근거만 갱신했다.
+`python -m unittest tests.llm.test_architecture_reviews tests.llm.test_contract_coverage` 16개와
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py agent-runtime-auxiliary`의
+정적 S1–S7·문서·R3 Mutation·SDK·LLM환경·Hub환경 6개가 각 exit 0이다.
+기록 이후 최종 문서/diff 검사를 수행한다.
+
+전체 목록 497개 중 미검토 291, 미분류 22141, incomplete 4개다. stale/위반/감사 오류는 0이다. Agent 실행 파일과 실제 EngineHooks 소비 경로를 닫았으며 잔여 전체 작업은 미완료다.
+
+Level 2 완료이며 이 변경의 전체/원격 통과를 뜻하지 않는다. 검증된 Engine factory 단계와
+후속 관련 변경을 다음 Level 3 gate26에서 통합한다. 앞 gate25 결과는 아래 고정 SHA에만
+적용한다. llm/ 완료 이후 hub/ 구현을 진행하되 Hub 소비자/전체 필수 검증은 계속 유지한다.
+
+### group25 전체 게이트·Push 후속 기록
+
+고정 SHA 2fc76e80ded8b0fe6247f1dd190b775a839515d2의
+`python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group25-l3`는
+LLM 2489/2489 pass(1464.509972초), Hub 588/588 pass(1144.065905초), 각 exit 0이다.
+failure/error/skip/xfail/xpass/누락/추가/중복 각 0이고 전후 manifest 동일이다.
+source 798e38ae56eda25fcfccb703bcdefaf391197aaf0a347c5a1c94f53d212b2477,
+input b059a677515036980b508dbeec2892464cac585c201a895889086545d67e5d2a.
+같은 SHA의 group25-auxiliary 정적·문서·R3·SDK·양쪽 환경 6개도 각 exit 0이다.
+앞 gate24의 실패 기록은 보존하며 이 별도 전체 실행으로 통합 수정 상태를 검증했다.
+
+해당 SHA만 refactor/llm-clean에 Push했다. main 94229cb865374d99f20ec48c5e48269488041a4e,
+refactor/llm-backend bb0946257ab6bcabb9a3ef04d3d854e5333b07d5는 변경하지 않았다.
+[원격 실행 40013608607](https://github.com/E1der0wL/ish-llm/actions/runs/40013608607)은
+2026-10-23T19:47:43Z 확인 시 두 필수 job 모두 in_progress이며 아직 원격 통과로 선언하지 않는다.
+현재 8f141c6 이후 변경에는 이 전체 결과를 승계하지 않는다.

@@ -9,7 +9,7 @@ from llm.core.implementation_parameters import ImplementationParameters
 
 from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
 
-from llm.core.checkpoint_records import CheckpointWrite
+from llm.core.checkpoint_records import CheckpointWrite, CheckpointPause
 
 from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
 
@@ -59,6 +59,7 @@ class LoopEngine(BaseEngine):
 
     required_capabilities = (ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
     checkpoint_name = "loop"
+    PAUSE_TOOL_KEY = "tool_key"
     CHECKPOINT_FORMAT = "loop-iterations-v2"
     steering_mode = SteeringMode.CONSUME
 
@@ -562,7 +563,8 @@ class LoopEngine(BaseEngine):
                         yield self._record(key, {"status": CheckpointStatus.WAITING, "name": tool.name,
                                                 "arguments": arguments, "prompt": str(error),
                                                 "interaction": error.request.bind(LoopEngine.checkpoint_name, key).to_dict()})
-                        yield EngineEvent(EngineEventType.PAUSED, metadata={"checkpoint": LoopEngine.checkpoint_name, "tool_key": key})
+                        yield EngineEvent(EngineEventType.PAUSED, metadata={
+                            **CheckpointPause(LoopEngine.checkpoint_name).to_dict(), self.PAUSE_TOOL_KEY: key})
                         return
                     except ToolExecutionError as error:
                         if durable and error.effect == ToolExecutionError.NO_EFFECT:

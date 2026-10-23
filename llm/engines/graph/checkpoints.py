@@ -25,6 +25,7 @@ class EngineCheckpointScope:
     """Step ID와 독립적인 호출 경로. 내부 payload 형식은 자식 Engine이 소유한다."""
 
     HEADER_KEY = "@header"
+    CONTEXT_CHECKPOINT_ATTRIBUTE = "checkpoint_name"
     KEY_KIND = "engine"
     KEY_ENSURE_ASCII = False
     KEY_SEPARATORS = (",", ":")
@@ -43,6 +44,10 @@ class EngineCheckpointScope:
             raise ValueError(self.INVALID_SCOPE)
         self.owner, self.name, self.records = owner, name, records
         self.parent_name = parent_name
+
+    @classmethod
+    def parent_name_for(cls, context):
+        return getattr(context, cls.CONTEXT_CHECKPOINT_ATTRIBUTE, GRAPH_CHECKPOINT_NAME)
 
     def _bind(self, request, local):
         return request.bind(self.parent_name, self.key(local), selection=InteractionBinding.SELECTED)

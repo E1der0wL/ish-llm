@@ -9,7 +9,7 @@ from llm.core.resource_references import ResourceTarget
 from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
 from llm.core.definition_snapshot import DefinitionSnapshot
 
-from llm.core.checkpoint_records import CheckpointWrite
+from llm.core.checkpoint_records import CheckpointWrite, CheckpointPause
 
 from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
 
@@ -39,7 +39,7 @@ from contextlib import AsyncExitStack, aclosing
 from llm.core.interactions import InteractionOption, InteractionRequest, approval_request
 from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
-from typing import Annotated, Awaitable, Callable, Literal, Mapping, Optional, TYPE_CHECKING, TypedDict
+from typing import Annotated, Awaitable, Callable, ClassVar, Literal, Mapping, Optional, TYPE_CHECKING, TypedDict
 
 from asyncio import timeout
 from llm.components.base import Component
@@ -149,14 +149,17 @@ class GraphNodeContext:
     inputs/outputs를 생략한 기존 처리기는 전체 상태와 반환 dict 병합 계약을 유지한다.
     """
 
+    NO_INPUTS: ClassVar[None] = None
+    NO_GRAPH_INVOCATION: ClassVar[None] = None
+
     context: EngineContext
     node_id: str
     definition: dict
     state: dict
     emit: Callable[[EngineEvent], Awaitable[None]]
-    inputs: Optional[dict] = None
+    inputs: Optional[dict] = NO_INPUTS
     # 선언된 하위 그래프만 현재 Run/체크포인트 범위에서 실행하는 런타임 연결점.
-    invoke_graph: Optional[Callable] = None
+    invoke_graph: Optional[Callable] = NO_GRAPH_INVOCATION
     checkpoint_key: Optional[str] = None
     record_usage: Optional[Callable] = None
     # 이 노드의 확인 응답이며 Tool 실행 허가는 아니다. Tool은 context.execute_tool을 사용한다.
@@ -907,6 +910,7 @@ class GraphEngine:
 
     # 공개 API
     checkpoint_name = GRAPH_CHECKPOINT_NAME
+    PAUSE_NODE_KEY = "node_key"
     steering_mode = SteeringMode.FORWARD
     agent_mode = AgentMode.WORKFLOW
 
@@ -1081,7 +1085,7 @@ class GraphEngine:
                 raise
             except _GraphPause as pause:
                 await emit(EngineEvent(EngineEventType.PAUSED,
-                    metadata={"checkpoint": GRAPH_CHECKPOINT_NAME, "node_key": str(pause)}))
+                    metadata={**CheckpointPause(GRAPH_CHECKPOINT_NAME).to_dict(), self.PAUSE_NODE_KEY: str(pause)}))
                 return
             except Exception as error:
                 await emit(BaseEngine.step_failed_event(root_id, error))

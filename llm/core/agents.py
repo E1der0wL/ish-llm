@@ -170,6 +170,7 @@ class AgentPolicy:
     NO_TIMEOUT = None
     NO_TOOL_LIMIT = None
     NO_REQUIRED_TOOL = None
+    REQUIRED_COMPLETION = "Agent requires at least one successfully completed Tool"
 
     def __init__(self, value):
         self._value = deepcopy(value)
@@ -185,6 +186,10 @@ class AgentPolicy:
     @property
     def require_tool(self):
         return self._value.get(AgentDefinition.PolicyField.REQUIRE_TOOL, self.NO_REQUIRED_TOOL)
+
+    def validate_completion(self, completed):
+        if self.require_tool and not completed:
+            raise ValueError(self.REQUIRED_COMPLETION)
 
 
 class AgentResourceSelection:

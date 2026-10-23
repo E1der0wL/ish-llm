@@ -34039,8 +34039,8 @@
   },
   {
     "path": "llm/core/checkpoint_records.py",
-    "sha256": "ff399d766783327be56f084a7c94d65829148b79793ea16a27c578faeab8ec8a",
-    "reason": "Read complete manifest/record projections and validation, paired name/revision witnesses, permanent deletion evidence, operation event Writer and common step observation. Fixed fields come from dataclass slots or Owner Field declarations; record keys and revisions are dynamic validated identities. Only absent fresh checkpoint/initialization can supply empty records. Exact current schema/owner/revision and saved interactions remain mandatory. Retirement uses Run active-state declaration and its declared terminal exceptions; abandonment evidence stays required for failed/interrupted/paused Runs. Common step reads do not interpret private payloads or grant resume permission. Nested scope projection review: existing CheckpointEnvelope lifecycle validation and new construction reuse the same retry-required predicate; Reader rejects contradictory explicit evidence as before. CheckpointContent emits a validated runtime content projection in the existing header/records order. CheckpointStep owns required interaction attachment and separate nullable waiting observation, retaining original values without normalizing opaque input. No storage schema, lifecycle, authority or ACK boundary changes. Agent usage Reader obtains mandatory lifecycle status through CheckpointStep.required_status, retaining the original KeyError and no missing-record fallback; no other record/interaction behavior changed.",
+    "sha256": "cbcaa471b0eb4533227d5967791bebadb5ffba7e8ecbc80bbc92a41234b0cb9a",
+    "reason": "Read complete manifest/record projections and validation, paired name/revision witnesses, permanent deletion evidence, operation event Writer and common step observation. Fixed fields come from dataclass slots or Owner Field declarations; record keys and revisions are dynamic validated identities. Only absent fresh checkpoint/initialization can supply empty records. Exact current schema/owner/revision and saved interactions remain mandatory. Retirement uses Run active-state declaration and its declared terminal exceptions; abandonment evidence stays required for failed/interrupted/paused Runs. Common step reads do not interpret private payloads or grant resume permission. Nested scope projection review: existing CheckpointEnvelope lifecycle validation and new construction reuse the same retry-required predicate; Reader rejects contradictory explicit evidence as before. CheckpointContent emits a validated runtime content projection in the existing header/records order. CheckpointStep owns required interaction attachment and separate nullable waiting observation, retaining original values without normalizing opaque input. No storage schema, lifecycle, authority or ACK boundary changes. Agent usage Reader obtains mandatory lifecycle status through CheckpointStep.required_status, retaining the original KeyError and no missing-record fallback; no other record/interaction behavior changed. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -34056,373 +34056,385 @@
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "c4c84f5b20efd510ae7b3ebe94d20ffed1054919788a1b5e1f64d359a1405843",
+        "id": "87cddeaa70f7e61488dfdbf7510e87548d3c661328b6a5130d9594c0477248d3",
+        "classification": "non_contract",
+        "owner": "CheckpointPause",
+        "reason": "Frozen slots dataclass layout; its checkpoint field declares the event projection and is still required on read."
+      },
+      {
+        "id": "9e41e5b4909cb15059462caf1067696e587c24114cbdd988e94f485dda934874",
+        "classification": "non_contract",
+        "owner": "CheckpointPause",
+        "reason": "Frozen slots dataclass layout; its checkpoint field declares the event projection and is still required on read."
+      },
+      {
+        "id": "d1e2246a38c5ef9601d4d1f75f4e9a3ea8a27e186adb5b452343d48df9631d78",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "c3391828ba79c68163cf627532cafe961401381e518c113cc3a286feb8ccff9b",
+        "id": "9f3e955a4d1172c11edf7b6bc71c00f3034fc35dc49b07372c8442321e4c85a6",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "46f8c156e5bedbee6c88e569790f4f64264cf490cb7f569aaf124d2cffb9e4a1",
+        "id": "187132e1b43680eb13c3e2393990dbf4b05012eb1121209a83d6dc8f74126794",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "4c1a9b7903fd4016540ef699c60e91ec091e834543faf0ac7b2da10f6910faf2",
+        "id": "e5884553cc84021991f6eab267a15cf6e77ffae9995e86c9250cd4b59e3693e6",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "5c7b90abe685d375b1f398289e9055e312940ab7b4fdebe636916139f8e88c2b",
+        "id": "9f7e4df8257cf0c0914dc48cb75a4860309c45152be54a02efff328ad5dcba68",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "ecbcb6ab33fdfa9e0abe85b05c94cc3bdfac4f4452e0c003724915a2ee37526b",
+        "id": "9c747671cef44289fd358d31dd77de0815c4b178ebf4335214995bc76edc4732",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "469fbd731abaa82e56eed6eccaec718dfbcee7678b9a8fa9ba942ade382f0ba4",
+        "id": "403ad5a451c64ceb7aa0f69acbd44722023d0da853071e8d98871b33eed210b0",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "34b1d86243a228dba18bf215807ef19a20b0d1ef408c28eba3731d85f30a3b5b",
+        "id": "aa57e78f7f7dab6a915583d2ed1779cb6373dcc20fe1e8ca88981846db4bd860",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "ce8332ee4a0732d1a978f3c37d21a61c9d8adf002aebd6b6ff80f65567b15171",
+        "id": "4acfc67e77480193c216ed3e5e42738459a4f2dcc3b5e641580a3fd44d9db357",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "7e197c7a802f128d2019ba1dd2d7f5affb37b4ef5c9b4e60fa7e0acef10a726f",
+        "id": "36b671e650492eb188c45a4307f19efe135a796eed61c38a3207b0c61ee26d4b",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "009b49e8c176aa956b0601024e9ba8eaac2853c1114ae59623b424187b6c3704",
+        "id": "1197a2fbe9fe744b81f90b5ab8a4a074d2c63cc18b16a241f7e170c339457720",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "e25f43e00a16c80c759c1c69e06266f4f6582bcddd2807bf7a8e1d7d105a97fe",
+        "id": "362756f41b6b5b0256f2ccd10b5f20831112d4d79c15cbaf98975eb79bc353d8",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "ca8968a42021a041fa1111b42be000d5bb7d8f7f2fb3705cf028ca9f1082ed58",
+        "id": "f59e62d177a243da50a062ca1d0455f2992b7457913df24463f706791da79b8f",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "dd8281329a9311cfa38e456e3642aab59de453ae8a8729374e8e1e7ffae013cc",
+        "id": "c3ea328f7ead6c31c61fae06d8c4523982cc474b8723b93e9d7e86063c2de0bf",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "d0b54ab46a1cad0a532fc43fa429ddf22b62b5c76ee8377d422374a16544e285",
+        "id": "2bb575af346f67174d82e581a8e2029cb9d55b249fbfe6dc1c6756bf706e36d2",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "9f19cd2114f3ba4134431fccfb66e62f0afb25e90073c1ed50488f95051c228a",
+        "id": "48db133016dcdc848d63c566c1a78888a718b40f57e7ce3a048b5619db6f2f7a",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "fdd27472f7a1b14f4afbb547a60224a663abca6bff3a8b127fb3b50b9bda2729",
+        "id": "55d558dfc990f72b3e88f7ac4667418b49151380cd15249c42a04d469cae82c3",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "59a243ffed1c36954ba4f5479e48c1fbe3e13b666c5169ece349adde94b3e448",
+        "id": "c2e933a99bd06873fef697db22f12e10682dd26c5b0e848a582b3f1ab7aec1bc",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "15b96fa8dbaf174f5382dfb5a05f11f468e7d1392dfb0a930ea91a9dea2dd255",
+        "id": "5b661b58f3f0e4b695b9bb2bce885a4e7064bec77e261d7479b6fcc8415db496",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "0c8f825cdc90657b09abf001f23a54728a2a51aecc19dbf7fe106798e03f143a",
+        "id": "64857d8ea8ea5aa0f500e4081258c20ac7fab8d67aa33da08792bb62e3f19837",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "871aaecb3599c767bc18991a26a2c1b41dfb0aea9833604fbccbc29011675911",
+        "id": "6991bfa1e38904512b630bff19f5d24e44cd8d99fe78f93955ecb3bcd078f94f",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "69e23ba6e3d4f1802cb2f7dd694819b36c000d26a5eb4acf0876fcc7a9ddbe5a",
+        "id": "2eefbd9d293c91597349ef075cbe8c32a9373a3e08e491c658486787d967bae1",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "bfd7d818d95699ece05661e238d22d14d38ca88bc2e451fab7f5d7b7ab66d8ba",
+        "id": "af2b87c2f138d63d4d05a729f46e55880b9c31df55b243f31dd7cec468c05730",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "ca3eb1c6947b09be254294303b76281bd49ee72ff5c9f887172035d47be56af1",
+        "id": "aa73df39767a1a21606e7ed557ea0503d772bda5cf26749574c86e67928e7e57",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "f85e080e9a9723e5de730ac5854f8d0ae6599cb646ea405ca9d86c568a95636e",
+        "id": "aeb871deedf76a5bf96bba4af8f101c7543d9fbd188a4858a344cf46f1dddb4c",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "0ce871f7d3b27312fa2100d48cb31898498106622c81fcf02e82a372b15f8859",
+        "id": "76d2bacf903dff1bf2953c8ae34ebfebff75cf2256c607c952bfc078e8a42a1f",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "7bfea89ad80cbfa8bc4de30ea31c606ca073529af861a249eaee44ee452d9a10",
+        "id": "67096fd77f9b4b3a38b329624c439fe840713963f70b3d323660c1d90d3419f9",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "4cb1862f968eb61db998954a753893c0552edafac8edfb0d27995ab4b081be15",
+        "id": "2ad726d31e7f423eaa299a2fa11f8217f6806439a3f0fa6953b637db6070d46a",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "ea9494c2cd47e8f401e1f460e43834ee234b292828d68cc223a4ce0dbda0033c",
+        "id": "30c2221a8528a7268ccdc09b8e6f19482d164acf5581d248e551585154c7efe4",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "577b9ff4ef8a15f1f4ac1efb13f4fbe885eea0b4d37809e8b662a897db331f5b",
+        "id": "e80d01d2ff2dd9d190e532fab0892cbcb9f4bb55c30a6b4de739da98dfd3b260",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "52998346bedf1b4ef5fc15c1d46eb2319b9b68523e7baed38f8b11d716dbea52",
+        "id": "302dd124f1066c60a827d96b5490d95496b424bd266a1e96b1fddba26a80ce4d",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "9369e2e814d1874cc83ace26a0bf7309c375412322de2accbdb254b9f677dc45",
+        "id": "b120db97cad2e5772fd1acaec226cc1951ea0ed794e448cb38dcc257bf5a63d0",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "07f5d9a70e3169d04d15ecd2bd1564183e7fc6d4d454f4646309db7a1b059efc",
+        "id": "e30247681a1a9aafe68788ad76c4b79b1bc3603f5f71c22c604e2e11c7b5fd3f",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "992c0cab368e6588cfe35c817738e1517c78e932020ee72218339caefb69a9a8",
+        "id": "bc51197eda48619c2ddfac1c66414da24cea7dc7d93ce831ecdb5fd4cea7152c",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "ad92d045cd269b803875de21dd045127cc1d0bd80be836f37cdde2ccfd7b4dbe",
+        "id": "e5ae5637ae811eea8edd66d2eea037db4c041d74e3c4600af3ec2c5766b69d6a",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "a76e3d815c95aeb9bc86c8896a6c583d1be21e761972e5cc57b05afc863a49b7",
+        "id": "0ce31cd20a137a93d8e04c6a31e7701bf1d12915865b48a404574a4975338059",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "c420ec3759caf8b1a7495e64a9078683ae29fdc595e31d3c8bbe6e5ad63e4d10",
+        "id": "cf69bad2d0aff1cf98ab8e6f35bf2c15ccd820071f6c7bc81ec1af38686cc8b9",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "d6fc71f83d477f53cfd755fcd8fe3614fcd7cb7c8a84b10859d2fcd3dd072b80",
+        "id": "7ca85dc250e5222b29fd3ca333635538cb5abcd7ebdf62a94d9c71c7848bbece",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "857b0308b168b8078a385d3343de49478f23da06d735ce33b9753d10fd1a98a6",
+        "id": "a80087bca36d83fc5e503a7dc9eb96b93776d74586f6190ad56b3201855a31e9",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "22cea64a5c6269a2ee430298b270e2c504eecdd761293b2261b9dc889d7ada47",
+        "id": "c11b0bdb56498b051b8226ebc622f4566934c6ca5b4cb0152d2c65087beef593",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "b8fc485053fe4715c94369eacc71f837d711936727fc61832c1c7ad4117310ea",
+        "id": "3dd628ab1e1bee4bce602f9dac3a2b3e00deebdd4939205dce6a036414240a33",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "ab7b9c544d40217a3816b4a60e3bfc6f6d2b3e531c2e029b5218747cd5578856",
+        "id": "d78e9d7cbe3f53116cc5a9dd92d99b80edd6cc1fbff2e03c302bb29497e29124",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "6a49d2bc88b8637fe6bcf0a4b6681590ea10f6d7b96e545fa4bd8d617d51b0d1",
+        "id": "a95df78446d775f0c4003e03ef8c8dad8b873bad745d45a3d6725a5cf18cf25b",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "7492a1226c9f0d077e9398080c8d8a9b440773f0e43175667678745681acfabb",
+        "id": "9501b2941524db63a1f433786ea9de33666c3d6649e50cddfaa289486d3cab1c",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "d16485a9694e16ab39e5258edcbc32ed8c8f0f4917a37cde35eef29cd75bd754",
+        "id": "d4c6cd5dfdadd33d8575717bd0dff23e89465930b34e4f7a7a8940f82f655334",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "f668170f55b80551fc6722de143bc8d85f273639f500ae1eadbf554d219034bf",
+        "id": "514b5ae471b7652f7bb8bd17fa5b780d145f304ccba2758fdd1b6b94c95beaca",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "559c432a9499bcc12246cbfab0913b2aeba22b7878094acb300092569c2fac27",
+        "id": "b50be33bb56351d4f372d07b844a1055e7fcb274a7d184a1edd486a304af8357",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "f94cc0aec72f1a5742d038776991a8ef1e53c6e110cbaa6b8d273c81d0f17d7d",
+        "id": "2c4f6a5e44c29769992b72a45208563fa0c324ebf54117ab77f49e7e572b5442",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "5a2ef97dc1b87cf5c0d317c058d24a5632a5ef0eb7fa5465a53ef331f54b3f14",
+        "id": "8420b63dc3a4a590b0fbd8748387cd83596abfeff75cddd450c9c300eb7a7007",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "43209e53b7e081e87995f34043cc524c03e8228bb3ecb5131da90d1fefae041f",
+        "id": "f2222010a78d2d09ee1e9e5d83bf7110b46e97651dfdebd83f181597c4c6817b",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "94e61f3744215d26fff37243b3a6e14b34b7a861d724d298a8c836e18d3f97d2",
+        "id": "fd76f8dc27a4e68584da7926ded2a67a3597440f959ce39a9d99390a95765168",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "f3720a34bd1fc8299f9a7a3c4429bca46667cd7843fa11deceb4d0df04cc5b55",
+        "id": "ed54fd1aaf6a12af9ea267ec88e79d77edaba0522820b9ef754ee9d11943ee38",
         "classification": "non_contract",
         "owner": "CheckpointWaitingObservation",
         "reason": "Frozen/slots Python dataclass layout, not checkpoint/approval policy."
       },
       {
-        "id": "8dfbb1d2e19c2150fd232b805f6b879eabd40fa3a9cbe998bd4e1144c206893d",
+        "id": "bb564418098d4db52cd448cca7090fa0b50e0751ba4dcbd66fb3c4cb3bd6e50a",
         "classification": "non_contract",
         "owner": "CheckpointWaitingObservation",
         "reason": "Frozen/slots Python dataclass layout, not checkpoint/approval policy."
       },
       {
-        "id": "94cf1ccff7b46aa8edf44d098b097e3c1697b41662195947e4e475111d7e4a5b",
+        "id": "5fb33edf409bfd41b083b24a091590c9619922be9d24970723f3d02355376eaa",
         "classification": "declaration",
         "owner": "CheckpointWaitingObservation",
         "reason": "Existing nested waiting observation fields and optional null presentation are declared on the projection. The approval_required observation is not an authorization decision or persisted evidence fallback."
       },
       {
-        "id": "6ff42d14eb69203cdb8195e44ea5fae77a39cae42862a8ade8f2541dff6bdc07",
+        "id": "48bd4b0fe53e4349ccebd9a9ee662f2b0334f8d33bc40787e1a8de6e18713892",
         "classification": "declaration",
         "owner": "CheckpointWaitingObservation",
         "reason": "Existing nested waiting observation fields and optional null presentation are declared on the projection. The approval_required observation is not an authorization decision or persisted evidence fallback."
       },
       {
-        "id": "f845aa865e37c721a16d87a2a31fc50c1e6b258ba7e2989c9863c779a5df654e",
+        "id": "eff06035f72b701f39a1dab01d9b15d038fd4384231000d784815c696fdd65a4",
         "classification": "declaration",
         "owner": "CheckpointWaitingObservation",
         "reason": "Existing nested waiting observation fields and optional null presentation are declared on the projection. The approval_required observation is not an authorization decision or persisted evidence fallback."
       },
       {
-        "id": "f798eb954e0e7c0b18ea20021ee795c56f490c3748a1cdfd39c109ad99a9a0ed",
+        "id": "bc81431d1b55eccf2c1a3d90c08a00484e510e0503ce5008530fd41608cdb488",
         "classification": "declaration",
         "owner": "CheckpointWaitingObservation",
         "reason": "Existing nested waiting observation fields and optional null presentation are declared on the projection. The approval_required observation is not an authorization decision or persisted evidence fallback."
       },
       {
-        "id": "3742c33e8cc9e31c391c1c1be2659caf9fc4257edae9b917d68c8763a6ac4c9d",
+        "id": "0827b49819879f67b47a38367811b71cb8c0f5614219bada299551d92edaccc0",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "77e0605810535bfe66ff262339a1fa8b93486a55fb4eeb65caa2423257b7d813",
+        "id": "6e63514489639d8ace15f66ece1066463acb3b884bf5bbd740ea9f1fcaa836ad",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "6ae4eaafd627e2c133fd87825ed498872da47a22efa195be14e6849e40ff97fd",
+        "id": "a5a1635c975fb2040f831e947caaa61bbdc69fc91c7d36c582c7390b1c5f6c97",
         "classification": "declaration",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "b3ab2f2d3cea171a9b8d617ba9a178271de6582e05b25f0bf8c9e9459b1d412d",
+        "id": "bdfe105d335b3216d4a7e206baeed10216b8628bbbad7570da7b26d134fc65c4",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "fa4e2af64d60ece9c35e8fcd37c57821f77273338fb4246697e5f641b3bf2293",
+        "id": "dfd7f5ba4a9290e725815f51b96ca63ce4e4114d45d4f47886525908d977a255",
         "classification": "non_contract",
         "owner": "CheckpointRecords / Content / Snapshot / Manifest / Record / Declarations / Deletion / Write / Step",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
@@ -34448,6 +34460,23 @@
           "tests/llm/test_rag_job_retention.py",
           "tests/hub/test_rag_jobs.py",
           "tests/hub/test_turn_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "CheckpointPause",
+        "declaration": "llm/core/checkpoint_records.py",
+        "consumers": [
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_checkpoint_integrity.py"
         ],
         "complete": true
       }
@@ -38289,8 +38318,8 @@
   },
   {
     "path": "llm/core/agents.py",
-    "sha256": "630ea8cb4a90dd5eaac4efd383a2580a1f8c8b8fdca42a03855457f7e472a3bc",
-    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked.",
+    "sha256": "e514cb54ca16021b59c12293febf2ca1bfa9361c61398742c7a0db50b0f702b8",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -38594,259 +38623,265 @@
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "057f910bb3ba736d14bacdc4aaa562b2337960fb6d3e6c08ebafba9d310e3fa0",
+        "id": "e285cb994cc734101af44b4e2bd0678206415ecf47e783d1f67a8c82ae64c50b",
+        "classification": "declaration",
+        "owner": "AgentPolicy",
+        "reason": "Canonical required-Tool completion diagnostic, checkpoint context extension name or unsupported Engine resume diagnostic is declared by the corresponding Owner."
+      },
+      {
+        "id": "736e948c2dc2bd2f508feeab9c58bf87b6fe88acb6118e4c3f758623c6091843",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "a918c92f43306e081d23cabece9fa257ff73033d528d6eac86190b787c9d4331",
+        "id": "8d8b6c247b82beb5de9adc21f98edcb8864f2b8e2432a4c1e3b3786ba173f15d",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "2763f67a6a9603d2def12a0304cccd71d2b21295af862811d63540056a9c6100",
+        "id": "49fb36cd20aa82b53cb632a992d67198ed9e4ee9b1018bf4733d606d568e2e2f",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "fc63f16ac69c69f6bb5d18e360cbfd3597b52518a437eae10ab1fcc2e6f339fa",
+        "id": "9b07e62f152e93308c446002f9665145123ec036686e14b35e11a955c6f12cf1",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "b4fd557f4cb38078a8c7e166ca400829ef439789bb6da4c3034ba362b3168fcc",
+        "id": "fef76cc9701a2be9e7205a116850b72ef9131fc483e1e482bcdc3bb4a01b42a9",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "21d54865c515fad2f01c35a40ee902be1a992e5012f3ee0bdc1a9849515ffd39",
+        "id": "3c42971118f956521b15ec75b4edf5efbe9e78c88c025d70d06f08a8a17dbac6",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "37ef89231692924b9891d7ae22750ca15a109286f8f13baa08c210e1af0a6fc4",
+        "id": "06c997ad0d027250a3b251f300d3d199d0e4a04ecf9952dec35dd52697597ea0",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "aa64ddcda776ecec04b612ba80d7c45fd9f5da8195064812926d06a5d440d2a7",
+        "id": "286402fe2580b43c00682779ad721a2d166158cf91981f0093039d186ee7f23b",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "c2a3104659fd1b67ac9bde090906f3f8fc21dedada1f59055c507e687906d42a",
+        "id": "5066b083f177d63e610d1b2ac9ea8272fd89b95f0d9618267b8c9d1e521a160a",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "a1d3be2a69b20e057c391511d829a0464091e0cab8ffe54933216dac3833417c",
+        "id": "270311017adbd9b6c4c360e049a97c5cc956c986e1b01d2987f57294feeb424c",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "1032877b9c917e3c9f49f6df886c96993631a0ffc46d03225957ce81979661a7",
+        "id": "e1d1d48271dca62c8d221a287bb2e301aa11556f647293825b13d948ebfb2bed",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "c00c46cead3ed1d3da7373749900dbdc4352493f947c9899825ba29e2d8b1d5b",
+        "id": "8b1d355b4f67b9c50d8d5474a70494dc80d0c20a50131f410c3ee06e7cb68ec6",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "cbedecbfaacdcebdf85dacb2eca0e38bc08e388d0f51085a00592d8867e3ede5",
+        "id": "e9d03dd4ad2f52220a150ecb0e82c85d6c50ca3cdae17cdbccc0d186e628c92c",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "fe0c747de51313a935881496cc95a4c660b74685a2e6efce70ee04f510085158",
+        "id": "7599bfe069414aa03224b17a55e3cdd455f55970e3dbcf32c6ac526d044517d0",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "d7bed7472379e498c0aae985f074a636133ae71857ed34c9b0360d7c5773089f",
+        "id": "252c171ce42cb10fab8046652620a889fa772873f1d3ff77c9f0976c11bc0931",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "cfe067f013c5e88397a585d3702b8755f93089824f1e2e2572dedb85a3b0c96c",
+        "id": "2987eabbc90e87af7418e6d3ea9374fc0737aeeac704957ba8f9305de44b4be2",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b27f6be402ed560ae5aa91c2b9805b2eeb9f932ba5eede2498e8d4c25b525bbb",
+        "id": "d00d62fdcd2aab7db9b01a22f612cd2ab0ca0f1a585c64c309cb1fabf7ec0c12",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "80e744b6290f746cd4a1f32a2c58c1a01ca7d2373bc9afed12d0ed6519255fc4",
+        "id": "27aac26851e682c1b1867fb2111c58f6704efec6267230c3b1748b4ce52c3dd1",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "beb65b065134f8bf11bb9c9e2424e7d7432b0bebcd9e94b3e2ff6021d43ad34d",
+        "id": "2186f0c16ce0a325c87b92fe1b1287e6946a7712035520f836da83a9cef886a1",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "a8e7b1c79654cc62bfe4f844f531658a80850b53e0ecfc6bb3ce2db192c36ad0",
+        "id": "9d37ec83b4fb9d7040d3059ed857252f9d189ea3f8773d79095cabacbc69b797",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b5daf7074700da51977039144157b4476b610c1672adf90e65e770894ba2bd09",
+        "id": "ad24227a0b1e318f5fbd7a943c670eeac1e97dd458ab202f206b0775902e2d7c",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "ccb50d3b5f0f38b9ff64a356b08692ffc3ef89d8986ce5a1a79876af46da3576",
+        "id": "c8e7bc673cb2fc92d577ea87af099ef0e6011cebee6a6358193b3e5206d4f18b",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "cd65edc5e7c1f39bcbe909f3e8a07f826359f19e826b09639ec253f2b6085454",
+        "id": "34e2a0728f7b73a57b7e589081bf58ba9dba5d2e7947bbb2a758e57822208044",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "ece847d16c40cefddd986d1a2c6426bf7ebd7b3f54475447cf6154ede5de50ea",
+        "id": "8ea2affb6d058e80f7026147141242f5e35196d4267132a5f299c98d177aa602",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "5d1c75424ac45284a759e5026e735a013f1c4b5e39a233e475b5481307f7b897",
+        "id": "3f8ebe1429ffb240f1e127b4fa10a31f841d18facb0e4a1b4519e8298b09f3dc",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "a965b8188e6789fd1ed3eff56377f0d640d82b3427b9ee090461bdd89a225f2a",
+        "id": "f0af0a6d42b08a05640cb872321dbec6fc6729b606864290d665d7ff13577c98",
         "classification": "non_contract",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "39118b410b1578f24a7b083073364e5c29c4fdc0e20ec6947b9b38dde8bb379a",
+        "id": "e63441e931b5c4bc1365fd3b2a2ba18c511314504d9194ce3751814deb1bb430",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "93a395b57b22b1e35d0b274c83b4118711f4c4910545a5192a9bea35bd5e081f",
+        "id": "b8248d8e659a48725710f94e4fca03a78a01c3a1ea4f0d993c9b489dd22932ed",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "b22a8275a975f4acdbd71ae4ce0bcfaa736edadf2021ac8952dbf387f0cddaae",
+        "id": "a04559475a836138c98be1d1ea47ef8dd90ecfed3c7ef056606bffc48ad6d226",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "a2f6968c1f78b14d1996cc3a63f53c4c936e9c7e40eaeb1a81d44eaa23ff8aef",
+        "id": "9c17a9566f40a8b486b2c2ca4777d3e6dca7efb5ab02b6f32d565bb75f4af7fc",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "0a8de083f733c170361a96e10cc9d3c460dd29ca043f855c1cd15329684c0434",
+        "id": "052c63b385526541f2a3020bb107ce30136f961c8102eede02024fe8cabf034d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "4795a515f8ab7e5aaf275a13b288f580cb842b135606636454f6fffb42d58ee9",
+        "id": "23567da99f2d65fe96be2d796a3b2db40fbe7cb6efdec5631c150a0faf461ce8",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "3808171c231a2ce776c9a7ab7ee4e10c91f7bf0cb9831a477adec778226ccad7",
+        "id": "3cf864509f53d6f51e1cd06ea4ce72859743869e4af0d0af7c06adbc0a9a19a5",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "ee9d20e1355ccf2e9a4cd0878d2a2a6aba081d73002a574650f14008f154ca7f",
+        "id": "191c73bb25c496297cad0860e868e36a052e821d166ba376bd5a892ff47a89bc",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "052b598d3c53aafbb3f676f63b106f83cd08439b3cbc51332ee4e89a12d8adf8",
+        "id": "11f001e583cfe6e5d0fbf9614e8f1810df1de65a2bca0f9c85ca0cf3f0c7c3b7",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "db83ac3b4b45f87ba8875a8bdb6ab613fcaf3c4c952b1d7c676632096dfe0b55",
+        "id": "7e2cf4838a36db0a78801b4a9cdb92f45d55db6aae1f99a84e4d2aa6783ba4b1",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "3d6ba87ad38d7c2043cd52868324633adc692428482cae91c2b7d718900a5356",
+        "id": "e4ff5c9459236af4519e5dd83d5a28a24e5d7c439a8ef8bef52c6140208847de",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "c6552afe3dc4003eb41b08cf9f2483f8d32874def2d2a9ddd7ca69e175540897",
+        "id": "80cb814ad7736c53a58a5eff86c9d7755519ae6446357eaba5067972d98f1e28",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "f11399466531c01ebda9ae1cea501742450380121806f6e4de58dc980e24805d",
+        "id": "62736897c47e8cdf15cb0a05cd78d0b36e5e20ac89c2a845d95e07d5c25740cf",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "f56bdb3470ed424b1fb73a74d725d671fdae0bea06405d6fef11e30bb60f0359",
+        "id": "693c39aa6dfb7b21a45639af39ed7ad904034f2ea36bf39a11646a243e1c287d",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "a91fd07f72040a23cf666ffd19b08269b2a658ffe2dcfca9e7995c253ff21119",
+        "id": "b0556ac1e7d43a68f960b33800a5bd5def4830485a0b0fdfb7dafd0502357def",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "53476641dbb52c2d6c33da6aa71af9c56e5704940f822bb5f9df61698891a2bc",
+        "id": "e6377768dedd7affb0e5f629807497426c460a3ecd108dd53e4bd6352eda4dad",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
       },
       {
-        "id": "d5aea0bde5dc349202c0f977a12c52c6da8d8a09e883fbeabc3d25d3573397fc",
+        "id": "a5c34224a354fc05a08fd62502173411236d1d5e44965852fb09db77cbf320c7",
         "classification": "declaration",
         "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
         "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
@@ -38913,6 +38948,19 @@
           "tests/llm/test_agent_storage.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_configuration_results.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "AgentPolicy.validate_completion",
+        "declaration": "llm/core/agents.py",
+        "consumers": [
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_nested_graph.py"
         ],
         "complete": true
       }
@@ -40035,126 +40083,126 @@
   },
   {
     "path": "llm/engines/agent_resources.py",
-    "sha256": "b0fcd1408c644a0afa679123c712f40f0e3ea3910d7de795c2832e77811b078f",
-    "reason": "Read complete selection/connect/compose flow, typed source/definition and resource/binding projections. Resolves one stored definition, preserves mandatory identity and exact revision/hash, derives only explicitly selected capabilities, checks alias uniqueness and parent restrictions before effects. Root, Graph Agent and Tool delegation share this flow. Connections remain inside the explicit execution stack after admission; no model/Tool work at selection. Prompt/Skill Owners render existing source content; RAG selects the same whole-corpus Tool name as a plain string. JSON snapshots are detached and runtime handles remain outside serialization. None semantics are declared, single-result index is an algorithmic access after exact cardinality validation. No dictionary-field parsing remains outside its Owner.",
+    "sha256": "45611c8c0a1349bfdf339b1e673e27c333d9eae9a920fb59bfd705ab815b3e55",
+    "reason": "Read complete selection/connect/compose flow, typed source/definition and resource/binding projections. Resolves one stored definition, preserves mandatory identity and exact revision/hash, derives only explicitly selected capabilities, checks alias uniqueness and parent restrictions before effects. Root, Graph Agent and Tool delegation share this flow. Connections remain inside the explicit execution stack after admission; no model/Tool work at selection. Prompt/Skill Owners render existing source content; RAG selects the same whole-corpus Tool name as a plain string. JSON snapshots are detached and runtime handles remain outside serialization. None semantics are declared, single-result index is an algorithmic access after exact cardinality validation. No dictionary-field parsing remains outside its Owner. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "3e0cba4002ea015e7a02ec5a004a3a73fa6f0c83ab483148128c63928345a1ab",
+        "id": "b0b75da395e16845fc06fc9221eb760b10798050a4120c26f1ab9715c515a311",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "c015abeaa81de3ba76560ecc0cfdd67b891f43a18c339c104712725092b1567f",
+        "id": "4c4bde14974a98ee464828f7c9e3f763afeec94131dec9015f89dc1d925e5551",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "74885b7ee3c651de9500de302a8849334880eb61f7400558a9a30178f44e240d",
+        "id": "797bc3a6598f739df7a4d29badb878f5cd298a419750c04425d3ba0346e84a5f",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "52c61938611c382875b1ff6d8aa6639e7af922b8ae2c8262bb707dad6d3e5767",
+        "id": "43889b934ce20eeacf45c8028467f77f4bedbf82ef5ee895f088cc98460f8c06",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "72984ca194ff8fed8200c0b377d4384a49c3f1ac2c079f2dc9ab1f298c1dfde9",
+        "id": "388a8c9efe8abf25119e8a0847d596624a732de5a6a237c1e7f19fc84d5fce48",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "5cac7362acc7459700355f9afaefb2e80d0a5a4caf0f5fb4b39898b5fa9ff19f",
+        "id": "ee381f3c602cad0aeeb1b2a3b02db3814c4c6c9f0ed8e412bb249143303b89f6",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "e4b20d7c092117d9b1eb17c54bb296a45e3951b39dd09a3a5b3e1c2bd0293830",
+        "id": "fb4bff325c4df117b23294978dfbcb06608c9efc415fc6f1061c337d6bcc92fb",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "91e6feee44ce26707522dd28226f768ba555a2ffe0db1976dd5480463a35d46e",
+        "id": "3f51e29a49d46c5f7165d8f5624a1bb445f5283e783f73647c7d964e2a098f40",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "75e1dffefb0cd08555cee88c2307ee4f51eb5e9b3bd32f7b1f1529088194f194",
+        "id": "6d949676ce36dd94e47f0425d3bc1ae2bef2164d69769878bc29d78a7c3facea",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "bf17a5fc58eea2badae7dc72537b0fa22d3b1bfe9c9fcd177760dbcbf04ed639",
+        "id": "11c41be2202642614465d0d043ac6754a064b721e150b52b78a02387c98c7c8b",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "54fe18724805cec3fc04161302790bbe2587fd480a5f874cf99bae4a6c33f15d",
+        "id": "dfa9acd5d8b75abfa82ea6f861c8289518d2929867f46666ab0e5bb1cec89940",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "e3ca9ba6427e36f6c7857376c980881ae9038b3d92ca2fa1182b79f046051749",
+        "id": "bf6b5160061bbf91806c28914ceea1beff73996ceeaae42bc7645d8089649f53",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "a7c50946eba43b6e5f60df04b97ad820001a2fff07767d534a8496465a34ebd0",
+        "id": "464b652040814ca1353980c5adb1d3dc831ca2726737448efcc3ce466ebcc75f",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "99f72ecbcfd9679dbf8fe8757bbf0f036db57da2f7f6409398cf432b93750044",
+        "id": "026b3dd038aaffd3327ac3142c5a380cefae078d0eb73f97261c74d553a3398d",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "17267500c51686cbc9f38f99393afbcd05e0b79112e9cef0be5d61408b5cdb71",
+        "id": "26fe9fadba0df0c73fa2551fe4e11ee4a1b3e852cb0e10b9035815dbc3ec60cb",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "4717e7e9bb5def30fd0e62da9071df739dfc5fe1d404ef3069079c8ba4e6ef27",
+        "id": "d958af27f4320b4568d4504d716a7784807a5d762f363113b1c7d3b6a635e4ab",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "be5766eeb32faf7fa55eac925cc735527d94af2b72b2ca5ab4582f4d490c0238",
+        "id": "d9588daf6bd4f70231bf64705d202716a11a00655fe76af041ed4c8734dc8233",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "bbdccb9a9e3deadcd60bde77ddea86d38f8bec818612667472094d83db0abc55",
+        "id": "b7b227b20237316f1fdacde4452b40daa090446e4d423f2f0d899eb79ca8c9e3",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "177e75b58565cb68d992f211aec0f04e00ad1e619e89e0980b37aa2eaaea1aa5",
+        "id": "6dbeaf6c141488f721e8a0f29ef53693e492015707f5f7591b51f19c1b188efe",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "8a161fc19e24723b5d10d1e9dce9e23d373417ec0405e6402e67a2c85751b5f2",
+        "id": "fd39905a8936ff2a0b9f4fe47ea6f1af4f7af13120b831127d6e0f2e878f2b23",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "First element of a list already validated to contain exactly one typed selection; no business field ordinal or default."
@@ -40227,8 +40275,8 @@
   },
   {
     "path": "llm/engines/graph/checkpoints.py",
-    "sha256": "6959ee370cfc6cdc7ef3f2a363452462df983a866c58cdf597b9daa9b2162c40",
-    "reason": "Read all nested scope identity, snapshot, parent/child interaction decision translation, retry projection, checkpoint wrapping/acceptance and instruction wrapping/acceptance. Core Owners parse and serialize common fields; child payload remains opaque. Same required interaction/fingerprint/local identity checks, empty unique initialization, immutable source copies and exact scoped keys/metadata. ACK precedes updating the local records, including instructions. No implicit resume, approval, retry, usage or side effects. Bound Engine fixture migration preserves all original assertions and exercises the same current selected-definition path.",
+    "sha256": "b8379b0b13ac3435d06dea2daaf3b86be5ad77cd9ef71695804e9b560aa3da9b",
+    "reason": "Read all nested scope identity, snapshot, parent/child interaction decision translation, retry projection, checkpoint wrapping/acceptance and instruction wrapping/acceptance. Core Owners parse and serialize common fields; child payload remains opaque. Same required interaction/fingerprint/local identity checks, empty unique initialization, immutable source copies and exact scoped keys/metadata. ACK precedes updating the local records, including instructions. No implicit resume, approval, retry, usage or side effects. Bound Engine fixture migration preserves all original assertions and exercises the same current selected-definition path. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -40250,79 +40298,85 @@
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "21fb7ffb61c6fd58789627b49ed45f2e6e519550000621ba2ca33394deafeeab",
+        "id": "34c34206f8667ed64d0222016341fad3c05b8ae6f017792a0014d051df6031b6",
+        "classification": "declaration",
+        "owner": "EngineCheckpointScope",
+        "reason": "Canonical required-Tool completion diagnostic, checkpoint context extension name or unsupported Engine resume diagnostic is declared by the corresponding Owner."
+      },
+      {
+        "id": "6ff04782df2873e63ec6a92bd0903b83488291bb558df59c19ea73ee72901bf1",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "6bdbf2f0e44960e601bdc8e2647a5b1742d550becd26ba57590ac72d10324c09",
+        "id": "8e5035777e58d1d30262be014dbafcfbbd2fa759bd79392ad69f48f5e944373b",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "1faeccc5696cf63d16e570f8e4b272d49196b80f6c66e62a17dd620c7a386d0b",
+        "id": "d40eac595db07bad532fbd4a028b884f9100742b8180ed6d172d5deb0e4e303f",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "98ad6db90eb5afd6e81e250877ae94b31d01358f1e099204ed1a7104edb37648",
+        "id": "bb25973674366a9bf75339e1a18145c991f4e8517039b5308024369a14665b04",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "672a1ec4f8f8fc7c4e62028ea87fca7f09eb2e82f7bb7b9ce05975376bf419d6",
+        "id": "643e010f3fc2cdb4b470065f2f7709a7f5a9dc72188de8d5cfa5b0f56ff2f1fb",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "85a19fedc17ce35404e9d0507903f1057b6e64fbd8347be0e2f1862ef4b959d0",
+        "id": "6035bd080fe8db76ec9d39e44f1d4724053d76ceade37c6ea139f7f4aeaf598a",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "ae843a998c0de3ea1093f0a13c5284289ff9983fdb3ee8270727bdeab0d4394f",
+        "id": "855a909dc030bd270f3ce8be0e039b3c9123f64a0cd470c125485b3cd21cf075",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "87a37c89fe34225a4a1d6e64f500b3c549ecc7f636af7dd659368f8cdcc1906d",
+        "id": "b3504038cb71a93371523a27bae24bac8db5787c0f5c8ea0ebbe63eeb6890176",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "2a679204255bc98ba72a7ea3216dbd5ba822e7d2160b438a9a7646b5dee41cd0",
+        "id": "cb3c4cc76b8620b551888825fe52fa23ff8eb780cd4728cac3c04a21b3c3e25a",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "97151c1b0896e544936dad7285b20b53b2fab80452c54b3c558976dcd37b751a",
+        "id": "7ec4183c4a8b094e5bb3e666fd3eb95ee4e71d76b1fb5a5cbcdf2af1b0f3e213",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "c4fbeedd9b378b6165fee5c11f7c6f19504ad1369b4db7b42d591f58832dfcaf",
+        "id": "eb679f7726cac7d0e19c0a6038c8d57f566dce5a62b2a0bc16cd50133a315450",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "46c336e786c068572ccf1e82a81c4e21087acec70839eaef6a680a79d1943ac6",
+        "id": "a837c618ee87b54582f13ab228c3ff46c9019771198745f4b19696fd51c71552",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
       },
       {
-        "id": "8b35112a902f55981cee787f6b0312855ce085ee32b5d54f05554997a4964aa5",
+        "id": "6ae87a3846298bc13de27da93a5d9ff213671525626d84d71cfad963ad4b7156",
         "classification": "declaration",
         "owner": "EngineCheckpointScope",
         "reason": "Public Graph checkpoint name/format and scoped key/header identity, JSON options, absent snapshot and diagnostics are declared before execution methods."
@@ -40869,8 +40923,8 @@
   },
   {
     "path": "llm/engines/contracts.py",
-    "sha256": "130045a054b04ff467a348e908951ae8ec2443cc387afc13e498fe3894a34f02",
-    "reason": "Read all optional Engine hook discovery, capability and mode validation, shared synchronous factory binding and selected Agent/context wrappers. Same argument deepcopy, coroutine closing, required execution/capabilities and short-circuit mode/steering/checkpoint comparisons and diagnostics. Context omission bypasses its factory; Agent additionally validates mode and consuming checkpoint/resume contract. Registration remains separately constrained. No runtime configuration or authority added. Base reexports the same public API with one implementation, not a compatibility branch. Other Engine hook consumers remain pending.",
+    "sha256": "3b9b2e9bcddef5c7701551fd4c6a5a99afbdbcb61b4f2b44b8900447d8e42fa4",
+    "reason": "Read all optional Engine hook discovery, capability and mode validation, shared synchronous factory binding and selected Agent/context wrappers. Same argument deepcopy, coroutine closing, required execution/capabilities and short-circuit mode/steering/checkpoint comparisons and diagnostics. Context omission bypasses its factory; Agent additionally validates mode and consuming checkpoint/resume contract. Registration remains separately constrained. No runtime configuration or authority added. Base reexports the same public API with one implementation, not a compatibility branch. Other Engine hook consumers remain pending. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Remaining actual Engine discovery/resume hooks in RunManager now use this Owner. Same-spelled Component/Adapter/Graph-handler hooks are distinct protocols, not Engine consumers.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -40952,103 +41006,109 @@
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "2b2ff62d3480e68d4f8733cb8dc5fa44a879cd434b6afe41d495b83c93c5952d",
+        "id": "687501b15a3aab62b26c23af18731fd3e79815d5d5f888bee1b4a9ce9a6438d1",
+        "classification": "declaration",
+        "owner": "EngineHooks",
+        "reason": "Canonical required-Tool completion diagnostic, checkpoint context extension name or unsupported Engine resume diagnostic is declared by the corresponding Owner."
+      },
+      {
+        "id": "4a919d287624e1b9e5703ef102c25e526b508aedbc383d52ca8bf211092af5c9",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Variable-length tuple annotation, not a runtime fallback."
       },
       {
-        "id": "67c50e28d34c664260db8442ffa7529395451413d5d9b78f3bb61e1815e4217e",
+        "id": "17acba5258ee4e513ba394069389a558649b078359406d1e650585ba63e99c19",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Frozen/slots dataclass layout for fixed API diagnostics, not a policy setting."
       },
       {
-        "id": "3ec348f5e5b67fdcf9bd7f4f71e0ab7b7bee654093e3f25be37c2ab591b4e137",
+        "id": "d29fcdb687cfd939df0d25878bfe6e11b6435871d35153b1b6d47765035483f6",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Frozen/slots dataclass layout for fixed API diagnostics, not a policy setting."
       },
       {
-        "id": "6e091f01c830967186084b0571a5f4af9f87829bd12194b95ab2f433ae9a2bee",
+        "id": "b55ce9799971e0dab779ac97a537b575723f5076fe7ffc38fb1c75e1782e3601",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "ce36a087f99bddcd15ec0efe28a6faf573a526ab2ecde87775d4bfdb11c7b8fb",
+        "id": "0abe69129b0224506f9f17df1b0e8417c6390f31f6e84f6396775dca376f4250",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "1fdb81de3686a8afda22043a0222a4d7d1035ad1fabca52b5877a7b05f1067f4",
+        "id": "02f05cb47f1bab0984c4bde07bcf9ace0d9a143eec159d3a98adc9c7a7008667",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "a879824f54fbe98720b57d8f26dcc54617317686e249c38b0c0f07d196f1bfd4",
+        "id": "b98ea72652627ee020953b07855b006aed0d65edf8f279223914037ba8334d2f",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "7347ca795a7716350869d5c266e9f611bb69b1b04b31a090bea7aa253810b557",
+        "id": "2ed6c80464670724869d6e45f01682ea42fb90a80ae340f5178a65e4c861a11b",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "4094e89f359fb6d11c9f1ee4f1ea830c7bbd2ecd5b7fbef49e0cab905893f33e",
+        "id": "441a4d0c917f3bcadfda0334d21d4abb241373bddc0f1193991e63eb20e490b8",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "bf5362b97ebeda9c60037d3e4132199a34b000be27e27d1ef01b37830be70bbb",
+        "id": "718caa43786611b159dec1e12e77a84025ae832e0d38ab11589170ba242152d4",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "79736af8ae8bc70b94cc39d656aaacab3e0117fa9f8f34e531015a13eac9a601",
+        "id": "208354dfca8c932917330dc6cceb473efd10e981f8ddbe55d6992dca41ac70a2",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "7bed1602a8fc022812e79acf705a268fca9df1402db2ccea14ae4245aaa461fe",
+        "id": "43475d4cf8ef424daf13057ce71fad91d468843e9ef09b0dce3de00654e58ba1",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "ca03fb7af5ee329ea986b77ae418a80cc8f4c69f1b9a2ace5fc7fd9550eb6508",
+        "id": "24622f7fb29d728d0d1fe9388bea65f29d852be99de39d6a2fb616a5d85f732a",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "620825b4c635ad672b923905fd4f02f2d16bdaf6cb617d6964293503f33135bf",
+        "id": "3fabd12b12d82773efcb85e26018f3dbf7d3771974016226e74d1c49524d0afb",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "f56368fe1a0dc81d613ab2b0b52d08b2f450876dae5398012eddc25980dfad1d",
+        "id": "7eaacdc69cce786dc554c7c02bbc82d23a87ab18bf366ec7025acd1dfc08912f",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "ade46133ba9a3332b5fe97856b01867a0d72b19a96bb3e6b4b0038c1badb5cb0",
+        "id": "e85668cb74123465c58f1ff8917ee465b09da3bee9f5f5d66cf812fd5bc9ce3c",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "3c4e661942087dd4427676587b341110a099eee0bacc0ad49b4910ce2b02ad3e",
+        "id": "f4feb21565e539cfc11ca31a65128172e32046966bbf73625eca1dc24a0b105d",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
@@ -41078,13 +41138,14 @@
         "consumers": [
           "llm/engines/registry.py",
           "llm/engines/agents.py",
-          "llm/services/schema.py"
+          "llm/services/schema.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/llm/test_engine_steering.py",
           "tests/llm/test_configuration_validation.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -41199,6 +41260,275 @@
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_agent_storage.py",
           "tests/llm/test_engine_steering.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/agents.py",
+    "sha256": "bfc01ad15fcd34efc7ddcada8f2520f3b84bf6bb2b05dd9f53abb90151578634",
+    "reason": "Read all AgentExecution, AgentInvocation and AgentDelegation paths: profile/resource resolution, public binding overrides, graph/behavior selection, selected checkpoint usage, Tool policy intersection, input/output validation, steering forwarding, child output ownership, original storage ACK before effects/continuation and cancellation cleanup. Fixed execution binding/metadata/checkpoint/Tool result values use their canonical projections. Root and nested Tool completion share AgentPolicy without changing validation order. Resume omits context for remote MCP definitions until their connection validation. Delegation queue stays one outstanding unacknowledged event, producer/reader cleanup and exception propagation unchanged. All dynamic names/dispatch reviewed; no new fallback, retry, approval, storage or authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b9ffadfa01fd18ee6c99813c234f16aa50eca9830c047750d56bbb83b580d956",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "9f6fda7186b62aca00831487fa65b66c625822e29c889e3e1789018517b9cfb2",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "73cd39f427d18442a92bf6e01709c9deff91062d6d792048da8e3bb20ec219fb",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "23db5b07430a2df5224642c69d1521c92510952c7d78f0f2639ec825564194c5",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "1c3336749e0f1e0d314c9b6e96472b0c0930b1901caeaf462df29f23daf9fde2",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "0d900cef90813f175bfc940f1033ca152e489938f82ef7ae60c31ef298860f1c",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "7e301380c0f488c0ed9f354474291f5f9d9f1c749496a9beb16b03cfa709d893",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "2eda58936827b38a388429a054b9cf66af35a62b12a142bc8a55492f4e3a6d78",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "0dd56f3f5200ff6195385d7eea2edc1652bb84f808f2b67fa3e82c9e96fc2560",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "75a003298806b6ba09cc1f229c2f673e693df2796a941ef970551d41b1118c63",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "f6da884536ed611824cfb099a6fb499c5a86b3516024b945744f4c1f47d012dc",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "6cde5886467a4ba19759ab72f701fde2a407d0e957d56bfa62aa349b8d6d3ead",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "ac0f43f44405204c34eef00df193f1efdd522913458dda7434e8c9e462d8f497",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "32215d0f9960180caa16cdb10b59f1c16e12eadc3723f61d73c5f3b3f51ae4ed",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "931afab963373ac92ae018321e43176579577eb1b2f12e46e66751c8403d292e",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "6c804f2646aa371aa0153b6a7725dd5077efc12b15dd16ee60755843f0950e8b",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "45d060c6f2638e310a8d59341ea7d2168512f9f4395761635051208c45b1adef",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "48857ee2a861a87ee03eab22fe75b21378bc4391789b6c7c8a8ff5d4db294186",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "c6f593cbbe572185a5a3841f6905a55fc45445d78f13e2f54629b5bea120292d",
+        "classification": "declaration",
+        "owner": "AgentExecution",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "1f9fba43f1c43323869f6e8ff53e203eb2ca17534ed329426ac761d10ef03d27",
+        "classification": "declaration",
+        "owner": "AgentInvocation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "96fac3c35ef3b510df0fd0e98aa9029e310d55848dddf4b504c2a826ec7e1cf9",
+        "classification": "declaration",
+        "owner": "AgentInvocation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "407a65af7f6e8c7c7a63ef436692133d7bddcd8751c13b11fcfbba5cc3b2a3f8",
+        "classification": "declaration",
+        "owner": "AgentInvocation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "f33333e768cb242e3804c60b2acfdb1f89959efb42e8df1404b1937140781714",
+        "classification": "declaration",
+        "owner": "AgentInvocation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "c0372963fb0382c8f93f238fc7aad72c79e8c1fc0923750becae3e4bd25e5808",
+        "classification": "declaration",
+        "owner": "AgentInvocation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "f00b92c9a0d6af3509c75096827becffc881633a4e3b2eb1374b52adfa91b2a0",
+        "classification": "declaration",
+        "owner": "AgentInvocation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "e712f76164136ecb930d2a310c22552605099848b0be98dba0aeeeff1a4ecb7f",
+        "classification": "declaration",
+        "owner": "AgentInvocation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "3855f166c36a8ba0b306ce4b766f9c1782e9806403bb4ddac25a8d8803ac4a0f",
+        "classification": "non_contract",
+        "owner": "AgentDelegationContext",
+        "reason": "Frozen/slots/keyword-only Python dataclass layout, not an execution or stored policy."
+      },
+      {
+        "id": "1455a5acd9fee70d4becc91f05456c43df42bb5c2ae6116b725786cc6548a928",
+        "classification": "non_contract",
+        "owner": "AgentDelegationContext",
+        "reason": "Frozen/slots/keyword-only Python dataclass layout, not an execution or stored policy."
+      },
+      {
+        "id": "a34acc115e5852784539762ec36d932db4764e7b14f51d99a02a4c5b2f64528b",
+        "classification": "non_contract",
+        "owner": "AgentDelegationContext",
+        "reason": "Frozen/slots/keyword-only Python dataclass layout, not an execution or stored policy."
+      },
+      {
+        "id": "8ddddac029105273227c25525d67c8dce460e62294a6493ac19ee7291caa4076",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "4a8b5b6ffbf430c6bc99c0c2016b19317bf64eb0a103d6eb0e29a200249dada2",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "7d66d5d8ffb36f916f2f8f40592680daa6ad88acd03ac920c6c329c8aaef5644",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "a357ce3f7d929efbf6f2df46806bd22bbce941784b3e004e8d31088a768c29cf",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "cbff27e09a18ab2438cdb1f2354e05ab575b31156da708fdfe57505d21352489",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "131bc63caadb2ad04e347f4322385fe6ee698c34a5a2c4c80763b9658ca1829d",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "5c72973740b8604e639321aad210b105d86c319cb363dc68bb3bb29565849a73",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "2299589e69c48f31bc2845052596969751013aa23ee34e5f2ea96c19ae4e4a54",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "c135a90f808bf9d5d700eedd54f8a7bfef769da26850ace88a56765354c7aac2",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "db38af80d4f814372c54acc7e312d8dcc3993e85fa8c5c14024244c0a5750ed2",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      },
+      {
+        "id": "0f532843ed4346f2eb8053c082d4f4601e4dcf671f0db71868abff5bf7a0b0f2",
+        "classification": "declaration",
+        "owner": "AgentDelegation",
+        "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AgentExecution / AgentInvocation / AgentDelegation",
+        "declaration": "llm/engines/agents.py",
+        "consumers": [
+          "llm/engines/agent_tools.py",
+          "llm/engines/graph/engine.py",
+          "llm/services/runtime/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_execution_boundaries.py"
         ],
         "complete": true
       }

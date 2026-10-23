@@ -25,6 +25,7 @@ class EngineHooks:
     ABSENT = None
     NO_CAPABILITIES = ()
     INVALID_CAPABILITIES = "Engine required_capabilities must be a tuple of distinct names"
+    UNSUPPORTED_RESUME = "Engine does not support checkpoint resume"
 
     @classmethod
     def executor(cls, engine):

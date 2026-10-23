@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from dataclasses import dataclass
+from typing import NamedTuple
 
 from llm.core.contracts import JsonValue
 from llm.core.definition_snapshot import DefinitionSnapshot
@@ -51,6 +52,11 @@ class AgentResources(JsonValue):
     @property
     def aliases(self):
         return [alias for server in self.mcp.values() for alias in server.aliases]
+
+
+class SelectedAgentResources(NamedTuple):
+    tools: ToolRegistry
+    resources: AgentResources
 
 
 class AgentResourceResolver:
@@ -104,7 +110,7 @@ class AgentResourceResolver:
         parent = context.tool_scope
         if parent is not cls.NO_PARENT and not ToolPolicyValues.permits_selection(parent.allowed_tools, [*names, *aliases]):
             raise ExecutionLimitError(RunErrorCode.TOOL_DENIED, cls.WIDENED_TOOLS)
-        return tools, AgentResources.create(skills, prompt, mcp, selection.rag)
+        return SelectedAgentResources(tools, AgentResources.create(skills, prompt, mcp, selection.rag))
 
     @classmethod
     async def connect(cls, resources, context, tools, stack):

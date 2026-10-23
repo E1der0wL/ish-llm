@@ -25,6 +25,20 @@ class CheckpointRevision:
 
 
 @dataclass(frozen=True, slots=True)
+class CheckpointPause:
+    """Shared pause event reference; required checkpoint existence stays with storage."""
+
+    checkpoint: str
+
+    def to_dict(self):
+        return {self.__class__.checkpoint.__name__: self.checkpoint}
+
+    @classmethod
+    def read(cls, value):
+        return cls(value[cls.checkpoint.__name__])
+
+
+@dataclass(frozen=True, slots=True)
 class CheckpointRecords(JsonValue):
     INVALID: ClassVar[str] = "Checkpoint requires object records"
     INVALID_ENTRY: ClassVar[str] = "Checkpoint record requires a nonempty key and object value"
