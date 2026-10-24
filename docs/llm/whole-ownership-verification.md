@@ -5524,3 +5524,54 @@ Owner로 이동한 항목이며 코드·계약 Markdown·원래 손상/중단 �
 기존 Nullable 분류를 완화하지 않았다. 파일 547·미검토 256(llm 79/hub 177)·미분류
 16,486·미완 계약 3·issues 0. Base/Storage의 33개 잔여 후보는 각각 식별한 Python 반환
 타입·Protocol stub·가변 tuple 타입 표기이며 런타임 계약 리터럴은 남기지 않았다.
+
+
+## 통합 게이트 36 — 로컬 전체 검증과 원격 Push
+
+고정 SHA `6df7247cd7a2b6957efdd26578f04e8c3c0a59a3`의 `whole-owners-group36-l3`:
+LLM discovered/started/pass 2492/2492/2492, 1454.537387초; Hub 588/588/588,
+1135.769735초. 두 전체 실행과 supervisor exit 0, failure/error/skip/xfail/xpass/
+누락/추가/중복 0이며 발견 목록 전체와 실행/통과 ID가 일치한다. source 전후 동일
+`21b4dee2e1b07fc903a844b109952a8e3d8f2534b0462c06326989a9c980a26d`, input 전후 동일
+`7f7095767df74dbb89551594415a529988213a4cac1892d98bf35b043779b112`.
+동일 SHA의 정적·문서·R3·Provider·LLM/Hub 실제 환경 검사 6개도 exit 0.
+명령·개별 실행·환경 증거는 group36-local-verified.json과 group36-auxiliary에 보존했다.
+
+보호 ref 실제 조회 후 위 SHA만 refactor/llm-clean에 fast-forward Push했다(exit 0).
+원격 CI [40064914824](https://github.com/E1der0wL/ish-llm/actions/runs/40064914824)의
+head SHA가 일치한다. 최초 조회는 실행 중이며 이 시점에 원격 통과를 선언하지 않는다.
+후속 공통 Component 변경은 이 고정 게이트에 포함되지 않는다.
+
+## llm Component 등록·선택 계약 Owner — Level 1·2
+
+기준 d96347a. ComponentIdentity가 등록 identity의 기존 정규식을 소유하며 기존
+ComponentName의 디렉터리/기록 문법과 구분한다. Component 공개 조회 함수는 선택적
+속성의 기존 생략값과 getattr 동작을 소유하고 ComponentHook은 실제 공개 메서드에서
+안정적인 hook 이름을 선언한다. Registry와 Project 설정/수명 소비자는 이를 공유한다.
+
+등록·선택·참조·설정 검증·초기화/복제의 호출 순서와 예외 종류를 유지했다. 새 기본값,
+저장 형식, 선택 정책, 권한이나 대체 Reader는 추가하지 않았다. 비교 보조기
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/component-registry-draft/proof.py`
+exit 0: 기존 전체 함수 110개, 실제 등록 결과/예외/속성 조회 순서 126개,
+의존성 선택 11개, 정규 hook/생략값 연결 6개 동등. 제품 테스트/Assertion은 변경하지 않았다.
+
+- `whole-component-registry-l1-01`: discovered/started/pass 35/35/35, exit 0, 7.018233초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-component-registry-l1-01/llm.json --modules tests.llm.test_component_dependencies tests.llm.test_project_component_settings tests.llm.test_schema_ownership tests.llm.test_configuration_values`. source `43777d2cde143843205ec2f69b00f434c5ee24e017c3c36fdb666ffc1408fab4`, input `8ed1d2447d015da4c799cd6d1a9a48787902c9c0bc8a0c04d241ca04bf4805de`.
+
+- `whole-component-registry-l2-01`: discovered/started/pass 186/186/186, exit 0, 60.008642초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-component-registry-l2-01/llm.json --modules tests.llm.test_components tests.llm.test_definition_components tests.llm.test_configuration_results tests.llm.test_configuration_objects tests.llm.test_configuration_validation tests.llm.test_configuration_targets tests.llm.test_explicit_configuration tests.llm.test_project_authority tests.llm.test_resource_references tests.llm.test_skill_references tests.llm.test_usage_ownership tests.llm.test_component_storage_integrity tests.llm.test_lifecycle_integrity tests.llm.test_interaction_storage tests.llm.test_checkpoint_integrity tests.llm.test_operation_integrity tests.llm.test_usage_deletion`. source `43777d2cde143843205ec2f69b00f434c5ee24e017c3c36fdb666ffc1408fab4`, input `8ed1d2447d015da4c799cd6d1a9a48787902c9c0bc8a0c04d241ca04bf4805de`.
+
+- `whole-component-registry-hub-01`: discovered/started/pass 18/18/18, exit 0, 123.663368초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-component-registry-hub-01/hub.json --modules tests.hub.test_components tests.hub.test_component_managers tests.hub.test_component_catalog tests.hub.test_project_authority tests.hub.test_resource_tools`. source `43777d2cde143843205ec2f69b00f434c5ee24e017c3c36fdb666ffc1408fab4`, input `8ed1d2447d015da4c799cd6d1a9a48787902c9c0bc8a0c04d241ca04bf4805de`.
+
+모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 일치.
+각 실행의 source/input 전후 및 실행 간 동일, L1/L2 ID 중복 없음. Python 3.12.14/Clang,
+고정 의존성·Host d833790·namespace/X11과 전체 발견 목록을 기록했다.
+직접 설정/등록/정의/참조·Hub 소비자 및 승인·예산·실제 외부 효과·Checkpoint·삭제·
+저장 무결성을 영향 범위로 선정했다. 원래 상태/파일 효과 경계가 동일하므로 전체 회귀는
+공통 저장·등록·처리기 정리를 묶는 게이트 37에서 실행한다. 소단계 통과는 전체 및 원격
+완료를 뜻하지 않는다. services/schema와 lifecycle/components 전체 검토는 아직 남아 있다.
+
+등록 소단계 최종 보조 검사: 정적 S1–S7 reviewed 111·new/stale/outstanding/review_errors 0,
+문서 168개·Python fence 183개·링크 1,209개·anchor 37개 오류 0. 계약/architecture 감사
+16 pass / 3.262초 / exit 0. R3 mutation exit 0, 실제 효과 Assertion으로 의도된 한도 누락
+2개를 검출했다. 정적 dependency 17건 재검토. 전수 inventory 547개·미검토 255
+(llm 78/hub 177)·미분류 16,426·미완 계약 3·issues 0. 남은 구현부 후보는 개별 확인한
+Python 타입/Protocol/예외 체인 문법이며 런타임 필드/정책의 예외를 추가하지 않았다.

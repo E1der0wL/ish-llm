@@ -63,13 +63,33 @@ class Component:
     RECORDS_DIRECTORY = ComponentStorage.RECORDS_DIRECTORY
     RECORDS_MANIFEST = ComponentStorage.RECORDS_MANIFEST
     NO_CONFIG_ERROR = None
+    NO_DATA_CLASS = None
+    MISSING_DIRECTORY = None
+    NO_REQUIRED_COMPONENTS = ()
     INVALID_CONFIGURATION = "Invalid {name} configuration: {message}"
     UNSUPPORTED_CAPABILITY = "Unsupported component capability"
+
+    class Field:
+        DATA_CLASS = "data_class"
+        DIRECTORY = "directory"
+        REQUIRED_COMPONENTS = "required_components"
     capabilities: tuple[str, ...] = ()
     # 영속 도메인의 정확한 identity 의존성이다. runtime capability와 별개다.
-    required_components: tuple[str, ...] = ()
+    required_components: tuple[str, ...] = NO_REQUIRED_COMPONENTS
     # Optional ComponentData subclass; None keeps the generic service handle.
-    data_class: Optional[type] = None
+    data_class: Optional[type] = NO_DATA_CLASS
+
+    @classmethod
+    def data_type(cls, component):
+        return getattr(component, cls.Field.DATA_CLASS, cls.NO_DATA_CLASS)
+
+    @classmethod
+    def declared_directory(cls, component):
+        return getattr(component, cls.Field.DIRECTORY, cls.MISSING_DIRECTORY)
+
+    @classmethod
+    def declared_dependencies(cls, component):
+        return getattr(component, cls.Field.REQUIRED_COMPONENTS, cls.NO_REQUIRED_COMPONENTS)
 
     def backup_scope(self, project: Project):
         """외부 저장소가 있으면 checkpoint/flush와 동시 쓰기 차단 문맥을 재정의한다."""
@@ -246,3 +266,12 @@ class Component:
     def clone(self, source: Project, destination: Project) -> None:
         for identifier, data in self.list(source).items():
             self.create(destination, data, identifier=identifier)
+
+
+class ComponentHook:
+    """Stable optional hook names derived from their actual Component declarations."""
+
+    DESCRIBE_CONFIG = Component.describe_config.__name__
+    REFERENCES = Component.references.__name__
+    VALIDATE_PROJECT_CONFIG = Component.validate_project_config.__name__
+    RESOLVE_RUNTIME = Component.resolve_runtime.__name__

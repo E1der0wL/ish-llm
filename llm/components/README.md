@@ -101,6 +101,12 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 
 앱은 [ComponentData](../services/lifecycle/README.md)를 통해 접근합니다. 핸들은 최신 Project와 선택 여부를 확인하고 workspace 잠금을 사용합니다. Component의 저수준 메서드를 직접 호출하는 확장 코드는 해당 소유권·수명 경계를 책임져야 합니다.
 
+등록 identity 문법은 `ComponentIdentity`, 디렉터리/기록 식별자 문법은 `ComponentName`이
+각각 소유합니다. 두 문법의 허용 범위는 다릅니다. 선택적 data_class·directory·required_components
+조회와 생략값은 Component 공개 조회 함수가, 선택 hook 이름은 ComponentHook이 선언합니다.
+Registry와 설정/수명 소비자는 이 선언을 공유하며 기존 선택 구현의 속성 조회 순서·예외·
+의존성 검사와 저장 Owner 호출을 보존합니다.
+
 ## 저장과 수명
 
 ```text

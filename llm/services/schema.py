@@ -8,6 +8,7 @@ from copy import deepcopy
 import json
 from dataclasses import asdict, dataclass, field, fields
 
+from llm.components.base import Component, ComponentHook
 from llm.core.configuration import resolve_component_config
 from llm.core.models import ConversationStorage, ProjectConfig
 from llm.core.configuration_targets import ParameterTargets
@@ -214,9 +215,9 @@ def describe_project_config(app, components=None):
     for name in selected:
         component = registry.get(name)
         catalog[name] = {"directory": component.directory, "capabilities": list(component.capabilities),
-                         "required_components": list(getattr(component, "required_components", ())),
+                         "required_components": list(Component.declared_dependencies(component)),
                          "record_schema": checked_schema(getattr(component, "schema", object_schema())),
-                         "project_configuration": callable(getattr(component, "validate_project_config", None))}
+                         "project_configuration": callable(getattr(component, ComponentHook.VALIDATE_PROJECT_CONFIG, None))}
     # 선언한 런타임 자원의 선택지만 보강한다. 정책값이나 Engine별 기본값은 생성하지 않는다.
     def resources(spec):
         for node in schema_nodes(spec):
@@ -250,10 +251,10 @@ def describe_project_config(app, components=None):
     project_components = {}
     for name in registry.names():
         component = registry.get(name)
-        if not callable(getattr(component, "validate_project_config", None)):
+        if not callable(getattr(component, ComponentHook.VALIDATE_PROJECT_CONFIG, None)):
             project_components[name] = False
             continue
-        describe = getattr(component, "describe_config", None)
+        describe = getattr(component, ComponentHook.DESCRIBE_CONFIG, None)
         spec = checked_implementation_schema(describe() if describe else implementation_schema())
         resources(spec)
         if isinstance(spec, dict):

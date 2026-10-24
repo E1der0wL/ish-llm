@@ -51751,56 +51751,60 @@
   },
   {
     "path": "llm/components/naming.py",
-    "sha256": "b93dec68c2b468b846b5173c305eaf762a8330d75afe04e52a36f4c5d464fd61",
-    "reason": "Whole common Component/Protocol, generic filesystem storage, manifest/codec and identifier validation reviewed, including inherited/overridden file layouts and live public callbacks. Actual full function equivalence and original safety/effect/fault assertions verify required evidence and unchanged state/effect boundaries. Component README/Registry/remaining domain implementations remain separately tracked.",
+    "sha256": "93dec5811cb0acf393600eb28165a32f37f57f15aa180ea530b6be0fdc0a6703",
+    "reason": "Whole Registry and current Base/Naming reviewed including dynamic optional hooks, missing fields, selected implementations, dependency and reference/lifecycle consumers. Original algorithms and property/error order proven equivalent; only exact Python annotation/stub/exception syntax remains in implementation.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "6458f751427f0c0c08a8d0413780cff2b57c0d170b7a9099bc8a04b434f410b6",
         "classification": "declaration",
         "owner": "ComponentName",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
         "id": "8598ed9845169e242794c6218170ac3f874884f42bdc768504d4a1e55689d04a",
         "classification": "declaration",
         "owner": "ComponentName",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
         "id": "0b9957796b4664dda7db498d6c7e9fdd61291b13ad2d6dc57411b55ae20481c3",
         "classification": "declaration",
         "owner": "ComponentName",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
         "id": "64f142e34ae7ce3a4863b3f0a04749e6f271273a107ea138b47393e8fe329a93",
         "classification": "declaration",
         "owner": "ComponentName",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "da6e853c440c0815a0dd7acdb920ee5721b4c0baa954b6e80324982a47f81d17",
+        "classification": "declaration",
+        "owner": "ComponentIdentity",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       }
     ],
     "contracts": [
       {
-        "owner": "ComponentName",
+        "owner": "ComponentName / ComponentIdentity",
         "declaration": "llm/components/naming.py",
         "consumers": [
-          "llm/components/files.py",
-          "llm/components/definitions.py",
-          "llm/components/registry.py",
+          "llm/services/schema.py",
           "llm/services/lifecycle/components.py",
-          "llm/core/usage.py"
+          "llm/components/registry.py"
         ],
         "tests": [
-          "tests/llm/test_component_record_integrity.py",
-          "tests/llm/test_component_storage_integrity.py",
-          "tests/llm/test_memory_history_integrity.py",
-          "tests/llm/test_data_quarantine.py",
-          "tests/llm/test_components.py",
-          "tests/llm/test_skill_packages.py",
-          "tests/llm/test_vision.py",
-          "tests/llm/test_rag_components.py",
+          "tests/llm/test_component_dependencies.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_resource_references.py",
           "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_components.py",
           "tests/hub/test_component_managers.py"
         ],
         "complete": true
@@ -55654,248 +55658,270 @@
   },
   {
     "path": "llm/components/base.py",
-    "sha256": "2389fb7cd898017898f342a599517dc97168f376d84dacf790f32916f17d13b2",
-    "reason": "Whole common Component/Protocol, generic filesystem storage, manifest/codec and identifier validation reviewed, including inherited/overridden file layouts and live public callbacks. Actual full function equivalence and original safety/effect/fault assertions verify required evidence and unchanged state/effect boundaries. Component README/Registry/remaining domain implementations remain separately tracked.",
+    "sha256": "b1fbf8ff71a61f2d2ec176ef75d58c8098ec0a223023bd32508f63d5c9449084",
+    "reason": "Whole Registry and current Base/Naming reviewed including dynamic optional hooks, missing fields, selected implementations, dependency and reference/lifecycle consumers. Original algorithms and property/error order proven equivalent; only exact Python annotation/stub/exception syntax remains in implementation.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "65dac5480433b83c67ea08992109f081f0c2986d6d7501e0b3b594943c21b35c",
         "classification": "non_contract",
         "owner": "ProjectComponent.initialize",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
         "id": "24a1c5c879e679a9d12d6f55fea9757c78e2656fb664fb8a4ecfa77bc3d625cd",
         "classification": "non_contract",
         "owner": "ProjectComponent.initialize",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "7470068a8773091e1132f285c2365746ec7f6a084cbd7bee4c8e4b4c6686a1cb",
         "classification": "non_contract",
         "owner": "ProjectComponent.get_config",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "00ac9b4191d745a8d511b83e4dd1d7c5fb5ee53d81c84b8e851c2b28e06c86ae",
         "classification": "non_contract",
         "owner": "ProjectComponent.create",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "22cc022e4d8153cabea4b592b8888c862b0e049426a51c771829e12e53bcf268",
         "classification": "non_contract",
         "owner": "ProjectComponent.load",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "343127bb69f39e74fb297cce68f960605bac6d455a8b8b6a43045e3d68e9d6cf",
         "classification": "non_contract",
         "owner": "ProjectComponent.list",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "fe5a89f8dc228712dba2101bb887bdc0eeb9c3b52afa83056342841a3937564b",
         "classification": "non_contract",
         "owner": "ProjectComponent.save",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
         "id": "03b9ed01f1ee9dd2cedfb06ee4de05da054d8ca1aa87990e25bf5a1f3a3a882b",
         "classification": "non_contract",
         "owner": "ProjectComponent.save",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "21f6965bcb48b911b520ae27ca36c08c238d21e19c40d72d57b843e97d8041be",
         "classification": "non_contract",
         "owner": "ProjectComponent.update",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "f89828ae7d40d31d7c7a17b98022f226a6ff65d49491c443401a56e687a028c9",
         "classification": "non_contract",
         "owner": "ProjectComponent.delete",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
         "id": "d1ba93032b8d9f57814c98abf987ab9db0a1c0e20727aa3fa811b772eb5101e5",
         "classification": "non_contract",
         "owner": "ProjectComponent.delete",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "44931ed41e1232dfc4547bfed4c5954f2d7b3f2f9461b70dedeb843c03dd1f8f",
         "classification": "non_contract",
         "owner": "ProjectComponent.delete_directory",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
         "id": "f9620b397cc3ba0f9c0378a6284744edff9fe8c6b096c840935b9d1cc72046a2",
         "classification": "non_contract",
         "owner": "ProjectComponent.delete_directory",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "99cba3613a35dd4fe96128eada55b8142769bc9dfce2c15787a3b1fd77eb9b1d",
         "classification": "non_contract",
         "owner": "ProjectComponent",
-        "reason": "Python tuple[str, ...] variadic type annotation for declared capabilities/required_components; no runtime marker or default."
+        "reason": "Python variadic tuple type annotation, not a runtime value or protocol field."
       },
       {
         "id": "fa4812be7f6d926f982ef0ed61ee94d3285bbf2f9848a2886b1379be4fd0d252",
         "classification": "non_contract",
         "owner": "ProjectComponent",
-        "reason": "Python tuple[str, ...] variadic type annotation for declared capabilities/required_components; no runtime marker or default."
+        "reason": "Python variadic tuple type annotation, not a runtime value or protocol field."
       },
       {
         "id": "f9b4c8943530a291d8cfdc7971f6e49d4df7d159053a5a1cbe7f0d04812325d0",
         "classification": "non_contract",
         "owner": "ProjectComponent.resolve",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "1e9ff4fbefa0ad67654771f8ded1d2782bbc15d9a2bef63d963ed9db0c2c5121",
         "classification": "non_contract",
         "owner": "ProjectComponent.clone",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
         "id": "bb848a6d112670a9cb122714a0cd88466780b463f5eb458aef34df7aed6806b9",
         "classification": "non_contract",
         "owner": "ProjectComponent.clone",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "e9fe230bc3a410ce52a063ee2915c27f2028b5820c9d8eb1e58c0c052f12149b",
         "classification": "non_contract",
         "owner": "ProjectComponent.backup_scope",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "8d7d75780aabb39ce456fd56f8b2c0470746b3d7ffeb7ac477dfce6e982b0842",
         "classification": "non_contract",
         "owner": "ProjectComponent.validate_backup",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
         "id": "7c9aa692b57067a24d9365144b861e63fb0d8fc0c0b28c6235937205c1551c91",
         "classification": "non_contract",
         "owner": "ProjectComponent.validate_backup",
-        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+        "reason": "Python Protocol stub syntax, selected Component supplies runtime implementation."
       },
       {
         "id": "261a869b1dbd147a479a2a011fe1d619fc26a37d366c19b951b9edd2edcb85ab",
         "classification": "declaration",
         "owner": "Component",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "e9a701a04480c21c6637047acddfe2ad8c3dd6d3811de7d0c66d75aaf928c765",
+        "id": "304b9a2e848a4c8d2e6c38d636129fc2b21fd64c2ceaa2ce397126fdca640d9b",
         "classification": "declaration",
         "owner": "Component",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "cb278f7caa13863a67c3576ad90b2cbfdf8c3affa993f72ada511537a64617a3",
+        "id": "7bdf1df56d13bf2c1d9cb060416b2f6afe4b11d1f1ca43256b4be33b8fe9ad87",
         "classification": "declaration",
         "owner": "Component",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "e05c0e00df625de97da2ab0cae382ba923f440d49ccb5af489252bf0abb831b5",
+        "id": "8418c1928e63fc6d87e645bed5c16c45eecd7c062bae85330e765b4cadd7fccd",
         "classification": "declaration",
         "owner": "Component",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "a0034cd812098afc3783d213d47cd7ad6eac2f8c36c1fd818570cb817e77aa85",
+        "id": "d636a8638272c1c898655246e539182bd8f4b54b0d970e2f7b817f2cf88055e8",
         "classification": "declaration",
         "owner": "Component",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "d46fa01130ba694e3e80899090adc7b15541ecfc6973f365a7f43260dc64c0b0",
+        "id": "b2eafeba181843c84231c9c069c782abfac1f8b990e099f5c5a359b7eb555025",
+        "classification": "declaration",
+        "owner": "Component.Field",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "40f70bd1ed258bbecae7a2cbaf2ae836a9ee247f041758dac38018150731cf15",
+        "classification": "declaration",
+        "owner": "Component.Field",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "a644c71004943cb000ba95dca1668b6dd4a93e5cdbdd5b932842c16fb6936fff",
+        "classification": "declaration",
+        "owner": "Component.Field",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "d55ed771145cbd35da7e84e07b713e0a7459b893c47e0fd8a21a1dd79c8fcd31",
         "classification": "declaration",
         "owner": "Component",
-        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "8164a7e7dece5d4e5b94870d6bde5aff9fc05c73e5b12ab87c2445263fc246a9",
+        "id": "55b5a3829f9006f68121690a944e76e81242c2a6af0bb4e5e604466edfa709e6",
+        "classification": "declaration",
+        "owner": "Component",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "20adc2ee5ba8da6acefc4356c6e27c1468de588f4c598751f325359814d87168",
         "classification": "non_contract",
         "owner": "Component.validate_backup",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "2c3bfea06ab8d12578cbe7acce042800b9b47522a337566bbb2bc672d4ef2920",
+        "id": "071867176902bfbc702d5dcd0c08ac9c59a0736766e098f9200605f7cb1d3807",
         "classification": "non_contract",
         "owner": "Component.validate_config",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "133f9a09d95c89fddfdbb91db7f8dc17c1ddf1b73c04f5f965f4c8072144f98f",
+        "id": "ee051134d113e4403a69e035541835ac004859f375fc8c78ddeb401481dbb40e",
         "classification": "non_contract",
         "owner": "Component.validate_record",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "1c2a7f32f1d22d5588738f2e0cf076ca9059bcf6573c60eebae0a8ea4f339c59",
+        "id": "a33ce3f4c758d20edbfad60ae5c097b821749189b9926c8e076dae1207c29bb9",
         "classification": "non_contract",
         "owner": "Component.initialize",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "ac96c30ceca147e458007929a4c8711c269673ae5132eeffbcdfc09bb7ff7ce1",
+        "id": "23166c2e4f8b390fbf10fc0b08a2d53ea5c92da397f64ec5ba0586004bb812a9",
         "classification": "non_contract",
         "owner": "Component._write",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "82f57997b627729615d78a0ea62892685cddc8f1e22d7420dfcba485cee8f33e",
+        "id": "9715b16d5394c0234644e67936e553a87f0a951db2e6e82cfaa43b916ccc864a",
         "classification": "non_contract",
         "owner": "Component.save",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "9c4f13fbfd45a84d5a6166031dc39ffa77ae766969d55db27fba5f54800de2e6",
+        "id": "806ae9574b1b1589265505878e895408d53a261445dfcca8d7d50c33ae23b70e",
         "classification": "non_contract",
         "owner": "Component.delete",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "7c3baff41f50a8194f6b7b6a153dc97a62447c0ffb66bc3faf35b05147f330d1",
+        "id": "6020810e517d68e5edda0755168622ed42668d44a6b9cc4719fef4e340f3777e",
         "classification": "non_contract",
         "owner": "Component.delete_directory",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "126ac714896d702da66b7d81af3f395ea8c5a080a5ceedee6bc646db8cb2b93c",
+        "id": "986e0f783443baf08f856d96e90862a2fcbfa2bbb04591fd4eb384a3555be09f",
         "classification": "non_contract",
         "owner": "Component.clone",
-        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+        "reason": "Python return type annotation -> None; no runtime default or policy."
       }
     ],
     "contracts": [
       {
-        "owner": "ProjectComponent / Component",
+        "owner": "ProjectComponent / Component / ComponentHook",
         "declaration": "llm/components/base.py",
         "consumers": [
-          "llm/components/files.py",
-          "llm/components/definitions.py",
-          "llm/components/registry.py",
+          "llm/services/schema.py",
           "llm/services/lifecycle/components.py",
-          "llm/core/usage.py"
+          "llm/components/registry.py"
         ],
         "tests": [
-          "tests/llm/test_component_record_integrity.py",
-          "tests/llm/test_component_storage_integrity.py",
-          "tests/llm/test_memory_history_integrity.py",
-          "tests/llm/test_data_quarantine.py",
-          "tests/llm/test_components.py",
-          "tests/llm/test_skill_packages.py",
-          "tests/llm/test_vision.py",
-          "tests/llm/test_rag_components.py",
+          "tests/llm/test_component_dependencies.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_resource_references.py",
           "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_components.py",
           "tests/hub/test_component_managers.py"
         ],
         "complete": true
@@ -56210,6 +56236,200 @@
           "tests/llm/test_vision.py",
           "tests/llm/test_rag_components.py",
           "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/registry.py",
+    "sha256": "478dc1e1cbba7f757265e7cba6c471c5748573a3df78e16ff7c9306d2ae293b1",
+    "reason": "Whole Registry and current Base/Naming reviewed including dynamic optional hooks, missing fields, selected implementations, dependency and reference/lifecycle consumers. Original algorithms and property/error order proven equivalent; only exact Python annotation/stub/exception syntax remains in implementation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0dd631ca4637dbf6cdc6ca6293c96cfc09091303d953ff4a2db05e465957b00c",
+        "classification": "declaration",
+        "owner": "ComponentDependencyError",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "4c612a662e49b8d5feb7db8faf50ecd75befb536908bf4e15a9efe4f34938577",
+        "classification": "declaration",
+        "owner": "ComponentDependencyError",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "c7bd7b4f6288fda72ee98961b4796564ea0fd3c81a3fbd4413e63e2c9cc52299",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "0f2e3689b32fd9057ca0835f2bb9a75db7a1c09e9e1b4c3c946a66a25d1362ad",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "066904ae25894d954988a3c64a68bcf77e029df2ef6ceb57376a6e92f508b4e0",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "0a9e7a3fdd7a5fdf3343c45d19deb6474e5db6fc75b2850bae4b7a9731bbb8ad",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "1055932c119bce81a8eee65960d2ad3e45d32edb18bb66e85cbb42ead3d1bd27",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "26ef8add37a85413cf15bc377754d17854742a60ce6f189c22aa8010c9f6ee8d",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "45b094894ca1cd208f9d16a6e8c155eb1d272855349f1a5cd217732661cb30b7",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "998a54687173369701ab2fa350ec802add6b8e1e090d2d21dc2d168082531f79",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "766db02a4bfd2d8f4db12807b62a35ca382960c1142440fbcca57f1b37c04b5b",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "9e9d45ebc5c816bab5d92fe580f112068ccb9990173c6085683f7a5ae57b29f2",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "ce965da6dcf7681550740ded1c169de71c52be56f0a79acfa33831f74f4ce597",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "e0fd3d5311cb4b2f74f1be977ceca4f956147cf6cbf163c27dd4bd5de9bcef73",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "217e88b2e2c62d5e4bad4697d3538c992622b5fbea5a21a8b6eed8044ba4617c",
+        "classification": "declaration",
+        "owner": "ComponentRegistry",
+        "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
+      },
+      {
+        "id": "20f8ba7eebb20870cdfa0200d8694967e10a4ca2e165e2f66d7c19a4e80a9f85",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.__init__",
+        "reason": "Python variadic tuple type annotation, not a runtime value or protocol field."
+      },
+      {
+        "id": "0338e8fe02ff5e751b1be6c018088d5d80561b19838238072422c7bbbf560e57",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.__init__",
+        "reason": "Python return type annotation -> None; no runtime default or policy."
+      },
+      {
+        "id": "ff2ca8b54c9812acb3ce6df9e58412fa5b29868467a80ff8203743e8989d3e05",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.register",
+        "reason": "Python return type annotation -> None; no runtime default or policy."
+      },
+      {
+        "id": "b096c73974ada9260511e0ad37b2e29625eaaec478dadc5036f754201ebc151f",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.get",
+        "reason": "Explicit Python exception-chain suppression (raise from None), preserving the public unavailable-component error."
+      },
+      {
+        "id": "7ab97713fa3efb3f1166ad31e1b4679c29a8bf5d03e52143bb0bcaa15ad28c5e",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.names",
+        "reason": "Python variadic tuple type annotation, not a runtime value or protocol field."
+      },
+      {
+        "id": "d0fdb0b3f65e4e0bb4854e523d72356cbe032d0198e83675a43bcd14db3fd74e",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.validate",
+        "reason": "Python variadic tuple type annotation, not a runtime value or protocol field."
+      },
+      {
+        "id": "bc278b2742b98bcf26e305a3547714b8e79a97fb2cc0d63012904439432f2e49",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.validate",
+        "reason": "Python variadic tuple type annotation, not a runtime value or protocol field."
+      },
+      {
+        "id": "f60326556a5c9a0e9c5050056b68ccb6d9b7e469fb0d8375acae77433efbc167",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.stored",
+        "reason": "Python variadic tuple type annotation, not a runtime value or protocol field."
+      },
+      {
+        "id": "62131f2e59a77832b1dcb91aaaf609251cf4c3ca426a6d99efd1282d768ce231",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.initialize",
+        "reason": "Python return type annotation -> None; no runtime default or policy."
+      },
+      {
+        "id": "b7f35c9e01e67de6c513cc20f11a76194e934c2a876f3d37fb4c7f1c25de7f7d",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.validate_config",
+        "reason": "Python return type annotation -> None; no runtime default or policy."
+      },
+      {
+        "id": "cdedc9626c953b02553fc02121d611989fc528136b1f1a7fe527631ae32e83d1",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.resolve",
+        "reason": "Python variadic tuple type annotation, not a runtime value or protocol field."
+      },
+      {
+        "id": "7eda5a6b701cf5bff62ca080cd8b46fa83520aaedb2fe8396a93fa171ee3bb1f",
+        "classification": "non_contract",
+        "owner": "ComponentRegistry.clone",
+        "reason": "Python return type annotation -> None; no runtime default or policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComponentRegistry / ComponentDependencyError",
+        "declaration": "llm/components/registry.py",
+        "consumers": [
+          "llm/services/schema.py",
+          "llm/services/lifecycle/components.py",
+          "llm/components/registry.py"
+        ],
+        "tests": [
+          "tests/llm/test_component_dependencies.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_components.py",
           "tests/hub/test_component_managers.py"
         ],
         "complete": true

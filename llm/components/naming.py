@@ -12,3 +12,13 @@ class ComponentName:
         if not isinstance(value, str) or not re.fullmatch(cls.PATTERN, value):
             raise ValueError(cls.INVALID)
         return value
+
+
+class ComponentIdentity:
+    """Registered identities are lowercase; directory/record names have another grammar."""
+
+    PATTERN = r"[a-z][a-z0-9_]*"
+
+    @classmethod
+    def match(cls, value):
+        return re.fullmatch(cls.PATTERN, value)

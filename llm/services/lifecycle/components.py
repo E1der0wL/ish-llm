@@ -11,6 +11,7 @@ from typing import Optional
 
 from llm.core.models import Project
 from llm.components.registry import ComponentRegistry
+from llm.components.base import Component
 from llm.services.lifecycle.access import ProjectAccess
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.logging import log_event
@@ -106,7 +107,7 @@ class ComponentData:
         if name not in project.components:
             raise ValueError("Component is not enabled for this Project")
         component = self.registry.get(name)
-        handle = (getattr(component, "data_class", None) or ComponentData)(self.access, self.registry, project, name)
+        handle = (Component.data_type(component) or ComponentData)(self.access, self.registry, project, name)
         handle.bind_resources(self._sessions, self._steps, agents=self._agents)
         if self._async_runner is not None:
             handle.bind_runtime(runner=self._async_runner, access_check=self._access_check,
