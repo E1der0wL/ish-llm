@@ -6,7 +6,7 @@ from llm.services.schema import ProjectConfiguration
 
 from copy import deepcopy
 from llm.core.models import ProjectConfig
-import json
+from ..input.json_document import JsonDocument
 import subprocess
 
 from jsonschema import Draft202012Validator, ValidationError
@@ -19,9 +19,7 @@ from ...widget.forms.settings import MISSING, at_path, put_path
 
 
 def same_json(left, right):
-    if left is MISSING or right is MISSING:
-        return left is right
-    return json.dumps(left, sort_keys=True, allow_nan=False) == json.dumps(right, sort_keys=True, allow_nan=False)
+    return JsonDocument.same(left, right, missing=MISSING)
 
 
 def page_values(page):
@@ -44,7 +42,7 @@ class SettingsJsonEditor:
             if isinstance(screen.page, ProjectPage):
                 if "config" in exported:
                     exported["config"] = ProjectConfig.without_engine_parameters(exported["config"], TITLE_ENGINE)
-            text = json.dumps(exported, ensure_ascii=False, indent=2, allow_nan=False)
+            text = JsonDocument.render(exported, allow_non_finite=JsonDocument.STRICT_NON_FINITE)
         except (ValueError, TypeError) as error:
             screen.error(error)
             return
@@ -54,9 +52,7 @@ class SettingsJsonEditor:
         get_app().create_background_task(self.edit(screen.page, values, text))
 
     def candidate(self, page, before, text):
-        def invalid(value):
-            raise ValueError("Invalid JSON: " + value)
-        values = json.loads(text, parse_constant=invalid)
+        values = JsonDocument.parse(text)
         if not isinstance(values, dict):
             raise ValueError(self.screen.t(MessageKey.SETTINGS_JSON_OBJECT))
         if isinstance(page, ProjectPage):
@@ -101,7 +97,7 @@ class SettingsJsonEditor:
         screen = self.screen
         edited = None
         try:
-            edited = await host.edit_text(text, screen.view.general, suffix=".json")
+            edited = await host.edit_text(text, screen.view.general, suffix=JsonDocument.SUFFIX)
             if edited != text or self.recovery:
                 candidate = self.candidate(page, before, edited)
                 key = page.identifier if isinstance(page, ProjectPage) else page.name

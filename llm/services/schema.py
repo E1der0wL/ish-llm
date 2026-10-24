@@ -2,10 +2,9 @@
 
 from llm.services.runtime.policies import TokenCounters
 from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey, ConfigurationPresentation
-from llm.core.json_data import JsonPointer
+from llm.core.json_data import JsonPointer, JsonValue
 
 from copy import deepcopy
-import json
 from dataclasses import dataclass
 
 from llm.components.base import Component, ComponentHook
@@ -90,8 +89,6 @@ class ProjectFormSchemas:
 class ProjectConfiguration:
     """Owner of the public configuration description, detached from stored state."""
 
-    SORT_KEYS = True
-    ALLOW_NONFINITE = False
     HOST_FIXED = "Host-fixed setting: "
     PATH_SEPARATOR = "."
 
@@ -216,16 +213,7 @@ class ProjectConfiguration:
             if (
                 before is missing
                 or after is missing
-                or json.dumps(
-                    before,
-                    sort_keys=ProjectConfiguration.SORT_KEYS,
-                    allow_nan=ProjectConfiguration.ALLOW_NONFINITE,
-                )
-                != json.dumps(
-                    after,
-                    sort_keys=ProjectConfiguration.SORT_KEYS,
-                    allow_nan=ProjectConfiguration.ALLOW_NONFINITE,
-                )
+                or not JsonValue.same(before, after)
             ):
                 raise ValueError(
                     ProjectConfiguration.HOST_FIXED + ProjectConfiguration.PATH_SEPARATOR.join(path)

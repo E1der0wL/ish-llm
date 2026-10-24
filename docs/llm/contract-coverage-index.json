@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 607,
-    "unreviewed_files": 155,
+    "files": 608,
+    "unreviewed_files": 154,
     "stale_files": 0,
-    "unclassified": 7606,
+    "unclassified": 7579,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 155,
+    "unreviewed_dynamic_paths": 154,
     "unreadable_files": 0,
-    "candidates": 19474,
+    "candidates": 19453,
     "issues": 0
   },
   "files": [
@@ -741,9 +741,9 @@
     },
     {
       "path": "hub/ui/host.py",
-      "status": "unreviewed",
-      "sha256": "b129e849b3246c7317d5fd6be1036ab176134cc45c026e3e3be2b4de4f141a1e",
-      "candidates": 10
+      "status": "reviewed",
+      "sha256": "ea291fdd0044c0ad89f55fc6874f58ca5f877e89c766988875106e6003cf0032",
+      "candidates": 8
     },
     {
       "path": "hub/ui/input/__init__.py",
@@ -774,6 +774,12 @@
       "status": "unreviewed",
       "sha256": "414c866c3b8e706562763569c2d03056e7d95661870ce9499a3ccdc2c8d3e02d",
       "candidates": 24
+    },
+    {
+      "path": "hub/ui/input/json_document.py",
+      "status": "reviewed",
+      "sha256": "2d3cb85eb8d7ad6a02f20e81da7bed0b83088104cf8345ec1eed719a3adb201e",
+      "candidates": 5
     },
     {
       "path": "hub/ui/input/keys.py",
@@ -910,14 +916,14 @@
     {
       "path": "hub/ui/settings/json_editor.py",
       "status": "unreviewed",
-      "sha256": "24243e33d2d04013c3491be92ed508e6450f71eb29f48521cf5dd52a42bb58d3",
-      "candidates": 33
+      "sha256": "8c538767588960021453dd8ec04bca8319486c31b5a7550c80ece3dfef32cb9f",
+      "candidates": 24
     },
     {
       "path": "hub/ui/settings/navigation.py",
       "status": "unreviewed",
-      "sha256": "fc2faaa060682d96f67e63d1ecf139b10e888805a4d83e09f8bb31714e59347d",
-      "candidates": 45
+      "sha256": "772944d247f4c97946d5f1670bfd079edcf5259d5b1dc79fcb354cda2aa5a71a",
+      "candidates": 43
     },
     {
       "path": "hub/ui/settings/pages.py",
@@ -928,8 +934,8 @@
     {
       "path": "hub/ui/settings/presets.py",
       "status": "unreviewed",
-      "sha256": "c4ba367f33686b643a24ba5ebbfe81bc9b130d17672815d18ced5f0081b3c53a",
-      "candidates": 61
+      "sha256": "7fdac9a33954b0fb5dfe9234d0a252453570c98c97e076819b335fbd00fb15ea",
+      "candidates": 57
     },
     {
       "path": "hub/ui/settings/screen.py",
@@ -1102,8 +1108,8 @@
     {
       "path": "hub/widget/forms/definition_manager.py",
       "status": "unreviewed",
-      "sha256": "f7570d8de108f3df511a7ecae6832a36a674292e6a926bc34ef56a112afb093d",
-      "candidates": 77
+      "sha256": "731e02f56d6e03fe08982753fe807457a3fb25343c4594fb3456e67a628fe205",
+      "candidates": 75
     },
     {
       "path": "hub/widget/forms/file_attachment.py",
@@ -1168,8 +1174,8 @@
     {
       "path": "hub/widget/forms/settings.py",
       "status": "reviewed",
-      "sha256": "3801fa0cf3943ede3be43e250fbc937b3fe8918ec441d48d91e63e9cd17f90be",
-      "candidates": 39
+      "sha256": "fb5029b4c0b446e867eda6fa9cc6d8f0caf336915ac4a58ac6dbcdfe8552b1d6",
+      "candidates": 35
     },
     {
       "path": "hub/widget/forms/settings_viewport.py",
@@ -2620,14 +2626,14 @@
     {
       "path": "llm/core/interactions.py",
       "status": "reviewed",
-      "sha256": "9ef025048291de4b345a2ee68efd601ef34cf2f2a0b3a39371a7077604b6a61f",
-      "candidates": 150
+      "sha256": "2124cc11d69f99d837cf08c58dd5900beb122bc58fb203359560f5289a677be6",
+      "candidates": 148
     },
     {
       "path": "llm/core/json_data.py",
       "status": "reviewed",
-      "sha256": "d5f75d6207b94e6bf0bf8c85d78d00a089639068c841b8c2866d6b82837cbacd",
-      "candidates": 14
+      "sha256": "d53df28119a1fca65ac50dd05be98390272d4212968b01e67d8f131cc95119df",
+      "candidates": 15
     },
     {
       "path": "llm/core/model_protocol.py",
@@ -3652,8 +3658,8 @@
     {
       "path": "llm/services/schema.py",
       "status": "reviewed",
-      "sha256": "2ee786bf5ab8f0010dcc7a42c368c460f5dea1a3a3d7f29ad259f94c03bbd39b",
-      "candidates": 15
+      "sha256": "ef67e8699aeadc40418903b54099fd67a30aeed6efbf36ce0b0df390790a2c47",
+      "candidates": 13
     }
   ]
 }

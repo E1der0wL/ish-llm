@@ -3,6 +3,7 @@
 from hub.locales.keys import MessageKey, MessagePattern
 
 import json
+from ...ui.input.json_document import JsonDocument
 import re
 
 from llm.components.memory.component import MemoryComponent
@@ -61,7 +62,7 @@ class DefinitionEditor(Dialog):
         self.manager, self.view, self.original_name = manager, manager.view, name
         self.version = record["version"] if record else None
         self.busy, self.status, self._preview_timer = False, "", None
-        text = record["text"] if record else json.dumps(initial_definition(manager.name), ensure_ascii=False, indent=2)
+        text = record["text"] if record else JsonDocument.render(initial_definition(manager.name), allow_non_finite=JsonDocument.ALLOW_NON_FINITE_PREVIEW)
         self.identifier = TextArea(text=name, multiline=False, height=1, read_only=Condition(lambda: bool(name) or self.busy))
         self.input = TextArea(text=text, multiline=True, scrollbar=True, wrap_lines=False, read_only=Condition(lambda: self.busy))
         self.preview = TextArea(read_only=True, scrollbar=True, wrap_lines=False)

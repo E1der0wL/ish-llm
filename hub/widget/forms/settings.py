@@ -10,6 +10,7 @@ from llm.services.configuration_records import ProjectConfigForm
 from ...config.metadata import SettingMetadata
 from ...config.theme_style import ThemeSelector
 from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
+from ...ui.input.json_document import JsonDocument
 from llm.core.configuration_views import ConfigurationView
 
 
@@ -38,12 +39,10 @@ class FieldDisplay:
     SPACE = " "
     NEWLINE = "\n"
     DESCRIPTION_PREFIX = "- "
-    JSON_INDENT = 2
-    JSON_ASCII = False
-    JSON_SORT_KEYS = True
+    JSON_INDENT = JsonDocument.INDENT
+    JSON_ASCII = JsonDocument.ENSURE_ASCII
     JSON_NULL = json.dumps(JsonObject.NULL)
     JSON_STRING_PREFIX = '"'
-    INVALID_JSON = "Invalid JSON: "
     PATH_ERROR = "{path}: {error}"
     MAX_EDITOR_LINES = 3
     GAP_HEIGHT = 1
@@ -271,12 +270,7 @@ class SettingField:
                 if raw.lstrip().startswith(FieldDisplay.JSON_STRING_PREFIX)
                 else raw
             )
-        return json.loads(
-            raw,
-            parse_constant=lambda value: (_ for _ in ()).throw(
-                ValueError(FieldDisplay.INVALID_JSON + value)
-            ),
-        )
+        return JsonDocument.parse(raw)
 
 
 class ChoiceField(SettingField):
@@ -464,20 +458,7 @@ class SchemaForm:
         for path in self.locked:
             before, after = at_path(self.original, path), at_path(candidate, path)
             # Python의 True == 1과 달리 JSON 타입 변경도 고정값 변경이다.
-            unchanged = (
-                before is after
-                if before is MISSING or after is MISSING
-                else json.dumps(
-                    before,
-                    sort_keys=FieldDisplay.JSON_SORT_KEYS,
-                    allow_nan=JsonObject.ALLOW_NON_FINITE,
-                )
-                == json.dumps(
-                    after,
-                    sort_keys=FieldDisplay.JSON_SORT_KEYS,
-                    allow_nan=JsonObject.ALLOW_NON_FINITE,
-                )
-            )
+            unchanged = JsonDocument.same(before, after, missing=MISSING)
             if not unchanged:
                 raise ValueError(
                     FieldDisplay.PATH_ERROR.format(

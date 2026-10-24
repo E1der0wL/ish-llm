@@ -9,7 +9,7 @@ import json
 from typing import Any, ClassVar, Optional
 
 from .models import new_id, now
-from llm.core.json_data import JsonObject
+from llm.core.json_data import JsonObject, JsonValue
 from .schema import checked_schema
 
 
@@ -25,8 +25,6 @@ class InteractionJSON:
     DECISION = "decision"
     LEFT = "left"
     RIGHT = "right"
-    SORT_KEYS = True
-    ALLOW_NAN = False
 
     @classmethod
     def validate_value(cls, value):
@@ -39,9 +37,7 @@ class InteractionJSON:
     @classmethod
     def same(cls, left, right):
         JsonObject.validate({cls.LEFT: left, cls.RIGHT: right})
-        return json.dumps(left, sort_keys=cls.SORT_KEYS, allow_nan=cls.ALLOW_NAN) == json.dumps(
-            right, sort_keys=cls.SORT_KEYS, allow_nan=cls.ALLOW_NAN
-        )
+        return JsonValue.same(left, right)
 
 
 class InteractionSnapshot:

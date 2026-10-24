@@ -2328,8 +2328,8 @@
   },
   {
     "path": "llm/core/json_data.py",
-    "sha256": "d5f75d6207b94e6bf0bf8c85d78d00a089639068c841b8c2866d6b82837cbacd",
-    "reason": "Reviewed complete file and actual listed parser/layout consumers; syntax and missing/null behavior are preserved. Other consumer files retain their independent whole-file review status.",
+    "sha256": "d53df28119a1fca65ac50dd05be98390272d4212968b01e67d8f131cc95119df",
+    "reason": "Reviewed complete file and actual listed parser/layout consumers; syntax and missing/null behavior are preserved. Other consumer files retain their independent whole-file review status. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -2369,49 +2369,55 @@
         "reason": "Python no-return annotation; no serialized null, fallback or policy value."
       },
       {
-        "id": "88817cc2f9a3381384aef1380b7f1b1b39a26cf708a4b77d2c66cc084fc6c63d",
+        "id": "b15b5dc44a79712d69fa70c7e7cc6ceebdaafca951bf7b5fcd02f60a5fdaf340",
+        "classification": "declaration",
+        "owner": "JsonValue",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c301d2bfe17aa3fec0f26d25cc7aeec4717a42dfe498963327c70617c960530b",
         "classification": "declaration",
         "owner": "JsonObject / JsonPointer",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c277ad894c7fff64bc2ee811407cf095f28227a3ba6fc0c47063239f7fbeed38",
+        "id": "c252bec61de7740553d7b0ad3959a78bd532084e338c77de87ef9cc5b4aba7e8",
         "classification": "declaration",
         "owner": "JsonObject / JsonPointer",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ccca560e07fbf9e0a2a7f663fbeb48c64fc17b89c3ff31326201c3606702e64e",
+        "id": "8dfcd17131cef24da1984de8323389712c2bf615f27f46bb31192297473a7c17",
         "classification": "declaration",
         "owner": "JsonObject / JsonPointer",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ce7a9295bef894d2b45a92b3b50778ccfdfea0c553d5558b83386b44c63ee063",
+        "id": "32f88eae3c4cd179b71039a04044191c37ffa784281fa9f708afcbd1665dd99f",
         "classification": "declaration",
         "owner": "JsonObject / JsonPointer",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c1a5009d2350c142db99661dbfe1799d9c76ca2d85dda749baf11507fed27e0a",
+        "id": "226227b8e5658a9bbbca7406908e0899698d49f02268ab178d03ceecfaa80591",
         "classification": "declaration",
         "owner": "JsonObject / JsonPointer",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2da33e01e37bad67b83bf88e2f49ff5ff96fcbe1005b0da560940695ad05ae12",
+        "id": "68c5d8a7988180c3e65240d6c56eefe94adf78bb7c88c171705ba8eea66b0991",
         "classification": "declaration",
         "owner": "JsonObject / JsonPointer",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a1d094b44c3e1474fbab534c06c09c821f180b2a151fe26577876d58e5ffe3f9",
+        "id": "d1eafdf98a94d26584c2fb375363f472d06863cf82b53aebefddb5d88c1ca8a6",
         "classification": "declaration",
         "owner": "JsonObject / JsonPointer",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ef93e1e88343943f0ff8511b6b401c4cdb1c6f9b4ec9099e4b6158ee9d2b05e0",
+        "id": "e49cdef066123509db12f4ab07c0bc12983e1d67224568f1bc8a6c8d26e66284",
         "classification": "declaration",
         "owner": "JsonObject / JsonPointer",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
@@ -2424,6 +2430,10 @@
         "consumers": [
           "hub/backend/project/history_retention.py",
           "hub/backend/project/settings.py",
+          "hub/ui/input/json_document.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/presets.py",
+          "hub/widget/forms/definition_manager.py",
           "llm/components/base.py",
           "llm/components/memory/compaction.py",
           "llm/components/rag/component.py",
@@ -2461,12 +2471,34 @@
           "llm/services/runtime/transfer_values.py"
         ],
         "tests": [
-          "tests/llm/test_json_data.py",
-          "tests/llm/test_contracts.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_text_editing.py",
+          "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
           "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_json_data.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_tool_workers.py",
-          "tests/llm/test_lifecycle_integrity.py"
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       },
@@ -2474,16 +2506,78 @@
         "owner": "JsonPointer syntax and strict binding parser",
         "declaration": "llm/core/json_data.py",
         "consumers": [
+          "hub/ui/input/json_document.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/presets.py",
+          "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/settings.py",
+          "llm/components/workflows/bindings.py",
           "llm/core/configuration.py",
           "llm/core/parameters.py",
-          "llm/services/schema.py",
-          "hub/widget/forms/settings.py",
-          "llm/components/workflows/bindings.py"
+          "llm/services/schema.py"
         ],
         "tests": [
-          "tests/llm/test_parameter_values.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_text_editing.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_parameter_values.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
           "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "JsonValue",
+        "declaration": "llm/core/json_data.py",
+        "consumers": [
+          "llm/core/interactions.py",
+          "llm/services/schema.py",
+          "hub/ui/input/json_document.py"
+        ],
+        "tests": [
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_text_editing.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
         ],
         "complete": true
       }
@@ -75060,8 +75154,8 @@
   },
   {
     "path": "llm/core/interactions.py",
-    "sha256": "9ef025048291de4b345a2ee68efd601ef34cf2f2a0b3a39371a7077604b6a61f",
-    "reason": "Whole source and dynamic-field review covers explicit/selected inputs, option identity vs effect, unknown extensions, JSON type distinction, persisted full-field snapshots, fingerprint/expiry/actor checks and public view projection. No automatic approval, implicit retry, legacy Reader or missing-state fallback was introduced. Request renewal snapshots/revision and Response comparable projection now own the shared pure construction; View reason declarations are canonical. Repository default option/revision consumers are connected and verified without relaxing expiry/cancellation/identity proof. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked.",
+    "sha256": "2124cc11d69f99d837cf08c58dd5900beb122bc58fb203359560f5289a677be6",
+    "reason": "Whole source and dynamic-field review covers explicit/selected inputs, option identity vs effect, unknown extensions, JSON type distinction, persisted full-field snapshots, fingerprint/expiry/actor checks and public view projection. No automatic approval, implicit retry, legacy Reader or missing-state fallback was introduced. Request renewal snapshots/revision and Response comparable projection now own the shared pure construction; View reason declarations are canonical. Repository default option/revision consumers are connected and verified without relaxing expiry/cancellation/identity proof. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -75101,865 +75195,853 @@
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "ae5a673ccf68b41bab8272f23e9eab2221c112a3f6b4c06e190e26768c93b686",
-        "classification": "declaration",
-        "owner": "InteractionJSON",
-        "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
-      },
-      {
-        "id": "fd719e3b0fe1594bf19ec854567c4b7e9333436317d8a4fe70c48b4adfefdbfe",
-        "classification": "declaration",
-        "owner": "InteractionJSON",
-        "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
-      },
-      {
-        "id": "e962a0c55f63cf47527cf9718052abcff10090dd41b9749a44dd4e3b0ce70d8e",
+        "id": "e9d775f1733695874cc52b520f67f42cfe2e8a1e62d47a2da6b908f398bfbd2b",
         "classification": "declaration",
         "owner": "InteractionSnapshot",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "6bb5384ccc4759c09eb56bbfb52c7092fdd353dd35eac029d29fd32fb6793a11",
+        "id": "edccad27bf4c991bcfa1a3bc00371b3657364019f519d5647fc76c50f548549b",
         "classification": "declaration",
         "owner": "InteractionSnapshot",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "7c8159eecb1ca7ea671ff9f00fde78565045a6ff9c25c2e3feb3d74042fc3686",
+        "id": "3bf8fca13e31c3c1d09a0de2893615f23e7f2027cba59dea72657b99f83b7789",
         "classification": "declaration",
         "owner": "InteractionSnapshot",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "fb3334fff3279a5f8c734677ae7a1f88699b919e83bb6666e0495b942dfcfa07",
+        "id": "55e4baee736bd20e153943269fbc4458ed63150e66971b5ec63b21ac81b84b5a",
         "classification": "declaration",
         "owner": "InteractionRisk",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "5ad2386bf0b1b1f5a32449c8f708e41c7933894bc808cef3bc27e17be61c5004",
+        "id": "32dc9f1975ea61a9315db8ffcca08cb4b195b3f72cced9826125caab7191c387",
         "classification": "declaration",
         "owner": "InteractionRisk",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "8bd95cb3fdf2cdddd00f08cec5e1c4844dfac0bb7f048093b5b288605e1d2c5d",
+        "id": "c801bbc2ffc77ec057e121f317c6e2d73cf30e1aa12eba57a65fb6f1dc71a5ce",
         "classification": "declaration",
         "owner": "InteractionRisk",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "2bd7418646a6308545b57d168b73cd44ba9e1738fd338af0630c52c23622f4b7",
+        "id": "9f51b0eaf4b86cc767171c74b69b2f0bf215eb6885211ad4abd532a8c8a814d5",
         "classification": "declaration",
         "owner": "InteractionRisk",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e71fff674bf8b5a30726f3b640693b0161d121ff35d093e57353443f676ba06a",
+        "id": "629da1bca0dfd296b20b47fcb6f6e9af08e44e69b3d92164849c69ec67df6724",
         "classification": "non_contract",
         "owner": "InteractionBinding",
         "reason": "Python frozen dataclass declaration metadata; not an execution value."
       },
       {
-        "id": "dafb447779787be4cbfc1c4d1d91a00add5262578364ae71c7907fb0b91879f9",
+        "id": "352a3e4c77addaa8be9c145fd7c7a1089c7bc938020ffd3d5747c0020adfdaf9",
         "classification": "non_contract",
         "owner": "InteractionBinding",
         "reason": "Python init=False dataclass declaration metadata; custom immutable binding constructor is unchanged."
       },
       {
-        "id": "0e382fe0797efb8fecc3f508205a39bbee359beb4aec967177e69476ca2fa08a",
+        "id": "080b2b986d8eb1380c3cd05aa68a84559eaa82105b8d8533234f31e9201adc80",
         "classification": "declaration",
         "owner": "InteractionBinding",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f0403c52fc080f87ab0ba3ac24df94d7e6d4cacdc7ab75be78709a2a14499c96",
+        "id": "9ec65623a6e56526490ffc97368a711060db9e5811b0fd0af28b0d282f0c0950",
         "classification": "declaration",
         "owner": "InteractionBinding",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f910ae788ef2c1405622d419e64ba5bf8aa73a43c918033e17a90af1e7610e95",
+        "id": "7454be8be5f09606049689e9d3e11f94a14cd7ec56223e7c16eb40d5b10c353d",
         "classification": "declaration",
         "owner": "InteractionBinding",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "d97ecb3c57f0ea7e7cc6049184fbf8468de9071579f1608bff3f66cfb8880201",
+        "id": "a543b531ccf86428a0b3a1616a5f9facbf8b52d158d16437e8f5ffd8e092235a",
         "classification": "declaration",
         "owner": "InteractionBinding",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "4b5c7e3ac2ce2f0ac4022c02d66cbb1a562d5b7513a5c2615bc953a0f684ff3c",
+        "id": "4d25b79c5b9f1d553ec47a1a2f93b0d44c75495f83d9a74de6bd1445598639c6",
         "classification": "declaration",
         "owner": "InteractionBinding",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f517f670e064e64ccbeec400bb483cb790db4fc1185a9d0d56a91425bad2e77b",
+        "id": "e89169dba007e6ab80005656781d55fcb9c9042af78b2559294ccc7ecb339fd4",
         "classification": "declaration",
         "owner": "InteractionBinding.Field",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "ba88d859893b0e1ad1703319465c086eef6afa13a335ffc1ce516b95583a7e47",
+        "id": "c78c87a0cb7d67ef92c731ffa0e41f53ae0760c516d46b30db624eeffc129aa9",
         "classification": "declaration",
         "owner": "InteractionBinding.Field",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e13d611847ad29ba976a79257115394a7d62259eca978b790f0d118197f29136",
+        "id": "87f4394c747a97c959dbf7526a0942e55ae258de9c8f55910975a73c6c8e57e7",
         "classification": "declaration",
         "owner": "InteractionBinding.Field",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "b1cb7f525e3fb9e6602971d40f928e6982d3860008f3c2e1673db5aceb5be2d0",
+        "id": "dcea3a66401f80ef804c4e77c7eea68306fea26c7a9ed3bfbf17cb8d4b23abe6",
         "classification": "declaration",
         "owner": "InteractionBinding.Field",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "7a5d4e01655f130d3288b86b8a868d288b8d3a1d90ee40b11011101a6f293358",
+        "id": "15f066b514073b9589285337fb84db7b21f63ad2f5e36e38214f8d8ea6b52a77",
         "classification": "declaration",
         "owner": "InteractionBinding.Field",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "675fecd101fe771db85d105fa0b71ef081c5e752cfa87c0aa03dc81e84ada03e",
+        "id": "0f2edbbd29e2e9257015c4fe83590ad07f3f055e9ac87eff07f768f844fc9913",
         "classification": "non_contract",
         "owner": "InteractionSelection",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "7aee4ef33ea2f33001572d354f0a5a0ec5c49fdfa2d0bfe06703a74cd7927e46",
+        "id": "b53afbc26694b343c36ded050e6acca52e0c957851ff30094021a5930e3cfa6e",
         "classification": "non_contract",
         "owner": "InteractionSelection",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "4b4a5127e717252f2eea7f22db71e3e61fe6e89e07f840c8aa368f256d5ee9cd",
+        "id": "aeabd9dfdc4be1353a356b6bc470e4d33eb0beee9714c78a0d16b5b7719629be",
         "classification": "declaration",
         "owner": "InteractionSelection",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f1b8767cc09ef82a4f9bb03d0f033c6a7848d00cc1c29e004a0a88e59f0b4722",
+        "id": "9cca3aab135f3ddfaacc02d1b24725f8447051ef7f470a1034489ea51aa8670a",
         "classification": "declaration",
         "owner": "InteractionStatus",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f26642c930fda77b7f4ef0f869a9c6e8682703c4085662ac231081fecfdfdfdc",
+        "id": "d322804d8d28b632ab9a2ba03488416e981b18a27925cb68789877f17d36bcf2",
         "classification": "declaration",
         "owner": "InteractionStatus",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "26cd75edebbe34489f64d54b18197415484f60ffeb1fb27b96a7f713f38b6d22",
+        "id": "70c270a699965ba5433fee9f08b7ae7e3bd7e1a4a258839ad076528a9b9307b7",
         "classification": "declaration",
         "owner": "InteractionStatus",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "a48b0d6104e389630f05c6f1bb51bbd4595a58bfb088af8a6bb1480555ea0fbd",
+        "id": "55554df3fad4d9655592772f161faadf8be52b503f2d65cb28c7d0e1832ff14d",
         "classification": "declaration",
         "owner": "InteractionStatus",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "19dbc2ffb2792adb12959a119f262942ec4da85105a06f0a3e846bfa2fc97ebb",
+        "id": "46acd24cc67cb9da15a5fd713602a271416a68351ac0a62d2bdb0f5dd0f9bdc6",
         "classification": "declaration",
         "owner": "InteractionActor",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e9b64af358eff3fcf99929fb39052f780f95a32e1d131e721406c660c625da65",
+        "id": "b2a9e6521b157334a83f2053528096e7e3efce022309f2dcbc53574a436e0006",
         "classification": "declaration",
         "owner": "InteractionActor",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "0db3e61ac0ab2e4566e2b3fdf00f3d690b00437f4f622695218ffd548df293fd",
+        "id": "3b44382fd45e50bafefa99e2fae43c6d11d14e6694386e59b6487837deb4d997",
         "classification": "declaration",
         "owner": "InteractionActor",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "43f760379df3c68fae6286728beba0ab6abe28a4d5887dca851bae819a6a4f0f",
+        "id": "7437ba946406af2d13f734f48554ed763a67433141a770c37540c4eb59fc499c",
         "classification": "non_contract",
         "owner": "_timestamp",
         "reason": "The datetime standard-library utcoffset sentinel denotes a naive timestamp. The mandatory timezone check remains exact; it is not a domain default."
       },
       {
-        "id": "bcf05eaab649c32fc97722aadfaa5315e47b00e6f5f6aabddcf349fd373f5b00",
+        "id": "eaf328cefd0585bf962bf4fc52b5f0b97c0bbbc19d1c8151af42f08d1d61d4f1",
         "classification": "non_contract",
         "owner": "InteractionOption",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "c49049fc8d3b3d522138b95775d7f456126724ff8f0bb8b04ad5080e79685da7",
+        "id": "7005ef1b1bc2019ca2a58c795c7bc46af54260ff3a2106f9290da34a5373ef3e",
         "classification": "non_contract",
         "owner": "InteractionOption",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "b9549740ad7f9242b9f3f20bad81db1e6d03fdfae37d762fa118db70af7cc80f",
+        "id": "a136a7cd1f98097b62fde9110a64267ed3c4e5dcbdc842f4e6d47a8250cc8376",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f25363225099bdadcc3142b31b1f36014bc72080356e3865b3c17c92a9f5c004",
+        "id": "3b256febf1ff405949481b55c07d3d7dd9b462e5b0a78002ee62d6a9e2f5b783",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "dcb1b311d67036d8e37cb43b64d5ab99dbf42a262d6991ca4b7b998eb0e332e2",
+        "id": "66a2c15e3fcc2355670c39d5af07377b5664ff51d578fe02668b9fcbf97566d3",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "c4ef367c0b1ec836a7fa351eaefc9d960cfe9b9c8fb4de66a6ecf862cca1a006",
+        "id": "855be5e6c72d0bce5899e1078ed81331cb046fd8117de1e838652438686bde33",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "c90ad452bbfc8c81d0247b1724568860f4cfdd3086791896266e2eba58bbc1e6",
+        "id": "b933cf60c37189960d0232cc11c5a2e2d2e4bb3f64902ccefc9f2ddb63c6e92e",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e3dba0274b24abcee7bf89583e284abd24d3d6e71707564422d3f0758d090ff6",
+        "id": "93131f1d6d29a4d24ea96c28267f951e338a9518a3138d501f03b25d173fcabd",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "4d9ee19ef26b90a0121c381100247fcc6698a20496b837ac92f1f5aee9c4e87b",
+        "id": "f0cfb5143d7605988ac33c4e48430cb66b3d0e3fc863c72af402d6f1ec626cfa",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "1ad76d85f40a2564fbd51c34ac51aa1aacf438cc7d5aa669be21b869d2dcf6e4",
+        "id": "98739c244ab072082af8b580506a59bca01a677616a50f5d4d1c3fc8059674e3",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "d218ee0c574b2d921ae99dc65e4225bb77eda3f16665223799c6a333456de274",
+        "id": "ff3999ba2ffc8641348f01a760a1bc3fc6ffd4bb21d5eaf4711b354a89d964d6",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "c65e4b400f809790745d64c01d800947bb2eae17b7d0a8b1719518780e3dcdf9",
+        "id": "bd3fbb217449eba59b2bfcf06cb5a61db18261498f12804c3d750d034159f323",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "7851a6c32a8dfb077c43602a64f077fa10c8c23d3ebea2a15501d55ed818e8d2",
+        "id": "ff3b3fb2aec48927f1afe951a2c16d7263bd7baeb714902c5ecb0fec8e0fd852",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f9d7c2cd38956f42b35ee053a0cdf815caf6019c17962f9acb89fc9d652c8a30",
+        "id": "684e28a7fe34cb4b01d2b58f6dd3ffd95191bc7d41e07ce84feae3696a5ee839",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "87bf0d41ed73bf7f4ddc565809f3bc5b35044f37c7a7c74ec837d950ef164d53",
+        "id": "6a92d138856e0286db1c1f48d627bd4673597d7a4199f631edb016c67c52acbf",
         "classification": "declaration",
         "owner": "InteractionOption",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f0821619f793d32bf94b2d777983ab3c772e0069eab64525f06da3552018bc31",
+        "id": "81bcfd98bfd5fb1c8e638f1129bbc0e772ba78221025b307bbe5386c600c537a",
         "classification": "non_contract",
         "owner": "InteractionOption.__post_init__",
         "reason": "Python return type annotation only."
       },
       {
-        "id": "9bc6d75c11a40fc793c69bec76d92c686769213e6d524b3ffa3eb0e54b3bc41c",
+        "id": "b836c31cbd909fa9ff2d19b243969a00a4388612819045e5aebe6a9aeebffdf5",
         "classification": "non_contract",
         "owner": "InteractionOption.from_dict",
         "reason": "Python forward type annotation naming the actual Owner class."
       },
       {
-        "id": "c60a95997b059dd8ed250c194c0ce2d473ed50b89d7a1465d2efd8f27603e25b",
+        "id": "8306fbe21b4e18348de7195b92f201e84354862d66c8677f1d357d9cc68fff06",
         "classification": "non_contract",
         "owner": "InteractionRequest",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "8ecae553404ba7560e72f9612a75e9f7e7be624c0a5c0785703d562966536b1e",
+        "id": "73b6b0af86d9826c456c6c704702346ad15308673d3736d502772e9bd03ecb4f",
         "classification": "non_contract",
         "owner": "InteractionRequest",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "cf3259a4da39ef47f51288f13d2597ddb34c1ae1d8fc8dc2c62f9bf0515c6cb2",
+        "id": "5bf575bb2ff54a067e1b8d3d7b48c0fda50d92c4cfc645dfd5e955ba8086e0ea",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "00587c4bcc0cf483a3762d77164ede1ee88987c4f37e9e5e0151568c7d31625d",
+        "id": "451f5d0803a05376639f37df7a9f78e62d1d4da2d42f49b7b572a8ffb7ccc066",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "7a386cd84815a88ed3d626a8acf069d5c969bd96b5c17b9f37558a07c26538f6",
+        "id": "c1800b40da38c7da78448b93ff633f895374e5dca9c4d73aa2a7780162e2ea8f",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "ffedc5aee8cfe0743ff7b17d81e7f4035e466b1de65459c4c67098fae863894f",
+        "id": "19785f1a87f97bb3f49668ed025da4fd48a6b8779e2989f7708a8b84ffa076c8",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e85a5a9cf84b0200211909f828c01637f7c6194da4d44835461b8e08e012b0bf",
+        "id": "4456a4cca6e60c82afd3714a8c95074c80d0aeb770d8918cd687b0f1dfee414c",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "6aefd1551cd6ba2c5fe8a016dc77466453e9715047ea33124a78f3c7d64aa48b",
+        "id": "81f00d36a7be1d05948afe6162ef63e3da994969482db900dca00dedf81cd1c9",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "b931e34f010f6ce7da6941226b21b749388313137e5ea66ad499ecda3804085a",
+        "id": "286d65551f12f757d606155251d15f32f777e929e34bfc1fa76a07c89cf499bb",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "63f4afc454c6d626884e3871f15e5a5eec06ee5b23464a6304f9f3e43c860d76",
+        "id": "ef98c78a6ae76c800e9f0bcd9dff8c871fb99cca41390e6b186ea8048111f9db",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "546e224b781cd7d389edd00ccf60a4cd4350ff5a04e7fa90fa8d35c81db53a31",
+        "id": "abb18d5adb5e688bfa86374f221404b6e787108c682f8a6ca9844e9a2b2dceb6",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "7a5dcb258dc05923446ff1f0b20cf6be8722015d96058eb608cef863e1033840",
+        "id": "23c4da94235b5d4404cd45bf6bc7c2b6787ca5b2555dd62900bb4e4aba2ac1b8",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "45b7ff30d7e12f6a2cfe6f6aa92920b9396de91f363b2867e705d8e1c88bd6fc",
+        "id": "8e287b95fbdf454aa54466d4bf30b9f6bc888d046a9be9facb7f725987d4d36a",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "0ed2d9f73ab4ee804d42081cfc229b0ef07cc29e665603b781294554078936b2",
+        "id": "5f862487ad0a9a35c7f66db4d063d559ade60ba7f7a6f9d1bc4f108134fdf641",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "80f8450983f916f48f589b250efc0b57694e54ad1b867369b461d9ba4c2baa4f",
+        "id": "2e8343a0bbfdce7e9cfa35e6f66007fb9662b81a2ce05956cbbd81fb0cc4cee5",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f3de8372150e65cf2d443cc2ffac1944ef43af3fa4bc86c9c3690e8ea71ebda6",
+        "id": "63e1d6fc27d06885ebe6038f908bbb83494953179464be4edf4dc90d023b70ce",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "821540bfa9eaaa07e5f627f63cc53e56ffc6a3af8b3d530a2b3ab2c9f7aed904",
+        "id": "3a01be4cc8fbf7b546dd564b98d683ffe560b8bf318ddf2d91225522fced55e3",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "6f0df503595ac6bbc37e198f0d574057904f3ef110dc3d40bc95da85abe740f9",
+        "id": "b99931ec1bd529aa89706683acb54aa7d3044dfb7f8053855a6d49d04a556cfa",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "4c77bf7d160547b7c14733478ad6b47c9c4ccd3ecee809a4960b803eb498ebda",
+        "id": "3f777c017a705eb9cbbf6d925563a925790fef7a3a022aea3f61aabae54c98ba",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "d77179295f3aaef3137880cf4625cfa81c96f9f23e73371f2f33a11b27ba982d",
+        "id": "bea192a1c3e91bd8ee47b6dce28d99f9eeb9fb54c741bb181493b602299428b4",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "4fe5c144be5e8c882b3bf30e01fd6a2f8bdcc7264d9fb00c8826b6103d1f15bf",
+        "id": "f178971e150120a5dae894313d5a007e1468bbe677a062307162dcb4fd705232",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "9b7c5ce4bc5bec0730e78d3a46fc09cfd14949c78716a805cf7d782d65691800",
+        "id": "be124a974fc01efac9cbd15350540df3c8988cee54a6186fedae858f0cd098c7",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "46475db337d1c3cb7652c0051b2d66e45adfa63adb9899cc9a4490ede79e9daf",
+        "id": "bfe08adc8f73aed21761e2b842fd701cd0f947ee82608eba97416b7798a3c2b0",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "2faf0115421bacbc12dfc270f0264432e57377dc297d33eecfd33251f85f9df9",
+        "id": "8af14f8de93170437323a653dfd704c37127522017dd295976a79ae8b5da335d",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "cd41b0423ad58d27c9fd5a6e4a432566aa9a412e270730c73a384bf159ab558b",
+        "id": "da587766a089bef421d35b6ad2d73bc5fd10fc2ae4788acc265d78a17429a79e",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "7758e019fd4ead89402e0f929e819f28d53f5a59bd2364d9ec0d267bfa65385e",
+        "id": "68ae36ad80a5d7704addc1e04e276ba7113cd5c6bce43df732e8d306a24033c0",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "73208012d571f2247a485cf9d97419f7ec58ce028f58dd6e0687879a1b9edafc",
+        "id": "e2f239e34bdf186101d3b35690b69f3b86b0195fcb872624ec89b06aaf696563",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "89925034dbbb4c859615d1d2931d7a127b63c23463a90da84499d478a24f44a1",
+        "id": "4bee84b4272e4fabd9cc27441707f2337bdea97e9548a9cb1956e1f29a311876",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "4fd194318a10a12c54014961efc3ece7e2c9bd1791b88531af06d6c4428900fb",
+        "id": "dd9a20400ef82c066adb64625493f6d9dd230688ae7f367f0be4c120d9718ff5",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "42a5b29a2df492c6e02dff555acabb56e961b408afdd825a24f44549be7b9354",
+        "id": "1c765c342d9f64244d7bca108833c2a28f8eeeae700f2497cf3fd9ad586f5e39",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "223621659f6d628f324603f95b09a0d500565765e769e381686ef2fef25e5779",
+        "id": "6742f5566af05a4c97e672e63d165fbe7f196a6d72b411d2d640f0a1220e2fe6",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "2f98e4c392c3c7a86ad7f257a99dbac8383a8ee805f28038ca3522882858927c",
+        "id": "34d096a042188087686a29dd36fd8df8facbfec605789b2540c97412f284cac9",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "0bbae4a1da72db568b1c817c8da1a9aa083cab65e460df2ba59f1a3f00720e7a",
+        "id": "008c7ad4830df7b2e63bb5175d7342f4676bf04be66551b513b164844310c95d",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e5e7e6861c5d3e049a4a5bb582514e09cbdfdfa55c884a2e23fd4b8f6f9c5f25",
+        "id": "de89e6df183c160d2e6d0b41ef9f57f448cff49205b754cbcad0b28b3462b56a",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "c345c17d6a74c866d5d074d9b2b1680933d7f40bc6f3180ccaf152302258c24c",
+        "id": "d03c7952f14ed1da2ffcf8cb7ca53b1fcbc4e9d78cbabc754528f133e3ef951b",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "79c3f69a563c2f565894c1faf22c8c88e8d1798a48dc73d2c63fbadd54b0f8da",
+        "id": "6cba11e2a346e75ee1f5fc98164c6b07159455bd285c93be40f57568818146ef",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "b70a4495e0674cdebcc864864b967f7024edb4c859737fe4b6cab7e36a450758",
+        "id": "ad23cd4a643ab62f84176e8b57b35712c1ca40772b850dad0afda2a323b1fb2c",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e40166b8ebc4a7ed0b468932d88bb87669fff7001c2f7a3270792e65d30a771b",
+        "id": "18e234bcdf27c99a0a4a4f5c80d47ee353985344b7f8cd26866e5c2320707e4b",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "12045500fe5fee5b8c30872c524851192fd73e9e904552b06d6afbccdb91ffe7",
+        "id": "a909a239dc715bee7c544c177ca929bd358c00e5499ac0d8637ac0ae9e94b836",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "fb55d5d20d85a87fbb7dc461454a37109af7674bcb856e6424655eeacdbeedb3",
+        "id": "6726375578f0a510ce9a1d34b64c7540bfda151ef971043eeffca52b2cb9c20b",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "3abd66b947b7d04b41e9f7ddbfb6f7ba2baa2c204f68272e5351806c909fb1ed",
+        "id": "269cb9092422db8531ecb468031306c99ab5f8c3f7015d2bc2eb4b50b5e9470e",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "2ac3c9cfaad0aaea6a67038c1e852c4c991afabddf5d4d031e4e2d6a11818c78",
+        "id": "83319b9d0ae5c47efef0c54e8be0ddbf166569e0778c3219ea7300a1a1b6edd6",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e7ad56a901179ae4f41a78271921e09f387da1aa35b9f6e55ad8fe0c1664fb18",
+        "id": "4348f6e462466ddde158d82ceed4e1886228c873e455726d20bee6b45ef9b85d",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "5b3ef7f9636c549f8e705241708630e6472aa009eebd7cea361df3a6c6cf1884",
+        "id": "37c6f0047cb6ff57a3d5037d001986440f2e2b088aae987d94ce8984ae254f79",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "b9f8c7e93d05a9e000d51b3b5f656298539afb0796a47de310940b1218cbaca4",
+        "id": "b2293f16cfac7de4b9570ff75649cdc2a43b773f918d30d0c57561a5a7bba847",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "02065fc8f74c8abc0badf9a857609ea0b73c120bf3b7ba337aab04b82aa8f904",
+        "id": "054ec04e337582c7af213ecac13717f707464bc5a29bcbcf653860e3ccc8f94f",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "0933ce815a085c84e100c6bea185bd51aefb0adb9bf41f1b3702c36c37545180",
+        "id": "4861c42a60797bd871950b00e9b8aba890128a7e94656ca0ae57398e346ea1dc",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "91ff25f7a41d14e8a9cebec4fc9356bdb4af624d1024da118ae9c6cbd5453687",
+        "id": "6845c4a679d927b541a722fd330c8f68fc19b99b07c9e129fba8e7b06d992b68",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f62f48c984f911911ef9152891062cc6d9d4bfbbaf389d814b04f74439e62e59",
+        "id": "3700a2ecb072a3ef4083f5c92e4d150fd7e123952eea75e7a62e0a457b5eb0b3",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "1c44756088782c35175f679275e5f9e7b8b8aaa58500f31e8cd8f7710dcfc9e7",
+        "id": "504786aa01cead6d4b3b554915260990004927ee5846c0d7a9d839c482173904",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "803a368c65503f92e4799489ac2479ec67cb69556a7ccbf3de9c87122c69df1e",
+        "id": "6458a76a274faab4606f0b07cb7ab42c97442d1482d4437e5eec697c7464b382",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "533caea2711907ff073eb4500e2d9ecfa0cadab32e99f1b87032936e356e238b",
+        "id": "a60031ef4962ba2cb7cee0346c87c2eff4f7938cfbe3a7ab94429ba4474a174d",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "5f88cfd7120972e093cbf2dbc5d11dd0d6f206ebaf274a182803e90120583fd3",
+        "id": "8faf5cce2bd868d4eb1e52ec214ee104b2e61458e3046625414864f0f8c17dbd",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "a67263347ec554cf0c932a06af1dcb08d94f154f1a947c0345d7363c61e497c3",
+        "id": "504243852e42cebad49d1021ab788ef09a08b293701f8829d852bfbf50ed85ea",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "fb839501448f0414a7918fa6730848ba711ca44c19398a1c4783a04d24df9c7a",
+        "id": "8765efcb1d93c3872b04e1e47929f17446401da20bc42046260f96519e11ae67",
         "classification": "declaration",
         "owner": "InteractionRequest",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "65f3a4ce213ddc43f2023c0d354612c6a9a18904b6202e58352a366d90c187d1",
+        "id": "09d5f1b289b635798bee8f708426efe76059f83e7317ff5a0ec7c92b2d188e3b",
         "classification": "non_contract",
         "owner": "InteractionRequest.__post_init__",
         "reason": "Python return type annotation only."
       },
       {
-        "id": "23bc4dc66f0f602890c4390e33c7590842b98aef3d3dc4f5a9c19682dccdf399",
+        "id": "6a9c1762b6af881026d575fa5c414d9267f432358638f4b557021359b0d531a6",
         "classification": "non_contract",
         "owner": "InteractionRequest.bind",
         "reason": "Python forward type annotation naming the actual Owner class."
       },
       {
-        "id": "75e04d8780a0dba10a6a0ac5ce14f58f48280fdb96b8bf0c30381b913df48bd4",
+        "id": "32e773c0db98a660637ed3dedac49305cbc6ea3827fefd4de1495239e268857e",
         "classification": "non_contract",
         "owner": "InteractionRequest.select_decision",
         "reason": "Select the sole item after exactly-one option validation; structural indexing, not a policy limit."
       },
       {
-        "id": "d4e929132617c962eb40bad277bd404039b92747f74be0256abae272551e1d98",
+        "id": "38eda1bb38be0eb90716f2ea057dd51392c73b052be9789f7e764b42048ceb92",
         "classification": "non_contract",
         "owner": "InteractionRequest.find_approval",
         "reason": "Access the sole approval option after exactly-one validation; structural indexing with the existing input validation preserved."
       },
       {
-        "id": "fce2af34efef07692e0b34346f3f52e59b1c3da9cd29840c605e4760dc420238",
+        "id": "866904b2ff6fceb75246588cbf8133e5caea6f3ef23f7ba2f8a3c70f3835ed41",
         "classification": "non_contract",
         "owner": "InteractionRequest.find_approval",
         "reason": "Access the sole approval option after exactly-one validation; structural indexing with the existing input validation preserved."
       },
       {
-        "id": "a0f4ced6b15ec3d288f3b43dc0a43e658396846f44078d4786eeccf1b9a0b525",
+        "id": "6fb671ac45d7525749d80c8297ba09b968c6ba253c6376252cd47a3c370d742b",
         "classification": "non_contract",
         "owner": "InteractionRequest.respond",
         "reason": "Python forward type annotation naming the actual Owner class."
       },
       {
-        "id": "c3a9044e46b1e5c2f26ad7c34286483d602eaa96b9b5f0c29d05317b647c22b2",
+        "id": "ae37868eab2e9fc89efe9045a7bf9d71dd1a1e995cd60b44097fd1ade05375fa",
         "classification": "non_contract",
         "owner": "InteractionResponse",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "8daacded2c437ca5ae29acf4a7ee88ac47d485a590bea98ed547704b67762aa4",
+        "id": "7da623d6c50ef00d18b7490fe8dd4c109b783dada91d16d1b1653163263ec62a",
         "classification": "non_contract",
         "owner": "InteractionResponse",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "0f85290ec71c252ecc31eabe23f22da464eb8600660bce1c48c135238d0ca652",
+        "id": "65a0553085aed688b4de64db6c87c358fe07ff6f646a841dd528e7ec06295051",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "c54c6f84bf0277bf4bd235b9cd62a321b2fce981ab74b7e2d41b37bd95b1488f",
+        "id": "68d4790e7b02bdb964809f5f5539166eb7abdfaaa275fe68b336ea7a7310ff10",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "4c407ebf73ae697c35f85dc24061d95368f505e659ca6d41634bba89a040de99",
+        "id": "1acab3498e8e7871f54aead9970c7013827906bb07f189039cf7b7bca8c919d2",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e2b48dcbc5a0c8d0964ef6c8ae61ea9d566423fad356513c14a6ca89306ad6e6",
+        "id": "473d29b61b5e8cc86570f84b26401135cb950061390a4fb81e05132f97512cd1",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "5a3be32d08076ce4e34370ed6207d485c507a731931c50c3d2ffdc86764062ec",
+        "id": "ab6c16adcac5ae610c17c7e25147fc5140e0e2485e8f4f72dc599c48aad1d530",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "ee654d0f3191ac15511bf56d199bc253b1b7d500921d4b35d8d0bb15f3e25c0c",
+        "id": "a2a56c6c5ec4a5a47a0f29e0bae93fdee3aae9a2f8705580cd933c5c7b5247a6",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "c63b9a0b8b98ab940283a2ed9f174bfb4d9fece3f8f1be0758057eb44c79aea3",
+        "id": "25382fa3ca50adeda236df4cac0d39f2e097c1f0a03d2fdb778e380c6e470bbb",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "a9c3bbf02bb677e8e052d80ac14eaefea5b131e462c8d4f1219cbf12c093626c",
+        "id": "857617584691b470d33f75269d048f661a0261687b5a8c42deef69db7f992dd3",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "4783c60f6f03458eb0b1d496b61b83a7f591160d0ee853430e3c44dbfdecacc9",
+        "id": "8c38d7f1ad629530a63ac21524bb622fc2a89e47b7f12edfed0fff1bfc0fe7a5",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "9fe1035326266869a19ec80146f0fd4565ecc1f0b46e266a7ec60cae86c29bbd",
+        "id": "6d4d6de617c60fd7acc1d7c0adcfc2ac946b82e44c728a992efef0f207afd310",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "ad6b5e80099d2d69c7803892a0b4a059901d3b59230b4a3e9e85e934932dd0b8",
+        "id": "1983b858f30fa5ae8932d28be46cd5a5686c54fe79c5207aee616795fcdf5daf",
         "classification": "non_contract",
         "owner": "InteractionResponse.__post_init__",
         "reason": "Python return type annotation only."
       },
       {
-        "id": "14c4e9ecb45fae7a41558c6f49c4d2215c02636ec0176007c98884911825a5a6",
+        "id": "677401ec282fe4403522f225440652a76adc8d209e30e46ee975f7d8ea4e1873",
         "classification": "non_contract",
         "owner": "InteractionView",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "2f6c771c926ea1ed5a846d3ad9066b72d9049c27a86e041e1dd34fbfac3421c7",
+        "id": "bed715700a502771e31b04c9807da05a08c7ab0421f3a704aef1acb1e1c7beff",
         "classification": "non_contract",
         "owner": "InteractionView",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "43c72c265dc754bfbb224780866188e369527a14eff54bf36c2773c857915faa",
+        "id": "bd30bfebff52cc32f2da5e0e3f4633885baf29e81136bfb5f10e9eac61ffd965",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "664b744d67b283d05990c94fa12d465af7faa8ab32af92564a5b8710a4062920",
+        "id": "ec54c6889b6581bdf27ebb56022f35d0e8f55e6633b7ae671c976b491ca5793c",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "71af1eeddf28077deea330910098d7fe87eeb222ffd03deee88f618fcd86e96b",
+        "id": "59c19a30370554974d4d8b4318b39c9eae3ed0f081b750008ced9ca85b86fd10",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "37e30260aa7ff713394cadec571170672393859966f943946b444a85297b1133",
+        "id": "c32057ad706b5b51038bd758c6178f0ba906ca9682f670e5c1192b58ed9df6ba",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "9f08a0f1fa3671d0960fc5e9506b2606d572e0b7be261bd74e6678b361d35aa3",
+        "id": "9879445c61470999d53961391a3b25203d9084d88d25962e4be9638767da9d41",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1810a404e0ecbd41a24a510871e97a24191f5c760d6f0a4ca78bb5d56bb384dc",
+        "id": "04cb4dd23bbdcb4bc5fa37b5f68bc1e9a010e2a8b61f3b9ea949b0cbf316f123",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b23907e87c9409a77b6d60b4d895ea3694a201c907546dabd8ae470d2477809c",
+        "id": "48dc46939c6cff4641edafe95cc643cce4f96455c0707e79ebed47f748d59432",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ce7e1e248ffd912dcec8da94079960e7a610415514548f29b74340ca9e0a67bb",
+        "id": "67ec197a2e8fa5ff3be1e5c8dd9f150cb32a0930446b049c6306be01d93ccae6",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f3d7878821e76fd5e6ec5f3bad8384e81a0d9c93dc4db42f4d8cd6e419cd5bbe",
+        "id": "0c28d406ab724e1d59a6ae0e37c6dec3c7984a7902898358ae7dc71c861d8f48",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e62ebe33dd323efcc5063172c2176b1542a1e3ded78e285ce6e8ae4ff1b0107d",
+        "id": "73f49414593f2ef5be6a87fdfba960c60c16b62c87158a2e489eabeaa776e27a",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "6ef0181270001d090a9794d187afaa0dcc31069f348436b993227a492e63d105",
+        "id": "2ae000ff86ea1a1772595dc9aac8cdce37d51b6b9e400c494dbe59d149ed5d56",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "28a5b5b7921052d42cee15c7ba059654534a9be6141060e5ef4577236dda1db1",
+        "id": "74e4700460426fa6c7b9f331f96c60713be2af792fe3ecd842c2bfedad2671a8",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "974a76fc461ef7e06064bbbbdce6a0a06333034c4270ddb5eec85475e3e2c92e",
+        "id": "3ac6320ffec45fc266957e2ea105cad04c88c03ab7ecf2f3f6037679609bed43",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "c5c883a13f94971204c7b9076a5bac3b396c6a731e195941add34d5237d72ba3",
+        "id": "86c9360fd56ee18b479298cd7b9f52dbb240c1ecbd90662f25706e89780cd3db",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "6b62a18c78e9b092c45a186e2fd0195ff9c9d20171dd296b15f29f335dce1c70",
+        "id": "60e8d3b1e5e0eb5a79ff8cc876fec262ef8ca57df19a2f5638e7af08af524ad5",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e7946e1effaddd948aa353bb11bb4ae7a2fece40c1b098ddc3c2ac8c8deaab8b",
+        "id": "7575ba8ef6725ee0aa34686f1faa3f6bc8a6a643ccbb39464b3557b5dee9043c",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "5fd35bd1c62bcedb152870db91ce2ff35779bfacf271c150071842a92f332f8a",
+        "id": "949f60359962c4d68f4de93397ad9cd1715ff8c00cc34954e141773519f7876d",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "77d514c9d9be0a33a8aca67f7758d04727c50ad4f05fc2a79f737e6d977a21b8",
+        "id": "af48ed844e05c03dbe5447671f8e4b54aafbce82439fcee5545cf85a14d3b838",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "544d591ab7cdd11f1e26134a1f98d0e1bbd3bce813af50ef8b38543b4042a4c8",
+        "id": "41cd6fafad18a07de26ce6bd0322ddcfb64806420b001cc91f849342ac5e9ff8",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -75970,6 +76052,10 @@
         "owner": "InteractionBinding / Selection / Option / Request / Response / View / Snapshot / JSON / Risk",
         "declaration": "llm/core/interactions.py",
         "consumers": [
+          "hub/ui/input/json_document.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/presets.py",
+          "hub/widget/forms/definition_manager.py",
           "llm/core/checkpoint_records.py",
           "llm/services/api.py",
           "llm/services/runtime/interactions.py",
@@ -75979,15 +76065,27 @@
         "tests": [
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_usability.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_text_editing.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
@@ -76017,6 +76115,7 @@
           "tests/llm/test_run_transitions.py",
           "tests/llm/test_runtime.py",
           "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_service_extensions.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
@@ -76027,6 +76126,10 @@
         "owner": "Interaction default option IDs and revision step — Repository consumers connected",
         "declaration": "llm/core/interactions.py",
         "consumers": [
+          "hub/ui/input/json_document.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/presets.py",
+          "hub/widget/forms/definition_manager.py",
           "llm/services/api.py",
           "llm/services/runtime/interactions.py",
           "llm/services/runtime/runs.py",
@@ -76035,15 +76138,27 @@
         "tests": [
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_usability.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_text_editing.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
@@ -76073,6 +76188,7 @@
           "tests/llm/test_run_transitions.py",
           "tests/llm/test_runtime.py",
           "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_service_extensions.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
@@ -80433,96 +80549,84 @@
   },
   {
     "path": "llm/services/schema.py",
-    "sha256": "2ee786bf5ab8f0010dcc7a42c368c460f5dea1a3a3d7f29ad259f94c03bbd39b",
-    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass.",
+    "sha256": "ef67e8699aeadc40418903b54099fd67a30aeed6efbf36ce0b0df390790a2c47",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "da303916ff3be6ceece64554268f39cb9cf200832abd5d79d02c498d07da90ac",
+        "id": "f16ae548644dde14e744c976919e9f13900c729c6d10c7e89105f6d86dfb2d51",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "e44e88b03ec7f8588a1b61d9693d99e9fa13b58b18307f1923e14702540cce17",
+        "id": "87252d9e3a98d9fc8e997698a3b27d268d48af7b0867f1aaa4d03a1a7327c494",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "1a86268bdce739738035ecabb4984402a8d423c35f824709f4f8a7c06b2952c6",
+        "id": "34a055120667845e23fc279ce64404cdb6ef15c9ef97304a550dad76f5f71753",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "624009c8a61d4e0bb84ddd0f36361a07e0749a122b1e0c5ee13f8fa6d2bea9b9",
+        "id": "ebd4fc07e7f2ad97a634307358949a50bd3da37f452987ab61319ae092aa4a0e",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "d5d6637691293bec0cc64d87221222214758ca5f4b1bc87b1c7cbcc681d96787",
+        "id": "d3bca5087deee996009560c03232db013d50ba0980b582556d976a425afec9e7",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "0fd65bc9e74f1c376d77f426c21b4f66996890a62738993c0b45107011bb1e89",
+        "id": "1f76c978b0bcea3b69800fb8fdd4a2c92966bc617a69e8bf3355aa8c04a8385c",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "d2166eeef07366b44f4c15d43947e415b2e0de8798b9d4da335b5d85c66f18f9",
+        "id": "2c14735c87e0ebfd50ccf25cdba3d95dd44dc74e7f2bfd1344df6631996a3563",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "91a0d44528bf33221023d79570745ade8177fb5b0073415f8eb30ce1cb175ab4",
+        "id": "e0e8f214b1cb2b36524bfa14e41f8db23e5fce1c647f1aeaac5a4a61c4d1aeee",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "70e2eeec186b8ccf9e73e22515dd3478c89476d104293648de4b4bed1a09b183",
+        "id": "16aff0ea151c27921c811fafde425058ba3dbb4f5bf898b3f4f06ee63867c8a4",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "40b43cde2b2f780dcf251c7c6c1431c70b55d04edb9b23de78ac94e4e84272d8",
+        "id": "6617a5432f73a7c583b10c9f930825622794348a50015a87fa602df3b22cbd6f",
         "classification": "declaration",
         "owner": "ProjectSchemaDescription",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "e8e588aae40523e1496446d775eb9c3983beedf8c930423a1bbaec1ebed6aa0d",
+        "id": "d720ceb21587483b252b74122798c9eb97fdd772300246094fa11c470f6a248f",
         "classification": "non_contract",
         "owner": "ProjectFormSchemas",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "d7afbb33f11956f1325758dda7270e58e9fd2274904cb684c07167db890860e1",
+        "id": "f4cc566aa75beb9f2e29082ccc10ff040332297f6549115acd7739459f0d6b5f",
         "classification": "declaration",
         "owner": "ProjectConfiguration",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "9382f610ddfb4613b0530cba1b9fdc62d152e7f197daa83f061a1b9cee4473e4",
-        "classification": "declaration",
-        "owner": "ProjectConfiguration",
-        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
-      },
-      {
-        "id": "876fa301da0b9319d0df1dd35439312749856013ef5cb723b46203e542c9f971",
-        "classification": "declaration",
-        "owner": "ProjectConfiguration",
-        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
-      },
-      {
-        "id": "a5719136c47172b2dabe9dce8883f6856e4b3f2d9dfe8f4a6a1de17507f2b887",
+        "id": "1288e017cf3c1f25f1cfa2a5b1abb96710970b54c04482acade389e9a97ac8b2",
         "classification": "declaration",
         "owner": "ProjectConfiguration",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
@@ -80533,18 +80637,28 @@
         "owner": "ProjectConfiguration / ProjectFormSchemas / ProjectSchemaDescription",
         "declaration": "llm/services/schema.py",
         "consumers": [
-          "llm/services/api.py",
-          "llm/services/lifecycle/projects.py",
+          "hub/ui/input/json_document.py",
+          "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
-          "hub/ui/settings/presets.py"
+          "hub/ui/settings/presets.py",
+          "hub/widget/forms/definition_manager.py",
+          "llm/services/api.py",
+          "llm/services/lifecycle/projects.py"
         ],
         "tests": [
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_text_editing.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_objects.py",
           "tests/llm/test_configuration_results.py",
@@ -80553,7 +80667,10 @@
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operations_schema.py",
@@ -80575,15 +80692,26 @@
         "owner": "Project Schema catalog — Hub consumers pending",
         "declaration": "llm/services/schema.py",
         "consumers": [
-          "hub/ui/settings/pages.py"
+          "hub/ui/input/json_document.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/presets.py",
+          "hub/widget/forms/definition_manager.py"
         ],
         "tests": [
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_text_editing.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_objects.py",
           "tests/llm/test_configuration_results.py",
@@ -80592,7 +80720,10 @@
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operations_schema.py",
@@ -87104,84 +87235,66 @@
   },
   {
     "path": "hub/widget/forms/settings.py",
-    "sha256": "3801fa0cf3943ede3be43e250fbc937b3fe8918ec441d48d91e63e9cd17f90be",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners.",
+    "sha256": "fb5029b4c0b446e867eda6fa9cc6d8f0caf336915ac4a58ac6dbcdfe8552b1d6",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "54e8ba1b1e2a2a65cc168e50a02d620b37294f6944c63fde63aea92d81cfdc40",
+        "id": "f26d52d2ad24f1795a45ad2cbfcf49d51d5743aa7e32847c1c225e6de2198a6d",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "c4af70bbeffecda5d7a1e45e204172790b14de9dc8989851115255631089eafa",
+        "id": "1135819ca33a773c8eef70a5467512e5ab94b15478ca94b30efed4204256ff82",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "a423f83bf5141118df1007fc896984ef5b4ab8f77c2afaabb21f6638a5ee45cf",
+        "id": "2b1a91ee5d3dda2b0b90b854a5ef4da6b48d722b84b75d1cb18679cb9f5c020a",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "85083248a1c650930969ec7b4190fcac377aca79748e3098132d2f3ca4fe5398",
+        "id": "4cda311537b55dea28f1c652cc0bbab496bcbbc8b480d52e317d10eeb750c897",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "991366a6ac63b51b67287a28627d1cc8e2501128617e680d90f45e016a15a37b",
+        "id": "00d46197ab21c4267001e81f71c746d5112a36e9a92a1b9a9992a980458343ba",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "c2223076f96d0a22eb57f55e11cafdf727db8333b6d50c2687ba0fb663fac483",
+        "id": "5a5d59f6bf617f18cb55a082d6293e87f667ebf2c2ffc0a7f295ec5dc5efe089",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "c2b9d5047875f13f2d2e1871aa45e111dce3f6b84984809cac289b19a455e36a",
+        "id": "3798da43c0c46d7a920ad7e4dda822ff6605a8d5304776882bc417cb816082b0",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "70214ee546eb0483cbb384016795f759ea7bc7f178ddf001f295761dd74f0a6d",
+        "id": "c00749eb0ec4ad44b8726d0012e224a9d363f16d006ff3ce761f6ba859b47534",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "0309f74fb68ba3cb8d0124b7dddd6b127dc68e9fccfa75cc3916b22b88a367fe",
+        "id": "5315784fa44798a2bad8d4e883f14cfb4eba1192457556dbeed7255c19e455fb",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "bbb76e4c8327d41c7810b8f298b7d06d8b94131ee83d701996a2384b7489afa8",
-        "classification": "declaration",
-        "owner": "FieldDisplay",
-        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
-      },
-      {
-        "id": "35ad92ac426322276f14736c3731ae68919c54d9f8f609c8a085c95104345761",
-        "classification": "declaration",
-        "owner": "FieldDisplay",
-        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
-      },
-      {
-        "id": "f566f3c811d9b4bc3f939580ce44f2d88997e45087f60061b3ef492a8ae56591",
-        "classification": "declaration",
-        "owner": "FieldDisplay",
-        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
-      },
-      {
-        "id": "bb7b0fa7a6640aa6f731d6dec6fc5a474a884065288f7ae89e98fa3a8f9549a7",
+        "id": "fcdb0cc09f92e5f026b79f68a243f7c4e5befbf4c6b76767a5df036272c32e02",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
@@ -87193,151 +87306,145 @@
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "18fc4d57c8e7fc7dd17fc6d93b33eff4b7d9a4a61ca9373d8fd03e6b2d497bd2",
+        "id": "865873ba6c86dd97efbfe0fb8cf86c7141ed3c9281f7c07c6cd6c7ae9416b04a",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "d59561642af56a1e0ee3934e928324ac2510a6ebd8910c4734f547049c58eafc",
+        "id": "cd0736d1b352607725c0960a316cd37d222bb468716e5071210a92ce8c3b9ea4",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "23a45fc71fea858ca58042cf727864a5e8da8dd2e6449c7216fe213036aa4bfb",
+        "id": "e30b15acb078ebe60a325f40d3d43c5fdeeaa01bf403615eb643f84fa89e1a2e",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "5ab72dc386f269cd18440a2a372a263ceee5623df919ee68aad2f7876c86b8cb",
+        "id": "403e77ded46ab7d1dc6dbaf35bdffdfb235aaace20e542b88f3b989d838a797c",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "c556ecdf52578861a99e916568cdaaa25a80bbf35da9de7094ec43549d64380e",
+        "id": "0beee370efdef7a1dbd388c5e1d6f47317561413c39ea7a295cac8dfdae96ab6",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "5324de03bbb6e540feb18224e0d73d217d49683c80083653a90efbbe5b4ef589",
+        "id": "1016b8d935eea81ab91cd865d5e9ca44e3bd0fe78bbc16b995ac5acc15904703",
         "classification": "declaration",
         "owner": "FieldDisplay",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "6c557acd1bc5c4d0d1af2d6c0dbcf3048b08802694afcd7420adec21abe29565",
-        "classification": "declaration",
-        "owner": "FieldDisplay",
-        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
-      },
-      {
-        "id": "e4d7a6c443e8a325344a76f7ed3aa5cdf7b3f6029943cb8b59f31627469c0bbf",
+        "id": "29ab08c60fcfa432b2d0b83d7c417330b91845795999ffadd3d40241184af636",
         "classification": "non_contract",
         "owner": "put_path",
         "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
       },
       {
-        "id": "f48ccbeb297b8f7bcc0fe1a6c98622f0aa72ff366fa8ad27f532f1719c6d87ca",
+        "id": "d9d87bd9cdd9ae93a439427c351590e8e860a604e6c4d3180227a96fa7eff8ed",
         "classification": "non_contract",
         "owner": "put_path",
         "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
       },
       {
-        "id": "be8b20b2b754b6fe656833bd7084e8ccd5dae5fcc07b9fca07d5acf5da6376d4",
+        "id": "d29d8e2e59021fcf33b093b8dc43dc581cd5b8f773db9465223bc4321dce1630",
         "classification": "non_contract",
         "owner": "put_path",
         "reason": "Unused pop return value for deleting an already-absent editor path; never a stored field/default or evidence repair."
       },
       {
-        "id": "86c0e4294293eda423235636e1feee9b681d8a49830b8d9213d6845d12f76a46",
+        "id": "168ff9150d58ec9d6b30075b892175c6ef9e39b307b17259bab34344fc26394c",
         "classification": "non_contract",
         "owner": "put_path",
         "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
       },
       {
-        "id": "3d4922e0c1acf64bca6a7c10c6d0961d0efacb561b1e1131b5bdaf8c10a9777a",
+        "id": "f840d1b34e1b3af5176b426f6e56fce5e0018d27429f59e34eb8c1f9f38b67c6",
         "classification": "declaration",
         "owner": "SettingField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "dbc9a0cc6675fb310c151dc3a552bf8c0dad0ce46d92615ce92ff9bec900d022",
+        "id": "259666df129b82af17743d2f1ee2adf2c730a5ae928f283af81b7362bef8f1d4",
         "classification": "declaration",
         "owner": "SettingField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "880cad919fff1999d02a15ee32e7c118922ecee870edbdc884b1fe26ce4c9219",
+        "id": "b5bee5765c6eae24cd6d76f414bff799cd52f787265a2e3b860139b894dffd1a",
         "classification": "declaration",
         "owner": "SettingField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "262d62f68bd8240882eb731d29a9d36e4a20c375996b13b4a8ad5029b423792a",
+        "id": "b2fb5ba0ea9413e70b6b54ada5bddbaecf443c1f432818c0f654547297543352",
         "classification": "declaration",
         "owner": "SettingField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "40d289bdac50cfad49123de8692a41691a20cf8e328519939805bb3fa3a000f9",
+        "id": "4074616fd32981444d96b4e70ebf28c7f528494bbe5b026d7d909f315e84fde5",
         "classification": "declaration",
         "owner": "SettingField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "3ac5ea9f4b5bf3f2ce4e14299f132065ceabce7ec9be49e4edd5439a0473ffc0",
+        "id": "1f204d9d0aca9a86d02991b83e6c09a63fb694bf96483e4d5673d781d472e491",
         "classification": "declaration",
         "owner": "SettingField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "0f28ccaf4ae18cf2e102a4511509f3e4a9264b5151208c67552ea9a94c0f9429",
+        "id": "fb7eb6048526481338efb9e494a74b30fa3afab7df23baaa16ac097bb5f7df3f",
         "classification": "declaration",
         "owner": "ChoiceField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "d58874e8e05efd72b79ccea08634ec49cedc159a1ab9b914fd11423d6d40f470",
+        "id": "2ed25f98fb45782ffbc84f922d1fa5a062186fd317fd79a8157df59853b476cc",
         "classification": "declaration",
         "owner": "ChoiceField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "ff17cd9507b99783572088451e3f6ef0eebb1870d1512de2bb3efd0bd582ad87",
+        "id": "f3380079658e541e8220de128265dc61864a6c7514416b4d8fecb17bf5ff52df",
         "classification": "declaration",
         "owner": "ChoiceField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "4be86211c11e644218987501f79ab0c47c81917491d268b9f97b87dd3a07f628",
+        "id": "f634eb7e399b31bc65e27721ef9713ade17ebabfed998949b023b7ed9ad69b9a",
         "classification": "declaration",
         "owner": "ChoiceField",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
       },
       {
-        "id": "bc4faa7ca1a8f1758cb3972146b4e8595220ef4ced5958c7a4a103a23ff15111",
+        "id": "a38093d3ee37004d49f794f9b40604b4aa3e178f0ee1a65ffdb2e228a20721bb",
         "classification": "non_contract",
         "owner": "ChoiceField.__init__.choose",
         "reason": "Previous-item movement in a finite displayed choice sequence."
       },
       {
-        "id": "a17c203824abdf9d46d6606073ed49d58749864393caacb4ccb235d570158c15",
+        "id": "743a0ce02691705b7ea99b2f8f51dc935db01e5f82491a8a808036b82bb8df7b",
         "classification": "non_contract",
         "owner": "ChoiceField.__init__.choose",
         "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
       },
       {
-        "id": "ec6c0b9662001e15971dd10f9c8099491026c46c5762cd4dd499cf38e78a77ee",
+        "id": "e2db5498210803d4dcb9dbf4ddae49a0c6fb57a30da707aba473c62a20292791",
         "classification": "non_contract",
         "owner": "ChoiceField.__init__.choose",
         "reason": "Next-item movement in the same displayed choice sequence."
       },
       {
-        "id": "e93bd1595d4ce9f09ea1113ae67a983c30a65ed26aea054dba1d8be274434c44",
+        "id": "8a9a6188b065d03e86053c494e67bc2b20c1d794049258a98f05ae6b75ce6bce",
         "classification": "declaration",
         "owner": "SchemaForm",
         "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
@@ -87348,36 +87455,47 @@
         "owner": "FieldDisplay / SettingField / ChoiceField / SchemaForm",
         "declaration": "hub/widget/forms/settings.py",
         "consumers": [
-          "hub/ui/settings/pages.py",
+          "hub/ui/input/json_document.py",
+          "hub/ui/settings/drafts.py",
+          "hub/ui/settings/json_editor.py",
           "hub/ui/settings/navigation.py",
-          "hub/widget/forms/general_settings.py",
-          "hub/ui/settings/drafts.py"
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/presets.py",
+          "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/general_settings.py"
         ],
         "tests": [
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_general_options.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_settings_tabs.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/hub/test_question_card.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_configuration_validation.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_text_editing.py",
+          "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_interactions.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": false
       }
@@ -88816,6 +88934,177 @@
           "tests/llm/test_usage_ownership.py",
           "tests/llm/test_usage_declarations.py",
           "tests/llm/test_observation_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/input/json_document.py",
+    "sha256": "2d3cb85eb8d7ad6a02f20e81da7bed0b83088104cf8345ec1eed719a3adb201e",
+    "reason": "One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "09675427c862a41776a0f831cff4ded0a70ae630190edd6c1defad359955997c",
+        "classification": "declaration",
+        "owner": "JsonDocument",
+        "reason": "JSON draft encoding presentation, strict parse error prefix and file suffix are declared here. Preview/nonfinite rendering remains explicitly chosen by each caller. Missing observation is caller-owned; present-value comparison delegates to the canonical JsonValue."
+      },
+      {
+        "id": "6feb98b41e82795df3878359ae285d574abacfa04467603258dedb774e503b98",
+        "classification": "declaration",
+        "owner": "JsonDocument",
+        "reason": "JSON draft encoding presentation, strict parse error prefix and file suffix are declared here. Preview/nonfinite rendering remains explicitly chosen by each caller. Missing observation is caller-owned; present-value comparison delegates to the canonical JsonValue."
+      },
+      {
+        "id": "e3e256afd87693dd5ff77debd20e33260f5de144fb3b0cab07c4aca5147bd8d4",
+        "classification": "declaration",
+        "owner": "JsonDocument",
+        "reason": "JSON draft encoding presentation, strict parse error prefix and file suffix are declared here. Preview/nonfinite rendering remains explicitly chosen by each caller. Missing observation is caller-owned; present-value comparison delegates to the canonical JsonValue."
+      },
+      {
+        "id": "3b890983c461a52e92ff2dfae6bc89796d2339d7aae094b71973bd0e9ba7abdd",
+        "classification": "declaration",
+        "owner": "JsonDocument",
+        "reason": "JSON draft encoding presentation, strict parse error prefix and file suffix are declared here. Preview/nonfinite rendering remains explicitly chosen by each caller. Missing observation is caller-owned; present-value comparison delegates to the canonical JsonValue."
+      },
+      {
+        "id": "45dc8ded8d203775fd3a19ccad3480ae5e9f9ebdd0056985b9f4e152f0120864",
+        "classification": "declaration",
+        "owner": "JsonDocument",
+        "reason": "JSON draft encoding presentation, strict parse error prefix and file suffix are declared here. Preview/nonfinite rendering remains explicitly chosen by each caller. Missing observation is caller-owned; present-value comparison delegates to the canonical JsonValue."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "JsonDocument",
+        "declaration": "hub/ui/input/json_document.py",
+        "consumers": [
+          "hub/widget/forms/settings.py",
+          "hub/widget/forms/definition_manager.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/presets.py",
+          "hub/ui/settings/navigation.py"
+        ],
+        "tests": [
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_text_editing.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/host.py",
+    "sha256": "ea291fdd0044c0ad89f55fc6874f58ca5f877e89c766988875106e6003cf0032",
+    "reason": "One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "709d8b3bfd4b1c0ef48989aea7c05b3eb7999bdb0b203cf64cf8c6e9dd03e0f1",
+        "classification": "declaration",
+        "owner": "HostEditor",
+        "reason": "Host temporary file name, prefix, text suffix, encoding, newline handling, graceful termination interval and process running marker are declared here. The desktop executable is owned separately; stdin/stdout/stderr, await/cancel/terminate/kill/reap order are unchanged."
+      },
+      {
+        "id": "73f8c321d2d2678258eaccfc91bcd8ede55706962fd6b1ab46375a9a33690f5e",
+        "classification": "declaration",
+        "owner": "HostEditor",
+        "reason": "Host temporary file name, prefix, text suffix, encoding, newline handling, graceful termination interval and process running marker are declared here. The desktop executable is owned separately; stdin/stdout/stderr, await/cancel/terminate/kill/reap order are unchanged."
+      },
+      {
+        "id": "d606a28065d2e78e83a82156a64dae6f513d6b259d35cd74b24af580421e1f81",
+        "classification": "declaration",
+        "owner": "HostEditor",
+        "reason": "Host temporary file name, prefix, text suffix, encoding, newline handling, graceful termination interval and process running marker are declared here. The desktop executable is owned separately; stdin/stdout/stderr, await/cancel/terminate/kill/reap order are unchanged."
+      },
+      {
+        "id": "7747ee06d3594e20558ba85a2328446788569a30259d36e8ee39ec8178ce1954",
+        "classification": "declaration",
+        "owner": "HostEditor",
+        "reason": "Host temporary file name, prefix, text suffix, encoding, newline handling, graceful termination interval and process running marker are declared here. The desktop executable is owned separately; stdin/stdout/stderr, await/cancel/terminate/kill/reap order are unchanged."
+      },
+      {
+        "id": "44031311535df7c2c900159aca4d29f47214e0e866cffa7cd30612708d76256b",
+        "classification": "declaration",
+        "owner": "HostEditor",
+        "reason": "Host temporary file name, prefix, text suffix, encoding, newline handling, graceful termination interval and process running marker are declared here. The desktop executable is owned separately; stdin/stdout/stderr, await/cancel/terminate/kill/reap order are unchanged."
+      },
+      {
+        "id": "916f75d16c6c84987ca5ad58df85062eeef0207d2b629749b21ecfde60b74695",
+        "classification": "declaration",
+        "owner": "HostEditor",
+        "reason": "Host temporary file name, prefix, text suffix, encoding, newline handling, graceful termination interval and process running marker are declared here. The desktop executable is owned separately; stdin/stdout/stderr, await/cancel/terminate/kill/reap order are unchanged."
+      },
+      {
+        "id": "f4e35adcb51b52efe1547a40d9d2c4472aea2d1539dcc7a78a9a10b769469409",
+        "classification": "declaration",
+        "owner": "HostEditor",
+        "reason": "Host temporary file name, prefix, text suffix, encoding, newline handling, graceful termination interval and process running marker are declared here. The desktop executable is owned separately; stdin/stdout/stderr, await/cancel/terminate/kill/reap order are unchanged."
+      },
+      {
+        "id": "af11be75eff1671cb1894567d4059e58de97ef65fab5f9d3816a577c0e23e48d",
+        "classification": "declaration",
+        "owner": "DesktopOpener",
+        "reason": "Host temporary file name, prefix, text suffix, encoding, newline handling, graceful termination interval and process running marker are declared here. The desktop executable is owned separately; stdin/stdout/stderr, await/cancel/terminate/kill/reap order are unchanged."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HostEditor / DesktopOpener",
+        "declaration": "hub/ui/host.py",
+        "consumers": [
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/presets.py",
+          "hub/ui/settings/navigation.py",
+          "hub/widget/forms/definition_manager.py"
+        ],
+        "tests": [
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_text_editing.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",

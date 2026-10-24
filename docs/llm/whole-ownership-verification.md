@@ -7736,3 +7736,54 @@ UI 명령·응답과 시작 시 Preset Project 소비자는 실제 연결 전까
 문서 검사 exit 0(168문서/183 Python fence/1263 링크/37 anchor)다.
 현재 인벤토리는 607파일, 미검토 155, 미분류 7606, 미완료 소비자 계약 18,
 stale/위반/issues 0이다. 미완료 UI·시작 경로는 다음 소비자 연결 단계에서 계속 검증한다.
+
+
+## 공통 JSON 비교·편집 문서·Host 편집기
+
+JsonValue가 JSON 표현 비교를 단일 구현으로 제공한다. InteractionJSON의 사전 JSON 검증,
+ProjectConfiguration의 Missing·Host 고정값 판정·오류 경계는 그대로 유지한다.
+UI 비교는 자신의 Missing sentinel을 처리한 뒤 같은 비교를 사용한다.
+승인 값의 true/1·1/1.0 구분, 필수 값·기록의 누락, 비정상 JSON 거부를 완화하지 않는다.
+지문용 직렬화는 별도 계약이며 변경하지 않았다.
+
+JsonDocument는 편집용 표시·엄격한 파싱·오류 prefix·확장자를 소유한다.
+기존 Preset/정의 미리보기의 비유한 수 표시 허용과 설정 저장 후보의 엄격한 직렬화를 구분한다.
+SettingField의 문자열 입력 문법과 DefinitionManager의 기존 파서는 변경하지 않았다.
+HostEditor는 임시 파일·encoding·개행·terminate 후 2초 대기 선언을 소유하고,
+기존 wait/terminate/kill/reap 및 임시 파일 정리 순서를 유지한다.
+전체 파일 검토는 Host와 JsonDocument이고 나머지 UI 파일은 해당 소비자만 연결했다.
+
+독립 비교: 원시 JSON 표현 484, Interaction 사전 검증·비교 484,
+Schema Host-lock 529와 Engine Host-lock 529, UI Missing/타입 비교 289,
+표시 직렬화 34, 엄격한 파싱 21, 실제 Field 값 210, 실제 Host lock/opaque sibling 168이다.
+실제 편집기 파일·자식 프로세스의 정상/개행/비정상 종료·취소·강제 종료 7 흐름,
+실제 text 확장자 1, 취소 후 terminate/reap 1, 실제 대기 만료 후 kill/reap 1을 확인했다.
+stdin/stdout/stderr descriptor 전달과 임시 파일 제거를 직접 검사했다.
+desktop 명령/DEVNULL 전달 1은 호출 경계를 비교했고 실제 desktop 실행은 수행하지 않았다.
+모든 최종 비교가 일치한다. 제품 테스트·Fixture 기대값·안전성 Assertion은 변경하지 않았다.
+
+- `whole-hub-editor-json-l1-01`: discovered/started/pass 21/21/21, exit 0, 42.305246초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-editor-json-l1-01/hub.json --modules tests.hub.test_settings_json tests.hub.test_settings_editor tests.hub.test_presets_widgets`. source `702ee97d1d6d15415ce5ad450124c7dc254488d17092772e248b700e300937f2`, input `e1bcd878fa9f0aae1360c9286714604dbb1e0e64eda0bd83c8dbc01953dd78d9`.
+
+- `whole-hub-editor-json-l2-01`: discovered/started/pass 39/39/39, exit 0, 84.70823초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-editor-json-l2-01/hub.json --modules tests.hub.test_component_managers tests.hub.test_settings tests.hub.test_settings_project_flow tests.hub.test_input_contract tests.hub.test_global_preferences tests.hub.test_settings_navigation tests.hub.test_settings_usability tests.hub.test_text_editing`. source `702ee97d1d6d15415ce5ad450124c7dc254488d17092772e248b700e300937f2`, input `e1bcd878fa9f0aae1360c9286714604dbb1e0e64eda0bd83c8dbc01953dd78d9`.
+
+- `whole-hub-editor-json-core-01`: discovered/started/pass 59/59/59, exit 0, 11.513057초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-editor-json-core-01/llm.json --modules tests.llm.test_interactions tests.llm.test_interaction_presence tests.llm.test_interaction_decisions tests.llm.test_schema_ownership tests.llm.test_configuration_targets`. source `702ee97d1d6d15415ce5ad450124c7dc254488d17092772e248b700e300937f2`, input `e1bcd878fa9f0aae1360c9286714604dbb1e0e64eda0bd83c8dbc01953dd78d9`.
+
+- `whole-hub-editor-json-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.273808초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-editor-json-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `702ee97d1d6d15415ce5ad450124c7dc254488d17092772e248b700e300937f2`, input `e1bcd878fa9f0aae1360c9286714604dbb1e0e64eda0bd83c8dbc01953dd78d9`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치,
+선택 중복 0과 전후·실행 사이 source/input manifest 동일을 확인했다.
+Python 3.12.14/Clang, Host d833790, 동일 의존성·Linux/X11/Bubblewrap이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0. 실제 argv·exit·로그는
+`hub-editor-json-draft/selected-results.json`과 각 focus 결과에 보존한다.
+
+Level 1은 JSON/외부 편집기/Preset, Level 2는 Component 관리·설정·입력/탐색·텍스트 편집이다.
+Interaction 결정/존재성과 Schema/설정 target, 승인·예산·효과·Checkpoint·삭제/저장·실행 경계도 검증한다.
+공통 비교가 여러 도메인에 연결되므로 이 묶음은 Level 3로 승격한다.
+Preset 기록·설정 서비스·이번 변경을 고정한 소스에서 전체 LLM/Hub, 정적 감사·문서·R3·환경 검사 후
+Push하고 정확한 SHA의 원격 CI를 확인한다. 집중 검증만으로 해당 게이트 완료를 선언하지 않는다.
+
+정적 감사 S1–S7 exit 0(개별 검토 83), 감사기 자체 시험 16 pass/3.426초,
+문서 검사 exit 0(168문서/183 Python fence/1263 링크/37 anchor)다.
+기존 inline 편집기 종료 대기 2초 finding 한 곳은 HostEditor 선언으로 이동해 폐기하고 원 검토를 보존했다.
+현재 인벤토리는 608파일, 미검토 154, 미분류 7579, 미완료 소비자 계약 18,
+stale/위반/issues 0이다. UI의 남은 전체 파일·고정 구조 소비자 작업은 계속된다.

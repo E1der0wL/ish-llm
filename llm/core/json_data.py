@@ -34,6 +34,18 @@ class JsonObject:
         json.dumps(value, allow_nan=cls.ALLOW_NON_FINITE)
 
 
+class JsonValue:
+    """Exact JSON representation comparison; callers retain their own validation."""
+
+    SORT_KEYS = True
+    ALLOW_NONFINITE = JsonObject.ALLOW_NON_FINITE
+
+    @classmethod
+    def same(cls, left, right):
+        return json.dumps(left, sort_keys=cls.SORT_KEYS, allow_nan=cls.ALLOW_NONFINITE) == json.dumps(
+            right, sort_keys=cls.SORT_KEYS, allow_nan=cls.ALLOW_NONFINITE)
+
+
 class JsonPointer:
     FRAGMENT = "#"
     ROOT = ""

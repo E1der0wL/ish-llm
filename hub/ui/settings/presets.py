@@ -2,7 +2,7 @@
 
 from hub.locales.keys import MessageKey
 
-import json
+from ..input.json_document import JsonDocument
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit
@@ -95,7 +95,7 @@ class PresetUI:
         if exported is None:
             return
         view, screen = self.view, self.view.settings
-        draft = {"text": json.dumps(exported, indent=2, ensure_ascii=False), "editing": False}
+        draft = {"text": JsonDocument.render(exported, allow_non_finite=JsonDocument.ALLOW_NON_FINITE_PREVIEW), "editing": False}
         status = Label(lambda: draft.get("error", ""))
         def open_editor():
             if draft["editing"]:
@@ -103,7 +103,7 @@ class PresetUI:
             draft["editing"] = True
             async def edit():
                 try:
-                    draft["text"] = await host.edit_text(draft["text"], view.general, suffix=".json")
+                    draft["text"] = await host.edit_text(draft["text"], view.general, suffix=JsonDocument.SUFFIX)
                     draft["error"] = ""
                 except Exception as error:
                     from ..error_presentation import operation_notice
@@ -119,8 +119,7 @@ class PresetUI:
                 return
             try:
                 from ...config.presets import PresetStore
-                value = PresetStore.validate(json.loads(draft["text"], parse_constant=lambda s:
-                    (_ for _ in ()).throw(ValueError("Invalid JSON: " + s))))
+                value = PresetStore.validate(JsonDocument.parse(draft["text"]))
                 if not name.text.strip():
                     raise ValueError(view.t(MessageKey.SETTINGS_TITLE_REQUIRED))
             except (ValueError, TypeError) as error:

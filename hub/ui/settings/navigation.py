@@ -5,6 +5,7 @@ from hub.locales.keys import MessageKey
 import subprocess
 from prompt_toolkit.application.current import get_app
 from .. import host
+from ..input.json_document import JsonDocument
 from ...widget.focus import focus_control
 
 
@@ -86,7 +87,7 @@ class SettingsNavigation:
             kind = field.schema.get("type")
             kinds = kind if isinstance(kind, list) else [kind]
             field.input.text = await host.edit_text(field.input.text, self.screen.view.general,
-                                               suffix=".txt" if "string" in kinds else ".json")
+                                               suffix=host.HostEditor.TEXT_SUFFIX if "string" in kinds else JsonDocument.SUFFIX)
             self.screen.status = ""
         except subprocess.CalledProcessError as error:
             self.screen.error(self.screen.t(MessageKey.SETTINGS_EDITOR_FAILED, code=error.returncode))
