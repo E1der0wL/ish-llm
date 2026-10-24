@@ -6439,3 +6439,46 @@ Host d833790·namespace/X11 환경이 같고 L1/L2 LLM ID 중복 0이다. R3
 해소하여 정적 발견 85, new/stale 0이다. 문서 168·Python fence 183·링크 1244·anchor 37,
 오류 0. 전수 inventory는 579개 파일, 미검토 224(llm 47/Hub 177), 미분류 12457,
 미완 계약 3, stale/확정 위반/도구 issues 0이다. 전체 범위 완료는 아직 아니다.
+
+
+## llm 목록·캐시·Tool 결과 조회 Owner — Level 1·2
+
+기준 05bf5cf. Query.validate_optional과 QueryItem으로 반복된 선택 인자·목록 상태 해석을
+연결했다. 필드 이름은 원본 모델의 선언을 참조하며 목록용 fallback label은 실행 정책이 아니다.
+FileCatalog 기본 투영은 CatalogRecord, 캐시 항목은 CatalogEntry로 소비한다. 저장 version·
+디렉터리 identity 검사와 선택된 원본의 완전한 Reader 호출, 실제 stat/읽기/eviction 순서는
+유지한다. 사용자 projection은 그대로 받고 falsey callable·선택 객체 identity를 보존한다.
+ToolResultRange/ToolResultSlice가 범위·완료 Tool 응답 검증·hash/공개 직렬화를 소유하고
+RunResultQuery에는 소유권/Repository/잠금과 조회 순서가 남는다. 새 결과 파일은 없다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/query-results-draft/ast-proof.py`
+및 같은 경로 `values-proof.py` 각각 exit 0. Query·Repository 조회 조율과 Protocol의 기존
+함수 18개 전체를 전개 비교했다. 바뀐 cache/결과 메모리 표현은 AST 동일로 주장하지 않고
+이전 커밋 대비 독립 입력·실제 파일·호출 순서의 differential 검증을 수행했다:
+query_validation 55, query_iteration 640, ordered_query 640, query_projection 20, optional_query 5, ordered_optional 5, property_order 1, catalog_cache 8, catalog_capacity 6, catalog_projection 6, catalog_corruption 4, tool_result_slice 1920.
+선택 ID/소비한 generator 범위, property 읽기 순서, 실제 파일 byte 보존, cache hit/eviction,
+손상 version/identity 거부, Tool 결과 값·오류와 Project→Session→Run→Step 조회 순서를 비교했다.
+
+- `whole-query-results-l1-01`: discovered/started/pass 83/83/83, exit 0, 24.023978초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-query-results-l1-01/llm.json --modules tests.llm.test_catalog_presence tests.llm.test_optimized_queries tests.llm.test_stability_refinement tests.llm.test_main_domain_optimization tests.llm.test_configuration_results tests.llm.test_extension_contracts tests.llm.test_service_extensions`. source `c465ace44f773a99540049e324e35b892985bd37efff0e7de5521a7fd6ccdce7`, input `37460469722d74024884df77c64c06d0246efa33b9aac8853171ce9c3549bd6d`.
+
+- `whole-query-results-l2-01`: discovered/started/pass 129/129/129, exit 0, 228.27695초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-query-results-l2-01/llm.json --modules tests.llm.test_long_running tests.llm.test_memory_processing tests.llm.test_memory_conversation tests.llm.test_run_reference_integrity tests.llm.test_completion_integrity tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage`. source `c465ace44f773a99540049e324e35b892985bd37efff0e7de5521a7fd6ccdce7`, input `37460469722d74024884df77c64c06d0246efa33b9aac8853171ce9c3549bd6d`.
+
+- `whole-query-results-hub-01`: discovered/started/pass 7/7/7, exit 0, 13.048441초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-query-results-hub-01/hub.json --modules tests.hub.test_snapshot_projection tests.hub.test_naming tests.hub.test_http_backend`. source `c465ace44f773a99540049e324e35b892985bd37efff0e7de5521a7fd6ccdce7`, input `37460469722d74024884df77c64c06d0246efa33b9aac8853171ce9c3549bd6d`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치.
+실행 전후·실행 간 source/input·시험/Fixture·의존성·전체 discovery·Python3.12.14/Clang·
+Host d833790·namespace/X11 조건이 같고 L1/L2 LLM ID 중복 0이다. R3
+`python -m tests.llm.check_budget_mutation` exit 0으로 실제 효과 Assertion의 mutation 검출을
+유지했다. 기존 제품 시험·Assertion은 변경하지 않았다.
+
+목록/결과·주입 저장소·Memory 실제 Tool 원본 조회·복제/장기 문맥·Run 참조와
+승인·예산·효과·Checkpoint·삭제/저장·RAG 무결성 및 Hub snapshot/이름/HTTP 소비자를
+검증했다. 저장·승인·예산·실행 정책은 변경하지 않고 원본 읽기 경계를 유지하여 영향 범위를
+제한했다. 전체 회귀는 다음 관련 서비스 묶음 **Gate42 Level 3**에서 수행한다. 별도 고정
+05bf5cf의 Gate41 전체 검증은 진행 중이며 이 변경을 포함하지 않는다. 이 소단계는 전체
+완료·원격 완료가 아니다. llm 우선 전수 작업을 계속한다.
+
+종료 S1–S7·감사 16개(3.438초)·문서 검사 각각 exit 0. FileCatalog의 S3 1개를
+해소하여 정적 발견 84, new/stale 0이다. 문서 168·Python fence 183·링크 1244·anchor 37,
+오류 0. inventory는 579개 파일, 미검토 221(llm 44/Hub 177), 미분류 12349,
+미완 계약 3, stale/확정 위반/도구 issues 0이며 전수 완료는 아직 아니다.

@@ -68609,5 +68609,461 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/services/README.md",
+    "sha256": "151660e1c76769bbf13706329922f1b345adca45377b5efa59b8df95e50e0657",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Read the complete service guide, checked ownership/state/extension claims against current contracts, and documented the exact query/cache/result boundaries. Existing linked subsystem completion is not claimed by this guide review.",
+    "contracts": [
+      {
+        "owner": "Services public/lifecycle/query documentation",
+        "declaration": "llm/services/README.md",
+        "consumers": [
+          "llm/services/query.py",
+          "llm/services/results.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/hub/test_http_backend.py",
+          "tests/hub/test_naming.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_catalog_presence.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
+          "tests/llm/test_main_domain_optimization.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_optimized_queries.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_stability_refinement.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/query.py",
+    "sha256": "9bbe2f690b79e4d85e7e272421c504d5aedbbf5b725016cc6cf8547121e9ed7b",
+    "reason": "Whole query/result review includes constructor/selection/ordering/decorator/injection paths, input presence, eager property access, complete scan corruption detection, cache zero/eviction/invalidation and result scope/partial content/hash. Source lifecycle validation and workspace locking remain at their original boundaries; projections grant no execution or deletion authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2c70a8bcbc6ca0822453c60557c158ffd96c5150a4ebead9f8496cb62b335379",
+        "classification": "declaration",
+        "owner": "QueryItem",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "306ee93e388900efa638abf1d7648fc0a34587c7b2eab8e8e82c2b23cf34f18c",
+        "classification": "declaration",
+        "owner": "QueryItem",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "e4b73c44373524f8510215fc2771952d6c468f1d92bde63a11c3dcf4f306bad7",
+        "classification": "declaration",
+        "owner": "QueryItem",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "611cd9908aad2b2c3338c65b0197fc1f1962c6d9ce6efd627de3d6ad9e7fff49",
+        "classification": "declaration",
+        "owner": "QueryItem",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "93bbe243fba171f258bcffef225f23c6db99f22434e1d87c8616cf766b94a338",
+        "classification": "non_contract",
+        "owner": "Query",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "f1d512a2096faacd6a6d0e0996ffc8a3fda296222088c4ff1ce02b0d448d9ecd",
+        "classification": "non_contract",
+        "owner": "Query",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "83dcdf86fcf3047a15a7edefda69a8179ac5babbc1755ab31dd80674721ed1ba",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "e6c1269532fdb2d2f69cb54440f85fa590982d9ff65230ff3008f246e153e980",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "a05244dbf20ea2cf29fec1043a7d541a620b988d074e12e5b43036b384e8b19f",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "48200492feaacca55d9d34a6a08a92afcb072bb9b2731dd51dfc3d6f0af1e76b",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "791cbf410b7a0928c024f846c0e24200fa98ab583598b8c17f25ce3235205a4f",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "f19a95baa71440be6cc71c9d10f3afa05b2c04efa7b82a8f2a21730581238c21",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "07866ae75af9b88da9b82a0b506e74882800cd964c06a6ccd26ac93ecb2513e6",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "84cff07159f3fddad5dc8356fd6778ed9280dada2bf386bddd0deeba2848337c",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "6177d43ef3ed2eadab0d3efa62ca15ab0c2e03b0495f5bcc9926802b08d070f6",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "c0969b25e949e375d0dbcd397eb0164d92047b18d7cf1fbd060ff5e3ee2549ac",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "453e8de0b82decf3222d9fc6f69d5a5f57d0d2ad6973d2211d44c32868752d3e",
+        "classification": "declaration",
+        "owner": "Query",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "5f5d4fd19bd17c7c96b6d7d87e1d522463de95e1fe1514060448e24877483883",
+        "classification": "declaration",
+        "owner": "CatalogRecord",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "6fbf0acf1d92047e687accb9f43f09831c0711efef715ba73bc26979b43b050a",
+        "classification": "non_contract",
+        "owner": "CatalogEntry",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "4af823ff1b472f28f71ba8b903f3d527fe31a2874103713f274169ee24d3ef3f",
+        "classification": "non_contract",
+        "owner": "CatalogEntry",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "9618c1645e2f12aa1415b78d3ce8038b9dcc2a1538dbea6d388689bcfe14f943",
+        "classification": "declaration",
+        "owner": "FileCatalog",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "6d67bd2d22b455afd85b2946e120f4c62502ae02f595d91e37da8d4651aaeef3",
+        "classification": "declaration",
+        "owner": "FileCatalog",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "97ffe5a6797243554dd8748332b27045078e492448af41aa38e57a951fb9b6b8",
+        "classification": "declaration",
+        "owner": "FileCatalog",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "78b4aa92c6c73c4a8eb94380ff4cea3fcc327b92e5f6a8fd4e0c168fc3e0ac74",
+        "classification": "declaration",
+        "owner": "FileCatalog",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "89540dba04c9a889c289d6ae62a7a8633bf59fe1f63ad0c51009fbb88d9edfd5",
+        "classification": "declaration",
+        "owner": "FileCatalog",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "535c3c7a3caae497f55a118d0a7236465a640fbece33ada8b9420604f2537824",
+        "classification": "declaration",
+        "owner": "FileCatalog",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "b0d06d044f77c245125329a9b8f521c20cf80a425de62d2c6e90c46d82b36440",
+        "classification": "declaration",
+        "owner": "FileCatalog",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Query / QueryItem / CatalogRecord / CatalogEntry / FileCatalog",
+        "declaration": "llm/services/query.py",
+        "consumers": [
+          "llm/services/api.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/lifecycle/steps.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py"
+        ],
+        "tests": [
+          "tests/hub/test_http_backend.py",
+          "tests/hub/test_naming.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_catalog_presence.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
+          "tests/llm/test_main_domain_optimization.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_optimized_queries.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_stability_refinement.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/results.py",
+    "sha256": "c4fbaf49218937218e40cacab11c10ea2b6a7e56cd2c64050774692f23cdd765",
+    "reason": "Whole query/result review includes constructor/selection/ordering/decorator/injection paths, input presence, eager property access, complete scan corruption detection, cache zero/eviction/invalidation and result scope/partial content/hash. Source lifecycle validation and workspace locking remain at their original boundaries; projections grant no execution or deletion authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e2246c9c76737c798b263d2549d5b93cc12855ffc2adbc50d4e62a782a6f5457",
+        "classification": "declaration",
+        "owner": "ResultQueryContract",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "80d12316eedd0dd9130b1e3c38c1e627913c1990911b2f4b2d49d6d0c7d265b1",
+        "classification": "declaration",
+        "owner": "ResultQueryContract",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "0360f61f3899d07db2d752401d0cd97f6f535e8f81ebd0d0d41648feb24e9d84",
+        "classification": "declaration",
+        "owner": "ResultQueryContract",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "f9d87046705398f4a7fe977f13b02c015882c6fef3546b4c82ce79dc46784f26",
+        "classification": "declaration",
+        "owner": "ResultQueryContract",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "d8759bcf419a1a840dffa8eb3b3677ebc9a62bb5bd4c6a80830b4aac64d33d08",
+        "classification": "declaration",
+        "owner": "ResultQueryContract",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "6095348e35b406babc220ddfb7de50bad2e5c25e7b0d3e6e65da54ce0c128679",
+        "classification": "non_contract",
+        "owner": "ToolResultRange",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "dd7790506f921196df4f441d405b12ebc16acbc868d80ec78976f85995e08164",
+        "classification": "non_contract",
+        "owner": "ToolResultRange",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "54a44116ea3dcc8a4c33a0dad4eebdc8545d04ee2fcf2f51f5a4444cbf708c2d",
+        "classification": "declaration",
+        "owner": "ToolResultRange",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "30b503f51d009efe0542ec910a250aee4dcba2d1b87ddb440fe73f377d1edec2",
+        "classification": "declaration",
+        "owner": "ToolResultRange",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "ffaaa786ccaea82ad74b402e3006dfc461a2de3495e5cdfcff39257c63964193",
+        "classification": "declaration",
+        "owner": "ToolResultRange",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "ab055b7d1f0803ba28790776d1d0748a77702c7043c4e8158d33a31a068791ca",
+        "classification": "declaration",
+        "owner": "ToolResultRange",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "dc2f77122ae8a08025622cdc02a1e07276a921649141f8fae34357d59ecbe8d5",
+        "classification": "declaration",
+        "owner": "ToolResultRange",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "432ddb88645837d54e75387eef583bc0b76089ad860258b7ae87a4a49652fa7c",
+        "classification": "non_contract",
+        "owner": "ToolResultSlice",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "9b961528f08b9b4793b6995e97e2563305d09321fcab56f41f23dfe531ad134d",
+        "classification": "non_contract",
+        "owner": "ToolResultSlice",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "106fb2d240c487f3def3e606c052f3b3d33ce886ad55b3b0ab4b3814fed3bad4",
+        "classification": "declaration",
+        "owner": "ToolResultSlice",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "11eddda4bf32b3dcfffcb8e89ba909f7c8f6420fe3251a25b7a350f7bddb3649",
+        "classification": "declaration",
+        "owner": "ToolResultSlice",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "da9158e6b21190852e778bcfee026ecffef0d6ee05bb1dad9cf00d499b8b3d05",
+        "classification": "declaration",
+        "owner": "ToolResultSlice",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "bd5afaf7d6837eb3782e8ab6105adb710b38441c09157add59283118ec25124a",
+        "classification": "declaration",
+        "owner": "ToolResultSlice",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "9ce24dd59c66c6f487dc820e127631b3f33f61d069c5e3448710ad6c587bec83",
+        "classification": "declaration",
+        "owner": "ToolResultSlice",
+        "reason": "Owner-head query defaults/bounds/labels/errors and typed projection fields. Fixed dict creation/read occurs only in the named projection Reader/Writer; cache state uses attributes."
+      },
+      {
+        "id": "c8b12e6f8d4d99bb9ac12ce4de05fff1ed0a4138f2d8b085a819667c7a043c19",
+        "classification": "non_contract",
+        "owner": "SessionReader._owner",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "9562f4e15c3477f1a235602d1965624d0d640f2e7aef3fe0d2cc4d0613c17f72",
+        "classification": "non_contract",
+        "owner": "SessionReader.ownership",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "32f077f2f6b6d92013ef005a6178f3ed062c074771d8d5c423305977f11e5be6",
+        "classification": "non_contract",
+        "owner": "SessionReader.require_project",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "1530968de6497bf6f8908ab0b72dbf63860033ea5e62fc7c4624dfb58b62b127",
+        "classification": "non_contract",
+        "owner": "SessionReader.load",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "93f167385972a7a9d786c2fa80bedafec49500f2aeeeeb5148cfec479a0030df",
+        "classification": "non_contract",
+        "owner": "SessionReader.list",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "b29012aa84914586158c98047d92a4344a86b4ae1bde42e03fc7b13085b6e109",
+        "classification": "non_contract",
+        "owner": "RunReader.load",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "f26635a616c0a238a3ff24dc7c980ba978945c1902dd608dfa05ed815a8e10f6",
+        "classification": "non_contract",
+        "owner": "RunReader.list_results",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      },
+      {
+        "id": "0d675db298e3d6224a87fa3a34224099373ef4a355f9637b78bd8087c2815b6d",
+        "classification": "non_contract",
+        "owner": "RunResultQuery.__init__",
+        "reason": "Python dataclass layout, Protocol method placeholder or return-type annotation; not a runtime default, field or policy value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ResultQueryContract / ToolResultRange / ToolResultSlice / RunResultQuery",
+        "declaration": "llm/services/results.py",
+        "consumers": [
+          "llm/services/api.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/lifecycle/steps.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py"
+        ],
+        "tests": [
+          "tests/hub/test_http_backend.py",
+          "tests/hub/test_naming.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_catalog_presence.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
+          "tests/llm/test_main_domain_optimization.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_optimized_queries.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_stability_refinement.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

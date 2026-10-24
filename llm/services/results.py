@@ -5,7 +5,8 @@ Read Run-owned execution observations from Project or Session scope."""
 from llm.core.models import StepKind
 from llm.services.query import Query, select
 
-from typing import Optional, Protocol, Union
+from typing import ClassVar, Optional, Protocol, Union
+from dataclasses import dataclass, asdict
 import json
 import hashlib
 
@@ -14,24 +15,111 @@ from llm.core.results import ExecutionResult
 from llm.services.infrastructure.locking import WorkspaceOwnership, workspace_locked
 
 
+class ResultQueryContract:
+    INCLUDE_DELETED = True
+    EXCLUDE_DELETED = False
+    EXCLUDE_RUNNING = False
+    UNSPECIFIED = None
+    MISSING_RUN = "Run does not exist in this scope"
+
+
+@dataclass(frozen=True, slots=True)
+class ToolResultRange:
+    MINIMUM_OFFSET: ClassVar[int] = 0
+    MINIMUM_LIMIT: ClassVar[int] = 1
+    UNLIMITED: ClassVar[None] = None
+    INVALID: ClassVar[str] = "Invalid result slice"
+
+    offset: int = MINIMUM_OFFSET
+    limit: Optional[int] = UNLIMITED
+
+    def __post_init__(self):
+        if (
+            type(self.offset) is not int
+            or self.offset < self.MINIMUM_OFFSET
+            or self.limit is not self.UNLIMITED
+            and (type(self.limit) is not int or self.limit < self.MINIMUM_LIMIT)
+        ):
+            raise ValueError(self.INVALID)
+
+    def select(self, content):
+        return content[
+            self.offset : self.UNLIMITED if self.limit is self.UNLIMITED else self.offset + self.limit
+        ]
+
+
+@dataclass(frozen=True, slots=True)
+class ToolResultSlice:
+    """Detached Tool-result query response, never a second execution record."""
+
+    MISSING_OUTPUT: ClassVar[None] = None
+    ENSURE_ASCII: ClassVar[bool] = False
+    ALLOW_NON_FINITE: ClassVar[bool] = False
+    COMPLETED_TOOL_REQUIRED: ClassVar[str] = "Completed Tool result required"
+
+    content: str
+    offset: int
+    total_chars: int
+    sha256: str
+    run_id: str
+    step_id: str
+
+    @classmethod
+    def from_step(cls, run_id, step, selection):
+        if (
+            step.kind != StepKind.TOOL
+            or step.status != StepStatus.COMPLETED
+            or step.output is cls.MISSING_OUTPUT
+        ):
+            raise ValueError(cls.COMPLETED_TOOL_REQUIRED)
+        value = step.output.data
+        content = (
+            value
+            if isinstance(value, str)
+            else json.dumps(value, ensure_ascii=cls.ENSURE_ASCII, allow_nan=cls.ALLOW_NON_FINITE)
+        )
+        return cls(
+            selection.select(content),
+            selection.offset,
+            len(content),
+            hashlib.sha256(content.encode()).hexdigest(),
+            run_id,
+            step.id,
+        )
+
+    def to_dict(self):
+        return asdict(self)
+
+
 class SessionReader(Protocol):
-    def _owner(self, session: Session, *, allow_deleted: bool = False) -> Project: ...
+    def _owner(
+        self, session: Session, *, allow_deleted: bool = ResultQueryContract.EXCLUDE_DELETED
+    ) -> Project: ...
 
     # 공개 API
     @property
     def ownership(self) -> WorkspaceOwnership: ...
 
-    def require_project(self, project: Project, *, allow_deleted: bool = False) -> Project: ...
+    def require_project(
+        self, project: Project, *, allow_deleted: bool = ResultQueryContract.EXCLUDE_DELETED
+    ) -> Project: ...
 
     def load(self, project: Project, session_id: str) -> Session: ...
 
-    def list(self, project: Project, *, include_deleted: bool = False) -> list[Session]: ...
+    def list(
+        self, project: Project, *, include_deleted: bool = ResultQueryContract.EXCLUDE_DELETED
+    ) -> list[Session]: ...
 
 
 class RunReader(Protocol):
     def load(self, session: Session, run_id: str) -> Run: ...
-    def list_results(self, sessions: list[Session], *, include_running: bool = False,
-                     query: Optional[Query] = None) -> list[Run]: ...
+    def list_results(
+        self,
+        sessions: list[Session],
+        *,
+        include_running: bool = ResultQueryContract.EXCLUDE_RUNNING,
+        query: Optional[Query] = Query.UNSPECIFIED,
+    ) -> list[Run]: ...
 
 
 # Run 원본에서 Session/Project 범위의 결과를 만든다.
@@ -42,22 +130,25 @@ class RunResultQuery:
     Run repositories can be injected; RunManager uses its configured repository.
     """
 
-    def __init__(self, sessions: SessionReader, runs: Optional[RunReader] = None) -> None:
-        if runs is None:
+    def __init__(
+        self, sessions: SessionReader, runs: Optional[RunReader] = ResultQueryContract.UNSPECIFIED
+    ) -> None:
+        if runs is ResultQueryContract.UNSPECIFIED:
             # Runtime import keeps the query protocol independent of orchestration.
             from llm.services.runtime.runs import RunRepository
+
             runs = RunRepository()
         self.sessions = sessions
         self.runs = runs
 
     def _scope(self, owner: Union[Project, Session], include_deleted: bool):
         if isinstance(owner, Session):
-            project = self.sessions._owner(owner, allow_deleted=True)
+            project = self.sessions._owner(owner, allow_deleted=ResultQueryContract.INCLUDE_DELETED)
             session = self.sessions.load(project, owner.id)
             if session.status == SessionStatus.DELETED and not include_deleted:
                 return project, []
             return project, [session]
-        project = self.sessions.require_project(owner, allow_deleted=True)
+        project = self.sessions.require_project(owner, allow_deleted=ResultQueryContract.INCLUDE_DELETED)
         return project, self.sessions.list(project, include_deleted=include_deleted)
 
     # 공개 API
@@ -66,40 +157,48 @@ class RunResultQuery:
         return self.sessions.ownership
 
     @workspace_locked
-    def tool_result(self, owner, session_id, run_id, step_id, *, steps, offset=0, limit=None):
+    def tool_result(
+        self,
+        owner,
+        session_id,
+        run_id,
+        step_id,
+        *,
+        steps,
+        offset=ToolResultRange.MINIMUM_OFFSET,
+        limit=ToolResultRange.UNLIMITED,
+    ):
         """소유 Session의 원본 Tool 결과를 부분 조회한다. 경로를 모델 입력으로 받지 않는다."""
-        if type(offset) is not int or offset < 0 or limit is not None and (type(limit) is not int or limit < 1):
-            raise ValueError("Invalid result slice")
+        selection = ToolResultRange(offset, limit)
         project = self.sessions.require_project(owner)
         session = self.sessions.load(project, session_id)
         run = self.runs.load(session, run_id)
         step = steps.load(run, step_id)
-        if step.kind != StepKind.TOOL or step.status != StepStatus.COMPLETED or step.output is None:
-            raise ValueError("Completed Tool result required")
-        value = step.output.data
-        content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
-        return {"content": content[offset:None if limit is None else offset + limit], "offset": offset,
-                "total_chars": len(content), "sha256": hashlib.sha256(content.encode()).hexdigest(),
-                "run_id": run_id, "step_id": step.id}
+        return ToolResultSlice.from_step(run_id, step, selection).to_dict()
 
     @workspace_locked
     def load(self, owner: Union[Project, Session], run_id: str) -> ExecutionResult:
-        project, sessions = self._scope(owner, include_deleted=True)
+        project, sessions = self._scope(owner, include_deleted=ResultQueryContract.INCLUDE_DELETED)
         for session in sessions:
             try:
                 run = self.runs.load(session, run_id)
             except FileNotFoundError:
                 continue
             return ExecutionResult.from_run(project.id, run)
-        raise FileNotFoundError("Run does not exist in this scope")
+        raise FileNotFoundError(ResultQueryContract.MISSING_RUN)
 
     @workspace_locked
-    def list(self, owner: Union[Project, Session], *, include_deleted: bool = False,
-             include_running: bool = False, query: Optional[Query] = None) -> list[ExecutionResult]:
-        if query is not None and not isinstance(query, Query):
-            raise TypeError("query must be Query or None")
+    def list(
+        self,
+        owner: Union[Project, Session],
+        *,
+        include_deleted: bool = ResultQueryContract.EXCLUDE_DELETED,
+        include_running: bool = ResultQueryContract.EXCLUDE_RUNNING,
+        query: Optional[Query] = Query.UNSPECIFIED,
+    ) -> list[ExecutionResult]:
+        Query.validate_optional(query)
         project, sessions = self._scope(owner, include_deleted)
-        if query is not None and type(query) is not Query:
+        if query is not Query.UNSPECIFIED and type(query) is not Query:
             # 사용자 Query.apply는 기존대로 ExecutionResult를 입력받는다.
             runs = self.runs.list_results(sessions, include_running=include_running)
             return select([ExecutionResult.from_run(project.id, run) for run in runs], query)

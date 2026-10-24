@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 579,
-    "unreviewed_files": 224,
+    "unreviewed_files": 221,
     "stale_files": 0,
-    "unclassified": 12457,
+    "unclassified": 12349,
     "violations": 0,
     "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 226,
+    "unreviewed_dynamic_paths": 223,
     "unreadable_files": 0,
-    "candidates": 21994,
+    "candidates": 21940,
     "issues": 0
   },
   "files": [
@@ -3123,8 +3123,8 @@
     },
     {
       "path": "llm/services/README.md",
-      "status": "unreviewed",
-      "sha256": "8978a3a6d02036643c47b25d265e581effc97bf7b0c74fc3703bac0ba72f35e3",
+      "status": "reviewed",
+      "sha256": "151660e1c76769bbf13706329922f1b345adca45377b5efa59b8df95e50e0657",
       "candidates": 0
     },
     {
@@ -3351,15 +3351,15 @@
     },
     {
       "path": "llm/services/query.py",
-      "status": "unreviewed",
-      "sha256": "950526d7dce7cc5dd5f60550b4d07351fe33f6bf9720f7e324f9326598c4ffd8",
-      "candidates": 65
+      "status": "reviewed",
+      "sha256": "9bbe2f690b79e4d85e7e272421c504d5aedbbf5b725016cc6cf8547121e9ed7b",
+      "candidates": 27
     },
     {
       "path": "llm/services/results.py",
-      "status": "unreviewed",
-      "sha256": "cb31a9c4a186947ca676746d2e51958e7face24f0d3ca43c8bd26607f396ea79",
-      "candidates": 43
+      "status": "reviewed",
+      "sha256": "c4fbaf49218937218e40cacab11c10ea2b6a7e56cd2c64050774692f23cdd765",
+      "candidates": 27
     },
     {
       "path": "llm/services/runtime/README.md",

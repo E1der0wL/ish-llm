@@ -60,3 +60,22 @@ RunManager는 종료 상태와 오류의 조합, Session의 active_run_ids에서
 - 새 코드는 책임별 하위 패키지에 둡니다. 단순 폴더 분류를 새 실행 계층으로 만들지 않습니다.
 
 [이벤트·구독 예제](runtime/README.md), [서비스 확장 계약](../../docs/llm/service-extensions.md), [공통 데이터 API](../../docs/llm/data-contracts.md)에 세부 계약이 있습니다.
+
+
+## 목록·결과 조회의 Owner
+
+Query가 선택 인자 검증을 한 번 구현하고 select/select_ordered/queryable/RunResultQuery가
+같은 검증을 호출한다. QueryItem은 id/run_id와 명시 status 또는 삭제 표시의 목록용 상태만
+투영한다. 이 fallback label은 실행·복구 상태를 만들지 않는다. 커서가 없으면 실패하며,
+limit=0, 큰 정수, 역순·부분 정렬과 사용자 Query.apply의 기존 순서를 유지한다.
+
+FileCatalog는 같은 저장 잠금 아래 version/디렉터리 identity를 확인하고 CatalogRecord와
+CatalogEntry로 파생 목록·파일 stat signature·주입 projection을 보관한다. 캐시는 실행
+증거가 아니며 선택된 Run/Step은 기존 완전한 Reader로 다시 로드한다. 용량 0·LRU·파일
+교체 무효화·falsey callable 선택과 원본 파일 보존을 유지한다. 기본 목록 타입은 내부
+메모리 표현이고 새 저장 파일·영속 Schema를 만들지 않는다.
+
+RunResultQuery는 기존 Project/Session 소유권 및 Run/Step Repository를 통해 읽는다.
+ToolResultRange가 범위를 검증하고 ToolResultSlice가 완료된 Tool의 data를 같은 JSON·문자
+범위·전체 내용 hash로 투영해 공개 dict를 직렬화한다. 조회 응답을 원본 결과나 효과 영수증으로
+저장하지 않는다. 잠금·완료 상태·원본 결과 필수 조건과 주입 Repository 계약을 유지한다.
