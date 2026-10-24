@@ -319,6 +319,14 @@ embedding_seconds는 준비 단계 벽시계 시간이다. active/peak는 admiss
 
 ## 추출과 그래프 실패
 
+추출 설정 키·Schema는 `prompts.ExtractionOptions`, 명시적으로 선택하는 예제 값은
+`ExtractionExample`, 수정 요청의 user 메시지 payload는 `extraction.GraphRepairRequest`가
+소유한다. 최초 시도 계산은 기존 RetryPolicy를 사용하며 repair 설정이 없으면 추가 수정
+호출을 만들지 않는다. 공통 완료 형식 intent는 Adapter의 CompletionFormat을 사용한다.
+Provider의 기존 JSON fallback 관찰 값은 Provider Owner가 생성한다. 예제·기본 프롬프트는
+자동으로 선택하지 않으며 원본 설정·프롬프트·전송 내용과 명시된 재시도 정책은 유지한다.
+
+
 `graph_records.py`가 엔티티·관계·정규 응답·영속 근거의 필드와 검증을 소유한다.
 모델 추론·명시 repair는 `extraction.py`에 남는다. 저장 검증은 원문 인용·identity·
 필수 필드·시각·지지 개수를 확인하며 누락된 근거를 정규화로 복구하지 않는다.

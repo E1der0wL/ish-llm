@@ -32209,172 +32209,164 @@
   },
   {
     "path": "llm/providers/diagnostic_values.py",
-    "sha256": "0defc3708ae3fb46d5108132557db9f094d3c0175d36ce21b034debb692ff38c",
-    "reason": "Read complete normalized cause-local Writer and recognized-reason Reader. Dataclass fields define reason/cause_index/status_code; optional observation envelope has one declared key. Reader retains partial/extended display evidence and ignores unrecognized reasons exactly as before; it does not default required execution records. Snapshots are detached, unknown keys are preserved, and typed properties are used by classification. Runtime still determines the first HTTP cause and opt-in diagnostics without changing original failure or cleanup. ProviderRetryObservation/Text and ProviderAttempt own shared retry diagnostics and transient attempt fields. Actual Base/requests/RAG consumers use the declarations. Text conversion retains exact replace behavior; opaque Adapter details keep their original final-merge precedence; subsequent attempt replaces only the declared attempt field. No SDK wire interpretation or retry authorization.",
+    "sha256": "1d6c908f7d59f0afaaad5830ac2615682c54e0ef2c0ce147fc927c8c72c509e2",
+    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "e207895ac769189be7c12e9f34d3d4b6013c55ed2b3e8aac033b3f6a4cc1978e",
         "classification": "non_contract",
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
-        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+        "owner": "ProviderRequestFailure",
+        "reason": "Unchanged Python dataclass frozen layout flag; neither execution authority nor a stored/API default."
       },
       {
         "id": "7e755336e28b4c77cca8d85a8975035ec5b417837028baf1a5597f077173f19e",
         "classification": "non_contract",
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
-        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+        "owner": "ProviderRequestFailure",
+        "reason": "Unchanged Python dataclass slots layout flag; neither execution authority nor a stored/API default."
       },
       {
         "id": "164ff3cbd71589333fd67355086eede6ac86a0fa385af19c61bb4af45aabd717",
         "classification": "declaration",
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
-        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+        "owner": "ProviderRequestFailure",
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
         "id": "11a903b1fcedab3b1f8597cacb055a7cfa578d1558533d84e7acf8cf4adbd988",
         "classification": "non_contract",
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
-        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+        "owner": "ProviderRequestHint",
+        "reason": "Unchanged Python dataclass frozen layout flag; neither execution authority nor a stored/API default."
       },
       {
         "id": "394cd668649cc52421943beb65ce0890c321af375b7ab29c296f5fe8db9e2c78",
         "classification": "non_contract",
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
-        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+        "owner": "ProviderRequestHint",
+        "reason": "Unchanged Python dataclass slots layout flag; neither execution authority nor a stored/API default."
       },
       {
         "id": "41aee68cd532235d695f63703ece890c76299d4fa84f986e205d70501f484e4e",
         "classification": "non_contract",
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
-        "reason": "Python dataclass frozen/slots/init layout; no execution policy value."
+        "owner": "ProviderRequestHint",
+        "reason": "Unchanged dataclass init=False layout; construction remains the explicit Provider hint reader, not a policy fallback."
       },
       {
         "id": "b1a81351c829477f6f973d65a5be694e28f2215e58d1e725038a6c7fada5dcfe",
         "classification": "declaration",
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
-        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+        "owner": "ProviderRequestHint",
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
         "id": "6d67ef85742e25668770aafa873409500497f1b050ee7480e586cb5741cf78db",
         "classification": "declaration",
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
-        "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+        "owner": "ProviderRequestHint",
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "d864c883db1d6268a0f829bcd01ad7fab463c6033fb6b08e87933f4094993ce4",
+        "id": "7ac32df59f4a0df09946b1a81b5e8890e20a4257c867090e2d45936d6bf36680",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "dacd60aea8576e8bc65928a5ce56a546701afa7691e61dc431ff2a3f04aa82a7",
+        "id": "c7f8d8daa3b6838b48661eec194cadfaedd1f4ab64c207dabd82cedaed34ae69",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "c6f6b98e3d6d1ab460124b47025521d86df1dda4d4fa70d0c8f1421da9a52a58",
+        "id": "508bdb285d0840192f68c8aa36474c6c69be4f3b38f524cef0776ff2df9d4170",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "4ac84ede6fa6534f513b6c602f3a11752cbaf9a7b16a089f4f98a338c593d430",
+        "id": "c836914e9ae57494630d0dd7259dcc9ecc6b342794fce143960842cd05a625cf",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "897304293dbb1985cf9414ca06e596759dfbdb4f4687097c3174609008a03fac",
+        "id": "971cce692d782e0332540b2a5a0d96836f61483ba3b91125dd98db111e22035c",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "7ff4f0f01d1476235511cfe3b68f3dc1193ce4f8baa8390ce372de9fb94e542a",
+        "id": "9541a1b1fb3962aff400dbcddffe4cafdc6bdcf3e6f98cd86b91b385405ea341",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "d9af45a37b41b782a2dd5ecc8108b9cf1b199e0c9b1755886c2aa185a4544a75",
+        "id": "eaa2e4787cc52031c22725c9ba16eccac8a934ed00ef3f0aa8540b762e3327ce",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "6d8f7ac76c18092550745807f52b1d7568b249bd20add1e034768f9cdb48cd8f",
+        "id": "1857d3c352aa1753e20c9d62da263f68423eb8507b450971b197bc9a4a10929b",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "d681742d43de3a1eb08906849e783f6f3279db376bd588d377747188ad4484da",
+        "id": "7c6b9f04ab6b0570a5d3227b7d8abdc883872199e5712b575d89fd614e741223",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
+      },
+      {
+        "id": "59c53f5ed139c0f7675ac6b6e7e53cabf98ea769b61237cf55c8d9748d48363e",
         "classification": "declaration",
         "owner": "ProviderDiagnosticText",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "5af50b96db66cd5809d8ab66240464d521eec56842fb7bf85dc25a1cb392c865",
+        "id": "f9130464b7410525ecbe666b2ca9ec7f835a734a65c20a1369511becdce72948",
         "classification": "declaration",
         "owner": "ProviderDiagnosticText",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "a87909cb45a3aca069d0911b0f5ef6a78667b5a2c70cb2f713e43f1ece3c3058",
+        "id": "5d0acd94a8d92682eb478d179f9bd7b194e6783f368fef7002bb35aebf69e5e2",
         "classification": "non_contract",
         "owner": "ProviderAttempt",
-        "reason": "Frozen slots Python dataclass layout for transient observation fields, not execution authority."
+        "reason": "Unchanged Python dataclass frozen layout flag; neither execution authority nor a stored/API default."
       },
       {
-        "id": "c5c184f3f5e81b96138c82a5c6d123bb5fde3bfa4f905ad35a3dbdd6047494ba",
+        "id": "746813ee6761e69b4f7fbeaaab76498566338243c29f65af790bfc7a81fa0cb8",
         "classification": "non_contract",
         "owner": "ProviderAttempt",
-        "reason": "Frozen slots Python dataclass layout for transient observation fields, not execution authority."
+        "reason": "Unchanged Python dataclass slots layout flag; neither execution authority nor a stored/API default."
       },
       {
-        "id": "2cf3b7536337c72d6923b1d805398debf213376f442bdd755ff30a9bdeeeea77",
+        "id": "f4338753238bc100c509f7889be2aab57ba2f2dade81b6ee315c7fe628826996",
         "classification": "declaration",
         "owner": "ProviderAttempt",
-        "reason": "Canonical observation absence/change flags, Provider retry diagnostic event/reason/text or observation ordinal increment is declared before implementation. Ordinals are not an implicit retry limit."
+        "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       }
     ],
     "contracts": [
       {
-        "owner": "ProviderRequestFailure / ProviderRequestHint",
+        "owner": "ProviderRequestFailure/ProviderRequestHint/ProviderRetryObservation/ProviderAttempt",
         "declaration": "llm/providers/diagnostic_values.py",
         "consumers": [
-          "llm/providers/runtime.py",
-          "llm/core/diagnostics.py"
-        ],
-        "tests": [
-          "tests/llm/test_observation_values.py",
-          "tests/llm/test_contracts.py",
-          "tests/llm/test_backend_contracts.py",
-          "tests/llm/test_project_activity.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_backend_diagnostics.py"
-        ],
-        "complete": true
-      },
-      {
-        "owner": "ProviderRetryObservation / ProviderDiagnosticText / ProviderAttempt",
-        "declaration": "llm/providers/diagnostic_values.py",
-        "consumers": [
-          "llm/engines/base.py",
           "llm/providers/requests.py",
-          "llm/providers/runtime.py",
-          "llm/providers/litellm.py",
-          "llm/components/rag/ingestion.py",
-          "llm/components/rag/component.py"
+          "llm/providers/calls.py",
+          "llm/components/rag/extraction.py",
+          "llm/components/rag/ingestion.py"
         ],
         "tests": [
-          "tests/llm/test_provider_diagnostics.py",
-          "tests/llm/test_provider_runtime.py",
-          "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
-          "tests/llm/test_rag_extraction_repair.py"
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_provider_recovery.py"
         ],
         "complete": true
       }
@@ -51227,6 +51219,466 @@
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_unified_rag.py",
           "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/prompts.py",
+    "sha256": "a2944bb15e57a1a4f701da7114044fedff4d292077ef7464acbdf68ff46be298",
+    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "aebb5e40e2bb295336328b2a6b1599b727eb15d4441cd7ade39ff3d6b3455625",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "e8aa760dc75ec86d657bb980bac143c7da31e2d7b8ed724162bb3a69c4d5bee7",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "85cf09b2688f9740d5e4aae2a88ff4b0b3840625c131b3b1f6581d84f662c131",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "3b461662988196795445ac68c274394132339d4d78eb44b00c8a6c221750560b",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "a0046404debed0742b58960e8ee6ed93b7ad9f3aec13e259e15b815cdc06deef",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "784346ec9b074232486350655d25e0e5dfa245f723c88436b5901a8d49dc5933",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "5cd7f1fe1868f534d2e0363b0b252757de52deff70922224cdef809ec586f126",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "021f403518f7909cb5040846e1cc6ef2bbd8388a20bb231824e001c3057f121f",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "5399998b7172263b6a7c994dedf00048f3eb8d7eeb311798b7e6376615579acb",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "7d147c607b2f3dec6b9d76da535da67ba449dc2316e677761f8e7e88a660698f",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "4790742ddec12679639adb52e86ec05d5c3851bd375141b900df341ede3e735c",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "7692da5367a43e194a1593a32b84eacd308bff9deb5c76782a17d122cf71ece6",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "9095e239ccc8426791a801b6d527be7ceb76d22ec1838f6f8de172f11e251f7e",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "eb6512b80f4f8918c90e6ba7659aae990c01628d6b4c2d1496260dcf4f62ba14",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "8587a69c4d70bff87f1d3161575b7fa73a05c7c53fddb9054773e7fe67185732",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "8c8856eddcf6e7d1fe5d0a2f89cbee4c096da63ff5fb7b7bad79971a9022c8d0",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "8435232a5c31538fb0861cefb379d982f9952607647c598707519712c466736e",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "439650d5cf8c999d55af917d2f207c6043152a65e18acd6f58ac0ad23fc9f982",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "3eba96170b5a35ed606fe1b552a0d1e65203d4ac7879b86d20c087284e3107bc",
+        "classification": "declaration",
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "2928e04921125bae9dc765fb020bd9c4b2449a76013bacae6e0b89be60e488e2",
+        "classification": "declaration",
+        "owner": "ExtractionFailurePolicy",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "2cac755dc7cf632576cff1850462bc6330570dbce64113fd4355f999bbf2c828",
+        "classification": "declaration",
+        "owner": "ExtractionFailurePolicy",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "e62ec654d082477bb5c9573a4c961d07e366c6161f955018c33da9cc1e19da4c",
+        "classification": "declaration",
+        "owner": "ExtractionFailurePolicy",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "e92aa152fc9a15e2d480e63ddf5ab381520afb20afd94489e4d012e49ddebf78",
+        "classification": "declaration",
+        "owner": "ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "377c69b7ffc313aef538d2157ffca7da0aa20c06c5cb4f6d04c3ef8895a00b52",
+        "classification": "declaration",
+        "owner": "ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "77992ad182f8715131fcd56f761a208367efe6c33a567004e2ec36f59b9e0b1c",
+        "classification": "declaration",
+        "owner": "ExtractionJSONMode",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "41bc1202ccc9e092d9a74e5adc770433f7f9d95d2780efd757047968e434e94d",
+        "classification": "declaration",
+        "owner": "ExtractionOptions",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "08685293ad7950303797c73360f20b5bb221cbafc8d29804756005922a72733a",
+        "classification": "declaration",
+        "owner": "ExtractionOptions",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "d5d7f33ff116bc626c4096c5c365b27dd0ad60d50c7c3bfb4403d3db46bd79a8",
+        "classification": "declaration",
+        "owner": "ExtractionOptions",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "d3ac371a9d57b12f8edb4233d0acd03f066ce802de3c845eb1231039a6226517",
+        "classification": "declaration",
+        "owner": "ExtractionOptions",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "1dd8e537bdaff0aebcc5d54de647fdcf07cb55e0b4f127bb0e0fbb7b41153edc",
+        "classification": "declaration",
+        "owner": "ExtractionOptions",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "3329b1a008defd976e9934520236595db8844231613eb2271d30710f5b2b7200",
+        "classification": "declaration",
+        "owner": "ExtractionOptions.Field",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "a1ecccdd75ce207cdbe836efa5facac272d068738e1cdd84bef4ac8f5dcf54dc",
+        "classification": "declaration",
+        "owner": "ExtractionOptions.Field",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "6d4e7dceaccb953e2ccaaf8e6764d529eed3c5e9250aaca045f75634a9dcb333",
+        "classification": "declaration",
+        "owner": "ExtractionOptions.Field",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "bc528a293949f45641f1e6aa843892341ccb45196e7e4c94415a9a143f5866e6",
+        "classification": "declaration",
+        "owner": "ExtractionOptions.Field",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "3f0c1734c46407e6bf99d3e6d0cf17e2e89588f9dd36a4933262da7ea52a7638",
+        "classification": "declaration",
+        "owner": "ExtractionOptions.Field",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "79e0a23087b52d2d956882bdf4772599277cbdb5ad3a4172b49fb69a036f51c7",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "957eecf9f883ba30622a977fec4d6eddaf0910997f38a6a413f29326b65ec0b3",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "79af791f0516ac8b1b0415d5002219eeebab80249d3896fad72cc6eadeb17353",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "36045e33ee3d3593a0dced674cfe4c9f9db44e2a8f4ca08258ea6de6c04530be",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "60591c8135214a882ab7fd1b48d50cc97980b55eaa330c68e9fa22dc51aa69bd",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "954741ef4db54de204c38efceac9657f1d6b001d836f8993a0b1aab5d69ad82b",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "66249e7ef3cdca4ac46440e1a5cfa9a4f1b8c2bff25a58d1ea97d11141c7008c",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "e773624eed90a00e8efc7e747692663a69f639319646b1c798e8d1bf415bb270",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "32549b8b8b5c816ad82f77dbe2aca2e965ce4c44e1920ec32bf29878940d87b0",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "3485be229618de19ebf69a86acf701a49d8a162713f1133b45d8cebbc779d035",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "0cf9fa5d44627d601d4c9fa8a7d1adaaaadbbc0a74c298d9614e716054e4bb39",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      },
+      {
+        "id": "4da9238c8bf8e451b12b17047dfbab5c6cddd2b9632ff1e0bf9ed0d94b08a88e",
+        "classification": "declaration",
+        "owner": "ExtractionExample",
+        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
+        "declaration": "llm/components/rag/prompts.py",
+        "consumers": [
+          "llm/components/rag/extraction.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_provider_recovery.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/extraction.py",
+    "sha256": "fd9668331c6599f1afe4ce72a447637f7955d2f0d984bdb98f6b20dd89d9fc15",
+    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fcdab512e12f52b0eb97591511ff51fec6ad15f484e975e008bacf6e7516c380",
+        "classification": "declaration",
+        "owner": "GraphRepairRequest",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "6005fb69259e68877d1291429d6d2763e219a1ddc2c96a3108dd07426fffdeb8",
+        "classification": "declaration",
+        "owner": "GraphRepairRequest.Field",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "9b6d1660a495ad6c90017c304df1dcb7e0cbe1e8e17eddae9ca2b1b9770ee212",
+        "classification": "declaration",
+        "owner": "GraphRepairRequest.Field",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "b6f2209f2274a36bb23d47225005cc60462906102e6c59340255ce5cbaf5cd80",
+        "classification": "declaration",
+        "owner": "GraphRepairRequest.Field",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "153a27a3b50b53fd61b98f2c225e14647e0cb6e4258e0f744b8efcc55f12bbf1",
+        "classification": "declaration",
+        "owner": "TripleExtractor",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "a1733c90272c389593b72403b77b9182885507bc3ccae201e505289547f71efb",
+        "classification": "declaration",
+        "owner": "TripleExtractor",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "e08b6c5df22a5e949f173856e91ddd27932913fead31055f100f7295e8db52d3",
+        "classification": "declaration",
+        "owner": "TripleExtractor",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "2c0a2452adbb290ba422cdaf9138403e62d1ac43f30f7db1ccc6b91131e7c681",
+        "classification": "declaration",
+        "owner": "TripleExtractor",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "8eba57cc3f9d1ae87ad05475b33a46363751cef25218cdd318c74bf09345b0eb",
+        "classification": "declaration",
+        "owner": "TripleExtractor",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      },
+      {
+        "id": "a97de3012a1cf03b5d95f01cce512499176bd4a77b8fc8f9ad52a05b5414ce88",
+        "classification": "declaration",
+        "owner": "TripleExtractor",
+        "reason": "Repair payload shape, user instruction, message position, diagnostic and prompt encoding belong to the extractor declarations; settings and Adapter format reference their Owners. Initial attempt count uses RetryPolicy. The original finite repair/auto fallback/transport and cancellation branches remain byte-equivalent after declarations expand."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TripleExtractor/GraphRepairRequest",
+        "declaration": "llm/components/rag/extraction.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_provider_recovery.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/naming.py",
+    "sha256": "bba86f8f0b091110626abd9de81475bc064621dd8c0a50d9114a0fb8fa77ff99",
+    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "59223bf1b782483fab73584492f8e29b1ebf3cfee7324c83159b1bfa53c5362a",
+        "classification": "declaration",
+        "owner": "ComponentName",
+        "reason": "Component directory/record identifier grammar, schema anchoring and validation diagnostic are the sole lightweight declarations. They do not import storage, services, Engines or SDKs."
+      },
+      {
+        "id": "e8065ce2c09c09dae3a977deba1539887f9348ce9b677f8b663d9552203653a0",
+        "classification": "declaration",
+        "owner": "ComponentName",
+        "reason": "Component directory/record identifier grammar, schema anchoring and validation diagnostic are the sole lightweight declarations. They do not import storage, services, Engines or SDKs."
+      },
+      {
+        "id": "bc631eed26074ff0e25201a8cca1608422ab58c3786d6558344e3cef98de258a",
+        "classification": "declaration",
+        "owner": "ComponentName",
+        "reason": "Component directory/record identifier grammar, schema anchoring and validation diagnostic are the sole lightweight declarations. They do not import storage, services, Engines or SDKs."
+      },
+      {
+        "id": "b657b4b3a0aacc38bec6ca755e8bcc77ea6e0992c8ce03ede6413d5baa4e831c",
+        "classification": "declaration",
+        "owner": "ComponentName",
+        "reason": "Component directory/record identifier grammar, schema anchoring and validation diagnostic are the sole lightweight declarations. They do not import storage, services, Engines or SDKs."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComponentName",
+        "declaration": "llm/components/naming.py",
+        "consumers": [
+          "llm/components/base.py",
+          "llm/components/rag/prompts.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_provider_recovery.py"
         ],
         "complete": true
       }

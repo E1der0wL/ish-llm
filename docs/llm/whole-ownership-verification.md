@@ -4816,3 +4816,59 @@ R3 Mutation exit 0, 원래 두 실제 효과 Assertion에서 의도적 호출 �
 전체 inventory 531개, 미검토 267개(llm 90/hub 177), 미분류 18,383개,
 미완료 계약 4개·stale/분류 오류 0. 결과 경로는
 `/workspace/llm-clean-resume/whole-ownership/rag-graph-draft/`이다.
+
+
+## llm RAG 추출 설정·예제·명시 repair — Level 1·2
+
+기준 b3d6a68. ExtractionOptions가 설정 키와 Schema를, ExtractionExample과 기존 최상단
+프로토콜 선언이 예제·지침을, GraphRepairRequest가 수정 요청의 user 메시지를 소유한다.
+원래 프로토콜과 Prompt JSON·Schema JSON은 바이트 단위 출력이 같다. 명시 repair 횟수와
+최초 1회 계산에는 기존 RetryPolicy.INITIAL_ATTEMPTS를 사용한다. retry 기본 설정을 새로
+추가하지 않았고 원본 설정·프롬프트·입력의 사본/생략·deadline·취소·오류 전파를 유지한다.
+공통 Adapter 완료 형식은 CompletionFormat을 참조한다. JSON fallback의 기존 관찰 code와
+operation 값은 Provider Owner가 같은 Adapter 선언에서 생성하며 실제 추가 호출의 선택
+조건은 여전히 명시된 auto 설정과 기존 오류 분류뿐이다.
+
+공통 ComponentName 선언은 저장과 독립된 naming.py에 두고 기존 validate_name과 Schema가
+참조한다. 첫 L1 `whole-rag-extractor-l1-01`은 55개 중 54 pass/1 failure, exit 1이었다.
+`test_import_does_not_load_engines_services_or_sdk`가 prompts의 Component base import로
+서비스 모듈까지 로드되는 경계 회귀를 검출했다. 선언을 독립 모듈로 분리하여 수정하고
+기존 Assertion과 전체 선택 범위를 그대로 재실행했다. 실패 소스/input 및 로그는 보존한다.
+초기 AST 도구의 들여쓰기 오류도 별도 로그에 보존했으며 도구만 수정했다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-extractor-draft/ast-proof.py`
+(한 셸 명령), exit 0. 실제 Owner 선언·Projection·관찰 생성기를 확장한 전체 함수 동등성:
+Prompts 2·Extractor 3·Component 41·Jobs 29·Component base 53·Operation Adapter 17·
+Provider diagnostic 10개. 별도 `proof.py` exit 0: 프로토콜·Prompt/Schema 출력·사본,
+식별자 허용/거부 1,569개, 독립 프로세스 import 경계, 실제 `_complete` 인자·명시 repair·
+format fallback·취소·deadline·원본 보존 320개 trace, 실제 Adapter format/wire 10개가
+일치했다. 시험/Fixture/Assertion은 변경하지 않았다. Provider/base의 나머지 전체 파일은
+여전히 별도 미완료 범위이며 이번 작은 계약 연결로 완료를 선언하지 않는다.
+
+- `whole-rag-extractor-l1-02`: discovered/started/pass 55/55/55, exit 0, 22.183561초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-extractor-l1-02/llm.json --modules tests.llm.test_rag_models tests.llm.test_rag_extraction_repair tests.llm.test_rag_retry_presence tests.llm.test_operations_schema tests.llm.test_schema_ownership`. source `4ad17b28ea128ac828d854571aeadbb8df407e33545d6f79150a04384e6841ce`, input `696f7cf9a4629d22730ae3010845b4c932cf4037a5bd3b529326cde2b194511c`.
+
+- `whole-rag-extractor-l2-01`: discovered/started/pass 387/387/387, exit 0, 263.108012초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-extractor-l2-01/llm.json --modules tests.llm.test_rag_batch_identity tests.llm.test_rag_prepared_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_job_retention tests.llm.test_rag_corpus_integrity tests.llm.test_rag_catalog_integrity tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_optimization tests.llm.test_rag_retention_policy tests.llm.test_rag_input_integrity tests.llm.test_rag_storage tests.llm.test_rag_job_state_integrity tests.llm.test_rag_batch_source tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_query_evidence tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_components tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_provider_transport tests.llm.test_provider_runtime tests.llm.test_provider_choices tests.llm.test_adapter_boundaries tests.llm.test_common_provider_acceptance tests.llm.test_usage_ownership tests.llm.test_components tests.llm.test_component_record_integrity tests.llm.test_component_storage_integrity tests.llm.test_provider_diagnostics tests.llm.test_explicit_configuration`. source `4ad17b28ea128ac828d854571aeadbb8df407e33545d6f79150a04384e6841ce`, input `696f7cf9a4629d22730ae3010845b4c932cf4037a5bd3b529326cde2b194511c`.
+
+- `whole-rag-extractor-hub-01`: discovered/started/pass 52/52/52, exit 0, 215.850957초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-extractor-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_provider_recovery tests.hub.test_rag_defaults`. source `4ad17b28ea128ac828d854571aeadbb8df407e33545d6f79150a04384e6841ce`, input `696f7cf9a4629d22730ae3010845b4c932cf4037a5bd3b529326cde2b194511c`.
+
+각 성공 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및 실행 간 동일.
+수정 후 L1 55개만 동일 제품·시험·Fixture·의존성·환경에서 재사용했고 추가 L2 ID와 겹치지
+않는다. 실패한 첫 실행을 통과한 증거로 사용하거나 여러 실행을 한 번의 전체 회귀로 합치지
+않는다. 전체 발견 목록 LLM 2,492·Hub 588 유지. Python 3.12.14/Clang·Host d833790·
+고정 의존성 및 실제 namespace/X11 환경이다. 실제 HTTP/SDK 전송 횟수·주입 client·명시
+retry/repair·부분 응답·취소·사용량, RAG 설정/Job/저장·삭제/재개, 공통 Component 기록/
+원본 보존, 승인·예산·Tool 효과·Checkpoint 안전성 및 Hub 설정/복구/리소스 소비자를 검증했다.
+
+전송·검증 전체 함수와 wire/호출 trace의 동일성 및 영향 범위를 입증했으므로 이 소단계의
+전체 L3는 유예한다. 앞선 RAG 변경 및 후속 관련 변경을 충분히 모은 통합 게이트에서
+LLM/Hub 전체·보조 검사 후 Push하고 정확한 SHA의 CI를 다시 확인한다.
+
+이번 소단계 최종 감사 `python -m unittest tests.llm.test_contract_coverage
+ tests.llm.test_architecture_reviews`: 16/16 pass, 3.249초, exit 0.
+정적 S1–S7 exit 0, finding 112개·new/stale/미검토 0; 공통 이름/Adapter/관찰 선언의
+실제 동등성과 소비자 검증에 따라 소스·README 의존 증거 47개를 갱신했다. 문서 검사 exit 0.
+R3 Mutation exit 0, 원래 두 실제 효과 Assertion에서 의도적 호출 한도 누락을 검출했다.
+전체 inventory 532개, 미검토 265개(llm 88/hub 177), 미분류 18,264개,
+미완료 계약 4개·stale/분류 오류 0. 결과 경로는
+`/workspace/llm-clean-resume/whole-ownership/rag-extractor-draft/`이다.

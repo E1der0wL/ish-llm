@@ -53,6 +53,7 @@ class ProviderRequestHint:
 
 
 class ProviderRetryObservation:
+    JSON_MODE_FALLBACK = "provider_json_mode_fallback"
     RECOVERY_REJECTED = "completion_recovery_rejected"
     RECOVERY = "completion_recovery"
     STOPPED = "provider_retry_stopped"
@@ -61,6 +62,15 @@ class ProviderRetryObservation:
     DEADLINE = "deadline"
     PROPOSAL_FAILED = "proposal_failed"
     EXCEEDED_DELAY = "retry_after_exceeds_max_delay"
+
+    @classmethod
+    def json_mode_fallback(cls):
+        """Preserve the existing completion observation name at its Provider owner."""
+        from llm.core.model_protocol import ModelOperation
+        from .operations import LiteLLMOperations
+        from .runtime import diagnostic
+        return diagnostic(cls.JSON_MODE_FALLBACK,
+                          operation=LiteLLMOperations.SDK_OPERATIONS[ModelOperation.COMPLETION])
 
 
 class ProviderDiagnosticText:

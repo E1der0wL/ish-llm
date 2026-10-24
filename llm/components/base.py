@@ -17,13 +17,14 @@ from typing import Any, Optional, Protocol
 from llm.core.models import Project, new_id
 from llm.core.json_data import JsonObject
 from llm.core.paths import ProjectPaths
+from .naming import ComponentName
 from llm.services.infrastructure.storage import atomic_json, remove_named_tree
 
 
 def validate_name(value: str) -> str:
     """컴포넌트 경로와 레코드 ID로 사용할 단일 식별자를 검증한다."""
-    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", value):
-        raise ValueError("Invalid component directory or record ID")
+    if not isinstance(value, str) or not re.fullmatch(ComponentName.PATTERN, value):
+        raise ValueError(ComponentName.INVALID)
     return value
 
 

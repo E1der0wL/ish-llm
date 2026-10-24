@@ -1,5 +1,7 @@
 """재시작 가능한 문서 색인 작업. 입력·준비 결과·공개 영수증을 별도로 저장한다."""
 
+from .prompts import ExtractionOptions
+
 from .ingestion_records import EmbeddingEvidence
 
 from llm.core.plans import PlanBlockerCode
@@ -332,7 +334,7 @@ class RAGJobs:
             vectors = validate_vectors(EmbeddingEvidence(item).vectors, dimensions=EmbeddingEvidence(item).profile.dimensions)
             if len(vectors) != len(item["chunks"]):
                 raise ValueError("Prepared chunk/vector count mismatch")
-            validate_graph(item[GraphRecord.Field.GRAPH], item["chunks"], relation_types=component.extraction_options.get("relation_types", ()))
+            validate_graph(item[GraphRecord.Field.GRAPH], item["chunks"], relation_types=component.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
             existing = documents.get(item["id"])
             # Publication may have succeeded before the completion receipt failed.
             if existing is not None and existing != item:

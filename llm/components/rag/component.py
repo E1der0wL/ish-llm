@@ -1,5 +1,7 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
+from .prompts import ExtractionOptions
+
 from llm.providers.diagnostic_values import ProviderRetryObservation
 
 from llm.components.tools.registry import ToolRegistry
@@ -87,9 +89,9 @@ class RAGComponent(DefinitionComponent):
                 "embedding_params", "extraction_params", "rerank_params"),
         policy=POLICY_FIELDS,
         paths={**{"extraction." + key: "config.extraction." + key
-                  for key in ("json_mode", "prompt_id", "relation_types")},
+                  for key in (ExtractionOptions.Field.JSON_MODE, ExtractionOptions.Field.PROMPT_ID, ExtractionOptions.Field.RELATION_TYPES)},
                **{"extraction." + key: "policy.extraction." + key
-                  for key in ("repair_attempts", "failure_policy")}})
+                  for key in (ExtractionOptions.Field.REPAIR_ATTEMPTS, ExtractionOptions.Field.FAILURE_POLICY)}})
 
     def __init__(self, *, embedding=None, embedding_id=None, reranker=None, extractor=None):
         """모델 구현만 주입한다. 분할·동시성·검색 설정은 ProjectConfig에서 받는다."""
@@ -364,7 +366,7 @@ class RAGComponent(DefinitionComponent):
         worker.provider_options = values.get("provider", {})
         worker._cache_namespace = project.id
         worker._extraction_error = (ValueError("RAG prompt_id requires the selected prompts component through its Project handle")
-            if worker.extraction_options.get("prompt_id") is not None and prompt is None else None)
+            if worker.extraction_options.get(ExtractionOptions.Field.PROMPT_ID) is not None and prompt is None else None)
         worker.extraction_prompt = deepcopy({"messages": []} if prompt is None else prompt)
         for name, key, factory in (("embedding", "embedding_params", EmbeddingModel),
                                    ("extractor", "extraction_params", TripleExtractor), ("reranker", "rerank_params", RerankModel)):
@@ -386,7 +388,7 @@ class RAGComponent(DefinitionComponent):
             if prompt is None and getattr(worker.extractor, "prompt", None) is not None:
                 worker.extraction_prompt = deepcopy(worker.extractor.prompt)
             worker.extractor = bind_extraction(worker.extraction_options, worker.extraction_prompt)
-        elif worker.extractor is not None and worker.extraction_options.keys() - {"failure_policy"}:
+        elif worker.extractor is not None and worker.extraction_options.keys() - {ExtractionOptions.Field.FAILURE_POLICY}:
             raise ValueError("Custom extractor requires with_extraction(options, prompt) to apply extraction policies")
         worker._configuration_version = revision_token({"configuration": values,
             "model_providers": {k: ConfigurationView.read(v).values for k, v in view["model_providers"].items()}, "prompt": worker.extraction_prompt,
@@ -669,7 +671,7 @@ class RAGComponent(DefinitionComponent):
     async def prepare(self, identifier, title, content, metadata, revision, *, progress=None, previous=None, telemetry=None):
         if telemetry:
             await telemetry({"phase": "validating_input"})
-        policy = require_config(self.extraction_options, "failure_policy", scope="rag.extraction")
+        policy = require_config(self.extraction_options, ExtractionOptions.Field.FAILURE_POLICY, scope="rag.extraction")
         if self.chunk_size is None:
             raise ValueError("Missing required setting: rag.chunk_size")
         if policy != ExtractionFailurePolicy.DISABLED.value and self.extraction_batch_size is None:
@@ -696,7 +698,7 @@ class RAGComponent(DefinitionComponent):
             if len(vectors) != len(SplitDocument(previous).chunks):
                 raise ValueError("Stored chunk/vector count mismatch")
             validate_graph(previous[GraphRecord.Field.GRAPH], SplitDocument(previous).chunks,
-                           relation_types=self.extraction_options.get("relation_types", ()))
+                           relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
             document = deepcopy(previous)
             document.update(title=title, metadata=metadata, revision=revision,
                             preparation_configuration=getattr(self, "_configuration_version", None))
@@ -743,7 +745,7 @@ class RAGComponent(DefinitionComponent):
             if graph is None and reuse_signature in previous_batches:
                 entry = previous_batches[reuse_signature]
                 graph = select_graph(previous_graph, entry["entity_ids"], batch,
-                                     relation_types=self.extraction_options.get("relation_types", ()))
+                                     relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
                 if revision_token(graph) != entry["digest"]:
                     raise GraphValidationError("Stored extraction batch integrity mismatch")
                 reused_sources.update(RAGChunk(chunk).identifier for chunk in batch)
@@ -755,7 +757,7 @@ class RAGComponent(DefinitionComponent):
                 try:
                     with diagnostic_scope(observe_extraction):
                         graph = validate_graph(await self.extractor.extract(batch), batch,
-                                               relation_types=self.extraction_options.get("relation_types", ()))
+                                               relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
                 except Exception as error:
                     code = error_code(error)
                     # 저장/한도/프로그래밍 오류는 best_effort로 숨기지 않는다.
@@ -777,7 +779,7 @@ class RAGComponent(DefinitionComponent):
                     await progress(key, signature, {ExtractionCheckpoint.Field.CHUNKS: batch, ExtractionCheckpoint.Field.CHUNK_SIZE: self.chunk_size, ExtractionCheckpoint.Field.GRAPH: graph})
             else:
                 graph = validate_graph(graph, batch,
-                                       relation_types=self.extraction_options.get("relation_types", ()))
+                                       relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
                 extraction_done += 1
                 await extraction_progress()
             entities.update({e[GraphEntity.Field.ID]: e for e in graph[GraphRecord.Field.ENTITIES]})
@@ -786,13 +788,13 @@ class RAGComponent(DefinitionComponent):
                              "offset": offset, "count": len(batch)})
         document[GraphRecord.Field.GRAPH] = enrich_graph(validate_graph(
             GraphRecord.create(list(entities.values()), relations), SplitDocument(document).chunks,
-            relation_types=self.extraction_options.get("relation_types", ())), identifier)
+            relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ())), identifier)
         # Manifest stores identities/digests, not a second copy of the graph.
         grouped = group_evidence(document[GraphRecord.Field.GRAPH])
         for entry in manifest:
             batch = SplitDocument(document).chunks[entry["offset"]:entry["offset"] + entry["count"]]
             entry["digest"] = revision_token(select_graph(grouped, entry["entity_ids"], batch,
-                relation_types=self.extraction_options.get("relation_types", ())))
+                relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ())))
         if reused_sources:
             def edge_key(edge):
                 return GraphRelation.evidence_key(edge)

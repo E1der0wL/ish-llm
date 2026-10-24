@@ -9,6 +9,12 @@ from .embeddings import extract_single_embedding, value, SingleEmbeddingWire
 from .wire_codec import decode_message, encode_request, normalize_stop_reason
 
 
+class CompletionFormat:
+    """OperationAdapter's optional completion intent, independent of SDK wire."""
+    JSON = "json"
+    TEXT = "text"
+
+
 def _opaque(raw, fields):
     from .litellm import _sdk_mapping
     value = _sdk_mapping(raw)
@@ -87,9 +93,9 @@ class LiteLLMOperations:
         if parameters.get("stream", False) is not False or parameters.get("n", 1) != 1:
             raise ValueError("Nonstreaming completion requires one response")
         parameters["stream"] = False
-        if output_format == "json":
+        if output_format == CompletionFormat.JSON:
             parameters["response_format"] = {"type": "json_object"}
-        elif output_format == "text":
+        elif output_format == CompletionFormat.TEXT:
             parameters.pop("response_format", None)
         elif output_format is not None:
             raise ValueError("Unknown output format intent")

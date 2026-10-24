@@ -3,19 +3,11 @@
 from enum import StrEnum
 import json
 from llm.core.model_protocol import ModelRole
+from llm.core.schema import SchemaType, SchemaKeyword, SchemaBoolean
+from llm.components.naming import ComponentName
+from .chunk_records import RAGChunk
+from .graph_records import GraphEntity, GraphRelation, GraphRecord
 from llm.components.prompts.records import PromptDefinition, PromptMessage
-
-
-class ExtractionFailurePolicy(StrEnum):
-    REQUIRED = "required"
-    BEST_EFFORT = "best_effort"
-    DISABLED = "disabled"
-
-
-class ExtractionJSONMode(StrEnum):
-    STRICT = "strict"
-    AUTO = "auto"
-    OFF = "off"
 
 
 RELATION_TYPES = (
@@ -43,29 +35,78 @@ the application supplies them. If no supported facts exist return empty lists.
 Before returning, check entity references, chunk ids and literal evidence yourself.'''
 
 
+class ExtractionFailurePolicy(StrEnum):
+    REQUIRED = "required"
+    BEST_EFFORT = "best_effort"
+    DISABLED = "disabled"
+
+
+class ExtractionJSONMode(StrEnum):
+    STRICT = "strict"
+    AUTO = "auto"
+    OFF = "off"
+
+
+
+
+class ExtractionOptions:
+    NO_REPAIRS = 0
+    MINIMUM_TYPE_LENGTH = 1
+    REPAIR_DESCRIPTION = "검증 오류 수정 요청 횟수. 0이면 비활성화"
+    PROMPT_DESCRIPTION = "선택된 prompts 컴포넌트의 레코드 ID"
+    RELATIONS_DESCRIPTION = "우선 사용할 관계 타입; 새 타입도 허용"
+
+    class Field:
+        JSON_MODE = "json_mode"
+        FAILURE_POLICY = "failure_policy"
+        REPAIR_ATTEMPTS = "repair_attempts"
+        PROMPT_ID = "prompt_id"
+        RELATION_TYPES = "relation_types"
+
+
+class ExtractionExample:
+    FIRST_CHUNK_ID = "example:c1"
+    FIRST_TEXT = "Atlas uses Harbor. Harbor stores artifacts."
+    FIRST_ENTITY_ID = "a"
+    FIRST_ENTITY_NAME = "Atlas"
+    SECOND_ENTITY_ID = "h"
+    SECOND_ENTITY_NAME = "Harbor"
+    RELATION = "USES"
+    EVIDENCE = "Atlas uses Harbor."
+    SYSTEM = "Extract precise, minimal facts. Names are labels; IDs are references."
+    SECOND_CHUNK = '[{"id":"example:c2","text":"Welcome to the documentation."}]'
+    EMPTY_GRAPH = '{"entities":[],"relations":[]}'
+    DESCRIPTION = "Grounded RAG entity/relation extraction with few-shot examples"
+
+
 def default_prompt() -> dict:
     """공통 PromptComponent에 그대로 저장하거나 편집할 수 있는 기본 정의 사본."""
-    chunks = [{"id": "example:c1", "text": "Atlas uses Harbor. Harbor stores artifacts."}]
-    graph = {"entities": [{"id": "a", "name": "Atlas"}, {"id": "h", "name": "Harbor"}],
-             "relations": [{"source": "a", "target": "h", "type": "USES",
-                            "source_id": "example:c1", "evidence": "Atlas uses Harbor.", "metadata": {}}]}
+    chunks = [{RAGChunk.Field.ID: ExtractionExample.FIRST_CHUNK_ID, RAGChunk.Field.TEXT: ExtractionExample.FIRST_TEXT}]
+    graph = GraphRecord.create(
+        [GraphEntity.create(ExtractionExample.FIRST_ENTITY_ID, ExtractionExample.FIRST_ENTITY_NAME),
+         GraphEntity.create(ExtractionExample.SECOND_ENTITY_ID, ExtractionExample.SECOND_ENTITY_NAME)],
+        [{GraphRelation.Field.SOURCE: ExtractionExample.FIRST_ENTITY_ID,
+          GraphRelation.Field.TARGET: ExtractionExample.SECOND_ENTITY_ID,
+          GraphRelation.Field.TYPE: ExtractionExample.RELATION,
+          GraphRelation.Field.SOURCE_ID: ExtractionExample.FIRST_CHUNK_ID,
+          GraphRelation.Field.EVIDENCE: ExtractionExample.EVIDENCE, GraphRelation.Field.METADATA: {}}])
     return PromptDefinition.create((
-        PromptMessage(ModelRole.SYSTEM.value, "Extract precise, minimal facts. Names are labels; IDs are references."),
+        PromptMessage(ModelRole.SYSTEM.value, ExtractionExample.SYSTEM),
         PromptMessage(ModelRole.USER.value, json.dumps(chunks)),
         PromptMessage(ModelRole.ASSISTANT.value, json.dumps(graph)),
-        PromptMessage(ModelRole.USER.value, '[{"id":"example:c2","text":"Welcome to the documentation."}]'),
-        PromptMessage(ModelRole.ASSISTANT.value, '{"entities":[],"relations":[]}'),
-    ), description="Grounded RAG entity/relation extraction with few-shot examples")
+        PromptMessage(ModelRole.USER.value, ExtractionExample.SECOND_CHUNK),
+        PromptMessage(ModelRole.ASSISTANT.value, ExtractionExample.EMPTY_GRAPH),
+    ), description=ExtractionExample.DESCRIPTION)
 
 
 def extraction_schema() -> dict:
     from llm.core.schema import field, object_schema
     return object_schema({
-        "json_mode": field("string", enum=[mode.value for mode in ExtractionJSONMode]),
-        "failure_policy": field("string", enum=[policy.value for policy in ExtractionFailurePolicy]),
-        "repair_attempts": field("integer", "검증 오류 수정 요청 횟수. 0이면 비활성화", minimum=0),
-        "prompt_id": field(["string", "null"], "선택된 prompts 컴포넌트의 레코드 ID",
-                           pattern="^[A-Za-z0-9_-]{1,64}$"),
-        "relation_types": field("array", "우선 사용할 관계 타입; 새 타입도 허용",
-                                items={"type": "string", "minLength": 1}, uniqueItems=True),
+        ExtractionOptions.Field.JSON_MODE: field(SchemaType.STRING, enum=[mode.value for mode in ExtractionJSONMode]),
+        ExtractionOptions.Field.FAILURE_POLICY: field(SchemaType.STRING, enum=[policy.value for policy in ExtractionFailurePolicy]),
+        ExtractionOptions.Field.REPAIR_ATTEMPTS: field(SchemaType.INTEGER, ExtractionOptions.REPAIR_DESCRIPTION, minimum=ExtractionOptions.NO_REPAIRS),
+        ExtractionOptions.Field.PROMPT_ID: field([SchemaType.STRING, SchemaType.NULL], ExtractionOptions.PROMPT_DESCRIPTION,
+                           pattern=ComponentName.SCHEMA_PATTERN),
+        ExtractionOptions.Field.RELATION_TYPES: field(SchemaType.ARRAY, ExtractionOptions.RELATIONS_DESCRIPTION,
+                                items={SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.MIN_LENGTH: ExtractionOptions.MINIMUM_TYPE_LENGTH}, uniqueItems=SchemaBoolean.ACCEPT),
     })
