@@ -4499,3 +4499,65 @@ Assertion에서 실패함을 검출했다. 이 의도적 실패를 제품 시험
 전체 inventory 526개, 미검토 275개(llm 98/hub 177), 미분류 19,399개·미완료 계약 4개,
 stale/분류 오류 0. 미검토 범위를 전수 완료로 보고하지 않는다. 결과 경로는
 `/workspace/llm-clean-resume/whole-ownership/memory-component-draft/`이다.
+
+
+## llm MemoryData·처리기 전체 — Level 1·2, 다음 묶음 L3
+
+기준 0daef71. MemoryData의 공개 review 응답은 MemoryReview, 운영 이벤트 이름은 MemoryEvents,
+모델 요약 입력·fingerprint·일시 캐시·Step/Tool preview/처리 관측은 processing_values의 Owner로
+이동했다. MemorySession은 준비·호출·취소·부분 처리·출판 순서를 소유한다. 기존 SummaryCursor,
+Message 슬롯 이름, MemorySource의 Step binding, AgentStepMetadata의 부모 Step, 원본 크기와
+조각 길이 선언을 재사용한다. 같은 저장 형식의 두 Reader를 만들지 않았다.
+
+MemoryIdentity가 공유 Component 이름을 선언하고 Component/Processor/Step/문맥 kind/이벤트가
+참조한다. 검색 응답의 memory 키는 이름과 다른 응답 필드 계약이며 MemorySearchHit가 계속
+소유한다. API 호출 이름은 MemoryHistory의 동작 선언 또는 실제 공개 메서드 선언에서 가져온다.
+잠금·현재 Project/Session·generation/revision·필수 원본·Tool 상태/범위 검증과 쓰기 순서는 같다.
+반환형 None annotation과 비동기 generator 선언을 위한 if False만 언어 구문으로 남겼다.
+
+독립 비교 `PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/memory-data-draft/proof.py`
+(한 셸 명령), exit 0. 실제 Owner 메서드/선언을 확장한 Data 41개·Processor/Session 20개 메서드
+AST가 같다. 보조 Owner의 기존 메서드 107개도 AST 동일하다. 구조가 달라진 공개 schema 조회는
+실제 호출/순서 3개를 비교했다. 활성 압축 전체 알고리즘은 입력 크기·호출 예산·정상/추가 지시/
+고립·미완료 Tool/오래된 캐시·취소 40개 시나리오에서 payload, 호출 횟수, 원본, 반환 관측,
+partial/완료 상태가 일치했다. 정규 ModelMessage에서 직접 읽는 Tool ID와 기존 wire ID도
+15개 사례에서 같았다. Call 수 차감·한도·취소 경계를 바꾸지 않았다.
+
+독립 wire/해시/오류·검토/Step/preview 비교와 실제 공개 쓰기/로그 경로 9개가 통과했다.
+metadata가 summary/tool_call_ids/source_digest를 덮으려는 5개 경우는 기존 kwargs 충돌
+TypeError를 보존한다. 사전 병합으로 오류를 숨기지 않는다. 기존 시험·독립 기대값·안전성
+Assertion은 수정하지 않았다. 편집 직후 문자열 치환이 docstring 구분자를 훼손한 구문 오류를
+compile 검사에서 발견해 복원한 뒤 시험을 시작했다. 초기 비교 도구의 사용하지 않는 잘못된
+ModelCall import도 수정했고 첫 proof.log와 후속 전체 비교 로그를 보존했다.
+
+- `whole-memory-data-processing-l1-01`: discovered/started/pass 78/78/78, exit 0, 218.59661초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-data-processing-l1-01/llm.json --modules tests.llm.test_memory_processing tests.llm.test_memory_runtime_choices tests.llm.test_memory_summary_integrity tests.llm.test_memory_conversation tests.llm.test_memory_consolidation_integrity tests.llm.test_memory_compaction_integrity`. source `172a3a23442be34ab8280ca4ad5934ae8e8bf5625c57b591364ccab20e74ab43`, input `b436daeeabfb4c2d512e5c36e97628a69330746a5aed349964b6f6920d64db86`.
+
+- `whole-memory-data-processing-l2-01`: discovered/started/pass 161/161/161, exit 0, 83.38223초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-memory-data-processing-l2-01/llm.json --modules tests.llm.test_memory_component tests.llm.test_memory_history_integrity tests.llm.test_memory_processing_config tests.llm.test_component_record_integrity tests.llm.test_data_component tests.llm.test_resource_references tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_nested_graph tests.llm.test_transactions`. source `172a3a23442be34ab8280ca4ad5934ae8e8bf5625c57b591364ccab20e74ab43`, input `b436daeeabfb4c2d512e5c36e97628a69330746a5aed349964b6f6920d64db86`.
+
+- `whole-memory-data-processing-hub-01`: discovered/started/pass 8/8/8, exit 0, 39.583091초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-memory-data-processing-hub-01/hub.json --modules tests.hub.test_memory_manager tests.hub.test_component_managers tests.hub.test_summary_api`. source `172a3a23442be34ab8280ca4ad5934ae8e8bf5625c57b591364ccab20e74ab43`, input `b436daeeabfb4c2d512e5c36e97628a69330746a5aed349964b6f6920d64db86`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 실행 전후 source/input 동일.
+세 실행 사이에도 제품·테스트·Fixture·의존성·환경 입력 manifest가 정확히 같다. L1의 78개
+시험은 재사용하고 L2에서는 중복 ID 없이 나머지 계약·통합·공통 안전성을 추가했다. 이를
+한 번의 전체 실행으로 표현하지 않는다. 전체 발견은 LLM 2,492·Hub 588개 그대로다.
+Python 3.12.14/Clang·Host d833790·고정 의존성과 실제 namespace/X11 환경을 유지했다.
+Memory 원본/상태/요약/부분 압축/재개·Component 원본·Data/참조, 승인·예산·외부 효과·
+Checkpoint·RAG·수명·중첩 R3·트랜잭션 및 직접 Hub 소비자를 포함한다.
+
+이 소단계는 이전 File·Data·Memory 변경과 함께 다음 현재 통합 소스의 Level 3 게이트로
+즉시 묶는다. 단계별 전체 회귀/Push는 반복하지 않는다. 위 정확한 동작/형식 비교와 관련
+안전성으로 로컬 소단계 범위를 검증했으며 상위 완료·원격 완료는 아직 선언하지 않는다.
+llm/ 나머지를 먼저 진행하며 hub/ 제품 리팩터링은 그 이후다.
+
+이번 소단계의 최종 정적·감사 결과: `python -m unittest tests.llm.test_contract_coverage
+ tests.llm.test_architecture_reviews` 16/16 pass, 3.253초, exit 0.
+S1–S7 정적 검사 exit 0, 기존 finding 112개·new/stale/미검토 0; 실제 증거에 따라
+연결된 11개 의존 hash를 갱신했다. 문서 검사 exit 0. R3 mutation 검사 exit 0이며
+기존 두 실제 효과 Assertion이 의도적인 한도 누락을 계속 검출한다.
+전체 inventory 528개, 미검토 273개(llm 96/hub 177), 미분류 19,103개,
+미완료 계약 4개·stale/분류 오류 0이다. 결과는
+`/workspace/llm-clean-resume/whole-ownership/memory-data-draft/`에 보존했다.
+다음 group33 전체 게이트는 File(f494fd1)·Data(515e67e)·Memory Component(0daef71)와
+이번 Data/처리기 변경을 한 현재 소스로 검증한다. 전체 LLM 2,492·Hub 588개, 정적 감사,
+R3 Mutation, 문서·Provider·실제 Host/namespace/X11 환경 검증을 유지한다.

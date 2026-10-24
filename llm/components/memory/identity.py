@@ -4,6 +4,7 @@ import re
 
 
 class MemoryIdentity:
+    COMPONENT = "memory"
     FILENAME = "identity.json"
     ID = "id"
     PATTERN = r"[a-f0-9]{32}"

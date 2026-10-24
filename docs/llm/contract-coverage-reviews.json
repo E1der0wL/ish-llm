@@ -40780,7 +40780,8 @@
         "owner": "AgentNodeDefinition / AgentInvocationIdentity / AgentInvocationBinding / AgentExecutionRevision / AgentOutputValue",
         "declaration": "llm/engines/agent_values.py",
         "consumers": [
-          "llm/engines/agents.py"
+          "llm/engines/agents.py",
+          "llm/components/memory/processing_values.py"
         ],
         "tests": [
           "tests/llm/test_agent_values.py",
@@ -40797,7 +40798,8 @@
         "declaration": "llm/engines/agent_values.py",
         "consumers": [
           "llm/engines/agents.py",
-          "llm/components/goals/processing.py"
+          "llm/components/goals/processing.py",
+          "llm/components/memory/processing_values.py"
         ],
         "tests": [
           "tests/llm/test_agent_values.py",
@@ -40815,7 +40817,8 @@
         "declaration": "llm/engines/agent_values.py",
         "consumers": [
           "llm/engines/agents.py",
-          "llm/engines/agent_tools.py"
+          "llm/engines/agent_tools.py",
+          "llm/components/memory/processing_values.py"
         ],
         "tests": [
           "tests/llm/test_agent_delegation.py",
@@ -44143,7 +44146,8 @@
         "consumers": [
           "llm/components/memory/component.py",
           "llm/components/memory/data.py",
-          "llm/components/memory/processing.py"
+          "llm/components/memory/processing.py",
+          "llm/components/memory/processing_values.py"
         ],
         "tests": [
           "tests/llm/test_memory_summary_integrity.py",
@@ -44160,321 +44164,315 @@
   },
   {
     "path": "llm/components/memory/records.py",
-    "sha256": "cdb84d5ded4931896e5ef8a991eccda6c5fe235709e379ade2efc507d79ea9ae",
-    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete. Extraction and Tool candidate projection consumers are now connected. History uses Record typed properties and transition projections rather than foreign raw keys. Full old/new history checks were repeated on this source. Remaining consolidation and other unreviewed consumer paths are not claimed complete. Consolidation metadata and journal consumers are now connected to the dedicated operation Owner. Direct Record field reads across Component/Data/Processing/History/Tools/extraction/consolidation were rechecked: remaining identity-file and model Tool-call id fields belong to separate contracts, not MemoryRecord. This closes the recorded cross-consumer Record follow-up, without claiming those complete files are reviewed.",
+    "sha256": "aea3229621787482fcf2352fa12d2e50c0844ed7ea999a3fad5c04577e1ed876",
+    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete. Extraction and Tool candidate projection consumers are now connected. History uses Record typed properties and transition projections rather than foreign raw keys. Full old/new history checks were repeated on this source. Remaining consolidation and other unreviewed consumer paths are not claimed complete. Consolidation metadata and journal consumers are now connected to the dedicated operation Owner. Direct Record field reads across Component/Data/Processing/History/Tools/extraction/consolidation were rechecked: remaining identity-file and model Tool-call id fields belong to separate contracts, not MemoryRecord. This closes the recorded cross-consumer Record follow-up, without claiming those complete files are reviewed. Data/Processor closure: all existing methods in these support Owners are AST-identical (107 total). Shared name references retain the same public value; the added Source.bind_step writes only the canonical existing field, with independent mutation/error checks.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "fe797ffbb0cea094192d97c43539e6ee2e0d988d7a00b28daaf51ca2147c635c",
+        "id": "bbffd5d1881ef82a6235c430a2f85cd2a56516fb456b34412395b16bc6960e5e",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "e90b567ba82affde19c31384c1b114c8e176f6339d0bf3fc040dceed2a7d7df1",
+        "id": "7c8f645b20af16941f21eb314eda0f5089660b1cc92508d9d1dbf226495d7b67",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "2743fda75111949f78efe8515b8f8831bc35039a4bb7430e1d86a23ccc70a470",
+        "id": "76b4b32736b0b552437589ffb2fdf802e3e7d769b93b18a77ecd54000086edbd",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "a0b02c07b3c3b6c52a89665610993beeb5a6d785ce9ffba120bf09ac42e56105",
+        "id": "a1d54f5a4dba083f1f453392a72b34259db05223d2fa2831d1a11e7b6ae89674",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "f328e85dbbe9c92f9827ad411fed0746f318c5ed0983697313ac2eead9fec179",
+        "id": "5922364ae5072f67c525190c358e8324bc339168daed904e9ffaebe8c5788141",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "461e5cf447b31b290ead11fb3581546b19e2795a0811374bb0949feb5f30ad26",
+        "id": "6e80437b5fb97448167a08054bdf0412b542dcef1b3f4f0e21e28408114c50e3",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "22caec805c6808ba888c9183ba70e2d6a07db69a584a71a0c21afa10862fca1d",
+        "id": "bdb79d4294b59775326e210543d1f048ba7f28a18c606e4c1130c580ddbe4ba4",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "19b905564a7b6ac4896a492b1d49929bd21d90ac01d0fd037adadd50ffa2ef41",
+        "id": "1d2f9bb04f2793cedcf10fb7a97b54a9ce21280acd78e004530f6bb508dbb5e0",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "f260c00c293942a23e76966b98bcdd9a3832209b73cf5462bb3dfd23f0d6fb7a",
+        "id": "d5c5fe53d4a76a5f2436457c89b0e6dcdfb2df79d2c5d972030ea6c5a44fc81d",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "a9156596c3e143cd8c110652bd7deceb922304bdc68305d038b5015108eb9605",
+        "id": "3f3d0d3cdd20506c19aaa0c0d327fe17ff69e64e150fe995f1d3fadce92a2702",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "135b45d11665500a8043bb8eecf7b2f310e6651b0ed23ce39c2805d4099d3337",
+        "id": "22e768da1afb2f06fe08b08fa0f3c69a0974a8b8a7050d47cf3e631a1f821c78",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "54f055a4aff61dccc3b58e6b19c677bc60c019d8ceb90c5db5a01006e9c88faf",
+        "id": "8bcb3115bfef1cd50f2ea9ff4abd6c38d6fa62f28489477453c265669db4bc83",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "76e20a8d36bb108600daf9d93f90b89e8ef61b015d96122fb4c72e17bb1e265b",
+        "id": "fdeb5403863f49d639c204a2302cd804ee3a681f0ca6a9f2502fae68572bd06d",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "c8456d40e37b8bf2281610c6ef8a97d378e7cfffc45dcc95ea3493d713ee2791",
+        "id": "0e3399f0f8f9a549bf2db244349d8bdd61131ee84f416ad8d3133aa3401ed4b1",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "0a2d1ec13c152bcb08e4a1466802614f1e5fe46f9e748be5a660f1ba4e047c36",
+        "id": "52d51fb074ae3064eac365ec54ec30b799f7f7719f37d37e9a8fb35c25159a64",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "6912be67466539716aa38ff2be431bcc0b02614c7c2a18665c7162ac457788b9",
+        "id": "24da4d39bb34b50066d5a1f9613044eec2a0d7e4e5cc3ec0676e18871a32ed78",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "1e3b08563645b9f911a058715ab81d0bad265b3f4ef8e676c5fa5328781ec0b2",
+        "id": "0eb10dacb6d84acc4d225efdc94290d51e6436dfb0313c06b1bbcc8897145ec7",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "9bdfe7e08f653b36608f6a34dde434c9125466ef77eeec7a883ac826b9ca84a1",
+        "id": "31c2d6382598911ddab949c5efd31934a278ea225c1b8872874a15c5ef2f97f0",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "0ebd0c425b06950808839c82ff9082b2e8e087f25441eef623f23ad56fe3bbd1",
+        "id": "2c18dcf4a3dbfe57d8073132e18cff0c72d9b99f7584f9ad6a0eda9e1e84dc89",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "47a29543edf7ca08f49ff504bfb1f39af85c60da941f519c9635c36b8784927c",
+        "id": "2b10475ba8bcc92732c898eac36dc8da0d0fba82cbe59935b87e51368618821f",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "a129fd116ff47ac05622234adc56b7554e6a94595057748eb8c46cc63ebf0fe0",
+        "id": "a80aaf33bec2985de51ad0992527c49b6491f9a2005a50af8f8ff4d684efea1a",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "5a050c6580305e3b0228c4aed7b95e11a080a65437a86f93c14a659a118b0f96",
+        "id": "e3e606054b2551c90ae0fedbbe2d436dbfba2d0ec55b62bf2ebb3688ce3c0484",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "7c6f4fb606be1f1d4b2faf2a8ce5fad954eb3098e2aa009e31d2d8e10b2dbdcd",
+        "id": "c34fd25aad55823f0e2814c4e9efb6bb1b1db1ae6ae45764cc7708929b56c6c5",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "b191e7769d4f01f9afe46c8338aaab61f0d37a6deac2a73d2929d81ebab7e288",
+        "id": "5dadb5898e140ba9597241b15b6343ea61bf9837b441a9523ec82ec081305bcd",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "ade4ee4ba66a381f0f8a4707dbf1443fa46009869505358bc1254f1897377c64",
+        "id": "ed8e622d9f81f676dd49a6b066641ded014de75881095a9b05b9413ba8e3c4d2",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "16cca98569f5d260d6f8eec2d8f90538ec82c936f60bff3f82ab086b5f623eab",
+        "id": "311b2eea55ef1bc26e8f9c47c514085325bfb41bdfd2ec63944d1a00a35fb8b5",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "a7e5bec17241200107c719c2ef005a5902a357982538ee937dcea367a62a3500",
+        "id": "2ade834798c54f1b950ca267f9717bc170c726a08ea9472b4527a50a9efbb863",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "30db8089890f256863d1209de427b36fccef8a32708c62c17469b8a9c1f2bab5",
+        "id": "430d3b8dbb9956bfd74f49339215053e48c50d4513d6b347a84242f9b9054604",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "ab2b5ae55bd802172a4a734405816b2980b3a86fb92a2325f498b41481239868",
+        "id": "be0a4bf65e07067515d61712e8c291409c1f77d709beb1799cec39cc600e2d21",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "94c8c36cce250d20e234890eaf8f10c815ed9df1e90ad187d9e9b7f64dbcef38",
+        "id": "a192fe8be2416b4a886d05d2c1fa6c9b62bc1b5a3616a3e93d2a78017981a820",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "dd86125cbed51e699c754ec30f28b4569583a1fe9f3a8721d413aa3bc7f649f7",
+        "id": "027928496284de5d7904484e1a26a26d11ddc9a667f327d33982339d41904e8f",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "1e741b7d7eab4734c0b93e8f24ac98a33fe67e9aff4e1db673e0e9d84c2e8f77",
+        "id": "8a28e0d9b911192226687413480bc3484d571f155b9e4522f13fb00e1facdbbe",
         "classification": "declaration",
         "owner": "MemoryRecord",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "f1f161b67a7a0ef2adaf2270b34b6dd7c103276c973f53301a982995df5ea13a",
+        "id": "c8c7992750a93cad9093b4dd07287d4b5321722b0f41da52e6446db8dad82451",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "8cdef8b4171dacb1879a0e12c197436329e14ceecb21a728316a45c4a73a9455",
+        "id": "36b98d77c1f86a6f78eac13fefc5e72e23b0e16092591fa354592e17e55ac767",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "d7bb478beaed7fa321c2331e9871c5bb652eecef7d7f8b351a72344fea2a586e",
+        "id": "c052cc5eb555d227074c5f06c98129a5c25aa8d9eec637a6c3b2cd6834daf14a",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "54c48a37bb35c10ebdce8ec164d6ca9249acb0e6b14aa15b71dee1958b35b1e3",
+        "id": "efccd113e0919af7ac78ea647bc54f6dea26f6037f817bc827d742637e94ff31",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "213247122d95bd81e7e98cd41e9021b927bfe31ffe908aaacecf0dad3aeadcc6",
+        "id": "24675ecfa5c4e452515126a9966f700cd777ada0f0866c785a722c128379f8b1",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "2182caecc0e9654f2130a8d6337e602a7b1fee365b9fc8e466fa703e6d5292ef",
+        "id": "2c799abfac25d635abb3bca848924e8d4a8b5c1ff8e243dba3ab622828574019",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "da40d3da36e645000e59e12cf9ac892c040c3830d0523688ee22eb5b3631196c",
+        "id": "025eb1ae3791c3d80804b211595215117d58b81ca12e37daa3a6762c882ba2a9",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "01755d82131757c94ecc8f57480d1061bd37448f3dab14e9478313ebaa4dc080",
+        "id": "e051b1f58dabf73df39f9d962fb941b849ed815d2f94863b3c9c54513d56790f",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "c31bbcc612318bff7711a8d929f2d632731c5d09bcb0c9eadab2fbbfd6bf33e3",
+        "id": "673016d17626abe08c5963fe38176da809534934b6ff9a343302d93421de21a9",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "acfdea4f31713ad8039306694b80b4ddafe3dad62604a39b78490b90f290138f",
+        "id": "adda13ef01ec2cd68acb630eec618d61beef9e6e75745cb6149b36b86861e5f0",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "e1a982a8220ab68b3df39367268c8ccd0a19daeec69d346f9fce11ef00b10e24",
+        "id": "0f2a39d65fd63f568ad516463eb13cd55fd791c975edef465beded06716266e9",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "8d419c7c1af9faecaab5ac24f31566b36f581a7f4b5f16035d2491de2e3e7df3",
+        "id": "e3127b503498393a49f7045de802b6e53b166515a508a7c8bd141d308fb9d4b1",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "eff01736d4ad396580557f7ec525bcd6062c72be7454a200e82f0d4c0bb7df08",
+        "id": "39490e4e604157ad4f8cd86bce2143f579a0329959398b1643b74ef058fecb0b",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "117b0074a959ec06df37e14df71dbf52a1cb596036a3773ac82abbdb4cf54514",
+        "id": "17478e8df7ff5bf6b3b8e9efe3f7a70ca6235178f8f1ba5b5ff6c6b2279e26d1",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "9e1666c9e77f9a63f63a9ee53206c75e1509f249cf552583b1de13c2532984cc",
+        "id": "6ac92772619ee0a1697e2d219b217d808aacd99a5648d815c49e82a6925735c9",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "aefcc3df2da2eba083da63788dd9fba54258f36cac50a341bb35323c96aeb577",
+        "id": "7319c684490a5d14613e323b51bb6ddb9da8e543de29035b5b32c4ec6c208107",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "0b4c4320a263497940241cd41e38aedf1c37c1d18ac03eceb4b64926dde2b98a",
+        "id": "4b7f9a6061446354b1d3e1ff1d5b97682e577d5f23f4c0c30f3602f26738c6e4",
         "classification": "declaration",
         "owner": "MemorySearchHit.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "0e58d7497186044fb3cf97e70fb37661d094008e1f9ab5335af527724aabf3c1",
+        "id": "6ca806131c5fc3813726a0896668c0a90baac1e39c0e45c5d28ebe36a190faa6",
         "classification": "declaration",
         "owner": "MemorySearchHit.Field",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "18505182189f1b5c1bc35eb259e1b02f00a6e78d4e910fcbfa66f727a598dd05",
+        "id": "da4c0dc966af2b8b2d1f49cc277647c0327955dbfe93d66983f9211cea9a63e0",
         "classification": "declaration",
         "owner": "MemoryContextReference",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
-      },
-      {
-        "id": "ba38aae1dfaa6188fd14b90ad46d5fd64aac6fe93c391d3866a9f0e0860ef1ce",
-        "classification": "declaration",
-        "owner": "MemoryContextReference",
-        "reason": "Memory-owned record/history/schema/state/error/projection value declared above implementation; foreign schema keywords and types use their canonical Owner."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       }
     ],
     "contracts": [
@@ -45316,8 +45314,8 @@
   },
   {
     "path": "llm/components/memory/sources.py",
-    "sha256": "a471bf5a89b27021f1e0bd8c14552d3f416242a6fd55212768b5e8c94666edfa",
-    "reason": "Read complete declarations and implementation plus actual writer/reader/validator/consumer paths. Canonical summary reply and instructions retain exact wire bytes; partial progress, explicit budgets, cancellation and no retry semantics are unchanged. Consolidation records and provenance retain original structural and reviewed-history checks, digest algorithm, lazy read order, required evidence, all-record preflight, effect order and explicit recovery under existing transactions. Independent wire/error and real file/coroutine tests support these classifications. Broader Memory Component/Data/Processing and File container work is not claimed complete.",
+    "sha256": "cc8e51775d57c302f9c9cced4e0e2c7d55f23021dcda1c150925ec1c18f039d4",
+    "reason": "Read complete declarations and implementation plus actual writer/reader/validator/consumer paths. Canonical summary reply and instructions retain exact wire bytes; partial progress, explicit budgets, cancellation and no retry semantics are unchanged. Consolidation records and provenance retain original structural and reviewed-history checks, digest algorithm, lazy read order, required evidence, all-record preflight, effect order and explicit recovery under existing transactions. Independent wire/error and real file/coroutine tests support these classifications. Broader Memory Component/Data/Processing and File container work is not claimed complete. Data/Processor closure: all existing methods in these support Owners are AST-identical (107 total). Shared name references retain the same public value; the added Source.bind_step writes only the canonical existing field, with independent mutation/error checks.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -45410,7 +45408,8 @@
           "llm/components/memory/tool_values.py",
           "llm/components/memory/data.py",
           "llm/components/memory/consolidation.py",
-          "llm/components/memory/consolidation_records.py"
+          "llm/components/memory/consolidation_records.py",
+          "llm/components/memory/processing_values.py"
         ],
         "tests": [
           "tests/llm/test_summarization.py",
@@ -45872,7 +45871,8 @@
           "llm/components/memory/compaction.py",
           "llm/components/memory/compaction_records.py",
           "llm/components/memory/data.py",
-          "llm/components/memory/tool_results.py"
+          "llm/components/memory/tool_results.py",
+          "llm/components/memory/processing_values.py"
         ],
         "tests": [
           "tests/llm/test_large_data.py",
@@ -46518,7 +46518,8 @@
         "owner": "Tool summary identity, outcome, observation and model-only view",
         "declaration": "llm/components/memory/tool_result_values.py",
         "consumers": [
-          "llm/components/memory/tool_results.py"
+          "llm/components/memory/tool_results.py",
+          "llm/components/memory/processing_values.py"
         ],
         "tests": [
           "tests/llm/test_large_data.py",
@@ -48628,20 +48629,14 @@
   },
   {
     "path": "llm/components/memory/component.py",
-    "sha256": "6429cd67cc7df105f3f5755402b0cb90e3fc8c545104f63d866b174069d9efad",
-    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain.",
+    "sha256": "3eb9ea1c1660b0017cdc8c39385e341aed0de71fb6ce64828ada05f00c565204",
+    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain. Data/Processor closure: all existing methods in these support Owners are AST-identical (107 total). Shared name references retain the same public value; the added Source.bind_step writes only the canonical existing field, with independent mutation/error checks.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "51ce7a1a1ad87be6f6e1df434200a23d8301c7ce9bf0a67c5e5d5a817bfc8aaa",
         "classification": "declaration",
         "owner": "MemoryConflictError",
-        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
-      },
-      {
-        "id": "068f14b407d6ed1321c1748fb126a3e5cf147fc9af8471d5128980e9b0edff5d",
-        "classification": "declaration",
-        "owner": "MemoryComponent",
         "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
       },
       {
@@ -48741,33 +48736,39 @@
   },
   {
     "path": "llm/components/memory/identity.py",
-    "sha256": "d26558a9229e96429323979181f5030e6fda08c055d54c2ff7a65cce8cb844f8",
-    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain.",
+    "sha256": "b2d9c928fa086b9b2fc0d1cb80392259dae6dc22cb904e0b2926fa649b30b0ba",
+    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain. Data/Processor closure: all existing methods in these support Owners are AST-identical (107 total). Shared name references retain the same public value; the added Source.bind_step writes only the canonical existing field, with independent mutation/error checks.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "7fa1a1da0a3e06f797c16d297e9d12ea3f9beadd710a14899e3b1fa9310f21d6",
+        "id": "afb6170a34e467b5bceb24788891abd7f6b446cf6f7305cb5a66d1c9e75b0ee2",
         "classification": "declaration",
         "owner": "MemoryIdentity",
-        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "a6a29f49186c976e3b450830ba6294887f0010873472d5ad131042311eb8d44a",
+        "id": "02f1b6936b7693b0d138fc18371ce5f6e98d856e09c37c49f0b376eb1bdb842e",
         "classification": "declaration",
         "owner": "MemoryIdentity",
-        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "bc8b602961e65a6a2f7223da35f86d761c230af55dd197d379124e3ec2d052fa",
+        "id": "44977dd9333efdbed9d3ecb01a17eaa6fa5843a18914cb33b27d64a1fb100c77",
         "classification": "declaration",
         "owner": "MemoryIdentity",
-        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "4dd64dda6d649a4bf2a630261bd148c312163017fd29fec61e4b3b659f318f17",
+        "id": "3a2e2fdf38351f1eefeb033059fd27c50d53f5c2a75dd6fc4bdb7a0b1db930f4",
         "classification": "declaration",
         "owner": "MemoryIdentity",
-        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
+      },
+      {
+        "id": "2182456f1859f3226a536981406ed0e1a8858180d23a5a72ac6be6934c9de21a",
+        "classification": "declaration",
+        "owner": "MemoryIdentity",
+        "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       }
     ],
     "contracts": [
@@ -48775,7 +48776,10 @@
         "owner": "MemoryIdentity",
         "declaration": "llm/components/memory/identity.py",
         "consumers": [
-          "llm/components/memory/component.py"
+          "llm/components/memory/component.py",
+          "llm/components/memory/processing.py",
+          "llm/components/memory/records.py",
+          "llm/components/memory/api_values.py"
         ],
         "tests": [
           "tests/llm/test_memory_component.py",
@@ -48949,6 +48953,717 @@
           "tests/llm/test_memory_processing.py",
           "tests/llm/test_component_record_integrity.py",
           "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/data.py",
+    "sha256": "e9b647271af69b2daac73c6c9cb079bdc30c6336c677f53c95ba72f0b74ae9b2",
+    "reason": "Read complete handle and processing implementations including dynamic mutation dispatch, full active-summary/cursor flow, extraction, model/Step observations and failure/cancellation paths. Fields and projections have canonical Owners; source writes and current ownership remain with existing storage/lifecycle APIs. Full function expansion, independent wire/hash/collision cases, real API callback traces and complete active algorithm comparisons preserve required evidence, explicit limits, source retention and failure boundaries. Disjoint focused safety tests retain original assertions.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cef8b344ab4e0f1f821dc46a6ec96fcc93f922259a580918da60378f37f20335",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "7582fda14d0cb8660ed19c5e6307954b5d8380a2b20dd672c4bef78c8c62aa92",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "1feb838c607eca6a122cc91468cfb61cfdd5a041cefee5e954ac085f33a9b003",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "7e97fdb7a3541afef9da9b7914c1877b44343dea9d937ff4da5a0590b9b23831",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "90420c40e76004cd21d8e612b7f1b546079ba339c3f2ddb6b9eea0dacda4bcb5",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "e48b9177fd9201b66c9b67a478e894967e4a879cac84dd21ef90c28b93bd6c76",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "d6bcdae7e25713c1d4e9724336ab551698afc480630755f41b0f3006a6e86c8f",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "87ae157b625cb63c12898d04835a56c2051cfe97ffd602b04140b670588842c2",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "a115655670906fc315640b7a39773cfab38b9c5be5a061906efb5f9da0fe151f",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "346b7723c3052757faede5c28d2f43284677187f8a1a5a8450171a56f3400416",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "5c64d225dfd8016769a3f779b8e8281343c4e69a41c7fb0b7177b1d8b7cfad8d",
+        "classification": "declaration",
+        "owner": "MemoryData",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "cae7c0ff2f281a218c5ecb1470ca5278ffedfbdb0658f5e243c5737ee50d80c8",
+        "classification": "non_contract",
+        "owner": "MemoryData.clear_summary",
+        "reason": "Python return type annotation or unreachable yield that declares an async generator. This does not encode a domain field, fallback, policy, persisted state or execution choice."
+      },
+      {
+        "id": "22d0481debb8d649c9962602f7074e3dbdf51ca7c23ab9f6025f7a3cd2d2ffe3",
+        "classification": "non_contract",
+        "owner": "MemoryData.purge",
+        "reason": "Python return type annotation or unreachable yield that declares an async generator. This does not encode a domain field, fallback, policy, persisted state or execution choice."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryData",
+        "declaration": "llm/components/memory/data.py",
+        "consumers": [
+          "llm/components/memory/processing.py",
+          "llm/components/memory/tools.py",
+          "llm/components/memory/compaction.py",
+          "llm/components/memory/tool_results.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_summary_integrity.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/processing.py",
+    "sha256": "150f65865e0f98d6617d36a8c47a77762a8e7750c7852d058bad953196a5afa1",
+    "reason": "Read complete handle and processing implementations including dynamic mutation dispatch, full active-summary/cursor flow, extraction, model/Step observations and failure/cancellation paths. Fields and projections have canonical Owners; source writes and current ownership remain with existing storage/lifecycle APIs. Full function expansion, independent wire/hash/collision cases, real API callback traces and complete active algorithm comparisons preserve required evidence, explicit limits, source retention and failure boundaries. Disjoint focused safety tests retain original assertions.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "09d400e61dd202c5f0ddcf2dec0055d2379b819360a7a6d4e57053bbe865e5b3",
+        "classification": "declaration",
+        "owner": "MemorySummaryInstructions",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "4f4d815dcac70b9bde48c1f1da8c257df9ccd9bf458dbf043abc82a69d83ef83",
+        "classification": "declaration",
+        "owner": "MemorySummaryInstructions",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "b1a30c8ff43076881ec24b1d6855f22d03bd33006d7130faa602af71a50ea31a",
+        "classification": "declaration",
+        "owner": "MemorySummaryInstructions",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "f4e9116af05d186dce0dec4edd0db4ea3c1d5ee46438d19788a2bf89bb70806e",
+        "classification": "declaration",
+        "owner": "MemorySummaryInstructions",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "511df9e57cd66f68248935b8887e83200fc9365618119cc09ed29c9b9467d278",
+        "classification": "declaration",
+        "owner": "MemorySummaryInstructions",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "4b01c2ea4ea3e5c3daf7aac5194d9b7370348c15997ac82c4fa64e73c79a490d",
+        "classification": "declaration",
+        "owner": "MemorySummaryInstructions",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "05b81c7135eec730b9b3d39d380e2b809b5c3ce77f41f6c9b7339b76160061b9",
+        "classification": "declaration",
+        "owner": "MemorySummaryInstructions",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "b7d1fbe9ddbb632befc1aa9d01629c71ccfcb8a0de03b9c07bbad1c4c6f50144",
+        "classification": "declaration",
+        "owner": "MemorySummaryInstructions",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "bd2a9674134d7e3b4b4aa828cdd00a89e00a2ed43b408cff3d5f97923404fc20",
+        "classification": "declaration",
+        "owner": "MemoryProcessor",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "5db149a1291e6eed4808e726a0b548d7b181af240e57f67bbb1ea88d98d965ba",
+        "classification": "declaration",
+        "owner": "MemoryProcessor",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "df7822d591916f0763b4fdc5c0627851249bcb4db3955f3f60fc493f4bf06eb2",
+        "classification": "declaration",
+        "owner": "MemoryProcessor",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "53f4547c3f8a25cf979a187ee3acf4fe7b8738612879bb01bf14e2baa76675be",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "cd28d9f30c5d2465e3e091c3f8a16524e7e22a43a942b1a8d2152adfcdb2e205",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "fbe835917ac94856b22507e3b028dcdb97d8c2656de5b18dac4f03ec43f37d48",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "b44a067db79386288514eb852c48719399473356ed39a23b770d4583fb925def",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "4509b09e888a1d725ce3646a46fcc824fce6e8d045f1f72bd4f9a515232eace2",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "1fb660c843a2d7b44514649f9b985cec45edd776a0d5b928d242ed1ada6692a8",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "c381f867f672d006b35ba40594a4cf3838675f65b311869983b0f960623e2d3d",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "7b8091426a19bb0200c919ba662e75240274623a0bcd54c07782094e5029efe0",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "d2c074409d4fc05edf9da499bfc30fa756a62a75c6bce8e603e6752d488851f8",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "e8c3a36a8290d1040b0a3ed702768f90139ef1dfb226e9ea302e504ae31d5c3a",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "bd0de1a73c1500f84a6c0c13750112c76bd4983be1b4e6347495efa033fea299",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "7232ef1e8d32a0aa1cf7bf95c746be0fd9beeac6fb328ffc990b55a4cced04e0",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "4ab77d8a24708873b45b30745b262c87679bdf7c240a3db5ecb31d6e71c5e70d",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "3da69cc7b0a24e630b8c5223f67d8b78945e8c7ac84f910a8ccc38523e21429a",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "3e8d35b306b1e989461a37a1f146a173744a12af8b5c6afff7557155a7bd79b1",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "6e716aa29269e29dc5b682124b853d6fcbab03c0f308b65e40f2ffc6496342ee",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "867f940ca18b7709eafbb6e34a24e581613a4f853d0dd2d01f2675951da030aa",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "cc3533b3458e5837b5518aabc59bf4831aa19a46f63b15fe2fcb1eaa47e93b9d",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "3af17f56cbb6a41a760d0803de8b27a310b25d433b1b9115941f85e3241629d9",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "9d5c442cf2318768ec939ea503ad742fcd3f97703f8655fe6d692c7cae45b8c6",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "baae000bb70fc21f4aa32c51acda449c3afd41d7773e837e2d83298d389ad89e",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "5c401077ba04d715723e5f6f70dac03737967b70062972d45dcca35189267055",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "9a0fcd5e07beb9ac27fcb08d38627694e93d3dd1aee55679bb0f2e8144945c0e",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "1c9bd9b7baffe56546ba48de3779b3783f8c642cfdc30d64cdd44c4a89671f68",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "19a4f8dfea3f713b2bc2500cfb2bb15d8669dcd7a4d941f67bee5b12a17ee487",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "9edd5619a7ef978c7ff4ad0afbe314aacd07bfe4fd5aa652724e683a64ca8f9a",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "b30727b668db83c948551742574ec0ff80afac94c4e529fdaa9490654c31a12e",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "732bb78052636df727455be65d912bf16f54686f2148a6f2b4bb2fbd307f7c11",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "dcd1863419052da3642685663d61eacc3834e402c1d29a1e3fc576d4cb492520",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "6052c737dce192b6ded3c0192dddc1c02edde3aac4bdd43b6452c84cc1a03e87",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "945e5e4c724ab95031df3eb865603595a39484b246768fa3e16685e193b2cdc1",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "58d73e9df72a352eb6612638c84cf32b7dba210ae9dcaf13af279e8af4432e9f",
+        "classification": "declaration",
+        "owner": "MemorySession",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "2aefb5bbc48c85163d31d2f3d15a7866a04fad39c4495e84373bb4c9be254740",
+        "classification": "non_contract",
+        "owner": "MemorySession._recall",
+        "reason": "Python return type annotation or unreachable yield that declares an async generator. This does not encode a domain field, fallback, policy, persisted state or execution choice."
+      },
+      {
+        "id": "0d4a4b6ccc2a127e0249abcb71c4e28a01f18d621bc082d1ad8c827d0dbdf902",
+        "classification": "non_contract",
+        "owner": "MemorySession._compose",
+        "reason": "Python return type annotation or unreachable yield that declares an async generator. This does not encode a domain field, fallback, policy, persisted state or execution choice."
+      },
+      {
+        "id": "48a2f330e531d146725c4bdb5eb3d1e0c89f1ad73ef6784c776dd09e992c474b",
+        "classification": "non_contract",
+        "owner": "MemorySession._compress",
+        "reason": "Python return type annotation or unreachable yield that declares an async generator. This does not encode a domain field, fallback, policy, persisted state or execution choice."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryProcessor / MemorySession",
+        "declaration": "llm/components/memory/processing.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/data.py",
+          "llm/engines/loop/engine.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_summary_integrity.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/api_values.py",
+    "sha256": "3489e645151752b2c3ca5cf1bfceff3e24d77a15396c5e43d2985fe6d7a98775",
+    "reason": "Read complete handle and processing implementations including dynamic mutation dispatch, full active-summary/cursor flow, extraction, model/Step observations and failure/cancellation paths. Fields and projections have canonical Owners; source writes and current ownership remain with existing storage/lifecycle APIs. Full function expansion, independent wire/hash/collision cases, real API callback traces and complete active algorithm comparisons preserve required evidence, explicit limits, source retention and failure boundaries. Disjoint focused safety tests retain original assertions.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8f98220c6e1784f57bb21da4215f74ebcd3ba2d5f8977988eb52c56712fc9f63",
+        "classification": "declaration",
+        "owner": "MemoryEvents",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "be166faabebc3d3d6651cb092ae1bd2c9eb6e43e8a70e08480dca71760d40738",
+        "classification": "declaration",
+        "owner": "MemoryEvents",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "15567592b66e86f86d433a74d9c048297edb52bdd93e5bed3d20a22a6a83fdd8",
+        "classification": "declaration",
+        "owner": "MemoryReview",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "baf4460f180b81cb36779646225582b83cceab8e8efaa2e550c87950a4b7839e",
+        "classification": "declaration",
+        "owner": "MemoryReview",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "67f02a94468414cd47d991e8290c816757b8af2d006328161a8972e1f5d33441",
+        "classification": "declaration",
+        "owner": "MemoryReview",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "cc449962782772c2420947b99fbb12bab79590f0b9d7f31262a5a6b4bc2a29b3",
+        "classification": "declaration",
+        "owner": "MemoryReview",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryEvents / MemoryReview",
+        "declaration": "llm/components/memory/api_values.py",
+        "consumers": [
+          "llm/components/memory/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_summary_integrity.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/processing_values.py",
+    "sha256": "28038bf8c3769102e365452ef8c16ab420f1ca19cfe9de082f6bf9379b6e5344",
+    "reason": "Read complete handle and processing implementations including dynamic mutation dispatch, full active-summary/cursor flow, extraction, model/Step observations and failure/cancellation paths. Fields and projections have canonical Owners; source writes and current ownership remain with existing storage/lifecycle APIs. Full function expansion, independent wire/hash/collision cases, real API callback traces and complete active algorithm comparisons preserve required evidence, explicit limits, source retention and failure boundaries. Disjoint focused safety tests retain original assertions.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "982def6c782b50090e413c1e3ab3f78231a23bf3ac8cef46b1cdce4e431985e2",
+        "classification": "declaration",
+        "owner": "MemoryText",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "e407756ed3df911fd60fcc6a693c90d129a2e64f2ada72b7b39fcf4242197b31",
+        "classification": "declaration",
+        "owner": "MemoryText",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "930865a0eb8a5766a2f0d37ccfa213a3b321187306c5f0b90acc91eec7c03bba",
+        "classification": "declaration",
+        "owner": "MemoryText",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "5e879213178d706dd26b6f1d94be981fb7cd53896b931223ff330a28de09627d",
+        "classification": "declaration",
+        "owner": "MemoryText",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "3f8f5397602ef63512acbe03f877e2101dd5bcafc71af4d3869e3f0cc4ad85ff",
+        "classification": "declaration",
+        "owner": "MemoryText",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "143ca9e3471124a78cad8dd5e59e57a1aece579856290a5f14b92ee656fb179a",
+        "classification": "declaration",
+        "owner": "MemoryText",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "cc86cf76392db8d6a327b0a3baf457983cd3d6381f662298f73c84f07cee4fb3",
+        "classification": "declaration",
+        "owner": "MemoryText",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "10f01e449d36c38e726f2a3b9b279c02b247ff0da54649a35b6f05bc2c297244",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "0b4f377f1d1409229ac21d3c89e5eb5ac2e45d3bdd493db924c43228d6ab9e5f",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "c85dba7e172bfe86b511230d2b39907c833b96f21f584c9f729c7c12dca3b891",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "8653480ab326dcfe2ebfad29f9dba901db2065513e56cbaa6ed90aa27ab97ca9",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "876552d03dd7459f816836b61e215892a75d26bd4060f9bcc601fabd4e38eaf1",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "ff79cae4f69c3d84dd2290e6c8eeb8547bd2d9878a28042b77f3ffb694e5263e",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "261da3f57cb0444c1cec2861874b51f749ee18e3de126d1239a61afec586c49b",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "330731c9fcdcbcb147c46fcb8cb610a3b2455b7c24380417b3e253d3871a83bd",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "68dc0301274e2f6eaaf6f8e2177276383c211c2d9c2f3d08caec4c614e80a920",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "a197d70717a2fb47df909ff0d2a300cf2b8bc875245f00b91a52e5f767aa0fed",
+        "classification": "declaration",
+        "owner": "MemorySummaryInput",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "483bfdaa31faa8eb9b4a771132b30edf2b9fcc9556d89b14ba4702c2499bc4c9",
+        "classification": "declaration",
+        "owner": "ActiveMemorySummary",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "3512417c38458114274bdc17901ef544563439ae88eea451e3e58bf04a2630de",
+        "classification": "declaration",
+        "owner": "ActiveMemorySummary",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "90ece3c4207634717d9340b71a2d339fdba0198f968c54de40c0b91cdae7a62e",
+        "classification": "declaration",
+        "owner": "MemoryStepObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "463c97bcfc0162ec6b6513d4b076a47639e0b22cf39a11f0db7aacaf855b96e1",
+        "classification": "declaration",
+        "owner": "MemoryStepObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "42f011ee61410b4cadb20201b267516b759410ea5832643815ad8239fd1f4a3b",
+        "classification": "declaration",
+        "owner": "MemoryStepObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "b14677fe14f16283ae69c0e53d03d5caa58b77883dd48ff2477ad79ffba19d5a",
+        "classification": "declaration",
+        "owner": "MemoryStepObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "1cc43c70e4c9a922bd89d566a63b31641bd43bfb6e6653a4d221022c9a6e9fbd",
+        "classification": "declaration",
+        "owner": "MemoryStepObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "4157abe1add39e69a597619b6dcf3c3f1ab0eeb7e8bddbb5b63483f5535b750e",
+        "classification": "declaration",
+        "owner": "MemoryToolPreview",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "726417659c1b64bc79b7a9a7a9e8dfac8ffe1f1d65d4d3f00e0c532c8a81a25f",
+        "classification": "declaration",
+        "owner": "MemoryToolPreview",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "347dcb6aff2932835f1a2dc6e1f346973d8c9986b65ba46a637af7a73cee6371",
+        "classification": "declaration",
+        "owner": "MemoryToolPreview",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "8495ff8c75d9cc25f80be9dd6d20af12913911d7c06b92c2c2405ffee1ea1272",
+        "classification": "declaration",
+        "owner": "MemoryToolPreview",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "36e74e99c37ac54347689a5f3a325c94530be9f9332651f484780f0262cf93de",
+        "classification": "declaration",
+        "owner": "MemoryProcessingObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "9b9f67635dfee869205b9835b6634242efcb6435d9801c2aa24bee8f0d419c58",
+        "classification": "declaration",
+        "owner": "MemoryProcessingObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "174c4c6edaf6148ba513d0dc2fcf8b2c778cda35e70730bafbdcf46c39f8daad",
+        "classification": "declaration",
+        "owner": "MemoryProcessingObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "12dcfb6f8024597c308207f4d4d0736fbb8e8193d35ceb355a0ef4171b1917c6",
+        "classification": "declaration",
+        "owner": "MemoryProcessingObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "3aa6606d6948ef0d110525a1ddb0f665b30fbc71d1c94cbeffd760b1c319ae59",
+        "classification": "declaration",
+        "owner": "MemoryProcessingObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      },
+      {
+        "id": "178cac8ab1964682048624f277b83484cec6702457ef871c5fa899ff11a2c0e2",
+        "classification": "declaration",
+        "owner": "MemoryProcessingObservation",
+        "reason": "Read the complete Owner and consumers. Contract fields/defaults/states/prompts/errors/algorithm parameters are declared before methods; existing canonical Message/Source/cursor/step/input declarations are reused by actual projections and readers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryText / MemoryMessageFingerprint / MemorySummaryInput / ActiveMemorySummary / MemoryStepObservation / MemoryToolPreview / MemoryProcessingObservation",
+        "declaration": "llm/components/memory/processing_values.py",
+        "consumers": [
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_summary_integrity.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_component.py",
           "tests/hub/test_memory_manager.py",
           "tests/hub/test_summary_api.py"
         ],

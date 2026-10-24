@@ -39,7 +39,7 @@ class MemoryComponent(Component):
     project.components.memory를 사용한다. 검색을 바꾸려면 search/score를 재정의한다.
     """
 
-    name = "memory"
+    name = MemoryIdentity.COMPONENT
     directory = name
     CANDIDATE = MemoryRecord.CANDIDATE
     CONFIRMED = MemoryRecord.CONFIRMED

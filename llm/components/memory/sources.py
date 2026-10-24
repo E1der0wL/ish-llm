@@ -21,6 +21,9 @@ class MemorySource:
     def __init__(self, value):
         self._value = value
 
+    def bind_step(self, identifier):
+        self._value[self.Field.STEP_ID] = identifier
+
     @classmethod
     def api_input(cls, source):
         return source or {cls.Field.KIND: cls.API}

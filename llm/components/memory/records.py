@@ -6,6 +6,7 @@ import re
 from jsonschema import Draft202012Validator
 from llm.components.base import validate_name
 from llm.core.schema import SchemaType, SchemaKeyword, object_schema, metadata_schema, field
+from .identity import MemoryIdentity
 
 
 class MemoryRecord:
@@ -341,7 +342,7 @@ class MemorySearchHit:
 
 class MemoryContextReference:
     TYPE = "type"
-    KIND = "memory"
+    KIND = MemoryIdentity.COMPONENT
 
     @classmethod
     def project(cls, record):

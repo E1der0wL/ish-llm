@@ -18,14 +18,16 @@
 | [tool_result_values.py](tool_result_values.py) | Tool 결과 요약의 identity·관측·문맥 Projection과 일시 처리 결과를 소유합니다. |
 | [compaction_storage.py](compaction_storage.py) | 압축 manifest·scope/revision 항목·inventory 반환형을 소유합니다. 실제 파일 효과는 Compactions가 담당합니다. |
 | [compaction_runtime.py](compaction_runtime.py) | 압축 모델 입력·진행 관측·일시 결과와 실행 진단을 소유합니다. |
-| [identity.py](identity.py) | 초기화한 Memory 저장소 identity의 파일명·필드·엄격한 검증을 소유합니다. |
+| [identity.py](identity.py) | 공유 Component 이름과 초기화한 저장소 identity의 파일명·필드·엄격한 검증을 소유합니다. |
 | [search.py](search.py) | 검색 입력·명시 한도·keyword 점수·주입 점수 검증·정렬을 소유합니다. Component의 검색/점수 재정의 경로는 유지합니다. |
 | [record_cache.py](record_cache.py) | 원본 inventory 검증 후에만 사용하는 decode 캐시의 stat signature·사본·LRU 퇴출을 소유합니다. |
 | [dependencies.py](dependencies.py) | Component와 Processor가 공유하는 주입 callable/Adapter 검증을 소유합니다. |
-| [component.py](component.py) | 기억 레코드·revision·출처·상태·설정과 저장 구조를 관리합니다. |
+| [component.py](component.py) | 현재 증거를 검증하고 레코드·요약·병합 저장과 검색 callback을 조합합니다. |
 | [summary_records.py](summary_records.py) | 요약·metadata·부분 cursor의 정규 필드/검증과 profile·문맥/Step 투영을 소유합니다. |
 | [summary_storage.py](summary_storage.py) | Session 요약의 필수 존재 목록과 원자 저장·명시 삭제를 소유합니다. |
 | [data.py](data.py) | 잠금과 Project 수명 검사 아래의 MemoryData CRUD·검색·검토 API입니다. |
+| [api_values.py](api_values.py) | 공개 검토 응답과 운영 이벤트 이름의 Projection을 소유합니다. |
+| [processing_values.py](processing_values.py) | 모델 요약 입력·Message fingerprint·일시 요약 캐시·Step/Tool preview/문맥 처리 관측을 소유합니다. |
 | [processing.py](processing.py) | MemoryProcessor/MemorySession: 회상, 문맥·Tool 결과 축약, 요약·후보 추출을 조합합니다. |
 | [compaction.py](compaction.py) | 애플리케이션의 명시적 압축 요청, 원본 해시 검증과 범위별 파생 요약입니다. |
 | [tool_results.py](tool_results.py) | 완료 Tool/MCP 결과의 원문 참조·분할 요약과 모델 입력 사본 적용입니다. |

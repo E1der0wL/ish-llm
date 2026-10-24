@@ -5,6 +5,7 @@ from llm.components.file_manifest import FileManifest
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.components.goals.records import GoalContextReference, GoalDefinition
 from .snapshot import MemoryProcessingSnapshot
+from .api_values import MemoryEvents, MemoryReview
 from .summary_records import SummaryRecord
 from .records import MemoryRecord
 from .configuration import MemoryConfiguration, MemoryToolData
@@ -26,25 +27,37 @@ from copy import deepcopy
 class MemoryData(ComponentData):
     """기억 CRUD. 변경은 마지막으로 읽은 generation/revision 쌍으로 검증한다."""
 
+    ABSENT = None
+    INCLUDE_RECORDS = True
+    INCLUDE_DELETED = True
+    LIVE_ONLY = False
+    CLAIM_REJECTED = False
+    CLAIMED = True
+    STORAGE_CHANGED = "Memory configuration or storage changed during processing"
+    GOAL_CHANGED = "Goal changed during summary processing"
+    UNAVAILABLE_REFERENCE = "Consolidation reference is unavailable"
+    CHANGED_REFERENCE = "Consolidation reference changed"
+    ORPHAN_SOURCE = "Source file already exists without a summary request"
+
     def _write_memory(self, operation, *args, **kwargs):
         project, component = self._current()
         result = getattr(component, operation)(project, *args, **kwargs)
-        log_event(project.paths.logs, "memory." + operation, entity_id=project.id)
+        log_event(project.paths.logs, MemoryEvents.operation(operation), entity_id=project.id)
         return result
 
     @workspace_locked
-    def _processing_snapshot(self, session_id, *, include_records=True):
+    def _processing_snapshot(self, session_id, *, include_records=INCLUDE_RECORDS):
         project, component = self._current()
         return MemoryProcessingSnapshot.create(identity=component.identity(project), configuration=component.get_config(project),
-                has_search=component.search_fn is not None or MemoryConfiguration(component._options(project)).search_strategy is not None,
-                records=component.list(project, include_deleted=True, session_id=session_id) if include_records else {},
+                has_search=component.search_fn is not self.ABSENT or MemoryConfiguration(component._options(project)).search_strategy is not self.ABSENT,
+                records=component.list(project, include_deleted=self.INCLUDE_DELETED, session_id=session_id) if include_records else {},
                 summary=component.summary(project, session_id))
 
     @workspace_locked
     def _extraction_prompt(self, identifier):
         """한 처리기 실행에서 사용할 명시적 추출 지침과 버전만 읽는다."""
         self._current()
-        if identifier is None:
+        if identifier is self.ABSENT:
             raise ValueError(MemoryExtractionPrompt.MISSING)
         snapshot = EditableSnapshot.read(self.related(PromptDefinition.CAPABILITY).snapshot(identifier))
         return MemoryExtractionPrompt.create(snapshot.data, version=snapshot.version, source=identifier)
@@ -54,7 +67,7 @@ class MemoryData(ComponentData):
         if (component.identity(project) != selected.identity or
                 component.get_config(project) != selected.configuration):
             from .component import MemoryConflictError
-            raise MemoryConflictError("Memory configuration or storage changed during processing")
+            raise MemoryConflictError(self.STORAGE_CHANGED)
 
     @workspace_locked
     def _goal_references(self, session_id, identifiers):
@@ -71,7 +84,7 @@ class MemoryData(ComponentData):
         selected = MemoryProcessingSnapshot(snapshot)
         if selected.has_goal_references and self._goal_references(session_id, selected.goal_ids) != selected.goal_references:
             from .component import MemoryConflictError
-            raise MemoryConflictError("Goal changed during summary processing")
+            raise MemoryConflictError(self.GOAL_CHANGED)
         prior = SummaryRecord(selected.summary)
         record = SummaryRecord.with_source(record, source)
         return component.publish_summary(project, session_id, record, expected_revision=prior.observed_revision,
@@ -83,17 +96,17 @@ class MemoryData(ComponentData):
         from .component import MemoryConflictError
         project, component = self._current()
         self._check_snapshot(project, component, snapshot)
-        records = component.list(project, include_deleted=True, session_id=session_id)
+        records = component.list(project, include_deleted=self.INCLUDE_DELETED, session_id=session_id)
         selected = MemoryProcessingSnapshot(snapshot)
         # 모든 참조를 쓰기 전에 검사한다. 모델에게 다른 Session의 ID/버전을 선택하게 하지 않는다.
         for candidate in candidates:
             for raw in MemoryRecord(candidate).replacements:
                 ref = MemoryRecord(raw)
                 if ref.identifier not in selected.records or ref.identifier not in records:
-                    raise MemoryConflictError("Consolidation reference is unavailable")
+                    raise MemoryConflictError(self.UNAVAILABLE_REFERENCE)
                 if (ref.version != MemoryRecord(records[ref.identifier]).version or
                         records[ref.identifier] != selected.records[ref.identifier]):
-                    raise MemoryConflictError("Consolidation reference changed")
+                    raise MemoryConflictError(self.CHANGED_REFERENCE)
         keys = {MemoryRecord(r).content_identity(content_key) for r in records.values()}
         created = []
         for candidate in candidates:
@@ -102,7 +115,7 @@ class MemoryData(ComponentData):
                 continue  # 삭제된 기억도 자동으로 되살리지 않는다.
             created.append(component.create(project, candidate, source=source))
             keys.add(key)
-        log_event(project.paths.logs, "memory.extracted", entity_id=project.id, count=len(created))
+        log_event(project.paths.logs, MemoryEvents.EXTRACTED, entity_id=project.id, count=len(created))
         return created
 
     @workspace_locked
@@ -126,58 +139,58 @@ class MemoryData(ComponentData):
         return component.load(project, result, session_id=MemorySource(source).session_id) if operation == MemoryHistory.CREATE else result
 
     @workspace_locked
-    def _compaction_state(self, session_id, scope, *, tool_id=None):
+    def _compaction_state(self, session_id, scope, *, tool_id=ABSENT):
         from .compaction import Compactions
         return Compactions(self, session_id, scope, tool_id=tool_id).recover()
 
     @workspace_locked
-    def _claim_compaction(self, session_id, scope, identifier, run_id, *, tool_id=None):
+    def _claim_compaction(self, session_id, scope, identifier, run_id, *, tool_id=ABSENT):
         from .compaction import Compactions
         storage = Compactions(self, session_id, scope, tool_id=tool_id)
         state = storage.read()
         request = CompactionState(state).optional_request
         if request.optional_identifier != identifier or request.optional_status != Compactions.PENDING:
-            return False
+            return self.CLAIM_REJECTED
         try:
             storage.check_sources(request.to_record())
         except ValueError:
             request.finish(Compactions.STALE, CompactionState.SOURCE_CHANGED)
             storage.write(state)
-            return False
+            return self.CLAIM_REJECTED
         request.start(Compactions.RUNNING, run_id)
         storage.write(state)
-        return True
+        return self.CLAIMED
 
     @workspace_locked
-    def _finish_compaction(self, session_id, scope, identifier, status, applied, error, *, run_id=None, tool_id=None):
+    def _finish_compaction(self, session_id, scope, identifier, status, applied, error, *, run_id=ABSENT, tool_id=ABSENT):
         from .compaction import Compactions
         storage = Compactions(self, session_id, scope, tool_id=tool_id)
         state = storage.read()
         if CompactionState(state).optional_request.optional_identifier != identifier:
-            if applied is not None:
+            if applied is not self.ABSENT:
                 from .compaction import CompactionStopped
                 raise CompactionStopped(CompactionState.REQUEST_REPLACED)
             return
         if CompactionState(state).request.status == Compactions.CANCELLED:
-            if applied is not None:
+            if applied is not self.ABSENT:
                 from .compaction import CompactionStopped
                 raise CompactionStopped(CompactionState.CANCELLED_BEFORE_PUBLICATION)
             return
-        if run_id is not None:
+        if run_id is not self.ABSENT:
             storage.require_running(state, identifier, run_id)
-        if applied is not None:
+        if applied is not self.ABSENT:
             storage.check_sources(CompactionState(state).request.to_record())
             checkpoint = CompactionState(state).request.checkpoint_record
-            if (checkpoint is None or SummaryCheckpoint(checkpoint).offset != SummaryCheckpoint(checkpoint).total_chars
+            if (checkpoint is self.ABSENT or SummaryCheckpoint(checkpoint).offset != SummaryCheckpoint(checkpoint).total_chars
                     or SummaryCheckpoint(checkpoint).summary != CompactionApplied(applied).summary):
                 raise ValueError(CompactionState.INCOMPLETE_PUBLICATION)
         CompactionState(state).request.finish(status, error)
-        if applied is not None:
+        if applied is not self.ABSENT:
             CompactionState(state).apply(applied)
         storage.write(state)
 
     @workspace_locked
-    def _save_compaction(self, session_id, scope, identifier, run_id, fingerprint, total, progress, previous_offset, *, tool_id=None):
+    def _save_compaction(self, session_id, scope, identifier, run_id, fingerprint, total, progress, previous_offset, *, tool_id=ABSENT):
         from .compaction import Compactions
         Compactions(self, session_id, scope, tool_id=tool_id).checkpoint(
             identifier, run_id, fingerprint, total, progress, previous_offset)
@@ -209,7 +222,7 @@ class MemoryData(ComponentData):
     def _prepare_tool_summary(self, session_id, identifier, text, options, destination, mode, call_id):
         from .compaction import Compactions
         from llm.services.infrastructure.storage import revision_token
-        storage = Compactions(self, session_id, None, tool_id=identifier)
+        storage = Compactions(self, session_id, self.ABSENT, tool_id=identifier)
         state = storage.recover()
         if state:
             storage.check_sources(CompactionState(state).request.to_record())
@@ -219,7 +232,7 @@ class MemoryData(ComponentData):
         snapshot = EditableSnapshot.read(files.snapshot(selected.identifier))
         path = CompactionReference.path_for(session_id, identifier)
         if path in FileManifest(snapshot.data).entries:
-            raise ValueError("Source file already exists without a summary request")
+            raise ValueError(self.ORPHAN_SOURCE)
         snapshot = EditableSnapshot.read(files.write_file(
             selected.identifier, path, text, expected_revision=snapshot.version))
         reference = CompactionReference.create(destination, path, revision_token(FileManifest(snapshot.data).require(path)))
@@ -236,16 +249,17 @@ class MemoryData(ComponentData):
     def describe_compaction(self):
         """애플리케이션이 선택할 압축 요청의 schema. 설정값을 생성하지 않는다."""
         from .compaction import compaction_schema
-        return compaction_schema(completion_adapter=self._current()[1].completion_adapter)
+        project, component = self._current()
+        return compaction_schema(completion_adapter=component.completion_adapter)
 
     @workspace_locked
-    def get_context(self, session_id, *, scope=None):
+    def get_context(self, session_id, *, scope=ABSENT):
         """마지막 모델 입력 경계의 토큰·예산·압축 가능한 턴과 요청 상태를 조회한다."""
         from .compaction import Compactions
         return Compactions(self, session_id, scope).view()
 
     @workspace_locked
-    def request_compaction(self, session_id, options, *, expected_revision, scope=None):
+    def request_compaction(self, session_id, options, *, expected_revision, scope=ABSENT):
         """명시한 압축을 다음 Loop 입력 경계에 예약한다. 이 API는 모델을 호출하지 않는다."""
         from .compaction import Compactions
         return Compactions(self, session_id, scope).request(options, expected_revision)
@@ -254,13 +268,13 @@ class MemoryData(ComponentData):
     arequest_compaction = async_method(request_compaction)
 
     @workspace_locked
-    def resume_compaction(self, session_id, *, expected_revision, scope=None):
+    def resume_compaction(self, session_id, *, expected_revision, scope=ABSENT):
         """Requeue the same immutable request and validated cursor; never resume a Tool effect."""
         from .compaction import Compactions
         return Compactions(self, session_id, scope).change(expected_revision, Compactions.RESUME)
 
     @workspace_locked
-    def cancel_compaction(self, session_id, *, expected_revision, scope=None):
+    def cancel_compaction(self, session_id, *, expected_revision, scope=ABSENT):
         """Cancel pending work or reject an in-flight result at its next save boundary."""
         from .compaction import Compactions
         return Compactions(self, session_id, scope).change(expected_revision, Compactions.CANCEL)
@@ -269,7 +283,7 @@ class MemoryData(ComponentData):
     acancel_compaction = async_method(cancel_compaction)
 
     @workspace_locked
-    def delete_compaction(self, session_id, *, expected_revision, scope=None):
+    def delete_compaction(self, session_id, *, expected_revision, scope=ABSENT):
         """Release a finished/cancelled derived context and its original-message references."""
         from .compaction import Compactions
         Compactions(self, session_id, scope).delete(expected_revision)
@@ -281,14 +295,14 @@ class MemoryData(ComponentData):
         """List saved result transformations, without loading the source text."""
         from .compaction import Compactions
         project, component = self._current()
-        return [Compactions(self, session_id, None, tool_id=identifier).view()
+        return [Compactions(self, session_id, self.ABSENT, tool_id=identifier).view()
                 for identifier in Compactions.tool_summary_ids(project, component, session_id)]
 
     @workspace_locked
     def read_source(self, session_id, identifier, *, expected_revision, offset, limit):
         """Read a character range of a pinned Tool/MCP source in the owning Session."""
         from .compaction import Compactions
-        state = Compactions(self, session_id, None, tool_id=identifier).read()
+        state = Compactions(self, session_id, self.ABSENT, tool_id=identifier).read()
         reference = CompactionState(state).request.reference_record
         if CompactionReference(reference).revision != expected_revision:
             raise ValueError(CompactionSourceRead.CHANGED_REVISION)
@@ -298,18 +312,18 @@ class MemoryData(ComponentData):
     @workspace_locked
     def resume_tool_summary(self, session_id, identifier, *, expected_revision):
         from .compaction import Compactions
-        return Compactions(self, session_id, None, tool_id=identifier).change(expected_revision, Compactions.RESUME)
+        return Compactions(self, session_id, self.ABSENT, tool_id=identifier).change(expected_revision, Compactions.RESUME)
 
     @workspace_locked
     def cancel_tool_summary(self, session_id, identifier, *, expected_revision):
         from .compaction import Compactions
-        return Compactions(self, session_id, None, tool_id=identifier).change(expected_revision, Compactions.CANCEL)
+        return Compactions(self, session_id, self.ABSENT, tool_id=identifier).change(expected_revision, Compactions.CANCEL)
 
     @workspace_locked
     def delete_tool_summary(self, session_id, identifier, *, expected_revision):
         """Release an inactive source reference; Data deletion remains a separate explicit action."""
         from .compaction import Compactions
-        Compactions(self, session_id, None, tool_id=identifier).delete(expected_revision)
+        Compactions(self, session_id, self.ABSENT, tool_id=identifier).delete(expected_revision)
 
     alist_tool_summaries = async_method(list_tool_summaries)
     aread_source = async_method(read_source)
@@ -318,13 +332,13 @@ class MemoryData(ComponentData):
     adelete_tool_summary = async_method(delete_tool_summary)
 
     @workspace_locked
-    def consolidate(self, identifier, *, expected_revision, expected_generation, session_id=None):
-        return self._write_memory("consolidate", identifier, expected_revision=expected_revision,
+    def consolidate(self, identifier, *, expected_revision, expected_generation, session_id=ABSENT):
+        return self._write_memory(MemoryData.consolidate.__name__, identifier, expected_revision=expected_revision,
                                   expected_generation=expected_generation, session_id=session_id)
 
     @workspace_locked
     def recover_consolidations(self):
-        return self._write_memory("recover_consolidations")
+        return self._write_memory(MemoryData.recover_consolidations.__name__)
 
     @workspace_locked
     def pending_consolidations(self):
@@ -344,10 +358,10 @@ class MemoryData(ComponentData):
     @workspace_locked
     def clear_summary(self, session_id: str, *, expected_revision: int, expected_generation: str) -> None:
         """원본은 유지하고 파생 캐시만 지운다. 다음 요청에서 설정에 따라 다시 요약한다."""
-        self._write_memory("clear_summary", session_id, expected_revision=expected_revision, expected_generation=expected_generation)
+        self._write_memory(MemoryData.clear_summary.__name__, session_id, expected_revision=expected_revision, expected_generation=expected_generation)
 
     @workspace_locked
-    def review(self, *, session_id=None) -> dict:
+    def review(self, *, session_id=ABSENT) -> dict:
         """정확히 중복된 기억, 만료된 기억, 모델이 제안한 대체 관계를 UI에 제공한다."""
         from .processing import content_key
         project, component = self._current()
@@ -358,55 +372,54 @@ class MemoryData(ComponentData):
                 expired.append(identifier)
             if MemoryRecord(record).replacements:
                 proposals.append(deepcopy(record))
-        return {"duplicates": [ids for ids in groups.values() if len(ids) > 1],
-                "expired": expired, "proposals": proposals}
+        return MemoryReview.project(groups, expired, proposals)
 
     @workspace_locked
-    def create(self, data: dict, *, identifier=None, source=None) -> str:
+    def create(self, data: dict, *, identifier=ABSENT, source=ABSENT) -> str:
         """API 작성은 confirmed가 기본이다. 사용자 검토 대기는 status='candidate'로 저장한다."""
-        return self._write_memory("create", data, identifier=identifier, source=source)
+        return self._write_memory(MemoryHistory.CREATE, data, identifier=identifier, source=source)
 
     @workspace_locked
-    def load(self, identifier: str, *, include_deleted=False, session_id=None) -> dict:
+    def load(self, identifier: str, *, include_deleted=LIVE_ONLY, session_id=ABSENT) -> dict:
         project, component = self._current()
         return component.load(project, identifier, include_deleted=include_deleted, session_id=session_id)
 
     @workspace_locked
-    def list(self, *, include_deleted=False, status=None, session_id=None) -> dict:
+    def list(self, *, include_deleted=LIVE_ONLY, status=ABSENT, session_id=ABSENT) -> dict:
         project, component = self._current()
         return component.list(project, include_deleted=include_deleted, status=status, session_id=session_id)
 
     @workspace_locked
-    def save(self, identifier: str, data: dict, *, expected_revision: int, expected_generation: str, source=None, session_id=None) -> dict:
+    def save(self, identifier: str, data: dict, *, expected_revision: int, expected_generation: str, source=ABSENT, session_id=ABSENT) -> dict:
         """사용자 필드 전체 교체. load 결과에서 id/revision/출처 등 관리 필드를 제외해 전달한다."""
-        return self._write_memory("save", identifier, data, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
+        return self._write_memory(MemoryHistory.SAVE, identifier, data, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
 
     @workspace_locked
-    def update(self, identifier: str, changes: dict, *, expected_revision: int, expected_generation: str, source=None, session_id=None) -> dict:
+    def update(self, identifier: str, changes: dict, *, expected_revision: int, expected_generation: str, source=ABSENT, session_id=ABSENT) -> dict:
         """최상위 사용자 필드를 병합한다. 중첩 사전은 통째로 교체된다."""
-        return self._write_memory("update", identifier, changes, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
+        return self._write_memory(MemoryHistory.UPDATE, identifier, changes, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
 
     @workspace_locked
-    def delete(self, identifier: str, *, expected_revision: int, expected_generation: str, source=None, session_id=None) -> dict:
+    def delete(self, identifier: str, *, expected_revision: int, expected_generation: str, source=ABSENT, session_id=ABSENT) -> dict:
         """복구 가능한 삭제. 기본 목록·검색·조회에서 제외한다."""
-        return self._write_memory("delete", identifier, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
+        return self._write_memory(MemoryHistory.DELETE, identifier, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
 
     @workspace_locked
-    def restore(self, identifier: str, *, expected_revision: int, expected_generation: str, source=None, session_id=None) -> dict:
-        return self._write_memory("restore", identifier, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
+    def restore(self, identifier: str, *, expected_revision: int, expected_generation: str, source=ABSENT, session_id=ABSENT) -> dict:
+        return self._write_memory(MemoryHistory.RESTORE, identifier, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
 
     @workspace_locked
-    def purge(self, identifier: str, *, expected_revision: int, expected_generation: str, session_id=None) -> None:
+    def purge(self, identifier: str, *, expected_revision: int, expected_generation: str, session_id=ABSENT) -> None:
         """이미 삭제한 기억과 모든 이력을 영구 제거한다. 모델 Tool로는 제공하지 않는다."""
-        self._write_memory("purge", identifier, expected_revision=expected_revision, expected_generation=expected_generation, session_id=session_id)
+        self._write_memory(MemoryData.purge.__name__, identifier, expected_revision=expected_revision, expected_generation=expected_generation, session_id=session_id)
 
     @workspace_locked
-    def history(self, identifier: str, *, session_id=None) -> list:
+    def history(self, identifier: str, *, session_id=ABSENT) -> list:
         project, component = self._current()
         return component.history(project, identifier, session_id=session_id)
 
     @workspace_locked
-    def search(self, query: str, *, limit=None, status=None, session_id=None) -> list:
+    def search(self, query: str, *, limit=ABSENT, status=ABSENT, session_id=ABSENT) -> list:
         """[{score, memory}] 반환. status='all'이면 candidate도 포함한다. 삭제한 기억은 제외한다."""
         project, component = self._current()
         return component.search(project, query, limit=limit, status=status, session_id=session_id)
