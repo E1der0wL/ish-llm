@@ -3,6 +3,7 @@
 Lifecycle-checked component data access without domain-specific knowledge."""
 
 from llm.core.editable_snapshot import EditableSnapshot
+from llm.core.component_reference import ComponentReference
 
 from copy import deepcopy
 from contextlib import contextmanager, nullcontext
@@ -88,17 +89,17 @@ class ComponentData:
         if self._sessions is None:
             raise RuntimeError("Component domain references are not bound")
         session = self._sessions.load(project, session_id)
-        result = {"session": record(session)}
+        result = ComponentReference.for_session(record(session))
         if run_id is not None:
             run = self._sessions.run_repository.load(session, run_id)
-            result["run"] = record(run)
+            result.include_run(record(run))
             if step_id is not None:
                 if self._steps is None:
                     raise RuntimeError("Component Step references are not bound")
-                result["step"] = record(self._steps.load(run, step_id))
+                result.include_step(record(self._steps.load(run, step_id)))
         elif step_id is not None:
             raise ValueError("Step reference requires a Run")
-        return deepcopy(result)
+        return result.to_dict()
 
     @workspace_locked
     def related(self, name):

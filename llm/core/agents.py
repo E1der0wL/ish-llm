@@ -217,6 +217,13 @@ class AgentResourceSelection:
     def rag(self):
         return self._value.get(AgentDefinition.ResourceField.RAG, self.NO_RAG)
 
+    @classmethod
+    def replace_skills(cls, definition, skills):
+        """Build an explicit detached edit; the owning mutation API still validates it."""
+        value = deepcopy(definition)
+        value.setdefault(AgentDefinition.Field.RESOURCES, {})[AgentDefinition.ResourceField.SKILLS] = deepcopy(skills)
+        return value
+
 
 class AgentProfile:
     """Validated detached definition for execution; serialization preserves omission."""

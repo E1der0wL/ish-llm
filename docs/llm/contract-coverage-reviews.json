@@ -38445,573 +38445,573 @@
   },
   {
     "path": "llm/core/agents.py",
-    "sha256": "e514cb54ca16021b59c12293febf2ca1bfa9361c61398742c7a0db50b0f702b8",
-    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured.",
+    "sha256": "97b12d3359b514687c688552b5433da84ad8c50e5cf282d8712b6a2e8f0a4731",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "ea54374669142b2cbcc0430dd81fe6b0f24b574780d9a5284ad37265287fe78c",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentMode",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "8b54756ba87a84a80f1123f3b6a8c3451472a8b2e1062f8ebdabbd23fe7d3283",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentMode",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "aae323910e9c1004458e636683c341456e928be07f65fb211bec6d1d4ed09779",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "b41a1d33d6082ea3bed8dcfe478d2540fcdd6a625bb20e00efc9d68d933adcc8",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "b673aafc5a9b76547480cc099cf3c3daee4a74df3c883f09f5f8621b76d24e3b",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "3c2363b16d98444e936cfb02ab804d8ef9c2d4fdc62f5dcefdaf54abb125a6e8",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "d95e6cc7699cf4b9d12941495eadb19da7bf5baae0c1ed83a2713fd3796148ef",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "798798f35271e8b36ec859c23742f6b917cd4de709a0ff9a91515d219b8bbd00",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "47912073847e04468ded2172a9a8e53d858132349261362bff0009a8da68859b",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "4e5d2317a258bcb8e11cbfb3a58f454b15e6b8492169d29c043c7698b5a717e4",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "9a3aceab44341aeb0d2ce4328c7b0cafb591aa31d6ea58d5fec7946a43e009a1",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "4df65c00a2e6a9e9461ca2dacac769c2d468872331c8425c5e213380d9515cc7",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "63237a125a1c5ecbe77a3cd6b4160e50628a1642ef9041572515dae14b73d941",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "964782169967a407585155437e875a27b9f15ea2086da9460403cdc60d06e710",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "081647f2734ee7300fb3ffa766e70906013f2e424dc549374b30b2fd793403fb",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "0d914da5f940bda5627e99638beed000e44174c4dd110f96d584ca7f51fb83e1",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "d2e7ea3e1defc7f9ece84901c8806566d33318049646ec676e8cf5455e9f0b2c",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.ResourceField",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "ca84569a07016f382386c1c234576f1fae2978a7baa18fc2626ada65644c2d48",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.ResourceField",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "a08cf20782eeee19b8218e84208d767926f67a31e57780b1f8b53dbb67e67cda",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.ResourceField",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "4f1f65af19f07bac7e9e41840d296f91ce33273539026cf8432fde5676b8e0c9",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.ResourceField",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "d7fc63ff9788c158aabbbd7392b453896c9e32f317a0b5443289a1f2d065b9d6",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.PolicyField",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "4a87b03d4a0cf69e3c396f82b5529b69b500c011ca3cfcbc8fedf057545ee70e",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.PolicyField",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "715a9015f34a15b37cc725ce2f18c9431d92708a3bd944ad95d4d0d2312b50cd",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.PolicyField",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "30b854afa3b188f54326d7dd2cfff8a9899748847185250c0cc382295b5c5f7b",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.OutputFormat",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "edda83f2b9d91abebb178786dfc2886b099d8a3e2317799bd9b53593bc7fe160",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition.OutputFormat",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "275b1904394bcea340e82de5497edd4d3c79acc9628d9e7e9e01830fae844450",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "72d47da9f32d7483357e2cf8aa33efc820482d5b0b7c59781062ff5c8c1c50e5",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "d825bc891260cb413d353028e5709c75d1f61f4ba8cda735d88616ef80dd9120",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "fb19d563a6d3267e029bedbd994f62803059f0975a59ce161b540e5189e4f21c",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "57714484b182acb00b9a9c54082980fbe434b1e681bd3fa200aeee0cfdca8e18",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "90062110ed38b1739fe6fb20a30882538e24cdd711155874f97f6e60dbccf370",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "fb323b7d97cd34f450075491731078c5ec276033a1dd09c57b6c43ac405e453e",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "db2eaa06bcfa0370534ddec5bae40fcdc95864269231e2142754663b3d5788f0",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "11e6510cee8fa915ffcb50aab55dd18d1830d68f3336255a46fd2c8cba32b652",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "c0450c21ec507a72817ea0a2710a0590e2263cb363d3ebd86e36855be214eae5",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "9eb90886cd4ea4151949472d0848f834cb59cfa220287636f658a971573120b5",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "d0658f3c099f1d2b864e44194dbcb40f302242791e416dd236d745a72645aec4",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "ab8723c8ffef940dd20cf1a32a9c6a3de2ecb20fb43f8a6461a8474fb7dcbea5",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "8b53c2b6337f3c917606e0dfc0605de8c592e3f5e3236f587950c1a44a4c0eb0",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "c7c06618e815d93a36628ec9b7bb51af868abf0702b9ce9529a3834623ef5346",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "9f19aee7c3d70a22a06a3ae890de20f92927e911cdd7c1ece575c44988ede90d",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "d8a8388c67a25fc20d01983c9f2d01ce099f314c7a77ec09ff8a63bd9c20289f",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "25c498a49b083d29dd2ecdb441c162d04506141e0696a9e297ff587ddad620da",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "7ba5157035dfffcdbd30461e1e4e1e160728e899ffb08161fdb11055628c302f",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "b1c9481400a4d5bd74fcad99ae7ae9e10a9a76ed68dc6aba5b3e83848e71cb6d",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentDefinition",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "64b05cb328bd3759fce538262c01918eeab25b5dfb60fcfd43a0e43a09957ce9",
         "classification": "declaration",
         "owner": "AgentDefinition",
-        "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "17a3a46a7ccab592733a9c25f95456608284199c5418d17dd7a715216f5a2339",
         "classification": "non_contract",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "owner": "AgentDefinition.validate",
         "reason": "Select the first already sorted validation error; positional indexing, not a domain default or threshold."
       },
       {
         "id": "368f87785215c97fe79b694797b3118da5ad85998a355761be1dac856f489647",
         "classification": "declaration",
         "owner": "AgentPolicy",
-        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "c3b9854b27576f6fbf80c1749f8a056c179abe996c130032780918ebdd6f7e70",
         "classification": "declaration",
         "owner": "AgentPolicy",
-        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "4c3d1b7a807a6c5ba72934806efdb5f387d3ecd60c86734ebee83c9ae82e66c7",
         "classification": "declaration",
         "owner": "AgentPolicy",
-        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "e285cb994cc734101af44b4e2bd0678206415ecf47e783d1f67a8c82ae64c50b",
         "classification": "declaration",
         "owner": "AgentPolicy",
-        "reason": "Canonical required-Tool completion diagnostic, checkpoint context extension name or unsupported Engine resume diagnostic is declared by the corresponding Owner."
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "736e948c2dc2bd2f508feeab9c58bf87b6fe88acb6118e4c3f758623c6091843",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
-        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
         "id": "8d8b6c247b82beb5de9adc21f98edcb8864f2b8e2432a4c1e3b3786ba173f15d",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
-        "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "49fb36cd20aa82b53cb632a992d67198ed9e4ee9b1018bf4733d606d568e2e2f",
+        "id": "fc3497dc7b314cb2e2b052a7a8b40d5343caf0b85aeb5915b53f6fddb099c2b9",
         "classification": "non_contract",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "owner": "AgentRecord",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "9b07e62f152e93308c446002f9665145123ec036686e14b35e11a955c6f12cf1",
+        "id": "9b407039a71c16a8ac95264314c05b545ace81755846940bc0ecd6f233746f44",
         "classification": "non_contract",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "owner": "AgentRecord",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "fef76cc9701a2be9e7205a116850b72ef9131fc483e1e482bcdc3bb4a01b42a9",
+        "id": "769737a142ba5754dbc3fa7597aed7fd677a8b99d78d0fcc8db9fb9be771210a",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "3c42971118f956521b15ec75b4edf5efbe9e78c88c025d70d06f08a8a17dbac6",
+        "id": "2f1aebc491a536b463980012df475b476fb8a0acf9c0529a2b44331c3883e2d2",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "06c997ad0d027250a3b251f300d3d199d0e4a04ecf9952dec35dd52697597ea0",
+        "id": "23b7e7de6fed79e24f9cf43861766f993b105b048cc2fe137cd899cb98c8d460",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "286402fe2580b43c00682779ad721a2d166158cf91981f0093039d186ee7f23b",
+        "id": "e8392e2a1e171f936b1648bcccdee287bccc997a95403719dea43ed87ae3e9c5",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "5066b083f177d63e610d1b2ac9ea8272fd89b95f0d9618267b8c9d1e521a160a",
+        "id": "e5fa48fe19b99bfeb9bafd08856c6aa4ed5af8dbdc1e2ad44a18ace92061431a",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "270311017adbd9b6c4c360e049a97c5cc956c986e1b01d2987f57294feeb424c",
+        "id": "c31b8224133ec96dd5c490ce21390148c17042afe3d798142e7519d09828e6d5",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e1d1d48271dca62c8d221a287bb2e301aa11556f647293825b13d948ebfb2bed",
+        "id": "3ea337371428f83129e4a6eccf478798e065697ed1225283631bcece2f63c29e",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "8b1d355b4f67b9c50d8d5474a70494dc80d0c20a50131f410c3ee06e7cb68ec6",
+        "id": "a94988a40024ba73e8968ae1bd6a9e8531dd7145cff2c35893e4269c0ebb9072",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e9d03dd4ad2f52220a150ecb0e82c85d6c50ca3cdae17cdbccc0d186e628c92c",
+        "id": "ec568404a108e4f26118db56118a6ac1cd131e760455064b8e71c4a6a0770a82",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "7599bfe069414aa03224b17a55e3cdd455f55970e3dbcf32c6ac526d044517d0",
+        "id": "b813b1f7b81e7b4dc63341c3142e849ab3df1ca0d5b43eeeee7116c56943d3c8",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "252c171ce42cb10fab8046652620a889fa772873f1d3ff77c9f0976c11bc0931",
+        "id": "59257254d03365f98b463f15ae30eb3b546fa90b2ee63b80b56affef94f75940",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "2987eabbc90e87af7418e6d3ea9374fc0737aeeac704957ba8f9305de44b4be2",
+        "id": "18bc6de3c0d82360ff372e8103e1b66e656983b8b36cce5a9c56fa1b25632a51",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentRecord",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d00d62fdcd2aab7db9b01a22f612cd2ab0ca0f1a585c64c309cb1fabf7ec0c12",
+        "id": "3ce5b391ffc367145010ac511cca12cc1eec7543b40ecbe7bca065f2b9f60982",
         "classification": "non_contract",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "owner": "AgentCatalog",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "27aac26851e682c1b1867fb2111c58f6704efec6267230c3b1748b4ce52c3dd1",
+        "id": "88d300522cd2e74a2167479d9621e5db517b21746f116b7ba91e0d67201e142a",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentCatalog",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "2186f0c16ce0a325c87b92fe1b1287e6946a7712035520f836da83a9cef886a1",
+        "id": "dbe6df0428887a9ec764b02fa50802cfee1e879cd822cb66e2f2a4dd209c05db",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentCatalog",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "9d37ec83b4fb9d7040d3059ed857252f9d189ea3f8773d79095cabacbc69b797",
+        "id": "1b70df0dc86be6c845ca91ed4b304b5d557a85bdc343771ab3ef60cc586dcc51",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentCatalog",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "ad24227a0b1e318f5fbd7a943c670eeac1e97dd458ab202f206b0775902e2d7c",
+        "id": "0ea58fc89860aa98448a9204b5ebbe6d4b6f17fc4beb75fd2ffb25e223364906",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentCatalog",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "c8e7bc673cb2fc92d577ea87af099ef0e6011cebee6a6358193b3e5206d4f18b",
+        "id": "6534c717ead3213b07ffded93f8511a2401d196567f79e93af06c0f9566d1b94",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentCatalog",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "34e2a0728f7b73a57b7e589081bf58ba9dba5d2e7947bbb2a758e57822208044",
+        "id": "fc7cabf97060a4070565843c02dd1e5782866f1361cfbb10969a681f70612bee",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentCatalog",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "8ea2affb6d058e80f7026147141242f5e35196d4267132a5f299c98d177aa602",
+        "id": "ad082a995263d2264e386b20d106568bdcb1db3b498e97e643603472336433c7",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentCatalog",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "3f8ebe1429ffb240f1e127b4fa10a31f841d18facb0e4a1b4519e8298b09f3dc",
+        "id": "55852bde9666e517d4cd8f80bcd5fc404ef5b92660f0b8ba73f39b062020052f",
         "classification": "non_contract",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "owner": "AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "f0af0a6d42b08a05640cb872321dbec6fc6729b606864290d665d7ff13577c98",
+        "id": "8557a08e98bb2ff25d7ae2bb814330fd10975353884c1c932b667e5d5756890f",
         "classification": "non_contract",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
+        "owner": "AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "e63441e931b5c4bc1365fd3b2a2ba18c511314504d9194ce3751814deb1bb430",
+        "id": "fa2379383e0911f12f37d5535bf148293a7bd4900b7c6fd4e2b4b79bfc6f074a",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "b8248d8e659a48725710f94e4fca03a78a01c3a1ea4f0d993c9b489dd22932ed",
+        "id": "32c1945086e79cacc5482f72dbc332c8e991f90297f8c2161364f5b275043a27",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "a04559475a836138c98be1d1ea47ef8dd90ecfed3c7ef056606bffc48ad6d226",
+        "id": "2e2ae3fe45a0a103297beae61c637cb044f78aaaad3a2602715c8fd618152c25",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "9c17a9566f40a8b486b2c2ca4777d3e6dca7efb5ab02b6f32d565bb75f4af7fc",
+        "id": "ce62ca87a7108b11a2ec72dddc4a627d854c5d37745d2ff99e63e0c0a54f46de",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "052c63b385526541f2a3020bb107ce30136f961c8102eede02024fe8cabf034d",
+        "id": "f9706e15da6187f276e239c85637970be3784838f10b76725a59cea6c8c1440e",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "23567da99f2d65fe96be2d796a3b2db40fbe7cb6efdec5631c150a0faf461ce8",
+        "id": "8a69b8db5c89d66a8edddd689d14950f2207d45f83532087c9756dc036068e32",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "3cf864509f53d6f51e1cd06ea4ce72859743869e4af0d0af7c06adbc0a9a19a5",
+        "id": "f5aa53b9e5f57c60752789c15ba66c5ec850a796201ccbf07ea38dbb03eaa8eb",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "191c73bb25c496297cad0860e868e36a052e821d166ba376bd5a892ff47a89bc",
+        "id": "6d9b870c8927689fd05f0b99aa5ee9e950815535398d376b15d7fb9f90684e8b",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "11f001e583cfe6e5d0fbf9614e8f1810df1de65a2bca0f9c85ca0cf3f0c7c3b7",
+        "id": "81da080796f3df6c3fbfb4d7db15a4baa3fd9b070d9e95645604812e2d82ab44",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "7e2cf4838a36db0a78801b4a9cdb92f45d55db6aae1f99a84e4d2aa6783ba4b1",
+        "id": "1812dfd8ffa974a1d911e8fdd57be38f9ea8fe4eabe729bef50ae2d29141a14a",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e4ff5c9459236af4519e5dd83d5a28a24e5d7c439a8ef8bef52c6140208847de",
+        "id": "81f3a3b4b2fc98f24625e95e28c9a16b8c67a60417aca39bfd3465e13bfb4fe8",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "80cb814ad7736c53a58a5eff86c9d7755519ae6446357eaba5067972d98f1e28",
+        "id": "715538479d3fbb1379fc4ae0ad8815a41d12727a118b16962f8eec78f0642f7f",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "62736897c47e8cdf15cb0a05cd78d0b36e5e20ac89c2a845d95e07d5c25740cf",
+        "id": "98aeb224897e7dd69606451da8b47f49b592511c4ba06d9bd40c78d7fd007114",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "693c39aa6dfb7b21a45639af39ed7ad904034f2ea36bf39a11646a243e1c287d",
+        "id": "949e279b9869db905ba13eaebed455d29886273b5cf698b9e11d9514c1ab8cf5",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "b0556ac1e7d43a68f960b33800a5bd5def4830485a0b0fdfb7dafd0502357def",
+        "id": "5b31a93853563c711deef959595899703db0ecc7bc6656c6bc7e0cb03a5eb071",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e6377768dedd7affb0e5f629807497426c460a3ecd108dd53e4bd6352eda4dad",
+        "id": "feda5c9546092e4c750f95f9a0a3b3c9623d4a1f3452df191ad9f75ee23bc6e8",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding.Field",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "a5c34224a354fc05a08fd62502173411236d1d5e44965852fb09db77cbf320c7",
+        "id": "d05fabbe86c39ced2233bf99c8003bdcadf236f4ccbb4f8ce63042fce6d32e54",
         "classification": "declaration",
-        "owner": "AgentDefinition / AgentRecord / AgentCatalog / AgentBinding",
-        "reason": "Agent definition field/resource/policy/output/schema/constraint/revision/diagnostic or storage binding declaration before implementation."
+        "owner": "AgentBinding",
+        "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       }
     ],
     "contracts": [
@@ -39054,13 +39054,16 @@
         "declaration": "llm/core/agents.py",
         "consumers": [
           "llm/engines/agents.py",
-          "llm/engines/agent_resources.py"
+          "llm/engines/agent_resources.py",
+          "llm/components/refinement/targets.py"
         ],
         "tests": [
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_agent_delegation.py",
-          "tests/llm/test_nested_graph.py"
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_architecture_boundaries.py"
         ],
         "complete": true
       },
@@ -57609,369 +57612,937 @@
   },
   {
     "path": "llm/components/refinement/records.py",
-    "sha256": "8dec1b5c981e919e1e6180d352e6f2020f9bbbc096b1b01f6d1663eedbbb9a7c",
-    "reason": "Whole Component adapter and new record/policy implementations reviewed; existing history/receipt and selected-schema behavior is identical. Data/Tool consumer conversion remains a tracked follow-up, so the record contract is not globally complete yet.",
+    "sha256": "08b1fd4c35693388ac03e48acdd1531213469d1031ca583ee9ae0e9163110b8e",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "938e33d881ba0187c4138e33492cacaa54878311358ce2ffeb1471845a858c76",
+        "id": "09dd0bdc67ca265a83fb5b64728f9cba1fa359bf1138a6e0ed1f7c64c0fd8614",
         "classification": "declaration",
         "owner": "ProposalOperation",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "87153ba26844e7f76942450a11b54468d012f85f85da82dd882eed7a3e917957",
+        "id": "e2e3a77886fe3b2545366fea2c7ddcf32e2c0d415c238bd2cbc72c6690bfbd3a",
         "classification": "declaration",
         "owner": "ProposalOperation",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "86fafb636e5e83ed95416da4fc41905a4895d04eea26b0e812d755f197837e9a",
+        "id": "d8350318cb99307ebb7b62b665a64891dec4330cc1c62071b9c82eabb74288ab",
         "classification": "declaration",
         "owner": "ProposalOperation",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "736925fcd0144488834fa0d14819e366a908437eeb6872ee667d227897b7be46",
+        "id": "d72b1b238f25476fab573c48e2aef913226e8cdd051d6d192179227b9c4b6040",
         "classification": "declaration",
         "owner": "ProposalOperation",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "269a54c0b548f050dba0f919fdd268ed23f8bbb6435710643006e2eed8c0d94a",
+        "id": "365dc0b229ee57c8031a8933f91f81958223b4cd3136d69d74dbd0f863aedbba",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "a85ad56d34fec71984e7a11e38d07817d5f89cee5d7188e15fe94f55823235c0",
+        "id": "3ff51dec77a6f3a2085e7b897182e4d1fbb57b9132bd10666e76713beea23713",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "59a8496dba726822848f2a820edf7c655ac6c59688dbe8acf686a13d57ed1b10",
+        "id": "4fd24ebc8c1536c31b3a2de375dcfc46c42c2c25828fb98e2a6cb84ed08a03c5",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "2313b6e8e0a2bc1a5bf85a0d644cdabb25b61e001e23a4e15c6422ec3c4a1bb2",
+        "id": "89300921ed9a043395a79a012175c0279054ea24fd6a7d1868adaca5010ffc1a",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "e7264de79751a39c407a4f84435a559ad15c39056df0790962ea3dc0f64f4584",
+        "id": "0ab8eef9ab253b8ab1d1233879ac49a508e65a91a7a7d8dbb34c57df39415e40",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "01fa0d0db22f14283dacb4810afe138aa6bc25cb9e6c9f9f3bc98095d73ce344",
+        "id": "7d8246a600a9a5a0c018c96df9a76ef4c65273c3d014bf2a39c8e7a2d44018eb",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "b30a4eb66d0db24d691331ec2332491e0dff9bb35dd1988c4cf3c1c02f0af9a8",
+        "id": "bc785081f551926f53fdd838ac55772d5aa6b362f07dd606b96b5b1d382c448d",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "5895aa025498b725c311263356f5a794fe0da71054306a7069c89d0983153cb8",
+        "id": "339f186d6d07008b9038049ea2857c824e99b0afc6020b35bcb544967c567292",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "317964939da22b7c18aee56d5df419a8b11740fcf4c83bb90668202bcb7bfb32",
+        "id": "a23eaebcc42897438b7221c1b3a6444163b563aef96468809491ed94975e1d8e",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "e8a527c582745c8b3f5c111450c4b6e4c14cb7890d57f1ece1a1ad5747f688f0",
+        "id": "e70ada3ecc30bf05244d95957c3574f80a188eb6379dd036ba0c7867e543eb1e",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "42d5036c80e1154b929267dbb6c09c2e4294839972e0a6d11908d5724979bde0",
+        "id": "8474d790ad0da32b6d8d808d88c4cfb4476256bbfd6d3185d50b0e174e07b70b",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "564717344394c188fbeaaa04d8824c4650b75a27bbfdd75dd7229b07d09d4d44",
+        "id": "71dfa03d6fc4f5dfb52bb1344af7324daaecbe971798946354e9c5984070ea70",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "0768f4b7c2f26d3d94944ec71d62cfcfd3905be9b8b58fe99267b0310892adb5",
+        "id": "fab2e88bbb095199573fb90691374b7d629233e57a1f5adbba2715dd61b93468",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "17c8df99453d1c87dedb15333ea7aaf6e2493ef18e16f7f22be2d441ef3a0ea9",
+        "id": "50aa7df3d6def5bc8b44ca4bf9d6b3fc2984708bf8b826d0506c2c6ceb4767a9",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "fea9d9902ef4c72ef97297f5fda9c2c730367772a24620ce5a24b110bb882a77",
+        "id": "c313432881146eaccfb92ed4c08955bf4b57f9d7adb7c10220e01c02cdfa9104",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "f682b38e98d71f7b67abab62bc62dd4c6505fba112d8f958bec2010c6928d808",
+        "id": "13ee1b7f511d894c9fd0a5e46876d02a168b6b8bafe4ad4c18b32aa0da4babe6",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "069e575bc5bcca2e863129b06797822a5979f6ec393a22c458046379553d7261",
+        "id": "282b9530539bc744f8f5f6dbe4cdb63220f7a4aa8c6e63e714c8441d409ff5bb",
         "classification": "declaration",
         "owner": "RefinementRecord",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "ac72f4a2c82d87566c971f6c10bd1e38af996bcde68409fb9fb4a5d954b1d5dd",
+        "id": "fa3aa08100ad84fa5095db93eb7df6f1d014c24219c1c2257121b41821c642cd",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "e356ded907753c6c24ea56b36fa670354fcb0393799edee2ee4bf2756ebfb2cc",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "b4f2524ea7f986f5e22db5e87dcc6a792ba68d94ceb280babb6cbeb3659efa15",
+        "id": "12224b845881459e2448988928a79c712377fa2d7cf91e246cf21aed9e1b99d4",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "376626c3556b6e37689c95f1f276623ebdb8c405c204a005c3618bc64ed14c3f",
+        "id": "7a571386c760cd4654cb056cd4dad40f90eb0fa2f2a5fac12fde58e01449925a",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "f750dc341281e082bc9c935e0bddee48e7170b15572aa946a6fe91408d83cc7e",
+        "id": "60726a4dcd986ea435b498c10d65b913c2e5145904f50e95d0232a5614030fb3",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "d0ffb8677503008c52ccaa57990bcfe524c16214de7ed96e486b8108a4daabb2",
+        "id": "2d62e12fc639c4c889c2ad177c5292aa5593604ffca93e56561de5e10904588b",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "3e4aa0c240c55bb97cf035f314e5589e7a24efa42a5acd3376625f58accc4a54",
+        "id": "501189354424f213bf7fa120822a91d134005f799e203ae63a49b87c97274a8f",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "9d4cba03f04b596bc12dc327b8c132ef034af17a248085aa148ce884ef01f79e",
+        "id": "da8dad46a1545f394c7f034a4ba2e7cd1d70ef64303dade18051c0a28b6e5a35",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "401a718250a991edfc705508a7cf400930c4b76d8386db80ee3fa9907743cc7c",
+        "id": "dce31416da6eae21edd4e249f48fbc98d7dfd45a9c0073914a121544e483293e",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "644b12a7d4d8700d2e534dbf032361b570ce7b54232b357341a6c05b44cd8a71",
+        "id": "01aa03b82d604f2354a0e0b6901b1a1764a03aaa70f2a047840f20604db9d9a4",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "c919b25f0d9148192e6563aecc1d86b391f7100f59c46b60ec5beccd323685f3",
+        "id": "80e7c9c5a6a1b5b9315c8f3fdd8b1212f17d7eddf2c47e9966798a89b6061a28",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "fd9d16f7e4c31199665707588f74dc3a57bc14a06c33838be00c8dd476fc5a40",
+        "id": "7711f37dd194a4b89f28bcbd0b615d67e41832f4c29a9ea93768432be3ff2fb8",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "b7437dff4f3edf470fa2e186d2c912ab924e20f5cad091f59101977f14e711aa",
+        "id": "e7cfc74e3121a83340ebd52ced9cada840d0852d219771c3cf424c70a6bceef6",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "a4d2bacc315d7270c285fc0550fcab195abd64606e3fe1eda012004226716c1d",
+        "id": "63873c4d4791b3f008393b2cd8345383dac227fdef00a387d4b586752feaf00e",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "987b356f8a93a4f03902bd7e222040508076c35bedcacb62ad871151b65892b1",
+        "id": "4e7bf491adf323ec1b1c8fe55f27279b8e129660e15ced27bd01cfc01a8132e6",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "5c255439e7a904f767686eded3b4a4f804cec52d47a2d11c83c1352c923214e1",
+        "id": "3d421d9288a92b9a349e8e575e50e2647928f7ec599ed734ad793cbc34793515",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "e1566504446229e6ea86dfcf87ae9eb93b1d2504a17579f1694d1bfdc5b010fa",
+        "id": "994e09dd091b95369011431e9f0e77d561d96d87a2b300ae95e8040119b15e7a",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "d1f0018e21c377220341b5bbcdb10182201e0d8455ccd50e48c01b90bbc2a79b",
+        "id": "f68d041920e1e4b5384ddc684f29a392fd9519feab2640eb1573e0f78dee3ddc",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "912b59438dcd3504126dab3eae5d04ddbf8442c3663b7fe8acc04d2970a05620",
+        "id": "3ddf8391ba1bafa5d2b25f0c845258070529fa0631106b2efc733f3c649cb35b",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "bc5bfd1ac2e3c492751e50bf22c1af100188e8918c8fa14c603363703bbee291",
+        "id": "a1465d41933df20e7f857169e91c3e976b4a892f711ebd0745bc9bc7d54ba8cc",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "163b1f1f6bf5a00d5ab99242da216175d35bcbdeeb13a52aa7c9e4d8412ce780",
+        "id": "ed63bb9d3810f9251f5fbc1410868f7eda53445bbba0db5ced3bc9df2bcf3f5d",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "cf11a876cbd00e5a4e39a19d757e70e42dde8ee1013a0e6b59d5ecc59f65044f",
+        "id": "8744bbc7d3fe2eb0ecae40eeac5a6f475895145a2a170b9bb1edb48c9a215427",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "2f7bc16e2a37cb14a2ad7529a78d9c380c8c21150c3b2d3364827ab2c8d62ee9",
+        "id": "b4a2febfaa989ad2d74c0d429a398500b601acb0ad0cf5ad82224331c19945f6",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "554c3bbdaf8f39f36487fafb8d52d96bd4cd5a1e12bf830c2876aa9549b1d7ff",
+        "id": "b180736fb2626ca2bd24299fb9a47c53c874529c209ce12e7868ebeab776fe9f",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "4cd8f55b54ceed6a206b0f958b8d136a5440d4ae2e6aa3a102921e58a221d44b",
+        "id": "3fd8ab1cb82933edaaaec3e2b27c3e7f839342c364da1b102482ad32d5a08926",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "489137e5d2bd21d199933e160805cf8956dcdcbb03cbd46435dcbd09279d0927",
+        "id": "1f1330b37f2d81b18d5e5ebfb9cdd55c33501e47658b8b5ff0d594af68d0f605",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "40a26f07e6e618c59595ac0df2d39cc3e44e21a6abac9c2dcc588d6fecf37fda",
+        "id": "b5ea2d6c3d736ddd8a56eaaef546efe81d6bec68c0e509ec852caa75af8cc395",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "74d79ca397600a953c1fa0c730faf7c1267ae7c3436d009766ff779cf246a174",
+        "id": "28997b18e19295925b80bd13a53439a8747a00a4b5081945e6df492de9d5fc06",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "b565ead838adab05cce3c2ac43778754572b5ced39549034f4ee3e58c3c6f6f8",
+        "id": "d8ee31e282f33fd670ead54db3ef09064fd962d71304c0e8c8459c474ce96685",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "26b73e0865ff27fffd61ec07d9fe670b28c0419a4db5f20401d516807f9f318e",
+        "id": "9bde30236af8f6816f3fb528ed8cb7ebafbbccc09abb50ad0b756d24e38d899f",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "c07a72e6f764d1341a417d8b48ef6102a8965e6b545290ae0146584983f5e570",
+        "id": "64f9ca873418d1827cbacb2ca400e3cae705aacb46a68f4f4ea1ee49c1ef45c7",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "bfcfe25d6fd53d7071909d9077182133508006acf33547fc6efe6975c34b6191",
+        "id": "73c6a303b20472419001fe7dabf19b6eda518e11ade129e931662cde15a46c65",
         "classification": "declaration",
         "owner": "RefinementRecord.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "fd2994d5c3e46a4f620e8e13f21e4e8c16d247d680ed351b566fb5b34a57b395",
+        "id": "78a3824c22c469bb8de0ba16d31851bd89bd8d71427dd04d9477a6bf107b8fe2",
         "classification": "declaration",
         "owner": "RefinementPolicy",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "18298c278872e69f39c4e25f3f4ac358f31442237682389b024328848318664f",
+        "id": "221398cf348921943026f4dc2800c012b0c404aea7101ff85a4c8450baac3da5",
         "classification": "declaration",
         "owner": "RefinementPolicy.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "36c8b725547363cda803d0324af16cf829f155eee25eb4df5cfb8c8dfa6b95b2",
+        "id": "57091498fb8579bfe6620469e74f1f96566522f8176758ab88794f8edeba0ef8",
         "classification": "declaration",
         "owner": "RefinementPolicy.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "efddfed484f84a968988c330817e89498de65d79e3b83da6fe2fe5750c512046",
+        "id": "00c452359da86e39d3b207445dd2014b2617704cfe0584591ed810753d56cbb1",
         "classification": "declaration",
         "owner": "RefinementPolicy.Field",
-        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "64e5f24f36ebc836438341d6baedbc5866bd7cf53258bbfa967733271e12559a",
+        "classification": "declaration",
+        "owner": "RefinementSource",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "2575f3ac5a3dedf5c53ee95335241ff8399ba05ef5388ac4162701cf1bd14bbb",
+        "classification": "declaration",
+        "owner": "RefinementSource",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "a1637cd53291b3d82fb57a3c90641287425be4b9d000da03c479f55ac8220588",
+        "classification": "declaration",
+        "owner": "RefinementSource",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "22f8fbf1e374c886a905f92bcb7b667ea360e96246137c48bfcc3920894b5cc6",
+        "classification": "declaration",
+        "owner": "RefinementSource",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "f9ef8ee179651fa1c7148bc806ef5acf31b131c086720b46b82bb5757f3559c3",
+        "classification": "declaration",
+        "owner": "RefinementSource",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "d277d63ba2d9938f9beb2765311eb7e6f3266ebb5a1384a61595e0a0150570de",
+        "classification": "declaration",
+        "owner": "RefinementTarget",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "e293e555c7be767d9bc45a5c7ae6cb0206b157123be081d9b421778685eb1600",
+        "classification": "declaration",
+        "owner": "RefinementRevision",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "f57f5929c95f0c70bda4ce21cdca75aa3aac06e708f1517bf199bf7abf8a49fd",
+        "classification": "declaration",
+        "owner": "RefinementValidation",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "06ab97427c3c22cff5a6e73a3aa9436a07d9f2face442aa6dc9d9f93d6938bbd",
+        "classification": "declaration",
+        "owner": "RefinementValidation",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "34e8c71a1c33d82c76e107002ed31f3b29f691db103b73329200c49a08249945",
+        "classification": "declaration",
+        "owner": "RefinementValidation",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "61ccb297dd899b3d00ad3866e513c507c2a0c0ad5d834932b50199c2d430a456",
+        "classification": "declaration",
+        "owner": "RefinementValidation",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "a5b5ec19ab11de9c747e3fa52a1716f49858434128d0a76d96554c96a2ad7c44",
+        "classification": "declaration",
+        "owner": "RefinementEvaluation",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "c4fadec110fee9c46a1665f63f00148b97bd08b3b849ca2db3dfe6e8c819f089",
+        "classification": "declaration",
+        "owner": "RefinementEvidence",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "192e0ad6ebe74eb80de20ffd82fed821d542b98428ca27701844e865071556ff",
+        "classification": "declaration",
+        "owner": "RefinementEvidence",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "a1138c9b51aedd1b21b18daa262004f62005f11727fce168dc4ce3a4fe63a70a",
+        "classification": "declaration",
+        "owner": "RefinementEvidence",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "ce192b6e1f0d92bfd65a4a1145257903190cbce97828cbf4060b1f94d7d63bf4",
+        "classification": "declaration",
+        "owner": "RefinementEvidence",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       }
     ],
     "contracts": [
       {
-        "owner": "RefinementRecord / RefinementPolicy / ProposalOperation",
+        "owner": "RefinementRecord / RefinementPolicy / ProposalOperation / Refinement value projections",
         "declaration": "llm/components/refinement/records.py",
         "consumers": [
           "llm/components/refinement/data.py",
+          "llm/components/refinement/targets.py",
           "llm/components/refinement/tools.py",
-          "llm/components/registry.py"
+          "llm/components/refinement/component.py"
         ],
         "tests": [
           "tests/llm/test_refinement.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_resource_references.py",
           "tests/llm/test_agent_resource_integrity.py",
-          "tests/llm/test_component_record_integrity.py",
           "tests/llm/test_skill_packages.py",
-          "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
-          "tests/hub/test_component_managers.py",
-          "tests/llm/test_architecture_boundaries.py",
-          "tests/llm/test_schema_ownership.py"
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/hub/test_component_managers.py"
         ],
-        "complete": false
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/refinement/data.py",
+    "sha256": "3764413157107e78188919d0f3d61da1d1e6120fa937681e2cd838cf63b24a13",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "94699de36dadea46ac02cb657f02f9af4f10148141a214bebc9ddfb342cf8dc1",
+        "classification": "declaration",
+        "owner": "RefinementData",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "17e420c15c628de20072b327a250aade93c2bca289c2e639da69d6d0247a11db",
+        "classification": "declaration",
+        "owner": "RefinementData",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "852ad554305f313e6acba3a85b64c173866e248cd4d5ec6460d3fd72ee4d2a0e",
+        "classification": "declaration",
+        "owner": "RefinementData",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "51113fc8dac5e86dfb324ee55a87e46480ddcf6b81c63f893a361da57190aa50",
+        "classification": "declaration",
+        "owner": "RefinementData",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "0b5194a9a85c2ed5cb0bfa9f66355a6231fd340405e3a360e2a93aae60b480d2",
+        "classification": "declaration",
+        "owner": "RefinementData",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "a4e367386ceccbf0be5402a081417ef5e3c60cb48dadb3e161876c6ff593c4ea",
+        "classification": "declaration",
+        "owner": "RefinementData",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "0f60db141a3ed1b3293387b65defdbbeb2ff9ca7bf0bab81de690770689bb5b7",
+        "classification": "declaration",
+        "owner": "RefinementData",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "2cad4323179b29471f631dcfe56ad8cf5534428511033ff2168c241c9063c6c7",
+        "classification": "declaration",
+        "owner": "RefinementData",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RefinementData",
+        "declaration": "llm/components/refinement/data.py",
+        "consumers": [
+          "llm/components/refinement/component.py",
+          "llm/components/refinement/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/refinement/targets.py",
+    "sha256": "12402e419a4e8242e728aee03c6f25b1b7895479134dfd79ff3f25f1b4bb4af7",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ac2687cc49fbbafc3545a168bfa8081a1d3a234e492ecd0d952d44081aaacc08",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "a88490901fab444a4b97b59474e652f9cde069103beddbb2d823ae7398c5ba9d",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "ef3542b3eec1fe2b5bb207fd2aa329377bdea0fe589c42606c41e42e20e7896f",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "723814228a6847810f330df1a10d2da4c2a945a3e7f3bf6d4a547c51ad9f4669",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "118631deca0ad49efd3fb0526ed0bed3f4ac7e07451a3e7ac52f366572aedca3",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "3d398fd44bdb65bb98f5cebede130dddd9d7c9b069bc4b63d64d938c26cb5bf2",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "ff115a927628a38acc14b82c32fddd563518d9548ef827872fa2cec04944bc8b",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "02673beb8801b0b5de5f95cb2e2e969eff061e98eafdec1d4aa214684b87148c",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "bf4810c5287808d76367ab04ea5137bbf3d8d5431acbc316c0edb08eb8b9b3d7",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "7ef87a4932faef26c60e17c4a8efe9c15b6c7d5ae37fea79c5a7fbc3ae54cd54",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "3b84cccc7ee0fb90f8c0b68c7adf05d2c39ddee97a0e6d8c15aefeb9cdb2d10c",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "c718212951a4d0c933092f7c58c40467eac8871a678b2cb699d19b55cb920df5",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "00ada0ecdebcbb1594bc6cff393ec8b87e019f2e2f2eaf55396231d75b8d9b03",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "ffca87abedb9a2eb7a412670e253405a022d243ae3478b4775498d1cbb787115",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "24f0fcad6b7e606b7ae8972faa53b9d80989ce1f8c2613767c8841eb5772503c",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "5ccfcbedbed44322ae2c2af43c4ab8572e0a8767c5d00d490fb2055ff38d06b6",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "e76650d570260b4a163230e3655d7f017754a6587f1f3f20aa85be8ccc040fe0",
+        "classification": "declaration",
+        "owner": "RefinementTargets",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RefinementTargets",
+        "declaration": "llm/components/refinement/targets.py",
+        "consumers": [
+          "llm/components/refinement/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/refinement/tools.py",
+    "sha256": "ae14066424d78c0b6da1da4861a23d7d2e92527fea9ec61f6458766f21b6c1b2",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "86d17046b44ff077ea4e9bc6c0e4a6a7314bf93c8bc27882c7ab829ca4d9094c",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "9e039bb55341cb89447786469f54b85479a81fcce36c9d6eecf1fd66197dfa4c",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "78a22495e2fdfd24cd287f9e133d1d58aa1c2e5cc642d60a66b72d4ed7126feb",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "5bda83d8943189bfae3a9dc64614aea98652c16d1da4d80c8b785c0e0c41aba7",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "24ed99aed9627da9a280b47ddd928ff18a2d531341bdf148872bdeed46728081",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "f66926990a12448e43bd63496cc7b9f36823df52751952c371e8bb58f15968f8",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "c68eed771b1c3ca5a93ad449e5a9912ce8f627cdd5fece4d2c92df34c08dc779",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "2bdfa9dbef227c9aeca0709e484e15765d4a2dc6ee0bc438ca00f6ce537152d6",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "6fe8b559ca4f6363d782b6e936882cf92439e85e5bdc1c1bc6f4681da0b175c1",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "8978971e64c744600c9dbc17c45a8a4cfdfcce18087e72f17f4a19bf731c64d1",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "7df7bd426f56f5c7d011d4f5a280f51bdae87c2d42c028990c242384463bf4f2",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "ff08327904f89981665c476710611bfdd8f5de14906374fb6179b19e45967546",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "359775a48c7c06794b23f547c5f12b84efe3ba87465200f9145a35699ef5ae06",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "910adc2e59da9288d0c035bd47f3b4420caed4db4d289b3b837e5b333e4ab6d3",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "0363b4736ce20ada1b4fbde03ca532dc34dde184f2386d96e3e423efd57ac39e",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "95c9346178771c183b5a951a250ae59634f05dfb0bd6754bb17773c323cf5a93",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "dc3cc78a34cc159a2eaabdcb61463c616ab8c2a8e03dd6f364f5d8f622091ab2",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "9f29aa4e52a71e409bfe1fcb6dda1c8fe4ca2f9892615f863b3006ff841e2a7e",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "f038fdb72b44a9bbaa045b7ae89a3adb96e39a5e9c0570905f28b126f055efd0",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "ac1d9ec902a2bc4fa1be5b1da238dfcf0e2ece21cdf30042272a688f64c43090",
+        "classification": "declaration",
+        "owner": "RefinementTool",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RefinementTool",
+        "declaration": "llm/components/refinement/tools.py",
+        "consumers": [
+          "llm/components/refinement/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/component_reference.py",
+    "sha256": "b6eefb0ee1e3901c4f979ddc5449b0d61556d84f4e66d8ac3c540201deccf178",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0a4c721c41f589b4cf2465182933d9ea271ce59679ab44a414fce02900ae460d",
+        "classification": "declaration",
+        "owner": "ComponentReference.Field",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "389c13e3a035c5bdb41525f5a76044d3fda639871e4b2528223b602f7b094d57",
+        "classification": "declaration",
+        "owner": "ComponentReference.Field",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "e1516ab9e48a585e4bcfe3c7a20ecde6629c0078d4b5a148947a3772cc91f060",
+        "classification": "declaration",
+        "owner": "ComponentReference.Field",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComponentReference",
+        "declaration": "llm/core/component_reference.py",
+        "consumers": [
+          "llm/services/lifecycle/components.py",
+          "llm/components/refinement/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/step_tool_metadata.py",
+    "sha256": "cfb075032728196fcb0c3bee4e4fff7a26a6019af8a05add989a135d7938ba08",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2cf89c97b2244cb99aa9d8f3c975490dc7f00e53233b9196711ea95128a3b190",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolStepMetadata",
+        "declaration": "llm/core/step_tool_metadata.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/core/component_reference.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
       }
     ]
   }

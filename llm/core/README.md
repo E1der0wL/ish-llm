@@ -15,6 +15,8 @@ Project → Session → Run → Step의 저장 모델과, Engine·서비스·UI�
 | [tool_policy_binding.py](tool_policy_binding.py) | typed Tool 정책과 Host 관측을 기존 승인·Resume binding JSON으로 직렬화합니다. |
 | [schema.py](schema.py) | 설정 UI에 쓰는 JSON Schema 생성·검증 도우미입니다. |
 | [contracts.py](contracts.py) | Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent 등 공통 관찰 데이터를 정의합니다. |
+| [component_reference.py](component_reference.py) | 선택 저장소에서 검증한 Component 참조 응답의 Writer/Projection입니다. 저장·권한 검증을 소유하지 않습니다. |
+| [step_tool_metadata.py](step_tool_metadata.py) | Tool Step 실행 Writer와 근거 조회가 공유하는 호출 식별자 선언입니다. |
 | [interactions.py](interactions.py) | InteractionRequest/Response와 선택지·승인·재개 값의 공통 해석 계약입니다. |
 | [results.py](results.py) | EngineDelta, EngineOutput, ResumeOutput, CompletionResult, ExecutionResult를 정의합니다. |
 | [steering.py](steering.py) | RunInstruction/InstructionStatus, SteeringTarget/SteeringMode, 예약 경로 SteeringRoute와 일반 대기 요청 구분입니다. 새 영속 도메인은 아닙니다. |

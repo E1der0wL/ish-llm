@@ -5751,3 +5751,79 @@ workflow 종료 후 같은 SHA의 Hub Job 전체 재실행 요청이 수락됐�
 DelayedCompleter 시작 신호 대기(`asyncio.wait_for(started.wait(), 3)`)가 TimeoutError였다.
 원래 로그·모든 Assertion과 3초 제한을 유지하고 동일 SHA의 원래 통합 모듈로 재현 검사한다.
 이 실행을 성공으로 집계하지 않으며 LLM 전체 결과 및 재검증은 별도 증거로 기록한다.
+
+
+## 게이트 36 원격 재검증 / 게이트 37 전체 로컬 검증
+
+정확한 SHA 6df7247cd7a2b6957efdd26578f04e8c3c0a59a3의
+[CI 40064914824](https://github.com/E1der0wL/ish-llm/actions/runs/40064914824)는 attempt 2에서
+success다. 첫 시도 LLM 2492/2492/2492·2065.246080초의 성공 Job을 유지했고, Hub Job 전체만
+재실행하여 588/588/588·1389.166377초·모든 bad 항목 0을 확인했다. 최초 Hub 2 error는
+attempt1-status.json에 보존했다. 재실행 페이지의 실제 Hub summary와 두 필수 Job/단계 성공,
+LLM의 이전 실행 시각 동일성을 확인했다. 이를 한 번의 새 LLM/Hub 실행으로 합산하지 않는다.
+
+게이트 37 고정 SHA 2084bf3829a600b6ad15f822ce18c296a11f2979의 첫 LLM 전체 실행은
+2492/2492/2492·1452.485809초·exit 0·모든 bad 항목 0이다. 첫 Hub의 시작 신호 TimeoutError를
+보존한 뒤 동일 SHA의 원래 host 통합 모듈을 실행하여 5 pass·2.245955초·exit 0을 확인했다.
+명령: `python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-gate37-host-ui-repro-01/hub.json --modules tests.hub.test_ish_integration`.
+이어 `whole-owners-group37-hub-l3-02`에서 원래 Hub 전체 588/588/588·1092.535678초·exit 0·
+모든 bad 항목 0을 확인했다. 명령: `python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group37-hub-l3-02/hub.json`.
+두 전체 suite 결과는 별도 실행이며 source `67c37a40a6d3bd2a660a7df3ac56287b27ab158e19007efcc203e7aff2eddc08`,
+input `a2c155d6da1badebb017cb32b09d8f0aea9ee7ba35794900e5b67f86441ac953`가 실행 전후와 실행 간
+동일하다. 발견 목록/전체 ID, 환경·의존성·host도 동일하고 6개 보조 검사 모두 exit 0이다.
+제품/테스트/시간 제한을 바꾸지 않았으며 최초 실패를 환경 문제로 확정하지 않는다.
+
+실제 원격 protected refs와 fast-forward를 확인한 후 2084bf3만 작업 브랜치로 Push했다.
+main 94229cb·refactor/llm-backend bb09462·Draft PR #1은 변경하지 않았다.
+[게이트 37 CI 40069564637](https://github.com/E1der0wL/ish-llm/actions/runs/40069564637)은 이 기록 시점
+진행 중이다. 이후 Refinement 변경은 이 SHA의 검증 결과에 포함되지 않는다.
+
+## llm Refinement 소비·대상 효과·근거 참조 Owner — Level 1·2
+
+기준 076f5b8. 제안 입력/출처/평가/상태 이력과 적용 영수증의 Reader·Writer·Projection은
+RefinementRecord/Source/Evaluation/Validation/Evidence가 소유한다. Data는 타입으로 소비하고
+기존 수명·잠금·승인/평가·CAS·공통 저장 순서를 조율한다. RefinementTargets는 편집 허용 범위와
+선택 대상의 공개 API 호출을 담당한다. AgentResourceSelection이 resources.skills를 명시적으로
+편집하며 Agent 검증과 원래 Skill revision 고정을 유지한다. Memory 적용은 원본을 덮지 않고
+새 candidate와 원본 generation/revision 참조를 생성한다. 되돌리기는 현재 CAS·참조 보호를 유지한다.
+
+Tool 입력과 선언은 같은 정규 schema/정책/출처를 사용한다. 모델에 별도 승인 경로를 추가하지
+않는다. ComponentReference는 원래 Session/Run/Step 참조 응답과 근거 Projection을 제공하고,
+Loop의 Tool Step Writer/참조 Reader는 ToolStepMetadata의 같은 호출 식별자를 사용한다.
+저장 형식, 원본 요청, 누락/null/명시값, 복사·출처 읽기·시각·효과·이력 저장 순서는 유지한다.
+외부 호출·오류 복구·재시도·권한·예산 정책은 변경하지 않았다. 제품 테스트/Assertion도 동일하다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/refinement-consumers-draft/proof.py`
+(한 셸 명령) exit 0. 이전 구현과 실제 결과/호출 순서를 비교한 전체 수명 조합 14개 및 그 모든
+관찰 경계의 장애 632개, 거절/실패/승인된 Tool 경로 6개 및 장애 143개, source 10·evidence 46·
+참조 Projection 14·입력 53 변형, Tool schema/실행 계약 28개, 편집 정책 alias 1개를 확인했다.
+기존 함수 99개는 그대로이며 Loop _iterate 전체 함수 1개는 정규 키를 전개해 동등함을 확인했다.
+이 비교는 아래 실제 파일 효과·저장 장애·승인/Resume 테스트를 대체하지 않는다.
+
+- `whole-refinement-consumers-l1-01`: discovered/started/pass 43/43/43, exit 0, 42.775551초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-refinement-consumers-l1-01/llm.json --modules tests.llm.test_refinement tests.llm.test_architecture_boundaries tests.llm.test_schema_ownership`. source `bf16ecd39b07a34038e4748cef7452f4c5bf4a33296145e13b939955c03805d9`, input `b33d940db3fe62eaeef0c5c7e9544aefbe23faecfd6bd49e10ad25010d95e118`.
+
+- `whole-refinement-consumers-l2-01`: discovered/started/pass 129/129/129, exit 0, 52.341945초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-refinement-consumers-l2-01/llm.json --modules tests.llm.test_resource_references tests.llm.test_agent_resource_integrity tests.llm.test_skill_packages tests.llm.test_component_record_integrity tests.llm.test_memory_history_integrity tests.llm.test_operation_integrity tests.llm.test_interaction_storage tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_loop tests.llm.test_stability_refinement`. source `bf16ecd39b07a34038e4748cef7452f4c5bf4a33296145e13b939955c03805d9`, input `b33d940db3fe62eaeef0c5c7e9544aefbe23faecfd6bd49e10ad25010d95e118`.
+
+- `whole-refinement-consumers-hub-01`: discovered/started/pass 14/14/14, exit 0, 121.162979초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-refinement-consumers-hub-01/hub.json --modules tests.hub.test_components tests.hub.test_component_managers tests.hub.test_resource_tools`. source `bf16ecd39b07a34038e4748cef7452f4c5bf4a33296145e13b939955c03805d9`, input `b33d940db3fe62eaeef0c5c7e9544aefbe23faecfd6bd49e10ad25010d95e118`.
+
+모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 일치.
+실행 전후 및 실행 간 source/input 동일, L1/L2 선택 ID 중복 없음. Python 3.12.14/Clang,
+고정 의존성·Host d833790·namespace/X11·전체 발견 목록을 보존했다. 직접 Refinement·Skill 생성/
+fork/바인딩·평가/승인·Schema 소비자와 Loop·자원/원본 참조, 승인·예산·실제 효과·Checkpoint·
+삭제/저장 무결성, 직접 Hub Component/자원 소비자를 포함한다.
+
+승인 이후 대상 효과 코드가 별도 Owner로 이동했으므로 정의 소단계와 묶어 게이트 38 Level 3로
+승격한다. 이 소단계 자체는 전체 회귀나 원격 완료가 아니며, 전체 검증/정적 감사/R3/문서/
+실제 환경 검사 성공 후 정확한 SHA만 Push한다. Loop Engine·공통 ComponentData 전체 파일은
+별도 미완 범위를 유지하며 이번 참조 연결만으로 완료 표시하지 않는다.
+
+Refinement 소비 소단계 보조 검사: 정적 S1–S7 reviewed 103·new/stale/outstanding/review_errors 0,
+dependency 13건 재검토. 이전 Tool 승인 선언 2개/명시 평가 정책 조회 1개의 occurrence는
+정규 Owner로 이동했으며 원래 근거를 Git/retired-static-reviews.json에 보존했다.
+계약/architecture 감사 16 pass / 3.259초 / exit 0, 문서 168개·fence 183개·
+링크 1215개·anchor 37개 오류 0. R3 mutation exit 0이며
+의도된 호출 한도 누락 2개를 기존 실제 효과 Assertion으로 검출했다.
+전수 inventory 553개·미검토 249(llm 72/hub 177)·미분류 15,469·미완 계약 3·issues 0.
+Refinement 정의의 Data/Tool 소비 전환만 닫았으며 AgentDefinition의 Engine/lifecycle/Hub
+미전환 계약 등 기존 완료/미완 추적은 유지했다. 전체 리팩터링 완료를 선언하지 않는다.

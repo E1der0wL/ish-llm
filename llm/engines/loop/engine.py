@@ -21,6 +21,7 @@ from llm.core.continuations import ResumeRecord
 
 from llm.core.results import OutputVisibility
 from llm.core.tool_event_result import ToolEventResult
+from llm.core.step_tool_metadata import ToolStepMetadata
 
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ModelRole, ToolMode, ToolResult, copy_model
 
@@ -542,7 +543,7 @@ class LoopEngine(BaseEngine):
                         outer_step = None
                         async with aclosing(self.execute_tool(
                             context, tool, arguments, result=result, executor=executor,
-                            metadata={"iteration": iteration, "tool_call_id": call.id, "checkpoint_name": LoopEngine.checkpoint_name},
+                            metadata={"iteration": iteration, ToolStepMetadata.CALL_ID: call.id, "checkpoint_name": LoopEngine.checkpoint_name},
                             checkpoint_key=key,
                         )) as events:
                             async for event in events:
@@ -575,7 +576,7 @@ class LoopEngine(BaseEngine):
                     async def reuse(_context):
                         return EngineOutput(data=deepcopy(ToolEventResult(result).value), visibility=OutputVisibility.INTERNAL)
                     async with aclosing(self.step(context, reuse, name=tool.name, kind=StepKind.TOOL,
-                            metadata={"iteration": iteration, "tool_call_id": call.id, "reused": True,
+                            metadata={"iteration": iteration, ToolStepMetadata.CALL_ID: call.id, "reused": True,
                                       "source_run_id": stored["run_id"], "source_step_id": stored["step_id"]})) as events:
                         async for event in events:
                             yield event

@@ -1,7 +1,10 @@
 """Refinement proposal schema, provenance and lifecycle evidence; no file effects."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import StrEnum
+from copy import deepcopy
+from jsonschema import Draft202012Validator
+from llm.services.infrastructure.storage import revision_token
 from llm.core.agents import AgentDefinition
 from llm.core.history_references import HistoryReferenceRecord
 from llm.core.resource_references import ResourceTarget, StoredResourceReference
@@ -38,6 +41,13 @@ class RefinementRecord:
     MINIMUM_CARDINALITY = 1
     ABSENT = None
     ORIGIN_INDEX = 0
+    INPUT_OPERATIONS = (
+        ProposalOperation.UPDATE.value,
+        ProposalOperation.CREATE.value,
+        ProposalOperation.FORK.value,
+        ProposalOperation.BIND_SKILLS.value,
+    )
+    INVALID_INPUT = "Create requires a resource proposal, not lifecycle fields"
     EVALUATOR_OWNER = "external evaluator"
     PATCH_OWNER = "Refinement target EDITABLE and selected target validator"
     SNAPSHOT_OWNER = "selected target record snapshot"
@@ -238,6 +248,157 @@ class RefinementRecord:
         ],
     )
 
+    def __init__(self, value):
+        # A projection of admitted input or a Component-validated stored record.
+        # Persisted validation remains validate_history after the selected schema.
+        self._value = value
+
+    @classmethod
+    def from_input(cls, data):
+        allowed = {
+            cls.Field.TARGET,
+            cls.Field.OPERATION,
+            cls.Field.EXPECTED_VERSION,
+            cls.Field.REASON,
+            cls.Field.EVIDENCE,
+            cls.Field.PATCH,
+            cls.Field.METADATA,
+            cls.Field.PARENT,
+        }
+        required = {
+            cls.Field.TARGET,
+            cls.Field.OPERATION,
+            cls.Field.EXPECTED_VERSION,
+            cls.Field.REASON,
+            cls.Field.EVIDENCE,
+            cls.Field.PATCH,
+        }
+        if (
+            not isinstance(data, dict)
+            or set(data) - allowed
+            or not required <= data.keys()
+            or data.get(cls.Field.OPERATION) not in cls.INPUT_OPERATIONS
+            or not isinstance(data[cls.Field.PATCH], dict)
+        ):
+            raise ValueError(cls.INVALID_INPUT)
+        return cls(data)
+
+    @property
+    def target(self):
+        return RefinementTarget(self._value[self.Field.TARGET])
+
+    @property
+    def parent(self):
+        return RefinementRevision(self._value[self.Field.PARENT])
+
+    @property
+    def optional_parent(self):
+        return self._value.get(self.Field.PARENT)
+
+    @property
+    def has_parent(self):
+        return self.Field.PARENT in self._value
+
+    @property
+    def applied_target(self):
+        return RefinementRevision(self._value[self.Field.APPLIED_TARGET])
+
+    @property
+    def optional_evaluations(self):
+        return self._value.get(self.Field.EVALUATIONS)
+
+    @property
+    def optional_evidence(self):
+        return self._value.get(self.Field.EVIDENCE)
+
+    @property
+    def operation(self):
+        return self._value[self.Field.OPERATION]
+
+    @property
+    def expected_version(self):
+        return self._value[self.Field.EXPECTED_VERSION]
+
+    @property
+    def status(self):
+        return self._value[self.Field.STATUS]
+
+    @property
+    def evidence(self):
+        return self._value[self.Field.EVIDENCE]
+
+    @property
+    def patch(self):
+        return self._value[self.Field.PATCH]
+
+    @property
+    def requested_skills(self):
+        return self.patch.get(AgentDefinition.ResourceField.SKILLS)
+
+    @property
+    def has_only_skill_binding(self):
+        return set(self.patch) == {AgentDefinition.ResourceField.SKILLS}
+
+    @property
+    def skill_versions(self):
+        return self._value[self.Field.SKILL_VERSIONS]
+
+    @property
+    def before(self):
+        return self._value[self.Field.BEFORE]
+
+    def proposed(self, before, source_factory):
+        return type(self)(
+            {
+                **deepcopy(self._value),
+                self.Field.BEFORE: before,
+                self.Field.STATUS: RefinementStatus.PROPOSED,
+                self.Field.SOURCE: source_factory(),
+                self.Field.HISTORY: [],
+                self.Field.EVALUATIONS: [],
+            }
+        )
+
+    def record_skill_versions(self, versions):
+        self._value[self.Field.SKILL_VERSIONS] = versions
+
+    def record_origin(self):
+        self._value[self.Field.HISTORY].append(
+            {
+                self.Field.STATUS: RefinementStatus.PROPOSED,
+                self.Field.AT: datetime.now(timezone.utc).isoformat(),
+                self.Field.SOURCE: self._value[self.Field.SOURCE],
+            }
+        )
+
+    def transitioned(self, status, source, applied_target=ABSENT):
+        value = deepcopy(self._value)
+        if applied_target is not self.ABSENT:
+            value[self.Field.APPLIED_TARGET] = deepcopy(applied_target)
+        value[self.Field.STATUS] = status
+        value[self.Field.HISTORY].append(
+            {
+                self.Field.STATUS: status,
+                self.Field.AT: datetime.now(timezone.utc).isoformat(),
+                self.Field.SOURCE: deepcopy(source),
+            }
+        )
+        return type(self)(value)
+
+    def evaluated(self, evaluation, source_factory):
+        value = deepcopy(self._value)
+        value[self.Field.EVALUATIONS].append(
+            {
+                **deepcopy(evaluation),
+                self.Field.SOURCE: source_factory(),
+                self.Field.AT: datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        return type(self)(value)
+
+    def to_dict(self):
+        return self._value
+
     @classmethod
     def validate_history(cls, data):
         history = data[RefinementRecord.Field.HISTORY]
@@ -370,3 +531,265 @@ class RefinementPolicy:
     @classmethod
     def proposal_operations(cls, policy):
         return policy.get(cls.Field.PROPOSAL_OPERATIONS, cls.NO_PROPOSAL_OPERATIONS)
+
+    @classmethod
+    def requires_evaluation(cls, policy):
+        return policy.get(cls.Field.REQUIRE_EVALUATION) is cls.EXPLICITLY_ENABLED
+
+
+class RefinementSource:
+    TOOL = "tool"
+    API = "api"
+    APPLY = RefinementRecord.CAPABILITY
+    ROLLBACK = "refinement_rollback"
+    ABSENT = None
+    INVALID = "Proposal source must be an object"
+    Field = RefinementRecord.Field
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def from_input(cls, source):
+        value = deepcopy(source) if source is not cls.ABSENT else {cls.Field.KIND: cls.API}
+        if not isinstance(value, dict):
+            raise ValueError(cls.INVALID)
+        return cls(value)
+
+    @property
+    def has_run(self):
+        return self.Field.RUN_ID in self._value
+
+    @property
+    def run_id(self):
+        return self._value[self.Field.RUN_ID]
+
+    @property
+    def session_id(self):
+        return self._value.get(self.Field.SESSION_ID)
+
+    @property
+    def step_id(self):
+        return self._value.get(self.Field.STEP_ID)
+
+    @classmethod
+    def proposal(cls, source, kind, identifier):
+        return {**source, cls.Field.KIND: kind, cls.Field.PROPOSAL_ID: identifier}
+
+    @classmethod
+    def failed(cls, source, reason):
+        return {**source, cls.Field.REASON: reason}
+
+    def to_dict(self):
+        return self._value
+
+    @classmethod
+    def tool(cls, call):
+        return {
+            cls.Field.KIND: cls.TOOL,
+            cls.Field.SESSION_ID: call.session_id,
+            cls.Field.RUN_ID: call.run_id,
+            cls.Field.STEP_ID: call.step_id,
+        }
+
+
+class RefinementTarget:
+    """Typed projection of a proposal target; its schema remains RefinementRecord.TARGET."""
+
+    Field = RefinementRecord.Field
+    INVALID = "Refinement target must be a saved Project resource"
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def read(cls, value):
+        if not Draft202012Validator(RefinementRecord.TARGET).is_valid(value):
+            raise ValueError(cls.INVALID)
+        return cls(value)
+
+    @property
+    def has_session(self):
+        return self.Field.SESSION_ID in self._value
+
+    @property
+    def component(self):
+        return self._value[self.Field.COMPONENT]
+
+    @property
+    def identifier(self):
+        return self._value[self.Field.IDENTIFIER]
+
+    def session_id_or(self, default):
+        return self._value.get(self.Field.SESSION_ID, default)
+
+    def session_arguments(self):
+        return (
+            {self.Field.SESSION_ID: self._value[self.Field.SESSION_ID]}
+            if self.Field.SESSION_ID in self._value
+            else {}
+        )
+
+    def to_dict(self):
+        return self._value
+
+
+class RefinementToolInput:
+    """Projection after the Tool's schema check; it grants no execution authority."""
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def target(self):
+        return RefinementTarget(self._value[RefinementRecord.Field.TARGET])
+
+    def target_session(self, default):
+        return self.target.session_id_or(default)
+
+    @property
+    def operation(self):
+        return self._value[RefinementRecord.Field.OPERATION]
+
+    def has_foreign_evidence(self, session_id):
+        return any(
+            ref[RefinementRecord.Field.SESSION_ID] != session_id
+            for ref in self._value[RefinementRecord.Field.EVIDENCE]
+        )
+
+
+class RefinementRevision:
+    Field = RefinementRecord.Field
+    INVALID_PARENT = "Fork requires parent identifier and version"
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def read_parent(cls, value):
+        if not Draft202012Validator(RefinementRecord.PARENT).is_valid(value):
+            raise ValueError(cls.INVALID_PARENT)
+        return cls(value)
+
+    @classmethod
+    def create(cls, identifier, version):
+        return cls({cls.Field.IDENTIFIER: identifier, cls.Field.VERSION: version})
+
+    @property
+    def identifier(self):
+        return self._value[self.Field.IDENTIFIER]
+
+    @property
+    def version(self):
+        return self._value[self.Field.VERSION]
+
+    def to_dict(self):
+        return self._value
+
+
+class RefinementValidation:
+    VALID = "valid"
+    TARGET_VERSION = "target_version"
+    SUCCESS = True
+    NO_BASELINE = None
+    Field = RefinementRecord.Field
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def create(cls, expected_version, current, candidate):
+        return cls(
+            {
+                cls.VALID: cls.SUCCESS,
+                cls.TARGET_VERSION: expected_version,
+                cls.Field.BASELINE_VERSION: revision_token(current) if current else cls.NO_BASELINE,
+                cls.Field.CANDIDATE_VERSION: revision_token(candidate),
+            }
+        )
+
+    @property
+    def baseline_version(self):
+        return self._value[self.Field.BASELINE_VERSION]
+
+    @property
+    def candidate_version(self):
+        return self._value[self.Field.CANDIDATE_VERSION]
+
+    def to_dict(self):
+        return self._value
+
+
+class RefinementEvaluation:
+    Field = RefinementRecord.Field
+    INVALID = "Invalid refinement evaluation"
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def read(cls, value):
+        if not Draft202012Validator(RefinementRecord.EVALUATION).is_valid(value):
+            raise ValueError(cls.INVALID)
+        return cls(value)
+
+    def matches(self, validation):
+        return (
+            self._value[self.Field.BASELINE_VERSION] == validation.baseline_version
+            and self._value[self.Field.CANDIDATE_VERSION] == validation.candidate_version
+        )
+
+    @property
+    def has_evidence(self):
+        return self._value.get(self.Field.EVIDENCE)
+
+    @property
+    def evidence(self):
+        return self._value[self.Field.EVIDENCE]
+
+    def to_dict(self):
+        return self._value
+
+
+class RefinementEvidence:
+    Field = RefinementRecord.Field
+    REQUIRED = "Proposal requires Run evidence"
+    INVALID = "Invalid proposal evidence"
+    TOOL_MISMATCH = "Evidence Tool call does not match its Step"
+    ERROR_MISMATCH = "Evidence error code does not match its source"
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def read_all(cls, evidence):
+        if not isinstance(evidence, list) or not evidence:
+            raise ValueError(cls.REQUIRED)
+        for ref in evidence:
+            if not Draft202012Validator(RefinementRecord.EVIDENCE).is_valid(ref):
+                raise ValueError(cls.INVALID)
+            yield cls(ref)
+
+    @property
+    def session_id(self):
+        return self._value[self.Field.SESSION_ID]
+
+    @property
+    def run_id(self):
+        return self._value[self.Field.RUN_ID]
+
+    @property
+    def step_id(self):
+        return self._value.get(self.Field.STEP_ID)
+
+    def check_reference(self, reference):
+        if (
+            self.Field.TOOL_CALL_ID in self._value
+            and reference.tool_call_id != self._value[self.Field.TOOL_CALL_ID]
+        ):
+            raise ValueError(self.TOOL_MISMATCH)
+        if (
+            self.Field.ERROR_CODE in self._value
+            and reference.error_code != self._value[self.Field.ERROR_CODE]
+        ):
+            raise ValueError(self.ERROR_MISMATCH)

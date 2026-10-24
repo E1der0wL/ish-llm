@@ -116,7 +116,8 @@ Memory 적용은 **새 candidate**를 만들며 before의 확정 기억은 바�
 | component.py | 정규 정의/정책 Owner를 연결하는 capability·수명 어댑터 |
 | records.py | 제안 schema·상태 이력/영수증 검증·참조 Projection, 명시 정책과 연산 선언 |
 | lifecycle.py | 제안 상태와 허용 전이의 단일 선언 |
-| data.py | 근거 검증, immutable proposal, 승인, 대상 CAS와 원자 적용/되돌리기 |
+| data.py | Project 수명·잠금·승인·평가/전이 순서와 원자 저장 경계를 조율 |
+| targets.py | 수정 허용 범위, 대상별 현재 Revision/CAS와 공개 자원 API를 통한 적용/되돌리기 |
 | tools.py | 일반 Run에서 사용하는 읽기·제안·승인 대상 Tool 연결 |
 
 분석 품질은 모델·근거·지침에 달려 있습니다. JSON 검증은 개선의 의미적 정확성을 보장하지 않습니다.
@@ -173,3 +174,15 @@ proposal.parent.version에 보존됩니다. evidence Run/Step 참조는 보관 �
 호출한 host/evaluator의 책임입니다. 모델에 평가/approve 위조 Tool을 제공하지 않습니다.
 Tool apply는 기존 approval_required/ToolRuntime/Interaction 경계를 사용하고, trusted Python
 approve/apply는 UI·host API로 유지합니다. 구조 검사 통과가 승인이나 평가 통과를 의미하지 않습니다.
+
+
+정규 제안 입력·평가·출처·이력/영수증의 의미와 Writer는 `RefinementRecord` 및 같은 모듈의
+값 타입이 소유합니다. `RefinementData`는 선택 Component에서 검증한 기록을 타입으로
+소비하며 JSON을 반복 해석하지 않습니다. `RefinementTargets`는 대상별 수정 허용 범위와
+기존 공개 API의 호출을 담당합니다. Agent의 resources.skills 편집은 AgentResourceSelection의
+명시 변경 API를 사용하며 변경 후 기존 Agent 검증/CAS를 그대로 거칩니다.
+
+공통 `ComponentReference`는 선택 저장소에서 읽은 Session/Run/Step 결과의 Writer/Projection입니다.
+원본 저장소의 검증을 대체하거나 기록을 복제해 저장하지 않습니다. Tool Step의 tool_call_id는
+실행 Writer와 근거 조회가 같은 ToolStepMetadata 선언을 사용합니다. 적용/되돌리기와 이력
+저장은 기존 workspace 트랜잭션 안에 있으며 검사·출처 조회·현재 버전·효과·영수증 순서는 같습니다.
