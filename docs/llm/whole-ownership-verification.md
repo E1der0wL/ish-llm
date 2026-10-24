@@ -5041,3 +5041,57 @@ ID 중복 0. LLM 발견 2,492·Hub 588 유지. Python 3.12.14/Clang·Host d83379
 전체 inventory 536개, 미검토 260개(llm 83/hub 177), 미분류 17,418개,
 미완료 계약 4개·stale/분류 오류 0. 상세 증거는
 `/workspace/llm-clean-resume/whole-ownership/rag-jobs-draft/`에 보존한다.
+
+
+## llm RAG 공개 Data·입력·문서/스냅샷 Projection — Level 1·2
+
+기준 20ec3db. RAGData의 전체 문서 CRUD·배치·검색/재정렬·Job·정리 API를 검토했다.
+DocumentView가 공개 문서에서 내부 증거를 제외하는 단일 Projection을,
+RAGDocumentInput.prepare_batch가 생성 입력의 원래 ID/metadata 준비와 엄격한 검증 연결을
+소유한다. Data와 Job 모두 같은 구현을 호출하며 이전 document_view/validate_documents
+함수와 호환 실행 경로는 제거했다. 생성 시 원래 허용된 준비를 저장 Reader의 누락 보완에
+사용하지 않는다. 저장 입력의 엄격한 의미 검증은 기존 Component.validate_input이 그대로
+수행한다. Component 전체 저장/구성 책임 검토는 아직 별도 미완료 범위다.
+
+RAGCorpus가 코퍼스 identity/generation/documents 필드와 필수 조회를,
+RAGDataSnapshot과 DocumentChange가 설정/원본 스냅샷과 CAS 인자를 소유한다.
+Prompt capability/설정·Job 필드·청크 텍스트·문서 revision·정규 rerank index 하한과
+준비 인자는 기존 Owner를 참조한다. 조회·모델 호출·재조회·공개 순서, 선택하지 않은 모델
+호출 방지, 원본 입력/준비 기록/문서 생성 세대 보존을 유지한다.
+테스트와 기존 Assertion은 변경하지 않았다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-data-draft/proof.py`
+(한 셸 명령), exit 0. 실제 Owner를 확장한 전체 기존 함수 142개가 동등하다
+(Data 40·Chunk records 29·Jobs 29·Ingestion records 31·Retrieval records 13).
+생성 입력 생략/Null/값·거부/원본 보존 88개, 독립 공개 응답 필드·깊은 사본 128개,
+스냅샷/CAS 형식·사본/코퍼스 참조 동일성 100개, 현재 설정/원본/세대 불일치 거부 424개를
+비교했다. 초기 AST 비교에서 이전 공개 Projection의 타입 annotation 누락을 발견해
+그대로 복원하고 재검증했으며 초기 로그를 보존했다.
+
+- `whole-rag-data-l1-01`: discovered/started/pass 82/82/82, exit 0, 73.933915초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-data-l1-01/llm.json --modules tests.llm.test_rag_components tests.llm.test_rag_query_evidence tests.llm.test_rag_batch_identity tests.llm.test_rag_batch_source tests.llm.test_rag_input_integrity tests.llm.test_rag_job_state_integrity tests.llm.test_rag_catalog_integrity tests.llm.test_markdown_rag`. source `511d07d936e0fcf13f10c46e4d36c3a1a40e061c56bee0e38bf238d7c85922c5`, input `5f0b6d7284e87094164337baeafa4fa453fa39c585494f4ccf43b7a66e33b65a`.
+
+- `whole-rag-data-l2-01`: discovered/started/pass 178/178/178, exit 0, 161.384277초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-data-l2-01/llm.json --modules tests.llm.test_rag_prepared_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_corpus_integrity tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_optimization tests.llm.test_rag_retention_policy tests.llm.test_rag_storage tests.llm.test_rag_models tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `511d07d936e0fcf13f10c46e4d36c3a1a40e061c56bee0e38bf238d7c85922c5`, input `5f0b6d7284e87094164337baeafa4fa453fa39c585494f4ccf43b7a66e33b65a`.
+
+- `whole-rag-data-hub-01`: discovered/started/pass 33/33/33, exit 0, 146.031405초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-data-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_rag_defaults`. source `511d07d936e0fcf13f10c46e4d36c3a1a40e061c56bee0e38bf238d7c85922c5`, input `5f0b6d7284e87094164337baeafa4fa453fa39c585494f4ccf43b7a66e33b65a`.
+
+각 성공 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0. source/input 전후 및 실행 간
+동일, L1 재사용 조건(제품·시험·Fixture·의존성·환경·discovery) 확인, 추가 L2 ID와 중복 0.
+전체 발견 LLM 2,492·Hub 588 유지. Python 3.12.14/Clang·Host d833790·고정 의존성 및
+실제 namespace/X11 환경이다. RAG 원본/입력/배치·검색/설정·Job/재개/저장/삭제와 공통
+승인·예산·Tool 효과·Checkpoint·수명 안전성 및 직접 Hub 소비자를 검증했다.
+
+설정·원본 대조와 모델/공개 경계에 대한 영향 승격을 검토했다. 전체 기존 함수와 실제
+원본 보존·사본·버전 거부 및 기존 효과/장애 주입 시험으로 의미의 동일성을 확인하여 이
+소단계 L3는 유예한다. 관련 검색/Job/Data와 후속 Component 변경을 모은 통합 게이트에서
+전체 L3 후 Push·정확한 SHA CI를 확인한다. 이 결과는 현재 소단계 로컬 완료 증거다.
+
+최종 감사 `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`:
+16/16 pass, 3.230초, exit 0. 정적 S1–S7 exit 0·finding 111개·미검토/stale 0.
+공개 명령의 원래 retry=False가 RAGData.NO_RETRY 선언으로 이동하여 해소된 정확한
+S2 occurrence e4c3552b… 하나만 검토 목록에서 제거했다. 명시되지 않은 retry 권한을
+주지 않는 원래 값·실제 효과/원본 보존 검증은 유지한다. 소스/README 의존 증거 12개 갱신.
+문서 검사 exit 0, R3 Mutation exit 0·원래 두 실제 효과 Assertion으로 한도 누락 검출.
+전체 inventory 538개, 미검토 259개(llm 82/hub 177), 미분류 17,261개,
+미완료 계약 4개·stale/분류 오류 0. 상세 증거:
+`/workspace/llm-clean-resume/whole-ownership/rag-data-draft/`.

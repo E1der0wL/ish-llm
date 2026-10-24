@@ -246,6 +246,7 @@ class IngestionObservation:
 
 
 class PreparationCallbacks:
+    PREVIOUS = "previous"
     PROGRESS = "progress"
     TELEMETRY = "telemetry"
 
@@ -256,3 +257,8 @@ class PreparationCallbacks:
     @classmethod
     def publish(cls, progress):
         return {cls.PROGRESS: progress}
+
+
+    @classmethod
+    def update(cls, previous):
+        return {cls.PREVIOUS: previous}

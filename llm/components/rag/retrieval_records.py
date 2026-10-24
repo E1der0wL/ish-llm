@@ -2,6 +2,7 @@
 
 from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean
 from .chunk_records import RAGChunk, RAGDocument
+from .corpus_records import RAGCorpus
 
 
 class RetrievalHit:
@@ -45,8 +46,8 @@ class CatalogCursor:
     CONFLICT = "RAG catalog changed; restart pagination"
 
     class Field:
-        IDENTITY = "identity"
-        GENERATION = "generation"
+        IDENTITY = RAGCorpus.Field.IDENTITY
+        GENERATION = RAGCorpus.Field.GENERATION
         AFTER = "after"
 
     FIELDS = (Field.IDENTITY, Field.GENERATION, Field.AFTER)

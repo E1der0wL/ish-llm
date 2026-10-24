@@ -49665,189 +49665,231 @@
   },
   {
     "path": "llm/components/rag/chunk_records.py",
-    "sha256": "bb37e23aa59a78da6f7d136eed83f485a25d1201713392b0d042d45b3a59514c",
-    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
+    "sha256": "4a7386cb0ffb24cfd4dbc9cd38529a53433ddcadb940c249987bd67a2ed54fc5",
+    "reason": "Whole Data API, input preparation, required corpus access and document/snapshot projections reviewed with direct/dynamic consumers. Previously completed source/Job/ingestion/retrieval files updated for the canonical input and snapshot boundary. Actual whole-method equivalence, independent copy/wire/version/input tests and current real file/fault/safety regressions preserve original assertions. Component remains pending whole-file scope.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "cf1f6e87994f50ee332646cfed1a4710a291cc4b82d8ac99a5641eea3268fbe8",
+        "id": "36ce52884a43091c27fa69b92b39637d4bf8816e0bc3287b6b7acf4be9de8567",
         "classification": "declaration",
         "owner": "RAGContent",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "9c703c461854854604d07679b4575a422940c76d6ccd0d09c3ba7ec691c969dc",
+        "id": "7c0f72779f16449ed22bf0643588a56e8df7f8817d79f376008608191ec37517",
         "classification": "declaration",
         "owner": "RAGDocument",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "ab2cbd44fa4e93a85061515cecc4dc199434f17841e6e17a1f82e6b036f62fb6",
+        "id": "c042e7eb0c430a7f12ff871d1e023e70f26c36c6c5d92b070d9e2ecc283afaf0",
+        "classification": "declaration",
+        "owner": "RAGDocument",
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
+      },
+      {
+        "id": "a9bd000458b7f14e755737558b278c5568b497394a0a448a568831212ee5f855",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "3d5b0dced34f6acc0958673075aafc810cbf1318a4957fca7609d039e391be12",
+        "id": "1f2e429d779655ba7fe4328fd55d70c18f7498f7a5706eece03867e7d32085bd",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "8e18c8d7da13c2a897caf88387754edf6c9395ce58886b666a2c441bf84b9c1b",
+        "id": "98d3fc111db67283d59310b6449912af0f543e78e4888ee6c1d1e63cc8f2d18c",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "2ec1eca3061ddc58fd168f44e2410d44f07588db193a013e599553bad4813dcb",
+        "id": "43d09646e6dca3dfbfd1b9778a467c6eb031ef37db813e4126836ab9793cae65",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "8fb4375edd43d645e14074043ee303ebd758f11aa623a29d01dab6afa66e5aa9",
+        "id": "fc1a53be7030235415ab69fbc67a492650bc1a21fef09fa6ac122b5dd7889c99",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "c1a83bc85f54a7a14036544d95eac5da7be09276b560fd237449479975c44cb5",
+        "id": "7d05d4a3c12fda8738e085ec7902d63273a272db5ee90b2abb889d12b9077f54",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "df61f4792ac5bd12e566635f4da166f6b44058218d98bf646620c8a5792b87c1",
+        "id": "00dc1bf5cd394a97acc25b75c8398ad2e1703313e839c5314d61ee251d4a6b56",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "525dbb5ee2004a43090017b27f763fa418dd725bbae2163fb8c146c23d6890da",
+        "id": "b4ba121ed4b7a604d4a02addb10d2d197e0431a59bf53a8cbc71044cc365c175",
+        "classification": "declaration",
+        "owner": "RAGDocument.Field",
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
+      },
+      {
+        "id": "b9da25cd475acfa40fe4e92031bc21e6dff71c417620edeb55ac7cc698d12c0d",
+        "classification": "declaration",
+        "owner": "RAGDocument.Field",
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
+      },
+      {
+        "id": "6b5ae29b5641ab6bd3d6fbaca2b645f2b58fc7a7f663321f7d06f84cb6701332",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "a41d39909e374905917e34309d6ce0a94402ae1373526c9292be9f175fd929cc",
+        "id": "420b78ae8ee2e9ab0df41cf47923b3c3017e24b6a422294d92f37a11dd1f5d04",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "5298f7c6c586245f42dfdd5fd8fd525c4fecfaa00bfa287b71065e5f80bcb080",
+        "id": "849c624bb32a13a84d50081bbd44be161c48d008c478f456de61e551f150e118",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "4f8398e35d732f5a217040ea04567ea96362d444463cc507306c79b12b07f0f2",
+        "id": "7907c6eed820d7403ade34d4423ea656b080ce297fbe9000a7ca1c4d357dfdd4",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "e8601aa102af34447eb2ee4c41656e7e16ca228897b659641bcf4ba462b00083",
+        "id": "0d423f2708b25cbdab1286ab204e2ce584ae77eecfb453081714b206e210310d",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "5834f141d6f97aabf49f2fcf2ff167860ba717bfbb06202b84e1eb68582c69e4",
+        "id": "164fd6edd9bed79396b70fb30c8d5ee7e024ae4a7e2e39b0eba224b8743542cc",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "addc5820db4e15c15125c729384d142154fdfc9c3c96bb1b4392fa5d8a60f93c",
+        "id": "2abe43f8bccf7aa3373a85f7bd0b1d09a26a4141bebd2208b7db2d38ffc0ff19",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "4bc0edd3200412a55bc7c95ce6394c3713087b81739ac69e76d4ba0a3ea6d346",
+        "id": "278f19728842f8fec330eeae6b76a4a5e0de558085484b45514831f26ca48976",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "dc877b69e7ea9e577d59acb5b82f7c85ad6d4ec6f03ed8edfda9eeeaf2fd8706",
+        "id": "02af4d8549cf17d4875f586961c9de84d7511f076d4597efeca70c6d52d7cd2b",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "69dd7986392f27e24b29edff0e3847271bf81cc56b33c694440dcb538fb26521",
+        "id": "b8eda340dff307f2afb31a2bd8841fffbff3eb74753f5dbe333acec8a8c71b2b",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "44e5a6b7231eed287f2d35c62b2e0554801d90c818c18235c5d39a1058a8187c",
+        "id": "5f91014f359a36faeafaf0ae96ee756bc3c92bf4516f6db64379e89c8d5dec03",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "d88bc3854794fab11ef99064455ae308d1daaa473cff51d4b3f18ea101158467",
+        "id": "6755cd61107ff1ec0fd7d1d5dcfee7766c965c56e3ea7ef0b79b8b87a8eadc07",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "a8bd1ada8bedbec5edf271e282059e69fb8bd488540e0c481474aaafa9ab50ce",
+        "id": "845924130a2270c600e5078384071363266ee688c690f5c9c1d587c274fc6dff",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "35e0d47a0800f482928ad43a4e4d20bc4b0fc9c5ded4571f5bcc6668d5b89b25",
+        "id": "8a1ee93baedb91b0c2f4a95bac114def18c43a7ad3c23ffd54f37e28fc55ff03",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "d858c9d6030bb3ca669f832f3a2aa190e05c1bc4ffa1f19372e8fdc6a98253bc",
+        "id": "927059619a6a23922a2e2da335e03d7a156e886a8fe386fc99ba6347e56390bd",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "c74b3fd330b97dbbcf630cae66e6a3a1f60c2f8e14a66c5ead1c60bfdf3ad6b4",
+        "id": "4e077220b39854797d366fd3cb35421c87eb436a54a5888cf4508708686e099a",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "632ea50c7b9383d8a1cef4cf3b6cb41ebeaeccdd1c48fa276772f392a5c4c834",
+        "id": "7923f35c3f67346b7e310c4a4476d89e0ccd73292a0eb805ecc0071d14436be8",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "fe9ec42b1b42ab707be9488643e54406dd1dba5b010185554d82cbb8b41f81f9",
+        "id": "b3e2a3b5c37bcfdcba42b859616b0c709fa5dca1862d18c3d2208c2bdc521224",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "8410de53be3190ecef7ad2607be08de0287ec363ac47472969e5017c2e8f4d1f",
+        "id": "687cd10ebacad0cf8c0edcf2bde28f850ab52aed2699b0509c57bc1b309a3816",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "750154a1790da85fb3e439ffb9700fac3c93e5f233364c3ab5fecd7e6a3e7700",
+        "id": "35919f177446115de69468c2b1a5cffc14d5c26266a83f9d102e08702e8002f0",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       },
       {
-        "id": "64823e14761422d49d12fbffac490bc578adb3f8e51baba66c8be3672b165c37",
+        "id": "94ae06ba4798f52c7c641bbca9c7bb0f17d09e6dcab7e95dad84f1849d16a0b1",
+        "classification": "declaration",
+        "owner": "RAGDocumentInput",
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
+      },
+      {
+        "id": "5849071e1dc859110d22bbdd9f5053323dc0423c3fb00bd29277d36fea9d0f86",
+        "classification": "declaration",
+        "owner": "RAGDocumentInput",
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
+      },
+      {
+        "id": "6620eee1832f94bb30b6bdff1eb0e1b941ff70b4b3b752e52cb9667f80ba6b18",
+        "classification": "declaration",
+        "owner": "RAGDocumentInput",
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
+      },
+      {
+        "id": "a2dc1525f01fec055449b89a68ca27cb1969c276f4ffb000122592f14706dae8",
+        "classification": "declaration",
+        "owner": "RAGDocumentInput",
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
+      },
+      {
+        "id": "7780cb7b3036c7db885b7789144107a69ba76674bc83a389a805997bb96c8036",
         "classification": "declaration",
         "owner": "RAGDocumentInput.Field",
-        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
+        "reason": "Previous complete chunk/source contracts remain unchanged. Document preparation fields/revision increment and the single creation-batch normalization/validation implementation are now owned here. Caller creation omission rules and strict stored input validation remain separate and unchanged."
       }
     ],
     "contracts": [
@@ -49855,23 +49897,22 @@
         "owner": "RAGContent/RAGDocument/RAGDocumentInput/RAGSection/RAGChunk/SplitDocument",
         "declaration": "llm/components/rag/chunk_records.py",
         "consumers": [
-          "llm/components/rag/job_storage.py",
+          "llm/components/rag/data.py",
           "llm/components/rag/jobs.py",
+          "llm/components/rag/job_storage.py",
           "llm/components/rag/component.py",
-          "llm/components/rag/splitting.py",
-          "llm/components/rag/search.py"
+          "llm/components/rag/splitting.py"
         ],
         "tests": [
-          "tests/llm/test_rag_job_state_integrity.py",
-          "tests/llm/test_rag_job_integrity.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_batch_identity.py",
           "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_resilience.py",
-          "tests/llm/test_rag_job_retention.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_settings_contract.py",
-          "tests/hub/test_progress.py",
-          "tests/hub/test_rag_jobs.py"
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }
@@ -50315,369 +50356,375 @@
   },
   {
     "path": "llm/components/rag/ingestion_records.py",
-    "sha256": "8c7331da5620b713d8432fc0f59e4bbef442f0567da9011b9c0b20e68a395109",
-    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
+    "sha256": "b34256304fc2a3ca78cbbea035b709e5e6789832170a0b7fb96f0110c0ffc3f8",
+    "reason": "Whole Data API, input preparation, required corpus access and document/snapshot projections reviewed with direct/dynamic consumers. Previously completed source/Job/ingestion/retrieval files updated for the canonical input and snapshot boundary. Actual whole-method equivalence, independent copy/wire/version/input tests and current real file/fault/safety regressions preserve original assertions. Component remains pending whole-file scope.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "3101a70d3161675a9463c5fca8c5c4ac95788bf6829967d470e34688c6ec54c7",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "d3f068459725102a560651f025ea17da94815f55cdae0a7689d75899a1b73fa0",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "0e41bc255e3f4f8ee0221d223c825bf1d72e29fcb353217b77d77445b1eaaa64",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "5565ad721d654f8cdeddaa027d8596c7813adda9d4f14cbb5edcdf6f2e1048cf",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "dc43ed6d243939180a4c964014628e07b79aa305511eedfb80f3c60a78aa114c",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "5e736fce6e7f6dbc1870bfff4a9133c7dd12df92d9f506e98de3725eab38b05e",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "e2b9b2380d4bb3140c44e5bea398d02665f0cfc1cef12f0bc5acdc5d69845a1e",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "f4536257b131be6c6e2fb9b3b9601af92f5a56f3805379d07c847ed879e090bf",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "cf4bdc1770e36784079ce115ddb820003d7d08a88b579790ee942ce7ed644db5",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "6d59cfda7ae3411efce498aa8f5bfba2301e28b8269e8ac357921c23c7ffc0f3",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "91fbeeb0ff1500f7256fca01d39f25246531a3eab97a01396b85e9aafa48cb0e",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "5993529058b5c1838785fcd2bd26d2d2f7d2426048032b034b3c1566d301f4b9",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "23a93e4a8c07d645eb17a79f6746edbae6a7fc73f8692429ea72c1cc9297fc71",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "55f130f4ad8eb246a8838bd36e66202c24542d2f538a14eb6be78b662496581c",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "437a9217bcbbfb06664d972046c5763489c768d5a35775c89a2ac16774b00977",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "2c5124538a67ab552c3c5db8e502c219e4263b2b3ddb8595d55e21531f586682",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "a662afd8b4c3b0de85a83548b906892b344e7ae5921b8c224d1d97003de53062",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "b468ee12875fc7ef48508bbd8640b7be11f5ef044a768c573d7f9a5eaa71a86f",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "65dee21282779cb092245f3624b4ce66aa831e33ec1edc23329c1b84c6ab5698",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "f89f9fecb837ab7a77a6b2245a46bbacab95eb1167b5b43e05f7f90be2777042",
         "classification": "declaration",
         "owner": "EmbeddingProfile",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "c825866d7e0ee3f9a6d62681c24070160faf229b9b9ecf9c9bbdf21b7f3453d4",
         "classification": "declaration",
         "owner": "EmbeddingProfile",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "c7044a39bb3021812343e8fb95383a9cee17a129b332ec5209583191dfd3c113",
         "classification": "declaration",
         "owner": "EmbeddingProfile.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "f2cfadd23ee5dcf572c4efda18c8c9031b38a414b9ba7f6e3d9efaae53d3f57d",
         "classification": "declaration",
         "owner": "EmbeddingProfile.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "0b0528a80af063bc75192d765431169c8381b0fbe682fdba1e2387ec0880d1c9",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "ade66401ea6f87d0f8a50f4d5a2a0e06353fd2c5b18d71cb4140fe8f7d4afb00",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "7b22547008188e5b04c4aac17316fba4e733542ee74c23c3cec96a2281a278ef",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "7c833b1e155092fb11267137559637e9b758cc2bb92afa3664589af16bea7559",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "d9b7a5967b4511cc45bcda6cf00cd112fb5c6ca187ea837fc99ed1946d9034ce",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "55f3876a6a508ca7d7b0c1fdb816a7c58225238b62c920ac8e3a9fbed49dd727",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "9b68bbb268de2de4e79db1438f6a9624e52505e0a28563a3663e0e17b1d6c6f9",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "7c131cf9c602b0efa17c5240b28aab45d30bf786650ec1cbe80c04b42a24ead7",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "0bfc02fee2d66db6dd2aeb57227b8872f63c6635d01ec1fe38778598665d3903",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "c3d111ee974d7db2c37735ed705c8977502445c1e200674f28d7db49cb2b5748",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "9f992dc825c310c7782cf6e721a1c71209bc13147f76464ab38e33f30365a12f",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "8e5679d0e28f7e8d0758c2b70c8ecfd7055a94199611c0bacf0b56d6c8451c3c",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "31c6e6625903eaa12834a60213e1011ddaa559e44808ca64c00ee0182ace1350",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "d46b8323e730475c8eef8347e639d5bf1d189cbfc87dac126e032e418b3975bc",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "975c5adf814e1910366a4cdcedc21559e3939518159ce2baaa882b285e4671e0",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "86b5811bb0aacb89bf1597a81ed39b8b14712810b9166a13e396491b12551199",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "df7a254a601f0d304e46d02c53cfe2a0d7acc889193c5d28660fc114b03aae9e",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "c829bdad75e1dde6f44da973f3128f20819158fcbd68c12403964b925e680e01",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "99f4e0c21c8e2ee8aa1acf44e8618b63ef6d2cb19b65302305f853804a0850f4",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "a1c409dbcd09d831e898d27a1f99fde0df0cf88117200a832899222920bbee6e",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "db916086fac5ec567d89589d48ad0e46d328c8268c49edb3a59621f406107e09",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "e35687fbfdd9d074dac1a01bba80150394cc79cba72621422196934b790986e4",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "ad2eb2e999c81fbe4e2395aca4847896822506950e0904a510d3148d1bae919a",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "198998b95e1781b9e7a63c7ac3d2372fea7c2e5c718696fa86c69ab318f449fa",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "3fc258532171ada06816805f131c0bfa3603cea0a61ba19cb8a1948f3daafdee",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "88358f253e83bf8af9d2767b0583ea983ff60e63dba5b53b94e6ed3ac0f03f54",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "bf0af52da274b9cc9de47da0f2bcc02ad68364589df163767b24c6186944ff29",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "e586beef48c6e72563c8c5b3915f854f2ef8a6d58a6400d7524c9ae2360c192b",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "937dea27a96ab17b1aa19ec035b468c2d9698ecbe33d9ed2270ce15cdf6c599b",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "3271d1f2197184f0566dff69398835f0107aa32e2790725ef7db4fae475642d9",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "da48b41d55f495c33a382d444f9dd9b1ef114d484c5d6995d52f4ffd759fd4b0",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "558e79aa0d3b8d58a098f3461a7354a49ce8880639ab4619c7c0a324811da6aa",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "07db4d8f6e1840ad803f7b0f56d5f38c6c1d15ac5e5d092de1c4e67706177237",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "9473d3afc228b18fe80f2a82e10cc58bae1bfa996b2c8f39811d40dcc78c15aa",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
         "id": "143f7982618fbad8f7e5065c49bb8776cd058a1267881266bdbfd6467d201976",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
-        "id": "55bbb66e179fd97615ab12e3a29ef699332708ef47168337143b4baff8fa040f",
+        "id": "f2d79e14268a9457cdd5bff5dcab55aa21357987382fd9fcb68c27aded1b7cd1",
         "classification": "declaration",
         "owner": "PreparationCallbacks",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       },
       {
-        "id": "d2d90fc4662e69ff316966d61f9033cceebc256e3ae3a80e8d6b1e987b952a77",
+        "id": "c83b743fa6791b9de8abd6bde21e42356ea58b3cabae02571027a44d2141de28",
         "classification": "declaration",
         "owner": "PreparationCallbacks",
-        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
+      },
+      {
+        "id": "e0de997a612eaf5b7207da29b709cca5177baa975669228d35dffe49483fc97c",
+        "classification": "declaration",
+        "owner": "PreparationCallbacks",
+        "reason": "Previously reviewed complete embedding/name/progress evidence is unchanged. Preparation previous-document keyword is declared alongside existing preparation callback arguments; update projection preserves the original reference and only the canonical prepare implementation receives it."
       }
     ],
     "contracts": [
@@ -50685,22 +50732,21 @@
         "owner": "BatchCheckpointName/EmbeddingCheckpoint/EmbeddingProfile/EmbeddingEvidence/EmbeddingFingerprint/IngestionObservation/PreparationCallbacks",
         "declaration": "llm/components/rag/ingestion_records.py",
         "consumers": [
+          "llm/components/rag/data.py",
           "llm/components/rag/jobs.py",
           "llm/components/rag/component.py",
-          "llm/components/rag/ingestion.py",
-          "llm/components/rag/extraction.py"
+          "llm/components/rag/ingestion.py"
         ],
         "tests": [
-          "tests/llm/test_rag_job_state_integrity.py",
-          "tests/llm/test_rag_job_integrity.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_batch_identity.py",
           "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_resilience.py",
-          "tests/llm/test_rag_job_retention.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_settings_contract.py",
-          "tests/hub/test_progress.py",
-          "tests/hub/test_rag_jobs.py"
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }
@@ -52198,123 +52244,111 @@
   },
   {
     "path": "llm/components/rag/retrieval_records.py",
-    "sha256": "5c432e75905df8312df7b90af1796e2c85b4d3625b6b134a1ac135f5ed113027",
-    "reason": "Whole retrieval/index/Tool/projection implementations and consumers reviewed; previous complete chunk and graph-index reviews updated only for required document getters and graph filename. Actual method/projection equivalence, independent wire/query/cache comparisons and current unchanged real file/fault/safety assertions pass. Component/Data remain pending whole-file reviews.",
+    "sha256": "b5b4374890030b389d2cbc138e1886c80948ee2e62ee75978a2ffe845eb10c0d",
+    "reason": "Whole Data API, input preparation, required corpus access and document/snapshot projections reviewed with direct/dynamic consumers. Previously completed source/Job/ingestion/retrieval files updated for the canonical input and snapshot boundary. Actual whole-method equivalence, independent copy/wire/version/input tests and current real file/fault/safety regressions preserve original assertions. Component remains pending whole-file scope.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "6bb65cbc79db593b5abfb47d2faa279b2f8199915f6afeb36592f744bc7cc16d",
+        "id": "4f5e43993bec75f7b47b10d6e3efa77a7ca1ca20f7152b2556e73eee9e0a0e31",
         "classification": "declaration",
         "owner": "RetrievalHit.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "0adc0c47edde0a6b4d627fdc908ac0da615c9065774fe1a428e90fda6f4e08d0",
+        "id": "fca7c34cf7847fe5daaf54a075a8f6dfc02d237cf8e8ce56a4be0bbb102fd8b8",
         "classification": "declaration",
         "owner": "RetrievalHit.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "a1632ebee46bca202255160635dbea90e8a0df1c82c4ef5aa79c251b9b540c32",
+        "id": "f4dd83962062f76a7bd5eef0c1ff2535256a4405a57313fa1af3732a559753fc",
         "classification": "declaration",
         "owner": "RetrievalHit.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "acb0b9f007ad558f6ec163cf8e3239022a09993585bd12cb6894f23efb86ff93",
+        "id": "454701c08308aba846ffc532518c9193a2a3cdb266889f46a5a7985003a45e12",
         "classification": "declaration",
         "owner": "CatalogCursor",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "ccfac2274b8b1e67b90cc29f6087a85bffa92cd60601eec0a9c4df8cdfb1ce99",
+        "id": "e7b5be9da32cdebab98cbd0c732ca02faa83c680d63cc2815a0bf94d8a47a444",
         "classification": "declaration",
         "owner": "CatalogCursor",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "1d0c3152dc7b02cced6e2b29b3777d5ffa3c3f1cfe8c9db76b6f65bcd8abba62",
+        "id": "32e7b0fdcdd9ed41c324c213408ff35330a737db31b39a57b7aeb13745659166",
         "classification": "declaration",
         "owner": "CatalogCursor.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "bd6e895f31a72328161422583a8727be6c7d441eefe2c127c8dc9655379f0070",
-        "classification": "declaration",
-        "owner": "CatalogCursor.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
-      },
-      {
-        "id": "df7d7e6a092fc2ce4e9b2e430a540e9c30ef79c23df42c8ebfaafb93534d437d",
-        "classification": "declaration",
-        "owner": "CatalogCursor.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
-      },
-      {
-        "id": "0daf61e09d403f622232afdb25482731d5bdb331533839a64111dfa3e8fed719",
+        "id": "ffd4e980199febf8f1d9bcbf04dc3742a8696c0c9c1a636ef44bcfed4b75f6c5",
         "classification": "declaration",
         "owner": "CatalogRequest",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "a4b11798c6f5323bb816846a8cd3b3f522b3fe25cc67bf1cb144f04162895e9b",
+        "id": "c5207e9debfc91d2e8197b8f768af53261397f30987fc445222d8ead4322ed16",
         "classification": "declaration",
         "owner": "CatalogRequest",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "43864ca1d9911ac5ddff188aa6ecd73a86c89e8c38463f23157f913806cc5987",
+        "id": "9132c6cb8c05ebfc62da7c3730b5f6a81e409928ed9574d8d84f624a07d09bd4",
         "classification": "declaration",
         "owner": "CatalogRequest",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "0dda0b48252d838f91445a388458e93b849f585cb9d1893d45e53a0b12c50207",
+        "id": "8d897a8f2eaee29dab731548c74587ec21d53fbbc874cd8339eb843f25e21976",
         "classification": "declaration",
         "owner": "CatalogRequest",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "2361f61559436fffd08291d8710813213a7b4abfc8dd5c282806c7a33b14870a",
+        "id": "2e5fb38847c0f85aaf6894a828982adb4098591e7c2e2ca5ddf01a2a307f4ae9",
         "classification": "declaration",
         "owner": "CatalogRequest",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "008fbb5a62e0e16633a6c4fc4733e742d2b5502083018f4fcf4a67ac6fa21d89",
+        "id": "c3af363a87fb0d43481685b5c012d102f43599c43b64c2c36f17322d31a9a18e",
         "classification": "declaration",
         "owner": "CatalogRequest",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "7e772b9a6fa12baea654d0a9350a241c8854df4dce777a5d54f054855dbbc997",
+        "id": "5cddd6317ff382bca98d3829abe769cf8b22d7afcc6a77813e9096fcf96f9296",
         "classification": "declaration",
         "owner": "CatalogRequest.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "7015961dda1d16f380162a81dbfebb6e5717316bdb05d6aed8ccf123645ef89b",
+        "id": "5899ef15d8ec8f508e5578d72dfc6a424837e3ac22409c829357a51091696aee",
         "classification": "declaration",
         "owner": "CatalogRequest.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "d7d0be98199657324360de454826fc45100c7c1412bbbf25ff9742c571974bb7",
+        "id": "cf41dcfb5f25ff3c4cbd3a96b068ef71d5e6701bad97c8bc88c8dcceca0575b9",
         "classification": "declaration",
         "owner": "CatalogPage.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "2201197602f7de5f3e6cfc2831da9330ab47cab06054cb031490b387771e6289",
+        "id": "20e4b0e6e4b74f71ea2d6eade0b3f2a31204774d91402188c97638c6c220aca8",
         "classification": "declaration",
         "owner": "CatalogPage.Field",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       },
       {
-        "id": "6b6922a6defde5378f8352c4c1e39991ab3b190219cf87b61a25bfc8acad917e",
+        "id": "d1ac5e237a07a943bc47c6e3e01146a1c10e2585688f35550167683c9eefb270",
         "classification": "declaration",
         "owner": "RAGToolResult",
-        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+        "reason": "Previously reviewed retrieval/catalog/source definitions remain unchanged. Catalog cursor identity and generation names now refer to the corpus Owner; exact fields, validation ordering and binding semantics remain intact."
       }
     ],
     "contracts": [
@@ -52322,19 +52356,20 @@
         "owner": "RetrievalHit/RetrievalSource/CatalogCursor/CatalogRequest/CatalogPage/RAGToolResult",
         "declaration": "llm/components/rag/retrieval_records.py",
         "consumers": [
-          "llm/components/rag/component.py",
           "llm/components/rag/data.py",
+          "llm/components/rag/component.py",
           "llm/components/rag/tools.py",
           "llm/components/rag/search.py"
         ],
         "tests": [
-          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_components.py",
           "tests/llm/test_rag_query_evidence.py",
-          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_retry_presence.py",
           "tests/llm/test_rag_catalog_integrity.py",
-          "tests/llm/test_rag_storage.py",
           "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_settings_contract.py",
           "tests/hub/test_resource_tools.py"
         ],
         "complete": true
@@ -53220,243 +53255,243 @@
   },
   {
     "path": "llm/components/rag/jobs.py",
-    "sha256": "7f7df8600665535747c2a4f8f79051167775839fee9c02ca7efd756a044ff41c",
-    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
+    "sha256": "9edcd6f9d252447bf033c0f1a5ff9e62e47878d4fd437c6ee7456310a4a830ad",
+    "reason": "Whole Data API, input preparation, required corpus access and document/snapshot projections reviewed with direct/dynamic consumers. Previously completed source/Job/ingestion/retrieval files updated for the canonical input and snapshot boundary. Actual whole-method equivalence, independent copy/wire/version/input tests and current real file/fault/safety regressions preserve original assertions. Component remains pending whole-file scope.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "984ab20b184afafbdd1a01da50f6c71d660e8edad5425482780d66cfb45475ac",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "707039af199bf0b3f38822105be08375292f9db44d402e1c10ae1c1e6dd477f0",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "6ac135439faa0873489fa6b8d0f63b9a91d31595b5c31c8dbb9274df9af3745f",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "2fa65be79dad1697a67634a2fb876192bb24e23bef3d85686df8946c36e6f26d",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "d73fca481a9a5d427844125863be63f9cb8ff94cdab49b22c61f5da97f87f1c6",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "a23020b58618b8f4649837da18a8447ccd0067f752e4052d316ec384d96f9a75",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "9a827ece51449a81de5cd22aff1aaed6e4fd81c9a33a7ee5a6010aadb5f57558",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "5172e0e137340db73cefbc301cbb1342a158c124fab81da4ba4fe914ba5022f9",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "122bcaa4c34c49cfd7d63860c30799699545f476e72c43127d8c158e74888561",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "92efd04efbce86018d5e597062f0830724de4843a61fb782e19a9e0625b4c433",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "e85174deffa0cb604a1e88d447b1a299acc46f3927cef87288489a83f6b9ab05",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "bf78d34f15cc4d602ff4bdc3ca04e7559085f9ed29a5325c8728bbc48ff57c3f",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "38381a1c4babd92e777b7f3a969f9b1860a88b7fcb04da1a6d49e1a78f7a0500",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "2489292697b0acd92643376348f34f24aaf3137bef2007f6b1220cc930630fca",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "722009e0cceb33c3ced161032da3997f5792ed0d824a015f024e077a701ffe70",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "d435d386fe1e45880bbab21ae98414f99e52f0c9f2560d7b7ee29a6aa7376639",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "dfaf5fffcc5443f20c01c734db190a9b4b7abb583bdd3845c7229cd44aae78bb",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "2a78f45145450db641d08e5aa18936ed55fd7a5d9d720a6c650e16a1c7f19f1a",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "1a18af9d7fd864a5bff39067928d904bfa2f8a5140946ea9f1ea18de19960f0c",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "752a691441de1684cab16f584e863e1d4cd406bc47840a7b0cea98bee6ae0312",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "4a6ca62a3b5dd7f9e795dbcbc38cde3fa706b69080ef919059759e87fd5f7121",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "00a6a5b6de273efc38c05f80872332324a1c87983c4ed75982852d7d0106dd97",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "545cf1b7eb442f6c4180f094a829035666d868fe99d0676c9d4f6957eceb5a7a",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "c5f3a3d17e66456e12f60117ce8b4494d398a1378635d778db1bada96d71e9e5",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "a7a73ca325e892498ce92a445b3aba2f582e00929bdf7fb7fbc8de74b4614f6c",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "765fba8bb0703d572bc91b4b7c3305b05d226de05231ce9510f75727d727b738",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "f06188d2d12529ff113addb02652216480688af0bb50759a8bf2097417211240",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "481ee3258f3f28735034a05f02af25c6ee770a63038941f9afd449fec256cc2a",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "45db4463fc63689dbdf9f10328e3d009187980dc3eddfc75958c7d92b73b5a49",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "6c5b77f860786e388c7d1515d068da85a5596567284ae66560c6e4d3628cad89",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "952eda0857f676dfea4069a1cbbb22f67bb937e5efa89abfce6b959fb33ca153",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "30b5850f74d18f4f1dd1e026293b0879b8e8e0fe2f31991aecb9889109a92f4b",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "a36b7182474179910d9c0ec0a34e5465840d3e85ea35dc520e8c4d125e532ad9",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "3c9e20abb91b80a2aae89161517fea4002be20bae3abfa2f2f9db78fa11af293",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "cab7cf0997a678cdfce6f3d82552c74ef86215f63c04b651e753a00c7f2f132b",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "b398eac1a550ef643f83925a57f1f4f3060b5d38f2f129612cbff75c4daa72a2",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "b300424e600c03156a1a6018edf47d891406895dc2b4001cce40a4531892d58c",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "c8e8fb7da7f1752f439618acf183f2932c10ec9a4ab73aa73eb1cd48f4587ce9",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       },
       {
         "id": "c055b0941b16c1ebad00290c154a9880d8d4330d1858912eecdf129ba67d6f37",
         "classification": "declaration",
         "owner": "RAGJobs",
-        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+        "reason": "Previously reviewed complete Job coordination and execution declarations remain unchanged. Both enqueue paths now invoke the sole input preparation Owner directly; no duplicate Data helper or legacy reader remains."
       }
     ],
     "contracts": [
@@ -53467,16 +53502,15 @@
           "llm/components/rag/data.py"
         ],
         "tests": [
-          "tests/llm/test_rag_job_state_integrity.py",
-          "tests/llm/test_rag_job_integrity.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_batch_identity.py",
           "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_resilience.py",
-          "tests/llm/test_rag_job_retention.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_settings_contract.py",
-          "tests/hub/test_progress.py",
-          "tests/hub/test_rag_jobs.py"
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }
@@ -53670,6 +53704,281 @@
           "tests/llm/test_settings_contract.py",
           "tests/hub/test_progress.py",
           "tests/hub/test_rag_jobs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/data.py",
+    "sha256": "d696f9c8dfd09b799694f9b903cdc1f80f661226ec98bb56b9542cf343130244",
+    "reason": "Whole Data API, input preparation, required corpus access and document/snapshot projections reviewed with direct/dynamic consumers. Previously completed source/Job/ingestion/retrieval files updated for the canonical input and snapshot boundary. Actual whole-method equivalence, independent copy/wire/version/input tests and current real file/fault/safety regressions preserve original assertions. Component remains pending whole-file scope.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "14d38503e058c518ae29500e3cb09aa1143cae86b7631aceba4c51d517a9d43e",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "9c31fdfc775d4d1d24e9c67dcfc7656df7d8be0b61fcdd911840431b511fede4",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "ec9b4866dd9cfa967022e0b294be8d4ba51c4a908ef85e4f973cac750c6f8677",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "4b37b245315b2a674b6cf7c4bd7ce15158c90f70e220238efe85898206fe8f57",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "5cdbf749f7264d2e574a1a950e47834b8d2fb99e9a70f77fac4e20fe4c856dba",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "fd3aac47ef974bc481a44eaea974a0350e31f70e998c0c2a5ae42866763899cb",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "b63eb981de83abe697fbf41c4a6733783ba785908cda99a656fbbc7f289ad0f6",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "e1a5294aaceb086c8223af32dabd0b37cdf71e76f2e6eb314413c7c3acbcd6d0",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "4931a5564a1e1d65c585243b7f30e0559d7802f309eb734ab61baf8b397ec960",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "b3d75a93625e8fe31406e555d51d0552e1acd8e4d5aade0c7747c86b15c364ee",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "20783f1b42e847a6469b708faa42d811535933842af471317aa9aa1b52497abb",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "a7341b63c055ea69d8a01d7f0951947b8509816a06b8aa768a6595bac365c838",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "a8e24b1e44d5165cfe3e4d0582de1a8ab3a35c5e222d90785d31fceeae6c4964",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "985463076a6e7685ddd946507d2d0a67e46dcff719054bf26e1fe8d8e2861b84",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "aad2ce5f1d2bcd56afec180792f31abb4dfd0d4361261fc9c49d96ec97cc58ce",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "2cdec271060a5e3c5f5875dd7d00904b223bdcb76d8b13718a67a529bef6fdee",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "60eeddb97d7f52d5806c5e8cc85b2a9a185476b93149ebba910ea0808f38b371",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "c45a2fc351e5456c8919e5014b5bec36d3e1dab467640c5f65df8b8099eab68b",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "5cb62dfda064e07cc3d545faca1ca806b84de60169323f20b47b5094c4ece1e4",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "33e37e15c4526483497b0c97f4b18407222fd96b14af9f6a06c80ee7aee7803d",
+        "classification": "declaration",
+        "owner": "RAGData",
+        "reason": "Whole public API and async/dynamic paths reviewed. Diagnostics, optional-argument absence, public no-retry command and technical result positions are at the class head. Input preparation, document/snapshot/CAS projections, selected Prompt capability and model/Job/document fields use their actual Owners; original current-source and model-observation checks remain."
+      },
+      {
+        "id": "a23b40f72ba5b85ac8f8ff686ae14fbe38991aa2e2c4530f7b8468f3e718f1d5",
+        "classification": "non_contract",
+        "owner": "RAGData.delete_document",
+        "reason": "Python return annotation -> None; not an execution or stored default."
+      },
+      {
+        "id": "a1a19c0816dea5ced413b43aead4f5b5cbd4f9c03119c7521f9aaca756fc2e6f",
+        "classification": "non_contract",
+        "owner": "RAGData.compact",
+        "reason": "Python return annotation -> None; not an execution or stored default."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGData",
+        "declaration": "llm/components/rag/data.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/document_views.py",
+    "sha256": "ad040572b641cef8ab03892ba9ba3ac4490aea86963a4f9d5d48b18f7783a446",
+    "reason": "Whole Data API, input preparation, required corpus access and document/snapshot projections reviewed with direct/dynamic consumers. Previously completed source/Job/ingestion/retrieval files updated for the canonical input and snapshot boundary. Actual whole-method equivalence, independent copy/wire/version/input tests and current real file/fault/safety regressions preserve original assertions. Component remains pending whole-file scope.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2e87e4b6498350a0c44a24b1f507104bfbeb20698b335874488cdbd1ebcd3891",
+        "classification": "declaration",
+        "owner": "DocumentChange",
+        "reason": "Exact public hidden-field set, caller CAS names and runtime snapshot fields are owned at the projection declaration heads. Stored document fields refer to existing Owners. Deep/shallow copy boundaries and merge precedence are unchanged."
+      },
+      {
+        "id": "1f5b55c20b1b6f0955725c70b18ce449c7c97fa9220ba128879ca5bfee148fd8",
+        "classification": "declaration",
+        "owner": "DocumentChange",
+        "reason": "Exact public hidden-field set, caller CAS names and runtime snapshot fields are owned at the projection declaration heads. Stored document fields refer to existing Owners. Deep/shallow copy boundaries and merge precedence are unchanged."
+      },
+      {
+        "id": "d813f94667dcc3a124068b06b6912b4da350892d2f967e229e1e2d7040bbf5ad",
+        "classification": "declaration",
+        "owner": "RAGDataSnapshot",
+        "reason": "Exact public hidden-field set, caller CAS names and runtime snapshot fields are owned at the projection declaration heads. Stored document fields refer to existing Owners. Deep/shallow copy boundaries and merge precedence are unchanged."
+      },
+      {
+        "id": "398271874531d55c5acc1773fa1d77562ceea239b7fe30397b945ecae7367fa7",
+        "classification": "declaration",
+        "owner": "RAGDataSnapshot",
+        "reason": "Exact public hidden-field set, caller CAS names and runtime snapshot fields are owned at the projection declaration heads. Stored document fields refer to existing Owners. Deep/shallow copy boundaries and merge precedence are unchanged."
+      },
+      {
+        "id": "6ae3e4eb86df835a2b942e2cfb46d98dbee483bd249170bdee0d461336352796",
+        "classification": "declaration",
+        "owner": "RAGDataSnapshot",
+        "reason": "Exact public hidden-field set, caller CAS names and runtime snapshot fields are owned at the projection declaration heads. Stored document fields refer to existing Owners. Deep/shallow copy boundaries and merge precedence are unchanged."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DocumentView/DocumentChange/RAGDataSnapshot",
+        "declaration": "llm/components/rag/document_views.py",
+        "consumers": [
+          "llm/components/rag/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/corpus_records.py",
+    "sha256": "48714fb893f488bc232b89b97d16b98d8ea04c3d67414ea54bd9b76a98c6389f",
+    "reason": "Whole Data API, input preparation, required corpus access and document/snapshot projections reviewed with direct/dynamic consumers. Previously completed source/Job/ingestion/retrieval files updated for the canonical input and snapshot boundary. Actual whole-method equivalence, independent copy/wire/version/input tests and current real file/fault/safety regressions preserve original assertions. Component remains pending whole-file scope.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a3993c84b6901ece29fe6222ce72500a01d120327a3c28a2f22a14b06911470c",
+        "classification": "declaration",
+        "owner": "RAGCorpus",
+        "reason": "Corpus identity, generation and required document-container keys and identity-prefix width are declared at the Owner head. Required getters do not restore missing data. Broader stored corpus validation stays in the still-pending Component implementation."
+      },
+      {
+        "id": "71309ad1c981860da33faa9ce65af902f329666fc04f1a465e30b3c83cb3353f",
+        "classification": "declaration",
+        "owner": "RAGCorpus.Field",
+        "reason": "Corpus identity, generation and required document-container keys and identity-prefix width are declared at the Owner head. Required getters do not restore missing data. Broader stored corpus validation stays in the still-pending Component implementation."
+      },
+      {
+        "id": "a19255e66cfe3e227545294b5176686eb5fbaa078e803d33d8512f6880d534bc",
+        "classification": "declaration",
+        "owner": "RAGCorpus.Field",
+        "reason": "Corpus identity, generation and required document-container keys and identity-prefix width are declared at the Owner head. Required getters do not restore missing data. Broader stored corpus validation stays in the still-pending Component implementation."
+      },
+      {
+        "id": "048f30c2adddb13835c26e6be0c26b740e1d1d5b758e6f84d65b7b0f34be82b7",
+        "classification": "declaration",
+        "owner": "RAGCorpus.Field",
+        "reason": "Corpus identity, generation and required document-container keys and identity-prefix width are declared at the Owner head. Required getters do not restore missing data. Broader stored corpus validation stays in the still-pending Component implementation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGCorpus",
+        "declaration": "llm/components/rag/corpus_records.py",
+        "consumers": [
+          "llm/components/rag/data.py",
+          "llm/components/rag/retrieval_records.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }

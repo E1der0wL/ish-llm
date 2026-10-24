@@ -32,12 +32,19 @@ Job의 의미 검증과 상태 변경 허용 조건은 `job_records.JobRecord`�
 서비스는 저장소의 `checkpoint_declarations()`로 선언을 읽으며 내부 manifest 구조를 해석하지
 않습니다. 필수 기록·원본·lease·revision이 없거나 손상된 경우 기존대로 거부합니다.
 
+문서 생성 배치의 ID/metadata 준비는 `RAGDocumentInput.prepare_batch()`, 공개 응답은
+`DocumentView.project()`가 소유합니다. 같은 준비 구현을 Data와 Job이 사용합니다. 생성 시
+허용된 원래 정규화와 저장 입력의 필수 검증은 구분되며 저장 기록의 누락을 복구하지 않습니다.
+작업 스냅샷의 설정·원본 버전 대조와 문서 CAS 의미는 기존과 같습니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | RAGComponent/RAGConflictError와 EmbeddingModel/RerankModel/TripleExtractor의 공개 import입니다. |
 | [component.py](component.py) | 설정 검증과 문서·색인 generation의 원자적 공개·복제를 담당합니다. |
+| [document_views.py](document_views.py) | 공개 문서의 내부 증거 제외, 문서 변경 CAS 인자와 작업용 설정/원본 스냅샷 Projection입니다. |
+| [corpus_records.py](corpus_records.py) | 코퍼스 identity·generation·필수 문서 컨테이너의 정규 필드와 조회입니다. 전체 저장 검증은 Component가 계속 소유합니다. |
 | [data.py](data.py) | Project 수명·잠금 경계를 유지하는 문서 CRUD·검색·Job 공개 API입니다. |
 | [chunk_records.py](chunk_records.py) | 분할 문서·섹션·청크의 형식·순서/ID·내용 digest와 원본/섹션 연결 검증을 소유합니다. |
 | [splitting.py](splitting.py) | MarkdownSplitter가 fence·제목 계층·문단 분할을 소유하며 정규 섹션/청크 Writer로 결과를 구성합니다. |

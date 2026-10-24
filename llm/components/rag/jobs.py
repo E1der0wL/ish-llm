@@ -145,19 +145,17 @@ class RAGJobs:
 
     @workspace_locked
     def enqueue(self, *, title, content, metadata=ABSENT, identifier=ABSENT, description=ABSENT):
-        from .data import validate_documents
         job_id = uuid4().hex
         identifier = job_id if identifier is RAGJobs.ABSENT else identifier
         payload = RAGDocumentInput.create(title, content, metadata, identifier)
         if description is not RAGJobs.ABSENT:
             payload[RAGDocument.Field.DESCRIPTION] = description
-        payload = validate_documents([payload])[self.FIRST_INPUT]
+        payload = RAGDocumentInput.prepare_batch([payload])[self.FIRST_INPUT]
         return self._enqueue(job_id, payload, document_id=identifier)
 
     @workspace_locked
     def enqueue_documents(self, documents):
-        from .data import validate_documents
-        inputs = validate_documents(documents)
+        inputs = RAGDocumentInput.prepare_batch(documents)
         job_id = uuid4().hex
         payload = {JobDocumentBatch.DOCUMENTS: inputs}
         return self._enqueue(job_id, payload, document_ids=[item[RAGDocumentInput.Field.IDENTIFIER] for item in inputs])

@@ -7,6 +7,14 @@ from .status import RAGJobStatus
 from copy import deepcopy
 from .search import SearchMethod, validate_search_options, SearchOptions
 from .retrieval_records import RetrievalHit
+from .chunk_records import RAGDocument, RAGDocumentInput, RAGChunk, SplitDocument
+from .corpus_records import RAGCorpus
+from .document_views import DocumentView, DocumentChange, RAGDataSnapshot
+from .job_records import JobRecord
+from .prompts import ExtractionOptions
+from llm.components.prompts.records import PromptDefinition
+from .ingestion_records import PreparationCallbacks
+from llm.core.model_protocol import RankedDocument
 from llm.core.configuration import require_config
 from uuid import uuid4
 
@@ -17,44 +25,41 @@ from llm.services.infrastructure.storage import async_method
 from llm.providers.observations import observe_component_models
 
 
-def document_view(document: dict) -> dict:
-    """벡터 같은 내부 색인 데이터를 공개 문서 응답에서 제외한다."""
-    return deepcopy({key: value for key, value in document.items() if key not in (
-        EmbeddingEvidence.Field.VECTORS, GraphRecord.Field.GRAPH, EmbeddingEvidence.Field.PROFILE, "preparation_configuration", "preparation_fingerprint", "extraction_manifest")})
-
-
-def validate_documents(documents):
-    """Validate the entire explicit create batch before model calls or queue admission."""
-    from .component import RAGComponent
-    if not isinstance(documents, list) or not documents:
-        raise ValueError("documents must be a nonempty list")
-    result, identifiers = [], set()
-    for position, source in enumerate(documents):
-        if not isinstance(source, dict):
-            raise ValueError(f"documents[{position}] has unsupported fields")
-        item = deepcopy(source)
-        identifier = uuid4().hex if item.get("identifier") is None else validate_name(item["identifier"])
-        if identifier in identifiers:
-            raise ValueError(f"Duplicate document identifier: {identifier}")
-        identifiers.add(identifier)
-        item.update(identifier=identifier, metadata={} if item.get("metadata") is None else item["metadata"])
-        RAGComponent.validate_input(item)
-        result.append(item)
-    return result
 
 
 class RAGData(ComponentData):
+    MESSAGE_RAG_CONFIGURATION_CHANGED_DURING_PREPARATION__RETRY_EXPLICITLY = 'RAG configuration changed during preparation; retry explicitly'
+    MESSAGE_CORPUS_CHANGED_DURING_RETRIEVAL__RETRY_EXPLICITLY = 'Corpus changed during retrieval; retry explicitly'
+    MESSAGE_RAG_SOURCE_EVIDENCE_CHANGED_DURING_RETRIEVAL__RETRY_EXPLICITLY = 'RAG source evidence changed during retrieval; retry explicitly'
+    MESSAGE_RAG_CONFIGURATION_CHANGED_DURING_RETRIEVAL__RETRY_EXPLICITLY = 'RAG configuration changed during retrieval; retry explicitly'
+    MESSAGE_DOCUMENT_DESCRIPTION_MUST_BE_TEXT = 'Document description must be text'
+    MESSAGE_QUERY_MUST_BE_NONEMPTY_TEXT = 'Query must be nonempty text'
+    MESSAGE_CONFIGURE_A_RERANKER_FIRST = 'Configure a reranker first'
+    MESSAGE_LIMIT_MUST_BE_POSITIVE = 'limit must be positive'
+    MESSAGE_SEED_MUST_BE_A_NONEMPTY_ENTITY_NAME = 'Seed must be a nonempty entity name'
+    MESSAGE_QUERY_EMBEDDING_MODEL_DIFFERS_FROM_INDEXED_MODEL = 'Query embedding model differs from indexed model'
+    MESSAGE_QUERY_EMBEDDING_DIMENSIONS_DIFFER_FROM_INDEX = 'Query embedding dimensions differ from index'
+    MESSAGE_RERANKER_MUST_RETURN_RERANKRESULT = 'Reranker must return RerankResult'
+    MESSAGE_INVALID_RERANK_INDEXES = 'Invalid rerank indexes'
+    MESSAGE_RAG_EXTRACTION_PROMPT_ID_REQUIRES_SELECTING_THE_PROMPTS_COMPONENT = 'RAG extraction.prompt_id requires selecting the prompts component'
+    MESSAGE_SELECTED_PROMPTS_COMPONENT_MUST_PROVIDE_PROMPTS_CAPABILITY = 'Selected prompts component must provide prompts capability'
+
+    ABSENT = None
+    NO_RETRY = False
+    FIRST_DOCUMENT = 0
+    COMPONENT_INDEX = 1
+    MINIMUM_JOB_LIMIT = 1
     def _current(self):
         project, component = super()._current()
         worker = component.with_config(project)
-        prompt_id = worker.extraction_options.get("prompt_id")
-        if prompt_id is not None:
+        prompt_id = worker.extraction_options.get(ExtractionOptions.Field.PROMPT_ID)
+        if prompt_id is not RAGData.ABSENT:
             try:
-                if "prompts" not in project.components:
-                    raise ValueError("RAG extraction.prompt_id requires selecting the prompts component")
-                prompts = self.registry.get("prompts")
-                if "prompts" not in prompts.capabilities:
-                    raise ValueError("Selected prompts component must provide prompts capability")
+                if PromptDefinition.CAPABILITY not in project.components:
+                    raise ValueError(RAGData.MESSAGE_RAG_EXTRACTION_PROMPT_ID_REQUIRES_SELECTING_THE_PROMPTS_COMPONENT)
+                prompts = self.registry.get(PromptDefinition.CAPABILITY)
+                if PromptDefinition.CAPABILITY not in prompts.capabilities:
+                    raise ValueError(RAGData.MESSAGE_SELECTED_PROMPTS_COMPONENT_MUST_PROVIDE_PROMPTS_CAPABILITY)
                 worker = component.with_config(project, prompt=prompts.load(project, prompt_id))
             except (FileNotFoundError, ValueError) as error:
                 # 깨진 참조가 있어도 설정 수정·기존 자료 조회·실패 작업 정리는 가능해야 한다.
@@ -67,36 +72,35 @@ class RAGData(ComponentData):
         project, component = self._current()
         snapshot = component.snapshot(project)
         component._embedding_dimensions = EmbeddingEvidence(snapshot).optional_dimensions
-        return component, {**snapshot, "configuration_version": component._configuration_version,
-                           "source_version": component.source_version(project),
-                           "search_options": deepcopy(component.search_options)}
+        return component, RAGDataSnapshot.create(snapshot, component._configuration_version,
+                                                component.source_version(project), component.search_options)
 
     @workspace_locked
     def _commit(self, snapshot, document):
-        return self._commit_documents(snapshot, [document])[0]
+        return self._commit_documents(snapshot, [document])[self.FIRST_DOCUMENT]
 
     @workspace_locked
     def _commit_documents(self, snapshot, prepared):
         project, component = self._current()
-        if snapshot.get("configuration_version") != component._configuration_version:
+        if snapshot.get(RAGDataSnapshot.CONFIGURATION_VERSION) != component._configuration_version:
             from .component import RAGConflictError
-            raise RAGConflictError("RAG configuration changed during preparation; retry explicitly")
-        documents = dict(snapshot["documents"])
-        documents.update({document["id"]: document for document in prepared})
+            raise RAGConflictError(RAGData.MESSAGE_RAG_CONFIGURATION_CHANGED_DURING_PREPARATION__RETRY_EXPLICITLY)
+        documents = dict(snapshot[RAGCorpus.Field.DOCUMENTS])
+        documents.update({document[RAGDocument.Field.ID]: document for document in prepared})
         component.publish(project, snapshot, documents)
-        return [document_view(document) for document in prepared]
+        return [DocumentView.project(document) for document in prepared]
 
     def _current_snapshot(self, snapshot):
         """저장 트랜잭션 안에서 수명과 세대를 검사하고 이미 읽은 스냅샷을 재사용한다."""
         from .component import RAGConflictError
         project, component = self._current()
         current = component.source_version(project)
-        if (snapshot["identity"], snapshot["generation"]) != current[:2]:
-            raise RAGConflictError("Corpus changed during retrieval; retry explicitly")
-        if snapshot["source_version"] != current:
-            raise RAGConflictError("RAG source evidence changed during retrieval; retry explicitly")
-        if snapshot.get("configuration_version") != component._configuration_version:
-            raise RAGConflictError("RAG configuration changed during retrieval; retry explicitly")
+        if RAGCorpus(snapshot).binding != current[:RAGCorpus.IDENTITY_WIDTH]:
+            raise RAGConflictError(RAGData.MESSAGE_CORPUS_CHANGED_DURING_RETRIEVAL__RETRY_EXPLICITLY)
+        if snapshot[RAGDataSnapshot.SOURCE_VERSION] != current:
+            raise RAGConflictError(RAGData.MESSAGE_RAG_SOURCE_EVIDENCE_CHANGED_DURING_RETRIEVAL__RETRY_EXPLICITLY)
+        if snapshot.get(RAGDataSnapshot.CONFIGURATION_VERSION) != component._configuration_version:
+            raise RAGConflictError(RAGData.MESSAGE_RAG_CONFIGURATION_CHANGED_DURING_RETRIEVAL__RETRY_EXPLICITLY)
         return project, component
 
     @workspace_locked
@@ -110,70 +114,70 @@ class RAGData(ComponentData):
         return component.combined_result(project, snapshot, query, hits, **options)
 
     @observe_component_models
-    async def _prepare(self, identifier, title, content, metadata, old=None, description=None):
-        if description is not None and not isinstance(description, str):
-            raise ValueError("Document description must be text")
+    async def _prepare(self, identifier, title, content, metadata, old=ABSENT, description=ABSENT):
+        if description is not RAGData.ABSENT and not isinstance(description, str):
+            raise ValueError(RAGData.MESSAGE_DOCUMENT_DESCRIPTION_MUST_BE_TEXT)
         component, snapshot = await self._async_call(self._snapshot)
         await self._async_call(self.require_model_observation, component.embedding, component.extractor)
-        if old is None:
-            if identifier in snapshot["documents"]:
+        if old is RAGData.ABSENT:
+            if identifier in snapshot[RAGCorpus.Field.DOCUMENTS]:
                 raise FileExistsError(identifier)
-            revision = 1
+            revision = RAGDocument.INITIAL_REVISION
         else:
-            document = snapshot["documents"].get(identifier)
-            if document is None:
+            document = snapshot[RAGCorpus.Field.DOCUMENTS].get(identifier)
+            if document is RAGData.ABSENT:
                 raise FileNotFoundError(identifier)
-            component._check_revision(document, old["expected_revision"], old["expected_generation"])
-            title = document["title"] if title is None else title
-            content = document["content"] if content is None else content
-            metadata = document["metadata"] if metadata is None else metadata
-            description = document.get("description") if description is None else description
-            revision = document["revision"] + 1
+            component._check_revision(document, old[DocumentChange.EXPECTED_REVISION], old[DocumentChange.EXPECTED_GENERATION])
+            title = document[RAGDocument.Field.TITLE] if title is RAGData.ABSENT else title
+            content = document[SplitDocument.Field.CONTENT] if content is RAGData.ABSENT else content
+            metadata = document[RAGDocument.Field.METADATA] if metadata is RAGData.ABSENT else metadata
+            description = document.get(RAGDocument.Field.DESCRIPTION) if description is RAGData.ABSENT else description
+            revision = document[RAGDocument.Field.REVISION] + RAGDocument.REVISION_INCREMENT
         # 이 await 동안 UI와 기존 검색은 계속 진행한다. 취소 시 공개 단계에 진입하지 않는다.
         from .component import RAGComponent
-        options = {"previous": snapshot["documents"].get(identifier)} if type(component).prepare is RAGComponent.prepare else {}
+        options = PreparationCallbacks.update(snapshot[RAGCorpus.Field.DOCUMENTS].get(identifier)) if type(component).prepare is RAGComponent.prepare else {}
         prepared = await component.prepare(identifier, title, content,
-                                           deepcopy({} if metadata is None else metadata), revision,
+                                           deepcopy({} if metadata is RAGData.ABSENT else metadata), revision,
                                            **options)
-        if description is not None:
-            prepared["description"] = description
-        if old is not None:
+        if description is not RAGData.ABSENT:
+            prepared[RAGDocument.Field.DESCRIPTION] = description
+        if old is not RAGData.ABSENT:
             # prepare를 교체한 구현에도 문서 update의 생성 세대 보존 계약은 동일하다.
-            prepared["generation"] = snapshot["documents"][identifier]["generation"]
+            prepared[RAGDocument.Field.GENERATION] = snapshot[RAGCorpus.Field.DOCUMENTS][identifier][RAGDocument.Field.GENERATION]
         return await self._async_call(self._commit, snapshot, prepared)
 
     @observe_component_models
-    async def _retrieve(self, query: str, *, method=None, expand=None, limit=None, rerank=None):
+    async def _retrieve(self, query: str, *, method=ABSENT, expand=ABSENT, limit=ABSENT, rerank=ABSENT):
         """BM25/벡터/하이브리드 검색. 선택 시 RerankModel로 최종 후보를 재정렬한다."""
         if not isinstance(query, str) or not query.strip():
-            raise ValueError("Query must be nonempty text")
+            raise ValueError(RAGData.MESSAGE_QUERY_MUST_BE_NONEMPTY_TEXT)
         component, snapshot = await self._async_call(self._snapshot)
         options = {SearchOptions.Field.METHOD: method, SearchOptions.Field.EXPAND: expand, SearchOptions.Field.LIMIT: limit, SearchOptions.Field.RERANK: rerank}
-        options = {key: (component.search_options.get(key, SearchOptions.RERANK_DISABLED) if key == SearchOptions.Field.RERANK else require_config(component.search_options, key, scope=SearchOptions.SCOPE)) if value is None else value for key, value in options.items()}
+        options = {key: (component.search_options.get(key, SearchOptions.RERANK_DISABLED) if key == SearchOptions.Field.RERANK else require_config(component.search_options, key, scope=SearchOptions.SCOPE)) if value is RAGData.ABSENT else value for key, value in options.items()}
         method, expand, limit, rerank = (options[key] for key in (SearchOptions.Field.METHOD, SearchOptions.Field.EXPAND, SearchOptions.Field.LIMIT, SearchOptions.Field.RERANK))
         validate_search_options(options)
-        vector = None
-        if snapshot["documents"] and method != SearchMethod.BM25:
+        vector = RAGData.ABSENT
+        if snapshot[RAGCorpus.Field.DOCUMENTS] and method != SearchMethod.BM25:
             await self._async_call(self.require_model_observation, component.embedding)
             if component._identity() != EmbeddingEvidence(snapshot).profile.model:
-                raise ValueError("Query embedding model differs from indexed model")
+                raise ValueError(RAGData.MESSAGE_QUERY_EMBEDDING_MODEL_DIFFERS_FROM_INDEXED_MODEL)
             vector = await component.embed_query(query)
             if len(vector) != EmbeddingEvidence(snapshot).profile.dimensions:
-                raise ValueError("Query embedding dimensions differ from index")
-        if rerank and component.reranker is None:
-            raise ValueError("Configure a reranker first")
+                raise ValueError(RAGData.MESSAGE_QUERY_EMBEDDING_DIMENSIONS_DIFFER_FROM_INDEX)
+        if rerank and component.reranker is RAGData.ABSENT:
+            raise ValueError(RAGData.MESSAGE_CONFIGURE_A_RERANKER_FIRST)
         hits = await self._async_call(self._search, snapshot, query, vector,
                                      {SearchOptions.Field.METHOD: method, SearchOptions.Field.EXPAND: expand, SearchOptions.Field.LIMIT: limit})
         if rerank and hits:
             await self._async_call(self.require_model_observation, component.reranker)
-            response = await component.reranker.rerank(query, [hit["text"] for hit in hits])
+            response = await component.reranker.rerank(query, [hit[RAGChunk.Field.TEXT] for hit in hits])
             from llm.core.model_protocol import RerankResult
             if not isinstance(response, RerankResult):
-                raise TypeError("Reranker must return RerankResult")
+                raise TypeError(RAGData.MESSAGE_RERANKER_MUST_RETURN_RERANKRESULT)
             rows = response.rows
             order = [row.index for row in rows]
-            if len(set(order)) != len(order) or any(type(i) is not int or not 0 <= i < len(hits) for i in order):
-                raise ValueError("Invalid rerank indexes")
+            if len(set(order)) != len(order) or any(type(i) is not int or not RankedDocument.MINIMUM_INDEX <= i < len(hits) for i in order):
+                raise ValueError(RAGData.MESSAGE_INVALID_RERANK_INDEXES)
             hits = [RetrievalHit.reranked(hits[row.index], row.score) for row in rows]
             # 모델 호출 중 프로젝트가 삭제/해제되었는지도 다시 확인한다.
             await self._async_call(self._current_snapshot, snapshot)
@@ -183,9 +187,9 @@ class RAGData(ComponentData):
     @workspace_locked
     def has_reranker(self):
         """현재 Project의 실행 가능한 reranker 유무. Tool 스키마와 동일한 바인딩을 사용한다."""
-        return self._current()[1].reranker is not None
+        return self._current()[self.COMPONENT_INDEX].reranker is not RAGData.ABSENT
 
-    def enqueue_document(self, *, title, content, metadata=None, identifier=None, description=None):
+    def enqueue_document(self, *, title, content, metadata=ABSENT, identifier=ABSENT, description=ABSENT):
         """문서 등록 요청을 영속 큐에 넣는다. 모델 호출은 arun_job에서 명시적으로 시작한다."""
         from .jobs import RAGJobs
         return RAGJobs(self).enqueue(title=title, content=content, metadata=metadata, identifier=identifier, description=description)
@@ -230,8 +234,8 @@ class RAGData(ComponentData):
 
     def job_diagnostic(self, identifier):
         from llm.core.contracts import Diagnostic
-        value = self.job(identifier).get("diagnostic")
-        return Diagnostic.from_dict(value) if value is not None else None
+        value = self.job(identifier).get(JobRecord.Field.DIAGNOSTIC)
+        return Diagnostic.from_dict(value) if value is not RAGData.ABSENT else RAGData.ABSENT
 
     ajob_diagnostic = async_method(job_diagnostic)
 
@@ -258,23 +262,23 @@ class RAGData(ComponentData):
     aprune_jobs = async_method(prune_jobs)
 
     @observe_component_models
-    async def arun_job(self, identifier, *, retry: bool = False, expected_revision=None):
+    async def arun_job(self, identifier, *, retry: bool = NO_RETRY, expected_revision=ABSENT):
         from .jobs import RAGJobs
         return await RAGJobs(self).run(identifier, retry=retry, expected_revision=expected_revision)
 
-    async def arun_jobs(self, *, limit=None):
+    async def arun_jobs(self, *, limit=ABSENT):
         """현재 영속 대기열을 순차 처리한다. 실패 작업은 남기고 다음 작업으로 진행한다."""
-        if limit is not None and (type(limit) is not int or limit < 1):
-            raise ValueError("limit must be positive")
+        if limit is not RAGData.ABSENT and (type(limit) is not int or limit < self.MINIMUM_JOB_LIMIT):
+            raise ValueError(RAGData.MESSAGE_LIMIT_MUST_BE_POSITIVE)
         results = []
         for job in await self.ajobs():
-            if job["status"] != RAGJobStatus.QUEUED.value or job["resume_abandonment"] is not None:
+            if job[JobRecord.Field.STATUS] != RAGJobStatus.QUEUED.value or job[JobRecord.Field.RESUME_ABANDONMENT] is not RAGData.ABSENT:
                 continue
             try:
-                results.append(await self.arun_job(job["id"]))
+                results.append(await self.arun_job(job[JobRecord.Field.ID]))
             except Exception:
-                results.append(await self.ajob(job["id"]))
-            if limit is not None and len(results) >= limit:
+                results.append(await self.ajob(job[JobRecord.Field.ID]))
+            if limit is not RAGData.ABSENT and len(results) >= limit:
                 break
         return results
 
@@ -283,37 +287,37 @@ class RAGData(ComponentData):
     ajob = async_method(job)
     acancel_job = async_method(cancel_job)
 
-    async def aadd_document(self, *, title: str, content: str, metadata=None, identifier=None, description=None) -> dict:
+    async def aadd_document(self, *, title: str, content: str, metadata=ABSENT, identifier=ABSENT, description=ABSENT) -> dict:
         """원문과 색인을 함께 등록한다. 완료된 문서 dict를 반환하며 백그라운드 job은 만들지 않는다."""
-        identifier = uuid4().hex if identifier is None else validate_name(identifier)
+        identifier = uuid4().hex if identifier is RAGData.ABSENT else validate_name(identifier)
         return await self._prepare(identifier, title, content, metadata, description=description)
 
     @observe_component_models
     async def aadd_documents(self, documents) -> list:
         """Prepare the caller's batch, then publish one generation. Use a Job for durable retry."""
-        inputs = validate_documents(documents)
+        inputs = RAGDocumentInput.prepare_batch(documents)
         component, snapshot = await self._async_call(self._snapshot)
         for item in inputs:
-            if item["identifier"] in snapshot["documents"]:
-                raise FileExistsError(item["identifier"])
+            if item[RAGDocumentInput.Field.IDENTIFIER] in snapshot[RAGCorpus.Field.DOCUMENTS]:
+                raise FileExistsError(item[RAGDocumentInput.Field.IDENTIFIER])
         prepared = []
         for item in inputs:
             await self._async_call(self.require_model_observation, component.embedding, component.extractor)
-            document = await component.prepare(item["identifier"], item["title"], item["content"], item["metadata"], 1)
-            if item.get("description") is not None:
-                document["description"] = item["description"]
+            document = await component.prepare(item[RAGDocumentInput.Field.IDENTIFIER], item[RAGDocument.Field.TITLE], item[SplitDocument.Field.CONTENT], item[RAGDocument.Field.METADATA], RAGDocument.INITIAL_REVISION)
+            if item.get(RAGDocument.Field.DESCRIPTION) is not RAGData.ABSENT:
+                document[RAGDocument.Field.DESCRIPTION] = item[RAGDocument.Field.DESCRIPTION]
             component._embedding_dimensions = EmbeddingEvidence(document).profile.dimensions
             prepared.append(document)
         return await self._async_call(self._commit_documents, snapshot, prepared)
 
-    async def aupdate_document(self, identifier: str, *, content=None, title=None,
-                               metadata=None, expected_revision=None, expected_generation=None, description=None) -> dict:
+    async def aupdate_document(self, identifier: str, *, content=ABSENT, title=ABSENT,
+                               metadata=ABSENT, expected_revision=ABSENT, expected_generation=ABSENT, description=ABSENT) -> dict:
         """문서/색인을 교체한다. CAS 사용 시 읽은 generation과 revision을 함께 전달한다."""
         return await self._prepare(validate_name(identifier), title, content, metadata,
-                                   {"expected_revision": expected_revision, "expected_generation": expected_generation}, description=description)
+                                   DocumentChange.create(expected_revision, expected_generation), description=description)
 
     @workspace_locked
-    def list_catalog(self, *, limit: int, cursor=None) -> dict:
+    def list_catalog(self, *, limit: int, cursor=ABSENT) -> dict:
         """본문·벡터를 읽지 않는 세대 고정 목록. 페이지 크기는 호출자가 명시한다."""
         project, component = self._current()
         return component.list_catalog(project, limit=limit, cursor=cursor)
@@ -324,51 +328,51 @@ class RAGData(ComponentData):
     def get_document(self, identifier: str) -> dict:
         _, snapshot = self._snapshot()
         try:
-            return document_view(snapshot["documents"][validate_name(identifier)])
+            return DocumentView.project(snapshot[RAGCorpus.Field.DOCUMENTS][validate_name(identifier)])
         except KeyError:
-            raise FileNotFoundError(identifier) from None
+            raise FileNotFoundError(identifier) from RAGData.ABSENT
 
     @workspace_locked
     def list_documents(self) -> list:
         _, snapshot = self._snapshot()
-        return [document_view(document) for document in snapshot["documents"].values()]
+        return [DocumentView.project(document) for document in snapshot[RAGCorpus.Field.DOCUMENTS].values()]
 
     @workspace_locked
-    def delete_document(self, identifier: str, *, expected_revision=None, expected_generation=None) -> None:
+    def delete_document(self, identifier: str, *, expected_revision=ABSENT, expected_generation=ABSENT) -> None:
         project, component = self._current()
         snapshot = component.snapshot(project)
-        documents = dict(snapshot["documents"])
-        document = documents.pop(validate_name(identifier), None)
-        if document is None:
+        documents = dict(snapshot[RAGCorpus.Field.DOCUMENTS])
+        document = documents.pop(validate_name(identifier), RAGData.ABSENT)
+        if document is RAGData.ABSENT:
             raise FileNotFoundError(identifier)
         component._check_revision(document, expected_revision, expected_generation)
         component.publish(project, snapshot, documents)
 
-    async def asearch_documents(self, query: str, *, method=None, expand=None, limit=None, rerank=None) -> list:
+    async def asearch_documents(self, query: str, *, method=ABSENT, expand=ABSENT, limit=ABSENT, rerank=ABSENT) -> list:
         """문서 목록만 필요한 코드용 API. 일반 질의에는 asearch를 사용한다."""
         _, hits = await self._retrieve(query, method=method, expand=expand, limit=limit, rerank=rerank)
         return hits
 
-    async def asearch(self, query: str, *, method=None, expand=None, limit=None, rerank=None,
-                      max_hops=None, relation_limit=None) -> dict:
+    async def asearch(self, query: str, *, method=ABSENT, expand=ABSENT, limit=ABSENT, rerank=ABSENT,
+                      max_hops=ABSENT, relation_limit=ABSENT) -> dict:
         """문서와 해당 문단에 근거한 관계·출처를 한 세대에서 반환한다."""
         validate_search_options({key: value for key, value in
-            {SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: relation_limit}.items() if value is not None})
+            {SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: relation_limit}.items() if value is not RAGData.ABSENT})
         snapshot, hits = await self._retrieve(query, method=method, expand=expand, limit=limit, rerank=rerank)
-        max_hops = require_config(snapshot["search_options"], SearchOptions.Field.MAX_HOPS, scope=SearchOptions.SCOPE) if max_hops is None else max_hops
-        relation_limit = require_config(snapshot["search_options"], SearchOptions.Field.RELATION_LIMIT, scope=SearchOptions.SCOPE) if relation_limit is None else relation_limit
+        max_hops = require_config(snapshot[RAGDataSnapshot.SEARCH_OPTIONS], SearchOptions.Field.MAX_HOPS, scope=SearchOptions.SCOPE) if max_hops is RAGData.ABSENT else max_hops
+        relation_limit = require_config(snapshot[RAGDataSnapshot.SEARCH_OPTIONS], SearchOptions.Field.RELATION_LIMIT, scope=SearchOptions.SCOPE) if relation_limit is RAGData.ABSENT else relation_limit
         validate_search_options({SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: relation_limit})
         return await self._async_call(self._combined, snapshot, query, hits,
                                      {SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: relation_limit})
 
     @workspace_locked
-    def graph_search(self, seed: str, *, max_hops=None, limit=None) -> dict:
+    def graph_search(self, seed: str, *, max_hops=ABSENT, limit=ABSENT) -> dict:
         """정확한 엔티티 이름을 아는 호출자를 위한 직접 관계 조회."""
         if not isinstance(seed, str) or not seed.strip():
-            raise ValueError("Seed must be a nonempty entity name")
+            raise ValueError(RAGData.MESSAGE_SEED_MUST_BE_A_NONEMPTY_ENTITY_NAME)
         project, component = self._current()
-        max_hops = require_config(component.search_options, SearchOptions.Field.MAX_HOPS, scope=SearchOptions.SCOPE) if max_hops is None else max_hops
-        limit = require_config(component.search_options, SearchOptions.Field.RELATION_LIMIT, scope=SearchOptions.SCOPE) if limit is None else limit
+        max_hops = require_config(component.search_options, SearchOptions.Field.MAX_HOPS, scope=SearchOptions.SCOPE) if max_hops is RAGData.ABSENT else max_hops
+        limit = require_config(component.search_options, SearchOptions.Field.RELATION_LIMIT, scope=SearchOptions.SCOPE) if limit is RAGData.ABSENT else limit
         validate_search_options({SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: limit})
         return component.graph_search(project, seed=seed, max_hops=max_hops, limit=limit)
 
