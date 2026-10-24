@@ -57568,5 +57568,407 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/refinement/component.py",
+    "sha256": "6259baf492a806fccc57af45cf3a52f74006dd47dfdbb3b163351862113bf361",
+    "reason": "Whole Component adapter and new record/policy implementations reviewed; existing history/receipt and selected-schema behavior is identical. Data/Tool consumer conversion remains a tracked follow-up, so the record contract is not globally complete yet.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6affc81873f8efcfb1b78249a4b2b3be21a7ceb70d4638860d2d8fc92a24b22b",
+        "classification": "declaration",
+        "owner": "RefinementComponent",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RefinementComponent",
+        "declaration": "llm/components/refinement/component.py",
+        "consumers": [
+          "llm/components/refinement/data.py",
+          "llm/components/refinement/tools.py",
+          "llm/components/registry.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/refinement/records.py",
+    "sha256": "8dec1b5c981e919e1e6180d352e6f2020f9bbbc096b1b01f6d1663eedbbb9a7c",
+    "reason": "Whole Component adapter and new record/policy implementations reviewed; existing history/receipt and selected-schema behavior is identical. Data/Tool consumer conversion remains a tracked follow-up, so the record contract is not globally complete yet.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "938e33d881ba0187c4138e33492cacaa54878311358ce2ffeb1471845a858c76",
+        "classification": "declaration",
+        "owner": "ProposalOperation",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "87153ba26844e7f76942450a11b54468d012f85f85da82dd882eed7a3e917957",
+        "classification": "declaration",
+        "owner": "ProposalOperation",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "86fafb636e5e83ed95416da4fc41905a4895d04eea26b0e812d755f197837e9a",
+        "classification": "declaration",
+        "owner": "ProposalOperation",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "736925fcd0144488834fa0d14819e366a908437eeb6872ee667d227897b7be46",
+        "classification": "declaration",
+        "owner": "ProposalOperation",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "269a54c0b548f050dba0f919fdd268ed23f8bbb6435710643006e2eed8c0d94a",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "a85ad56d34fec71984e7a11e38d07817d5f89cee5d7188e15fe94f55823235c0",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "59a8496dba726822848f2a820edf7c655ac6c59688dbe8acf686a13d57ed1b10",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "2313b6e8e0a2bc1a5bf85a0d644cdabb25b61e001e23a4e15c6422ec3c4a1bb2",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "e7264de79751a39c407a4f84435a559ad15c39056df0790962ea3dc0f64f4584",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "01fa0d0db22f14283dacb4810afe138aa6bc25cb9e6c9f9f3bc98095d73ce344",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "b30a4eb66d0db24d691331ec2332491e0dff9bb35dd1988c4cf3c1c02f0af9a8",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "5895aa025498b725c311263356f5a794fe0da71054306a7069c89d0983153cb8",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "317964939da22b7c18aee56d5df419a8b11740fcf4c83bb90668202bcb7bfb32",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "e8a527c582745c8b3f5c111450c4b6e4c14cb7890d57f1ece1a1ad5747f688f0",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "42d5036c80e1154b929267dbb6c09c2e4294839972e0a6d11908d5724979bde0",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "564717344394c188fbeaaa04d8824c4650b75a27bbfdd75dd7229b07d09d4d44",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "0768f4b7c2f26d3d94944ec71d62cfcfd3905be9b8b58fe99267b0310892adb5",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "17c8df99453d1c87dedb15333ea7aaf6e2493ef18e16f7f22be2d441ef3a0ea9",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "fea9d9902ef4c72ef97297f5fda9c2c730367772a24620ce5a24b110bb882a77",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "f682b38e98d71f7b67abab62bc62dd4c6505fba112d8f958bec2010c6928d808",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "069e575bc5bcca2e863129b06797822a5979f6ec393a22c458046379553d7261",
+        "classification": "declaration",
+        "owner": "RefinementRecord",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "ac72f4a2c82d87566c971f6c10bd1e38af996bcde68409fb9fb4a5d954b1d5dd",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "b4f2524ea7f986f5e22db5e87dcc6a792ba68d94ceb280babb6cbeb3659efa15",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "376626c3556b6e37689c95f1f276623ebdb8c405c204a005c3618bc64ed14c3f",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "f750dc341281e082bc9c935e0bddee48e7170b15572aa946a6fe91408d83cc7e",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "d0ffb8677503008c52ccaa57990bcfe524c16214de7ed96e486b8108a4daabb2",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "3e4aa0c240c55bb97cf035f314e5589e7a24efa42a5acd3376625f58accc4a54",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "9d4cba03f04b596bc12dc327b8c132ef034af17a248085aa148ce884ef01f79e",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "401a718250a991edfc705508a7cf400930c4b76d8386db80ee3fa9907743cc7c",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "644b12a7d4d8700d2e534dbf032361b570ce7b54232b357341a6c05b44cd8a71",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "c919b25f0d9148192e6563aecc1d86b391f7100f59c46b60ec5beccd323685f3",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "fd9d16f7e4c31199665707588f74dc3a57bc14a06c33838be00c8dd476fc5a40",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "b7437dff4f3edf470fa2e186d2c912ab924e20f5cad091f59101977f14e711aa",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "a4d2bacc315d7270c285fc0550fcab195abd64606e3fe1eda012004226716c1d",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "987b356f8a93a4f03902bd7e222040508076c35bedcacb62ad871151b65892b1",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "5c255439e7a904f767686eded3b4a4f804cec52d47a2d11c83c1352c923214e1",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "e1566504446229e6ea86dfcf87ae9eb93b1d2504a17579f1694d1bfdc5b010fa",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "d1f0018e21c377220341b5bbcdb10182201e0d8455ccd50e48c01b90bbc2a79b",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "912b59438dcd3504126dab3eae5d04ddbf8442c3663b7fe8acc04d2970a05620",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "bc5bfd1ac2e3c492751e50bf22c1af100188e8918c8fa14c603363703bbee291",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "163b1f1f6bf5a00d5ab99242da216175d35bcbdeeb13a52aa7c9e4d8412ce780",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "cf11a876cbd00e5a4e39a19d757e70e42dde8ee1013a0e6b59d5ecc59f65044f",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "2f7bc16e2a37cb14a2ad7529a78d9c380c8c21150c3b2d3364827ab2c8d62ee9",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "554c3bbdaf8f39f36487fafb8d52d96bd4cd5a1e12bf830c2876aa9549b1d7ff",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "4cd8f55b54ceed6a206b0f958b8d136a5440d4ae2e6aa3a102921e58a221d44b",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "489137e5d2bd21d199933e160805cf8956dcdcbb03cbd46435dcbd09279d0927",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "40a26f07e6e618c59595ac0df2d39cc3e44e21a6abac9c2dcc588d6fecf37fda",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "74d79ca397600a953c1fa0c730faf7c1267ae7c3436d009766ff779cf246a174",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "b565ead838adab05cce3c2ac43778754572b5ced39549034f4ee3e58c3c6f6f8",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "26b73e0865ff27fffd61ec07d9fe670b28c0419a4db5f20401d516807f9f318e",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "c07a72e6f764d1341a417d8b48ef6102a8965e6b545290ae0146584983f5e570",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "bfcfe25d6fd53d7071909d9077182133508006acf33547fc6efe6975c34b6191",
+        "classification": "declaration",
+        "owner": "RefinementRecord.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "fd2994d5c3e46a4f620e8e13f21e4e8c16d247d680ed351b566fb5b34a57b395",
+        "classification": "declaration",
+        "owner": "RefinementPolicy",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "18298c278872e69f39c4e25f3f4ac358f31442237682389b024328848318664f",
+        "classification": "declaration",
+        "owner": "RefinementPolicy.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "36c8b725547363cda803d0324af16cf829f155eee25eb4df5cfb8c8dfa6b95b2",
+        "classification": "declaration",
+        "owner": "RefinementPolicy.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      },
+      {
+        "id": "efddfed484f84a968988c330817e89498de65d79e3b83da6fe2fe5750c512046",
+        "classification": "declaration",
+        "owner": "RefinementPolicy.Field",
+        "reason": "Canonical proposal field/schema/history/evidence declarations and explicit operation/policy declarations are at their actual semantic Owners; Component is a lifecycle/capability adapter. No implementation literal candidates remain."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RefinementRecord / RefinementPolicy / ProposalOperation",
+        "declaration": "llm/components/refinement/records.py",
+        "consumers": [
+          "llm/components/refinement/data.py",
+          "llm/components/refinement/tools.py",
+          "llm/components/registry.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": false
+      }
+    ]
   }
 ]

@@ -1,130 +1,60 @@
-"""제안은 실행 기록의 참조 데이터다. 자동 모델 호출이나 Run 수명은 소유하지 않는다."""
-
-from llm.core.history_references import HistoryReferenceRecord
+"""Refinement capability adapter; proposal meaning belongs to its record Owner."""
 
 from llm.components.tools.registry import ToolRegistry
-
-from llm.core.resource_references import ResourceTarget, StoredResourceReference
-from llm.core.agents import AgentDefinition
-
 from llm.core.implementation_parameters import ImplementationParameters
-
-from datetime import datetime
-
 from llm.components.definitions import DefinitionComponent
-from llm.core.schema import object_schema, implementation_schema, field, open_schema, metadata_schema
 from .data import RefinementData
-from llm.core.skills import SkillName
-from .lifecycle import RefinementStatus, TRANSITIONS
+from .records import RefinementRecord, RefinementPolicy
 
-
-IDENTIFIER = field("string", pattern="^[A-Za-z0-9_-]{1,64}$")
-TARGET = object_schema({"component": field("string", enum=["skills", "prompts", "agents", "memory"]),
-    "identifier": {"type": "string", "minLength": 1}, "session_id": IDENTIFIER}, required=["component", "identifier"], additionalProperties=False)
-EVIDENCE = object_schema({"session_id": IDENTIFIER, "run_id": IDENTIFIER, "step_id": IDENTIFIER,
-    "tool_call_id": field("string", minLength=1), "error_code": field("string", minLength=1),
-    "note": field("string", minLength=1)}, required=["session_id", "run_id"], additionalProperties=False)
-PARENT = object_schema({"identifier": SkillName.SCHEMA, "version": field("string", pattern="^[a-f0-9]{64}$")},
-    required=["identifier", "version"], additionalProperties=False)
-EVALUATION = object_schema({
-    "evaluator": field("string", minLength=1), "baseline_version": field(["string", "null"]),
-    "candidate_version": field("string", pattern="^[a-f0-9]{64}$"),
-    "results": open_schema("external evaluator", category="result"),
-    "regressions": {"type": "array", "x-schema-owner": "external evaluator"},
-    "improvements": {"type": "array", "x-schema-owner": "external evaluator"},
-    "evidence": {"type": "array", "items": EVIDENCE}},
-    required=["evaluator", "baseline_version", "candidate_version", "results", "regressions", "improvements"],
-    additionalProperties=False)
-
-SOURCE = object_schema({"kind": field("string", minLength=1), "session_id": IDENTIFIER,
-    "run_id": IDENTIFIER, "step_id": IDENTIFIER, "proposal_id": IDENTIFIER,
-    "reason": field("string"), "metadata": metadata_schema()}, required=["kind"])
-HISTORY = object_schema({"status": field("string"), "at": field("string"), "source": SOURCE},
-                        required=["status", "at", "source"])
-STORED_EVALUATION = object_schema({**EVALUATION["properties"], "source": SOURCE, "at": field("string")},
-    required=[*EVALUATION["required"], "source", "at"])
+IDENTIFIER = RefinementRecord.IDENTIFIER
+TARGET = RefinementRecord.TARGET
+EVIDENCE = RefinementRecord.EVIDENCE
+PARENT = RefinementRecord.PARENT
+EVALUATION = RefinementRecord.EVALUATION
+SOURCE = RefinementRecord.SOURCE
+HISTORY = RefinementRecord.HISTORY
+STORED_EVALUATION = RefinementRecord.STORED_EVALUATION
 
 
 class RefinementComponent(DefinitionComponent):
-    name = directory = "refinement"
-    capabilities = ("refinement", ToolRegistry.CAPABILITY)
+    name = directory = RefinementRecord.CAPABILITY
+    capabilities = (name, ToolRegistry.CAPABILITY)
     data_class = RefinementData
-    schema = object_schema({
-        "target": TARGET, "operation": {"enum": ["update", "create", "fork", "bind_skills"]},
-        "expected_version": field(["string", "null"], minLength=1), "parent": PARENT,
-        "reason": field("string", minLength=1),
-        "evidence": {"type": "array", "minItems": 1, "items": EVIDENCE},
-        "patch": open_schema("Refinement target EDITABLE and selected target validator", category="implementation", minProperties=1),
-        "status": field("string", enum=list(RefinementStatus)),
-        "before": open_schema("selected target record snapshot", category="implementation"),
-        "metadata": metadata_schema(), "source": SOURCE, "history": {"type": "array", "items": HISTORY, "minItems": 1},
-        "evaluations": {"type": "array", "items": STORED_EVALUATION},
-        "applied_target": object_schema({"identifier": TARGET["properties"]["identifier"], "version": field("string", pattern="^[a-f0-9]{64}$")}, required=["identifier", "version"]),
-        "skill_versions": object_schema(additionalProperties=field("string", pattern="^[a-f0-9]{64}$")),
-    }, required=["target", "operation", "expected_version", "reason", "evidence", "patch", "status", "before", "source", "history", "evaluations"])
+    schema = RefinementRecord.SCHEMA
+    INVALID_RUNTIME = "Refinement capabilities require a lifecycle-bound component data factory"
 
     def validate_record(self, identifier, data):
         super().validate_record(identifier, data)
-        history = data["history"]
-        if history[0]["status"] != RefinementStatus.PROPOSED or history[0]["source"] != data["source"]:
-            raise ValueError("Refinement history must preserve its proposal origin")
-        previous_status, previous_at = None, None
-        for entry in history:
-            status = entry["status"]
-            if status not in TRANSITIONS or (previous_status is not None and status not in TRANSITIONS[previous_status]):
-                raise ValueError("Invalid Refinement history transition")
-            at = datetime.fromisoformat(entry["at"])
-            if at.tzinfo is None or (previous_at is not None and at < previous_at):
-                raise ValueError("Invalid Refinement history timestamp")
-            previous_status, previous_at = status, at
-        if previous_status != data["status"]:
-            raise ValueError("Refinement status contradicts its history")
-        if ("applied_target" in data) != (data["status"] in {RefinementStatus.APPLIED, RefinementStatus.ROLLED_BACK}):
-            raise ValueError("Refinement effect receipt contradicts its status")
-        if ("skill_versions" in data) != (data["operation"] == "bind_skills"):
-            raise ValueError("Refinement binding requires its original Skill revisions")
-        if data["operation"] == "bind_skills" and set(data["skill_versions"]) != set(data["patch"].get("skills", [])):
-            raise ValueError("Refinement binding revisions contradict its requested Skills")
-        if ("parent" in data) != (data["operation"] == "fork"):
-            raise ValueError("Refinement fork requires its original parent revision")
-        creating = data["operation"] in {"create", "fork"}
-        if creating != (data["expected_version"] is None):
-            raise ValueError("Refinement target revision contradicts its operation")
+        RefinementRecord.validate_history(data)
 
     def describe_config(self):
-        return implementation_schema(config=object_schema(additionalProperties=False),
-            policy=object_schema({"apply_tools": field("boolean"), "require_evaluation": field("boolean"),
-                "proposal_operations": {"type": "array", "uniqueItems": True,
-                    "items": {"enum": ["update", "create", "fork", "bind_skills"]}}}, additionalProperties=False))
+        return RefinementPolicy.schema()
 
     def clone(self, source, destination):
-        # 제안은 원본 Project의 실행/버전/승인에 묶여 있다. 새 Project에서 재승인으로 위장하지 않는다.
+        # Proposals retain original Project authority; clones require new approval.
         self.initialize(destination)
 
     def history_references(self, project):
         records = self.list(project).values()
-        return HistoryReferenceRecord.project(message_ids=[], session_ids=[], run_ids=sorted({ref["run_id"]
-            for record in records for ref in [*record["evidence"], record.get("source", {}),
-                *(ref for evaluation in record.get("evaluations", []) for ref in evaluation.get("evidence", [])),
-                *(evaluation.get("source", {}) for evaluation in record.get("evaluations", []))] if "run_id" in ref}))
+        return RefinementRecord.history_references(records)
 
     def references(self, project):
-        """Agent proposals retain their target identity until the proposal is removed."""
-        return [StoredResourceReference.from_target(
-                    ResourceTarget(AgentDefinition.REFERENCE_COMPONENT, value["target"]["identifier"]), identifier).to_dict()
-                for identifier, value in self.list(project).items()
-                if value["target"]["component"] == AgentDefinition.REFERENCE_COMPONENT]
+        return RefinementRecord.references(self.list(project))
 
     def resolve(self, project, capability):
-        raise ValueError("Refinement capabilities require a lifecycle-bound component data factory")
+        raise ValueError(self.INVALID_RUNTIME)
 
     def resolve_runtime(self, project, capability, *, data_factory):
         data = data_factory(self.name)
-        if capability == "refinement":
+        if capability == RefinementRecord.CAPABILITY:
             return data
         if capability == ToolRegistry.CAPABILITY:
             from .tools import refinement_tools
+
             policy = ImplementationParameters.read(self.get_config(project)).policy
-            return refinement_tools(data, apply=policy.get("apply_tools") is True,
-                                    operations=policy.get("proposal_operations", ()))
+            return refinement_tools(
+                data,
+                apply=RefinementPolicy.apply_tools(policy),
+                operations=RefinementPolicy.proposal_operations(policy),
+            )
         return super().resolve_runtime(project, capability, data_factory=data_factory)

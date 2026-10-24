@@ -113,7 +113,8 @@ Memory 적용은 **새 candidate**를 만들며 before의 확정 기억은 바�
 | 파일 | 역할 |
 | --- | --- |
 | __init__.py | 공개 Component/Data import |
-| component.py | 설정/레코드 schema, capability, clone/보관 참조 |
+| component.py | 정규 정의/정책 Owner를 연결하는 capability·수명 어댑터 |
+| records.py | 제안 schema·상태 이력/영수증 검증·참조 Projection, 명시 정책과 연산 선언 |
 | lifecycle.py | 제안 상태와 허용 전이의 단일 선언 |
 | data.py | 근거 검증, immutable proposal, 승인, 대상 CAS와 원자 적용/되돌리기 |
 | tools.py | 일반 Run에서 사용하는 읽기·제안·승인 대상 Tool 연결 |

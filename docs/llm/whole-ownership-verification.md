@@ -5661,3 +5661,65 @@ dependency 7건 재검토. 문서 168개·Python fence 183개·링크 1,213개·
 Assertion으로 의도된 호출 한도 누락 2개 검출. 전수 inventory 549개·미검토 252
 (llm 75/hub 177)·미분류 16,072·미완 계약 3·issues 0. Loop Review 구현부 리터럴 후보 0,
 공통 Review의 dataclass 선언 옵션 6개는 기존 개별 기술 분류를 유지했다.
+
+
+## 원격 게이트 36 — Hub 실패 증거와 동일 소스 재현
+
+정확한 SHA 6df7247의 CI 40064914824 첫 Hub Job 120786007280은 588개 발견/실행,
+586 pass·0 failure·2 error·skip/xfail/xpass/누락/추가/중복 0, 1445.395165초로 실패했다.
+tests.hub.test_component_managers의
+`test_path_dropdown_tab_confirmation_and_component_settings_button`와
+`test_commands_open_shared_manager_import_edit_and_delete`에서 초기 view.connected의
+기존 3초 eventually 대기가 TimeoutError로 끝났다. 두 동작의 실제 편집/삭제 전에 발생했다.
+직전 게이트 35 이후 Hub 제품/테스트는 동일하다. 실패를 환경 문제로 확정하거나 성공으로
+집계하지 않는다. 원본 CI summary/trace는 ci/gate36-current-results.json에 보존했다.
+
+같은 고정 SHA와 source/input의 `whole-gate36-component-ui-repro-01`에서 원래 전체
+모듈 6개가 6 pass / 29.878561초 / exit 0, 모든 bad 항목 0으로 통과했다. 명령은
+`python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-gate36-component-ui-repro-01/hub.json --modules tests.hub.test_component_managers`.
+이 결과는 원격 전체 성공의 대체가 아니다. 원래 제한/Assertion을 유지하고 동일 SHA의
+실패 Hub Job 전체를 재실행해 확인한다. 이 기록 시점에는 원격 게이트 완료를 선언하지 않는다.
+
+## llm Refinement 정의·상태 이력 Owner — Level 1·2
+
+기준 2084bf3. RefinementRecord가 원래 제안 schema와 상태 이력·원본 출처·적용 영수증·
+Skill revision/parent의 필수 증거 검증과 보관 참조 Projection을 소유한다. RefinementPolicy는
+명시 설정 schema/조회, ProposalOperation은 허용 연산 선언을 소유한다. 대상 Component
+identity, Agent 자원, 공통 JSON Schema 키는 기존 정규 Owner를 참조한다.
+
+Component는 선택 schema의 기존 super 검증 후 의미 Reader를 호출한다. 기존 module
+schema 진입점은 같은 정의 객체를 가리키며 이중 정의/Reader가 아니다. 저장 형식·전이·
+승인·CAS·초기화/복제·보관 참조와 누락/타입 오류는 같다. Data·Tool 내부 접근과 대상
+적용 책임의 이식은 후속 범위이며 Refinement 전체 완료를 선언하지 않는다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/refinement-record-draft/proof.py`
+(한 셸 명령) exit 0: 기존 Component 전체 함수 7개 동등, 정확한 schema/공개 정의 연결
+10개, 실제 strict schema/이력/영수증 변형 111개 결과/오류 일치. 제품 테스트/Assertion은
+변경하지 않았다. 전이·원본 비교·실제 승인/재개 1회 효과·쓰기 실패 rollback 검사를 유지한다.
+
+- `whole-refinement-record-l1-01`: discovered/started/pass 19/19/19, exit 0, 26.469088초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-refinement-record-l1-01/llm.json --modules tests.llm.test_refinement tests.llm.test_stability_refinement`. source `baa27237625e3b5124642e7b6607a04a4399c47ab6739601812b993ef5ccc6a4`, input `91514b61f23022022b71078bd260dada2d1005c9f70e61104b7aefc1f89f1e1e`.
+
+- `whole-refinement-record-l2-01`: discovered/started/pass 93/93/93, exit 0, 48.996092초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-refinement-record-l2-01/llm.json --modules tests.llm.test_resource_references tests.llm.test_agent_resource_integrity tests.llm.test_skill_packages tests.llm.test_component_record_integrity tests.llm.test_memory_history_integrity tests.llm.test_operation_integrity tests.llm.test_interaction_storage tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity`. source `baa27237625e3b5124642e7b6607a04a4399c47ab6739601812b993ef5ccc6a4`, input `91514b61f23022022b71078bd260dada2d1005c9f70e61104b7aefc1f89f1e1e`.
+
+- `whole-refinement-record-hub-01`: discovered/started/pass 14/14/14, exit 0, 137.854908초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-refinement-record-hub-01/hub.json --modules tests.hub.test_components tests.hub.test_component_managers tests.hub.test_resource_tools`. source `baa27237625e3b5124642e7b6607a04a4399c47ab6739601812b993ef5ccc6a4`, input `91514b61f23022022b71078bd260dada2d1005c9f70e61104b7aefc1f89f1e1e`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 일치.
+실행 전후 및 실행 간 source/input 동일, L1/L2 ID 중복 없음. Python 3.12.14/Clang,
+Host d833790·고정 의존성·namespace/X11·전체 발견 목록을 기록했다. 실제 Refinement
+적용/되돌리기·원본/후속 변경 CAS·승인·원자적 실패·Skill/Agent/Memory 참조와 공통
+승인·예산·효과·Checkpoint·삭제/저장 무결성을 포함한다. stability_refinement 모듈은 이름과
+달리 일반 런타임 안정성 검사여서 추가 안전성으로 기록하며, Refinement 기능 검사로 세지 않는다.
+
+기존 알고리즘/상태/파일 경계가 동일한 Owner 이동으로 집중/관련 회귀를 수행했다.
+후속 Refinement Data/Tool/대상 Owner와 묶은 다음 Level 3에서 전체 검증하며 이 소단계의
+전체 회귀는 유예한다. 병행하는 게이트 37 고정 2084bf3에는 이 소단계가 포함되지 않는다.
+
+Refinement 정의 소단계 보조 검사: 정적 S1–S7 reviewed 106·new/stale/outstanding/review_errors 0,
+dependency 6건 재검토. 명시 policy 조회로 이동한 이전 S3 occurrence 1개는 원래 근거와
+함께 Git/retired-static-reviews.json에 보존했다. 문서 168개·fence 183개·링크 1,213개·
+anchor 37개 오류 0, 계약/architecture 감사 16 pass / 3.277초 / exit 0. R3 mutation exit 0,
+기존 실제 효과 Assertion으로 의도된 한도 누락 2개를 검출했다.
+전수 inventory 550개·미검토 251(llm 74/hub 177)·미분류 15,832·미완 계약 4·issues 0.
+추가 미완 계약 1개는 RefinementRecord의 Data/Tool 소비자 이식을 추적한다. 구현부 후보가
+0이어도 소비자 이식 전에는 해당 계약 전체를 완료로 표시하지 않는다.
