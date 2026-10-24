@@ -32408,8 +32408,8 @@
   },
   {
     "path": "llm/core/steering.py",
-    "sha256": "1ad27b0103faa488cc756fbaeaa6f306d8a5c8fcba937e084f7e0c2dcff613c4",
-    "reason": "Read complete checkpoint payload, route/target declarations, mode/status enums and public instruction projection. Required checkpoint fields, detached extensions and unique original message IDs stay at their Reader. Root scope/accepting values and stable diagnostics are declared before methods; private storage assignment uses its own slot. Public registration intentionally omits reason, and Message projections delegate to InstructionMessageRecord. No control permission is inferred from views.",
+    "sha256": "790086cff7dce639eb5802cd85e08a4ee1372090d0cb76292dff661b14d5e0a4",
+    "reason": "Read complete checkpoint payload, route/target declarations, mode/status enums and public instruction projection. Required checkpoint fields, detached extensions and unique original message IDs stay at their Reader. Root scope/accepting values and stable diagnostics are declared before methods; private storage assignment uses its own slot. Public registration intentionally omits reason, and Message projections delegate to InstructionMessageRecord. No control permission is inferred from views. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -32593,97 +32593,97 @@
         "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
       },
       {
-        "id": "7b39c35b4650322b69314e448318194d320c838ef134350dd6928ab482edec1b",
+        "id": "3bb844697a0236b91d2ddf6033c630f6046f42e674841b4f764a137d6399e838",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
       },
       {
-        "id": "aa00a2125a76dc2666134a16831e28001e305f783035cf3dbb064e19d53b10a7",
+        "id": "8f5f7ea210d8027c1943047cd7a3a55efe0f8bf9d97f234a27e722094a97f7de",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
       },
       {
-        "id": "11754e12739859e338d25290cae57b69434c206cd036b612e3a2ca5d33e32471",
+        "id": "38a031ec366085253c7062e019ecedb5cf9769d2547652eff6acee6ff57566c3",
         "classification": "declaration",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
       },
       {
-        "id": "cece4c9bb5fd90df001ad0846474f923a7ee45eddd388ebf189e23c37f60e5df",
+        "id": "3c7fc4479cda3c6a0246d477e8d989981d577cecdf690495ee171a2a19b61e01",
         "classification": "declaration",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
       },
       {
-        "id": "b3e6c63198405888b341308c3731433fb073cca4baccd037d1fb95a8d03982a1",
+        "id": "5f6552d370072070ea6e16f80ee44f4f709f09fc089f7bafe5a57f0aaae45483",
         "classification": "declaration",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
       },
       {
-        "id": "7e7624effdebaf35ad4a57a6fd148f5c1ef4e238e8558f56a1400f1ae26206ac",
+        "id": "ec71bd7dde6ab6c0e171ce4581b647d72fb8d640a0cc24b7f24ac9087551a411",
         "classification": "declaration",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
       },
       {
-        "id": "6b5d495aa730d2a3bd257edc6256c75c74192dbba5fd1231f384b6790b7f2859",
+        "id": "0a0478abeeaa3bd922e7c8f7423a414e5db7c049fd1f55d500b2592edb92d682",
         "classification": "declaration",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
       },
       {
-        "id": "74f691944631c320766509cbe74a8592d7c94c7ea104b5baa4320b061d7acdda",
+        "id": "3cade4f6ff2c77ccf23bd1191334f8ecb0e04616c3dfed83275871aa46e783d4",
         "classification": "declaration",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
       },
       {
-        "id": "3e64d82705ee2b864d20b69205ddcaf6bc10e72f2a586d5a42768311d5fdd1fd",
+        "id": "eaf364a81d431fa436200c9c01144818d04723d0570eb4e60e88fadae9bbe213",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
       },
       {
-        "id": "87fe19b5f6eb4bf1dfb3c25ead3aa72bd8061b3d3f03e416ada01e0392160fcc",
+        "id": "4f293f269532efe33d31988cb5366adae905602f862720b18877b9274abea915",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
       },
       {
-        "id": "a57f762d1d94a38459818c317fa8bff7e172475c4abdc47c3e5dee5e3ea3ccea",
+        "id": "f16a6834db6e87c178e87f2129c0441bbbd72cd62b0e1c53caac96830c8334fa",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python forward type annotation or variadic tuple annotation; not a wire key or execution discriminator."
       },
       {
-        "id": "b0ab6fe34ddff116545ae239900f210d4fb35920895211fb2712193adc114813",
+        "id": "b44937e383764b2af8945ea972dc32ab27e1260ee481f6e37e43cca0270ea559",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
       },
       {
-        "id": "2410e15d27b4c9e736578fac510fb526e797df423cbb5e3714513c9374dd2e53",
+        "id": "4e08fa266d6f5016e49cbf6cf7dfe9eccadcfcc8a9f5ac1010f631b4055d208e",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python dataclass frozen/slots/init layout, not a runtime policy or serialization value."
       },
       {
-        "id": "62e8bca4a0ecc54e4e3511c01d80729ad21d7f1492a51708f3806aa1ec886396",
+        "id": "851bd76dc1d60ccb4a6943cc946505ad88b200975d7be92186ccdcb4352a7f9a",
         "classification": "declaration",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Canonical field, enum, required set, diagnostic or explicit channel/notification/query default before implementation."
       },
       {
-        "id": "e7e44faba450270d81645e29f7c5bf0286bf7374fbf30cbf139cd345ce378067",
+        "id": "33b35337937d8967c7a330a903eec08fb950fd09836fb6ecea507d90517afda5",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python optional argument/reference/type or absent pop result; it does not supply a required receipt or repair missing evidence. Explicit root/unbound Writer values and notification omission meanings are declared by their Owners."
       },
       {
-        "id": "4151bf7c05f63ee0ba6e786f32ae765b05bfb3a1f1e40bfa6ba4e11062bac247",
+        "id": "d8f061e2f2cbb36528abe72f22c821e9d922131ec4f462819aeadf11339a7a40",
         "classification": "non_contract",
         "owner": "InstructionCheckpoint / SteeringScope / SteeringTarget / RunInstruction",
         "reason": "Python forward type annotation or variadic tuple annotation; not a wire key or execution discriminator."
@@ -32696,17 +32696,47 @@
         "consumers": [
           "llm/core/instruction_records.py",
           "llm/core/steering_channel.py",
-          "llm/services/runtime/steering.py",
-          "llm/engines/base.py"
+          "llm/engines/base.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/services/runtime/steering.py"
         ],
         "tests": [
-          "tests/llm/test_steering_values.py",
-          "tests/llm/test_instruction_values.py",
-          "tests/llm/test_instruction_reservations.py",
-          "tests/llm/test_loop_steering.py",
-          "tests/llm/test_engine_steering.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_features.py",
-          "tests/hub/test_approval_continuation.py"
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
@@ -40594,239 +40624,233 @@
   },
   {
     "path": "llm/engines/agent_values.py",
-    "sha256": "aff38209fed1157c2687108caafcf7d02eab67bfdd0ec55491347f469f026a96",
+    "sha256": "c3cfda306f2e285d25dcbfcee79eacb745c257187644e804b4e1485643ed377a",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "944ade2b9af75eb9cfb395f56038b95f9c1984cecfa6551cac4f3eaeed03ec55",
+        "id": "a2b07a3b9bed769d067a650dc732e0788b58a90fffeee390612cc3a5398d8211",
         "classification": "declaration",
         "owner": "AgentNodeDefinition.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "21626e56023babda1cf9c10835c5025075bca202a90b275ee263e10e0da6193e",
+        "id": "a73417e5ab155357231f77797df7756b693769762c25deb8a06573948f240230",
         "classification": "declaration",
         "owner": "AgentNodeDefinition.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "52a66555aa1c3de734b46191a1b312fe3cae11bb07ec28de61eef39d4de12cba",
+        "id": "2618ae440f2c4e49932bb53394bc46ed2ac7fc049dc761e9c7a03b0c4c6a77c7",
         "classification": "declaration",
         "owner": "AgentNodeDefinition",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "22887837dcdb168476d0a4909b53dfc932653ca65eb639a649ba3b9b9e805e78",
+        "id": "890f7f2cc4eecfa4bf2f6cfd7696ee80899edd890ec4a90858b0171e498e942c",
         "classification": "declaration",
         "owner": "AgentNodeDefinition",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "30e13b250ecfdb254a78e816aa2ea4aa9f0bee85ce6d8caab95e7e4bc8044249",
+        "id": "f31ad35cf54f88b60fb163c7d0ed8c29cf7fb0f3c0fcb41bc731d74cbbb300a0",
         "classification": "declaration",
         "owner": "AgentNodeDefinition",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "2f9184b63f9eb6baf2d6d0cf40fcc4b2c3921b7402256bda43a8661f9442d539",
+        "id": "6faf2d577032c67560212b04f5d968382d49a6255db9109f6a8d40a005a5a11c",
         "classification": "declaration",
         "owner": "AgentNodeDefinition",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "9f398eafc3945bcd9064d910587d4296648d2aa462fa8fd9b4af5eaeee92e9fd",
+        "id": "063a6334fae7c2cee0b44b4371ee900acfc9fb90a63a0f366d24210b5cdb39bb",
         "classification": "declaration",
         "owner": "AgentNodeDefinition",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "5c3522975197f47b947dac9225e6d42689f75cd4fc454f317d17231a18f34325",
+        "id": "a16e461a89de4b7ae6a6e1245f0b456decd2856bbd625a0337fe7a6f880579f3",
         "classification": "declaration",
         "owner": "AgentNodeDefinition",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "2c8795b43fe88c0cd4ed8fa6fefc641381e2f224d6899b367a3ed79c373ddcc7",
+        "id": "44674fad5afbf177de279cc0ea58bfa328a4b315774f018b6a6a41a34432e9a6",
         "classification": "declaration",
         "owner": "AgentDelegationArguments",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "b521716069776e60a47c5676331be75a0a96c70348f800979c1d1dc010cf4486",
+        "id": "096df4de5495b8d355673ee92c52079be92926484030c14099da2a6c69e5b741",
         "classification": "declaration",
         "owner": "AgentDelegationArguments",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "785bbcb45dd9c15581581f4980a59ae769b05ddcf91f6b62a2cf70161b4855ad",
+        "id": "3b654d8fa2eaf9a7b77472abf6c82234bf2e607598f590ea2c09f013d81d31bd",
         "classification": "non_contract",
         "owner": "AgentHandlerBinding",
         "reason": "Frozen/slots Python dataclass layout, not a runtime/storage policy."
       },
       {
-        "id": "2934a7ad4478c33111e2c154753c4469f1aec0ae5e38027e9d9531df937d9c63",
+        "id": "530fe16d89c3fd6eddbdcdaed5b082c7d3990647c77e6860fe3bc1b863969f94",
         "classification": "non_contract",
         "owner": "AgentHandlerBinding",
         "reason": "Frozen/slots Python dataclass layout, not a runtime/storage policy."
       },
       {
-        "id": "f29ffb30adca516a6b61853dd3bda6960da19aa253d79fa22f9929b13b0ed203",
+        "id": "2cbc53a309b98d84fc7458a01999bdc1032c245ae54b00705fe890780a91777c",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "ce2343067ad5ee29b7db954dcbc95864b602090a6a7ca408c2a73ab44711050f",
+        "id": "9a92ea2150a3c6f473d516127c7766e1c406bbf1d6a2144628bf41e77075c363",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "3a25258af303123ebce6e492d848834101021bf161bd73ccd5442fb684687455",
+        "id": "3a3b5e8d3bd5144469b013e75ad6b8547c4c9c2ec4b5b541ad173cc809db8793",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "43e4afbb50d745b2038fa68ba50e9b1689113d0a9646d1c8219d2b2a5eb3d0bf",
+        "id": "c444dfa69ec75d33812a7343c99ebbbcd891d7ddf58068f87dfbf2ae6b1f3966",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "b35fc7518ce842fd22496fbfb7c46a641b44f475724b9ef0cc49c75f77274d25",
+        "id": "0145b5f4b0f0a7b53f9889f637eb06575e7acbb9b1ee2c167125a41b6aec4424",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "a27b4a762f7bec08117e4ec8b651037a130b7346c1ba940474a21dc9818acd41",
+        "id": "6566a7035b81825b2997853f506fb26ef80d1f786924f7d2d84c48ec68491f9c",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "dacede7c6d18b0fd859318dc299f745e8cbce1f54e114a34fc9a9398368cbff5",
+        "id": "794c5055b54af1d7d1b8a6e64245b2d4e1a33735ab023e35ca7833b943ed433a",
         "classification": "declaration",
         "owner": "AgentExecutionBinding.Field",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "f7447eefc68bdfc04efab3a1bbdfae2cefad1fe8f0b04bb5300e43124e75fa61",
+        "id": "84a8685ea108368a94d56c9fe16441f049e14aa64a0c48eccb5db7c73ad41113",
         "classification": "declaration",
         "owner": "AgentExecutionBinding",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "3426961454eb70d5fcb4d2758347916f495038de628a23c5aaacb8f474214f4c",
+        "id": "868aa87781fdd9baf7d31189153e8e6aeb711d8e6a977ef8a1e1132bd148ca13",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "88eede6a6a2b86a35b2dd59f26b7e1674d79a3f2b3147a159f8274c4d2f6fb57",
+        "id": "b06d636c2b6246c7f5ae7612022f72339cec3faa8634813202a860bc24a869c6",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "184f0cc4bafc8b87004e26947b6c7771a32bad76a67e388376d5dd17eb9b42e1",
+        "id": "28ba01ea2ad57dd188bd6af5569950888b91994643051188d2c6a684ae6f05ec",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "7f64840b315e6f268a5411af88beafd00f9a572feb48460f3abdf3624d1ea250",
+        "id": "f75b6816e04e12fb351ddca0e9697aa23f32d1d83a6e6d9c37a6a239e8308e2e",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "bc192d196b476e8904bad38db4625dd306ee267033ab69461248a8122ecd9987",
+        "id": "24f14a3b9db33934c2d7ee8c363fa4861e67fa71880d8121a0a43c19cd9bde67",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "f398ea905ae2dc2deff3a646e8b4a1e904bc0de002c66afe79ef78015b7a0619",
+        "id": "c87734a3ea890c4273aafb51734b807fec229dfcf10e5025f69f678b89aa2682",
         "classification": "declaration",
         "owner": "AgentStepMetadata",
         "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
       },
       {
-        "id": "45822ba9e6fbbc8afe63f46b913d31df2aefd1e13eeaf1b51f67bde79c381570",
-        "classification": "declaration",
-        "owner": "AgentStepMetadata",
-        "reason": "Delegation Tool input and inherited/completed Agent Step observations are declared by their corresponding Owner before implementation; original fields, optional null and counters are unchanged."
-      },
-      {
-        "id": "cad38e27f196d9415cb3cbd413c6c062780e044955b9f2e9f71282bab4a5e12a",
+        "id": "e7a4c3379f547389125d57bae8847c7bc24bbe515c864050f86ece98eb3f9c48",
         "classification": "non_contract",
         "owner": "AgentInvocationIdentity",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "a8c6363df2c988dd1cf48a080927a92a6e4b73e6f5d841fcf2b1e6aca810a407",
+        "id": "bc2afcd61a6588b30d629b9aca01eaa383d2a79ca72bbec182dcb245e612f236",
         "classification": "non_contract",
         "owner": "AgentInvocationIdentity",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "363856d1392c45b242dae830bd6df620e7409243562a706e0088906efbd2ab50",
+        "id": "f2f7630411b0e0aaf35ade8f7a91c52374a696c95c66512e02da815af493c8b4",
         "classification": "declaration",
         "owner": "AgentInvocationIdentity",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "9d9a14fe57c575d9e444abb98fafb5ef9f59c80d9310cec0cf2b4d6bb5259ccb",
+        "id": "04a51f15e7c38b188b982323a195fffd040ca040e5d6cd18bf5f6a030e8318e7",
         "classification": "declaration",
         "owner": "AgentInvocationIdentity",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "67f194a69ae0ca6b2c26360335bb3f3addfca33ff8cab86ebaae734b21ff810a",
+        "id": "e7e3e901fa3086ee9a4dcd1671bec058b97bd6f156750639b2760d082886bf73",
         "classification": "non_contract",
         "owner": "AgentExecutionRevision",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "df7b5c8dbce1bf7c2c412edb7ec0d35f3a485d8eb025c25f6489ae0734b4a8e0",
+        "id": "6da306320f59cf9aa67a24e38e5ddb672e4f855cd8808406922fb3a2c230406b",
         "classification": "non_contract",
         "owner": "AgentExecutionRevision",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "e2cfa468e982a54a493516e1519385e9b76a4a6bc2eadde747f257ce27832fdc",
+        "id": "84dba008b6f8e3ac1edb9f0ad75576f32c471be1e8350e9ed528bc9c3319ce31",
         "classification": "non_contract",
         "owner": "AgentInvocationBinding",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "1a7de113b12c495b5f3678b32c91b75344566f671ca22e95add81108f55654bb",
+        "id": "f0cf28704060a1f41e83d8613474ada6ee0b516b82e95560ea0b0bb222cc3958",
         "classification": "non_contract",
         "owner": "AgentInvocationBinding",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "aaea2670ec278ee5c20a1b5a07cc47bbcbd26462a4f5b08eb9c8107b7e94ac17",
+        "id": "c4181f3299c3731b63b3f1fdb6fe2ba2c7197abe9621f43abbe840e427683b49",
         "classification": "declaration",
         "owner": "AgentInvocationBinding",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "9c1689f80ee4dd0d3ae7129bdf4ff19cb2514f98f7f5f48bb483f8f3c6a899ed",
+        "id": "94c2c2e4460161c850cc8497b755d833a2a4d033a268afd26388106f7acda05e",
         "classification": "declaration",
         "owner": "AgentInvocationBinding",
         "reason": "Node/execution/Step/output fields, option defaults, diagnostics and nullable projection types are declared above implementation. Same spelling in different Agent selection, definition and private state contracts is not treated as proof of common meaning."
       },
       {
-        "id": "d77a636ef09b50768326f889985c033547c5529d49e63993579dd087c32f8674",
+        "id": "40fa98e631d0bd3443ae05ddec46547c24865e9f18cf79b476ffa8938ad81163",
         "classification": "non_contract",
         "owner": "AgentOutputValue",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
       },
       {
-        "id": "9be4147385d39e668f5ea4401bdbbfcb43ae171421cc7c69c7cf405d83149084",
+        "id": "e62c98e21b9deeb5610bf8fc96f04683a5e5031d8b30e549638fe1b2b5bbaa95",
         "classification": "non_contract",
         "owner": "AgentOutputValue",
         "reason": "Frozen/slots Python dataclass layout, not execution, storage or retry policy."
@@ -40837,16 +40861,46 @@
         "owner": "AgentNodeDefinition / AgentInvocationIdentity / AgentInvocationBinding / AgentExecutionRevision / AgentOutputValue",
         "declaration": "llm/engines/agent_values.py",
         "consumers": [
+          "llm/components/memory/processing_values.py",
           "llm/engines/agents.py",
-          "llm/components/memory/processing_values.py"
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
         ],
         "tests": [
-          "tests/llm/test_agent_values.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_agent_workflow.py",
-          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_outputs.py",
-          "tests/llm/test_output_integrity.py"
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       },
@@ -40854,18 +40908,48 @@
         "owner": "AgentExecutionBinding / AgentStepMetadata",
         "declaration": "llm/engines/agent_values.py",
         "consumers": [
-          "llm/engines/agents.py",
           "llm/components/goals/processing.py",
-          "llm/components/memory/processing_values.py"
+          "llm/components/memory/processing_values.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
         ],
         "tests": [
-          "tests/llm/test_agent_values.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_agent_workflow.py",
-          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_output_integrity.py",
-          "tests/llm/test_goals.py"
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       },
@@ -40873,19 +40957,50 @@
         "owner": "AgentDelegationArguments / AgentHandlerBinding",
         "declaration": "llm/engines/agent_values.py",
         "consumers": [
-          "llm/engines/agents.py",
+          "llm/components/memory/processing_values.py",
           "llm/engines/agent_tools.py",
-          "llm/components/memory/processing_values.py"
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
           "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
           "tests/llm/test_graph_agent_contract.py",
-          "tests/llm/test_agent_values.py"
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
     ],
-    "reason": "Read whole node selection/Schema/validation, open execution evidence/state, Step inheritance, root identity/hash and output projections. Public dictionaries retain key order and extensions; omitted output data differs from parsed null, explicit Step null is not filled, public handler/registry overrides remain in execution path. Required selected identities are never restored from defaults. Dataclasses do not normalize opaque Engine hash values or Tool overrides. Complete new node/root/output projections; binding reference extraction and remaining delegation/usage Step consumers are explicitly incomplete for the next Agent closure. This does not mark agents.py or all Engines complete. Closed remaining Agent binding reference extraction and delegation/completion Step consumers through their Owners. AgentDelegationArguments now owns matching Tool Schema and required argument projection; AgentHandlerBinding owns its unchanged revision evidence. Original explicit null, private extension values, Schema validation and source omission remain. Agent implementation still has unrelated unfinished runtime hook/diagnostic declarations, tracked as an unreviewed file. Goal nested selection now uses AgentExecutionBinding.selected_in_state, preserving the original lazy optional agent/agent_id reads and present-null errors. It does not validate or manufacture an admitted binding."
+    "reason": "Read whole node selection/Schema/validation, open execution evidence/state, Step inheritance, root identity/hash and output projections. Public dictionaries retain key order and extensions; omitted output data differs from parsed null, explicit Step null is not filled, public handler/registry overrides remain in execution path. Required selected identities are never restored from defaults. Dataclasses do not normalize opaque Engine hash values or Tool overrides. Complete new node/root/output projections; binding reference extraction and remaining delegation/usage Step consumers are explicitly incomplete for the next Agent closure. This does not mark agents.py or all Engines complete. Closed remaining Agent binding reference extraction and delegation/completion Step consumers through their Owners. AgentDelegationArguments now owns matching Tool Schema and required argument projection; AgentHandlerBinding owns its unchanged revision evidence. Original explicit null, private extension values, Schema validation and source omission remain. Agent implementation still has unrelated unfinished runtime hook/diagnostic declarations, tracked as an unreviewed file. Goal nested selection now uses AgentExecutionBinding.selected_in_state, preserving the original lazy optional agent/agent_id reads and present-null errors. It does not validate or manufacture an admitted binding. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained."
   },
   {
     "path": "llm/core/tool_event_result.py",
@@ -42271,8 +42386,8 @@
   },
   {
     "path": "llm/core/step_event_metadata.py",
-    "sha256": "c918d11b720076e566bc38cb130c6ec1c38d56fcb8ead4b9eae594a80e5e6674",
-    "reason": "Common event display metadata has its single field/phase declarations and Writer/Reader. Valid nonblank host observations remain verbatim; absent/null/false/blank hints retain the previous display fallback. Ordered phase/error-code projections preserve event payload and unrelated opaque metadata. Tool-specific phases stay with ToolExecutionPhase. These observations grant no transition or execution authority.",
+    "sha256": "90fbdfa8e0ae4fc7212bb3b5afe50e88b0679cd1d17bb4bd1d34a4cb240c3138",
+    "reason": "Common event display metadata has its single field/phase declarations and Writer/Reader. Valid nonblank host observations remain verbatim; absent/null/false/blank hints retain the previous display fallback. Ordered phase/error-code projections preserve event payload and unrelated opaque metadata. Tool-specific phases stay with ToolExecutionPhase. These observations grant no transition or execution authority. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -42312,13 +42427,19 @@
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "cedcf69ca8e7e9409b1e4d9bd9e04f6d7a24e934de212d75536b41e5db4d695a",
+        "id": "279688ceed737218eaa81a33d1e7077eafe2aa0f573e8a44aa8aa5f7fc3db4a2",
+        "classification": "declaration",
+        "owner": "StepEventMetadata",
+        "reason": "Canonical shared Owner-head declaration; added Graph consumers preserve the established wire value and interpretation."
+      },
+      {
+        "id": "ac16f7067ca75662a6e72620638a2ef95cdff3e432be28b93a069bd6e39cf554",
         "classification": "declaration",
         "owner": "StepEventMetadata.Field",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "7a7f1606797d97a27c69406a877c6e80f3a659bff0b639bf5018f9fbf90160be",
+        "id": "0287cfe4811d353b7ff4e233e13a9d6ba1ea4f49c71fd12c8d8d4ad7176862f4",
         "classification": "declaration",
         "owner": "StepEventMetadata.Field",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
@@ -42330,13 +42451,46 @@
         "declaration": "llm/core/step_event_metadata.py",
         "consumers": [
           "llm/engines/events.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
           "llm/services/runtime/tools.py"
         ],
         "tests": [
-          "tests/llm/test_engine_outputs.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
           "tests/llm/test_base_engine.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
           "tests/llm/test_retry.py",
-          "tests/llm/test_agent_delegation.py"
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
@@ -60326,8 +60480,8 @@
   },
   {
     "path": "llm/components/workflows/bindings.py",
-    "sha256": "4c2be2ae7328ae565767f0c1cbac06cd54f123943559c4140dc76fa78f1873fd",
-    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked.",
+    "sha256": "68f9d7aede8b60e2aae4491a1b1d6fdaa21e27d2763485ac26c642f9ca6304c1",
+    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -60403,13 +60557,13 @@
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "63198cfd5e62f612ca3c807604e2edd75b70e7492334c713b0f4481f39b50a06",
+        "id": "b8f690fe2be784b62c6f2b38c0589f288d94e2712aca3c76dbbbb5e9d2fea69a",
         "classification": "non_contract",
         "owner": "WorkflowBindings.validate_contract",
         "reason": "Python -> None return type annotation, not a missing-field/default policy."
       },
       {
-        "id": "8033b464e75dcee217c9948f0767268cd271e24953b1483ada24f0b458830dbe",
+        "id": "f83be87bc8eb0cb35d9e28af49ee2d48e71929b91bf7d9a0dfab953442643d12",
         "classification": "non_contract",
         "owner": "WorkflowBindings.validate_value",
         "reason": "Python -> None return type annotation, not a missing-field/default policy."
@@ -60420,37 +60574,53 @@
         "owner": "BindingPointer / BindingDirection / WorkflowBindings",
         "declaration": "llm/components/workflows/bindings.py",
         "consumers": [
-          "llm/components/workflows/data.py",
           "llm/components/workflows/component.py",
+          "llm/components/workflows/data.py",
           "llm/engines/graph/engine.py",
           "llm/engines/graph/tool.py"
         ],
         "tests": [
-          "tests/llm/test_workflow_format.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_graph_engine.py",
-          "tests/llm/test_graph_decisions.py",
-          "tests/llm/test_agent_workflow.py",
-          "tests/llm/test_nested_graph.py",
-          "tests/llm/test_graph_checkpoints.py",
-          "tests/llm/test_agent_resource_integrity.py",
-          "tests/llm/test_resource_references.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_lifecycle_integrity.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_defaults.py"
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "llm/components/workflows/contracts.py",
-    "sha256": "5a66347d2685619c13515f21ac309b4ab484347e4db1717aa59abd5ea5ae27ff",
-    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked.",
+    "sha256": "11ae686ac680767450d471fb864391d88f257f9581f1d1ce9d8925b4f6d8ca15",
+    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -60472,139 +60642,145 @@
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "7be728a152bb176b6bbb818e3eea6cbb340ac7b15ceb1c5030597e228fd81b7b",
+        "id": "486622e6be2531267ad9ea1b8ac376f569cec9270c5206f1e26abfb89e349310",
         "classification": "declaration",
         "owner": "WorkflowCondition",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "3907c540be2ac4c905d7eee06a67787b14b4fbb40c6024e4f6f7aaebb89782c3",
+        "id": "8fbcf9c00a7b405f9d9c5ba5417c7596e820a12190978b62191e364923cd158f",
         "classification": "declaration",
         "owner": "WorkflowCondition",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "0e97883e0f044c84d45ea7b253fb6e7652d5562ebb0515517967dbf9da63c72e",
+        "id": "1c143f43e26fc0ebed668f814fb1c26cf3feb3604a2ea697e1477a606bb5ea49",
         "classification": "declaration",
         "owner": "WorkflowCondition",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "bdd1351d6221d3321338fb3a80f76f6bab32183c1b7a88bff978309d828f152a",
+        "id": "648956d0672d2017bf0375e7b1875dbfb2af7e7d20fcac4946f3e6c13ce391bb",
         "classification": "declaration",
         "owner": "WorkflowCase",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "623b679c41d18bb90810a4c355cc3b5b5f56aeeca66f1de3d668395a79a7cb5b",
+        "id": "635b1ed1443172d544a067a57822b15a67a780285686a1ac8d8b4990ee180baa",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "8dce8eed4d139f7212ec162ba9e11fb9540039384dfa8f5327523e3e28eb41a5",
+        "id": "7e34d569d7de11bf93bb833276d67877bc6404be8eb9974c25a4526a9abcee63",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "e15d7e8fa4db4b40c5ebcc6f98a7afd898274ccc588d4a116e870f575bd0e107",
+        "id": "09309a218ffd04af178eccf62e2df39b62ff76b7d46feaffa70dbfa7d1daf238",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "57c922425de64d913bc08bb8f5da14c7bc96d1be64442d8336535f9272e87eb6",
+        "id": "821caf85e879b8ba778c50cd4d5719beab8875364f5d137ba552973ce156809e",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "de383192f4c035768cf550e6397896a86cbbf6eda31054ffd30edc0f5f093d3a",
+        "id": "c61540ec7c4fe5ac4ccf9798980e00e7de24d0a1ddd9a5062ce82110c1fd1d13",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "62d9e8b9d7a8992478702e361a24eb9b02149a600a8fe8d35ad0edf51014f362",
+        "id": "640a031dbcf2dfbc416952ccbee44e7d6cc93facd5e17708daf0d6e5c309c192",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "51b2d6fa8b7142de484d8a06274fe0e4c4bd44d16768dee2803dafeb69d37034",
+        "id": "81f943084e6e1dd6fa045366a00a183197120d3b69f79bcc81b09273ba70f99d",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "37bb8a1805223f4be7ae5864dd2f54e133b99c094446df7cbc899de90c9cce37",
+        "id": "5ab226ac75c8a8bf098d47c6a65a5b088dc9c7a00a044d72a73cf850d8b51825",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "7224e0d0e12eac6ddda9cc6d2317054971e86174ce0fdb0155baab7896943ad2",
+        "id": "ff619f302b9c60357638136b234bb22236d2d3de4987c7403e1c2d42febf640b",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "63c289234b37bbbcee1b6921b316e77431f2b954a80a3d09588502492e62b3d2",
+        "id": "b4ce868a270ae9fcb123a49b3c8d4f4c79828442e64100a6be30b39cb55451d8",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "56a5449191e0715e316a4ae0758da64e1f39a2446cca1cdd655642c2658a32fa",
+        "id": "60c3d476d54cd570122b985cbe92bf784a1be0583b3a77a39db9904451607e35",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "d63e58f5221b84342b72c6b209fc3f7642334bbc2b52a1fdb1881f1fcbc62667",
+        "id": "d1fb3d50d4eea4ae949297fdab0649d5bc694b0513ccd3ede339253f807f5bab",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "d031af0a2127375dc49e4ba296e4bece2ab6086486878c566a542a7c06dea777",
+        "id": "2cb66d61cab8b329babdb68b60e260a6e68a14ed2b13ef25002535f461c78947",
         "classification": "declaration",
         "owner": "WorkflowNode",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "01b64bed66469a3290c584c3854d089447e5c2c6adced9e460ebb7d827163fc1",
+        "id": "3dc97b756af81ab152a1b7c09ccd11522031a9a56123e3d622198c8bf440e9c7",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Canonical shared Owner-head declaration; added Graph consumers preserve the established wire value and interpretation."
+      },
+      {
+        "id": "fbd073d726c08f318b3ed79782031d80d7e90f5361ea8b9428f1f636fd10b34a",
         "classification": "declaration",
         "owner": "WorkflowDocument",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "cab32dc703a77ee85ca2a051eff478f29182c32f2c2293757ba38b1ef4af2393",
+        "id": "e97204b6976c38d1f1e0cdf0275ae0b9e9adbe8660c981d1d85f4b5864118470",
         "classification": "declaration",
         "owner": "WorkflowDocument",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "20e7511a763a59579eaf9d2c1687bcde253f0d7942433811d0532714782f22ac",
+        "id": "a61ca79db0f51df2393df0884fba051318f8b0e639f63f4bbc2f6ffc7ac33071",
         "classification": "declaration",
         "owner": "WorkflowDocument",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "10fccc89c936161dbc7591925ed80c4d5de39512870002df1f4e74cd61372a69",
+        "id": "9ea23e7ef17ed4862d585ec14457693c1ee005efde235dd67c4cb1bf41a00d12",
         "classification": "declaration",
         "owner": "WorkflowDocument",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "4e9b0f1ada32cfb57a7e332f0301918d1b0df6fcd0db6d9fb24fc5666118b26b",
+        "id": "2a1f32238f6a7f22f663de1655c7d92b5fc48eeb47afc670b5513f71267be9d1",
         "classification": "declaration",
         "owner": "WorkflowDocument",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "7613293b13a7fb1bb2e71eff7cda42fb155ff0e690406bc78d66887069adc9eb",
+        "id": "b1b65dc35426178b3ad8257230d29656d35d07b8d22de89a657442c1e6e2244d",
         "classification": "declaration",
         "owner": "WorkflowDocument",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
@@ -60615,30 +60791,46 @@
         "owner": "WorkflowDocument / WorkflowNode / WorkflowEdge / WorkflowCondition / WorkflowCase",
         "declaration": "llm/components/workflows/contracts.py",
         "consumers": [
-          "llm/components/workflows/data.py",
           "llm/components/workflows/component.py",
+          "llm/components/workflows/data.py",
           "llm/engines/graph/engine.py",
           "llm/engines/graph/tool.py"
         ],
         "tests": [
-          "tests/llm/test_workflow_format.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_graph_engine.py",
-          "tests/llm/test_graph_decisions.py",
-          "tests/llm/test_agent_workflow.py",
-          "tests/llm/test_nested_graph.py",
-          "tests/llm/test_graph_checkpoints.py",
-          "tests/llm/test_agent_resource_integrity.py",
-          "tests/llm/test_resource_references.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_lifecycle_integrity.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_defaults.py"
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -61354,6 +61546,2037 @@
           "tests/llm/test_lifecycle_integrity.py",
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/engine.py",
+    "sha256": "47cc68ed674d0133d9b388452865b116b8e7c9b4ff722e2af91c9ff7be0c811b",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b5bd5be278537c395992d7d344b08c07838597ea7c2701b382821c3fa47ad915",
+        "classification": "non_contract",
+        "owner": "GraphNodeContext",
+        "reason": "Python dataclass frozen/slots syntax; not runtime policy or stored state."
+      },
+      {
+        "id": "7532b26e31fabe9b1c3d5a2399e627d880e41f35eb1e142f3529d188b23e12c5",
+        "classification": "non_contract",
+        "owner": "GraphNodeContext",
+        "reason": "Python dataclass frozen/slots syntax; not runtime policy or stored state."
+      },
+      {
+        "id": "51f58116eed743885455d460232cba7b4ed151c541331b8daad2ae09c41b0879",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "175a5aa7946c06b897b07abbf2d2ceab05e8aa9b3035af210b4ea0b614227f54",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "8b5a327c50ff1d8f348b550369598b4fb51b86a2f0b8d38b70020c918fb451bd",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "2040cc18e8e17425f703cd488f65b80ca09e1c611cb09ea8f06dc33484d1b3fc",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "abdcdd55465103a0b780a42dfb16882ccd94995484dd89a52a724f98031ee7b9",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "2ff21678cf7461c5f370e6eb2d0ee9833ca79f7dbe3ba30c5ea4f73fd224c8c9",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "171ed31e29618529d7dee43bcfc4bc9d3be69bb03580b6566df4b7a41a8eef75",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "48f80393a150a79adbda0af3154f676d8b54c27405746715354225da34793da7",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "189b8b5ac4350c4e1b762709b3fb2c3a43bc88065379c52417a9e60560e0930e",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "e6599776278b036c8fe79b1ab90813ea1e59bc296f44a475649ef970e0b217f0",
+        "classification": "declaration",
+        "owner": "GraphNodeContext",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ea212fccfb3d3041340b37b78aad64d9390586865c63e9e990a3143a9efa4372",
+        "classification": "non_contract",
+        "owner": "_propagate_cancellation",
+        "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
+      },
+      {
+        "id": "0171c24422322b4dfa56c15af51e7cc388de284c6f7d8c3f40eba37d5171ae0e",
+        "classification": "declaration",
+        "owner": "_WorkflowRuntime",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "9607854cde342e0a26f2926f53e82da07ca5fb9772ec1f19963fc640009fd39b",
+        "classification": "declaration",
+        "owner": "_WorkflowRuntime",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "19085c9eb2b031f6dff496ec6e9a9b55d7b2dcd8527ab1600f8cf53583faf516",
+        "classification": "declaration",
+        "owner": "_WorkflowRuntime",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "bc8e1293453e5815c921bac030f04777a7c03efd9441daaef801e0214275d557",
+        "classification": "declaration",
+        "owner": "_WorkflowRuntime",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "322213ad837448f0082de1d7c571f6a6627871bf100a34488b9b353f21b48a7f",
+        "classification": "declaration",
+        "owner": "_WorkflowRuntime",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "a9afd2f1a8cb01355247928e419742ee70888cb390e561dfd6b6aa5e54e18c59",
+        "classification": "declaration",
+        "owner": "_WorkflowRuntime",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "b775d7be099e5140a1e64b83264b9783223e7787cbb3cbf489dd37208caa7606",
+        "classification": "declaration",
+        "owner": "_WorkflowRuntime",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d3f9777719108f352abffcd905d8af30471370ab7f1268976e5961ab4cebae0e",
+        "classification": "non_contract",
+        "owner": "_WorkflowRuntime.__init__",
+        "reason": "Python forward type annotation only."
+      },
+      {
+        "id": "10d61ffbbd5147c297e4b7c70bc4a8b69e8b85509dabf3ef6cb388e94fb1cae2",
+        "classification": "non_contract",
+        "owner": "_WorkflowRuntime.__init__",
+        "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
+      },
+      {
+        "id": "30a5d25df3fe870cec623016ac2a1c753353bab03d23dd5aa97ee7157590db54",
+        "classification": "non_contract",
+        "owner": "_WorkflowRuntime.__init__",
+        "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
+      },
+      {
+        "id": "ee386d799d87d005270af876bb3fabb1014ad196f3996bbd4711f92640c24427",
+        "classification": "non_contract",
+        "owner": "_WorkflowRuntime._compile",
+        "reason": "Python forward type annotation only."
+      },
+      {
+        "id": "a9f2e485a6f4ff88f4c86ff9dd6bcb024cbdb18ae3e1f39cbf8a47f770b8ea46",
+        "classification": "non_contract",
+        "owner": "_WorkflowRuntime._compile",
+        "reason": "First element of an already constrained ordered collection, not a policy limit or fixed record-field offset."
+      },
+      {
+        "id": "f04dfe0ca06c3de512fe10efcd7fe74e48c9cdd76cbf7e9f7e4e80d3457eddfd",
+        "classification": "non_contract",
+        "owner": "_WorkflowRuntime._parallel",
+        "reason": "Python forward type annotation only."
+      },
+      {
+        "id": "9f3ea9c5c4a62c62bd65d346c4347f7a44e4d70588ed8ffa826191b2c7f04302",
+        "classification": "non_contract",
+        "owner": "_WorkflowRuntime._loop",
+        "reason": "Python forward type annotation only."
+      },
+      {
+        "id": "2c48ce332fbecaa091b9a8edcb90824f3eca628884af4c907ae54e5ba7a431a7",
+        "classification": "non_contract",
+        "owner": "_WorkflowRuntime._node",
+        "reason": "Python forward type annotation only."
+      },
+      {
+        "id": "75daa6461424abd4d76c357d0bd5826e841ef02c5bc16f4ea117e07e20060144",
+        "classification": "declaration",
+        "owner": "GraphEngine",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "6b7a2f52f5426e6bf2d2b0a602c6ed2fa2f0466af935023abc1032675df03897",
+        "classification": "declaration",
+        "owner": "GraphEngine",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "8e1116a15c6b630524e7330dadadc786f948c88717f9cddc880d61bee93b3873",
+        "classification": "non_contract",
+        "owner": "GraphEngine.__init__",
+        "reason": "Python variadic tuple type syntax."
+      },
+      {
+        "id": "ce8bfd964a3a87ded0aabd52a90eb4db0f50cf14014cd6bff4035b1df29ee410",
+        "classification": "non_contract",
+        "owner": "GraphEngine.__init__",
+        "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
+      },
+      {
+        "id": "8f8f0b53ee7321c762b50ddaed3dc1a3be8f4e9c828e7f2ddba433367f859c13",
+        "classification": "non_contract",
+        "owner": "GraphEngine._validate_selections",
+        "reason": "Local traversal progress sentinel for a finite pending set; not admitted selection or persisted status."
+      },
+      {
+        "id": "dd9115deec04169100368e6f955189aa56e2be6e9cbff58b3f1646ae62dd3c05",
+        "classification": "non_contract",
+        "owner": "GraphEngine._validate_selections",
+        "reason": "Local traversal progress sentinel for a finite pending set; not admitted selection or persisted status."
+      },
+      {
+        "id": "288b2363d8385543e3538bdd565e64d90cc31e6ff6b534897be1b92c7ada4c72",
+        "classification": "non_contract",
+        "owner": "GraphEngine._deadline",
+        "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
+      },
+      {
+        "id": "e9772315a5f471b5397b42d3f490d603a50ace88cec1f2a35e04e66475a29fc0",
+        "classification": "non_contract",
+        "owner": "GraphEngine._definition",
+        "reason": "First element of an already constrained ordered collection, not a policy limit or fixed record-field offset."
+      },
+      {
+        "id": "36b927878f5ef526c6a1ab427a4c98c476f394a8b5baf45bbe0b50bdffc63474",
+        "classification": "non_contract",
+        "owner": "GraphEngine._prepare",
+        "reason": "First element of an already constrained ordered collection, not a policy limit or fixed record-field offset."
+      },
+      {
+        "id": "038bad09a9a53866db7b8922b7a85503e3294420e927f4b9b0bd533b26f01ea7",
+        "classification": "non_contract",
+        "owner": "GraphEngine.additional_capabilities",
+        "reason": "Python variadic tuple type syntax."
+      },
+      {
+        "id": "9bc214d15960b5325f68ccb0f366dc5ccacea6cae996882fa54f1d9439c40f76",
+        "classification": "non_contract",
+        "owner": "GraphEngine.validate_resume",
+        "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
+      },
+      {
+        "id": "bfa1441575490508558922973a6c5dcb715445c2443343a96eed1369edc4066e",
+        "classification": "non_contract",
+        "owner": "GraphEngine._execute",
+        "reason": "Python indefinite drain loop with explicit producer/queue exit; not execution authorization."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphEngine / _WorkflowRuntime / GraphNodeContext",
+        "declaration": "llm/engines/graph/engine.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/configuration.py",
+    "sha256": "e27e3e3a425d379637c3cc954eba314ecbdf6ffb0bc1046c8c423b1ef62744bb",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "267905d27f818716d5a2daf55d013cae03b3b24cc141a9252dbc458def75646a",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "98522c2ffe140683e0be9396ce4a98ddaff5bc2f2888bbde7e1eab3945f73191",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d3e23ad017615501b757c933a0244a2e83e8dd9946023018337b4b82fa03c79a",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7220ad41a5276660576c18a915742b9dd1fbcf31b7c0a9cbe0c22ee517e79863",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "937477807001dd434e955c1fdd652eff0154b8c45b18f48454196c8af5795708",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "288b2029385ea56bdb773096a58ed76ce0ffeb6c8faf722129d113985e783aae",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "73930db786457b9c0fe60b6cf6e646993ff5742ee61d24b705dd9295828a0061",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "2b0c5efc81671273023a760da9f00fc99200d7bcbaa32e15bbc881ba1007ed0e",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d631a1a44e2abfebb0e5c13818c3ba2cb91369a5c1bf8506191379d2a349b96b",
+        "classification": "declaration",
+        "owner": "GraphRegistration",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c6c75d6af0b369b78b18f5723a211ff025f1d2c79d7042450ed04823785f3258",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "5d8c863ea4718384b688dab5d81926d5b9f5ff1053e050c28ad1d8cd04cfd50f",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "da3546ff1ce32e0c1dd52f42b9ac50efebd53c7747b5f854811c6ce05d6a130e",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "30eeecca0e1847a71ba5cb6cde2f3b9bd73ef4383baa80b4af3228dc731a8bef",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "4bc3f535fa02ed045f8fc11c8ed486148824a27512f3a09d17248598f3e316c1",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "38e08532d4a81cc8d59b479da01b7637e38d4e464c8034af87097bfbcd5175a9",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "f746e398a7b5082fe0634113811ab239e7cbaf1df0a8efa81f2f746870624e96",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "038353682c1d741cbc16d63ca94d5c571f46528d0263a84218aeab900da47fe9",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "0f35fc41a351560ddab326d29d3cd8b0acf410c91b7743c92106f92b6979439b",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d5c6202471199c2ae24a3208236ac397017fafec8e18978a91fa12c3d4e26a64",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "b83b6de96523ac496d7963e95e318d5e6728fcc5d7df8efda7c41def4d71d8b8",
+        "classification": "declaration",
+        "owner": "GraphParameters",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "83bdc3d3b65b2ea3e399ae34878933da0e5fe0ec21f292cc1276f3840655855f",
+        "classification": "declaration",
+        "owner": "GraphAgentOptions",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "bfcf98912684609a8bd71e64619af316abb4da2d5accae8f68bf802cb46b1efc",
+        "classification": "declaration",
+        "owner": "GraphAgentOptions",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "bca191d6a19d0dc12f76b7c607ecc933971195838f00a35d1720aa842c4084d1",
+        "classification": "declaration",
+        "owner": "GraphAgentOptions",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphRegistration / GraphParameters / GraphAgentOptions",
+        "declaration": "llm/engines/graph/configuration.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/decisions.py",
+    "sha256": "cd88b8e11709767491debfc9f4734ef97e8533ce1d5a01f4d6430461c55450b1",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "71aaeb7407e8407c5404b0aac0d24cbefc89e82627e361de0fd22d9ac26564d1",
+        "classification": "declaration",
+        "owner": "GraphDecisionContract",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ae13a4ab721785b8fd6eb114df6fc97f4567038440420791e71ad7b43a16caa5",
+        "classification": "declaration",
+        "owner": "GraphDecisionContract",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "0767e71192360519f22662ec43587df93f2c9d291c4d4451d8c7f8b3057dbde2",
+        "classification": "declaration",
+        "owner": "GraphDecisionContract",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "e5118f7985aedafb50f5dfbf6fad2d50e5a83c569a04662c98d88fbed47f3404",
+        "classification": "declaration",
+        "owner": "GraphDecisionContract",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "492de924669cf1947f739b5d6ad6bd0e524f3289d4e44134e0ed205ad3d0a4cb",
+        "classification": "declaration",
+        "owner": "GraphDecisionContract",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "39358165651006510c4d468a656241bd23399484d435dd937d3ab75b235b5b1b",
+        "classification": "declaration",
+        "owner": "GraphDecisionContract",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "df21021b8ad70560b208b799da7869659a40741571eaf7ec8107ebca89976f19",
+        "classification": "declaration",
+        "owner": "GraphDecisionContract",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ea918c3da0a5f154d95e1fc39ecb9feb0cffd70fbf25ba527b8e802d93fc5a00",
+        "classification": "declaration",
+        "owner": "GraphDecisionContract",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "2eee6c250199c8754ad7a04794f8673b2c10dbcfd59502817a5ccdf48d4e0ceb",
+        "classification": "declaration",
+        "owner": "GraphNodeAction",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "163f2a00cb9d91dfef647f1fb4751d3cdae9fb7bd5df17410b4d6acf5d9ef097",
+        "classification": "declaration",
+        "owner": "GraphNodeAction",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "88f1a2ebbb3364a07ea6063640192fe10ade79b321b090bd6db1eac672d3845b",
+        "classification": "declaration",
+        "owner": "GraphNodeAction",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "0c72321aa9d0792a96364f4d173436b6f05f9afc528e12a71417dcd9389e8918",
+        "classification": "non_contract",
+        "owner": "_NodePlan",
+        "reason": "Python dataclass frozen/slots syntax; not runtime policy or stored state."
+      },
+      {
+        "id": "afa2313e5618f7f6973f9f342d0f8df0f7ed804eb2a188a216c34d69e674274c",
+        "classification": "non_contract",
+        "owner": "_NodePlan",
+        "reason": "Python dataclass frozen/slots syntax; not runtime policy or stored state."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphNodeAction / GraphDecisionContract / pure decisions",
+        "declaration": "llm/engines/graph/decisions.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/errors.py",
+    "sha256": "2e69821ddf1f6506b52775430bdc742541b6f2947ea08bf1e13e81d7a6422676",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "78d2b3455a4aed311348a64111d5a874ad2f0128d36c504444f86f6e2c604b91",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "9b95ad24204e861255cf572d0c8993fb87eb71ed76e33121b22a872965029824",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "9a084c4c81e0ba15d77d8e75c342fb580fb3e3b5bd862d373b850853c68ccb23",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ac37d8177c512c7837f0b441d1ab1833d04e1086379b346437d6025c1c2d08ca",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ab26c48a92d847f84eeb082feb393a16f34abe5deea05ec7554119d7de4e8ed5",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "53374bbc91388abb18180f75177da64eb33fc55ff3527daa536838b8b8422885",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "a49049d3c59778a5d3b7677d2b82a541b711a5d5434bec5d1f87c624308d895b",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "f59d3c67b69b5d99e2d69aa6406e90bcabe52846e99c6ddc47ea458af5322159",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c6c6c1901bb79ee00aa37715bc1cfa12dfe8a1f08891a687d482cd6a48435ba2",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d03fd4879eb3b4073a70444f8235b2fea327513d3ac639014f26ff5c2ce77d15",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "171f08329bc2f8acdeb04a18cf6662cb1616fc4e04a19c3db15640bbedad65e2",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "5b0422b1eda20313cf2e21b6769f16577d4836fb89c987fb438f71cd88066f43",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "f785f270b711cda1cc71841e67917e43a440e0849e6c2a2eb305fd5f8f052b67",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "63f6eacb6ca950bd970fc65239ebdbf0e41b0b23f3e289224810df66b8edc677",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7f7b7500aecf26866379568457cd30c4cf43f470f97e5e6eee56ad758e73210d",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "b081e4adffbe95bf18d2244fc265360c715552f9aa99ffff982d073e1252c254",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7d1619ef6a2b84128f9d9d64c5c25210216b37f5ca0eb54698587722a151e582",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "a09b226d6679f8ce7abf256b3053f527fb1e1068443c22208b93568758a85014",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "4844af6471dfcb002045e1abfec5c110fabde8c042c31eeb7011aba5c7674f99",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "f4e09535aeeb97ed0250a6258091aa2066e1d0727b3562bda21ebbed93df017b",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "59852a63ec3cafe165eb5b4778785032a934612db42f17c13907c809e930137d",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "74b59b8cb924e6be4e0c0f387f1649127226b81d61a4c3af146cc3edc1201e73",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "11560f4d1429df9575a23fdd790dd7c31a7ec37052f0e3a4dbadc19ef379cdbd",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "2f6cb94ae8c23821068a65820ffaf4df2ab8fc154ef07fb3a4b8874c9c71efc9",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "723121581b75815a0919971612a3e48ba643d97a23d78234abebf25ca7f4e269",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "0872ef458e5955308567fdf137c7059a08d08787ce6a62f01aae612ab86482e0",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "89c0601c0e807b146b72931a44e361710c3947044c20e0bbfd5dfeb71eb88cae",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "18b41a8f4125d309135fb992dbf32e911ee05c47be859792b784768a3d3ce035",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "eabccf206d788a267dcd918d71e035cae45466658b21f49d7714253b60c2a8c8",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "83e0068ac5a1f94af2a365df53f3fd1228ee93ddc002578689b9d2cd59e16789",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "8805c9c6a203e0055a8b8a1a96f454681d96b42b6767f6d44fcef038bacf9ed1",
+        "classification": "declaration",
+        "owner": "GraphDiagnostic",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphExecutionError / GraphDiagnostic",
+        "declaration": "llm/engines/graph/errors.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/frames.py",
+    "sha256": "ffd6ed93c2264fcdf8036a923d9d6fa7216d22f017b7060e7dd55234901a3a28",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "50a5511432a8dd99ec8740ca2d1709beec327b58c082b0b1fc898aa7d0ec8073",
+        "classification": "declaration",
+        "owner": "GraphFrame",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "9716a327fbb6440f7d9848e8070bed64b4cf9935f70f546d67ef921e0f60b36c",
+        "classification": "declaration",
+        "owner": "GraphFrame",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "dbee9267172ad37e19f0e4c7469189be414a39bc1a4edc433e1eb8fbbe2c2434",
+        "classification": "declaration",
+        "owner": "GraphFrame",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "0bdbb63917b0c1ed138b8f1ac8838a9cc20937f8b1c0b0bb4b0a604c3437f8cc",
+        "classification": "declaration",
+        "owner": "GraphFrame",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "14d905e42729221f8252bb3176ed74feed27baa410af57a4c9a6321e6b7e1168",
+        "classification": "declaration",
+        "owner": "GraphFrame",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "6bf0f5a11bac9a17df83ee3fe58c3e813b89937bf43062d9aa5c88fa435c48c4",
+        "classification": "declaration",
+        "owner": "GraphFrame",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "8e9a42e2f93dc771d964ac1ff8346779282d0fe022c44d4c483213839022fbad",
+        "classification": "declaration",
+        "owner": "GraphFrame",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "17f331a78d4855f11d76799258e0371ead1d172afff04b2e7bd4b7c167d4d0c8",
+        "classification": "declaration",
+        "owner": "GraphFrame.Field",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7957019b3f827bbf8b13f47d00991b021844eb007d98bd2f1ee86e3f1313ec13",
+        "classification": "declaration",
+        "owner": "GraphFrame.Field",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "f0bd0cc8ff2e9d3bb7ad3c719fcf413e6b2b3e0166556008ff95010241516a1d",
+        "classification": "declaration",
+        "owner": "GraphFrame.Field",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "cd29787bb3bca5f6c527fa4719f9ba221fb6fff9ac220ca12bb4333224e19fde",
+        "classification": "declaration",
+        "owner": "GraphFrame.Field",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "2e65de5c20a9b2f9b107e100a83967ce217f67b31829706b1e7f7e3f9b73f951",
+        "classification": "declaration",
+        "owner": "GraphFrame.Field",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "27f8aeff99e38ce25479dd6d891e3f40dcfe1c06a4e1c64d8c14d9915a991ffc",
+        "classification": "declaration",
+        "owner": "GraphFrame.Field",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "8f515dbc45a41e8b85b45512f2fa992b3ee64dd2fc81fde9b8aafb1a22ceea62",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "cf81335f7335f43c809036db0ba9718f69bd081fb178aa3eb4a6fafb660b7788",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ab48ca0ac218f91638bad0616d8703b18bb6735ab8ceb345ac288c448013468c",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d45b25b569cf31eabf465f011d3df4e2c966b23b1d462c6f211181f6d91ee78e",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7da845f70eb9e895ff3701d9b314edae233dad1da49f5f43cf564edcdfee45e0",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d47a3590f34fe457f32cd9f5268a752108b11211e266a10ab4880d4e51006c6c",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "2f04eb289912f211a2c06165c705eb544916cb09d4dce52905e4e734492be359",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "1b873b3dc562bbc990d7644e9fd3c805c128cff7a53b488edc08bf2bf9a3c60d",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "f1bc8b46f33ce55c36c24743b5790645986f64f1ea930b3ec7beb4b206a77e58",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d8386d30017a05f25ba8a64155314fe97168eaeeffce09015cc095ebf83013bd",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "08f7e594c2f0c568f2357fd1409595dc7c8f291a4bd6fa1a5d0b9b952920bcd7",
+        "classification": "declaration",
+        "owner": "LangGraphInvocation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphFrame / LangGraphInvocation",
+        "declaration": "llm/engines/graph/frames.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/node_records.py",
+    "sha256": "834cf2860621e421ade6bd1b89c819d55d2867ac4bc64b4b26fb409bf57e06bb",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1b758eeb6b571e5451145463ce02a1e1831600b42a59b7d564db427089e2957f",
+        "classification": "declaration",
+        "owner": "GraphDecision",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "327e4b8079110ef3d532af8e0de04713dbb3015ab262646a482645756d57f3f9",
+        "classification": "declaration",
+        "owner": "GraphDecision",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7462ae6d0dcb84031dbb9b558a113490e69fdb5fb5df1d6db0bd10b41cd71eaa",
+        "classification": "declaration",
+        "owner": "GraphDecision",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c9e4b6787b105b4595e8d3d8cf559d071df635e2c766c313841058588d56c105",
+        "classification": "declaration",
+        "owner": "GraphDecision",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "79e3418c95cba5ed86b21999768f06214b66623c454aba00414cb2f23baeecf2",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "3cba417fda67bfa46619d05952a46a5290dff3d65be34acce4213b91a5c72a56",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "19bbd98449fd84f5d96b42c40fa495a8e1517eb1b166e5f50e5b77e884d8dbda",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "9b6ab39af181197fb5b0f8da1e1e153ced432f7c178d1c61dc19959f85574a45",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "303c241280c2c66d9f5945ff1ef09b64025020bb0bb93d7e33c7b1b81eb6b881",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "269eca0ab8184c3049e95fcac505093e0177580a5c8d3af6c947ba8d154e0912",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "438a80b4cf9b7f51ca82bffe27f7dcf746e118c66951cde9371217f57b910f9b",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "e997e3903179e2643106e93ede83188b4ede2a462327fd7a2217470cf6d91faa",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c52b9f73f8640bb772db19caacb77bee879d52585506eaffc01009575ca9ef69",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "6c8dad81497a75a12c638501d4eef777c0932ec8b537b987db7daa5c73b5c334",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "a53f0622c2d64713b75dbe831343f8a2ec9b3a3164c36174391a35a36d4b9673",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "72095075c850a61562441cc248c77fc17bd2a740008636892e69bb6afc1d5e9f",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "0acef11d5e224bdfa13eb90749b16f54564253f7117bac519038214bcbe79f9e",
+        "classification": "declaration",
+        "owner": "GraphNodeRecord",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "4af3de28afe5d57e0f9f3c9dfecf485afc990d60ae1b1b304dddb32f182ee9b9",
+        "classification": "declaration",
+        "owner": "GraphCheckpointHeader",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "f10d110bb234918c54aa195404b772ad3c818c5aeeb9fb065eec575936189453",
+        "classification": "declaration",
+        "owner": "GraphCheckpointHeader",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "4604180a818b0865b3e0b1eada90754c9ac7ddb7a8bbc66108d7b72fd4237ccf",
+        "classification": "declaration",
+        "owner": "GraphCheckpointHeader",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "2e892d515e7b178efeba9aa7566d73faeb968f711e0ee66f876d474679f0ab85",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "3bea13f446129a932bd85202fe82a2d49c70b05457f4da7f415637899eb0ef44",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "077d138d4e55563201101e33c1eecbff7a299c8b18480c38c7a5d1cb6de53bc0",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "5239acf65ef7e4b0f3872f2eebacc7642e14e2972b55a15796e6a149a6e67152",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "dfcb4c57a2db5330d7046b53b07fdc14b75ad8d8d701ee2ad7d0b857d6045559",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "b170d8e5ace74b5ca53173e521af03006c00132c30f6620c83b91a7f594a3f49",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7423920392576b123775d3433b36e0768062497fc25af2e541389db3c7f57649",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "fae34edf3cdf8ba8348ac41ee487830f8dd0a1f04dd5845938a262670dabd00c",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "bd653d980428960995b52f7d0d94e3e34468113e503d5bfbb9c63cdb5df82e46",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "1b6b7dcf0f068c769f54c74c928b9d5cfcf04734ee4ce54d6e9e4035ad344e07",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "57eff4756592a504d0f1b4adc01ffee5a7e9d730931494249ab685c37348725c",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "3731b9c6a2d7f318b192d51ac525a88696e1907e4a6cf050be6ec4fe858e2fff",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "11c7eeae1456ee2d13e38891581cedd40b4a905871b0740a09aa0f528f82f789",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "6c89ca960c01696ac0b6a1d8c6f0f8fd4cc1cba2edc190729c5b1f75d8b0cd6f",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "66cc4c470c82453a3243b2ddf1bc17b07e6cc509671688f4929103c1d7149c0f",
+        "classification": "declaration",
+        "owner": "GraphStepMetadata",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "103377511a13a17e9cb01f961155a0cecb3e2c44e5047700bf90467e3b1bc3fc",
+        "classification": "declaration",
+        "owner": "GraphInput",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c7febc60b05ca6ccdea9055552e49f928df3bad1e235549d593f338442799cf3",
+        "classification": "declaration",
+        "owner": "GraphInput",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "e842cf4f48118b1c172f6ab1f1c6e039ef6c2b66755936425ebe93656efef8bb",
+        "classification": "declaration",
+        "owner": "GraphConfirmation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c0ee0cdd4e61254156ad27cb20a1f80acfdb3bf718ba6e120ace45e09d709732",
+        "classification": "declaration",
+        "owner": "GraphConfirmation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "3ae287e6326123509c7291bd65a4b68fdb17bf4e5bd2907f4c00065c6a5781d9",
+        "classification": "declaration",
+        "owner": "GraphConfirmation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "e7409aeb50d628a6887a08c4ec7077644120426536b374cecced28b6c0b6edd4",
+        "classification": "declaration",
+        "owner": "GraphConfirmation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d70f6c98f3bec8d7e91983ac5c8c58f70a9eeea5a9f9d16d86accfecdba62a2f",
+        "classification": "declaration",
+        "owner": "GraphConfirmation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "3cd0e22c3e36f0efa792d885f0f5ef8db1216bf480234fa3eac354026e32ab6a",
+        "classification": "declaration",
+        "owner": "GraphConfirmation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphNodeRecord / GraphDecision / GraphCheckpointHeader / GraphStepMetadata / GraphInput / GraphConfirmation",
+        "declaration": "llm/engines/graph/node_records.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/execution_binding.py",
+    "sha256": "2f61682c33343b0b222c960fcd5ee8832aff40328adead48c170016da375b9a6",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6a386e050edb560468314830a336601718230f1ea9b8225d4e883f9f4790301d",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "9cb1af84b0320adb5ccd64acae0b1a958aaa418104496667c9d697394b1e92ef",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "fee1d807a6886d6f34647b067c8218251c38085c1983c8ddaeb476015736aea5",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "031c08bce9232076700b145faebd86108c957685c3dfd57d9f4917aa79433463",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "0490855e365ebda4984456053b01f734c6707c52de1134ad2de1e0a2bc366e00",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "8e0af1feabd87b665c88939ff724cfb7a07a69ebe551aea91ed6b4df130948bf",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "840dd377d2e4147618177db6607e25fdec349b9ec9798aebf2a6db0f200d746a",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "1ab5a82912f5d7718dd8016a1113fd406566ad8276a7056e3663b8ee6eb52b55",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "51db50c80bf52816d7e78dc33e1ef6aff1d7f18bb07c06892a60104aff3e19bb",
+        "classification": "declaration",
+        "owner": "GraphExecutionBinding",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ede82e29ca9421750eb10a2fa1cc9283da743011affc7fbc2503befb452b08d3",
+        "classification": "declaration",
+        "owner": "GraphEnvironment",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "6dc6ff4760116ab26148101e9ef873d44325e3dcd181d89d431ef4598d142a93",
+        "classification": "declaration",
+        "owner": "GraphEnvironment",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "acf36552d5e1dbe6e1634c382e29bc8b63f7dd68b46f82b8e829fc3b1e357866",
+        "classification": "declaration",
+        "owner": "GraphEnvironment",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphExecutionBinding / GraphEnvironment",
+        "declaration": "llm/engines/graph/execution_binding.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/handler_contracts.py",
+    "sha256": "29fcd44f5f7bb08ce328bad6b88977b5bb4fc971feec4b1b05501ca678f440b9",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c853a7e806d462bfec668946d716c7a7a2469ce4782c6d4fde71cb3a3c6154d7",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ca87e24e79b3c62990d46d5aafaa11cb28f3326618cb125788a9ee4001491d04",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "a6638a6b069b71ca673657fe6dfc6fd4bfa51e72959345f0cf917679a9146aa7",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "36443822d89dce530db742f96e24475a102e81e16946f67747a8f4bf793b54b6",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "b3359b6a1921dbed4fbde9b89957c5f49aca8d2417a70d53888c892d11a7bba0",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "e06e50fcfecdb6c53b0ed59d19d2765baaf498018a99e09f8813557af06ead4c",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "75d4f7ff3a1148a0ddbe132a3ae9553c7d443b8c77ed6160158db580e6037301",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "5c5697c6e30a91d9a779e65d059aec265662d97f7389d61813f4a061f2378102",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d7081a5b35048e4c5c72e7551e2639c9be49e1a2f0d1e71ebb1aeaea9b9d8a32",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c6ec8cc1a74681870eeb1d450ffc39c586ad03a723cfcdba2a2395218ad53173",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "fb23bb99e35d1efeb7b51aa8f5fa546661b0298d570b097517c3e4a07c6fad7e",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c1c529aa58c118ace56fbfb516d074ab5b1adeb394f875e6cdab775e196e7723",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "6d7117c82f6cf0a2ea15e5090bc81908b6d7ba3c5cefdfe6ad2eb4cd82a28251",
+        "classification": "declaration",
+        "owner": "GraphHandlerHooks",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphHandlerHooks",
+        "declaration": "llm/engines/graph/handler_contracts.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/runtime_values.py",
+    "sha256": "68125a1a4ff596cf978ef50e281695e8b1fccfecf6f92991de5254cd31897295",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bc2332410ebf4d2861a11416a43197e42ac2f0f0031a7e21f3ecdc586a90c82c",
+        "classification": "declaration",
+        "owner": "GraphScope",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "a58a428fdb32fdad7736b72b8bf4c819a04f6619694983d48dac62dd9ff1764d",
+        "classification": "declaration",
+        "owner": "GraphScope",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "f3bc7a02cc9fe0d2dfa44030c56c01fa1a80dc02399438a4e65023e4c9780c08",
+        "classification": "declaration",
+        "owner": "GraphScope",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "418191dd5134d6533fad1a03e777181df9437c7c6adbfbc40270b3f1022b1408",
+        "classification": "declaration",
+        "owner": "GraphScope",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ca836a5dbe96090e094f0eb8be216122edcdff53e1436cb30d01fe9456d6eabb",
+        "classification": "declaration",
+        "owner": "GraphScope",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "9c8e90c7edbb864eaa4e20946d8ce90998278dfdd55b1772528793b3f3d1ab56",
+        "classification": "declaration",
+        "owner": "GraphScope",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "98b4e50aa915fdc13e3e8913cbfe85c9b044977842a55cc0d822604f4e784b29",
+        "classification": "declaration",
+        "owner": "GraphScope",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "53758f47d43c2ec55b3552575da1bd8d155b884a5922715e40a58d1e6aa0fa0f",
+        "classification": "declaration",
+        "owner": "GraphScope",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "5cba8fd59473125243ad56f7ad765dd19a82dd6e48a97d356ec1d22b96200ff8",
+        "classification": "declaration",
+        "owner": "PreparedGraph",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c74dc86c5c36ce4ef96d87067bde49b7c25771ab23d5a88bc46c0c7b69433ac3",
+        "classification": "declaration",
+        "owner": "GraphPreparation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "528db959a84df189dec472b61e44a89c8714402b240972e9dde64857e516c764",
+        "classification": "declaration",
+        "owner": "GraphPreparation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "12806062995abf376934382d6adafabb9500411737ca22aeb8615b0ccbfcb34f",
+        "classification": "declaration",
+        "owner": "GraphPreparation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "128a49e578d17d74ffeb6d0d6867cea8fca3fa48dc0c8ce905c0a355ad9d64a3",
+        "classification": "declaration",
+        "owner": "GraphPreparation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7a77ad4583e6fa96997cf65a03b74bd96ab81db3b946d76f35ffb627b7693668",
+        "classification": "declaration",
+        "owner": "GraphPreparation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "8a259eb383965445931b8593979b34350a04a4707bd015b6a4e5173cbd191a8d",
+        "classification": "declaration",
+        "owner": "GraphPreparation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "544e9de2b8c9145c790a8e53badb4ee67a227f206fdb6f642771acfc431ebe9c",
+        "classification": "declaration",
+        "owner": "GraphExecutionObservation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ac51bdde951f320ac2a4552283c7075e19d62d66fccdb1648934671f6434bae2",
+        "classification": "declaration",
+        "owner": "GraphExecutionObservation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d827d2a7e6075305e5f7119807d59d463d5380c20bd2170d4bdb18e4833cacb1",
+        "classification": "declaration",
+        "owner": "GraphExecutionObservation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "ef62dde05968160f60a73b90c98c33c90b36120de171ea95051472c317d0eb58",
+        "classification": "declaration",
+        "owner": "GraphExecutionObservation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "d621e710a7d463d136a568157186069fbfb322eee58514568a46d08d51a78d66",
+        "classification": "declaration",
+        "owner": "GraphExecutionObservation",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphScope / PreparedGraph / GraphPreparation / GraphExecutionObservation",
+        "declaration": "llm/engines/graph/runtime_values.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/tool.py",
+    "sha256": "0c5d5765fc383face1d2864954c55ff81c1d9fff2e1051687ba12a1d1f364f0b",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "83c4ca68376aaad6f655cbfa6e1a732cdd10d9cdcdf7ad12278a56d9b57cbdfb",
+        "classification": "declaration",
+        "owner": "ToolNode",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolNode / common ToolExecutor delegation",
+        "declaration": "llm/engines/graph/tool.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/tool_definition.py",
+    "sha256": "49f029782d45cc8e97dcc41f931a9f250ff2c4e7f3731ef5d251ca9c0a6677d4",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8c615b57aec26be8be392602dc964585e42e2b0b361ebbd0c8da8d62f5f27c67",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "b5630929307aabf358d5d65699afa5d2f571ffb38d2304af62d760fe26b2d459",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "7ecb8711b40634f52596051deb2cf400982769ca5c29fca1699dac784e0235da",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "a93c6bf5fee9609b37c78f2af5c488f8e02e6b8c00dcce5c6fb7a066a18c958f",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "9263a25bf2d725dfad64f83c23c167a2633e0312da6b4407d867c64a27cb21b5",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "c33181f2fc9134fc35ed55b8bd4b3c337bae672b1ec31b53b3562128e1aaab64",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "90e7504434b658da258f9b1578fce1a4d40905dca360932730138de811623326",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "3d4c379410daf8d38ea249cab0acb072eeddca2e2697203f8b6e34fe30cc8c7b",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      },
+      {
+        "id": "df1fe44424ee9945a378458027f2008bf64ef6f8a07b144e5641b2dc59382d6e",
+        "classification": "declaration",
+        "owner": "GraphToolDefinition",
+        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphToolDefinition",
+        "declaration": "llm/engines/graph/tool_definition.py",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/graph/README.md",
+    "sha256": "5b13fc738a1b5fb754b99fa20cc68e0cd35281f2b710e05a19172ce12bca8277",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Whole Graph guide read against actual runtime: explicit settings, public registration, Agent mode, cancellation, native scheduling, input/output binding, checkpoint ACK, approvals and resume remain current. Added canonical file/Owner map and representation boundaries; wire examples remain independent documentation.",
+    "contracts": [
+      {
+        "owner": "Graph runtime public guide",
+        "declaration": "llm/engines/graph/README.md",
+        "consumers": [
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
+        ],
+        "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_rag_example.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_langgraph_engine.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }

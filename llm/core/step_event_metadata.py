@@ -13,6 +13,8 @@ class StepEventPhase(StrEnum):
 
 
 class StepEventMetadata:
+    PARENT_STEP_ID = "parent_step_id"
+
     class Field:
         PHASE = "phase"
         ERROR_CODE = "error_code"

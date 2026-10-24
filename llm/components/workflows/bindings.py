@@ -50,6 +50,33 @@ class WorkflowBindings:
     INVALID_MAPPING = "{direction} must be an object"
     INVALID_NAME = "Binding names must be nonempty strings"
 
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def has_inputs(self):
+        return self.INPUTS in self._value
+
+    @property
+    def inputs(self):
+        return self._value[self.INPUTS]
+
+    @property
+    def has_outputs(self):
+        return self.OUTPUTS in self._value
+
+    @property
+    def outputs(self):
+        return self._value[self.OUTPUTS]
+
+    @property
+    def resume_schema(self):
+        return self._value.get(self.RESUME_SCHEMA)
+
+    @classmethod
+    def validate_resume_state(cls, schema, state):
+        validate_value({cls.RESUME_SCHEMA: schema}, BindingDirection.RESUME, state)
+
     @classmethod
     def validate_contract(cls, definition: dict) -> None:
         for direction in cls.MAPPINGS:
@@ -63,6 +90,7 @@ class WorkflowBindings:
                     raise ValueError(cls.INVALID_NAME)
                 pointer_parts(path)
         from llm.core.schema import validate_local_refs
+
         for name in cls.SCHEMAS:
             if name in definition:
                 validate_local_refs(definition[name])

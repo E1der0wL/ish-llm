@@ -1,6 +1,7 @@
 """Agent node selection, execution evidence and output projections; no execution policy."""
 
 from copy import deepcopy
+from llm.core.step_event_metadata import StepEventMetadata
 from dataclasses import dataclass, fields, replace
 from typing import Any
 import json
@@ -181,7 +182,7 @@ class AgentStepMetadata:
     NODE_ID = "node_id"
     AGENT_STEP_ID = "agent_step_id"
     DELEGATION_STEP_ID = "delegation_step_id"
-    PARENT_STEP_ID = "parent_step_id"
+    PARENT_STEP_ID = StepEventMetadata.PARENT_STEP_ID
     TOOL_CALLS = "tool_calls"
     COMPLETED_TOOLS = "completed_tools"
 

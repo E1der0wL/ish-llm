@@ -70,6 +70,33 @@ resume은 원본 Run의 선택값을 복원하며 다른 Workflow로 변경할 �
 
 Agent의 `engine`은 `AgentNode(engines=...)`에 전달한 맵/EngineRegistry에서 찾습니다. 같은 Engine을 최상위 요청에서도 선택하려면 백엔드에도 등록합니다. Agent용 Engine은 `for_agent(definition)`으로 호출별 실행기를 반환해야 하며, LoopEngine과 GraphEngine이 이 계약을 제공합니다. Workflow 선택과 실행 설정은 [Graph 개발 문서](../../../docs/llm/graph-engine.md)에 있습니다.
 
+## 정규 계약 Owner
+
+| 파일 | 소유 계약 |
+| --- | --- |
+| [configuration.py](configuration.py) | 등록 인자, 명시적 실행 설정, Agent의 Workflow 선택 |
+| [decisions.py](decisions.py) | 분기·반복·재개 계획의 순수 판단과 GraphNodeAction |
+| [frames.py](frames.py) | LangGraph TypedDict 채널·reducer·호출 옵션과 frame Writer |
+| [node_records.py](node_records.py) | Graph 체크포인트·결정·Step 관측·확인 요청의 Writer와 읽기 Projection |
+| [execution_binding.py](execution_binding.py) | 실행 snapshot·선택 handler 환경, 불투명한 하위 binding 보존 |
+| [handler_contracts.py](handler_contracts.py) | 선택적 handler hook의 탐색과 명시적 선언 여부 |
+| [runtime_values.py](runtime_values.py) | 실행 식별 경로·구조 경로·준비된 그래프의 타입 |
+| [tool_definition.py](tool_definition.py) | Tool 노드 schema·인자 선택·출력 키 |
+| [errors.py](errors.py) | Graph 실행 오류 타입과 진단 문구 |
+
+Workflow 필드는 Component의 WorkflowDocument/Node/Edge/Bindings가 선언하며 실행부는
+그 Projection을 사용합니다. 공통 Checkpoint 상태·Interaction·재시도 필드는 공통 Owner를
+참조합니다. GraphNodeRecord는 Graph-private payload를 읽으며 저장 Reader를 대체하거나
+필수 증거를 복구하지 않습니다. 필수 조회와 선택 조회, 명시적 null과 생략을 구분합니다.
+
+GraphNodeAction과 PreparedGraph는 메모리 안의 값입니다. 체크포인트 형식과 LangGraph의
+TypedDict 채널 이름·reducer는 그대로 유지합니다. 구조 경로의 직렬화는 SteeringRoute가
+소유하고, Graph는 반복 번호를 제외할 경로와 분기·중첩 위치만 결정합니다. 표시 path는
+실행 식별자로 사용하지 않습니다. Step의 부모 참조 선언은 StepEventMetadata가 소유합니다.
+
+ToolNode는 GraphToolDefinition의 schema와 인자 선택을 사용하고 실행·승인·효과는 기존
+context.execute_tool/ToolExecutor에 위임합니다. 노드 확인 응답을 Tool 승인으로 바꾸지 않습니다.
+
 ## 판단과 실행의 경계
 
 `_branch_port`, `_loop_continues`, `_plan_node`는 입력 상태에서 다음 동작만 계산합니다. 파일 저장, 승인 생성, 모델·Tool 실행을 하지 않습니다. 실행부가 계획을 받아 시작 체크포인트 저장 확인 → Step 시작 → 처리기 실행 → Step 완료와 완료 체크포인트의 원자적 저장을 수행합니다.

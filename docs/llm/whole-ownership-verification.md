@@ -6014,3 +6014,93 @@ Owner 필드 참조로 바뀐 버전 검사 occurrence 2건의 과거 근거는 
 링크 1223개·anchor 37개 오류 0이다. R3 mutation exit 0, 의도된 한도 누락 2개 검출.
 전수 inventory 561·미검토 239(llm 62/hub 177)·미분류 14642·미완 계약 5·issues 0.
 추가 미완 2개는 GraphEngine/Tool의 Workflow 정의 및 binding 소비 전환을 추적한다.
+
+
+## 게이트 38 정확한 SHA 원격 검증 완료
+
+b24f55d27d724a4b94d2c60bc43c6337b8cfc523의
+[CI 40073423004](https://github.com/E1der0wL/ish-llm/actions/runs/40073423004)를 실제 조회하여
+success와 전체 필수 Job/단계 성공을 확인했다(2026-10-24 07:47 UTC 확인).
+LLM 2492/2492/2492·1363.347982초, Hub 588/588/588·1481.257332초이며
+failure/error/skip/xfail/xpass/누락/추가/중복은 모두 0이다. full scope와 각 발견 수,
+실제 run head SHA를 로컬 고정 게이트와 대조했다. 로컬 Clang 환경과 원격 GCC 환경의
+실행은 별개로 기록한다. 이 원격 결과는 이후 Vision/Workflow/Graph 작업의 통과 증거가 아니다.
+
+
+## 게이트 39 전체 검증 성공·정확한 SHA Push
+
+고정 SHA `e61295c3ae469e3a67526bcc3d371610a01a421d`의 `whole-owners-group39-l3`에서
+LLM 2492/2492/2492, 1449.099595초와 Hub 588/588/588, 1101.130081초를 순차 실행했다.
+각 exit 0, full scope, 전체 발견/실행/통과 ID 일치, failure/error/skip/xfail/xpass/누락/추가/중복
+모두 0이다. `verify-gate39-local.py` exit 0: 실행 전후 source/input byte 동일,
+source 9da9756103c491c6151e60fa640873ba56132448132d6cbc5de369c1b70b82fd,
+input e7eee006cf457eb27122485da51c306a038b7cbafdecea38790d347f9d1ca39a, 정확한 HEAD,
+깨끗한 clone·Host 연결·6개 필수 보조 검사·supervisor exit 0을 확인했다.
+
+main 94229cb865374d99f20ec48c5e48269488041a4e, refactor/llm-backend
+bb0946257ab6bcabb9a3ef04d3d854e5333b07d5의 불변 및 fast-forward 관계 확인 뒤
+`git push origin e61295c3ae469e3a67526bcc3d371610a01a421d:refs/heads/refactor/llm-clean`
+exit 0. 원격 CI [40077273614](https://github.com/E1der0wL/ish-llm/actions/runs/40077273614)는
+정확한 e61295c에서 실행 중이다. 여기서는 원격 성공을 선언하지 않는다. 다음 Graph 변경은
+이 Gate39 결과에 포함되지 않으며 별도 통합 검증 대상이다.
+
+## llm Graph 실행·체크포인트·Tool Owner — Level 1·2
+
+기준 6f3cdfc. GraphRegistration/Parameters/AgentOptions, 순수 GraphNodeAction/판단 함수,
+GraphFrame/LangGraphInvocation, GraphNodeRecord/Decision/CheckpointHeader/StepMetadata,
+GraphExecutionBinding/Environment, GraphHandlerHooks/Scope/PreparedGraph,
+GraphToolDefinition을 연결했다. WorkflowDocument/Node/Edge/Bindings가 선언하는 필드는
+실행부에서 다시 작성하지 않는다. Step 부모 필드는 StepEventMetadata의 정규 선언을 사용한다.
+구조 경로 직렬화는 SteeringRoute.encode_path의 동일 구현을 key와 Graph가 공유한다.
+
+Graph Engine은 LangGraph 컴파일·스케줄링과 실행 조율을 소유한다. 설정 해석, 순수 판단,
+고정 payload 생성/조회, hook 탐색, Tool 노드 schema/인자 선택은 각각 Owner에 모았다.
+예산·승인·Tool 실행·파일 저장 정책을 새로 만들지 않았으며 외부 handler binding과 사용자
+상태/출력은 불투명한 JSON 확장으로 보존한다. 저장 형식·schema·원본 정의·공개 별칭을 유지했다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/graph-runtime-draft/runtime-proof.py`,
+`final-pure-proofs.py`, `decision-final-proof.py`(동일 경로·환경) 각각 exit 0.
+실제 Owner API를 펼친 전체 실행 함수 24개와 Tool 함수 6개, 공통 함수 42개가 이전 AST와
+같다. LangGraph 실제 TypedDict 3개, branch merge 16, frame Writer/alias 9, recursion 옵션 4,
+등록 변형 20, 설정 64, subclass callback/default 2, Agent 선택 90, worker identity 3,
+조건 비교 1575·membership 45·오류 8·분기 21·반복 216·재개 계획 492,
+공개 함수 연결/사본 4, hook의 exact-True 24, scope 5, 준비 tuple 5,
+metadata 누락/null/확장 4, Tool schema 1·검증/실제 prepare 순서 49를 확인했다.
+
+중간 구조 비교가 필수 container 조회의 선택 조회 전환 1개와 metadata default의 중복 조회를
+검출했고 원래 required 조회/호출 순서로 바로잡았다. 모든 차이 로그를 보존했다. 실제 집중
+테스트 전에 해결했으며 기존 Assertion·오류·실제 효과 검사는 제거하지 않았다.
+중간 L1은 configuration 32, decisions 10, frames 16, records 35 통과였고 각각의 source/input을
+별도 저장했다. 이를 최신 소스의 한 번의 전체 실행으로 합산하지 않는다.
+
+- `whole-graph-runtime-l1-01`: discovered/started/pass 157/157/157, exit 0, 106.466233초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-graph-runtime-l1-01/llm.json --modules tests.llm.test_graph_engine tests.llm.test_graph_checkpoints tests.llm.test_graph_decisions tests.llm.test_nested_graph tests.llm.test_graph_agent_contract tests.llm.test_agent_workflow tests.llm.test_agent_values tests.llm.test_langgraph_engine tests.llm.test_workflow_format tests.llm.test_schema_ownership tests.llm.test_configuration_values tests.llm.test_configuration_validation`. source `3bf4b6165e9f3dede1b44fc381ac759b5618613b4ee7bf3c77a91508fe188d8b`, input `65bcd93a0567acddce0ff352e89e81cbc50a2377e99a7c9cf9c7dd0e4ec11347`.
+
+- `whole-graph-runtime-l2-01`: discovered/started/pass 189/189/189, exit 0, 129.825045초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-graph-runtime-l2-01/llm.json --modules tests.llm.test_agent_execution tests.llm.test_agent_delegation tests.llm.test_agent_resource_integrity tests.llm.test_resource_references tests.llm.test_engine_steering tests.llm.test_instruction_reservations tests.llm.test_steering_values tests.llm.test_instruction_values tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_usage_deletion tests.llm.test_usage_ownership tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_graph_rag_example`. source `3bf4b6165e9f3dede1b44fc381ac759b5618613b4ee7bf3c77a91508fe188d8b`, input `65bcd93a0567acddce0ff352e89e81cbc50a2377e99a7c9cf9c7dd0e4ec11347`.
+
+- `whole-graph-runtime-hub-01`: discovered/started/pass 11/11/11, exit 0, 36.991865초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-graph-runtime-hub-01/hub.json --modules tests.hub.test_agent_graph tests.hub.test_defaults tests.hub.test_interaction_updates`. source `3bf4b6165e9f3dede1b44fc381ac759b5618613b4ee7bf3c77a91508fe188d8b`, input `65bcd93a0567acddce0ff352e89e81cbc50a2377e99a7c9cf9c7dd0e4ec11347`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 모두 0, discovered/started/passed ID가
+일치한다. 각 실행 전후 및 L1/L2/Hub 실행 사이의 source/input이 같고 LLM 선택 ID도 중복되지
+않는다. Python3.12.14/Clang, 의존성·fixture·전체 발견 목록·Host d833790·namespace/X11을
+유지했다. R3 `python -m tests.llm.check_budget_mutation` exit 0도 별도 확인했다.
+
+범위는 Graph 실제 호출 관계에 따라 결정했다. native LangGraph·loop·parallel·중첩,
+선택 Agent/Tool·handler·schema, 동기 preflight, 취소 정리와 PendingWork, 시작 저장 ACK 이전
+효과 금지, 완료와 checkpoint ACK 후 캐시, 완료 노드 재사용, 원본 input/approval·명시적 retry 집합,
+지시 예약/경로, 예산과 실제 효과 횟수, 장애 주입·프로세스 중단·삭제/저장 무결성을 검증했다.
+원래 tests/llm 및 Hub 소비자 테스트와 Assertion을 그대로 사용했다. Hub 제품은 수정하지 않았다.
+
+이 변경은 실행·재개 경계를 포함하므로 집중 검증으로 최종 완료하지 않는다. Workflow 정의
+변경과 함께 **게이트 40의 Level 3 전체 LLM/Hub·정적 감사·R3·문서·실제 환경 검사로 승격**한다.
+전체 성공 후 해당 SHA만 Push하고 정확한 SHA의 원격 필수 Job/전체 결과를 확인한다.
+Graph 범위의 Owner 연결을 전체 llm/ 또는 hub/ 전수 완료로 기록하지 않는다.
+
+
+Graph 묶음의 종료 감사: S1–S7 exit 0, 현행 finding 98개 검토. Writer/선언 이동으로 사라진
+GraphEngine S3 2개만 퇴역시키고 원본을 보존했으며, 변경된 의존성 근거 20개를 갱신했다.
+새 예외나 검사 비활성화는 없다. 감사 자체 테스트 16개/3.347초 exit 0,
+문서 검사 168문서·183 Python fence·1232 상대 링크·37 anchor 오류 0, `git diff --check` exit 0.
+전수 인덱스는 570파일, 미검토 236(llm 59 / hub 177), 미분류 13938, 미완 계약 3,
+stale/violation/issue 0이다. Workflow 선언의 Graph 소비자 연결 두 미완 계약은 닫았으며
+그 외 미완 계약과 기존 공통 Owner의 복수 계약은 그대로 보존했다. 구현 및 L1·2 완료,
+상위 게이트 40의 전체/원격 검증은 아직 남아 있다.

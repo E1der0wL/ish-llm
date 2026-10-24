@@ -4,7 +4,7 @@
 상태 채널에는 JSON만 전달하고 런타임 객체를 저장 형식에 노출하지 않는다.
 """
 
-from llm.core.schema import SchemaExtension
+from llm.core.schema import SchemaExtension, SchemaKeyword, SchemaBoolean
 
 from llm.core.resource_references import ResourceTarget
 
@@ -21,6 +21,22 @@ from llm.components.workflows.graph import ControlNodeType, ConditionOperator, L
 
 from .checkpoints import GRAPH_CHECKPOINT_FORMAT, GRAPH_CHECKPOINT_NAME
 from .selections import GraphHandlerSelection
+from .configuration import GraphRegistration, GraphParameters, GraphAgentOptions
+from .errors import GraphExecutionError, GraphDiagnostic
+from .handler_contracts import GraphHandlerHooks
+from .runtime_values import GraphScope, PreparedGraph, GraphPreparation, GraphExecutionObservation
+from .node_records import (
+    GraphNodeRecord,
+    GraphDecision,
+    GraphCheckpointHeader,
+    GraphStepMetadata,
+    GraphInput,
+    GraphConfirmation,
+)
+from .execution_binding import GraphExecutionBinding, GraphEnvironment
+from .frames import GraphFrame, LangGraphInvocation, _Frame, _LoopFrame, _ParallelFrame, _merge_branches
+from .decisions import matches, _branch_port, _loop_continues, _plan_node, _NodePlan, GraphNodeAction
+from llm.components.workflows.contracts import WorkflowDocument, WorkflowNode, WorkflowEdge
 from llm.engines.agent_checkpoints import AgentCheckpoint
 
 from llm.core.continuations import ResumeRecord
@@ -31,7 +47,6 @@ import asyncio
 import inspect
 import importlib
 import json
-import operator
 from copy import copy, deepcopy
 from llm.core.configuration import resolve_engine_config
 from llm.core.agents import AgentMode
@@ -41,12 +56,18 @@ from contextlib import AsyncExitStack, aclosing
 from llm.core.interactions import InteractionOption, InteractionRequest, approval_request
 from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
-from typing import Annotated, Awaitable, Callable, ClassVar, Literal, Mapping, Optional, TYPE_CHECKING, TypedDict
+from typing import Awaitable, Callable, ClassVar, Mapping, Optional, TYPE_CHECKING
 
 from asyncio import timeout
 from llm.components.base import Component
 from llm.components.workflows.graph import validate_graph, validate_handler_options
-from llm.components.workflows.bindings import bind, read_pointer, validate_value
+from llm.components.workflows.bindings import (
+    bind,
+    read_pointer,
+    validate_value,
+    WorkflowBindings,
+    BindingDirection,
+)
 from llm.core.checkpoints import CheckpointEnvelope, CheckpointStatus
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
@@ -58,89 +79,8 @@ if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
 
 
-class GraphExecutionError(RuntimeError):
-    """노드 등록, 실행 또는 반복 제한 위반."""
-
-
 class _GraphPause(Exception):
     """처리기 호출 전의 명시적 대기 경계. 일반 노드 실패와 구분한다."""
-
-
-def matches(condition: dict, state: dict) -> bool:
-    """검증된 JSON Pointer 조건을 평가한다. 누락된 값은 일반 비교에서도 거짓이다."""
-    try:
-        value = read_pointer(state, condition["path"])
-    except KeyError:
-        return False
-    op = condition["op"]
-    if op == ConditionOperator.EXISTS:
-        return True
-    other = condition["value"]
-    # JSON에서 boolean과 number는 구분한다(Python의 True == 1과 다름).
-    def equal(left, right):
-        if isinstance(left, bool) != isinstance(right, bool):
-            return False
-        if isinstance(left, dict) and isinstance(right, dict):
-            return left.keys() == right.keys() and all(equal(left[key], right[key]) for key in left)
-        if isinstance(left, list) and isinstance(right, list):
-            return len(left) == len(right) and all(equal(a, b) for a, b in zip(left, right))
-        return left == right
-    if op in (ConditionOperator.EQ, ConditionOperator.NE):
-        result = equal(value, other)
-        return result if op == ConditionOperator.EQ else not result
-    if op == ConditionOperator.IN:
-        return any(equal(value, item) for item in other)
-    if not ((type(value) in (int, float) and type(other) in (int, float))
-            or (isinstance(value, str) and isinstance(other, str))):
-        raise GraphExecutionError("Ordered comparison requires two numbers or two strings")
-    return {ConditionOperator.LT: operator.lt, ConditionOperator.LE: operator.le, ConditionOperator.GT: operator.gt, ConditionOperator.GE: operator.ge}[op](value, other)
-
-
-# 실행 판단은 JSON만 읽는다. 이벤트·체크포인트 쓰기와 처리기 호출은 아래 런타임이 담당한다.
-def _branch_port(definition: dict, state: dict) -> str:
-    """선언 순서대로 첫 일치 port를 고른다. 입력 상태와 정의는 변경하지 않는다."""
-    return next((case["port"] for case in definition["cases"]
-                 if matches(case["when"], state)), definition["default"])
-
-
-def _loop_continues(definition: dict, state: dict, count: int) -> bool:
-    """다음 반복 여부만 판단한다. 고정 반복과 조건부 반복의 상한 계약을 구분한다."""
-    condition = definition.get("while")
-    proceed = condition is None or matches(condition, state)
-    if proceed and count < definition["max_iterations"]:
-        return True
-    if proceed and condition is not None and definition["on_limit"] == LoopLimit.FAIL:
-        raise GraphExecutionError("Loop iteration limit reached")
-    return False
-
-
-@dataclass(frozen=True, slots=True)
-class _NodePlan:
-    """한 노드의 다음 동작과 독립된 decision 사본. 저장 모델이나 승인 증명이 아니다."""
-
-    action: Literal["reuse", "pause", "execute"]
-    decision: dict = field(default_factory=dict)
-
-
-def _plan_node(definition: dict, state: dict, *, saved: Optional[dict],
-               resuming: bool, decisions: dict, key: str) -> _NodePlan:
-    """완료 재사용·사전 대기·실행을 판단한다. 상태/기록을 쓰거나 승인을 생성하지 않는다.
-
-    binding, retry_nodes, Interaction 검증은 기존 resume 진입 경계가 소유한다.
-    계획은 즉시 소비하며 완료 결과·검토 입력의 원본은 기존 체크포인트에 남는다.
-    """
-    if saved and saved.get("container") and saved["input_state"] != state:
-        raise GraphExecutionError("Checkpoint container input changed; start a new request")
-    if saved and saved["status"] == CheckpointStatus.COMPLETED:
-        if saved["input_state"] != state:
-            raise GraphExecutionError("Checkpoint node input does not match restored state")
-        return _NodePlan("reuse")
-    if definition.get("pause_before", False) and not (resuming and saved):
-        return _NodePlan("pause")
-    decision = decisions.get(key, (saved or {}).get("decision", {}))
-    if decision.get("approved") is False:
-        raise GraphExecutionError("Workflow continuation rejected by user")
-    return _NodePlan("execute", deepcopy(decision))
 
 
 @dataclass(frozen=True, slots=True)
@@ -171,13 +111,6 @@ class GraphNodeContext:
     pause: Optional[Callable] = None
 
 
-class _Frame(TypedDict):
-    data: dict
-    path: str
-    port: str
-    scope: list
-
-
 def _propagate_cancellation(error: Exception) -> None:
     """LangGraph의 노드 자발적 취소 오류를 Engine 중단 계약으로 돌린다.
 
@@ -189,190 +122,270 @@ def _propagate_cancellation(error: Exception) -> None:
         raise asyncio.CancelledError() from error
 
 
-class _LoopFrame(TypedDict):
-    data: dict
-    path: str
-    count: int
-    scope: list
-
-
-def _merge_branches(left: dict, right: dict) -> dict:
-    """분기별 결과만 합친다. 공통 상태에 대한 병렬 쓰기는 만들지 않는다."""
-    if left.keys() & right.keys():
-        raise GraphExecutionError("Duplicate parallel branch result")
-    return {**left, **right}
-
-
-class _ParallelFrame(TypedDict):
-    data: dict
-    path: str
-    branches: Annotated[dict, _merge_branches]
-    scope: list
-
-
 class _WorkflowRuntime:
     """LangGraph 실행 + 노드 결과 체크포인트. 완료 결과만 복원하고 부작용은 재생하지 않는다."""
 
-    def __init__(self, engine: "GraphEngine", context: EngineContext,
-                 emit: Callable[[EngineEvent], Awaitable[None]], *, parent=None, routes=()) -> None:
+    CONTEXT_NAME = "workflow_engine_context"
+    INITIAL_VISITED = 0
+    VISIT_INCREMENT = 1
+    ACCEPTING = True
+    CLOSED = False
+    EXPIRED_DEADLINE = 0
+    ABSENT = None
+
+    def __init__(
+        self,
+        engine: "GraphEngine",
+        context: EngineContext,
+        emit: Callable[[EngineEvent], Awaitable[None]],
+        *,
+        parent=GraphPreparation.ABSENT,
+        routes=(),
+    ) -> None:
         self.engine = engine
-        self.parents = (*parent.parents, parent) if parent is not None else ()
+        self.parents = (*parent.parents, parent) if parent is not _WorkflowRuntime.ABSENT else ()
         self.handlers = dict(engine.handlers)
         self.emit = emit
-        self._context = ContextVar("workflow_engine_context", default=context)
+        self._context = ContextVar(self.CONTEXT_NAME, default=context)
         self.max_steps = engine.max_steps
-        self.visited = 0
-        self.semaphore = None if engine.max_parallelism is None else asyncio.Semaphore(engine.max_parallelism)
+        self.visited = self.INITIAL_VISITED
+        self.semaphore = (
+            _WorkflowRuntime.ABSENT
+            if engine.max_parallelism is _WorkflowRuntime.ABSENT
+            else asyncio.Semaphore(engine.max_parallelism)
+        )
         # 제어용 gate도 super-step을 사용한다. 실제 예산은 모든 하위 그래프가 공유한다.
-        self.invoke_options = {} if engine.max_steps is None else {"recursion_limit": engine.max_steps * 3 + 10}
-        self.records = parent.records if parent is not None else (
-            deepcopy(CheckpointRecords.from_checkpoint(context.checkpoint).records) if context.checkpoint else {})
-        self.resuming = context.checkpoint is not None
-        self.routes = parent.routes if parent is not None else {r.key: r for r in routes}
-        self.root_workflow = parent.root_workflow if parent is not None else engine.workflow
+        self.invoke_options = LangGraphInvocation.options(engine)
+        self.records = (
+            parent.records
+            if parent is not _WorkflowRuntime.ABSENT
+            else (
+                deepcopy(CheckpointRecords.from_checkpoint(context.checkpoint).records)
+                if context.checkpoint
+                else {}
+            )
+        )
+        self.resuming = context.checkpoint is not _WorkflowRuntime.ABSENT
+        self.routes = parent.routes if parent is not _WorkflowRuntime.ABSENT else {r.key: r for r in routes}
+        self.root_workflow = (
+            parent.root_workflow if parent is not _WorkflowRuntime.ABSENT else engine.workflow
+        )
 
-    async def _record(self, key, value, *, completed=None):
-        interaction = InteractionRequest.from_dict(value["interaction"]) if "interaction" in value else None
-        event = EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata=CheckpointWrite.record_event(GRAPH_CHECKPOINT_NAME, key, value).to_dict())
-        await self.emit(replace(completed, checkpoint=event) if completed is not None else event)
+    async def _record(self, key, value, *, completed=GraphPreparation.ABSENT):
+        interaction = (
+            GraphNodeRecord(value).interaction
+            if GraphNodeRecord(value).has_interaction
+            else _WorkflowRuntime.ABSENT
+        )
+        event = EngineEvent(
+            EngineEventType.CHECKPOINT,
+            interaction=interaction,
+            metadata=CheckpointWrite.record_event(GRAPH_CHECKPOINT_NAME, key, value).to_dict(),
+        )
+        await self.emit(
+            replace(completed, checkpoint=event) if completed is not _WorkflowRuntime.ABSENT else event
+        )
         self.records[key] = deepcopy(value)
 
     async def _nested(self, engine, context, inputs, scope, path, parent_step_id, emit):
         """루트 저장소/예산을 공유하되 상태와 입출력 계약은 호출마다 분리한다."""
         engine = engine.with_config(context)
         graph, _ = engine._prepare(context)
-        state = deepcopy(graph.get("initial_state", {}))
-        state.update(bind(graph["inputs"], inputs) if "inputs" in graph else deepcopy(inputs))
-        validate_value(graph, "input", state)
+        state = deepcopy(WorkflowDocument(graph).initial_state)
+        state.update(
+            bind(WorkflowBindings(graph).inputs, inputs)
+            if WorkflowBindings(graph).has_inputs
+            else deepcopy(inputs)
+        )
+        validate_value(graph, BindingDirection.INPUT, state)
         step_id = new_id()
+
         async def child_emit(event):
             if event.type == EngineEventType.STEP_STARTED:
-                event = replace(event, metadata={**event.metadata,
-                    "parent_step_id": event.metadata.get("parent_step_id", step_id),
-                    "workflow_id": event.metadata.get("workflow_id", engine.workflow)})
+                event = replace(
+                    event,
+                    metadata=GraphStepMetadata.nested_child(
+                        extension=event.metadata,
+                        parent_step_id=step_id,
+                        workflow_id=engine.workflow,
+                    ),
+                )
             await emit(event)
-        await emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="subgraph",
-                              name=engine.workflow, metadata={"parent_step_id": parent_step_id,
-                              "workflow_id": engine.workflow, "path": path, "inputs": inputs}))
+
+        await emit(
+            EngineEvent(
+                EngineEventType.STEP_STARTED,
+                step_id=step_id,
+                kind=GraphExecutionObservation.NESTED_STEP,
+                name=engine.workflow,
+                metadata=GraphStepMetadata.nested(
+                    parent_step_id=parent_step_id, workflow_id=engine.workflow, path=path, inputs=inputs
+                ),
+            )
+        )
         runtime = _WorkflowRuntime(engine, replace(context, state={}), child_emit, parent=self)
         try:
             async with timeout(engine.timeout_seconds):
-                state = await runtime.run(graph, state, path, scope=scope + ["workflow", engine.workflow])
-                output = bind(graph["outputs"], state) if "outputs" in graph else deepcopy(state)
-                validate_value(graph, "output", output)
+                state = await runtime.run(
+                    graph, state, path, scope=scope + [GraphScope.WORKFLOW, engine.workflow]
+                )
+                output = (
+                    bind(WorkflowBindings(graph).outputs, state)
+                    if WorkflowBindings(graph).has_outputs
+                    else deepcopy(state)
+                )
+                validate_value(graph, BindingDirection.OUTPUT, output)
         except (asyncio.CancelledError, _GraphPause):
             raise
         except Exception as error:
             await emit(BaseEngine.step_failed_event(step_id, error))
             raise
-        await emit(BaseEngine.step_completed_event(context, step_id,
-                                                   EngineOutput(data=output, visibility=OutputVisibility.INTERNAL)))
+        await emit(
+            BaseEngine.step_completed_event(
+                context, step_id, EngineOutput(data=output, visibility=OutputVisibility.INTERNAL)
+            )
+        )
         return output
 
-    def _compile(self, document: dict, entry: Optional[str] = None,
-                 stop: Optional[str] = None) -> "CompiledStateGraph":
+    def _compile(
+        self,
+        document: dict,
+        entry: Optional[str] = GraphPreparation.ABSENT,
+        stop: Optional[str] = GraphPreparation.ABSENT,
+    ) -> "CompiledStateGraph":
         from langgraph.graph import END, START, StateGraph
 
-        entry = document["entry"] if entry is None else entry
-        outgoing = {name: [] for name in document["nodes"]}
-        for edge in document["edges"]:
-            outgoing[edge["source"]].append(edge)
-
+        entry = WorkflowDocument(document).entry if entry is _WorkflowRuntime.ABSENT else entry
+        outgoing = {name: [] for name in WorkflowDocument(document).nodes}
+        for edge in WorkflowDocument(document).edges:
+            outgoing[WorkflowEdge(edge).source].append(edge)
         # 병렬 영역은 독립 하위 그래프로 컴파일한다. 부모는 fork 다음 join으로 연결한다.
-        region, pending = {}, [entry]
+        region, pending = ({}, [entry])
         while pending:
             name = pending.pop()
             if name == stop or name in region:
                 continue
-            node = document["nodes"][name]
+            node = WorkflowDocument(document).nodes[name]
             region[name] = node
-            pending.extend([node["join"]] if node["type"] == ControlNodeType.PARALLEL
-                           else [edge["target"] for edge in outgoing[name]])
-        identifiers = {name: f"node_{index}" for index, name in enumerate(region)}
+            pending.extend(
+                [WorkflowNode(node).join]
+                if WorkflowNode(node).kind == ControlNodeType.PARALLEL
+                else [WorkflowEdge(edge).target for edge in outgoing[name]]
+            )
+        identifiers = {name: LangGraphInvocation.node_identifier(index) for index, name in enumerate(region)}
+
         # 사용자 ID가 __start__/__end__ 또는 콜론을 포함해도 내부 예약 이름과 충돌하지 않는다.
         def target(name):
             return END if name == stop else identifiers[name]
 
         builder = StateGraph(_Frame)
         for name, node in region.items():
-            child = None
-            if node["type"] == ControlNodeType.PARALLEL:
+            child = _WorkflowRuntime.ABSENT
+            if WorkflowNode(node).kind == ControlNodeType.PARALLEL:
                 child = self._parallel(document, name, outgoing[name])
-            elif node["type"] == ControlNodeType.LOOP:
+            elif WorkflowNode(node).kind == ControlNodeType.LOOP:
                 child = self._loop(node)
-            builder.add_node(identifiers[name], self._node(name, node, child), retry_policy=None)
-            if node["type"] == ControlNodeType.END:
+            builder.add_node(
+                identifiers[name], self._node(name, node, child), retry_policy=LangGraphInvocation.NO_RETRY
+            )
+            if WorkflowNode(node).kind == ControlNodeType.END:
                 builder.add_edge(identifiers[name], END)
-            elif node["type"] == ControlNodeType.BRANCH:
-                builder.add_conditional_edges(identifiers[name], self._port,
-                    {edge["port"]: target(edge["target"]) for edge in outgoing[name]})
-            elif node["type"] == ControlNodeType.PARALLEL:
-                builder.add_edge(identifiers[name], target(node["join"]))
+            elif WorkflowNode(node).kind == ControlNodeType.BRANCH:
+                builder.add_conditional_edges(
+                    identifiers[name],
+                    self._port,
+                    {WorkflowEdge(edge).port: target(WorkflowEdge(edge).target) for edge in outgoing[name]},
+                )
+            elif WorkflowNode(node).kind == ControlNodeType.PARALLEL:
+                builder.add_edge(identifiers[name], target(WorkflowNode(node).join))
             else:
-                builder.add_edge(identifiers[name], target(outgoing[name][0]["target"]))
+                builder.add_edge(identifiers[name], target(WorkflowEdge(outgoing[name][0]).target))
         builder.add_edge(START, identifiers[entry])
-        return builder.compile(checkpointer=False)
+        return builder.compile(checkpointer=LangGraphInvocation.CHECKPOINTER)
 
     @staticmethod
     def _port(frame: _Frame) -> str:
-        return frame["port"]
+        return GraphFrame(frame).port
 
     def _parallel(self, document: dict, name: str, links: list[dict]) -> "CompiledStateGraph":
         from langgraph.graph import END, START, StateGraph
 
-        node = document["nodes"][name]
+        node = WorkflowDocument(document).nodes[name]
         builder = StateGraph(_ParallelFrame)
         branch_ids = []
         for index, edge in enumerate(links):
-            start = edge["target"]
-            child = self._compile(document, start, node["join"])
+            start = WorkflowEdge(edge).target
+            child = self._compile(document, start, WorkflowNode(node).join)
 
             async def branch(frame, child=child, start=start):
                 # 같은 컴파일 결과를 반복 실행해도 branch의 임시 상태는 회차마다 새로 만든다.
                 token = self._context.set(replace(self._context.get(), state={}))
                 try:
-                    result = await child.ainvoke({"data": deepcopy(frame["data"]), "path": frame["path"],
-                                                 "port": "", "scope": frame["scope"] + ["branch", start]}, self.invoke_options)
-                    return {"branches": {start: result["data"]}}
+                    result = await child.ainvoke(
+                        GraphFrame.create(
+                            deepcopy(GraphFrame(frame).data),
+                            GraphFrame(frame).path,
+                            GraphFrame.EMPTY_PORT,
+                            GraphFrame(frame).scope + [GraphScope.BRANCH, start],
+                        ),
+                        self.invoke_options,
+                    )
+                    return GraphFrame.branch_result(start, GraphFrame(result).data)
                 finally:
                     self._context.reset(token)
 
-            identifier = f"branch_{index}"
+            identifier = LangGraphInvocation.branch_identifier(index)
             branch_ids.append(identifier)
-            builder.add_node(identifier, branch, retry_policy=None)
+            builder.add_node(identifier, branch, retry_policy=LangGraphInvocation.NO_RETRY)
             builder.add_edge(START, identifier)
         # LangGraph가 병렬 스케줄링과 모든 경로의 완료 대기를 담당한다.
         builder.add_edge(branch_ids, END)
-        return builder.compile(checkpointer=False)
+        return builder.compile(checkpointer=LangGraphInvocation.CHECKPOINTER)
 
     def _loop(self, node: dict) -> "CompiledStateGraph":
         from langgraph.graph import END, START, StateGraph
 
-        body = self._compile(node["body"])
+        body = self._compile(WorkflowNode(node).body_definition)
         builder = StateGraph(_LoopFrame)
 
         def route(frame):
-            return "body" if _loop_continues(node, frame["data"], frame["count"]) else END
+            return (
+                LangGraphInvocation.LOOP_BODY
+                if _loop_continues(node, GraphFrame(frame).data, GraphFrame(frame).count)
+                else END
+            )
 
         async def advance(frame):
-            count = frame["count"] + 1
-            result = await body.ainvoke({"data": frame["data"], "path": f"{frame['path']}[{count}]",
-                                         "port": "", "scope": frame["scope"] + [count]}, self.invoke_options)
-            return {"data": result["data"], "count": count}
+            count = GraphFrame(frame).count + GraphFrame.COUNT_INCREMENT
+            result = await body.ainvoke(
+                GraphFrame.create(
+                    GraphFrame(frame).data,
+                    GraphScope.loop_path(GraphFrame(frame).path, count),
+                    GraphFrame.EMPTY_PORT,
+                    GraphFrame(frame).scope + [count],
+                ),
+                self.invoke_options,
+            )
+            return GraphFrame.loop_result(GraphFrame(result).data, count)
 
         # LangGraph의 조건부 후방 간선으로 반복하며 Python while 실행기는 두지 않는다.
         async def gate(frame):
             return {}
 
-        builder.add_node("gate", gate, retry_policy=None)
-        builder.add_node("body", advance, retry_policy=None)
-        builder.add_edge(START, "gate")
-        builder.add_conditional_edges("gate", route, {"body": "body", END: END})
-        builder.add_edge("body", "gate")
-        return builder.compile(checkpointer=False)
+        builder.add_node(LangGraphInvocation.LOOP_GATE, gate, retry_policy=LangGraphInvocation.NO_RETRY)
+        builder.add_node(LangGraphInvocation.LOOP_BODY, advance, retry_policy=LangGraphInvocation.NO_RETRY)
+        builder.add_edge(START, LangGraphInvocation.LOOP_GATE)
+        builder.add_conditional_edges(
+            LangGraphInvocation.LOOP_GATE,
+            route,
+            {LangGraphInvocation.LOOP_BODY: LangGraphInvocation.LOOP_BODY, END: END},
+        )
+        builder.add_edge(LangGraphInvocation.LOOP_BODY, LangGraphInvocation.LOOP_GATE)
+        return builder.compile(checkpointer=LangGraphInvocation.CHECKPOINTER)
 
-    async def _call(self, handler: Callable[[GraphNodeContext], Awaitable[dict]],
-                    node: GraphNodeContext) -> dict:
+    async def _call(
+        self, handler: Callable[[GraphNodeContext], Awaitable[dict]], node: GraphNodeContext
+    ) -> dict:
         """핸들러에 취소를 한 번 전달하고 설정한 시간까지만 정리를 기다린다.
 
         LangGraph의 중첩 실행기는 형제 실패/종료 과정에서 같은 노드를 여러 번 취소할
@@ -381,41 +394,66 @@ class _WorkflowRuntime:
         """
         from langgraph import errors as graph_errors
 
-        accepting = True
+        accepting = self.ACCEPTING
         original_emit = node.emit
+
         async def guarded_emit(event):
             if not accepting:
                 raise asyncio.CancelledError()
             await original_emit(event)
+
         def guard(callback):
-            if callback is None:
-                return None
+            if callback is _WorkflowRuntime.ABSENT:
+                return _WorkflowRuntime.ABSENT
+
             async def invoke(*args, **kwargs):
                 if not accepting:
                     raise asyncio.CancelledError()
                 return await callback(*args, **kwargs)
+
             return invoke
-        pending = asyncio.ensure_future(handler(replace(node, emit=guarded_emit,
-            invoke_graph=guard(node.invoke_graph), record_usage=guard(node.record_usage), pause=guard(node.pause))))
+
+        pending = asyncio.ensure_future(
+            handler(
+                replace(
+                    node,
+                    emit=guarded_emit,
+                    invoke_graph=guard(node.invoke_graph),
+                    record_usage=guard(node.record_usage),
+                    pause=guard(node.pause),
+                )
+            )
+        )
         try:
             return await asyncio.shield(pending)
         except asyncio.CancelledError:
-            accepting = False
-            if node.context.tool_scope is not None:
+            accepting = self.CLOSED
+            if node.context.tool_scope is not _WorkflowRuntime.ABSENT:
                 node.context.tool_scope.revoke()
             if not pending.done():
                 pending.cancel()
             # 미설정은 정리 대기를 추가하지 않는다. revoke/emit gate 뒤 미완료
             # 작업은 기존 PendingWork owner에 넘겨 shutdown/reap한다.
-            deadline = (None if self.engine.cleanup_timeout is None else
-                        asyncio.get_running_loop().time() + self.engine.cleanup_timeout)
+            deadline = (
+                _WorkflowRuntime.ABSENT
+                if self.engine.cleanup_timeout is _WorkflowRuntime.ABSENT
+                else asyncio.get_running_loop().time() + self.engine.cleanup_timeout
+            )
             while not pending.done():
-                remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
-                if remaining is None or remaining <= 0:
-                    if node.context.pending_work is not None:
+                remaining = (
+                    _WorkflowRuntime.ABSENT
+                    if deadline is _WorkflowRuntime.ABSENT
+                    else deadline - asyncio.get_running_loop().time()
+                )
+                if remaining is _WorkflowRuntime.ABSENT or remaining <= self.EXPIRED_DEADLINE:
+                    if node.context.pending_work is not _WorkflowRuntime.ABSENT:
                         node.context.pending_work.track(pending)
                     else:
-                        pending.add_done_callback(lambda pending: pending.exception() if not pending.cancelled() else None)
+                        pending.add_done_callback(
+                            lambda pending: (
+                                pending.exception() if not pending.cancelled() else _WorkflowRuntime.ABSENT
+                            )
+                        )
                     break
                 try:
                     await asyncio.wait((pending,), timeout=remaining)
@@ -426,35 +464,49 @@ class _WorkflowRuntime:
             raise
         except graph_errors.GraphInterrupt as error:
             # 네이티브 interrupt는 노드 경계 pause_before와 다른 계약이다. 성공으로 오인하지 않는다.
-            raise GraphExecutionError("LangGraph interrupts require explicit resume integration") from error
+            raise GraphExecutionError(GraphDiagnostic.NATIVE_INTERRUPT) from error
 
     async def _execute_node(self, definition, state, child, nested, info, scope):
         """노드의 계산·입출력 연결만 수행한다. 승인/재개와 Step 수명은 _node가 감싼다."""
-        kind, context = definition["type"], self._context.get()
-        path, step_id = info["path"], info["step_id"]
-        key = json.dumps(scope, ensure_ascii=False, separators=(",", ":"))
-        detail, port = {}, ""
+        kind, context = (WorkflowNode(definition).kind, self._context.get())
+        path, step_id = (GraphNodeRecord(info).path, GraphNodeRecord(info).step_id)
+        key = GraphScope.key(scope)
+        detail, port = ({}, GraphFrame.EMPTY_PORT)
         if kind == ControlNodeType.BRANCH:
             port = _branch_port(definition, state)
-            detail["port"] = port
+            GraphStepMetadata.add_port(detail, port)
         elif kind == ControlNodeType.PARALLEL:
-            result = await child.ainvoke({"data": state, "path": path, "branches": {}, "scope": scope}, self.invoke_options)
-            state["branches"] = result["branches"]
+            result = await child.ainvoke(GraphFrame.parallel(state, path, {}, scope), self.invoke_options)
+            GraphFrame.publish_branches(state, GraphFrame(result).branches)
         elif kind == ControlNodeType.LOOP:
-            result = await child.ainvoke({"data": state, "path": path, "count": 0, "scope": scope}, self.invoke_options)
-            state = result["data"]
-            detail["iterations"] = result["count"]
+            result = await child.ainvoke(
+                GraphFrame.loop(state, path, GraphFrame.INITIAL_COUNT, scope), self.invoke_options
+            )
+            state = GraphFrame(result).data
+            GraphStepMetadata.add_iterations(detail, GraphFrame(result).count)
         elif kind not in (ControlNodeType.END, ControlNodeType.JOIN):
-            inputs = bind(definition["inputs"], state) if "inputs" in definition else deepcopy(state)
-            validate_value(definition, "input", inputs)
+            inputs = (
+                bind(WorkflowBindings(definition).inputs, state)
+                if WorkflowBindings(definition).has_inputs
+                else deepcopy(state)
+            )
+            validate_value(definition, BindingDirection.INPUT, inputs)
 
             async def node_emit(event):
                 if event.type == EngineEventType.OUTPUT and (
-                        event.output is None or event.output.step_id is None):
-                    raise GraphExecutionError("Nested output must belong to a Step")
+                    event.output is _WorkflowRuntime.ABSENT or event.output.step_id is _WorkflowRuntime.ABSENT
+                ):
+                    raise GraphExecutionError(GraphDiagnostic.UNOWNED_OUTPUT)
                 if event.type == EngineEventType.STEP_STARTED:
-                    event = replace(event, metadata={"parent_step_id": step_id,
-                        "node_checkpoint_key": key, "node_path": path, **event.metadata})
+                    event = replace(
+                        event,
+                        metadata=GraphStepMetadata.node_child(
+                            parent_step_id=step_id,
+                            node_checkpoint_key=key,
+                            node_path=path,
+                            extension=event.metadata,
+                        ),
+                    )
                 await self.emit(event)
                 receipt = event.checkpoint or event
                 if receipt.type == EngineEventType.CHECKPOINT and CheckpointWrite(receipt.metadata).is_record:
@@ -462,10 +514,17 @@ class _WorkflowRuntime:
                     self.records[entry.key] = entry.value
 
             async def invoke_graph(engine, child_context, child_inputs, emit):
-                if nested is None or engine.workflow != nested.workflow:
-                    raise GraphExecutionError("Nested Workflow must match its preflight declaration")
-                return await self._nested(engine, child_context, child_inputs, scope,
-                                          path + "/" + engine.workflow, step_id, emit)
+                if nested is _WorkflowRuntime.ABSENT or engine.workflow != nested.workflow:
+                    raise GraphExecutionError(GraphDiagnostic.NESTED_SELECTION)
+                return await self._nested(
+                    engine,
+                    child_context,
+                    child_inputs,
+                    scope,
+                    path + GraphScope.PATH_SEPARATOR + engine.workflow,
+                    step_id,
+                    emit,
+                )
 
             async def record_usage(usage):
                 record = AgentCheckpoint.with_usage(self.records[key], key, usage)
@@ -473,13 +532,32 @@ class _WorkflowRuntime:
 
             async def pause(request):
                 if not isinstance(request, InteractionRequest):
-                    raise TypeError("Node pause requires an InteractionRequest")
-                if (request.kind != InteractionRequest.KIND_APPROVAL or request.input_schema is not None
-                        or any(type(option.value) is not bool or option.effect not in
-                            (InteractionOption.EFFECT_APPROVE, InteractionOption.EFFECT_DENY) for option in request.options)):
-                    raise ValueError("Node pause supports pre-effect approval decisions without additional input")
-                await self._record(key, {**info, "status": CheckpointStatus.WAITING, "approval_required": True,
-                    "prompt": request.title, "interaction": request.bind(GRAPH_CHECKPOINT_NAME, key, decision_key="approved").to_dict()})
+                    raise TypeError(GraphDiagnostic.INVALID_PAUSE)
+                if (
+                    request.kind != InteractionRequest.KIND_APPROVAL
+                    or request.input_schema is not _WorkflowRuntime.ABSENT
+                    or any(
+                        (
+                            type(option.value) is not bool
+                            or option.effect
+                            not in (InteractionOption.EFFECT_APPROVE, InteractionOption.EFFECT_DENY)
+                            for option in request.options
+                        )
+                    )
+                ):
+                    raise ValueError(GraphDiagnostic.PAUSE_CONTRACT)
+                await self._record(
+                    key,
+                    GraphNodeRecord.waiting_approval(
+                        extension=info,
+                        status=CheckpointStatus.WAITING,
+                        approval_required=GraphNodeRecord.APPROVAL_REQUIRED_VALUE,
+                        prompt=request.title,
+                        interaction=request.bind(
+                            GRAPH_CHECKPOINT_NAME, key, decision_key=GraphDecision.APPROVED
+                        ).to_dict(),
+                    ),
+                )
                 raise _GraphPause(key)
 
             if kind == ControlNodeType.WORKFLOW:
@@ -487,97 +565,203 @@ class _WorkflowRuntime:
             else:
                 # 조율 노드는 슬롯을 잡지 않는다. 실제 작업만 조상 순서로 획득한다.
                 async with AsyncExitStack() as slots:
-                    if nested is None:
+                    if nested is _WorkflowRuntime.ABSENT:
                         for runtime in (*self.parents, self):
-                            if runtime.semaphore is not None:
+                            if runtime.semaphore is not _WorkflowRuntime.ABSENT:
                                 await slots.enter_async_context(runtime.semaphore)
-                    result = await self._call(self.handlers[kind], GraphNodeContext(
-                        context, info["node_id"], deepcopy(definition), deepcopy(state), node_emit,
-                        deepcopy(inputs), invoke_graph if nested is not None else None, key,
-                        record_usage, info["decision"].get("approved"), path, pause))
+                    result = await self._call(
+                        self.handlers[kind],
+                        GraphNodeContext(
+                            context,
+                            GraphNodeRecord(info).node_id,
+                            deepcopy(definition),
+                            deepcopy(state),
+                            node_emit,
+                            deepcopy(inputs),
+                            (
+                                invoke_graph
+                                if nested is not _WorkflowRuntime.ABSENT
+                                else _WorkflowRuntime.ABSENT
+                            ),
+                            key,
+                            record_usage,
+                            GraphDecision(GraphNodeRecord(info).decision).optional_approved,
+                            path,
+                            pause,
+                        ),
+                    )
             Component.serialize(result)
-            validate_value(definition, "output", result)
-            updates = bind(definition["outputs"], result) if "outputs" in definition else deepcopy(result)
-            detail.update({"input": inputs, "result": result})
+            validate_value(definition, BindingDirection.OUTPUT, result)
+            updates = (
+                bind(WorkflowBindings(definition).outputs, result)
+                if WorkflowBindings(definition).has_outputs
+                else deepcopy(result)
+            )
+            GraphStepMetadata.add_result(detail, inputs, result)
             state.update(updates)
-        return state, detail, port
+        return (state, detail, port)
 
-    def _node(self, name: str, definition: dict, child: Optional["CompiledStateGraph"]
-              ) -> Callable[[_Frame], Awaitable[dict]]:
+    def _node(
+        self, name: str, definition: dict, child: Optional["CompiledStateGraph"]
+    ) -> Callable[[_Frame], Awaitable[dict]]:
+
         async def execute(frame):
             context = self._context.get()
             for runtime in (*self.parents, self):
-                runtime.visited += 1
-                if runtime.max_steps is not None and runtime.visited > runtime.max_steps:
-                    raise GraphExecutionError("Graph node execution limit reached")
-            state = deepcopy(frame["data"])
-            kind, step_id = definition["type"], new_id()
-            path = f"{frame['path']}/{name}"
-            scope = frame["scope"] + [name]
+                runtime.visited += self.VISIT_INCREMENT
+                if runtime.max_steps is not _WorkflowRuntime.ABSENT and runtime.visited > runtime.max_steps:
+                    raise GraphExecutionError(GraphDiagnostic.NODE_LIMIT)
+            state = deepcopy(GraphFrame(frame).data)
+            kind, step_id = (WorkflowNode(definition).kind, new_id())
+            path = GraphScope.node_path(GraphFrame(frame).path, name)
+            scope = GraphFrame(frame).scope + [name]
             # 표시용 path에는 / 등이 들어갈 수 있으므로 실행 식별자는 JSON 배열로 구분한다.
-            key = json.dumps(scope, ensure_ascii=False, separators=(",", ":"))
+            key = GraphScope.key(scope)
             handler = self.handlers.get(kind)
-            if getattr(handler, "selection_binding", False) is True:
-                prepare = getattr(handler, "prepare_context", None)
+            if GraphHandlerHooks.selection_bound(handler):
+                prepare = GraphHandlerHooks.preparer(handler)
                 if callable(prepare):
                     context = prepare(deepcopy(definition), context)
                 self.engine._validate_handler(handler, definition, context)
                 self._context.set(context)
             nested = self.engine._nested_engine(definition, context.capabilities)
-            checkpoint_engine = getattr(self.handlers.get(kind), "checkpoint_engine", None)
-            resumable = (nested is not None or callable(checkpoint_engine) and checkpoint_engine(definition, context) is not None)
+            checkpoint_engine = GraphHandlerHooks.checkpoint_engine(self.handlers.get(kind))
+            resumable = nested is not _WorkflowRuntime.ABSENT or (
+                callable(checkpoint_engine)
+                and checkpoint_engine(definition, context) is not _WorkflowRuntime.ABSENT
+            )
             saved = self.records.get(key)
-            info = {"path": path, "node_id": name, "node_type": kind, "step_id": step_id,
-                    "source_run_id": context.run.id, "input_state": deepcopy(state),
-                    "container": kind == ControlNodeType.WORKFLOW or (resumable and
-                        getattr(self.handlers.get(kind), "resumable_container", False) is True)}
+            info = GraphNodeRecord.create(
+                path=path,
+                node_id=name,
+                node_type=kind,
+                step_id=step_id,
+                source_run_id=context.run.id,
+                input_state=deepcopy(state),
+                container=kind == ControlNodeType.WORKFLOW
+                or (resumable and GraphHandlerHooks.resumable(self.handlers.get(kind))),
+            )
             handler = self.handlers.get(kind)
-            if getattr(handler, "selection_binding", False) is True:
-                selection = GraphHandlerSelection.create(self.engine._environment(), deepcopy(definition),
-                                                         handler.binding(deepcopy(definition), context))
-                if saved is not None and not selection.matches(saved):
-                    raise GraphExecutionError("Selected handler configuration changed; start a new request")
+            if GraphHandlerHooks.selection_bound(handler):
+                selection = GraphHandlerSelection.create(
+                    self.engine._environment(),
+                    deepcopy(definition),
+                    handler.binding(deepcopy(definition), context),
+                )
+                if saved is not _WorkflowRuntime.ABSENT and (not selection.matches(saved)):
+                    raise GraphExecutionError(GraphDiagnostic.CHANGED_HANDLER)
                 selection.attach(info)
-            plan = _plan_node(definition, state, saved=saved, resuming=self.resuming,
-                              decisions=ResumeRecord.decisions_for(context.run.metadata), key=key)
-            if plan.action == "reuse":
-                await self.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id,
-                    kind="graph_node", name=name, metadata={**info, "checkpoint_key": key,
-                        "reused_from_run": saved["source_run_id"], "reused_step_id": saved["step_id"]}))
-                await self.emit(BaseEngine.step_completed_event(context, step_id,
-                    EngineOutput(data=saved["output"], visibility=OutputVisibility.INTERNAL), metadata={"reused": True}))
-                return {"data": deepcopy(saved["output"]), "path": frame["path"],
-                        "port": saved["port"], "scope": frame["scope"]}
-            if plan.action == "pause":
-                request = approval_request("Workflow 노드 실행 확인",
-                    source={"project_id": context.project.id, "session_id": context.session.id,
-                            "run_id": context.run.id, "node_id": name, "path": path},
-                    action={"definition": deepcopy(definition)}, category="workflow.continue")
-                request = replace(request, kind=InteractionRequest.KIND_CONFIRMATION, input_schema=definition.get("resume_schema"))
-                request = request.bind(GRAPH_CHECKPOINT_NAME, key, decision_key="approved", input_key="state")
-                await self._record(key, {**info, "status": CheckpointStatus.WAITING, "resume_schema": definition.get("resume_schema"),
-                                        "interaction": request.to_dict()})
+            plan = _plan_node(
+                definition,
+                state,
+                saved=saved,
+                resuming=self.resuming,
+                decisions=ResumeRecord.decisions_for(context.run.metadata),
+                key=key,
+            )
+            if plan.action == GraphNodeAction.REUSE:
+                await self.emit(
+                    EngineEvent(
+                        EngineEventType.STEP_STARTED,
+                        step_id=step_id,
+                        kind=GraphExecutionObservation.NODE_STEP,
+                        name=name,
+                        metadata=GraphStepMetadata.reused_node(
+                            extension=info,
+                            checkpoint_key=key,
+                            reused_from_run=GraphNodeRecord(saved).source_run_id,
+                            reused_step_id=GraphNodeRecord(saved).step_id,
+                        ),
+                    )
+                )
+                await self.emit(
+                    BaseEngine.step_completed_event(
+                        context,
+                        step_id,
+                        EngineOutput(
+                            data=GraphNodeRecord(saved).output, visibility=OutputVisibility.INTERNAL
+                        ),
+                        metadata=GraphStepMetadata.reused_completion(reused=GraphStepMetadata.REUSED_VALUE),
+                    )
+                )
+                return GraphFrame.create(
+                    deepcopy(GraphNodeRecord(saved).output),
+                    GraphFrame(frame).path,
+                    GraphNodeRecord(saved).port,
+                    GraphFrame(frame).scope,
+                )
+            if plan.action == GraphNodeAction.PAUSE:
+                request = approval_request(
+                    GraphConfirmation.TITLE,
+                    source=GraphConfirmation.source(
+                        project_id=context.project.id,
+                        session_id=context.session.id,
+                        run_id=context.run.id,
+                        node_id=name,
+                        path=path,
+                    ),
+                    action=GraphConfirmation.action(definition=deepcopy(definition)),
+                    category=GraphConfirmation.CATEGORY,
+                )
+                request = replace(
+                    request,
+                    kind=InteractionRequest.KIND_CONFIRMATION,
+                    input_schema=WorkflowBindings(definition).resume_schema,
+                )
+                request = request.bind(
+                    GRAPH_CHECKPOINT_NAME,
+                    key,
+                    decision_key=GraphDecision.APPROVED,
+                    input_key=GraphDecision.STATE,
+                )
+                await self._record(
+                    key,
+                    GraphNodeRecord.waiting_confirmation(
+                        extension=info,
+                        status=CheckpointStatus.WAITING,
+                        resume_schema=WorkflowBindings(definition).resume_schema,
+                        interaction=request.to_dict(),
+                    ),
+                )
                 raise _GraphPause(key)
             decision = plan.decision
-            state.update(deepcopy(decision.get("state", {})))
-            info["decision"] = deepcopy(decision)
+            state.update(deepcopy(GraphDecision(decision).state_or_empty))
+            GraphNodeRecord.attach_decision(info, deepcopy(decision))
             # started를 먼저 fsync한다. 완료 저장 전 종료되면 재실행 승인이 필요한 노드다.
             # 예약 경계는 Agent/MCP/모델 실행보다 앞선다. 정수 반복 번호만 제거하고
             # 호출 위치와 병렬 분기 경로는 보존하므로 같은 이름의 다른 노드와 혼동하지 않는다.
-            route_key = json.dumps([self.root_workflow, *(v for v in scope if isinstance(v, str))],
-                                   ensure_ascii=False, separators=(",", ":"))
-            if context.steering is not None and route_key in self.routes:
-                async with aclosing(BaseEngine.bind_instruction_route(context, self.routes[route_key], key)) as events:
+            route_key = GraphScope.route_key(self.root_workflow, scope)
+            if context.steering is not _WorkflowRuntime.ABSENT and route_key in self.routes:
+                async with aclosing(
+                    BaseEngine.bind_instruction_route(context, self.routes[route_key], key)
+                ) as events:
                     async for event in events:
                         await self.emit(event)
-            await self._record(key, {**info, "status": CheckpointStatus.STARTED,
-                "requires_retry": kind not in ControlNodeType.structural() and not info["container"]})
-            await self.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="graph_node",
-                name=name, metadata={"node_id": name, "path": path, "node_type": kind,
-                                     "definition": definition, "checkpoint_key": key}))
+            await self._record(
+                key,
+                GraphNodeRecord.started(
+                    extension=info,
+                    status=CheckpointStatus.STARTED,
+                    requires_retry=kind not in ControlNodeType.structural()
+                    and (not GraphNodeRecord(info).required_container),
+                ),
+            )
+            await self.emit(
+                EngineEvent(
+                    EngineEventType.STEP_STARTED,
+                    step_id=step_id,
+                    kind=GraphExecutionObservation.NODE_STEP,
+                    name=name,
+                    metadata=GraphStepMetadata.node(
+                        node_id=name, path=path, node_type=kind, definition=definition, checkpoint_key=key
+                    ),
+                )
+            )
             try:
-                async with timeout(definition.get("timeout_seconds")):
-                    state, detail, port = await self._execute_node(definition, state, child, nested, info, scope)
+                async with timeout(WorkflowNode(definition).timeout_seconds):
+                    state, detail, port = await self._execute_node(
+                        definition, state, child, nested, info, scope
+                    )
             except (asyncio.CancelledError, GeneratorExit):
                 raise
             except _GraphPause:
@@ -586,21 +770,33 @@ class _WorkflowRuntime:
                 _propagate_cancellation(error)
                 await self.emit(BaseEngine.step_failed_event(step_id, error))
                 raise
-            await self._record(key, {**info, "status": CheckpointStatus.COMPLETED, "output": deepcopy(state), "port": port},
-                completed=BaseEngine.step_completed_event(context, step_id,
-                    EngineOutput(data=state, visibility=OutputVisibility.INTERNAL), metadata=detail))
-            return {"data": state, "path": frame["path"], "port": port, "scope": frame["scope"]}
+            await self._record(
+                key,
+                GraphNodeRecord.completed(
+                    extension=info, status=CheckpointStatus.COMPLETED, output=deepcopy(state), port=port
+                ),
+                completed=BaseEngine.step_completed_event(
+                    context,
+                    step_id,
+                    EngineOutput(data=state, visibility=OutputVisibility.INTERNAL),
+                    metadata=detail,
+                ),
+            )
+            return GraphFrame.create(state, GraphFrame(frame).path, port, GraphFrame(frame).scope)
+
         return execute
 
-    async def run(self, document: dict, state: dict, path: str, *, scope=None) -> dict:
+    async def run(self, document: dict, state: dict, path: str, *, scope=GraphPreparation.ABSENT) -> dict:
         """컴파일한 LangGraph를 실행하고 JSON 상태만 반환한다."""
         graph = self._compile(document)
         try:
-            result = await graph.ainvoke({"data": state, "path": path, "port": "", "scope": scope or []}, self.invoke_options)
+            result = await graph.ainvoke(
+                GraphFrame.create(state, path, GraphFrame.EMPTY_PORT, scope or []), self.invoke_options
+            )
         except Exception as error:
             _propagate_cancellation(error)
             raise
-        return result["data"]
+        return GraphFrame(result).data
 
 
 class GraphEngine:
@@ -614,85 +810,93 @@ class GraphEngine:
     미완료 노드부터 실행하며, LangGraph 내부 프레임이나 Python 런타임 객체는 저장하지 않는다.
     """
 
-    TIMEOUT_PARAMETER = "timeout_seconds"
+    checkpoint_name = GRAPH_CHECKPOINT_NAME
+    PAUSE_NODE_KEY = "node_key"
+    steering_mode = SteeringMode.FORWARD
+    agent_mode = AgentMode.WORKFLOW
+    ABSENT = GraphPreparation.ABSENT
+    DRAIN_EXCEPTIONS = True
+
+    TIMEOUT_PARAMETER = GraphParameters.TIMEOUT_SECONDS
+    DEFAULT_BUFFER_SIZE = GraphParameters.DEFAULT_BUFFER_SIZE
+    parameter_layout = GraphParameters.LAYOUT
+    _option_names = GraphParameters.NAMES
     REQUIRED_CONFIG_SECTIONS = (ProjectConfig.POLICIES, ProjectConfig.PARAMETERS)
 
-    def __init__(self, *, handlers: Mapping[str, Callable],
-                 revision: str = "1", config_keys: Optional[tuple[str, ...]] = None,
-                 parameter_key: Optional[str] = None) -> None:
-        if parameter_key is not None and (not isinstance(parameter_key, str) or not parameter_key.strip()):
-            raise ValueError("parameter_key must be nonempty text")
-        self.parameter_key, self._agent_options, self._configured = parameter_key, {}, False
-        if config_keys is not None and (not isinstance(config_keys, tuple) or any(not isinstance(k, str) or not k for k in config_keys)):
-            raise ValueError("config_keys must be a tuple of project setting names")
+    def __init__(
+        self,
+        *,
+        handlers: Mapping[str, Callable],
+        revision: str = GraphRegistration.DEFAULT_REVISION,
+        config_keys: Optional[tuple[str, ...]] = GraphRegistration.ABSENT,
+        parameter_key: Optional[str] = GraphRegistration.ABSENT,
+    ) -> None:
+        GraphRegistration.validate_parameter_key(parameter_key)
+        self.parameter_key, self._agent_options, self._configured = (
+            parameter_key,
+            {},
+            GraphParameters.UNCONFIGURED,
+        )
+        GraphRegistration.validate_config_keys(config_keys)
         self.config_keys = config_keys
-        if not isinstance(revision, str) or not revision:
-            raise ValueError("GraphEngine revision must be nonempty text")
+        GraphRegistration.validate_revision(revision)
         self.revision = revision
-        self.workflow, self.handlers = None, dict(handlers)
+        self.workflow, self.handlers = GraphRegistration.ABSENT, dict(handlers)
         controls = frozenset(ControlNodeType)
-        if any(not isinstance(name, str) or not name or name in controls or not callable(handler)
-               for name, handler in self.handlers.items()):
-            raise ValueError("Invalid handler or reserved control node type")
-        self.required_capabilities = tuple(dict.fromkeys(
-            ("workflows",) + tuple(name for handler in self.handlers.values()
-                                   for name in required_capabilities(handler))))
+        GraphRegistration.validate_handlers(self.handlers, controls)
+        self.required_capabilities = tuple(
+            dict.fromkeys(
+                (WorkflowDocument.COMPONENT,)
+                + tuple(name for handler in self.handlers.values() for name in required_capabilities(handler))
+            )
+        )
         self._configure({})
 
-    DEFAULT_BUFFER_SIZE = 32
-
     def _configure(self, values):
-        from llm.core.schema import validate_declared_fields
-        validate_declared_fields({name: values[name] for name in self._option_names if name in values},
-                                 self._option_schema())
-        for key in self._option_names:
-            setattr(self, key, values.get(key))
-        # 큐는 출력 유실/실행 제한 없이 backpressure만 제공한다.
-        self.buffer_size = values.get("buffer_size", self.DEFAULT_BUFFER_SIZE)
-
-    parameter_layout = ParameterLayout(config=("buffer_size", "cleanup_timeout"),
-        policy=("max_steps", "max_parallelism", TIMEOUT_PARAMETER, "max_nested_depth"))
-
-    _option_names = ("max_steps", "max_parallelism", TIMEOUT_PARAMETER, "buffer_size", "max_nested_depth", "cleanup_timeout")
+        GraphParameters.configure(self, values)
 
     @classmethod
     def _option_schema(cls):
-        from llm.core.schema import field
-        properties = {key: field(["integer", "null"], minimum=1) for key in cls._option_names}
-        properties["buffer_size"]["type"] = "integer"
-        properties["max_nested_depth"].update(minimum=0)
-        for key in (GraphEngine.TIMEOUT_PARAMETER, "cleanup_timeout"):
-            properties[key] = field(["number", "null"] if key == GraphEngine.TIMEOUT_PARAMETER else "number", exclusiveMinimum=0)
-        for key in ("max_steps", "max_parallelism", GraphEngine.TIMEOUT_PARAMETER, "max_nested_depth"):
-            properties[key]["x-narrowing"] = "maximum"
-        return properties
+        return GraphParameters.schema(cls._option_names, GraphEngine.TIMEOUT_PARAMETER)
 
     def describe_config(self):
-        from llm.core.schema import object_schema
-        properties = self._option_schema()
-        return self.parameter_layout.schema(object_schema(properties, **{SchemaExtension.RUNTIME_CONFIGURATION: ["handlers", "revision", "config_keys"],
-            **EngineConfigurationKey.schema_fields(self.parameter_key)}))
+        return GraphParameters.describe(self)
 
-    def resolve_config(self, config, name, *, session_config=None):
-        view = resolve_engine_config(config, self.parameter_key or name, session_config=session_config,
-            agent=self._agent_options, schema=self.describe_config())
+    def resolve_config(self, config, name, *, session_config=GraphPreparation.ABSENT):
+        view = resolve_engine_config(
+            config,
+            self.parameter_key or name,
+            session_config=session_config,
+            agent=self._agent_options,
+            schema=self.describe_config(),
+        )
         return view
 
     def with_config(self, context):
         """등록 인스턴스를 변경하지 않는 실행별 설정 사본. 중첩 실행에도 동일하게 적용한다."""
         if self._configured:
             return self
-        values = self.parameter_layout.unpack(ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values)
+        values = self.parameter_layout.unpack(
+            ConfigurationView.read(
+                self.resolve_config(
+                    context.project.config, context.run.engine, session_config=context.session.config
+                )
+            ).values
+        )
         worker = copy(self)
         worker._configure(values)
-        worker._configured = True
+        worker._configured = GraphParameters.CONFIGURED
         worker.workflow = self.workflow
         return worker
 
     def _execution_config(self, context):
-        return {key: value for key, value in context.project.config.to_dict().items()
-                if self.config_keys is None or key in self.config_keys
-                or key in GraphEngine.REQUIRED_CONFIG_SECTIONS}
+        return {
+            key: value
+            for key, value in context.project.config.to_dict().items()
+            if self.config_keys is GraphPreparation.ABSENT
+            or key in self.config_keys
+            or key in GraphEngine.REQUIRED_CONFIG_SECTIONS
+        }
 
     def _binding(self, context, graph, prepared):
         """코드의 버전은 개발자가 revision으로 관리한다. 저장 가능한 실행 설정은 직접 비교한다."""
@@ -702,29 +906,58 @@ class GraphEngine:
         for engine, document, child_context, selected in prepared:
             if selected:
                 continue
-            nested_graphs.append({"workflow_id": engine.workflow, "definition": document,
-                "project_config": engine._execution_config(child_context),
-                "revision": engine.revision, "handlers": sorted(engine.handlers),
-                "max_steps": engine.max_steps, "max_parallelism": engine.max_parallelism,
-                "max_nested_depth": engine.max_nested_depth, "timeout_seconds": engine.timeout_seconds,
-                "cleanup_timeout": engine.cleanup_timeout, "config_keys": list(engine.config_keys) if engine.config_keys is not None else None})
+            nested_graphs.append(
+                GraphExecutionBinding.nested(
+                    workflow_id=engine.workflow,
+                    definition=document,
+                    project_config=engine._execution_config(child_context),
+                    revision=engine.revision,
+                    handlers=sorted(engine.handlers),
+                    max_steps=engine.max_steps,
+                    max_parallelism=engine.max_parallelism,
+                    max_nested_depth=engine.max_nested_depth,
+                    timeout_seconds=engine.timeout_seconds,
+                    cleanup_timeout=engine.cleanup_timeout,
+                    config_keys=(
+                        list(engine.config_keys)
+                        if engine.config_keys is not GraphPreparation.ABSENT
+                        else GraphPreparation.ABSENT
+                    ),
+                )
+            )
             for node in self._nodes(document):
-                bind_handler = getattr(engine.handlers.get(node["type"]), "binding", None)
-                if bind_handler is not None and getattr(engine.handlers.get(node["type"]), "selection_binding", False) is not True:
+                bind_handler = GraphHandlerHooks.binder(engine.handlers.get(WorkflowNode(node).kind))
+                if bind_handler is not GraphPreparation.ABSENT and not GraphHandlerHooks.selection_bound(
+                    engine.handlers.get(WorkflowNode(node).kind)
+                ):
                     bindings.append(bind_handler(deepcopy(node), child_context))
-        Component.serialize({"bindings": bindings})
-        return {"workflow": graph, "workflow_id": self.workflow, "revision": self.revision,
-                "handler_bindings": bindings,
-                "nested_graphs": nested_graphs,
-                "handlers": sorted(self.handlers), "max_steps": self.max_steps,
-                "max_parallelism": self.max_parallelism, "timeout_seconds": self.timeout_seconds,
-                "project_config": self._execution_config(context), "session_config": context.session.config,
-                "components": list(context.project.components),
-                **context.tools.execution_binding(context.tool_scope.binding() if context.tool_scope else None)}
+        Component.serialize(GraphExecutionBinding.handler_payload(bindings=bindings))
+        return GraphExecutionBinding.create(
+            workflow=graph,
+            workflow_id=self.workflow,
+            revision=self.revision,
+            handler_bindings=bindings,
+            nested_graphs=nested_graphs,
+            handlers=sorted(self.handlers),
+            max_steps=self.max_steps,
+            max_parallelism=self.max_parallelism,
+            timeout_seconds=self.timeout_seconds,
+            project_config=self._execution_config(context),
+            session_config=context.session.config,
+            components=list(context.project.components),
+            extension=context.tools.execution_binding(
+                context.tool_scope.binding() if context.tool_scope else GraphPreparation.ABSENT
+            ),
+        )
 
     def _environment(self):
-        return {"workflow": self.workflow, "revision": self.revision, "parameter_key": self.parameter_key,
-                "options": deepcopy(self._agent_options), "handlers": sorted(self.handlers)}
+        return GraphEnvironment.create(
+            workflow=self.workflow,
+            revision=self.revision,
+            parameter_key=self.parameter_key,
+            options=deepcopy(self._agent_options),
+            handlers=sorted(self.handlers),
+        )
 
     def bind_execution(self, context):
         """Public orchestration binding; selected handlers own their private definitions."""
@@ -734,40 +967,52 @@ class GraphEngine:
     def _validate_selections(self, context, prepared, records):
         if not records:
             return
-        context.tools.validate_selections(replace(context, checkpoint={"records": records}))
+        context.tools.validate_selections(
+            replace(context, checkpoint=GraphNodeRecord.selection_checkpoint(records))
+        )
         # Resolve actual selected environments, not hypothetical Agent configurations.
         # A parent selection makes its nested environment available for descendants.
-        environments = [item for item in prepared if not item[3]]
+        environments = [item for item in prepared if not item.selected]
         pending = GraphHandlerSelection.pending(records)
         while pending:
             advanced = False
             for key, selected in list(pending.items()):
-                matches = [item for item in environments if item[0]._environment() == selected.environment]
+                matches = [
+                    item for item in environments if item.engine._environment() == selected.environment
+                ]
                 if not matches:
                     continue
                 for engine, _, child_context, _ in matches:
                     definition = deepcopy(selected.definition)
-                    handler = engine.handlers.get(definition["type"])
-                    if getattr(handler, "selection_binding", False) is not True:
-                        raise ValueError("Selected handler is unavailable")
-                    prepare = getattr(handler, "prepare_context", None)
+                    handler = engine.handlers.get(WorkflowNode(definition).kind)
+                    if not GraphHandlerHooks.selection_bound(handler):
+                        raise ValueError(GraphDiagnostic.MISSING_HANDLER)
+                    prepare = GraphHandlerHooks.preparer(handler)
                     if callable(prepare):
                         child_context = prepare(definition, child_context)
                     if handler.binding(definition, child_context) != selected.binding:
-                        raise ValueError("Selected handler configuration changed; start a new request")
-                    validate = getattr(handler, "validate_selection", None)
+                        raise ValueError(GraphDiagnostic.CHANGED_HANDLER)
+                    validate = GraphHandlerHooks.selection_validator(handler)
                     if callable(validate):
-                        validate(definition, child_context, owner=key, records=records, checkpoint_name=GRAPH_CHECKPOINT_NAME)
+                        validate(
+                            definition,
+                            child_context,
+                            owner=key,
+                            records=records,
+                            checkpoint_name=GRAPH_CHECKPOINT_NAME,
+                        )
                     nested = engine._nested_engine(definition, child_context.capabilities)
-                    if nested is not None:
+                    if nested is not GraphPreparation.ABSENT:
                         _, children = nested._prepare(child_context)
                         for item in children:
-                            if not item[3] and not any(item[0]._environment() == e[0]._environment() for e in environments):
+                            if not item.selected and not any(
+                                item.engine._environment() == e.engine._environment() for e in environments
+                            ):
                                 environments.append(item)
                 pending.pop(key)
                 advanced = True
             if not advanced:
-                raise ValueError("Selected handler environment changed; start a new request")
+                raise ValueError(GraphDiagnostic.CHANGED_ENVIRONMENT)
 
     def validate_selections(self, context):
         _, prepared = self._prepare(context)
@@ -776,71 +1021,107 @@ class GraphEngine:
     @classmethod
     def _deadline(cls, value) -> None:
         from llm.core.schema import validate_declared_fields
+
         validate_declared_fields({cls.TIMEOUT_PARAMETER: value}, cls._option_schema())
 
     @staticmethod
     def _nodes(graph):
-        for node in graph["nodes"].values():
+        for node in WorkflowDocument(graph).nodes.values():
             yield node
-            if node["type"] == ControlNodeType.LOOP:
-                yield from GraphEngine._nodes(node["body"])
+            if WorkflowNode(node).kind == ControlNodeType.LOOP:
+                yield from GraphEngine._nodes(WorkflowNode(node).body_definition)
 
     def _definition(self, capabilities):
-        if self.workflow is None:
-            raise GraphExecutionError("Graph request requires engine_options.workflow")
-        candidates = [DefinitionSnapshot.records_from(source)[self.workflow]
-                      for source in capabilities["workflows"] if self.workflow in DefinitionSnapshot.records_from(source)]
-        if len(candidates) != 1:
-            raise GraphExecutionError("Workflow must resolve to exactly one definition")
+        if self.workflow is GraphPreparation.ABSENT:
+            raise GraphExecutionError(GraphDiagnostic.MISSING_WORKFLOW)
+        candidates = [
+            DefinitionSnapshot.records_from(source)[self.workflow]
+            for source in capabilities[WorkflowDocument.COMPONENT]
+            if self.workflow in DefinitionSnapshot.records_from(source)
+        ]
+        if len(candidates) != GraphPreparation.ONE_DEFINITION:
+            raise GraphExecutionError(GraphDiagnostic.AMBIGUOUS_WORKFLOW)
         graph = deepcopy(candidates[0])
         validate_graph(graph)
         return graph
 
-    def _nested_engine(self, node, capabilities, *, selected=True):
-        if node["type"] == ControlNodeType.WORKFLOW:
+    def _nested_engine(self, node, capabilities, *, selected=GraphPreparation.SELECTED):
+        if WorkflowNode(node).kind == ControlNodeType.WORKFLOW:
             child = copy(self)
-            child.workflow = node["workflow"]
+            child.workflow = WorkflowNode(node).workflow
             return child
-        handler = self.handlers.get(node["type"])
-        select = getattr(handler, "graph_engine", None)
+        handler = self.handlers.get(WorkflowNode(node).kind)
+        select = GraphHandlerHooks.graph_engine(handler)
         if not selected:
-            select = getattr(handler, "discover_graph", select)
-        engine = select(deepcopy(node), capabilities) if select is not None else None
-        if engine is not None and not isinstance(engine, GraphEngine):
-            raise TypeError("graph_engine must return GraphEngine or None")
+            select = GraphHandlerHooks.graph_discoverer(handler, select)
+        engine = (
+            select(deepcopy(node), capabilities)
+            if select is not GraphPreparation.ABSENT
+            else GraphPreparation.ABSENT
+        )
+        if engine is not GraphPreparation.ABSENT and not isinstance(engine, GraphEngine):
+            raise TypeError(GraphDiagnostic.INVALID_NESTED_ENGINE)
         return engine
 
-    def _walk(self, capabilities, context=None, ancestors=(), remaining=None, *, selected=False):
+    def _walk(
+        self,
+        capabilities,
+        context=GraphPreparation.ABSENT,
+        ancestors=(),
+        remaining=GraphPreparation.ABSENT,
+        *,
+        selected=GraphPreparation.STRUCTURAL,
+    ):
         """참조 전체를 사전 탐색한다. 호출 위치별 정의를 유지하고 순환/깊이를 거부한다."""
-        if context is not None and not self._configured:
-            yield from self.with_config(context)._walk(capabilities, context, ancestors, remaining, selected=selected)
+        if context is not GraphPreparation.ABSENT and not self._configured:
+            yield from self.with_config(context)._walk(
+                capabilities, context, ancestors, remaining, selected=selected
+            )
             return
         # capability 탐색에는 Project 문맥이 없다. 실제 깊이는 문맥을 받은 사전 검증에서 제한한다.
         depth = self.max_nested_depth
-        remaining = depth if remaining is None else remaining if depth is None else min(remaining, depth)
-        if (remaining is not None and remaining < 0) or self.workflow in ancestors:
-            raise GraphExecutionError("Cyclic Workflow reference or nested depth limit exceeded")
+        remaining = (
+            depth
+            if remaining is GraphPreparation.ABSENT
+            else remaining if depth is GraphPreparation.ABSENT else min(remaining, depth)
+        )
+        if (
+            remaining is not GraphPreparation.ABSENT and remaining < GraphPreparation.MINIMUM_DEPTH
+        ) or self.workflow in ancestors:
+            raise GraphExecutionError(GraphDiagnostic.CYCLIC_WORKFLOW)
         if any(name not in capabilities for name in self.required_capabilities):
-            if context is not None:
-                raise GraphExecutionError("Nested Workflow capability is unavailable")
-            yield self, None, None, selected
+            if context is not GraphPreparation.ABSENT:
+                raise GraphExecutionError(GraphDiagnostic.MISSING_CAPABILITY)
+            (yield PreparedGraph(self, GraphPreparation.ABSENT, GraphPreparation.ABSENT, selected))
             return
         graph = self._definition(capabilities)
-        yield self, graph, context, selected
+        (yield PreparedGraph(self, graph, context, selected))
         for node in self._nodes(graph):
-            if node["type"] not in frozenset(ControlNodeType):
-                handler = self.handlers.get(node["type"])
-                if handler is None:
-                    raise GraphExecutionError(f"Unregistered node type: {node['type']}")
+            if WorkflowNode(node).kind not in frozenset(ControlNodeType):
+                handler = self.handlers.get(WorkflowNode(node).kind)
+                if handler is GraphPreparation.ABSENT:
+                    raise GraphExecutionError(
+                        GraphDiagnostic.UNREGISTERED_NODE.format(value=WorkflowNode(node).kind)
+                    )
                 validate_handler_options(node, handler)
-            child = self._nested_engine(node, capabilities, selected=False)
-            if child is not None:
+            child = self._nested_engine(node, capabilities, selected=GraphPreparation.STRUCTURAL)
+            if child is not GraphPreparation.ABSENT:
                 child_context = context
-                prepare = getattr(self.handlers.get(node["type"]), "graph_context", None)
-                if context is not None and prepare is not None:
+                prepare = GraphHandlerHooks.graph_context(self.handlers.get(WorkflowNode(node).kind))
+                if context is not GraphPreparation.ABSENT and prepare is not GraphPreparation.ABSENT:
                     child_context = prepare(deepcopy(node), context)
-                yield from child._walk(capabilities, child_context, (*ancestors, self.workflow), None if remaining is None else remaining - 1,
-                    selected=selected or getattr(self.handlers.get(node["type"]), "selection_binding", False) is True)
+                yield from child._walk(
+                    capabilities,
+                    child_context,
+                    (*ancestors, self.workflow),
+                    (
+                        GraphPreparation.ABSENT
+                        if remaining is GraphPreparation.ABSENT
+                        else remaining - GraphPreparation.DEPTH_INCREMENT
+                    ),
+                    selected=selected
+                    or GraphHandlerHooks.selection_bound(self.handlers.get(WorkflowNode(node).kind)),
+                )
 
     def _prepare(self, context: EngineContext):
         """실행별 정의 스냅샷을 한 번 탐색해 검증과 재개 바인딩에 함께 사용한다.
@@ -850,24 +1131,26 @@ class GraphEngine:
         prepared = list(self._walk(context.capabilities, context))
         for engine, document, child_context, _ in prepared:
             for node in self._nodes(document):
-                engine._deadline(node.get("timeout_seconds"))
-                if node["type"] not in frozenset(ControlNodeType):
-                    handler = engine.handlers.get(node["type"])
-                    if handler is None:
-                        raise GraphExecutionError(f"Unregistered node type: {node['type']}")
-                    if getattr(handler, "selection_binding", False) is not True:
+                engine._deadline(WorkflowNode(node).timeout_seconds)
+                if WorkflowNode(node).kind not in frozenset(ControlNodeType):
+                    handler = engine.handlers.get(WorkflowNode(node).kind)
+                    if handler is GraphPreparation.ABSENT:
+                        raise GraphExecutionError(
+                            GraphDiagnostic.UNREGISTERED_NODE.format(value=WorkflowNode(node).kind)
+                        )
+                    if not GraphHandlerHooks.selection_bound(handler):
                         self._validate_handler(handler, node, child_context)
-        return prepared[0][1], prepared
+        return prepared[0].document, prepared
 
     @staticmethod
     def _validate_handler(handler, node, context):
-        validate = getattr(handler, "validate", None)
-        if validate is not None:
+        validate = GraphHandlerHooks.validator(handler)
+        if validate is not GraphPreparation.ABSENT:
             result = validate(deepcopy(node), context)
             if inspect.isawaitable(result):
                 if inspect.iscoroutine(result):
                     result.close()
-                raise TypeError("Handler validate must be synchronous")
+                raise TypeError(GraphDiagnostic.ASYNC_VALIDATOR)
 
     def _instruction_routes(self, context, graph):
         """컴파일과 같은 구조 경로를 열거한다. 실행/반복 번호·표시 path는 예약 ID가 아니다.
@@ -876,45 +1159,66 @@ class GraphEngine:
         분기 예약은 Run 종료 시 unapplied로 남는다.
         """
         routes = []
-        def region(engine, document, current, prefix, entry=None, stop=None):
-            pending, seen = [document["entry"] if entry is None else entry], set()
-            outgoing = {name: [] for name in document["nodes"]}
-            for edge in document["edges"]:
-                outgoing[edge["source"]].append(edge["target"])
+
+        def region(
+            engine, document, current, prefix, entry=GraphPreparation.ABSENT, stop=GraphPreparation.ABSENT
+        ):
+            pending, seen = [
+                WorkflowDocument(document).entry if entry is GraphPreparation.ABSENT else entry
+            ], set()
+            outgoing = {name: [] for name in WorkflowDocument(document).nodes}
+            for edge in WorkflowDocument(document).edges:
+                outgoing[WorkflowEdge(edge).source].append(WorkflowEdge(edge).target)
             while pending:
                 name = pending.pop()
                 if name == stop or name in seen:
                     continue
                 seen.add(name)
-                node = document["nodes"][name]
-                kind = node["type"]
+                node = WorkflowDocument(document).nodes[name]
+                kind = WorkflowNode(node).kind
                 handler = engine.handlers.get(kind)
-                describe = getattr(handler, "instruction_engine", None)
-                consumer = describe(node, current) if describe is not None else None
-                if consumer is not None:
+                describe = GraphHandlerHooks.instruction_engine(handler)
+                consumer = (
+                    describe(node, current)
+                    if describe is not GraphPreparation.ABSENT
+                    else GraphPreparation.ABSENT
+                )
+                if consumer is not GraphPreparation.ABSENT:
                     routes.append(SteeringRoute(tuple(prefix), name, consumer))
-                nested = engine._nested_engine(node, current.capabilities, selected=False)
-                if nested is not None:
-                    prepare = getattr(handler, "graph_context", None)
-                    child_context = prepare(node, current) if prepare is not None else current
-                    region(nested, nested._definition(child_context.capabilities), child_context,
-                           [*prefix, name, "workflow", nested.workflow])
+                nested = engine._nested_engine(
+                    node, current.capabilities, selected=GraphPreparation.STRUCTURAL
+                )
+                if nested is not GraphPreparation.ABSENT:
+                    prepare = GraphHandlerHooks.graph_context(handler)
+                    child_context = (
+                        prepare(node, current) if prepare is not GraphPreparation.ABSENT else current
+                    )
+                    region(
+                        nested,
+                        nested._definition(child_context.capabilities),
+                        child_context,
+                        [*prefix, name, GraphScope.WORKFLOW, nested.workflow],
+                    )
                 if kind == ControlNodeType.LOOP:
-                    region(engine, node["body"], current, [*prefix, name])
+                    region(engine, WorkflowNode(node).body_definition, current, [*prefix, name])
                 if kind == ControlNodeType.PARALLEL:
                     for start in outgoing[name]:
-                        region(engine, document, current, [*prefix, name, "branch", start], start, node["join"])
-                    pending.append(node["join"])
+                        region(
+                            engine,
+                            document,
+                            current,
+                            [*prefix, name, GraphScope.BRANCH, start],
+                            start,
+                            WorkflowNode(node).join,
+                        )
+                    pending.append(WorkflowNode(node).join)
                 else:
                     pending.extend(outgoing[name])
+
         region(self, graph, context, [self.workflow])
         return routes
 
     # 공개 API
-    checkpoint_name = GRAPH_CHECKPOINT_NAME
-    PAUSE_NODE_KEY = "node_key"
-    steering_mode = SteeringMode.FORWARD
-    agent_mode = AgentMode.WORKFLOW
 
     def workflow_handlers(self):
         """Registered action owners for retained-definition reference checks; no execution."""
@@ -923,36 +1227,37 @@ class GraphEngine:
     def agent_references(self):
         """The selected Graph owns the meaning of its stored Workflow choice."""
         from llm.components.workflows import WorkflowComponent
+
         return (ResourceTarget(WorkflowComponent.name, self.workflow).to_dict(),)
 
     def discover_agent(self, definition):
         """Resolve only structural references before selecting private Agent options."""
-        return self._select_workflow(definition.get("engine_options", {}).get("workflow"))
+        return self._select_workflow(GraphAgentOptions.discover(definition))
 
     def _select_workflow(self, workflow):
         """Bind the Graph-owned Workflow selection; read its definition at execution."""
-        if not isinstance(workflow, str) or not workflow.strip():
-            raise ValueError("Graph Agent workflow must be a nonempty ID")
+        GraphAgentOptions.validate_workflow(workflow)
         worker = copy(self)
         worker.workflow = workflow
-        worker._configured = False
+        worker._configured = GraphParameters.UNCONFIGURED
         return worker
 
     def for_agent(self, definition: dict):
         """Agent가 지정한 Workflow를 부모 Graph 실행 범위에 연결한다."""
-        options = deepcopy(definition.get("engine_options", {}))
-        allowed = {"workflow", "config", "policy"}
-        if options.keys() - allowed:
-            raise ValueError("Unsupported Graph Agent engine_options")
+        options = GraphAgentOptions.from_definition(definition)
+        options.validate_fields()
         # 빈 resources/tools도 의미 없는 별도 behavior/authority 계층이다.
         from llm.core.agents import AgentDefinition
+
         AgentDefinition.validate_mode(definition, self.agent_mode)
-        worker = self._select_workflow(options.pop("workflow", None))
+        worker = self._select_workflow(options.pop_workflow())
+        options = options.to_dict()
         from jsonschema import Draft202012Validator
+
         Draft202012Validator(self.describe_config()).validate(options)
         copy(self)._configure(self.parameter_layout.unpack(options))
-        worker._agent_options, worker._configured = options, False
-        worker.parameter_key = self.parameter_key or definition["engine"]
+        worker._agent_options, worker._configured = options, GraphParameters.UNCONFIGURED
+        worker.parameter_key = self.parameter_key or AgentDefinition.engine(definition)
         return worker
 
     def additional_capabilities(self, capabilities) -> tuple[str, ...]:
@@ -960,72 +1265,117 @@ class GraphEngine:
         names = []
         for engine, graph, _, _ in self._walk(capabilities):
             names.extend(engine.required_capabilities)
-            if graph is not None:
+            if graph is not GraphPreparation.ABSENT:
                 for node in self._nodes(graph):
-                    if getattr(engine.handlers.get(node["type"]), "selection_binding", False) is True:
+                    if GraphHandlerHooks.selection_bound(engine.handlers.get(WorkflowNode(node).kind)):
                         continue
-                    request = getattr(engine.handlers.get(node["type"]), "additional_capabilities", None)
-                    if request is not None:
+                    request = GraphHandlerHooks.discoverer(engine.handlers.get(WorkflowNode(node).kind))
+                    if request is not GraphPreparation.ABSENT:
                         extra = request(deepcopy(node), capabilities)
-                        if not isinstance(extra, tuple) or any(not isinstance(name, str) or not name.strip() for name in extra):
-                            raise TypeError("Handler additional_capabilities must return a tuple of names")
+                        if not isinstance(extra, tuple) or any(
+                            not isinstance(name, str) or not name.strip() for name in extra
+                        ):
+                            raise TypeError(GraphDiagnostic.INVALID_CAPABILITIES)
                         names.extend(extra)
         return tuple(dict.fromkeys(names))
 
-    def validate_resume(self, checkpoint: dict, *, retry_nodes=(), context=None, decisions=None) -> None:
+    def validate_resume(
+        self,
+        checkpoint: dict,
+        *,
+        retry_nodes=(),
+        context=GraphPreparation.ABSENT,
+        decisions=GraphPreparation.ABSENT,
+    ) -> None:
         """결과가 불확실한 처리 노드를 누락/중복 없이 명시적으로 승인해야 한다."""
-        header, records = CheckpointContent.from_checkpoint(checkpoint).header, CheckpointRecords.from_checkpoint(checkpoint).records
+        header, records = (
+            CheckpointContent.from_checkpoint(checkpoint).header,
+            CheckpointRecords.from_checkpoint(checkpoint).records,
+        )
         decisions = decisions or {}
         Component.serialize(decisions)
         if not isinstance(decisions, dict):
-            raise ValueError("Resume decisions must be an object")
+            raise ValueError(GraphDiagnostic.INVALID_DECISIONS)
         for key, decision in decisions.items():
             saved = records.get(key, {})
             if CheckpointEnvelope.is_record(saved):
                 from llm.core.checkpoints import unwrap_record
+
                 unwrap_record(saved)
-                if saved.get("status") != CheckpointStatus.WAITING or "interaction" not in saved:
-                    raise ValueError("Child decisions require a waiting interaction")
-                InteractionRequest.from_dict(saved["interaction"]).select_decision(decision)
+                if (
+                    GraphNodeRecord(saved).optional_status != CheckpointStatus.WAITING
+                    or not GraphNodeRecord(saved).has_interaction
+                ):
+                    raise ValueError(GraphDiagnostic.CHILD_NOT_WAITING)
+                GraphNodeRecord(saved).interaction.select_decision(decision)
                 continue
-            if saved.get("status") != CheckpointStatus.WAITING or not isinstance(decision, dict) or decision.keys() - {"approved", "state"}:
-                raise ValueError("Decisions require a waiting node and approved/state fields")
-            if "approved" in decision and type(decision["approved"]) is not bool:
-                raise ValueError("approved must be boolean")
-            if "state" in decision:
+            if (
+                GraphNodeRecord(saved).optional_status != CheckpointStatus.WAITING
+                or not isinstance(decision, dict)
+                or GraphDecision(decision).extra_fields
+            ):
+                raise ValueError(GraphDiagnostic.INVALID_DECISION_FIELDS)
+            if GraphDecision(decision).has_approved and type(GraphDecision(decision).approved) is not bool:
+                raise ValueError(GraphDiagnostic.INVALID_APPROVED)
+            if GraphDecision(decision).has_state:
                 if CheckpointEnvelope.is_record(saved):
-                    raise ValueError("An Engine approval cannot edit its parent input state")
-                schema = saved.get("resume_schema")
-                if not isinstance(schema, dict) or schema.get("additionalProperties") is not False:
-                    raise ValueError("State edits require an explicit closed resume_schema")
-                validate_value({"resume_schema": schema}, "resume", decision["state"])
-            if "interaction" in saved:
-                InteractionRequest.from_dict(saved["interaction"]).select_decision(decision, confirm_empty=True)
+                    raise ValueError(GraphDiagnostic.PARENT_STATE_EDIT)
+                schema = GraphNodeRecord(saved).resume_schema
+                if (
+                    not isinstance(schema, dict)
+                    or schema.get(SchemaKeyword.ADDITIONAL_PROPERTIES) is not SchemaBoolean.REJECT
+                ):
+                    raise ValueError(GraphDiagnostic.OPEN_RESUME_SCHEMA)
+                WorkflowBindings.validate_resume_state(schema, GraphDecision(decision).state)
+            if GraphNodeRecord(saved).has_interaction:
+                GraphNodeRecord(saved).interaction.select_decision(
+                    decision, confirm_empty=GraphDecision.CONFIRM_EMPTY
+                )
         for key, saved in records.items():
             if CheckpointEnvelope.is_record(saved):
-                if saved.get("status") == CheckpointStatus.WAITING and key not in decisions:
-                    raise ValueError(f"Child interaction decision required: {key}")
+                if (
+                    GraphNodeRecord(saved).optional_status == CheckpointStatus.WAITING
+                    and key not in decisions
+                ):
+                    raise ValueError(GraphDiagnostic.MISSING_CHILD_DECISION.format(value=key))
                 continue
-            if saved.get("approval_required") and "approved" not in decisions.get(key, {}):
-                raise ValueError(f"Tool approval decision required: {key}")
-        if header.get("format") != GRAPH_CHECKPOINT_FORMAT or header["binding"]["workflow_id"] != self.workflow:
-            raise ValueError("Checkpoint does not belong to this Workflow")
-        if header["binding"]["revision"] != self.revision:
-            raise ValueError("GraphEngine revision changed; start a new request")
-        if context is not None:
+            if (
+                GraphNodeRecord(saved).approval_required
+                and not GraphDecision(decisions.get(key, {})).has_approved
+            ):
+                raise ValueError(GraphDiagnostic.MISSING_TOOL_DECISION.format(value=key))
+        if (
+            GraphCheckpointHeader(header).format != GRAPH_CHECKPOINT_FORMAT
+            or GraphExecutionBinding(GraphCheckpointHeader(header).binding).workflow_id != self.workflow
+        ):
+            raise ValueError(GraphDiagnostic.WRONG_WORKFLOW)
+        if GraphExecutionBinding(GraphCheckpointHeader(header).binding).revision != self.revision:
+            raise ValueError(GraphDiagnostic.CHANGED_REVISION)
+        if context is not GraphPreparation.ABSENT:
             graph, prepared = self._prepare(context)
             self._validate_selections(context, prepared, records)
-            if self._binding(context, graph, prepared) != header["binding"]:
-                raise ValueError("Workflow, Agent, Tool or execution configuration changed; start a new request")
+            if self._binding(context, graph, prepared) != GraphCheckpointHeader(header).binding:
+                raise ValueError(GraphDiagnostic.CHANGED_EXECUTION)
         controls = ControlNodeType.structural()
-        uncertain = {key for key, value in records.items()
-                     if value["status"] == CheckpointStatus.STARTED and value["node_type"] not in controls
-                     and not value.get("container", False)}
-        if (any(not isinstance(key, str) for key in retry_nodes) or len(set(retry_nodes)) != len(retry_nodes)
-                or set(retry_nodes) != uncertain):
-            raise ValueError(f"Explicit retry_nodes must match uncertain node keys: {sorted(uncertain)}")
-        if any(value["status"] not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING) for value in records.values()):
-            raise ValueError("Invalid checkpoint node status")
+        uncertain = {
+            key
+            for key, value in records.items()
+            if GraphNodeRecord(value).status == CheckpointStatus.STARTED
+            and GraphNodeRecord(value).node_type not in controls
+            and GraphNodeRecord(value).non_container
+        }
+        if (
+            any(not isinstance(key, str) for key in retry_nodes)
+            or len(set(retry_nodes)) != len(retry_nodes)
+            or set(retry_nodes) != uncertain
+        ):
+            raise ValueError(GraphDiagnostic.RETRY_SET.format(value=sorted(uncertain)))
+        if any(
+            GraphNodeRecord(value).status
+            not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
+            for value in records.values()
+        ):
+            raise ValueError(GraphDiagnostic.INVALID_NODE_STATUS)
 
     async def execute(self, context: EngineContext):
         worker = self.with_config(context)
@@ -1035,70 +1385,121 @@ class GraphEngine:
 
     async def _execute(self, context: EngineContext):
         graph, prepared = self._prepare(context)
-        routes = self._instruction_routes(context, graph) if context.steering is not None else ()
+        routes = (
+            self._instruction_routes(context, graph)
+            if context.steering is not GraphPreparation.ABSENT
+            else ()
+        )
         binding = self._binding(context, graph, prepared)
-        if context.checkpoint is not None:
-            self._validate_selections(context, prepared, CheckpointRecords.from_checkpoint(context.checkpoint).records)
-            self.validate_resume(context.checkpoint, retry_nodes=ResumeRecord.require(context.run.metadata).retry_nodes,
-                                 decisions=ResumeRecord.require(context.run.metadata).decisions)
+        if context.checkpoint is not GraphPreparation.ABSENT:
+            self._validate_selections(
+                context, prepared, CheckpointRecords.from_checkpoint(context.checkpoint).records
+            )
+            self.validate_resume(
+                context.checkpoint,
+                retry_nodes=ResumeRecord.require(context.run.metadata).retry_nodes,
+                decisions=ResumeRecord.require(context.run.metadata).decisions,
+            )
             header = deepcopy(CheckpointContent.from_checkpoint(context.checkpoint).header)
-            if binding != header["binding"]:
-                raise GraphExecutionError("Workflow, Agent, Tool or execution configuration changed; start a new request")
+            if binding != GraphCheckpointHeader(header).binding:
+                raise GraphExecutionError(GraphDiagnostic.CHANGED_EXECUTION)
         else:
             message = next(item for item in context.messages if item.id == context.run.input_message_id)
-            state = deepcopy(graph.get("initial_state", {}))
-            if "inputs" in graph:
-                state.update(bind(graph["inputs"], {"prompt": message.content, "message_id": message.id}))
-            validate_value(graph, "input", state)
-            header = {"format": GRAPH_CHECKPOINT_FORMAT, "binding": binding, "initial_state": state,
-                      **CheckpointConversation(tuple(item.id for item in context.messages), message.id).to_dict()}
+            state = deepcopy(WorkflowDocument(graph).initial_state)
+            if WorkflowBindings(graph).has_inputs:
+                state.update(
+                    bind(
+                        WorkflowBindings(graph).inputs,
+                        GraphInput.create(prompt=message.content, message_id=message.id),
+                    )
+                )
+            validate_value(graph, BindingDirection.INPUT, state)
+            header = GraphCheckpointHeader.create(
+                format=GRAPH_CHECKPOINT_FORMAT,
+                binding=binding,
+                initial_state=state,
+                extension=CheckpointConversation(
+                    tuple((item.id for item in context.messages)), message.id
+                ).to_dict(),
+            )
         Component.serialize(header)
         # 첫 LangGraph import도 UI 루프 밖에서 수행한다. 플러그인 import는 가볍게 유지한다.
-        await asyncio.to_thread(importlib.import_module, "langgraph.graph")
+        await asyncio.to_thread(importlib.import_module, LangGraphInvocation.MODULE)
         queue = asyncio.Queue(maxsize=self.buffer_size)
 
         async def emit(event):
             if not isinstance(event, EngineEvent):
-                raise TypeError("Graph handlers emit EngineEvent objects")
+                raise TypeError(GraphDiagnostic.INVALID_EVENT)
             ack = asyncio.get_running_loop().create_future()
             await queue.put((deepcopy(event), ack))
             # 서비스가 이벤트를 저장하고 다음 이벤트를 요청한 뒤 작업을 계속한다.
             await ack
 
         async def produce():
-            if context.checkpoint is None:
-                await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.initialize_event(GRAPH_CHECKPOINT_NAME, header, {}).to_dict()))
+            if context.checkpoint is GraphPreparation.ABSENT:
+                await emit(
+                    EngineEvent(
+                        EngineEventType.CHECKPOINT,
+                        metadata=CheckpointWrite.initialize_event(
+                            GRAPH_CHECKPOINT_NAME, header, {}
+                        ).to_dict(),
+                    )
+                )
             async with aclosing(BaseEngine.declare_instruction_routes(context, routes)) as events:
                 async for event in events:
                     await emit(event)
             root_id = new_id()
-            await emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=root_id,
-                                  kind="graph", name=self.workflow,
-                                  metadata={"workflow_id": self.workflow, "definition": graph}))
+            await emit(
+                EngineEvent(
+                    EngineEventType.STEP_STARTED,
+                    step_id=root_id,
+                    kind=GraphExecutionObservation.ROOT_STEP,
+                    name=self.workflow,
+                    metadata=GraphStepMetadata.root(workflow_id=self.workflow, definition=graph),
+                )
+            )
             try:
                 async with timeout(self.timeout_seconds):
-                    state = deepcopy(header["initial_state"])
+                    state = deepcopy(GraphCheckpointHeader(header).initial_state)
                     runtime = _WorkflowRuntime(self, context, emit, routes=routes)
                     state = await runtime.run(graph, state, self.workflow)
-                    output = bind(graph["outputs"], state) if "outputs" in graph else deepcopy(state)
-                    validate_value(graph, "output", output)
-                    context.state["graph"] = deepcopy(output)
+                    output = (
+                        bind(WorkflowBindings(graph).outputs, state)
+                        if WorkflowBindings(graph).has_outputs
+                        else deepcopy(state)
+                    )
+                    validate_value(graph, BindingDirection.OUTPUT, output)
+                    GraphExecutionObservation.publish(context.state, deepcopy(output))
             except (asyncio.CancelledError, GeneratorExit):
                 raise
             except _GraphPause as pause:
-                await emit(EngineEvent(EngineEventType.PAUSED,
-                    metadata={**CheckpointPause(GRAPH_CHECKPOINT_NAME).to_dict(), self.PAUSE_NODE_KEY: str(pause)}))
+                await emit(
+                    EngineEvent(
+                        EngineEventType.PAUSED,
+                        metadata={
+                            **CheckpointPause(GRAPH_CHECKPOINT_NAME).to_dict(),
+                            self.PAUSE_NODE_KEY: str(pause),
+                        },
+                    )
+                )
                 return
             except Exception as error:
                 await emit(BaseEngine.step_failed_event(root_id, error))
                 raise
-            await emit(BaseEngine.step_completed_event(context, root_id,
-                EngineOutput(data=output, visibility=OutputVisibility.INTERNAL),
-                metadata={"visited_nodes": runtime.visited, "runtime": "langgraph"}))
+            await emit(
+                BaseEngine.step_completed_event(
+                    context,
+                    root_id,
+                    EngineOutput(data=output, visibility=OutputVisibility.INTERNAL),
+                    metadata=GraphStepMetadata.completed(
+                        visited_nodes=runtime.visited, runtime=GraphExecutionObservation.RUNTIME
+                    ),
+                )
+            )
             await emit(BaseEngine.output_event(context, EngineOutput(data=output)))
 
         producer = asyncio.create_task(produce())
-        reader = None
+        reader = GraphPreparation.ABSENT
         try:
             while True:
                 if producer.done() and queue.empty():
@@ -1108,18 +1509,18 @@ class GraphEngine:
                 done, _ = await asyncio.wait((reader, producer), return_when=asyncio.FIRST_COMPLETED)
                 if reader in done:
                     event, ack = reader.result()
-                    reader = None
+                    reader = GraphPreparation.ABSENT
                     yield event
                     if not ack.done():
-                        ack.set_result(None)
+                        ack.set_result(GraphPreparation.ABSENT)
                 else:
                     reader.cancel()
-                    await asyncio.gather(reader, return_exceptions=True)
-                    reader = None
+                    await asyncio.gather(reader, return_exceptions=self.DRAIN_EXCEPTIONS)
+                    reader = GraphPreparation.ABSENT
         finally:
-            if reader is not None:
+            if reader is not GraphPreparation.ABSENT:
                 reader.cancel()
-                await asyncio.gather(reader, return_exceptions=True)
+                await asyncio.gather(reader, return_exceptions=self.DRAIN_EXCEPTIONS)
             if not producer.done():
                 producer.cancel()
-            await asyncio.gather(producer, return_exceptions=True)
+            await asyncio.gather(producer, return_exceptions=self.DRAIN_EXCEPTIONS)

@@ -134,7 +134,12 @@ class SteeringRoute(JsonValue):
 
     @property
     def key(self) -> str:
-        return json.dumps([*self.workflow_path, self.node_id], **self.KEY_JSON)
+        return self.encode_path([*self.workflow_path, self.node_id])
+
+    @classmethod
+    def encode_path(cls, path):
+        """Encode a structural path already selected by its execution Owner."""
+        return json.dumps(path, **cls.KEY_JSON)
 
 
 @dataclass(frozen=True, slots=True)
