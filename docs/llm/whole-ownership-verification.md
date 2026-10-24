@@ -5723,3 +5723,31 @@ anchor 37개 오류 0, 계약/architecture 감사 16 pass / 3.277초 / exit 0. R
 전수 inventory 550개·미검토 251(llm 74/hub 177)·미분류 15,832·미완 계약 4·issues 0.
 추가 미완 계약 1개는 RefinementRecord의 Data/Tool 소비자 이식을 추적한다. 구현부 후보가
 0이어도 소비자 이식 전에는 해당 계약 전체를 완료로 표시하지 않는다.
+
+
+Refinement 정의의 추가 직접 소비자: Skill 생성·분기·바인딩·평가 승인 시나리오는
+실제 test_architecture_boundaries에 있으며 schema 소비자와 함께 추가 실행했다.
+아래는 별도 SHA 40699e0 소스 관찰에서 수행한 집중 검증이며 이전 실행과 합쳐
+하나의 전체 실행으로 표시하지 않는다.
+
+- `whole-refinement-record-consumers-01`: discovered/started/pass 30/30/30, exit 0, 25.998855초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-refinement-record-consumers-01/llm.json --modules tests.llm.test_architecture_boundaries tests.llm.test_schema_ownership`. source `baa27237625e3b5124642e7b6607a04a4399c47ab6739601812b993ef5ccc6a4`, input `55fb72cfc0e56c348dabd7f2bfa745cc49e393dae175937041b6a795cb5df020`.
+
+모든 bad 항목 0, 발견/실행/통과 일치, source/input 실행 전후 동일. 이전 정의 소단계와
+제품/테스트 소스 전부, Python·의존성·바이너리·Host·관련 환경은 동일하다. input 차이는
+commit SHA와 README·정적 검토 Fixture·전수 감사/검증 문서 5개뿐이다. 그 감사 Fixture를
+읽지 않는 추가 기능 소비자 결과이며 원래 실패 결과를 덮어쓰거나 시험을 생략하지 않았다.
+
+게이트 36 첫 원격 LLM 결과: 2492/2492/2492, 2065.246080초, 모든 bad 항목 0과
+필수 보조 단계 성공을 확인했다. 최초 전체 workflow는 Hub 2 error 때문에 실패 상태다.
+workflow 종료 후 같은 SHA의 Hub Job 전체 재실행 요청이 수락됐다(exit 0).
+첫 시도의 run/status/실패 trace는 attempt1-run.json / attempt1-status.json에 보존했다.
+재실행 결과가 확인될 때까지 원격 게이트 통과를 선언하지 않는다.
+
+추가 소비자 증거의 계약/architecture 감사 16 pass / 3.281초 / exit 0, 문서 검사
+168개·fence 183개·링크 1,213개·anchor 37개 오류 0.
+
+게이트 37 첫 로컬 Hub 전체 실행은 588개 발견/실행, 587 pass·1 error·0 failure,
+1134.215858초로 실패했다. `tests.hub.test_ish_integration.IshIntegrationTests.test_actual_host_focus_keys_and_reinstallation`의
+DelayedCompleter 시작 신호 대기(`asyncio.wait_for(started.wait(), 3)`)가 TimeoutError였다.
+원래 로그·모든 Assertion과 3초 제한을 유지하고 동일 SHA의 원래 통합 모듈로 재현 검사한다.
+이 실행을 성공으로 집계하지 않으며 LLM 전체 결과 및 재검증은 별도 증거로 기록한다.

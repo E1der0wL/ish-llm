@@ -57599,7 +57599,9 @@
           "tests/llm/test_skill_packages.py",
           "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
-          "tests/hub/test_component_managers.py"
+          "tests/hub/test_component_managers.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_schema_ownership.py"
         ],
         "complete": true
       }
@@ -57965,7 +57967,9 @@
           "tests/llm/test_skill_packages.py",
           "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
-          "tests/hub/test_component_managers.py"
+          "tests/hub/test_component_managers.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_schema_ownership.py"
         ],
         "complete": false
       }
