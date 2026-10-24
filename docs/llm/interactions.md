@@ -233,5 +233,26 @@ InteractionRisk는 기존 척도/risk 검증을 소유한다. _stored_fields는 
 InteractionView의 표시 상태와 InteractionStatus의 영속 상태는 서로 다른 계약이다.
 만료·현재 pending·요청 ID/revision/fingerprint·actor/policy ID 검증 순서와
 거절/빈 confirmation/응답 누락 구분은 그대로다. 이 도메인 정리는 승인 권한이나
-재실행을 추가하지 않는다. Repository의 control projection·갱신/기본 선택지 선언 연결은
-후속 소단계이며 도메인 파일 검토만으로 모든 소비자 완료를 선언하지 않는다.
+재실행을 추가하지 않는다. Repository의 기본 선택지 ID·revision 계산도 같은 Owner에
+연결한다. Request.renewal은 순수한 후속 스냅샷 생성이며 취소/만료 증거 검사는 계속
+Repository와 저장 Record가 수행한다. Response.comparable은 재전송 비교에서 생성 시각만
+제외하는 기존 projection이다.
+
+
+## 저장 control과 조회 projection
+
+InteractionRecord가 현재 저장 필드·버전·요청/응답 identity·갱신 증거를 검증하는 유일한
+Reader다. InteractionRepository.envelope는 이 Reader와 요청 검증을 거쳐 분리된 사본을
+반환하며 기존 주입 조회 경계도 유지한다. control은 그 결과에 InteractionControl projection을
+적용한다. Projection은 저장 Reader가 아니며 기본값·필드 복원·호환 형식을 추가하지 않는다.
+필수 필드는 직접 조회하고, 누락/손상된 실제 저장 파일은 envelope에서 먼저 거부한다.
+
+Record와 projection은 InteractionControlValue의 존재 판정·중첩 Reader·Writer를 공유한다.
+고정 필드 이름은 Record dataclass 선언에서 얻는다. Record의 frozen/slots 구조와
+read_scope의 캐시 수명·사본 격리·쓰기 후 무효화를 보존한다. 갱신은 새 요청을 먼저 초기화하고
+원본의 replacement 연결을 저장하며 기존 workspace 트랜잭션과 중단 복구를 따른다.
+
+RetryInteraction은 이미 시작된 불확실 Step에 대한 요청의 source/action·attempt identity를
+생성한다. 이전 attempt의 승인을 새 attempt에 덮어쓰지 않는다. InteractionStorage와
+Repository.snapshot이 저장 위치·증거 투영을 소유하고 RunRepository는 그 내부 경로를
+다시 작성하지 않는다. View의 차단 사유는 표시 계약이며 실행 허가나 영수증을 대신하지 않는다.

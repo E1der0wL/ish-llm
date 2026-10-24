@@ -2,10 +2,11 @@
 
 대기 요청을 실제 Run으로 실행하고, Engine 이벤트를 영속 기록·관찰 알림으로 연결합니다. 승인, Tool 실행, 체크포인트, 사용량 제한의 실행 경계도 이곳에 있습니다.
 
-`submit(..., engine_options={...})`는 요청 인자를 JSON으로 검증·복사하고 QUEUED 메시지에
-함께 저장합니다. Run 시작과 재개는 저장된 옵션으로 실행별 Engine을 연결한 후 그 객체의
-capability를 구성합니다. RunManager는 Workflow ID의 의미를 해석하지 않습니다.
-`Run.metadata.engine_options`는 서비스 관리 필드이며 사용자 이벤트가 덮어쓸 수 없습니다.
+`submit(..., recipients=..., request_context={...})`는 선택한 Agent binding과 선택적 요청
+문맥을 검증·복사하여 QUEUED 메시지에 저장합니다. 생략한 문맥은 생략 상태로 유지합니다.
+Run 시작과 재개는 저장된 Agent 정의와 문맥으로 실행별 Engine을 연결하고 capability를
+검사합니다. RunManager는 Workflow ID의 의미를 해석하지 않습니다. Agent 정의의
+engine_options와 요청별 request_context는 서로 다른 계약입니다.
 
 ## 파일 안내
 
@@ -15,6 +16,7 @@ capability를 구성합니다. RunManager는 Workflow ID의 의미를 해석하�
 | [runs.py](runs.py) | RunRepository/RunManager와 Run 수명 알림. 큐, 시작·종료, 중단과 명시적 재개를 조율합니다. |
 | [events.py](events.py) | 이벤트 처리기 등록, EventContext, 동기·queued 구독과 구독 자원 회수입니다. |
 | [checkpoints.py](checkpoints.py) | Engine 체크포인트 저장·조회·명시적 정리와 삭제 표식 검증입니다. 승인 증거는 보존합니다. |
+| [interaction_records.py](interaction_records.py) | 단일 control Record Reader, 조회 projection, retry 요청 Writer와 저장 경로를 소유합니다. |
 | [interactions.py](interactions.py) | 승인·확인 요청과 사용자 응답의 영속 검증·저장입니다. |
 | [steering.py](steering.py) | 추가 지시의 대상 등록·마감, 메시지·중첩 체크포인트 참조, 대상별 반영 기록을 연결합니다. |
 | [tools.py](tools.py) | ToolExecutor와 Tool 실행 범위. 승인, 실행, 재시도, 결과·Step 이벤트를 담당합니다. |
@@ -30,7 +32,7 @@ capability를 구성합니다. RunManager는 Workflow ID의 의미를 해석하�
 
 요청은 먼저 ConversationStore에 QUEUED로 저장합니다. `_begin`에서 COMMITTED와 Run 시작을 처리한 뒤 Engine을 소비하고 `_finish`에서 종료합니다. Step·Assistant·Run·Session 기록과 트랜잭션 경계를 거친 **저장 후** Run 수명 알림을 보냅니다.
 
-Run 시작 시 저장한 `metadata.policies`가 해당 Run의 정책 원본입니다. 사용자 이벤트 처리기의 `EventContext.update_metadata()`로 policies/completions/resume/checkpoints/output/steering/engine_options/resume_abandonment/checkpoint_deletion을 덮어쓸 수 없습니다. 사용자 정의 메타데이터는 별도 키로 저장합니다.
+Run 시작 시 저장한 정책이 해당 Run의 정책 원본입니다. `EventContext.update_metadata()`는 정책·완료 영수증·재개/Checkpoint·추가 지시·Agent binding/요청 문맥·실행 증거 등 서비스 관리 필드를 덮어쓰지 못하게 합니다. 실제 보호 집합은 EventContext의 선언과 각 필드 Owner를 따릅니다. 사용자 정의 메타데이터는 별도 키로 저장합니다.
 
 RunHandle의 `checkpoint_plan → abandon_resume → checkpoint_plan → delete_checkpoints`는 대화를
 삭제하지 않는 명시적 정리 경로입니다. 완료 Run은 포기를 생략합니다. 실제 차단 조건과 보존 범위는
@@ -66,3 +68,9 @@ await subscription.aclose()
 Tool source worker는 함수를 실행하지만 승인·retry·Step·영수증은 ToolExecutor가 소유합니다. 승인 재개에서는 Engine이 stable checkpoint key를 공통 helper에 전달해야 합니다. 완료 결과는 재사용하고, 불확실한 부작용을 자동 반복하지 않습니다. [Tool 패키지](../../components/tools/README.md)와 [Engine 계약](../../engines/README.md)을 함께 참고하세요.
 
 [상위 안내](../README.md)
+
+
+Interaction 저장 조회는 기존 envelope 경계를 통해 현재 Record 전체를 검증한 후 typed
+control projection을 사용합니다. 응답 저장은 실행·큐 등록을 하지 않습니다. 갱신은
+취소/만료 증거와 요청 identity를 유지하며, 원본·갱신 연결은 동일 저장 트랜잭션에서
+확정합니다. [Interaction 계약](../../../docs/llm/interactions.md)을 참고하세요.

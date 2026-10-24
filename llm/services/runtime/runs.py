@@ -472,7 +472,7 @@ class RunRepository:
         self.require_resume(run)
         with self._interaction_scope(session, run) as (interactions, _):
             requests = self.interaction_requests(session, run)
-            if any(interactions.envelope(run, r)["cancelled"] for r in requests):
+            if any(interactions.control(run, r).cancelled for r in requests):
                 raise ValueError("Interaction is cancelled; renew before resuming")
             return interactions.decisions(requests, self.interaction_responses(session, run), explicit,
                                           retry_nodes=retry_nodes, confirm=confirm)
@@ -490,7 +490,7 @@ class RunRepository:
                 if (request.id in answered or request.expired is True or request.risk is None
                         or request.risk_scheme != policy.risk_scheme
                         or request.category == InteractionRepository.RETRY_CATEGORY
-                        or interactions.envelope(run, request)["cancelled"] is True):
+                        or interactions.control(run, request).cancelled is True):
                     continue
                 for rule in policy.rules:
                     if rule.category == request.category and request.risk <= rule.max_risk:
@@ -577,7 +577,7 @@ class RunRepository:
             self.interaction_requests(session, run)
             responses = self.interaction_responses(session, run)
         files = tree_snapshot(CheckpointRepository().root_path(run))
-        interaction_files = tree_snapshot(run.paths.state / "interactions")
+        interaction_files = InteractionRepository().snapshot(run)
         abandon = list(common)
         if abandoned or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
             abandon.append(Diagnostic(PlanBlockerCode.NOT_RESUMABLE, "Only an un-abandoned inactive resumable Run can be abandoned", source=source))

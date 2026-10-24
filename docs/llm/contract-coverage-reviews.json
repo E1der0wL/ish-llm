@@ -73603,8 +73603,8 @@
   },
   {
     "path": "llm/core/interactions.py",
-    "sha256": "22dc881fc32d36fce3a147d677c0f87982d551dd431e3ca57b4bf9e0ea5968ed",
-    "reason": "Whole source and dynamic-field review covers explicit/selected inputs, option identity vs effect, unknown extensions, JSON type distinction, persisted full-field snapshots, fingerprint/expiry/actor checks and public view projection. No automatic approval, implicit retry, legacy Reader or missing-state fallback was introduced.",
+    "sha256": "f6b05b2d9e5c801c8731f79adda704cb0df2e0d45f5aefb782971362ac907f91",
+    "reason": "Whole source and dynamic-field review covers explicit/selected inputs, option identity vs effect, unknown extensions, JSON type distinction, persisted full-field snapshots, fingerprint/expiry/actor checks and public view projection. No automatic approval, implicit retry, legacy Reader or missing-state fallback was introduced. Request renewal snapshots/revision and Response comparable projection now own the shared pure construction; View reason declarations are canonical. Repository default option/revision consumers are connected and verified without relaxing expiry/cancellation/identity proof.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -74286,172 +74286,214 @@
         "reason": "Access the sole approval option after exactly-one validation; structural indexing with the existing input validation preserved."
       },
       {
-        "id": "19ffc742bb92101e31816906c07ebdb4d8588915ab41f3953037486a4e98e1ea",
+        "id": "0216a7aedcd433e88e938c451a4669c9505b64d7af1e0a1dca79a3a4bc05709e",
         "classification": "non_contract",
         "owner": "InteractionRequest.respond",
         "reason": "Python forward type annotation naming the actual Owner class."
       },
       {
-        "id": "df5d8760a0210fb8792091fcdedc8488ba18f91d571d8ff209dfaa25d0d2cec9",
+        "id": "d45869665be8cc7b96e6649c2ae4834e8de3762559b0fdb6e10993745fb76433",
         "classification": "non_contract",
         "owner": "InteractionResponse",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "d6dc908620c48eabfba504be8c7c2f4d953fbfb0adfc2bc91501b11ca183d042",
+        "id": "8e54c2f2762c3eec8d17bad12c49117aed289782015bc7d6d60bcba97a22c43d",
         "classification": "non_contract",
         "owner": "InteractionResponse",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "ca590116fb145d2131bac75593e78de1c779d3b84e8cc5d2ae7d8b06c5c2aa4b",
+        "id": "dac181f02195b907cb7e49fccbc8ebb3ffc3434a1b68e905b4cb47381e136dc8",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "2416ac81fcef5917c35c560172ec002228ec21e34dc9614810306de8d61ded24",
+        "id": "838188bcf6f967fa234dd264e35ca6dbbe756b5903f7633aa38665bb05e686b2",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "be40baf976cd2536db8bc309c58ce3bc4e1380ec39708b0b0e14935de7a9d386",
+        "id": "8fb52decd921f5e06545b3810023b256d58124c4a1862cdee228bc563c4c712d",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "787618d63f56746641ea2b49e52a36a38e3d34c8aa2c81151e604b4316fe421e",
+        "id": "d19639dad5cd8411150bde4f2098e0b77468cf9ea9087e7d64d3dd2e822551f8",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "34b428e88049e9222cb333d0ab962968942a7b94942ef4df05d8706527252df2",
+        "id": "8ba57d02a61c8bb6cab23449d95fbc4627f83b9d30d36280b8ec024c03d02cd7",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "0be58d2521fd17c761dc71922eabc2ad74f9c56d1d4d35dabc517bb77022ea20",
+        "id": "0c9ec51abe6052616aa628de5439cfde5d6b2cfc856330b48f27eff4fef2478d",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "0cc3deea3b6a4f3b5d16828ba4e4aa1a097e9d0b22b035c941ead5bec4368842",
+        "id": "763e41c38e8bd2ae4f13ee43b99b9b9e289a00ef9ae4f35695d0481e34bbf2c1",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "24c890ae8e21a11fa5fc07fc80d4cda5013d71a3c3ee03e7d9bf7ac553112ca3",
+        "id": "a41ef2ed5bc0781d1fa3f799fa03a3134030ccf9073077daa610fe0869f906f0",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "81781729b14dfadfc54d682c8ce12cb1d67970ddf92271f129fe678b1b30cafb",
+        "id": "22db184e7a1da8b35065877b19bd93b9b5c0bab19c07e54da0a8ab499b0cc253",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e7f484e6f8e2379826785c4b1242f32347a407dc98d28fee094cde344a147483",
+        "id": "f6913b9384c3d63cb359b4ebba23248e0371685bf4cb8d77ee391a439ae36b1d",
         "classification": "declaration",
         "owner": "InteractionResponse",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "a7201a7b98a562c71714883c324c6454b2bfa7582ead5e0bcd7703d0cc495a63",
+        "id": "caa61ea1117079b8d26b55693147fd4a9f342cc5f87a88bbf3188f7bc4208743",
         "classification": "non_contract",
         "owner": "InteractionResponse.__post_init__",
         "reason": "Python return type annotation only."
       },
       {
-        "id": "a979f8545fb616557a10347f03c6c0f93399900caa9bb3894c18082a1cd71c18",
+        "id": "b4987ee5a85d28913213e55e636db3ea5a4757e642822a666fab8357009e27bd",
         "classification": "non_contract",
         "owner": "InteractionView",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "cba21dc50b96e95324f0f48fc56f889941c2af8287418aab0db32fed4a8a92c6",
+        "id": "a15bda33542f425499f308ca33af26dfc58b7873a74fa2507b486d16e1bb9ffc",
         "classification": "non_contract",
         "owner": "InteractionView",
         "reason": "Python frozen/slots dataclass declaration metadata; no stored or policy value."
       },
       {
-        "id": "03cbb05b617e3f4d6e2f480766e25ddfa96f9d77f0303b55d6a5333c2e2b186e",
+        "id": "fe28d1c02886fc7c9560c116fe0420b882dbb8c7b1a43a8ce08b7529ddf3c8bc",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "e7555a7940e10dba7a24e723961c08de38f751ae311da4325d1560f545b6767b",
+        "id": "7ba5bc308efe4c0e4201cb29dbe6919b108de73cfc9c5d4441137dd1c11bae6e",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "16991f3b6fe219162d8931f2e0054219764288719ced4219124018a08523f5e5",
+        "id": "7697a437954c9da6f46f867c9a537795490f57b101d5efca4adcdb1aa99410ee",
+        "classification": "declaration",
+        "owner": "InteractionView",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c983dd20ddaa05644fe23a3fffeb60c87fbfeb7c188c88b0293268c0ced60acb",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "a20d2073970c68fd2bbf4488e644f15f46b8b029e87802a8cd367e2a45ae97c0",
+        "id": "9ef5e9f0a4bf574a73ed628d798a0ad1c750a856eee25488addccb2b5230ae7c",
+        "classification": "declaration",
+        "owner": "InteractionView",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "76a4880eeeaf668d0f39bb1487025899a39c25f10867657c1599c3d04d6e43ff",
+        "classification": "declaration",
+        "owner": "InteractionView",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9fb8c46f7ff4e4c84844779007fb6ec5aefac80e3f813b8f12bbeba9fda185e8",
+        "classification": "declaration",
+        "owner": "InteractionView",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d72e24dbf06fe80ad12936562e32b368b878438883103241bde2f0cd83795b71",
+        "classification": "declaration",
+        "owner": "InteractionView",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ef409bd69355df8c68a2b2ff2c72e85255176a837424e3ce04a7bc5cc54bcea8",
+        "classification": "declaration",
+        "owner": "InteractionView",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "64ae59fb3d034d5c671a892477f8d814e10300d253f797cd8159a01c0485e265",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "a0f1f27ff8b0c67a49cca6bb2495a85829d782671bc5ba84bf7b3413ab5018a3",
+        "id": "a9bb6823d37ad8564001642413c4b69bb1cc465aae2f3d2fe977713453e3005b",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "2fee433da5750b169e5d3b6ccd555110cefdd3f955a38445244bab4f52df8eb5",
+        "id": "c8d730c8160f8131f15cd11a1c5b635f798595bdc23bb8c1b0bd36ac741d3a4d",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "433f3925383ec6857abf4837ee2bab6dada5dd84b698f74b887ce9144087fc11",
+        "id": "065c59aaed2a2ebfba20d8c8350467418bb0658afa42bafa3a9a222b20a2e73b",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f972c0a3c0ae4c365f8946fbb10dbd604b96de522f443e0ddc71bc2e66c5da26",
+        "id": "158f6d74c5372b63c8918101c077d9ba5a07b8b530b525abc2174fb5a1035e41",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "8c39f8cc1e4f59a91865eee2f06058057c930dcb63ac26c004fcd4b7c9e3bae5",
+        "id": "713f23c8207b6611532c0f55bd74fbabfc6bda81196de64acfc7567d9fbc6b1a",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "094b4eebe55591c75ea1c1ed70d4b6ebc5d815d5afe43c03e6dc3b56d6728ef4",
+        "id": "25751919ba3b0403e8a3028ab573b6be9ad4e54e6972e3fc9755360be79d4166",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "2eeaff0f4585a9fdd1a1b12fe93749b2f035ff6d0f922bad5002c20c96c90f3c",
+        "id": "67980d21ca824fc7ee467215010ea60f07337e8518de545f7d584c7a6a252c91",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
       },
       {
-        "id": "f3bb8d110c658782d21fc8d5a8b32883ea8b50ea20679a87478b16846def22e0",
+        "id": "949f60359962c4d68f4de93397ad9cd1715ff8c00cc34954e141773519f7876d",
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Each request/response/option/view contract value is at its Owner head; dataclass fields are canonical wire declarations. Dynamic custom option/effect/source/action values remain opaque. Shared validation and serialization use Owner APIs."
+      },
+      {
+        "id": "1682353a4e44502344e3e0466a51db64e052746764adcf16a74da32d77c5142c",
+        "classification": "declaration",
+        "owner": "InteractionView",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -74459,16 +74501,17 @@
         "owner": "InteractionBinding / Selection / Option / Request / Response / View / Snapshot / JSON / Risk",
         "declaration": "llm/core/interactions.py",
         "consumers": [
-          "llm/services/runtime/interactions.py",
-          "llm/services/runtime/tools.py",
-          "llm/services/runtime/runs.py",
+          "llm/core/checkpoint_records.py",
           "llm/services/api.py",
-          "llm/core/checkpoint_records.py"
+          "llm/services/runtime/interactions.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_project_authority.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_interaction_decisions.py",
@@ -74481,20 +74524,28 @@
           "tests/llm/test_policy_ownership.py",
           "tests/llm/test_policy_values.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       },
       {
-        "owner": "Interaction default option IDs and revision step — Repository consumer connection pending",
+        "owner": "Interaction default option IDs and revision step — Repository consumers connected",
         "declaration": "llm/core/interactions.py",
         "consumers": [
-          "llm/services/runtime/interactions.py"
+          "llm/services/api.py",
+          "llm/services/runtime/interactions.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_project_authority.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_interaction_decisions.py",
@@ -74507,9 +74558,498 @@
           "tests/llm/test_policy_ownership.py",
           "tests/llm/test_policy_values.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/interactions.py",
+    "sha256": "02cb1101b25b033f64d364e81997862390e77158fca6b11c42233957f0bdb87f",
+    "reason": "Full source/dynamic access review covers current full-field Record validation, nested identity/renewal evidence, public envelope injection and copy contract, shared typed projections/Writers, cache lifecycle, retry attempt IDs, response conflict, view precedence, backup proof and actual process interruption. No second storage Reader, compatibility path, new authorization, automatic retry or missing-record repair.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2444d4833971ddf8371f354f03e94e4d3145ef67ef7a8a159e5ade1b8a170f4e",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "e5699d5366eb89ead21144ae9a83c138dbd246400487020945a0e5934e159e90",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "07362013376920d8ac3718f8b541e0dcc80aa6c5a04d290c36c0abb3e4d66bcc",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "bf39453e576c157dc2892b9e7a4e639061eee5a824ad2e39aeb7499463b6b7a2",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "213687677f9a4deddfa51e135b7c36cf6947fd0a3ebd661c8619743cfaa712a3",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "4d6e8c999040e390001a7c5689bc15c6a615c157ca5ee68eb77e8a2445ecc577",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "44394c940953e53292ae260c3dfd172c0a695197d16cb1196358ad10fc03370b",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "af0137cd6163ebf5389ab1c041861da424f65ac71ee7d25f1308c8bd57082e85",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "5ab4a8178d1f315037cf42875604041050385b868ca1b997a05bc23746560eb7",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "b6dee0db5a3509819111068092f9405f44d722e531997698d28e5701385f29fe",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "5e5e30a07fd04a8814c6f242eafc3c759af1e35e4e097386dbbf239b6e0eb083",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "a46acdf03a7a2574a40583b323f04bfa4c4d0c141d73b6754c932cd02fd67c84",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "f6140b0451e1b14a5d89cc796cc463fe70c7efcb4b9fddc0707c41bc4e0ab248",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "3d92fd10106f543085aea775af4559532c1dc1167c1203c0b2c56c25b94d47bb",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "ba543ea432df5508c6c3b94a9b75daa7d70cd4b9951c116dbe802e2bedfdb263",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "6fe8b3ddc0beb28d7050efc335e5b316fb8f208bda8a15715fdb1fda757d2fc0",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "71a2591233c32af854d74f3fc5268f3183d90c2caf587bfc39f8752546e99eb2",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "3f4b2f62669410f7147507da4e8a534dae52ddbc867f3ce48714b550a724e1d1",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "3f3d6a86eb317498e2586effd13040b80b3cdff84588c54db6052b1848b07138",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "a97b3e0fc6f1ec6e08b91056f3c85abb937151c4410d4cd1df00308f4180ff04",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "46e30accfedd8f83e962835d758f634100471b650866af21cf6a021d9dcb0082",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "683971c5226898351205459d149818e23db1b36c6a76e1f65a02fc2051d1e005",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "1e57f7c5574514c8df65fed9833d8869bb7694dab3106a69ceac5024c2f60a15",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "b8bd92e72db7aad2ad655b125b5ea90d9faedaeb474048bde7424837ef82f43d",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "d49cae0fc74fc3fb668b36c5a3391bdb18ed31497eb310e2a2d2d29042a763dc",
+        "classification": "declaration",
+        "owner": "InteractionRepository",
+        "reason": "Repository errors/cache/availability states stay at its head; storage/retry/record/value contracts refer to canonical Owners. Internal fixed control access uses typed projection APIs."
+      },
+      {
+        "id": "36529ebff33182c4cad657695b647ec634f104e469a547cebf94976e795a7df2",
+        "classification": "non_contract",
+        "owner": "InteractionRepository.inherit",
+        "reason": "Unbounded Python traversal; actual terminal evidence or cycle detection ends the loop. No product chain-length limit is introduced."
+      },
+      {
+        "id": "4db83423340d925a23c574a81d3e22c01efbd7d897bdc93ce18253b189504f0d",
+        "classification": "non_contract",
+        "owner": "InteractionRepository.effective",
+        "reason": "Unbounded Python traversal with the original visited-ID cycle guard and required replacement access."
+      },
+      {
+        "id": "06aac6c2572e59fd0ada8408f3c3c9eb4d77180e3d5b8fbf7975ada55485fa11",
+        "classification": "non_contract",
+        "owner": "InteractionRepository.respond",
+        "reason": "The existing single-request response list is nonempty here; first-item access is structural indexing, not approval policy."
+      },
+      {
+        "id": "5aa7b8b32bf8e5247cfb823335bab32746d98dd60c42f9952e70e785f6fdc062",
+        "classification": "non_contract",
+        "owner": "InteractionRepository.respond",
+        "reason": "The existing single-request response list is nonempty here; first-item access is structural indexing, not approval policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InteractionRepository",
+        "declaration": "llm/services/runtime/interactions.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/interactions.py",
+          "llm/services/api.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_project_authority.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/interaction_records.py",
+    "sha256": "b4be96313ab7029bb890f2d809c890b7e7da9724958ccc663952b4768eeaf450",
+    "reason": "Full source/dynamic access review covers current full-field Record validation, nested identity/renewal evidence, public envelope injection and copy contract, shared typed projections/Writers, cache lifecycle, retry attempt IDs, response conflict, view precedence, backup proof and actual process interruption. No second storage Reader, compatibility path, new authorization, automatic retry or missing-record repair.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8c9fda9452aa927df85ad5a2a76bfc2af2faeb90d58b238439bc7df7e241b53a",
+        "classification": "declaration",
+        "owner": "InteractionStorage",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "aa0ef4eaa3e5b323b15bfc98faa17c4473c7b7db41cf0558dd6c1c92b587c27c",
+        "classification": "declaration",
+        "owner": "InteractionStorage",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "f25170b4cb0cad24b757f0aea29efa23404ac497b40753d58add072211b58c52",
+        "classification": "declaration",
+        "owner": "InteractionStorage",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "30388c82ea0019740c23839718d652f6720bce1bbc0036461a68866a1d5bba88",
+        "classification": "declaration",
+        "owner": "RetryInteraction",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "8529991f3a3fc196fd90cb55904d647f788f4444d4898b6de78f8ecd652c8d8d",
+        "classification": "declaration",
+        "owner": "RetryInteraction",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "7e8b809a9496dcdea5399cc0bc303d5f9455160a0c328043472b59c9103fbfbd",
+        "classification": "declaration",
+        "owner": "RetryInteraction",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "7ca3e3eed7e3a4d43980076c43a2cf646664491346afe7f878c0d12f95ffd59a",
+        "classification": "declaration",
+        "owner": "RetryInteraction",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "666218fc34cd0ff35ff6c3ad111605b8cbb28660607cce4d1ce7647fc2d89c08",
+        "classification": "declaration",
+        "owner": "RetryInteraction",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "14706010ba6a0a03eb18dcd8d3ffeb00d247977a9614761286c4899298a9037f",
+        "classification": "declaration",
+        "owner": "RetryInteraction",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "f82a4e04030adc6daf42f9204db3dd58a3f4c1c3fd2072d82d35507b48bd1db9",
+        "classification": "declaration",
+        "owner": "RetryInteraction",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "d51fd1305a2ffbfb276765c16be71b5dd74bdd44742414b87c27127fadf45f6a",
+        "classification": "declaration",
+        "owner": "RetryInteraction",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "004a1f5dfb588fae6450853b2743d1506f14acf8a548a9d02b024134c7e9fab1",
+        "classification": "non_contract",
+        "owner": "InteractionRecord",
+        "reason": "Python frozen/slots dataclass declaration metadata; persisted DTO layout is unchanged and the shared mixin has empty slots."
+      },
+      {
+        "id": "e92f60cd3c8657eabde15dd7dc4b3c3ce4b542eaed8ca3af3282b3ae2f8f3b65",
+        "classification": "non_contract",
+        "owner": "InteractionRecord",
+        "reason": "Python frozen/slots dataclass declaration metadata; persisted DTO layout is unchanged and the shared mixin has empty slots."
+      },
+      {
+        "id": "dc8fe6829ee6cc9a1e665fcfe390af17593ef40f129af7e57da70f49c7080ce5",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "79623e8f1b9cc4010833fb1c28f389c80e3290253789592d010a2f65a5f22fa9",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "2dddc2757fdb94ab3d3a92f3a7a3bc20406ca66584f14134b2a66f237c2e244e",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "f44039e1f6876a092bd24e8c94e393d87cbeb4f5c0f746466b4a5de374792cf8",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "57d1b0d63d0f49b175d67b68b248d9359c8b4d60c4b1c7bb13ec0b7098f2e1b1",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "845582ca8c56d3af201c3342d964aedf729c7836e131d0717123ea8714d4059e",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "8fd94d5f9c5d61904056152a1038a469511e6c1b8d4cf7b6d1963fb5a20549f2",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "e80b73ef9d19ba2e80775b8fc15b8e5781d8658d74e37a4151b61e2b9d7314b5",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "39a421c9593a24ed116ee99eaa4fdd29d45fce0332521197af2b5c8c865f8f4f",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "0ca3db7ae9594bce72880c57f212518bf25e24a9ccb062517620ba7bf65f03d7",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "105efce9f5940d893db7845977f7d5483d77bc218f88291fad85eac57a522e4d",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "5618a05d3bc5a7abe9100743b277e362c34be8733ee773b0e82bc533f6f0a6c7",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "a2391bc20362fc89ea5f45904f055c7a4a898a32c032b11c58e1355854320384",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "6fbe80888f0938069bc131c7ab8f216ca82a74dfab25ccfc6b916b6d85d2d0ff",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "74e905cb95451ee50b940d922d2e145bb945506edde5819e22688da9e04106ba",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "abc385eb751d194f6231e39e0226b6fc1fb080fe10496f83fdb2be4b3f7d1414",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "747a52ca5ba31b2c7933ab29a12b5481d3ff3c7ab153e37b78885cd620784bb2",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      },
+      {
+        "id": "298d993932ba83b057a53a41ae7b111d4e1d33a613fdd6320e5fe7551efc2643",
+        "classification": "declaration",
+        "owner": "InteractionRecord",
+        "reason": "Record dataclass fields and current version are canonical; storage/retry/value declarations stay at each Owner head. Shared projections add no Reader/default and use required field access."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InteractionStorage / RetryInteraction / InteractionControlValue / InteractionRecord / InteractionControl",
+        "declaration": "llm/services/runtime/interaction_records.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/interactions.py",
+          "llm/services/api.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_project_authority.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/README.md",
+    "sha256": "6d50714daaf9de053e7d242cda327cff6d2e31b5b2bbeed0a26c528301d0d6be",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Read the complete guide against current submit/restart/event/interaction contracts. Corrected obsolete engine_options request wording to recipients/request_context with Agent binding; preserved the separate Agent definition options and current protected-metadata boundary. Added complete Reader vs projection ownership. This guide review does not assert whole Run/Tool/Event implementation completion.",
+    "contracts": [
+      {
+        "owner": "Runtime service overview",
+        "declaration": "llm/services/runtime/README.md",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/interactions.py",
+          "llm/services/api.py",
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_project_authority.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
       }
     ]
   }

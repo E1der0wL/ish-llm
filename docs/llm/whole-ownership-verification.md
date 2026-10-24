@@ -6954,3 +6954,63 @@ History/공통 저장 묶음이며 이 새 변경의 전체 검증으로 재사�
 Repository의 기본 option/revision 소비자는 아직 미완료 계약으로 유지한다.
 
 마감: S1–S7 정적 감사 exit 0(검토된 발견 84개·미검토/오래된 근거 0), 감사 자체 시험 16개/3.578초 통과, 문서 검사 exit 0. 전체 미검토 203개(llm 26/Hub 177), 미분류 11035·미완료 계약 4개이며 새 항목은 Repository의 기본 option/revision 연결이다. 전체 완료를 선언하지 않고 다음 소단계에서 연결한다.
+
+
+## llm Interaction control·저장 projection Owner — Level 1·2
+
+기준 271f27d. 현재 InteractionRecord Reader를 interaction_records로 옮기고 Record와
+InteractionControl projection이 단일 필드 선언·공통 값/Writer를 사용하도록 연결했다.
+Repository는 기존 envelope의 전체 검증·사본/주입 경계를 유지한다. Request가 갱신
+revision/스냅샷을, Response가 시각 제외 비교를, RetryInteraction이 기존 재시도 요청
+identity/source/action을 소유한다. RunRepository의 두 취소 조회와 저장 증거 경로만
+Owner API로 연결했고 RunRepository 전체 완료로 기록하지 않는다.
+
+초기 `whole-interaction-storage-l1-01`은 99 발견/99 실행/98 통과/1 error, exit 1이었다.
+기존 갱신 체인 시험의 envelope 주입을 control이 우회하여 None.paths 오류가 발생했다.
+테스트의 140개 갱신 체인·순환 거부 Assertion을 유지하고 기존 envelope 경계를 복원했다.
+`whole-interaction-storage-l1-02`는 99개 통과(30.877901초)했다. 이후 공유 mixin에 빈 slots를
+선언해 원래 frozen/slotted Record의 __dict__ 부재를 보존했으므로 -02는 중간 결과다.
+아래 -03과 관련 검증만 최종 소스의 통과 근거다. 초기 실패 로그/발견 목록은 보존한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/interaction-storage-draft/ast-proof.py`
+exit 0: 기존 함수 180개가 선언/Owner 메서드 전개 후 전체 AST가 동일하다. 표현 변경
+13개는 전체 AST 동일 주장에 포함하지 않았다. 같은 경로 `values-proof.py` exit 0: actual_storage 6, read_write_faults 134, record_refusals 72, injected_envelope 2, retry_requests 40, view_states 84.
+이전/현재 실제 저장·응답 멱등/충돌·취소/갱신·상속·캐시·view·retry identity와 각 읽기/쓰기
+전후 장애를 비교했다. 동일 경로·고정 요청/갱신 ID/시각을 사용하며 결과/원본 bytes/오류를
+정규화하지 않았다. snapshot 파일 identity는 같은 실제 파일에서 비교했다. 필수 기록 누락을
+pending으로 복구하지 않고 새 요청 초기화→원본 연결과 기존 실제 process-death 계약을 유지한다.
+
+- `whole-interaction-storage-l1-03`: discovered/started/pass 99/99/99, exit 0, 30.386156초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-interaction-storage-l1-03/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_interactions tests.llm.test_interaction_decisions tests.llm.test_interaction_presence tests.llm.test_policy_consumers tests.llm.test_current_contracts tests.llm.test_transactions`. source `272868374406cd057bb19d43914642344184aa5d4905673a150b356e95d686ad`, input `30630085b58b7736ecee9145afa4001252c11c1ef2a2708d4ecb4877a56a20c4`.
+
+- `whole-interaction-storage-l2-01`: discovered/started/pass 97/97/97, exit 0, 30.376587초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-interaction-storage-l2-01/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_run_reference_integrity tests.llm.test_runtime_reliability tests.llm.test_service_extensions`. source `272868374406cd057bb19d43914642344184aa5d4905673a150b356e95d686ad`, input `30630085b58b7736ecee9145afa4001252c11c1ef2a2708d4ecb4877a56a20c4`.
+
+- `whole-interaction-storage-hub-01`: discovered/started/pass 23/23/23, exit 0, 22.159471초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-interaction-storage-hub-01/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_output_interaction tests.hub.test_approval_continuation tests.hub.test_project_authority`. source `272868374406cd057bb19d43914642344184aa5d4905673a150b356e95d686ad`, input `30630085b58b7736ecee9145afa4001252c11c1ef2a2708d4ecb4877a56a20c4`.
+
+각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 ID 일치.
+LLM 집합 간 중복 0, source/input은 실행 전후 및 실행 간 동일하다. Python3.12.14/Clang·
+Host d833790·의존성과 격리 환경을 유지했다. R3 `python -m tests.llm.check_budget_mutation`
+exit 0. 기존 시험·Assertion·CI를 변경하지 않았다. 전체 Hub UI의 시간 제한 검사와 자원 경합을
+피하도록 Gate43 전체 회귀가 끝난 뒤 이 최종 집중/관련 검증을 순차 실행했다.
+
+검증 범위는 원본 Reader·승인/갱신·실제 중단·트랜잭션·정책 소비자와 효과·Checkpoint·예산·
+lifecycle·RAG·Run 참조·runtime/주입 서비스, Hub 승인/interaction/Project 권한이다.
+도메인 판정·wire·실행 효과·원자 경계가 보존됨을 이 범위에서 확인했다. 다음 관련 runtime
+묶음 Gate44의 전체 검증 전에는 Push하지 않는다. Gate43의 7995167 통과는 이 새 소스의
+전체 검증으로 재사용하지 않는다. 초기 실패를 집계에서 제외하거나 완료로 표현하지 않았다.
+
+마감 검사: S1–S7 정적 감사 exit 0(검토된 발견 84개·미검토/오래된 근거 0), 감사 자체 시험 16개/3.315초 통과, 문서 검사 exit 0. 전체 586개 파일 중 미검토 201개(llm 24/Hub 177), 미분류 10902·미완료 계약 3개를 계속 추적한다.
+
+
+## 묶음 Gate43 — 정확한 SHA의 로컬 전체 검증·Push
+
+고정 SHA `799516708521bf3f08669c51ba88cecb76af8484`에서 History 유지관리·관찰/잠금·삭제/백업·출력·공통 트랜잭션 변경을 함께 검증했다. 격리된 worktree에서 전체 LLM 다음 전체 Hub를 순차 실행했다. 이후 271f27d와 Interaction 저장소 변경은 이 게이트에 포함하지 않는다.
+
+- llm: 2502/2502/2502 발견/실행/통과, 1445.461924초, exit 0. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group43-l3/llm.json`.
+
+- hub: 588/588/588 발견/실행/통과, 1108.648613초, exit 0. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group43-l3/hub.json`.
+
+failure/error/skip/xfail/xpass/누락/추가/중복 0, full discovery/available ID 집합 일치. source `0cc09856664b7f813a50c33341d0ab3d8a68c6c8068bceca8daf90f0603d8a97`, input `57e4e2f0cb33e7db503f1da42c31e6581a4c21cb6bab9c22303e434931c203fd`는 두 전체 실행 전후 동일하다. 정적 S1–S7·문서·R3·offline SDK·LLM/Hub 환경 검사 6개 exit 0이며 Host d833790/Python3.12.14/Clang과 기존 격리 설정을 유지했다.
+
+최초 보조 확인 스크립트는 이전 clone의 untracked 심링크 상태를 worktree에 그대로 가정해 중단됐다. 실제 공통 exclude의 ish.platform 연결, /workspace/ish 대상, 정확한 HEAD와 깨끗한 추적 파일을 확인하고 보조 스크립트의 예상 상태만 수정했다. 제품·시험·전체 회귀 결과는 변경하지 않았다.
+
+전체 검증 성공 후 위 SHA만 refactor/llm-clean에 정상 Push했다. main 94229cb8, refactor/llm-backend bb094625와 Draft PR #1의 상태·head/base는 전후 동일하다. [원격 CI 40102793528](https://github.com/E1der0wL/ish-llm/actions/runs/40102793528)는 같은 headSha임을 확인했으며 2026-10-24 14:30:39 UTC 기준 실행 중이다. 원격 통과는 아직 선언하지 않는다.

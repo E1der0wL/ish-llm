@@ -484,6 +484,21 @@ class InteractionRequest:
             return self.NO_OPTION
         return deepcopy(options[0])
 
+    @classmethod
+    def renewal_revision(cls, revision):
+        return revision + cls.REVISION_STEP
+
+    def renewal(self, identifier, *, created_at, expires_at):
+        """Pure successor snapshot; caller must establish cancellation or expiry evidence."""
+        return replace(
+            self,
+            id=identifier,
+            revision=self.renewal_revision(self.revision),
+            created_at=created_at,
+            expires_at=expires_at,
+            status=InteractionStatus.PENDING,
+        )
+
     def respond(self, option_id: str, *, value: Any = NO_INPUT) -> "InteractionResponse":
         """UI가 본 요청 버전과 실행 대상에 묶인 응답을 만든다. 저장/실행은 하지 않는다."""
         response = InteractionResponse(self.id, self.revision, option_id, self.fingerprint, value)
@@ -547,6 +562,11 @@ class InteractionResponse:
         JsonObject.validate(value)
         return deepcopy(value)
 
+    def comparable(self):
+        value = self.to_dict()
+        value.pop(InteractionResponse.created_at.__name__)
+        return value
+
     def decision(self, request: InteractionRequest) -> Any:
         if (
             self.request_id != request.id
@@ -607,6 +627,12 @@ class InteractionView:
     """불변 요청과 현재 처리 상태의 투영. 사용자 결정과 실제 실행 결과를 구분한다."""
 
     NO_RESPONSE: ClassVar[None] = None
+    NO_BLOCK_REASON: ClassVar[None] = None
+    RESUME_ABANDONED: ClassVar[str] = "resume_abandoned"
+    ALREADY_RESUMED: ClassVar[str] = "already_resumed"
+    RUN_ACTIVE_OR_FINISHED: ClassVar[str] = "run_active_or_finished"
+    REQUEST_CANCELLED: ClassVar[str] = "request_cancelled"
+    REQUEST_EXPIRED: ClassVar[str] = "request_expired"
 
     PENDING: ClassVar[str] = "pending"
     ANSWERED: ClassVar[str] = "answered"

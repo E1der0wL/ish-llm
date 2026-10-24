@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 585,
-    "unreviewed_files": 203,
+    "files": 586,
+    "unreviewed_files": 201,
     "stale_files": 0,
-    "unclassified": 11035,
+    "unclassified": 10902,
     "violations": 0,
-    "incomplete_contracts": 4,
-    "unreviewed_dynamic_paths": 205,
+    "incomplete_contracts": 3,
+    "unreviewed_dynamic_paths": 203,
     "unreadable_files": 0,
-    "candidates": 21319,
+    "candidates": 21253,
     "issues": 0
   },
   "files": [
@@ -2560,8 +2560,8 @@
     {
       "path": "llm/core/interactions.py",
       "status": "reviewed",
-      "sha256": "22dc881fc32d36fce3a147d677c0f87982d551dd431e3ca57b4bf9e0ea5968ed",
-      "candidates": 141
+      "sha256": "f6b05b2d9e5c801c8731f79adda704cb0df2e0d45f5aefb782971362ac907f91",
+      "candidates": 148
     },
     {
       "path": "llm/core/json_data.py",
@@ -3399,8 +3399,8 @@
     },
     {
       "path": "llm/services/runtime/README.md",
-      "status": "unreviewed",
-      "sha256": "2011a254fb493055837f1bfafe0375c18e8c6d6b496c883cdbc9f4c5368cb304",
+      "status": "reviewed",
+      "sha256": "6d50714daaf9de053e7d242cda327cff6d2e31b5b2bbeed0a26c528301d0d6be",
       "candidates": 0
     },
     {
@@ -3434,10 +3434,16 @@
       "candidates": 183
     },
     {
+      "path": "llm/services/runtime/interaction_records.py",
+      "status": "reviewed",
+      "sha256": "b4be96313ab7029bb890f2d809c890b7e7da9724958ccc663952b4768eeaf450",
+      "candidates": 31
+    },
+    {
       "path": "llm/services/runtime/interactions.py",
-      "status": "unreviewed",
-      "sha256": "a75dd1157ffabeaf10e058dd5b276d7c94c46502f6a6994db2640ae12aee40bf",
-      "candidates": 130
+      "status": "reviewed",
+      "sha256": "02cb1101b25b033f64d364e81997862390e77158fca6b11c42233957f0bdb87f",
+      "candidates": 29
     },
     {
       "path": "llm/services/runtime/operations.py",
@@ -3478,8 +3484,8 @@
     {
       "path": "llm/services/runtime/runs.py",
       "status": "unreviewed",
-      "sha256": "c7761f8241fc33870b605907368b642bf78f83e745b1a4d512a55546e8ea64d6",
-      "candidates": 475
+      "sha256": "f201cffd1b8769b346f14eb5cc45da8ed649e98b14d23d5bd6c2abb27e441de4",
+      "candidates": 472
     },
     {
       "path": "llm/services/runtime/steering.py",
