@@ -41,3 +41,19 @@ ContextPolicy 검증·대화 선택과 Hub의 명시적 선택은 같은 선언�
 체크포인트 참조 검사는 RunRepository가 소유하고, SessionManager는 검사와 삭제 표시를 같은 트랜잭션으로 처리합니다.
 
 [상위 안내](../README.md)
+
+
+## 턴·문맥 선택의 선언과 소비
+
+ContextPolicy의 completed_only/recent_only/has_character_limit이 선택 모드의 정규 의미를
+제공한다. ConversationContextBuilder는 같은 Owner를 호출하며 현재 입력, 완료/실패 상태,
+선택 문자 예산과 최신 재개 자손에 지시를 연결하는 기존 순서를 유지한다. 범위가 있는
+추가 지시는 SteeringScope.ROOT와 구분해 해당 실행 Checkpoint에서만 복원한다.
+복제는 사본에서 Message.detach_run과 기존 Admission/Transfer/Instruction Owner를 사용한다.
+원본 Run 연결·영수증을 지우거나 예약된 지시를 자동 실행하지 않는다.
+
+ConversationTurns는 Run별 요청/응답 묶음과 포함 시점 선택을 소유한다. 공개 함수는 같은
+구현으로 연결한다. queued 입력이 섞인 조회 묶음과, 정렬한 Run 문맥에서 현재 입력을
+보호하는 ContextBuilder의 선택 알고리즘은 목적과 입력 순서가 다르므로 하나로 합치지 않는다.
+기존 system/developer 문맥 유지와 일반 user 역할 비교는 각각 공통 역할 Owner를 참조하며
+저장 Message의 허용 역할을 확대하지 않는다. 이 정리는 저장·재개·삭제 규칙을 변경하지 않는다.

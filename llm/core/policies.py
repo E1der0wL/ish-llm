@@ -206,13 +206,16 @@ class ContextPolicy:
 
     MISSING_BUDGET: ClassVar[str] = "Context budget mode requires max_chars"
     MISSING_TURNS: ClassVar[str] = "Recent context requires explicit max_turns"
+    UNSPECIFIED: ClassVar[None] = None
+    COMPLETED_MODES: ClassVar[tuple] = (ContextMode.COMPLETED.value, ContextMode.RECENT_COMPLETED.value)
+    RECENT_MODES: ClassVar[tuple] = (ContextMode.RECENT.value, ContextMode.RECENT_COMPLETED.value)
 
-    mode: str | None = policy_field(default=None, metadata={PolicyDeclaration.SCHEMA: {
+    mode: str | None = policy_field(default=UNSPECIFIED, metadata={PolicyDeclaration.SCHEMA: {
         SchemaKeyword.TYPE: SchemaType.STRING, SchemaKeyword.ENUM: [mode.value for mode in ContextMode],
         SchemaKeyword.DESCRIPTION: "엔진에 전달할 과거 대화 선택 방식"}})
-    max_turns: int | None = policy_field(default=None, metadata={PolicyDeclaration.SCHEMA: {
+    max_turns: int | None = policy_field(default=UNSPECIFIED, metadata={PolicyDeclaration.SCHEMA: {
         SchemaKeyword.TYPE: SchemaType.INTEGER, SchemaKeyword.MINIMUM: 1, SchemaKeyword.DESCRIPTION: "recent 계열의 과거 턴 수; 현재 입력은 별도"}})
-    max_chars: int | None = policy_field(default=None, metadata={PolicyDeclaration.SCHEMA: {
+    max_chars: int | None = policy_field(default=UNSPECIFIED, metadata={PolicyDeclaration.SCHEMA: {
         SchemaKeyword.TYPE: [SchemaType.INTEGER, SchemaType.NULL], SchemaKeyword.MINIMUM: 1, SchemaKeyword.DESCRIPTION: "현재 입력 포함 대화 본문 문자 상한"}})
 
     @classmethod
@@ -221,17 +224,29 @@ class ContextPolicy:
 
     @staticmethod
     def validate_budget(mode, max_chars):
-        if mode == ContextMode.BUDGET and max_chars is None:
+        if mode == ContextMode.BUDGET and max_chars is ContextPolicy.UNSPECIFIED:
             raise ValueError(ContextPolicy.MISSING_BUDGET)
 
     @classmethod
     def selected(cls, policies):
         value = policies.get(PolicySection.CONTEXT)
-        return cls(**deepcopy(value)) if value else None
+        return cls(**deepcopy(value)) if value else cls.UNSPECIFIED
+
+    @classmethod
+    def completed_only(cls, policy):
+        return policy.mode in cls.COMPLETED_MODES
+
+    @classmethod
+    def recent_only(cls, policy):
+        return policy.mode in cls.RECENT_MODES
+
+    @classmethod
+    def has_character_limit(cls, policy):
+        return policy.max_chars is not cls.UNSPECIFIED
 
     def __post_init__(self):
         _validate_runtime_policy(self)
-        if self.mode in (ContextMode.RECENT, ContextMode.RECENT_COMPLETED) and self.max_turns is None:
+        if ContextPolicy.recent_only(self) and self.max_turns is self.UNSPECIFIED:
             raise ValueError(self.MISSING_TURNS)
         self.validate_budget(self.mode, self.max_chars)
 

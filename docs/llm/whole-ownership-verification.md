@@ -6482,3 +6482,50 @@ Host d833790·namespace/X11 조건이 같고 L1/L2 LLM ID 중복 0이다. R3
 해소하여 정적 발견 84, new/stale 0이다. 문서 168·Python fence 183·링크 1244·anchor 37,
 오류 0. inventory는 579개 파일, 미검토 221(llm 44/Hub 177), 미분류 12349,
 미완 계약 3, stale/확정 위반/도구 issues 0이며 전수 완료는 아직 아니다.
+
+
+## llm 대화 턴·문맥 선택 Owner — Level 1·2
+
+기준 46de1fd. ContextPolicy가 completed/recent 모드 집합과 명시 문자 상한의 의미를
+소유하고 검증·ContextBuilder가 같은 선언/판정을 사용한다. Message의 UNBOUND_RUN과
+사본의 detach_run, SteeringScope.ROOT를 연결했다. ConversationTurns가 조회용 묶음·
+포함 시점을 소유하고 기존 공개 함수는 단일 구현에 위임한다. 현재 입력 보존·완료/실패
+선택·문자 budget·최신 재개 자손의 지시 연결·복제 상태/영수증 처리 순서는 유지한다.
+조회 턴과 Run 문맥의 서로 다른 grouping 계약을 임의로 합치지 않는다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/history-context-draft/ast-proof.py`
+및 같은 경로 `values-proof.py` 각각 exit 0. context/turns와 변경된 공유 모델·정책의 기존
+전체 함수 100개를 정규 Owner 전개 후 비교했다. 독립 입력 대비 이전 커밋 differential:
+policy_schema 1, policy_values 392, message_declaration 1, selected_history 3650, frozen_history 50, clone_history 50, turn_groups 50, through_turn 200, snapshot_selection 292, corrupt_for_run 5, corrupt_clone 5, context_role_retention 3.
+원본 메시지·metadata·Admission/Instruction/Resume 증거를 수정하지 않으며 기본 필드 선언,
+생략/null·잘못된 정책과 손상 기록의 오류, 복제된 지시 상태·scope를 확인했다.
+
+첫 집중 명령 `whole-history-context-l1-01`은 존재하지 않는
+`tests.llm.test_context_scopes`를 잘못 지정하여 discovery 단계에서 exit 2/incomplete로
+거부됐다. 시험 통과로 집계하지 않았고 원래 명령/로그를 보존했다. 실제 발견 목록의
+`tests.llm.test_policy_consumers`로 바로잡은 다음 별도 `l1-02` 실행을 아래에 기록한다.
+제품 코드·Assertion을 변경하거나 발견 검사를 우회하지 않았다.
+
+- `whole-history-context-l1-02`: discovered/started/pass 100/100/100, exit 0, 32.980436초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-history-context-l1-02/llm.json --modules tests.llm.test_conversation_turns tests.llm.test_service_boundaries tests.llm.test_service_extensions tests.llm.test_loop_steering tests.llm.test_instruction_values tests.llm.test_policy_values tests.llm.test_policy_consumers`. source `7f5af615326fc45cb537da57dc18e452d549969ed29faba2edaf0984c128ec46`, input `61adeff2ce75373a1dead6af52f4b6166bfa974d92ba9c362939972b4f5e4e6a`.
+
+- `whole-history-context-l2-01`: discovered/started/pass 139/139/139, exit 0, 65.63741초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-history-context-l2-01/llm.json --modules tests.llm.test_turn_deletion tests.llm.test_checkpoint_lifecycle tests.llm.test_continuation_values tests.llm.test_engine_steering tests.llm.test_memory_conversation tests.llm.test_run_reference_integrity tests.llm.test_completion_integrity tests.llm.test_usage_ownership tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage`. source `7f5af615326fc45cb537da57dc18e452d549969ed29faba2edaf0984c128ec46`, input `61adeff2ce75373a1dead6af52f4b6166bfa974d92ba9c362939972b4f5e4e6a`.
+
+- `whole-history-context-hub-01`: discovered/started/pass 21/21/21, exit 0, 52.212573초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-history-context-hub-01/hub.json --modules tests.hub.test_history_retention tests.hub.test_request_history tests.hub.test_composer_history`. source `7f5af615326fc45cb537da57dc18e452d549969ed29faba2edaf0984c128ec46`, input `61adeff2ce75373a1dead6af52f4b6166bfa974d92ba9c362939972b4f5e4e6a`.
+
+성공한 각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0,
+발견·실행·통과 ID 일치. 전후·실행 간 source/input·시험/Fixture·의존성·전체 discovery·
+Python3.12.14/Clang·Host d833790·namespace/X11 환경이 같고 L1/L2 LLM ID 중복 0이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0으로 실제 효과 Assertion의 결함 검출을
+유지했다. 기존 시험과 Assertion은 변경하지 않았다.
+
+집중·통합 범위는 Run/Session 문맥·정책 소비·추가 지시/재개/턴 삭제·Checkpoint·Memory,
+Run 참조와 승인·예산·효과·삭제/저장·RAG 무결성, Hub 이력·작성 문맥이다. 기존 전체 함수의
+순서와 결과가 같고 원본 기록/트랜잭션/실행 정책은 변경하지 않아 영향 범위를 제한했다.
+전체 반복은 유예하고 앞선 조회 변경 및 후속 History/서비스 묶음의 **Gate42 Level 3**로
+검증한다. 고정 05bf5cf Gate41과 이 변경의 증거를 구별한다. 소단계 로컬 완료이며 전수·
+상위 게이트·원격 완료가 아니다. llm 우선 작업을 계속한다.
+
+종료 S1–S7·감사 16개(3.340초)·문서 검사 각각 exit 0. 정적 발견 84, new/stale 0,
+기존 공유 의존 근거 39개를 이번 함수/소비자 증거로 갱신했다. 문서 168·Python fence 183·
+링크 1244·anchor 37, 오류 0. inventory는 579개 파일, 미검토 218(llm 41/Hub 177),
+미분류 12315, 미완 계약 3, stale/확정 위반/도구 issues 0이며 전수 완료는 아직 아니다.

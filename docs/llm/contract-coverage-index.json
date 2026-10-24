@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 579,
-    "unreviewed_files": 221,
+    "unreviewed_files": 218,
     "stale_files": 0,
-    "unclassified": 12349,
+    "unclassified": 12315,
     "violations": 0,
     "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 223,
+    "unreviewed_dynamic_paths": 220,
     "unreadable_files": 0,
-    "candidates": 21940,
+    "candidates": 21922,
     "issues": 0
   },
   "files": [
@@ -2578,7 +2578,7 @@
     {
       "path": "llm/core/models.py",
       "status": "reviewed",
-      "sha256": "6642a25e1972d4666e65cfc0838d59cbdd087837bd923760986eb0ee332dd491",
+      "sha256": "f74efa51315b3085d4270d17bcbd3b5e343373f24498d4696dcf77c4d8607433",
       "candidates": 164
     },
     {
@@ -2602,8 +2602,8 @@
     {
       "path": "llm/core/policies.py",
       "status": "reviewed",
-      "sha256": "d8c65957e182cd2dbce1ec99215eaa35b0ad77ac67f0bee93e9a626a894bbe59",
-      "candidates": 163
+      "sha256": "751457cf2da0b946074e4bbc43913a7d3818f38f4074924632d077fde759a7f3",
+      "candidates": 159
     },
     {
       "path": "llm/core/resource_references.py",
@@ -3147,8 +3147,8 @@
     },
     {
       "path": "llm/services/history/README.md",
-      "status": "unreviewed",
-      "sha256": "598d19110e1d2609118b3da2303829ee0d2bf01e52af7bc6b6d4ed48ca83a897",
+      "status": "reviewed",
+      "sha256": "fbd81b68c2afdcd602fc9fc2f294cb2d9310a168b671e4553be6ca0711c383e9",
       "candidates": 0
     },
     {
@@ -3159,9 +3159,9 @@
     },
     {
       "path": "llm/services/history/context.py",
-      "status": "unreviewed",
-      "sha256": "17b2853b75f8a6c594581f27b74c57cc1484b0c9d20ae0071a4d12cc57c08573",
-      "candidates": 23
+      "status": "reviewed",
+      "sha256": "c60b053a74c63f88c32fb227d183c382e631fccfcd4ff55778eec82382703851",
+      "candidates": 14
     },
     {
       "path": "llm/services/history/conversation.py",
@@ -3183,9 +3183,9 @@
     },
     {
       "path": "llm/services/history/turns.py",
-      "status": "unreviewed",
-      "sha256": "ba0aaf88de9dbc0ab915100b8cd53b36df3d982b9893e34dde49bc4690c6f6d0",
-      "candidates": 11
+      "status": "reviewed",
+      "sha256": "699c008788a61120a366a3c5e50301a0e5ce92527624b83f623f452f3978e211",
+      "candidates": 6
     },
     {
       "path": "llm/services/infrastructure/ACTIVITY.md",

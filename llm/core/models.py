@@ -547,18 +547,23 @@ class Session:
 class Message:
     CONVERSATION_DELETED = "conversation_deleted"
     DELETION_MARKER = True
+    UNBOUND_RUN = None
 
     id: str
     role: MessageRole
     content: str
     status: MessageStatus
-    run_id: Optional[str] = None
+    run_id: Optional[str] = UNBOUND_RUN
     created_at: str = field(default_factory=now)
     metadata: dict = field(default_factory=dict)
 
     @property
     def conversation_deleted(self) -> bool:
         return bool(self.metadata.get(self.CONVERSATION_DELETED))
+
+    def detach_run(self):
+        """Clear the source Run link on an already detached conversation copy."""
+        self.run_id = self.UNBOUND_RUN
 
     @classmethod
     def deletion_metadata(cls) -> dict:

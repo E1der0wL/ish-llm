@@ -13787,8 +13787,8 @@
   },
   {
     "path": "llm/core/policies.py",
-    "sha256": "d8c65957e182cd2dbce1ec99215eaa35b0ad77ac67f0bee93e9a626a894bbe59",
-    "reason": "Reviewed all Schema generation, field declarations, runtime observations, normalization and argument constraint parsing/narrowing. Fixed policy views use typed attributes; only this Owner interprets its wire rules, dynamic Tool/argument maps and selected opaque parameter values. Standard Schema vocabulary is shared. Full Schema and errors/omission match the prior implementation across 446 cases. Approval keeps order/IDs/risk checks; Tool policy/Retry readers, context/Run/output consumers and binding serializer use declared fields. Explicit defaults are observations, never materialized settings. No legacy ToolPolicy type or execution path is restored. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain.",
+    "sha256": "751457cf2da0b946074e4bbc43913a7d3818f38f4074924632d077fde759a7f3",
+    "reason": "Reviewed all Schema generation, field declarations, runtime observations, normalization and argument constraint parsing/narrowing. Fixed policy views use typed attributes; only this Owner interprets its wire rules, dynamic Tool/argument maps and selected opaque parameter values. Standard Schema vocabulary is shared. Full Schema and errors/omission match the prior implementation across 446 cases. Approval keeps order/IDs/risk checks; Tool policy/Retry readers, context/Run/output consumers and binding serializer use declared fields. Explicit defaults are observations, never materialized settings. No legacy ToolPolicy type or execution path is restored. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Context-specific mode categories now have one predicate declaration; Message unbound Run and detached-copy mutation are explicit. All prior methods and current stored fields/defaults remain unchanged; prior shared contract decisions are retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -14236,535 +14236,511 @@
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "30843dc3b97629523a2e3849be93795b49ac003dc0efdb84932d016e4d9cf37b",
+        "id": "94bb2408324a2e8363de078170dd18cb1b35f82557281a921ac292e2d0c6f1c1",
+        "classification": "declaration",
+        "owner": "ContextPolicy",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "41f4da9f5e6366d8c2d749c2adc2db60f0f9e4f678e244705841bd7e414df577",
+        "classification": "declaration",
+        "owner": "ContextPolicy",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b98929f3c43e4380e30b7f8d421c2333c54341d508592bcf8a53d6ac4e8f71cf",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "a8351eb5954d7ec4dcf13b3dfeea2039787dc68b81aaebf7518df2edbe159087",
+        "id": "0717eb27dd7630d4fd117ac29de38b37ce24038518522bc4052ff1578ec9c0ea",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "b499415dabf0f9bb34b7dc3d065696dd05508ad601c819d92a92f6d1deb92dfc",
+        "id": "731a248b33ec7e66fd16c6978796e75c62d5b0ad88104f16f9ba26314f0c672c",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "35b2d17f4e17bc44cbec8fda380282090ef1aa848dc234a2edda2ad9138691a5",
+        "id": "7c7c0087dd39b808d1dcd6708110a9dc820d61589f3cc4e6177ed2b173243e07",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "d6f9cb29d797537e9beabbf9380e8e0e06e3f48a782a4af95a5c4103938a1583",
+        "id": "3034505bb94a4d7800d589b414a992591e2fcca46e8984b1cb5c0a48040e2b8d",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "786961ff23996f65d5f6fd2336a54f85ce4722eb4e6889fa4e5387d94b52a636",
+        "id": "4d9e9bca9100cccc029ba0103f37939a6ac526d8babb5def88a03c8b308d7bc1",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "cbc1eecc83eeee166acd22b2a60ff829908623dc9fabc197c156c8f6f212c493",
+        "id": "195edbd9f236b8896616046a0d8bd4321daa77fc68a1b51ff69f14445c47d2f7",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "808d798095c151866154cb806cf86840a688c11757f6b2eb9f3db00b77a564d7",
+        "id": "2d394e0c99682daf069fbb5c29dd93d9ca17a2b30f8b884e51a981e9f688cf58",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "94880d9cad7787187784fb84ba56a4f7040db3c01e008abb5d84c3924ac1584a",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "66d75322f7d08fca383292bb6a646097e8a57e40afedf8de1e39e6c79c5eab95",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "640ad8f31924cc6deaf054576ad2218967fa14f71de84b311d46eb1eea570fb3",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "0958b92a3cf86a863e187d10543bd596992fe1dd1e849198fcc222090476f0a4",
+        "id": "0385b9bfdd730f28de20543394161b9aa221ace7559c6be99ef54bd22469fe8c",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "5eb33019f3b9f1d163cb51fb0a2e5d708d307b6dd7a4cdfb2d9aaafe3fa32253",
+        "id": "e3103cfa77f166edbabb1424ea8687345c4b3f9545bad6dd4b1f76498aee01a6",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "ae3355342f00893d759c8dcac1acd5be05ba6dca7eacda2dfb7403fc387d181b",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "ced7acc6b58ddb0661367438b7cee677c0c4895e388c53340fc34e5271115e98",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "8fa007c26b029495fb36c008ad09e01f3dfe8fdb385cbab008449b325bd07c46",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "75018e2b232982410daa90f6c74aadfe264dd545092a9bfd4df98704b28f1586",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "137c42fd7ea5b1a3c730548f3fa6c49d9955506774d531ec862c8e4cd9abea70",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "dbd5148953fb34657763dc2e56ca45bb07925143e6dabed5f2a4f4dd4b17e19a",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "1e35e92cf2410a38a8b6d4f2896e22e5e10ce2b651d34053e8646274fc74a2dc",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "91235455d9c646f8cc839d2cc5229c638faee786b1c0f471d99ca12d79d3cda0",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "ef24d1d383634fe1a4133df65dd96e41d8fa73a285f8e0da67a99a76bd6250ed",
+        "id": "76b6204315e3fce1b29cc0824ce0a2b3224c7a2ce891afade0c142f1031597cc",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "06a25af2e14196df61e30fc18610820abc547072e5b3852b84851c5a2814e6b8",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "6120cba6bbb4b6a4bf41248d99d70f0dfb0c1aae1cc1b47beefbb0d9248b2e68",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "1df45b5b6bccca2db522868b8f26693820ac38c18a66dae4eb6b03c55ae8760a",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "bad05279a9f74ae071d77c72ac850e85e0bf035dce4fe62803da6d4fa4e16e97",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "b86591d93694725b6cbf90ef821b1d027ed82f002b6226f704b7e09cb80f0a8f",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "053f907db577ecaab8bf59e93a3907b92342de623ee290aedb7a7a447f0fc21f",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "51d3cf97a13417b0b9af42627c37e7dd472f894822e02c991a7781eda0fa8b20",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "0cb19e2388e5208b54cbee0173fcaf8cc7bc282f2812fff7ac97b6711eccf7bd",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "b99fde894e3c509f4221a628dc7d9f26d766b63cc4c1544f18d5327d63a9c6dc",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "a3b311a069fe6fa182d8f24bf42c86475d32965818daadbbfe010fb7d4d5a3bc",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "233f3c9350f68742dc6f5261556cb438f44891c2f45260126b48a489e08f0ec7",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "83a54dc66cfda5327f74a45ca9d4fa6e932c99528d99bb7bb5d58efbab309483",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "68a5a343f6b6b1e139076f1ccfdc72a17fe1dcf2f1d1ed2aaa652d4910d157d3",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "10c12c14eb98058942615ff0ec8fd30f1b43a4dd8d5f2b3c0d157e4742f00f09",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "bdc486b9b8305149ddac14ea3653d483569f5b9efb17326d52267b9cf469aba0",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "208e44bd9a701eaef68c8e77c1ee4ea167997c2482459206c2f63923ee0ef25b",
+        "id": "955d61c5321f9ff45abac261ff16e0e2108acc1e7897a3a7f2cc29f00ae4df52",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "5c700ed4381081661b85fb871d3e10b26324708e9105f373efd62bdad9804ec3",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "0b4f993a74d1586f41daad5a3a34de027e2de050506204bcc791ca1c077e8dfa",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "7be1710de9df11a2e80eab784b469c04ba9075b04e3a208945f9cf1f5618fafb",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "74e18083661960ebeb4f4db68a7a747f3e40acbd85496b5ff762f51e02fde47e",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "26f0ec67167c98cdc04b11f369956de6772c2c4997294f2434173a06a0f41c85",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "ad0e73128bf2639e2fe6826bc3b72ae1286a6261c8f073322c2441fc178bc9bd",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "a495b245bf3745633c2b9000e187ebb3469fb134f6313049c9a267d04cac550d",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "0b9be97b0c1f0cf4f79f72da946a0de0e8b3c11d864c1ce02c7544b5b489b127",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "db66b29a14fa7d5fb8723dfead471701d44b8e22e0460e07e0f327a1e471441b",
+        "id": "92d9bb0d2397bdb64e19a61de0c97c2c0aee359a4f95467bad644d912ade85c2",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "2e367b03ca7d9b88e64b95c4d40870fe5272d90371b2ce330f23255ef1799f7a",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "4d6cb80a87ed647a3c24aa4d01ac41e9ba011a9a019959556bdfe9d9f7bf3841",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "e83480ebf9e6c85a6f92ff2024b044d904b9990f65db61df41d8d3ff05367f44",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "b772f2280ec60fcc106a52aacbf7be82974558c32faa727f51ffdd1df60c615b",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "af5033571cde9371a791fcf1c0004f82b7841ecfae7fa5b282a395b7913c6bbe",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "2567bb46604902318f9d41a3c845d8017a40be4301bb0bb9c62103e0c3b481ad",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "633236c4ceb497d1c09c7814a2a896999704afee37d2a2940221e58228c7413e",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "5f1dc92c1b96da7f1c8e21e2d6a3214e9807212d491f4e2b1421d445d367c592",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "1a8bbf1661156ebb81ca5984c52d4b3e35531d1d84baf0bc629c5480846f35a8",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "54268497995f14f17d34add253d3a90dbc257be3cc17d62f6b79a88152c8266c",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "5ae8cd5fdf178fe6585ea3b6c2efc7a78ae7982c707ff3aa1968c8f88e7c753f",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "6e7621d8567bdcbdcea2f12ec8d53561540326fb4eefac4669aff47e978f343a",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "3023b0eb0c8a1816ab93f9c66d734a3e43a5842849600e896b8ce4b30a99a35a",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "43bc7af079adf793c6103eaa5fe06bc52636dc554d83925ac0e1b225d66d1809",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "c0a1157616f2f3bea46afe728b66bc41222e0fcd64460014dbcea5b27a69ac2a",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "33876d432ffe66e845b1b5366803d0a7c327653239c51935cdfd89283ea4bb2d",
+        "id": "f3fbe103438f5460833e903cc3791f2cbfeb8238f9e1611aec38796b56836d5b",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "65cbb98d39ff09370b62ed7967b60abd2ff027d283f4952f9884c1adfaf22972",
+        "id": "e8f72296f871f89819531671c354841fdd637559c515dc11cf49fbf007646871",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "4d9f4e40f39d7dc24a164745983c1429c2c9c81af5d6bbdacdb487d3df28aaae",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "3022732c8ae3fab77140f7310bca9f802c87dbe0b8ce48ba563e4d0166c4ab37",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "c961cbca866528bd77d87c24d33f328bf35d03b26eef299774153893568cc0cb",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "1ad4aa6679e7cbd1a42d9225273ddb59a66ad70e12d36dcc502bfb414967ba59",
+        "id": "95037ac3052c21e1574255e20520abfc235c5903da39c49a1abef6f9c0e13a81",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "a1dcd4e769d0f8058ae981174ecba154dc3fee84ab839ba543c6a388e1ea7b93",
+        "id": "ab10e3e37af34e66b221785d140a292d57d7cef3062f1940fadc72f67f6aac31",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "d784232f090e8abc895f25d371dc93adbbb35ea193efba1ee1139bfec6332865",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "4f828b6e6d6c20690982c833608b2b8dbb2934281e4ac7d24b385c0d5d8d055f",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "286d388f09bb675e85aafbf0f6012783795e7ccfd4b6f6f14394d48d61e63f61",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "3cfb89d388d6f304ef2da81d479e3f9d0e8aa5c21c115ffe9ba69a0e20666dea",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "f37505cd01bc51e5edb1eca1392641ca53060c02962c60240118de6bdd0b6271",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "dcf7fd648b32eeb7108cc42c1cc9a743464deaad23a226694a4e71e1f67e8111",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "cbfd3f7b6704c792ba4ce9d215ae5159bb4bc4693ab97ebb32b2bde17151c289",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "123792fe265a407baf03b8d4165b36515b7a22b9b759f50da593b50489a71821",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "a80aefa20a1776f9615791e434482f98aa74f6b666f6ba255340b1be5f4b764e",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "b71227975a18c4faddf2e965e5f4ea29f57caa032a16d9efcd0ebf36242c7d30",
+        "classification": "declaration",
+        "owner": "Project policy section and field Owners",
+        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
+      },
+      {
+        "id": "9c9eaaba1702a497f956ac4194bced3336ad87e364baa3e29b3b354dd9a93a20",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "99734e66fe8b51a15b5379817857636b473735dd6bde5a01a8f0d42d8c490e6e",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "698556b1b7f3ba1f25f230cb67daf4e8e6cff0617ce3e6b8351c812d8cdea2bb",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "e9599f7e532b60d987721c4e7d9d7a6173fe97627eec276e6b5f8a5ff94c3215",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "d6bc9978685f3f899e32893a53fd75345bd08fd21d29052cc447163fba4b14a2",
+        "id": "e43baf217d50f226398624be47e7ebff5c6e789886b179cd0e4b0f822ac2c0b1",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "f7cf3a460ab735658f48f863921d830a827315243c78545373a431944dccbcdf",
-        "classification": "non_contract",
-        "owner": "Project policy section and field Owners",
-        "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
-      },
-      {
-        "id": "b0f6e5b89d8269af853136cc1325e728d12e246a6d3747db44a04e66fb95500e",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "f5754fd124196b935bfd5c28d93588795fca95b3a0a4a04a50f7e65c4b11a4d9",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "470458f56d1dee0bf7c75a980ae6b1e1638f288ae430db81397c10c8a7a7d028",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "04118d85d050f6f000ebaf2d272cc8ddc4aebd4df578c974fec98ff7ec15acc0",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "2112521bb6ec9460ccaa4267783b760f627c909ff3ec281f0b20f805bf647571",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "c786fc04a050e63d5d530f790fcf76ba6a2ebb081a5d974d3d3a47d116a58127",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "58aa22a2c2b1e06f73ebe5a9aa154c5b0d7a7eebe51febbc2770ca1a9bb53e6c",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "e09c386b02b773ba193e9f41a558ff48c74e6cd1813d099224c0166548101dad",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "a85fd9a800bd21d93856b5212c7bf9252429eccdcb3233a5b6520c0cc4697abc",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "f8973a461d0e99b60d410f7c1b44c7ea3376c3e22e1644b013335f1f42d66d90",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "5ae3f55a19a0769d99d160b2fee344ef3a1203cf75d85929318b5d0ba9ed5a43",
-        "classification": "declaration",
-        "owner": "Project policy section and field Owners",
-        "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
-      },
-      {
-        "id": "5d38295fd7faa2a5cb3db8639aceefded3f81c32f759e9abf5887c4a12031c40",
-        "classification": "non_contract",
-        "owner": "Project policy section and field Owners",
-        "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
-      },
-      {
-        "id": "7327cb2822e5ac39eb6033d9e3f385c84c4ff96738bbb3789a4377f56b374972",
-        "classification": "non_contract",
-        "owner": "Project policy section and field Owners",
-        "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
-      },
-      {
-        "id": "f30e6b41a76404f531cc063f53228ccff0cf4a3acc82306fd7b9440a2b01304d",
+        "id": "37b4422e66609cc1d66c5a80007ed23135ce809ab624cb0baa435ca4b066b7d2",
         "classification": "declaration",
         "owner": "ToolPolicyValues",
         "reason": "Canonical capability, optional Agent projection semantics or unrestricted Tool-set declaration before implementation. Original stored omission is preserved and no policy limit is invented."
       },
       {
-        "id": "74f436d7a183b25fc3d03e9f95aed37fee8d2455071971f514331b4226e9b60b",
+        "id": "84ee5127ea947df62d398df891bbe3fc9b3a5439e2ed3c260ddf871e623f37dc",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "c296186ed07f632852b4c4fd8e1ed98c7db78380b1e04c95887a9fc428a50072",
+        "id": "5c9ee966988e4bd56c97581858a68c7388e07de7e9cd3cb8da15413616b0facd",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "2948341215e0ea21dde20e6500600e868fdc3bda0edbd9219c90f15f349f447d",
+        "id": "c0fb6e758bb8d0657bd414101e18fe7b6162479f2e4dfb94fee9f93562d132b8",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "81e28f8acaf01af5d19d6fa374364c711684a90df55944ce17e2607b7efd3dfd",
+        "id": "693225fef1f7f31091ad0fcd6f9c8e9b7f29c049f1267e019761b732b7841fcc",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "7e3b93bbbbbada1156fec0bd1639dd8e09a80bb2fd0ced98ce80a7d61709dd31",
+        "id": "acbca29ff3ec5c30d0f1c912ab8b38883ac7e9da95aebacbaf823c50e15d610f",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "dd5ccdc520cded4500d4cfa9498287f4023a11b1f60cc1ee9267c2af8e80b13c",
+        "id": "54c3c33394cf5ec41ce85b484350bb6c93f6206b2d9bcb112c890ba311f10632",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "dccff8866f0ababb7f21267a2c8b97398c49211c499dec23eba8031d51213bf5",
+        "id": "08c4157b9924a3ccc6222eb604b14a749bfaf544b64a7f8e7882f4f228ce888f",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "1328fbcf3eefaf2a414c0e7aa001bd0d09c6f702805fdeacd6224640967c3e76",
+        "id": "58994da57ee7c2a1bf8dac289877392c790d16fcf1aa652683435f71ffe9bded",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "bdceeed8ce77bb50264f287d30666be3ca94d4ef8bb8bf7aa32642bb4507ff93",
+        "id": "4e1d862cdae5fa9a0a211ca08db9d20f1f9b2348d586371091e9975964aa85b2",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "28b059689dfeaffa2b95fe6fc9b394e4a11cb16c49fb2c6162de51b27e9e5dcd",
+        "id": "af11ea843d3ad664d74030f8aebdec02f6725c7c701fd9d4acb98deb612c66ce",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "60912efffe738625432d0cde7a052210f41ee92fa80f6dda6ea6dc8de6f8004d",
+        "id": "0407468a745fbcadc015ab9b363ac673b2d07b78ae5d37cf6e2b71b1eaabbe7d",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "abaae0eca8b2d866fdf58eda5eb04e5c5d3610f81f32666168effbe31b14eb69",
+        "id": "ae7cebdc852fedd033b18e2772f0b20ab7b587440bf8e4c9cdbfb1214b0f0106",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "d69f01a8db6727af03361bd44dc0cd8db73e6ff7ecfd1a3ab0f39d161ac09437",
+        "id": "50eb37bf6b1b632a9ec3a97ea9cf7750cfc10c6595e2b587811ca30d49e1408f",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "ff3f95d2a171ff75c129f6e82ff649a25a747f234fe51be565075fb2dfa99fb7",
+        "id": "c5b99cd2a521e1a95ddc33d1fe64b8de8e112fe67af1131359421c40c602cd14",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "4ef258184926c101e54e81723e79ba66b3271b16db7a8076f0e23a74e27c46f8",
+        "id": "cde6beae8bd8d622c6c62725f78f73764355a65a764484f3b049a02a9c9b02b4",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "0fe06e659f22646091afaf4cab70c8aaa52db0cdd832cfe91de303fa417a9196",
+        "id": "08c0b39251b93993651119a614d6044b1f86a5843daf4ed5c4e7c8f1fad8168c",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "bf953bcdc3c951c5bef23bd894a379514de733e0040b4a0029f95ebfc49d5186",
+        "id": "598a331e2cb5479909aacd39c116cef41f306288edb801041434b701d9dab177",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "16f5adf2fa8b75ec3564fa816f5365d05c046811497ea2674f335115a19a5f80",
+        "id": "21592880f97a1ec84aa588f2aa3d96eb931fb312002a15c610fa6cccf958e51a",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "aefbc6958ba2af216caeb01f194a81ee7e130a874f5d6863fd711fc771184c82",
+        "id": "480db24cf8798284ee537b6282916b2c8b0e526306f29df39768c1e0e581b629",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "7fb69b69ef491b731b0ece912481b7603b6e01a47c44bffd38d8e6de2d1db04f",
+        "id": "572eb3e0c58c2803e8e44c71a9b79332e473eb4ab514ed8d536d05c0a40ade30",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "22ea4bcb2f6cdc49ac5cbaf577de12f434a39cb7c7f6778e8179f09138816b3f",
+        "id": "eb7abfd88a3a1fdbeb29af23fa3197b7f5e89adba602b21e3ea4680d721ea747",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "ad39ed96a04b3e9cb6f868b732c68dc442fcbd47700ed288e6e9a36f3e158e29",
+        "id": "c63ce35c428388cb353aed1f7fe5ca821b1a092f512e322c6e4829be26a5073b",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "02631ee8728ba82f5ba158f1f1809c442b576c01dfc668edbb38146c0c5eb68f",
+        "id": "1a65436d114d96a57f987481f4412a8f60f512acafc330cf8b6d6fcbdf359ffb",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "59cf521d95bc09b594217d02413f50470ac082fd3781ebc4d956c9b041e62823",
+        "id": "1fff8d4b7acfcfdf9b97c0a9982ba58391c6dd9b98235fceba6c325931b63757",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "d5f1a2b5ea32821f0accad271f6197f3ff81ff458089557729893d40cc4c58d5",
+        "id": "d46864193aa8db9d3af344d5aecf2907ea818befc0e15ab6b722c335e50e3cf0",
         "classification": "declaration",
         "owner": "Project policy section and field Owners",
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "6a1ec0b6be38c9adb033a7f86752f98508799ac0940fdf0663e578ed41f9fcb8",
+        "id": "fc3e31d8a89f3211406097276d3d2afc1b282ee7af3ccb98830f304c62ecdd71",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "04a1f5f9d1e5665b842eb41af23c740d5c99f3791fdf9501a5dc4e218f90bc0c",
+        "id": "93321f805d46186e4fffd4a6e3f6db579cb013a1b755bc2a223a8ec86f591b09",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
@@ -14775,26 +14751,50 @@
         "owner": "Project policy section and field Owners",
         "declaration": "llm/core/policies.py",
         "consumers": [
-          "llm/core/models.py",
-          "llm/services/runtime/tools.py",
-          "llm/services/runtime/runs.py",
-          "llm/services/runtime/policies.py",
-          "llm/services/schema.py",
-          "llm/components/tools/constraints.py",
           "hub/backend/execution/retries.py",
           "hub/backend/execution/tool_recovery.py",
-          "llm/engines/agent_resources.py"
+          "llm/components/tools/constraints.py",
+          "llm/core/models.py",
+          "llm/engines/agent_resources.py",
+          "llm/services/history/context.py",
+          "llm/services/history/turns.py",
+          "llm/services/runtime/policies.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/schema.py"
         ],
         "tests": [
-          "tests/llm/test_policy_values.py",
-          "tests/llm/test_policy_consumers.py",
-          "tests/llm/test_project_policies.py",
-          "tests/llm/test_tool_constraints.py",
-          "tests/llm/test_agent_execution.py",
-          "tests/llm/test_nested_graph.py",
-          "tests/llm/test_retry.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_retry_observations.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_continuation_values.py",
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_project_policies.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_service_boundaries.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -36275,8 +36275,8 @@
   },
   {
     "path": "llm/core/models.py",
-    "sha256": "6642a25e1972d4666e65cfc0838d59cbdd087837bd923760986eb0ee332dd491",
-    "reason": "Read complete model file and consumer connections: current-format field/version validation, timezone requirements, pure transition validation, extensible configuration and its closed sections, every Project/Session/Message/Run/Step declaration and Reader. Run edges now use a read-only map of frozensets; Step edges a frozenset; exact allowed transitions/reasons/diagnostics remain. ConversationStorage schema uses canonical Schema declarations and input policy; llm bootstrap and ProjectConversations explicit choice paths share it. Project/Session JSON copies/target validation, components initialization, Agent binding and active Run identity/evidence remain. Dynamic configuration/record fields derive from their schema/type declarations. Step observations delegate the existing typed envelope Owner; clocks/UUIDs are generated only by creation, never missing-record repair.",
+    "sha256": "f74efa51315b3085d4270d17bcbd3b5e343373f24498d4696dcf77c4d8607433",
+    "reason": "Read complete model file and consumer connections: current-format field/version validation, timezone requirements, pure transition validation, extensible configuration and its closed sections, every Project/Session/Message/Run/Step declaration and Reader. Run edges now use a read-only map of frozensets; Step edges a frozenset; exact allowed transitions/reasons/diagnostics remain. ConversationStorage schema uses canonical Schema declarations and input policy; llm bootstrap and ProjectConversations explicit choice paths share it. Project/Session JSON copies/target validation, components initialization, Agent binding and active Run identity/evidence remain. Dynamic configuration/record fields derive from their schema/type declarations. Step observations delegate the existing typed envelope Owner; clocks/UUIDs are generated only by creation, never missing-record repair. Context-specific mode categories now have one predicate declaration; Message unbound Run and detached-copy mutation are explicit. All prior methods and current stored fields/defaults remain unchanged; prior shared contract decisions are retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -37114,151 +37114,151 @@
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "39c9c8ec643d7bc506cc771a50bfc0781b8272e0f87addfc2eb376df171ab047",
+        "id": "d0a5ff16fb4076723c8694a3df176062f21ded6386d4775c8992c4e2d7bd1465",
         "classification": "declaration",
-        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
-        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+        "owner": "Message",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f038a6faad090cdf0d31d52d5bdbdecdcefb30d2e317ddd1491914f686261d54",
+        "id": "fc454772f63f25d8826c3d2e398c33ad2997ffbdc9a7fd8dc3f51831dec68071",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "389e7e92ae6eacf552b72f9521594944fb7c474f8bac4ac46efc82bb1a03629b",
+        "id": "6bf929283dcc638a260fc51fa81d36780d77a0cfb4b6899d49448577d4c45acc",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "5c6fd774d81e175e761bef20d953942fbe6aac3eb8b8845816c6dbbd4e9f759d",
+        "id": "717982cc0854655d81da1dce9485c9dd618515aaf7cf8e801b842877cb7a4e86",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "9dd88f5b6ac5fc4624c1739235d12d44840446805605a76bc928d3f5ff307bcd",
+        "id": "1dcfda320b209db9e2d5f18d39ab60334bfed156acc72d7a1b147835d9268943",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "4ea43639642d7b5410d8aa658734f27ac8735b1031d9f281e8f8c1605251cf3f",
+        "id": "5d0ac6aa5bb8012819ecedf79aae04ebb0709864f474023de9bacdd7f394d8cc",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "effe2f597bff068cb068bec684a18f5197b672fbe097afa6800807c31674686c",
+        "id": "70f9e0a25027d5569ef0685e2c6786949ad2004e8ff7cca6cf9147df96b205dd",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "ff9d843069fa497d851fdb99ddd3f6228081365f686e05f0659545faf0c273a7",
+        "id": "c8cf85c43584edc57a1b8beb5aabcf8f79cfc4ac6bfe9e92a2800875fee2f993",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "f75f57e3224bfcfa8d5a536c31a3959f1fa4b45e3d2edbe4521981496ab05725",
+        "id": "8da9fcc48497f4f519b78ed10e421ac5b46d481c1058f63bd8021fe31dcc790b",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "279154d65eab67d337d2b97afd28c56a9a5962075e4947160c1babb459a12d17",
+        "id": "f84f1e2d50a23dd9c19fcacd3aea7606ec993f42d4937db88a9f155634e5ae8f",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "516cb3efe16541ec761ac7565de72c4154a79488e733addee869a29b5a7cd9b2",
+        "id": "aa12c21cc724aeb31900318df4847d71b2c8643f8a1143af4eca99e60b364f1e",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "42d613ea0606681beded8a22c16912190008f6427e53370b6c04bcd7fa9ed48b",
+        "id": "dd87f95b6c9ea8fcd4a549ff03138791ff508be03642d9fff79c0bc912833f08",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "2cf5c550e1294a5facea63b2301441155830cfcf58e45b650a0d7f9f6e3beabb",
+        "id": "2d52119fce158702ca3efbeac45349b8bd3bc8f466b7039f29e53010e722c433",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "fa3bf4fb5b0e725427900dccbedf3aaf16c93b81348a6531c33b8adecb46a39f",
+        "id": "4b7a8dafd6863534329ba4a9d4d41152fa3498fbed2f355164bf9a1395c37d04",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "fc7eab52989644d7c3b4b98c73eb3bd760247de8d58ef69f469c0014c31097fe",
+        "id": "a4d69a3756ee13d8d3033de7f1d9f693aea544a5bbcc048b7de2a0bd0d2bb2a5",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "59b4a71915dd498616f021122eadd8b522e28120a9a62e26c59615e016c6a476",
+        "id": "dc2c16e68be747925330c379ce1cd0e15a4de9668641668b3b80f2488aab58fd",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "edfb9ec9cbaad3af28c0ec227b921b0873111328ac249a06e21e742c6a9221bb",
+        "id": "c8d8d8c0158de1d21f9af50b1892d5fcafc99b8483b74b914e66ac78a7cdb7b4",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "87fce8c81b8546f193cf5dbc5163a2d708c75ed86398d740ea431c7d58b076cb",
+        "id": "fb9d65af1c8a56b5914dc506e824c325a3da865c3b1c47c3fb164457e96cda42",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "ca3871ecefa643b517e0ec9c07342470133a716a384989c733a7fe56340b80ab",
+        "id": "2a95f6f6d726af1578c663f9a945b7b0459527ebdbbbbb5f2b9fda9943921bd2",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "d6ce76dcff3047ec0051958f2251dddb86589a2274362355de6f0d29a47b8221",
+        "id": "8e31dd4b67cbb4245e12fae209bfa90b48116b0e44f64a8a55541a1332471eeb",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "61232afbf848a72519e5d95fb920a7fafcd1eb4a6fcd4275a22016962c12b9da",
+        "id": "cbf08372248fa66aab6db647356e478fb5504ca85b1a4e8ac2aba50235aefb9d",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "e6c9fd5bd9d37afde892de73d0c1a116fff68a973ec988db8ae386bc3c23e3cf",
+        "id": "c8aff4835b39ef53e485f5c1b291e8e99940cdaa29e1ed6dcc1cced4dbeb993e",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "2f962d35090074e117e7b700866ad01f7aa1ea45ed850fd68649ab0a967ee490",
+        "id": "ff00ec7dd88910f224bd25af7c4adab845f9b8fd513857b39b5653ab685d405f",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "f80f5607e5b2a5dc164df76fa1dcc3d29ed6b115ba8ba66e9073a7b9c4d1c0e4",
+        "id": "cdfab3335e402c87dc0f9f5a0df845b4c55013a2d842cac3e4291f75e8ebbba5",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "51063d234bcf69f75bac6a834a640ca217db7aef36de3f1eab71b0e5c1d729ee",
+        "id": "bb6637f94ad98f342bc759a15a976f4b7c7213bffb1844b803689faa938a9e7f",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python forward type annotation, not a reflection key or external protocol name."
@@ -37270,23 +37270,49 @@
         "declaration": "llm/core/models.py",
         "consumers": [
           "llm/llm.py",
+          "llm/services/history/context.py",
           "llm/services/history/conversation.py",
+          "llm/services/history/recovery.py",
+          "llm/services/history/turns.py",
           "llm/services/lifecycle/projects.py",
           "llm/services/lifecycle/sessions.py",
           "llm/services/lifecycle/steps.py",
           "llm/services/runtime/runs.py",
-          "llm/services/history/recovery.py",
           "llm/services/schema.py"
         ],
         "tests": [
-          "tests/llm/test_domain_state_integrity.py",
-          "tests/llm/test_domain_record_values.py",
-          "tests/llm/test_run_transitions.py",
-          "tests/llm/test_owner_declarations.py",
-          "tests/llm/test_project_conversation_storage.py",
-          "tests/llm/test_repositories.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_state_owners.py",
-          "tests/hub/test_conversation.py"
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_continuation_values.py",
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_domain_record_values.py",
+          "tests/llm/test_domain_state_integrity.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_project_conversation_storage.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_repositories.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_run_transitions.py",
+          "tests/llm/test_service_boundaries.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -69061,6 +69087,264 @@
           "tests/llm/test_service_extensions.py",
           "tests/llm/test_stability_refinement.py",
           "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/README.md",
+    "sha256": "fbd81b68c2afdcd602fc9fc2f294cb2d9310a168b671e4553be6ca0711c383e9",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Read the complete guide and checked storage/factory, Run recovery, scoped instructions and protected turn deletion claims against current contracts; added exact context/turn Owner paths without claiming other History files complete.",
+    "contracts": [
+      {
+        "owner": "History storage/context/recovery/retention guide",
+        "declaration": "llm/services/history/README.md",
+        "consumers": [
+          "llm/services/history/context.py",
+          "llm/services/history/turns.py"
+        ],
+        "tests": [
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_continuation_values.py",
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_service_boundaries.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/context.py",
+    "sha256": "c60b053a74c63f88c32fb227d183c382e631fccfcd4ff55778eec82382703851",
+    "reason": "Whole context/turn review includes each policy/no-policy/snapshot/clone path, interleaved admission groups, continuation ordering, scoped steering filtering and detached clone receipts. Existing original/source evidence and current-input inclusion are preserved; only explicit list/tuple algorithm syntax remains outside declarations.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e5d9af06a6b2a12688eed19b557bf99d8e84b64b1e2593f25b18db2c9793bede",
+        "classification": "declaration",
+        "owner": "ConversationContextBuilder",
+        "reason": "Owner-head absence markers, text-budget boundary, state/role selections and errors. Mode/role/scope/message mutation references the existing semantic Owner."
+      },
+      {
+        "id": "fa348273c0efa59a2b07f58d4cfd2a8c1bb641edc29004b74b4fcab308de8f5f",
+        "classification": "declaration",
+        "owner": "ConversationContextBuilder",
+        "reason": "Owner-head absence markers, text-budget boundary, state/role selections and errors. Mode/role/scope/message mutation references the existing semantic Owner."
+      },
+      {
+        "id": "ebf87d0e517ac0c89eef4a3ac53e71c485b562754b7e404d7c5136d7a0db9078",
+        "classification": "declaration",
+        "owner": "ConversationContextBuilder",
+        "reason": "Owner-head absence markers, text-budget boundary, state/role selections and errors. Mode/role/scope/message mutation references the existing semantic Owner."
+      },
+      {
+        "id": "9ce1e8f318f03e734ce2c0a8dbbda5ea11d72f01a5b4d1899dfdfc34ea5211b2",
+        "classification": "declaration",
+        "owner": "ConversationContextBuilder",
+        "reason": "Owner-head absence markers, text-budget boundary, state/role selections and errors. Mode/role/scope/message mutation references the existing semantic Owner."
+      },
+      {
+        "id": "b4f62da73ab5aeb8d60dd9f90812e0bfb15ae21a0f12b60f2dad40afe5b55ccc",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._select",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "492a9c85168831fdb5bef89d026a91aca3c52bdd5f2a5ae44249283a606243a4",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._select",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "d13fc970d15db2ff6a3d7e938efd3ad21017286beb946a902e0d6e68751751cb",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._select",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "9d836f159272c4b542ed7760c32bc3fe984b61d2c7cce04b3b25fb750a163194",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._ordered",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "d972a6b38ce8516af61dd232d7e3c58620bff46c6a40a906cee22e1df1ee9741",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._ordered",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "6df3929be4f04b415d403a51fe790d60baaf79f1bccaac206e198a2ffb9ff605",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._ordered",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "112a3c692d730d7d2f080b0a8d132f2d39ef6fde88ed361ed60f564476255f78",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._ordered",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "680112efb040b95f707d34d2746c6497a68bcebd7184e91068441619a0e746ec",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._ordered",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "13c9a9f99b665fbc550e23202ae7c92f5032b8de15161c8fc227b6cc159fe069",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder._ordered",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "267bf95324626d7a724ed00490eba9f017fc1fbb8a4191676a01c13b54ce6cc8",
+        "classification": "non_contract",
+        "owner": "ConversationContextBuilder.for_run",
+        "reason": "Python variable-length tuple return annotation, not a protocol value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ConversationContextBuilder / ContextPolicy / Message / SteeringScope",
+        "declaration": "llm/services/history/context.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/history/retention.py",
+          "llm/services/history/conversation.py"
+        ],
+        "tests": [
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_continuation_values.py",
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_service_boundaries.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/turns.py",
+    "sha256": "699c008788a61120a366a3c5e50301a0e5ce92527624b83f623f452f3978e211",
+    "reason": "Whole context/turn review includes each policy/no-policy/snapshot/clone path, interleaved admission groups, continuation ordering, scoped steering filtering and detached clone receipts. Existing original/source evidence and current-input inclusion are preserved; only explicit list/tuple algorithm syntax remains outside declarations.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0cbba5599cb3ec99928c259ca11c516e72971fbc837b8ff870e44d50f514ac59",
+        "classification": "declaration",
+        "owner": "ConversationTurns",
+        "reason": "Owner-head absence markers, text-budget boundary, state/role selections and errors. Mode/role/scope/message mutation references the existing semantic Owner."
+      },
+      {
+        "id": "5859758ada2ab3b1d6a5b0124dbc4d1a2dfb2025e6c57060c5a455c686782dd1",
+        "classification": "declaration",
+        "owner": "ConversationTurns",
+        "reason": "Owner-head absence markers, text-budget boundary, state/role selections and errors. Mode/role/scope/message mutation references the existing semantic Owner."
+      },
+      {
+        "id": "475ec5c8518510f822d1e65e6772cbb527c6c603add7085ec0cf284a6669848d",
+        "classification": "declaration",
+        "owner": "ConversationTurns",
+        "reason": "Owner-head absence markers, text-budget boundary, state/role selections and errors. Mode/role/scope/message mutation references the existing semantic Owner."
+      },
+      {
+        "id": "2cb9e7f6b0c5891a8d853046f580a5b51167eb2df2a2150d73f3300e7d321b15",
+        "classification": "non_contract",
+        "owner": "ConversationTurns.group",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "65cec57ec9852aff6433647f19fedff6dcdc9ac86710e60b58522adc13bb0147",
+        "classification": "non_contract",
+        "owner": "ConversationTurns.through",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      },
+      {
+        "id": "01c73ca36e8def11dc94d3967b66c5440192120c9ea73c73dd9aed6c920c3b99",
+        "classification": "non_contract",
+        "owner": "ConversationTurns.through",
+        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ConversationTurns / MessageRole / common ModelRole",
+        "declaration": "llm/services/history/turns.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/history/retention.py",
+          "llm/services/history/conversation.py"
+        ],
+        "tests": [
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_continuation_values.py",
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_engine_steering.py",
+          "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_service_boundaries.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
