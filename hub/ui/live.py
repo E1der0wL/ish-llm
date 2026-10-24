@@ -31,7 +31,7 @@ class LiveHubView(HubView):
         self.sessions = [SessionView(self.t(MessageKey.CONNECTING))]
         self.output.set_messages(())
         self.project_title = self.t(MessageKey.CONNECTING)
-        self.project_id = ""
+        self.project_id = HubSnapshot.NO_PROJECT
         self.model = ""
         self.agent_id = ""
         self.connected = False
@@ -162,7 +162,7 @@ class LiveController:
         self.worker_factory = worker_factory
         self.worker = None
         self._sidebar_width_pending = None
-        self.view.on_sidebar_width = self._save_sidebar_width
+        HubView.bind_sidebar_width(self.view, self._save_sidebar_width)
         self.view.on_output_interval = self._set_output_interval
         self.app = None
         self.loop = None
@@ -276,9 +276,7 @@ class LiveController:
             self.view.projects.refresh()
         if not self.view.projects.busy:
             self.view.projects.selected = snapshot.project_id
-        for project in self.view.projects.items:
-            if project["id"] == snapshot.project_id:
-                project["title"] = snapshot.project_title
+        self.view.projects.rename_observed(snapshot.project_id, snapshot.project_title)
         self.refresh_shell_root()
         current = (self.view.project_id, self.view.sessions[self.view.selected].id)
         displayed_status = {session.id: session.status for session in snapshot.sessions}

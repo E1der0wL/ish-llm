@@ -49,6 +49,7 @@ class SettingsTab(StrEnum):
 
 class Page:
     query = ""
+    QUERY = "query"
     UNFILTERED = "_unfiltered"
     GROUPS = "groups"
     NO_GROUPS = None
@@ -61,6 +62,10 @@ class Page:
     ACTION_WIDTH = 10
     MINIMUM_ACTION_WIDTH = 1
     ACTION_INSET = 2
+
+    @classmethod
+    def query_or(cls, page, fallback):
+        return getattr(page, cls.QUERY, fallback)
 
     def json_baseline_for(self, default):
         return getattr(self, self.JSON_BASELINE, default)
@@ -189,6 +194,8 @@ class ProjectPage(Page):
     NO_EFFECTIVE = None
     EXPLICIT_NULL = None
     SECTION = "section"
+    IDENTIFIER = "identifier"
+    NO_IDENTIFIER = None
     GENERAL_GROUP = "general"
     WORD_SEPARATOR = "_"
     DEPENDENCY_SEPARATOR = ", "
@@ -290,6 +297,14 @@ class ProjectPage(Page):
         if SettingsSection.is_component(section):
             return [self.component_forms[SettingsSection.name(section)]]
         return [self.form]
+
+    @classmethod
+    def identifier_for(cls, page):
+        return getattr(page, cls.IDENTIFIER, cls.NO_IDENTIFIER)
+
+    @classmethod
+    def section_or(cls, page, fallback):
+        return getattr(page, cls.SECTION, fallback)
 
     def section_choices(self):
         return SettingsSection.choices(self.engine_forms, self.component_forms)
@@ -481,6 +496,9 @@ class GlobalPage(Page):
                 (HubTheme.sidebar_width.__name__,)
             ].input.buffer.on_text_changed += self.preview_width
 
+    def refresh_usage(self):
+        self.usage_output.text = self.usage_text()
+
     def usage_text(self):
         rows = [self.screen.t(MessageKey.SETTINGS_USAGE_SCOPE)]
         if not self.screen.usage:
@@ -550,10 +568,17 @@ class GlobalPage(Page):
         PreferencesStore.input_record(self.name, values)
         return SettingsOperation.SAVE_GLOBAL, (self.name, values)
 
+    def accept_sidebar_width(self, width):
+        field = self.form.fields[(HubTheme.sidebar_width.__name__,)]
+        field.original = width
+        field.input.text = field.initial = str(width)
+        SidebarWidth.store(self.form.original, width)
+        SidebarWidth.store(self.original, width)
+
     def accept_saved(self, result):
         if result is self.NO_RESULT:
             return
-        self.screen.drafts.preferences[self.name] = result
+        self.screen.drafts.store_preference(self.name, result)
         page = self.screen.drafts.pages[self.name] = GlobalPage(
             self.screen, self.name, result
         )

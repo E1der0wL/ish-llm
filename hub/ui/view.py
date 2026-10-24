@@ -33,6 +33,20 @@ from ..backend.project.agents import DEFAULT_AGENT
 
 class HubView:
     SIDEBAR_FOCUS = True
+    SIDEBAR_WIDTH_CALLBACK = "on_sidebar_width"
+    NO_SIDEBAR_WIDTH_CALLBACK = None
+
+    @staticmethod
+    def request_sidebar_focus(view):
+        view._session_focus = HubView.SIDEBAR_FOCUS
+
+    @staticmethod
+    def sidebar_width_callback(view):
+        return getattr(view, HubView.SIDEBAR_WIDTH_CALLBACK, HubView.NO_SIDEBAR_WIDTH_CALLBACK)
+
+    @staticmethod
+    def bind_sidebar_width(view, callback):
+        setattr(view, HubView.SIDEBAR_WIDTH_CALLBACK, callback)
 
     def __init__(self, sessions=(), theme=None, language=LanguageCode.DEFAULT, language_packs=None, *, output_factory=None) -> None:
         self.t = Language(language, language_packs, icons=lambda: self.icons)

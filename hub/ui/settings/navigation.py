@@ -29,7 +29,6 @@ class SettingsNavigation:
     FIRST_POSITION = 0
     REVERSE = False
     NO_KEY = None
-    EMPTY_STATUS = ""
 
     def __init__(self, screen):
         self.screen = screen
@@ -145,7 +144,7 @@ class SettingsNavigation:
                     else JsonDocument.SUFFIX
                 ),
             )
-            self.screen.status = self.EMPTY_STATUS
+            self.screen.status = SettingsActivity.NO_STATUS
         except subprocess.CalledProcessError as error:
             self.screen.error(
                 self.screen.t(MessageKey.SETTINGS_EDITOR_FAILED, code=error.returncode)

@@ -149,6 +149,8 @@ class RunSummary:
 
 @dataclass(frozen=True, slots=True)
 class HubSnapshot:
+    NO_PROJECT: ClassVar[str] = ""
+
     project_id: str
     project_title: str
     model: str
@@ -167,3 +169,8 @@ class HubSnapshot:
     components: tuple[str, ...] = ()
     questions: tuple[dict, ...] = ()
     agents: tuple[AgentSummary, ...] = ()
+
+    @classmethod
+    def project_identifier(cls, view):
+        """Observe a live view; the snapshot's own project_id remains required."""
+        return getattr(view, cls.project_id.__name__, cls.NO_PROJECT)

@@ -19,6 +19,8 @@ class KeyName:
     END = Keys.End.value
     PAGE_UP = Keys.PageUp.value
     PAGE_DOWN = Keys.PageDown.value
+    C = "c"
+    R = "r"
     EDIT = "e"
     EDIT_UPPER = "E"
     CLEAR = "d"

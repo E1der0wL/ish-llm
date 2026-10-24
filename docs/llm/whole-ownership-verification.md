@@ -7963,3 +7963,50 @@ Level 2는 전역 설정·외부 편집기·Preset·사용량/오류·입력/vie
 
 마감 검사: S1–S7 개별 검토 82, new/stale/outstanding/review error 0; 감사 회귀 16개와 문서 검사 exit 0이다.
 현황 612파일/미검토 146/미분류 7,131/미완료 공유 계약 18, stale/위반/issues 0이다.
+
+
+## 설정 Screen·Drafts·Project 목록 소비자
+
+SettingsScreen/SettingsDrafts/ChatProjects 전체 파일을 정리했다. ProjectSummaries는 응답 목록을
+관찰하고 필요한 id/title만 읽으며, 교체 시 미변경 행 참조·순서를 유지하고 Live 이름 갱신은
+기존 행을 그대로 갱신한다. SettingsCatalog/SettingsBatch observation과 PreferenceSnapshot이
+고정 구조 읽기·변경을 소유한다. 공개 UI preferences/projects/items의 기존 참조는 유지한다.
+공개 저장 응답, 저장 검증, CAS, Backend 정책은 변경하지 않았다.
+
+부분 저장 결과를 순서대로 반영한 뒤 현재 Project를 복원한다. optional error 확인 후 화면을
+선택·표시하고 required error를 다시 읽는 순서를 유지한다. 폭 변경은 Theme → 저장 폭 → 초깃값 →
+현재 초안 → 필드/폼 → 콜백 순서다. 생성 요청은 명시 title/config만 제공하고 components/storage를
+생략한다. SettingsTarget은 기존 tuple 값/비교를 유지하는 이름 있는 UI 대상이다.
+
+고정 baseline `7eae59aadcf5912b3a2939ff87cbd75e10b94721`과 제안 코드를 별도 프로세스로 실행해
+118개 결과가 일치했다: catalog 44(정상 22/필수 누락 등 거부 22), 폭 변경 20, 요청 콜백 6,
+부분 저장 12, Project 작업 25(정상 17/필수 누락 거부 8), 선택/대기 8 및 세 추가 불변 조건이다.
+실제 UI 객체를 사용했고 borrowed list/dict 참조, 오류 이후 읽기, 명시적 null과 필수 snapshot
+project_id도 확인했다. 최초 비교 도구가 None 입력 뒤 결과 수집에서 .get을 호출한 문제는 도구만
+수정했고 원본 오류 로그를 보존했다. 기존 제품 테스트·Fixture·안전성 Assertion은 변경하지 않았다.
+
+Screen 상태 문구의 네 S3 발생 지점은 SettingsActivity 선언으로 이동해 정적 발견 목록에서
+제거되었다. 기존 개별 검토 기록은 Git 및 `hub-settings-screen-draft/retired-static.json`에 보존한다.
+다른 78개 정적 발견의 검증 계약은 유지한다. Live/View/model/KeyName과 공통 Owner의 이번 좁은 변경을
+전체 파일 완료로 계산하지 않으며, 나머지 소비자와 미완료 계약은 전수 목록에 남긴다.
+
+- `whole-hub-settings-screen-core-01`: discovered/started/pass 43/43/43, exit 0, 9.391467초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-settings-screen-core-01/llm.json --modules tests.llm.test_schema_ownership tests.llm.test_configuration_targets tests.llm.test_settings_consistency tests.llm.test_configuration_results`. source `3ed2083bb3eba09ec4c18b80bce11782f9edc36e92bd7543cfd67c09fa3155b7`, input `c32f15589650774d19a1b7a4dcd8e604938b394c2f41865f0d955b8ffaf0c587`.
+
+- `whole-hub-settings-screen-l1-01`: discovered/started/pass 25/25/25, exit 0, 44.786786초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-screen-l1-01/hub.json --modules tests.hub.test_settings tests.hub.test_global_preferences tests.hub.test_settings_restart tests.hub.test_settings_project_flow`. source `3ed2083bb3eba09ec4c18b80bce11782f9edc36e92bd7543cfd67c09fa3155b7`, input `c32f15589650774d19a1b7a4dcd8e604938b394c2f41865f0d955b8ffaf0c587`.
+
+- `whole-hub-settings-screen-l2-01`: discovered/started/pass 49/49/49, exit 0, 91.663547초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-screen-l2-01/hub.json --modules tests.hub.test_home_navigation tests.hub.test_live tests.hub.test_settings_json tests.hub.test_settings_editor tests.hub.test_presets_widgets tests.hub.test_settings_navigation tests.hub.test_settings_tabs tests.hub.test_settings_viewport tests.hub.test_settings_usability tests.hub.test_popup_settings_updates tests.hub.test_backend_diagnostics`. source `3ed2083bb3eba09ec4c18b80bce11782f9edc36e92bd7543cfd67c09fa3155b7`, input `c32f15589650774d19a1b7a4dcd8e604938b394c2f41865f0d955b8ffaf0c587`.
+
+- `whole-hub-settings-screen-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.497308초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-settings-screen-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `3ed2083bb3eba09ec4c18b80bce11782f9edc36e92bd7543cfd67c09fa3155b7`, input `c32f15589650774d19a1b7a4dcd8e604938b394c2f41865f0d955b8ffaf0c587`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+같은 suite 선택 중복 0과 전후/실행 사이 source/input 동일성을 확인했다.
+실행 명령·exit·로그는 `hub-settings-screen-draft/selected-results.json`, 독립 비교는
+`proof-commands.json`에 보존한다. Python 3.12.14/Clang, Host d833790, 동일 의존성 및 실제
+Linux/X11 환경이다. R3 Mutation도 exit 0이다.
+
+Level 1은 공개 설정 Projection과 설정 저장·전역 설정·재시작·Project 흐름,
+Level 2는 실제 Live/Home·JSON·외부 편집기·Preset·입력/viewport·진단 소비자이다.
+공통 승인·예산·효과·Checkpoint·삭제/트랜잭션·실행 경계 84개 안전성 검증을 유지한다.
+저장/실행 정책을 바꾸지 않는 UI 소비자 이동이므로 소단계 전체 회귀는 유예했다.
+Preset/Input/Pages/Screen 변경을 다음 Level 3 전체 LLM/Hub·정적·문서·R3·실환경 게이트에 묶고
+통과한 정확한 SHA만 Push한 후 원격 CI를 확인한다. 이번 기록은 해당 상위 게이트 완료를 뜻하지 않는다.

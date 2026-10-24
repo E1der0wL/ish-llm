@@ -78,6 +78,60 @@ class ProjectSummary(SettingsResponse):
         return cls(value[cls.id.__name__], value[cls.title.__name__])
 
 
+@dataclass(slots=True)
+class ProjectSummaryObservation:
+    """The current UI row borrows its detached public response record."""
+
+    record: dict
+
+    @property
+    def id(self):
+        return self.record[ProjectSummary.id.__name__]
+
+    @property
+    def title(self):
+        return self.record[ProjectSummary.title.__name__]
+
+    @property
+    def present(self):
+        return bool(self.record)
+
+    def set_title(self, title):
+        self.record[ProjectSummary.title.__name__] = title
+
+
+class ProjectSummaries:
+    NO_MATCH = None
+
+    def __init__(self, records):
+        self._records = records
+
+    def to_records(self):
+        """The existing public observation boundary retains its borrowed list."""
+        return self._records
+
+    def rows(self):
+        return (ProjectSummaryObservation(value) for value in self._records)
+
+    def identifiers(self):
+        return {row.id for row in self.rows()}
+
+    def find(self, identifier):
+        return next((row for row in self.rows() if row.id == identifier), self.NO_MATCH)
+
+    def title_or(self, identifier, fallback):
+        return next((row.title for row in self.rows() if row.id == identifier), fallback)
+
+    def replace(self, identifier, title):
+        self._records = [row.record for row in self.rows() if row.id != identifier] + [
+            ProjectSummary(identifier, title).to_dict()]
+
+    def rename_matches(self, identifier, title):
+        for row in self.rows():
+            if row.id == identifier:
+                row.set_title(title)
+
+
 @dataclass(frozen=True, slots=True)
 class ProjectUsageRecord:
     identity: ProjectSummary
@@ -159,6 +213,10 @@ class SettingsBatch(SettingsResponse):
     def error_from_record(cls, value):
         return value[cls.error.__name__]
 
+    @classmethod
+    def observe(cls, value):
+        return SettingsBatchObservation(value)
+
 
 @dataclass(frozen=True, slots=True)
 class PresetApplication(SettingsResponse):
@@ -176,13 +234,47 @@ class PresetApplication(SettingsResponse):
 class SettingsCatalogObservation:
     """Borrow the public response; only requested fields are interpreted."""
 
+    NO_ACTIVE_PROJECT: ClassVar[str] = ""
     record: dict
+
+    @property
+    def schema(self):
+        return self.record[SettingsCatalog.schema.__name__]
+
+    @property
+    def projects(self):
+        return ProjectSummaries(self.record[SettingsCatalog.projects.__name__])
+
+    @property
+    def active_project(self):
+        return self.record.get(SettingsCatalog.active_project.__name__, self.NO_ACTIVE_PROJECT)
+
+    @property
+    def usage(self):
+        return self.record.get(SettingsCatalog.usage.__name__, [])
 
     @property
     def preferences(self):
         from ...config.preference_records import PreferenceSnapshot
 
         return PreferenceSnapshot(self.record[SettingsCatalog.preferences.__name__])
+
+
+@dataclass(frozen=True, slots=True)
+class SettingsBatchObservation:
+    record: dict
+
+    @property
+    def results(self):
+        return self.record[SettingsBatch.results.__name__]
+
+    @property
+    def optional_error(self):
+        return self.record.get(SettingsBatch.error.__name__)
+
+    @property
+    def required_error(self):
+        return SettingsBatch.error_from_record(self.record)
 
 
 @dataclass(frozen=True, slots=True)

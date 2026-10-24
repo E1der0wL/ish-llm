@@ -24,15 +24,54 @@ class SidebarWidth:
         return width
 
     @staticmethod
+    def store(value, width):
+        value[HubTheme.sidebar_width.__name__] = width
+
+    @staticmethod
     def create(width):
         return {HubTheme.sidebar_width.__name__: width}
 
 
 class PreferenceSnapshot:
-    """A freshly read, validated selection; absent initial sections stay absent."""
+    """Global preference observations; callers retain their input/validation boundary."""
 
     def __init__(self, value):
         self._value = value
+
+    @property
+    def record(self):
+        """Borrowed public observation; to_dict remains the detached-copy boundary."""
+        return self._value
+
+    def section(self, name):
+        return self._value[name]
+
+    def section_or(self, name, fallback):
+        return self._value.get(name, fallback)
+
+    def store_section(self, name, value):
+        self._value[name] = value
+
+    def update(self, observation):
+        self._value.update(observation.record)
+
+    def prepare_ui(self, initial_appearance):
+        self._value.setdefault(PreferenceSection.GENERAL.value, asdict(GeneralSettings()))
+        self._value[PreferenceSection.APPEARANCE.value] = asdict(
+            HubTheme(**self._value.get(PreferenceSection.APPEARANCE.value, initial_appearance)))
+
+    def theme_or(self, initial_appearance):
+        return HubTheme(**self._value.get(PreferenceSection.APPEARANCE.value, initial_appearance))
+
+    def set_sidebar(self, width, initial_appearance):
+        appearance = self._value.setdefault(PreferenceSection.APPEARANCE.value, initial_appearance)
+        SidebarWidth.store(appearance, width)
+
+    @classmethod
+    def preview(cls, initial_appearance):
+        return cls({PreferenceSection.PROFILE.value: asdict(UserProfile()),
+                    PreferenceSection.APPEARANCE.value: initial_appearance.copy(),
+                    PreferenceSection.GENERAL.value: asdict(GeneralSettings())})
 
     @property
     def workspace_selection(self):

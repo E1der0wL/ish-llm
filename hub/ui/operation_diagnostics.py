@@ -16,7 +16,6 @@ from .error_presentation import plain
 class OperationDiagnostics:
     MAX_RECORDS = 32
     MAX_DETAIL_CHARS = 20000
-    UNKNOWN_PROJECT = ""
     EMPTY_TEXT = ""
     LINE = "\n"
     ENTRY_SEPARATOR = "\n\n"
@@ -34,7 +33,7 @@ class OperationDiagnostics:
 
     def record_view(self, view, error):
         return self.record(
-            getattr(view, HubSnapshot.project_id.__name__, self.UNKNOWN_PROJECT), error
+            HubSnapshot.project_identifier(view), error
         )
 
     def text(self, project_id, t):

@@ -137,7 +137,7 @@ class SettingsJsonEditor:
                 candidate = self.candidate(page, before, edited)
                 key = page.identifier if isinstance(page, ProjectPage) else page.name
                 screen.drafts.pages[key] = candidate
-                screen.selected = screen.navigation.left_key = (
+                screen.select_location(
                     candidate.section
                     if isinstance(candidate, ProjectPage)
                     else candidate.name
