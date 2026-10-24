@@ -6830,3 +6830,51 @@ exit 0 (168문서/183 Python fence/1247 링크/37 anchor). BackupManifest의 이
 전수 분류 582파일, 미검토 206(llm 29/Hub 177), 미분류 11593, 미완료 연결 계약 4,
 stale/확정 위반/issue 0. `git diff --check` exit 0. 이 로컬 소단계는 Gate43 대기 상태로
 보존하며 다음 출력 저널/트랜잭션 Owner 작업을 이어간다.
+
+
+## llm 출력 저널·source/index Owner — Level 1·2
+
+기준 babf445. OutputEventRecord/OutputSource/OutputIndex/OutputAnchor/OutputIndexEnvelope로
+고정 envelope·필수 manifest·파생 인덱스의 선언/Reader/Writer를 연결했다. OutputJournal의
+내부 source/index 소비를 속성·진행/anchor/cursor/seal API로 바꿨다. 공개 결과, 원본 JSONL,
+필수 manifest 및 재생성 cache의 형식·버전·stride·바이트 직렬화는 그대로다. EngineDelta/
+EngineOutput의 완전한 Reader를 유지하고 부분 Reader나 생략 복구 기본값을 추가하지 않았다.
+
+전체 source bytes/digest와 마지막 sequence/newline 검사 전에는 cache를 사용하거나
+재생성하지 않는다. cached prefix의 전체 바이트·identity·mtime·sequence 검사도 유지한다.
+미검증 tail의 자동 절단·누락 manifest 복원·잘못된 성공 출력 합성은 계속 거부한다.
+원본 append→필수 manifest 갱신 및 기존 transaction 경계/취소 flush 순서를 유지했다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/output-journal-draft/ast-proof.py`
+exit 0: 기존 함수 5개는 선언 전개 후 동일하다. typed 표현이 바뀐 6개는 전체 AST 동등성
+주장에서 제외했다. 같은 경로 `values-proof.py` exit 0: event_reader 36, actual_append_index_queries 120, manifest_refusal 88, index_rebuild 87, effect_order_read 1, callback_failure_read 12, effect_order_append 1, callback_failure_append 12.
+이전/현재 실제 source/manifest bytes·출력 결과·누락/손상 거부·cache 재생성·각 file callback의
+전후 실패 효과를 비교했다. 별도 temp 디렉터리의 오류 경로·실제 inode/mtime 및 검증된
+cache checksum만 정규화했다. 이전 유효 cache의 원본 mtime도 보존해 비교하며 source
+바이트는 정규화하지 않는다. 초기 probe의 temp 경로 차이는 외부 비교기만 수정했다.
+기존 실제 process death·rollback·불확실 출력/승인/효과 Assertion은 그대로다.
+
+- `whole-output-journal-l1-01`: discovered/started/pass 90/90/90, exit 0, 61.659346초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-output-journal-l1-01/llm.json --modules tests.llm.test_output_integrity tests.llm.test_engine_outputs tests.llm.test_operational_storage tests.llm.test_large_data tests.llm.test_current_contracts`. source `f7f29ea393436ff5ed35ccb2eb102ac3e9a518b8001b7a80f147229db20d7aa2`, input `e329e17c0def1d6e4ea532c53e20dd04802cec1c9825329537e817b372e8263a`.
+
+- `whole-output-journal-l2-01`: discovered/started/pass 133/133/133, exit 0, 71.995167초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-output-journal-l2-01/llm.json --modules tests.llm.test_runtime_reliability tests.llm.test_transactions tests.llm.test_conversation_mutation_integrity tests.llm.test_history_retention_integrity tests.llm.test_recovery_probe tests.llm.test_run_reference_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage`. source `f7f29ea393436ff5ed35ccb2eb102ac3e9a518b8001b7a80f147229db20d7aa2`, input `e329e17c0def1d6e4ea532c53e20dd04802cec1c9825329537e817b372e8263a`.
+
+- `whole-output-journal-hub-01`: discovered/started/pass 19/19/19, exit 0, 3.794236초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-output-journal-hub-01/hub.json --modules tests.hub.test_engine_output tests.hub.test_stream_output tests.hub.test_output_interaction tests.hub.test_snapshot_projection`. source `f7f29ea393436ff5ed35ccb2eb102ac3e9a518b8001b7a80f147229db20d7aa2`, input `e329e17c0def1d6e4ea532c53e20dd04802cec1c9825329537e817b372e8263a`.
+
+각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 ID 일치.
+LLM 집합 간 중복 0. 제품·시험/Fixture·discovery·의존성과 Python3.12.14/Clang·Host d833790·
+격리 환경의 source/input은 실행 전후 및 실행 간 동일하다. R3
+`python -m tests.llm.check_budget_mutation` exit 0. 시험/Assertion/필수 CI를 변경하지 않았다.
+
+집중 범위는 원본 무결성·실제 프로세스 중단·출력 통합/대용량·현재 형식이다. 관련 검증은
+실행/트랜잭션·대화 변이·보관/복구·Run 참조와 승인·사용량·효과·Checkpoint·RAG 및 Hub
+stream/output/snapshot 소비자다. 원본 효과와 형식을 보존한 typed 표현 변경의 영향이
+이 범위로 한정됨을 검증했다. 다음 공통 트랜잭션 정리를 마친 묶음 Gate43에서 전체 LLM/Hub와
+정적 감사·문서·R3·환경을 검증한 뒤 Push한다. 이 소단계는 전체/원격 완료 선언이 아니다.
+
+정적 종료 `python /workspace/llm-clean-resume/whole-ownership/close-checks.py output-journal-draft`:
+S1–S7 exit 0 (finding 83, new/stale 0), 감사 회귀 16개 pass (3.308초), 문서 검사
+exit 0 (168문서/183 Python fence/1248 링크/37 anchor). 이동된 source/index 버전 비교
+2개는 각각 exact-int와 기존 원본 거부/cache 재생성 시험을 근거로 개별 분류했다.
+전수 분류 583파일, 미검토 205(llm 28/Hub 177), 미분류 11397, 미완료 연결 계약 4,
+stale/확정 위반/issue 0. `git diff --check` exit 0. 관련 검증을 마친 로컬 소단계이며
+Gate43 전체 검증 및 원격 CI를 대체하지 않는다. 다음 Transaction Owner 정리를 계속한다.

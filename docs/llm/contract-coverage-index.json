@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 582,
-    "unreviewed_files": 206,
+    "files": 583,
+    "unreviewed_files": 205,
     "stale_files": 0,
-    "unclassified": 11593,
+    "unclassified": 11397,
     "violations": 0,
     "incomplete_contracts": 4,
-    "unreviewed_dynamic_paths": 208,
+    "unreviewed_dynamic_paths": 207,
     "unreadable_files": 0,
-    "candidates": 21570,
+    "candidates": 21440,
     "issues": 0
   },
   "files": [
@@ -3220,7 +3220,7 @@
     {
       "path": "llm/services/infrastructure/README.md",
       "status": "reviewed",
-      "sha256": "c3675da44dc21ff57bc0f8645bfb3b4c6e6f07f7a15dff3399dc6de49c1d8f23",
+      "sha256": "2041ab1c79a576b147811c3d271a045a01e131a2ca28f5054eb4c13831fc76f1",
       "candidates": 0
     },
     {
@@ -3243,9 +3243,9 @@
     },
     {
       "path": "llm/services/infrastructure/journal.py",
-      "status": "unreviewed",
-      "sha256": "880a88daee26bec02af0fd45d85700bf818ac6828c346ca6fa8ac0abf3f7f244",
-      "candidates": 196
+      "status": "reviewed",
+      "sha256": "6767586297285f99ba98739cde86ca9903e98f017209731598d84b898c347402",
+      "candidates": 25
     },
     {
       "path": "llm/services/infrastructure/linux_sandbox.py",
@@ -3270,6 +3270,12 @@
       "status": "reviewed",
       "sha256": "88d30abc5dcb96c5c8405f579d96d92143476e8c527b0ec6b7bcec29d3e0ac50",
       "candidates": 42
+    },
+    {
+      "path": "llm/services/infrastructure/output_records.py",
+      "status": "reviewed",
+      "sha256": "a2d54857fd0d251e420059340477f76b2933fabe650a8524a82888995c920473",
+      "candidates": 41
     },
     {
       "path": "llm/services/infrastructure/process_command.py",

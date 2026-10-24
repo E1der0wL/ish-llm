@@ -70718,10 +70718,10 @@
   },
   {
     "path": "llm/services/infrastructure/README.md",
-    "sha256": "c3675da44dc21ff57bc0f8645bfb3b4c6e6f07f7a15dff3399dc6de49c1d8f23",
+    "sha256": "2041ab1c79a576b147811c3d271a045a01e131a2ca28f5054eb4c13831fc76f1",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit. Added current deletion-intent/backup projection and shared snapshot accounting; transaction/output work remains explicitly pending.",
+    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit. Added current deletion-intent/backup projection and shared snapshot accounting; transaction/output work remains explicitly pending. Added mandatory source and optional derived-index typed ownership; publication/validation boundaries and public APIs remain unchanged.",
     "contracts": [
       {
         "owner": "Infrastructure observation/ownership guide",
@@ -72294,6 +72294,492 @@
           "tests/llm/test_rag_corpus_integrity.py",
           "tests/llm/test_rag_job_integrity.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/journal.py",
+    "sha256": "6767586297285f99ba98739cde86ca9903e98f017209731598d84b898c347402",
+    "reason": "Complete source/cache path and dynamic-method review covers actual injected output values, source validation before cache, byte/sequence/identity/mtime/digest checks, sparse anchors, cursor/limits, mutable builder state, cache failures, public output serialization and process interruption. Fixed internal records use owned properties/mutations; no compatibility Reader, fallback source or changed execution policy.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e166b06aebbeea635d635e54350ae0703a02d69b5892262bf60c27d434098338",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "2d9bd48c59f75688e2d2dafc8e3064d7bc55a5f4fee4af476224c1cb3ecd0f97",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "4a30643bd537ca464afc1fe9ede8f56844a6e8db8c09cfa3266dacc3e57e8fd1",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "ff67c10d7f972ff75d18cfb162340f1a4ec7599c858a3c94b7185245f8a0171b",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "a0db041ee57fb2b0ed7071e387fb7ac196d6e15ba287656ca89ee36eddd046a5",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "d6af138273ebdb578bf8ffb591c0c5dea105d5344f377e4842dd379bc8389d8f",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "9c5015d576fcb5c64b19e389e40a85b446727ffa7cd855c0cf8d5d98d1c57e7e",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "4e1aeacfd8c5b9fe87b1da0b0b34b9ead03940be1658c11a9f58b51d38ef2a97",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "0a8ebaa34c7acdce5b3217571e555ae64d14cd046056fb981c1b7d0ff480efc5",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "b71807618249dafb1b270f489c4f08b5dcfa1232d2b6c2f1c437239aea4074cc",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "cd5fc8172615d1a64d9af121d29987af091403c63508cc61c5973c0efaed27a2",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "8609eee0425fca6a8c71c67e4644aed80feb6d43b550f073d537b54ab68dffc1",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "61422f7c6337750893f15cf453b6f47b338d77f3c35793d1fbbdf439b26cb0aa",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "93cd5742db1dfd34d8636e5a27dec4a5a6f1d3b8898d623313e8e7308e37fee6",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "062e83ddea607438bf62d2ccf31ed7ba778cf0b53b4fe3c15292c2c82d6a9bcc",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "0973e0efac45a7ebfb9df082d961ee598fb073455898cf5a30e79ece2ba32d8d",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "7a42ca3e96c6de791e588110e35a21cda036dd40ba59a819d512486e32dcf59b",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "e6172f27d092fc08420a0b50f5703d19dbb8a2a4624c54cabf9d6e4599dd23d7",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "e788e23db38200fc063b7a18f2f5def4065b2d698756c41ca1e6699fe2472e5f",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "fa25612a9c59c2254ef026c43485d6ed4a7627cdbd11065adb90ed7becd2e69f",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "744263febaaa39b5829db656ed824837bf85098f564defecd1729eb2702e6976",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "9c14dd1755ff1a0b0544b72e6b85adecc06919495174297e2337284f99ed60e4",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "4a62cad2830bba70d775e7e7e067fed4e001eea1eb77e52ec79ad65a983b905a",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "4e3365c13c16914c64a58d3328dd7a36fa4f1c8fbd432ad907af8c19f064f6ae",
+        "classification": "declaration",
+        "owner": "OutputJournal",
+        "reason": "Output storage technical declarations stay at the journal head; event/source/cache records and independent versions refer to their canonical Owners."
+      },
+      {
+        "id": "8e4332f109095bfa60c0082bec1fcc116815ff261ec650e9d025d68075e7d75a",
+        "classification": "non_contract",
+        "owner": "OutputJournal._index",
+        "reason": "Python unconditional read loop; termination remains actual EOF or the original error. It is not a policy default, retry permission or stored state."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OutputJournal",
+        "declaration": "llm/services/infrastructure/journal.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/composition.py",
+          "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/output_records.py",
+    "sha256": "a2d54857fd0d251e420059340477f76b2933fabe650a8524a82888995c920473",
+    "reason": "Complete source/cache path and dynamic-method review covers actual injected output values, source validation before cache, byte/sequence/identity/mtime/digest checks, sparse anchors, cursor/limits, mutable builder state, cache failures, public output serialization and process interruption. Fixed internal records use owned properties/mutations; no compatibility Reader, fallback source or changed execution policy.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "33f29eb5f0bbc5f1dcecd385efadc9ec3d4c27e3308491d73474423568e04f91",
+        "classification": "declaration",
+        "owner": "OutputEventRecord",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "f1025cf41a13b6023e6bc6065fe1bf00d2275d01d4d08cbfe1477c691929f99c",
+        "classification": "declaration",
+        "owner": "OutputEventRecord",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "99c19e7b15b1603757ffa8da2744d418bf760dc6c7f2dab27bb8d924af0230fd",
+        "classification": "declaration",
+        "owner": "OutputEventRecord",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "8f03e4a5512ffab7cb716338a61ef0632cc2c65c47397d1b5903a41f8a794be7",
+        "classification": "declaration",
+        "owner": "OutputEventRecord",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "6429aba3069948fddcefd95c9bada1861ec9d430557d7cc41a1684c5b9c2bee5",
+        "classification": "declaration",
+        "owner": "OutputEventRecord",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "dc016d633314aca2457e4e8169fb5d977acf5ee7d546678311f6d0e675ab187a",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "61c3a2fd38d539fa8e8df834c14748abfbe3762a74120db2a255d998e307a5f5",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "358faf887bf8b32137c185b93ca2eebc5f0fa0cd46d1dfcda33ebb3eb887d14a",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "8f9f44a23468a9d67e3c3702768e50f36392c9e2091e91bca273a3778d2ecfa8",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "57b9fa4a79d49f1f3988373dfa988a0df69b58a68623878563a956bf316bc3db",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "a5a14f8f8a7573191a05ffad863a5ea9f23f70db470195bfc1bf4944ddbc178c",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "854d9d4fd8ff45ff136a8960ae48da94ceb0eb86d6f1f121cf6cd743844164d7",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "ccc69ed013c0a5b04afd36ca24cf961254d2a0eddb0dce6809b3e1bc6d3a714e",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "5f29555e97a92f38d3d153dfdee2a435a1889717aeb8de01eb860e1dc12a49b8",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "948dce2db745dd161754212c32d1d3bcba0ea36b9e1db8964e53138cca8ffb52",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "5e1f75bf7e3237ff56116d345c7b5185afe5cb04b41c7d9d5601e7ca0962f691",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "0f06037c6cd82006b033c8159946e8f2fb5c7e9e4f952f0596f214b5612db497",
+        "classification": "declaration",
+        "owner": "OutputSource",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "8f0fa7d988a4e165d4e40f319b694b90daeaf3575a227e291b57befb66b8e125",
+        "classification": "declaration",
+        "owner": "OutputAnchor",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "fe48575c730c06b80bd47482f9c9df2f44477efea8fcd2b8d20b44adbaa5e94e",
+        "classification": "declaration",
+        "owner": "OutputAnchor",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "a0e1c7be5224662fa371c232170df6bb48dbb94c5bfe3ef5dcc0e3a9c2d8bd9a",
+        "classification": "declaration",
+        "owner": "OutputAnchor",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "cefdb291cfffd88a78019514dcf1363fb7eebefa8f49c69bdbeaed5f3569058d",
+        "classification": "declaration",
+        "owner": "OutputAnchor",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "8dfb25ef134601cc15e794561ecdfc0d5fdeb810cd872fa970b5f42251945337",
+        "classification": "declaration",
+        "owner": "OutputAnchor",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "4228fe816f211ea8091e009c13307ed228931ac82377b3332866d1e34472279f",
+        "classification": "declaration",
+        "owner": "OutputAnchor",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "3c1d8fae3d53616d9fa1dfd28c3f2c451d2c38b58b90f987ad04eab0d0919d86",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "1f4f39defeeb2236b41db7d5819b9f63e83019648a2d91825b76429055ea74c1",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "8fdf46485f5dde47f8765a4089aed76ff23e03a498c1221faff59d999ac27647",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "b213ff7c84b9072e4c13764d290497f016021c663ae2b949e328db173c3b42c6",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "1f9f14523f643fe8913d8532f6fd5c5b7bfccab25b9f80ae9552e5d17ce897b3",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "5d496bab84f4619b03c6fb9f77446ffb271b53cc61d3a0240e20b2115de802e3",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "ba3df0d11ad2c8db99ca391c059575b659b7cf5e916a6300be67e7cc74ee4be5",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "a84f45d365aeb7ca348d22ca0428799d4769ce8fec07d417cc1b9f6d91449fa3",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "2a3a26c6bbe992ede35df1bd8ebda9a4afbe28e6da57b88b4c58db696a7c5008",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "fa98cd43062e979e0ab4e3fdefe67d878a4392d5f291984612131e3889e45514",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "ebd56b859cead38d7c85862ea83567a172e6b4692adc2754cae91818e885ae10",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "a016ccbb886b3087b047cbf08812c6dc71f05fe6d15b54ec296002c1e3eddd8a",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "61c7a29393789ccef7a6d1446e63e5e24883f7951697fa1f919718303a21db30",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "ad9a3732c64202b70013938189828612df1ac3812566dc5930d691667fe6a975",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "e473622f72062fc07f175e08741afe0c8fd46a5b08f6305f1b5b0fb7c61867ba",
+        "classification": "declaration",
+        "owner": "OutputIndex",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "ffc3ab0448c4a6356f8a093c25fd26f4dd1c7387bbec5b6b7b38124f69f5f2d2",
+        "classification": "declaration",
+        "owner": "OutputIndexEnvelope",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "b34fcc20b2ab2e043e85e73310581be3b79d04a86f4bd0b8fe7dc2575a0d781d",
+        "classification": "declaration",
+        "owner": "OutputIndexEnvelope",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      },
+      {
+        "id": "8f0b82061254030badcb67b8ac5f051751c5729f81e7107502d6a90823dd2c9a",
+        "classification": "declaration",
+        "owner": "OutputIndexEnvelope",
+        "reason": "Current envelope fields/kinds, mandatory source evidence, derived-index fields/positions and each independent protocol version are declared once at their Owner head; Readers/Writers/projections use them."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OutputEventRecord / OutputSource / OutputAnchor / OutputIndex / OutputIndexEnvelope",
+        "declaration": "llm/services/infrastructure/output_records.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/composition.py",
+          "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_large_data.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],

@@ -10,6 +10,7 @@
 | [storage.py](storage.py) | atomic JSON, append, 파일 작업과 순차 비동기 StorageIO 경계입니다. |
 | [transactions.py](transactions.py) | 여러 파일 변경의 undo journal, fsync, commit·rollback·복구를 구현합니다. |
 | [locking.py](locking.py) | Linux 파일 잠금과 workspace 소유권 범위를 관리합니다. |
+| [output_records.py](output_records.py) | 출력 event·필수 source manifest·재생성 가능한 index의 Reader/Writer와 typed projection입니다. |
 | [journal.py](journal.py) | JSONL 증분 읽기·projection·조회 인덱스입니다. |
 | [logging.py](logging.py) | 도메인별 로그 경로와 주입 가능한 로그 출력 계약입니다. |
 | [observability.py](observability.py) | 누적 운영 통계와 기존 owner 상태를 모은 조회 스냅샷입니다. |
@@ -63,3 +64,17 @@ DirectoryBackups는 파일 재검사·staging·게시·실패 정리를 조율�
 요구하지 않는다. opaque metadata·원본/저장 형식·도메인별 검증 책임은 유지한다.
 SnapshotFile.total_bytes가 필요한 바이트 합산을 소유하며 RAG 보관/Checkpoint 계획도
 같은 projection을 사용한다. 공통 트랜잭션과 출력 저널의 전수 정리는 후속 범위다.
+
+
+## 출력 원본과 파생 인덱스
+
+OutputEventRecord는 기존 delta/output envelope를 읽고 실제 값의 검증은 EngineDelta/
+EngineOutput에 위임한다. OutputSource는 필수 manifest의 완전한 필드·버전·바이트/sequence/
+digest 증거를 소유한다. OutputJournal은 전체 원본 bytes·마지막 sequence와 newline을
+검사한 뒤에만 조회/append한다. 누락 manifest나 손상된 원본은 재생성·절단하지 않는다.
+
+OutputIndex/OutputAnchor/OutputIndexEnvelope는 파생 인덱스의 검증·위치·진행 갱신·
+직렬화를 소유한다. 내부 서비스는 속성과 명시 변경 API를 사용한다. 인덱스 손상은 원본 검증
+이후에만 재생성할 수 있고, prefix 전체 digest·파일 identity/mtime·sequence 검사를
+유지한다. 원본과 인덱스의 버전은 별도 계약이며 같은 숫자라는 이유로 합치지 않는다.
+기존 JSONL/manifest/cache 형식·index stride·공개 read/iter_events/append 계약은 유지한다.

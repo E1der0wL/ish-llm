@@ -3770,7 +3770,7 @@
       "id": "359c51721ee2df446703e4a4aa36c8ae7a9c3e7bf8c098eabb4f79ce65040154:1",
       "rule": "S4",
       "owner": "BackupManifest.read",
-      "reason": "The original current-format backup check moved unchanged to its canonical Reader: exact integer type is checked first and compared with the DirectoryBackups selected FORMAT_VERSION, declared by BackupManifest. Boolean/float/absent versions are not accepted. No migration/default Reader, extra field coercion or domain validation weakening. Original current-format and owner-integrity regressions plus previous/current actual-file and every reached backup callback failure comparison pass.",
+      "reason": "The original current-format backup check moved unchanged to its canonical Reader: exact integer type is checked first and compared with the DirectoryBackups selected FORMAT_VERSION, declared by BackupManifest. Boolean/float/absent versions are not accepted. No migration/default Reader, extra field coercion or domain validation weakening. Original current-format and owner-integrity regressions plus previous/current actual-file and every reached backup callback failure comparison pass. Output journal delta: typed event/source/index Owners preserve required evidence, byte format and effects; original integrity/process-death regressions and independent previous/current byte/cache/fault comparisons pass. Source and optional cache contracts stay distinct; next transaction audit/full gate remains pending.",
       "contracts": [
         "docs/llm/storage-transactions.md",
         "docs/llm/contract-ownership.md",
@@ -3786,7 +3786,53 @@
         "tests/llm/test_backup_owner_integrity.py": "57a65936d7c88cb9ac535956501df019ff0e85c46519e88fca24730b146a056b",
         "docs/llm/storage-transactions.md": "de93c4e0d0f30f202862228cd66970c9160ca0af04b644664164838e591addf3",
         "docs/llm/contract-ownership.md": "269ccb7d5ccb42734f64bf65d1badb61d414564a108a4e69920d19b30d036b91",
-        "llm/services/infrastructure/README.md": "c3675da44dc21ff57bc0f8645bfb3b4c6e6f07f7a15dff3399dc6de49c1d8f23"
+        "llm/services/infrastructure/README.md": "2041ab1c79a576b147811c3d271a045a01e131a2ca28f5054eb4c13831fc76f1"
+      }
+    },
+    {
+      "id": "687197e9475e642e63b279b724f42493945407af02017cfcc4713ecc7a9f49d0:1",
+      "rule": "S4",
+      "owner": "OutputSource.read",
+      "reason": "Current source and derived index versions remain separate Owner declarations. This relocated Reader first requires exact integer type and then the existing OutputJournal-selected version; missing/bool/float versions fail as before. Source evidence never falls back; only derived cache may be rebuilt after full source validation. Original corruption, actual process-death and independent previous/current byte/effect comparisons pass.",
+      "contracts": [
+        "docs/llm/storage-transactions.md",
+        "docs/llm/contract-ownership.md",
+        "llm/services/infrastructure/README.md"
+      ],
+      "tests": [
+        "tests.llm.test_output_integrity.OutputIntegrityTests.test_manifest_current_fields_types_and_source_values_are_required"
+      ],
+      "sources": {
+        "llm/services/infrastructure/journal.py": "6767586297285f99ba98739cde86ca9903e98f017209731598d84b898c347402",
+        "llm/services/infrastructure/output_records.py": "a2d54857fd0d251e420059340477f76b2933fabe650a8524a82888995c920473",
+        "tests/llm/test_output_integrity.py": "b3138b42d57466fbb7e48471571a1fdc24048f2585151de002107100e454e632",
+        "tests/llm/test_operational_storage.py": "123fe9495a8a34e08f33a823e9edd3919889a840b72ef5a46fa02df944e18057",
+        "docs/llm/storage-transactions.md": "de93c4e0d0f30f202862228cd66970c9160ca0af04b644664164838e591addf3",
+        "docs/llm/contract-ownership.md": "269ccb7d5ccb42734f64bf65d1badb61d414564a108a4e69920d19b30d036b91",
+        "llm/services/infrastructure/README.md": "2041ab1c79a576b147811c3d271a045a01e131a2ca28f5054eb4c13831fc76f1"
+      }
+    },
+    {
+      "id": "86fcc51063cd4c43b72c15b27421cf7c9d3b0a98c5ba1fa47e09e41ffb77ba0c:1",
+      "rule": "S4",
+      "owner": "OutputIndex.read",
+      "reason": "Current source and derived index versions remain separate Owner declarations. This relocated Reader first requires exact integer type and then the existing OutputJournal-selected version; missing/bool/float versions fail as before. Source evidence never falls back; only derived cache may be rebuilt after full source validation. Original corruption, actual process-death and independent previous/current byte/effect comparisons pass.",
+      "contracts": [
+        "docs/llm/storage-transactions.md",
+        "docs/llm/contract-ownership.md",
+        "llm/services/infrastructure/README.md"
+      ],
+      "tests": [
+        "tests.llm.test_output_integrity.OutputIntegrityTests.test_invalid_index_structure_is_rebuilt_from_verified_source"
+      ],
+      "sources": {
+        "llm/services/infrastructure/journal.py": "6767586297285f99ba98739cde86ca9903e98f017209731598d84b898c347402",
+        "llm/services/infrastructure/output_records.py": "a2d54857fd0d251e420059340477f76b2933fabe650a8524a82888995c920473",
+        "tests/llm/test_output_integrity.py": "b3138b42d57466fbb7e48471571a1fdc24048f2585151de002107100e454e632",
+        "tests/llm/test_operational_storage.py": "123fe9495a8a34e08f33a823e9edd3919889a840b72ef5a46fa02df944e18057",
+        "docs/llm/storage-transactions.md": "de93c4e0d0f30f202862228cd66970c9160ca0af04b644664164838e591addf3",
+        "docs/llm/contract-ownership.md": "269ccb7d5ccb42734f64bf65d1badb61d414564a108a4e69920d19b30d036b91",
+        "llm/services/infrastructure/README.md": "2041ab1c79a576b147811c3d271a045a01e131a2ca28f5054eb4c13831fc76f1"
       }
     }
   ]
