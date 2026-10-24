@@ -6,6 +6,7 @@ from prompt_toolkit.layout.dimension import Dimension
 
 from ..config.theme_style import ThemeSelector, ThemeStyle
 from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
+from ..asset.icon import IconSet
 from .controls import Button
 from .actions import bind_button_navigation
 from .focus import focus_control
@@ -39,7 +40,7 @@ class AuxiliaryBar(VSplit):
         self.previous = self.NO_PREVIOUS
         for name, handler in actions:
             button = AuxiliaryButton(
-                lambda name=name: icons().auxiliary[name], handler=handler
+                lambda name=name: IconSet.action(icons(), name), handler=handler
             )
             self.buttons[name] = button
             registry = button.control.hub_shortcuts

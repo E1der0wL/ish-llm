@@ -91510,42 +91510,42 @@
   },
   {
     "path": "hub/widget/auxiliary.py",
-    "sha256": "97e08f4235f9bf51cd263582d1985bc1c4261ec8f1b187b154145e3c4eed6499",
-    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "sha256": "bce67efcc138b157d3da74fff9d94da2bb823041aa8006bcbed6e1a213784362",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Transient interruption/deletion/composer feedback keeps durable execution and command admission unchanged. Canonical snapshot and lazy Session-pair observations preserve callback identity, read timing and exact UI projection; actual before/proposed outcomes and existing safety/UI regressions pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "b5f5890addd6534cb0a43faaa27c5b6c5ee89053c27d595e7dec51818c072828",
+        "id": "611cf7d67750b45b9253960b68f93df331c3d29498b908250acdbe88ef6f5a8e",
         "classification": "declaration",
         "owner": "AuxiliaryButton",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "77424c6f6368781748e12ccf9d422798fbf61a0d2a491207b1a97b3d3d896f70",
+        "id": "0bc690bf62b023544bfdb5de91caf79ef0a3d190157c14579efea0e54cf3d7db",
         "classification": "declaration",
         "owner": "AuxiliaryBar",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "13bbadb669b3413ca94b953cd948cfa6c8c6da1dbb8a1441dd1f5a33655875db",
+        "id": "d7d0fb0ec15d68f41a8d9aa23f00ac8bf661583c5a847bf8e9b856b47d5ea613",
         "classification": "declaration",
         "owner": "AuxiliaryBar",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "b6f3e8abe04b4711ad2b2512079cc2905c22da6df38aaf883f86d5cf20cc1e94",
+        "id": "16f5a547bd632e9028d1528aeb72547b4e4314af52562e79345d477442256cf9",
         "classification": "declaration",
         "owner": "AuxiliaryBar",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "4fe87e05d256264172ba8968cbed8f4d285379be0f0dc37e7baaa3d73269c079",
+        "id": "f4b8a7026ca61e3685d5b5de2e42f58348ef2091f44e233990a23d37b1cf30ea",
         "classification": "declaration",
         "owner": "AuxiliaryBar",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "20812e136c6c277fdec461f60a1ba571c0942778fbf4e2001948af4062bb9ad1",
+        "id": "ec52ff636b3c7ce615a5a24add2661ef1008fca266ca34b11c27299a0bab1bb0",
         "classification": "non_contract",
         "owner": "AuxiliaryBar.__init__",
         "reason": "A disabled Tab shortcut uses a no-op Python callback; its return value is ignored rather than interpreted as domain state."
@@ -91556,30 +91556,41 @@
         "owner": "AuxiliaryButton / AuxiliaryBar",
         "declaration": "hub/widget/auxiliary.py",
         "consumers": [
-          "hub/ui/view.py",
           "hub/ui/settings/screen.py",
+          "hub/ui/view.py",
           "hub/widget/composer_actions.py"
         ],
         "tests": [
-          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_escape_navigation.py",
           "tests/hub/test_header_actions.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_page_layout.py",
-          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_escape_navigation.py",
-          "tests/hub/test_chrome.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_widget_chrome.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -91899,6 +91910,297 @@
           "tests/hub/test_chrome.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_presets_widgets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/composer_actions.py",
+    "sha256": "54da65b8415c91adf9a808603fa1bf68ef646c03fd0326babd61d6cab9720283",
+    "reason": "Transient interruption/deletion/composer feedback keeps durable execution and command admission unchanged. Canonical snapshot and lazy Session-pair observations preserve callback identity, read timing and exact UI projection; actual before/proposed outcomes and existing safety/UI regressions pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6640462364a4d6da3d6f47093bec94d053ae412e058974533be25b76260dee02",
+        "classification": "declaration",
+        "owner": "ComposerActions",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "c93bd4b1af97185b214239f6d90e7e92096d76957e7773f0e83b2baaac254a84",
+        "classification": "declaration",
+        "owner": "ComposerActions",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "ecd7c428990804ed8cc4daa87793166a543fd643fc4850fd8ad406c22308d466",
+        "classification": "declaration",
+        "owner": "ComposerActions",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "685c2a3f971f817a2dbdb41e1adcfdd8d11f0e4ca8f7cbed980a14dfc2728666",
+        "classification": "declaration",
+        "owner": "ComposerActions",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "50eae0ae9f12565aafdf7bf50046cae935dc4dc61b1be81a2da44c841b32775a",
+        "classification": "declaration",
+        "owner": "ComposerActions",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComposerActions",
+        "declaration": "hub/widget/composer_actions.py",
+        "consumers": [
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/feedback/history_deletion.py",
+    "sha256": "828b31b272d18550acbc5a728d7bb8885628fe38fd2fe0cd938b9ee52d6388e4",
+    "reason": "Transient interruption/deletion/composer feedback keeps durable execution and command admission unchanged. Canonical snapshot and lazy Session-pair observations preserve callback identity, read timing and exact UI projection; actual before/proposed outcomes and existing safety/UI regressions pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c391368343ee81b511535f7aff1334a3420c83f6717e3345961fad2062acd42e",
+        "classification": "non_contract",
+        "owner": "PendingDeletion",
+        "reason": "Python frozen dataclass declaration; no durable deletion policy is introduced."
+      },
+      {
+        "id": "29bfe7919ff3f8909b73fd12466cdc87d34e740ba57ae1c7497faf898c561a50",
+        "classification": "non_contract",
+        "owner": "PendingDeletion",
+        "reason": "Python slots declaration for instance layout."
+      },
+      {
+        "id": "ca126eec07819586764cb913fbf8e2abdef344414c83a8d46e8796053853eadb",
+        "classification": "declaration",
+        "owner": "HistoryDeletion",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HistoryDeletion / PendingDeletion",
+        "declaration": "hub/widget/feedback/history_deletion.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/widget/feedback/preparing.py"
+        ],
+        "tests": [
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/feedback/interrupt_feedback.py",
+    "sha256": "35b948f75aa0472a1e398e90879a7b9f560809f9c6dce94379b894afd6fe4227",
+    "reason": "Transient interruption/deletion/composer feedback keeps durable execution and command admission unchanged. Canonical snapshot and lazy Session-pair observations preserve callback identity, read timing and exact UI projection; actual before/proposed outcomes and existing safety/UI regressions pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e4005dbb16a4bb898c684f056ef9004d629a56c15078f731fcb9df38eefa6429",
+        "classification": "non_contract",
+        "owner": "PendingInterrupt",
+        "reason": "Python slots declaration on the mutable callback identity retained during observation."
+      },
+      {
+        "id": "0661c2e311aacdb61be26cdd93c8432eb266028ad468321c614518ca584953a9",
+        "classification": "declaration",
+        "owner": "PendingInterrupt",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "4f3febacfc286c12451ccfa021d90be9bfe9895ecf48f03d4093a05800c8a9c7",
+        "classification": "declaration",
+        "owner": "InterruptFeedback",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "a6f0fa950c51b3c6b14e95d4fcadb739c1c66d17bfe8341b7feee62cdaf4598b",
+        "classification": "declaration",
+        "owner": "InterruptFeedback",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "41d62045f877aadafd57b966bb920cec86ef73fef26093b6f1324ce528af7129",
+        "classification": "declaration",
+        "owner": "InterruptFeedback",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "bb5b1fab6891137c14defc90e30dc6d3be82a55290701a73d4d57eb12e9d7aeb",
+        "classification": "declaration",
+        "owner": "InterruptFeedback",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "589a3c130e135f21b09d3bb9d7819c08fb70aef753842b0236ca0a4df24e0bdf",
+        "classification": "declaration",
+        "owner": "InterruptFeedback",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "be6cbf1a0b79ea7c2a0edd4f457422f965a48ce1ecc3e1ac602789ddc57b939e",
+        "classification": "declaration",
+        "owner": "InterruptFeedback",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "1955f85644fa1a7eae5fd6fb859171d263cbdb1d85474d4a73e9c1e9e4b33956",
+        "classification": "declaration",
+        "owner": "InterruptFeedback",
+        "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
+      },
+      {
+        "id": "a455ac09c77c2e6f91a9f3dd58d369563a68b64de26e44edb8e5edf6cd46c45e",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.start",
+        "reason": "Optional return type annotation, not a value default or a cancellation decision."
+      },
+      {
+        "id": "c41171e6efcd3fa333c3697848e4469aa13eb4e89e4d7925da5e885fc6c31951",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.finish",
+        "reason": "Optional request type annotation."
+      },
+      {
+        "id": "4ae7f9e18a09001d1f7cd607aab4dd39f78ddccc7f58b419db7343cc2bbcf47f",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.finish",
+        "reason": "Optional callback result type annotation."
+      },
+      {
+        "id": "c626ed1446f78cf4cedb97c1af60ac0fa7d7efb5c026aff3d7ea677214841767",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.finish",
+        "reason": "Python no-value return annotation."
+      },
+      {
+        "id": "e67eb4a04e6dea743bca34e1d9dff4c5bbc050f4010513f022bc5900b72e1c4f",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.observe",
+        "reason": "Python no-value return annotation."
+      },
+      {
+        "id": "f355aecf018aa7cdaea6c95fb7c2c387822bc77af9b4f5227501eb45c84538eb",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.project",
+        "reason": "Variadic tuple parameter type annotation."
+      },
+      {
+        "id": "83e1e038096c8e4dd9f3b29fd8f8ec08832a6b7cc54d14663cc8b0a5c222c4d1",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.project",
+        "reason": "Variadic tuple return type annotation."
+      },
+      {
+        "id": "d740ac1beff209743f66255707b0461546da4f72a8bf791f06cc1e8369993c88",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.project",
+        "reason": "Begin reverse traversal at list length minus one."
+      },
+      {
+        "id": "5481c302079c0a021bd63a914221196f951b9d2765ae7c331dbafe966cb87511",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.project",
+        "reason": "Use negative one as the exclusive endpoint to include index zero."
+      },
+      {
+        "id": "bdcf041aa355afd613656ad909670e9510da922e69fecc58c66eff84c8b1a162",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.project",
+        "reason": "Use a negative unit step for reverse traversal."
+      },
+      {
+        "id": "28435851f0c776b57e85797d07aa785b06f51bce48e4133296313ce62165b2f2",
+        "classification": "non_contract",
+        "owner": "InterruptFeedback.project",
+        "reason": "Resume the unchanged suffix one element after the replaced message."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InterruptFeedback / PendingInterrupt",
+        "declaration": "hub/widget/feedback/interrupt_feedback.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/widget/feedback/preparing.py",
+          "hub/widget/composer_actions.py"
+        ],
+        "tests": [
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",

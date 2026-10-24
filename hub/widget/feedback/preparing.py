@@ -8,7 +8,7 @@ import asyncio
 from dataclasses import replace
 from time import monotonic
 
-from ...model import ChatMessage
+from ...model import HubSnapshot, ChatMessage
 
 
 class PreparingResponse:
@@ -32,7 +32,7 @@ class PreparingResponse:
         self.pending[key] = None
         self.started[key] = monotonic()
         if resume_run_id:
-            snapshot = getattr(self.view, "_last_snapshot", None)
+            snapshot = HubSnapshot.last_observed(self.view)
             anchor, assistant = turn_id, None
             if snapshot and key == (snapshot.project_id, snapshot.selected_id):
                 preceding = None
@@ -60,7 +60,7 @@ class PreparingResponse:
     def project(self, key, messages):
         messages = self.view.question.project(key, messages)
         clock = self.clocks.get(key)
-        snapshot = getattr(self.view, "_last_snapshot", None)
+        snapshot = HubSnapshot.last_observed(self.view)
         run = snapshot.run if snapshot and key == (snapshot.project_id, snapshot.selected_id) else None
         from .retry_status import retry_text
         activity = retry_text(run.retry if run and run.active else None, self.view.t)
@@ -114,7 +114,7 @@ class PreparingResponse:
     def accepted(self, key, message_id):
         self.drafts.pop(key, None)
         self.pending[key] = message_id
-        snapshot = getattr(self.view, "_last_snapshot", None)
+        snapshot = HubSnapshot.last_observed(self.view)
         if snapshot:
             self.observe(snapshot)
 

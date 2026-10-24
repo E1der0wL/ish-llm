@@ -57,7 +57,7 @@ class LiveHubView(HubView):
                 return
 
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=None) -> None:
-        self._last_snapshot = snapshot
+        HubSnapshot.observe_in(self, snapshot)
         self.interrupting.observe(snapshot)
         self.toasts.reconcile_waiting(snapshot.project_id, snapshot.sessions)
         self.preparing.observe(snapshot)
@@ -142,8 +142,8 @@ class LiveHubView(HubView):
         callback = getattr(self, "on_output_interval", None)
         if callback:
             callback(theme.output_refresh_interval)
-        if getattr(self, "_last_snapshot", None) is not None:
-            self.apply_snapshot(self._last_snapshot)
+        if HubSnapshot.last_observed(self) is not None:
+            self.apply_snapshot(HubSnapshot.require_observed(self))
 
 
 class LiveController:
@@ -331,7 +331,7 @@ class LiveController:
                 self.view.failure_diagnoses[key] = (result.value or {}).get(rid, ErrorInfo())
             while len(self.view.failure_diagnoses) > 256:
                 self.view.failure_diagnoses.pop(next(iter(self.view.failure_diagnoses)))
-            latest = getattr(self.view, "_last_snapshot", None)
+            latest = HubSnapshot.last_observed(self.view)
             if latest and (latest.project_id, latest.selected_id) == identity:
                 self.view.apply_snapshot(latest)
                 self.app.invalidate()
@@ -582,7 +582,7 @@ class LiveController:
             self.view.notice = self.view.t(MessageKey.CANCEL_WAIT)
             self.app.invalidate()
             return
-        snapshot = getattr(self.view, "_last_snapshot", None)
+        snapshot = HubSnapshot.last_observed(self.view)
         if (snapshot and snapshot.selected_id == session_id and snapshot.run
                 and not snapshot.run.active and snapshot.run.status == RunStatus.INTERRUPTED
                 and not snapshot.queued_count and key not in self.view.preparing.pending):

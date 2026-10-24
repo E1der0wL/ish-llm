@@ -3,6 +3,7 @@
 from hub.locales.keys import MessageKey
 
 from dataclasses import dataclass
+from ...model import SessionIdentity
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,14 +14,21 @@ class PendingDeletion:
 
 
 class HistoryDeletion:
+    UNKNOWN_TOTAL = None
+
     def __init__(self, view):
         self.view = view
         self.pending: dict[tuple[str, str], PendingDeletion] = {}
 
     def start(self, key, total):
         view = self.view
-        request = PendingDeletion(key, view.progress.start(view.t(MessageKey.HISTORY_DELETING), total=total or None),
-                                  view.output.reading_position())
+        request = PendingDeletion(
+            key,
+            view.progress.start(
+                view.t(MessageKey.HISTORY_DELETING), total=total or self.UNKNOWN_TOTAL
+            ),
+            view.output.reading_position(),
+        )
         self.pending[key] = request
         if self.current(key):
             # Also cancel an older render already in flight, and its tag objects.
@@ -29,7 +37,7 @@ class HistoryDeletion:
         return request
 
     def current(self, key):
-        return key == (getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id)
+        return key == SessionIdentity.current(self.view).to_tuple()
 
     def update(self, request, completed, total):
         if self.pending.get(request.key) is request:

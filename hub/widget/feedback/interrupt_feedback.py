@@ -1,9 +1,9 @@
 """Immediate stop feedback, including preparation before a Run is observed."""
 
-from llm.core.models import RunStatus, MessageStatus
+from llm.core.models import RunStatus, MessageStatus, MessageRole
 from dataclasses import dataclass, replace
 
-from ...model import ChatMessage, HubSnapshot
+from ...model import ChatMessage, HubSnapshot, SessionIdentity
 
 
 @dataclass(slots=True)
@@ -14,20 +14,43 @@ class PendingInterrupt:
 
 
 class InterruptFeedback:
+    NO_REQUEST = None
+    NO_RUN = None
+    NO_RUN_ID = ""
+    EMPTY_TEXT = ""
+    NO_ACTIVITY = ""
+    PHASE = "interrupting"
+    IDENTIFIER = PHASE + ":{identifier}"
+    WAITING_STATES = (RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED)
+    PROJECTABLE = (
+        MessageStatus.STREAMING,
+        MessageStatus.COMMITTED,
+        ChatMessage.PREPARING,
+        MessageStatus.PAUSED,
+    )
+
     def __init__(self, view):
         self.view = view
         self.pending: dict[tuple[str, str], PendingInterrupt] = {}
 
     def start(self, key: tuple[str, str]) -> PendingInterrupt | None:
-        snapshot = getattr(self.view, "_last_snapshot", None)
-        run = snapshot.run if snapshot and key == (snapshot.project_id, snapshot.selected_id) else None
-        running = run and run.status in (RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED)
+        snapshot = HubSnapshot.last_observed(self.view)
+        run = (
+            snapshot.run
+            if snapshot and key == (snapshot.project_id, snapshot.selected_id)
+            else self.NO_RUN
+        )
+        running = run and run.status in self.WAITING_STATES
         if not running and key not in self.view.preparing.pending:
-            return None
+            return self.NO_REQUEST
         # The submit receipt and first Run snapshot may still be in flight.
         # Remember the previous Run so its terminal snapshot cannot dismiss
         # feedback for the request that is currently being prepared.
-        request = PendingInterrupt(key, run.id if running else "", run.id if run else "")
+        request = PendingInterrupt(
+            key,
+            run.id if running else self.NO_RUN_ID,
+            run.id if run else self.NO_RUN_ID,
+        )
         self.pending[key] = request
         self.view.preparing.paint()
         return request
@@ -41,8 +64,12 @@ class InterruptFeedback:
 
     def observe(self, snapshot: HubSnapshot) -> None:
         sessions = {session.id for session in snapshot.sessions}
-        self.pending = {key: request for key, request in self.pending.items()
-                        if key[0] == snapshot.project_id and key[1] in sessions}
+        self.pending = {
+            key: request
+            for key, request in self.pending.items()
+            if SessionIdentity(key).project_id == snapshot.project_id
+            and SessionIdentity(key).session_id in sessions
+        }
         key = (snapshot.project_id, snapshot.selected_id)
         request = self.pending.get(key)
         run = snapshot.run
@@ -56,19 +83,38 @@ class InterruptFeedback:
             request.run_id = run.id
         # Runtime active flags and durable status can straddle cancellation.
         # Wait for the target's terminal status, not just active=False.
-        if not run or run.status not in (RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED) or run.id != request.run_id:
+        if not run or run.status not in self.WAITING_STATES or run.id != request.run_id:
             self.pending.pop(key)
 
-    def project(self, key: tuple[str, str], messages: tuple[ChatMessage, ...]) -> tuple[ChatMessage, ...]:
+    def project(
+        self, key: tuple[str, str], messages: tuple[ChatMessage, ...]
+    ) -> tuple[ChatMessage, ...]:
         request = self.pending.get(key)
         if not request:
             return messages
         for index in range(len(messages) - 1, -1, -1):
             message = messages[index]
-            if message.role == "assistant" and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED, ChatMessage.PREPARING, MessageStatus.PAUSED):
+            if (
+                message.role == MessageRole.ASSISTANT
+                and message.status in self.PROJECTABLE
+            ):
                 # Change only the header. Preserve text, reasoning, durable
                 # status and the Markdown body cache; hide retry information.
-                return (*messages[:index], replace(message, phase="interrupting", activity=""), *messages[index + 1:])
+                return (
+                    *messages[:index],
+                    replace(message, phase=self.PHASE, activity=self.NO_ACTIVITY),
+                    *messages[index + 1 :],
+                )
         # A Run can be active before its assistant message is published.
-        return (*messages, ChatMessage("assistant", "", status=ChatMessage.PREPARING, phase="interrupting",
-                                      id=f"interrupting:{request.run_id or key[1]}"))
+        return (
+            *messages,
+            ChatMessage(
+                MessageRole.ASSISTANT.value,
+                self.EMPTY_TEXT,
+                status=ChatMessage.PREPARING,
+                phase=self.PHASE,
+                id=self.IDENTIFIER.format(
+                    identifier=request.run_id or SessionIdentity(key).session_id
+                ),
+            ),
+        )

@@ -4,7 +4,7 @@ from hub.locales.keys import MessageKey
 
 import json
 from llm.core.interactions import InteractionOption
-from ...model import QuestionSource
+from ...model import HubSnapshot, QuestionSource
 
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, Window, HSplit
@@ -54,7 +54,7 @@ class QuestionComposer:
             # Resume failure cannot undo an already accepted decision.
             response.acknowledged = True
             self.drafts.pop(identity, None)
-            snapshot = getattr(self.view, "_last_snapshot", None)
+            snapshot = HubSnapshot.last_observed(self.view)
             if snapshot and identity[:2] == current == (snapshot.project_id, snapshot.selected_id):
                 self.sync(snapshot.project_id, snapshot.selected_id, snapshot.questions)
         else:

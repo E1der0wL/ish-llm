@@ -6,32 +6,70 @@ from prompt_toolkit.layout import VSplit
 
 from .actions import bind_button_navigation
 from .auxiliary import AuxiliaryButton
+from ..asset.icon import AuxiliaryIcon, IconSet
+from ..config.theme_style import ThemeSelector
+from ..model import HubSnapshot, SessionIdentity
+from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 
 
 class ComposerActions(VSplit):
+    NO_EVENT = None
+    NO_RUN = None
+    GAP = 1
+    HEIGHT = 1
+    WIDTH = 7
+
     def __init__(self, view):
         self.view = view
         self.stop = AuxiliaryButton(self.stop_label, handler=self.interrupt)
-        self.send = AuxiliaryButton(lambda: view.icons.auxiliary["send"], handler=lambda: view.bindings.submit(None))
+        self.send = AuxiliaryButton(
+            lambda: IconSet.action(view.icons, AuxiliaryIcon.SEND.value),
+            handler=lambda: view.bindings.submit(self.NO_EVENT),
+        )
         self.buttons = (self.stop, self.send)
         bind_button_navigation(self.buttons)
         for button in self.buttons:
-            button.control.hub_shortcuts.add(["escape"], "ESC", "return", lambda e: view._focus_composer())
-        super().__init__(list(self.buttons), padding=1, height=1, width=7, style="class:hub.auxiliary")
+            button.control.hub_shortcuts.add(
+                [KeyName.ESCAPE],
+                ShortcutLabel.ESCAPE,
+                ShortcutAction.RETURN,
+                lambda e: view._focus_composer(),
+            )
+        super().__init__(
+            list(self.buttons),
+            padding=self.GAP,
+            height=self.HEIGHT,
+            width=self.WIDTH,
+            style=ThemeSelector.AUXILIARY.style,
+        )
 
     def run(self):
-        snapshot = getattr(self.view, "_last_snapshot", None)
-        return snapshot.run if snapshot and (snapshot.project_id, snapshot.selected_id) == (
-            getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id) else None
+        snapshot = HubSnapshot.last_observed(self.view)
+        return (
+            snapshot.run
+            if snapshot
+            and (snapshot.project_id, snapshot.selected_id)
+            == SessionIdentity.current(self.view).to_tuple()
+            else self.NO_RUN
+        )
 
     def stop_label(self):
         run = self.run()
-        key = getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id
+        key = SessionIdentity.current(self.view).to_tuple()
         if key in self.view.preparing.pending or key in self.view.interrupting.pending:
-            return self.view.icons.auxiliary["stop"]
-        snapshot = getattr(self.view, "_last_snapshot", None)
-        return self.view.icons.auxiliary["resume" if run and not run.active and run.status == RunStatus.INTERRUPTED
-                                         and not snapshot.queued_count else "stop"]
+            return IconSet.action(self.view.icons, AuxiliaryIcon.STOP.value)
+        snapshot = HubSnapshot.last_observed(self.view)
+        return IconSet.action(
+            self.view.icons,
+            (
+                AuxiliaryIcon.RESUME.value
+                if run
+                and not run.active
+                and run.status == RunStatus.INTERRUPTED
+                and not snapshot.queued_count
+                else AuxiliaryIcon.STOP.value
+            ),
+        )
 
     def interrupt(self):
         if self.view.on_interrupt:

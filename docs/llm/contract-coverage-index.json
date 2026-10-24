@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 612,
-    "unreviewed_files": 137,
+    "unreviewed_files": 134,
     "stale_files": 0,
-    "unclassified": 6782,
+    "unclassified": 6716,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 137,
+    "unreviewed_dynamic_paths": 134,
     "unreadable_files": 0,
-    "candidates": 18912,
+    "candidates": 18874,
     "issues": 0
   },
   "files": [
@@ -46,7 +46,7 @@
     {
       "path": "hub/asset/icon.py",
       "status": "unreviewed",
-      "sha256": "bec2a708207921fe8d94d11fd307597cfeb58984c2ab8234e47ff0eda9ddaf28",
+      "sha256": "11b0246e3284bde7cd0569350794a8d6a23dad784b973afc30140a6d10d62ebd",
       "candidates": 173
     },
     {
@@ -670,8 +670,8 @@
     {
       "path": "hub/model.py",
       "status": "unreviewed",
-      "sha256": "65b5673a32fb28f528c34df218cd232af5198c878b23f1f98ac9cbd97415d475",
-      "candidates": 99
+      "sha256": "5196ef64a92c6c2b7fe687b10c3cce65e631c16d930f7260833a429d1f818583",
+      "candidates": 104
     },
     {
       "path": "hub/ui/__init__.py",
@@ -814,8 +814,8 @@
     {
       "path": "hub/ui/live.py",
       "status": "unreviewed",
-      "sha256": "0f64441815d242fd64826c09b2b8b835e30402a77797a77ef6deb59798632ea6",
-      "candidates": 161
+      "sha256": "555f46a0dec7353d0907c79c8f8cdd8f3b0a847089b39e088f3ed6e3a4510a39",
+      "candidates": 155
     },
     {
       "path": "hub/ui/operation_diagnostics.py",
@@ -1000,7 +1000,7 @@
     {
       "path": "hub/widget/auxiliary.py",
       "status": "reviewed",
-      "sha256": "97e08f4235f9bf51cd263582d1985bc1c4261ec8f1b187b154145e3c4eed6499",
+      "sha256": "bce67efcc138b157d3da74fff9d94da2bb823041aa8006bcbed6e1a213784362",
       "candidates": 6
     },
     {
@@ -1017,9 +1017,9 @@
     },
     {
       "path": "hub/widget/composer_actions.py",
-      "status": "unreviewed",
-      "sha256": "5622ccf9a965243e6494b54f3d1c740158b21e2a9884800548e1184db5e52e5d",
-      "candidates": 21
+      "status": "reviewed",
+      "sha256": "54da65b8415c91adf9a808603fa1bf68ef646c03fd0326babd61d6cab9720283",
+      "candidates": 5
     },
     {
       "path": "hub/widget/content_inset.py",
@@ -1054,20 +1054,20 @@
     {
       "path": "hub/widget/feedback/answer_feedback.py",
       "status": "unreviewed",
-      "sha256": "f992e7db444708121ddd99d701e039be22267333e356c71f0ce4816c42a36b26",
-      "candidates": 25
+      "sha256": "214fb148fb52ce76b94073381b9780b85eb04e904fc2a3e25c36f3b86ad6afaa",
+      "candidates": 23
     },
     {
       "path": "hub/widget/feedback/history_deletion.py",
-      "status": "unreviewed",
-      "sha256": "556054c840b046917475adc113bfb53b802a7a3c7c61c476c0c8c58eee9514c2",
-      "candidates": 5
+      "status": "reviewed",
+      "sha256": "828b31b272d18550acbc5a728d7bb8885628fe38fd2fe0cd938b9ee52d6388e4",
+      "candidates": 3
     },
     {
       "path": "hub/widget/feedback/interrupt_feedback.py",
-      "status": "unreviewed",
-      "sha256": "46f24b4b2ebb165599a4876be4236f6b888edd09cd053e285eff67bed65806ea",
-      "candidates": 29
+      "status": "reviewed",
+      "sha256": "35b948f75aa0472a1e398e90879a7b9f560809f9c6dce94379b894afd6fe4227",
+      "candidates": 20
     },
     {
       "path": "hub/widget/feedback/notifications.py",
@@ -1078,8 +1078,8 @@
     {
       "path": "hub/widget/feedback/preparing.py",
       "status": "unreviewed",
-      "sha256": "ad6e92744ab84aa3ea91c24692888cbfb4b5c7814ab5338c507d227d1c0724e2",
-      "candidates": 78
+      "sha256": "4d0b627a80e4253209723a5a5572ec2068a2161bdf5a6870f4db87803531d330",
+      "candidates": 72
     },
     {
       "path": "hub/widget/feedback/progress.py",
@@ -1156,8 +1156,8 @@
     {
       "path": "hub/widget/forms/question.py",
       "status": "unreviewed",
-      "sha256": "9785ac1c47ef1869803a72581f508cceb105aef956b313948d3613a1751f3041",
-      "candidates": 80
+      "sha256": "dc52b50dc550770b450f43ae82f81550db8de20ba6d2397d9955867f72372f10",
+      "candidates": 78
     },
     {
       "path": "hub/widget/forms/question_card.py",

@@ -150,6 +150,8 @@ class RunSummary:
 @dataclass(frozen=True, slots=True)
 class HubSnapshot:
     NO_PROJECT: ClassVar[str] = ""
+    LIVE_OBSERVATION: ClassVar[str] = "_last_snapshot"
+    NO_OBSERVATION: ClassVar[None] = None
 
     project_id: str
     project_title: str
@@ -174,3 +176,40 @@ class HubSnapshot:
     def project_identifier(cls, view):
         """Observe a live view; the snapshot's own project_id remains required."""
         return getattr(view, cls.project_id.__name__, cls.NO_PROJECT)
+
+    @classmethod
+    def last_observed(cls, view):
+        return getattr(view, cls.LIVE_OBSERVATION, cls.NO_OBSERVATION)
+
+    @classmethod
+    def require_observed(cls, view):
+        return getattr(view, cls.LIVE_OBSERVATION)
+
+    @classmethod
+    def observe_in(cls, view, snapshot):
+        setattr(view, cls.LIVE_OBSERVATION, snapshot)
+
+
+class SessionIdentity:
+    """Borrow the UI's existing (Project, Session) pair without eager reads."""
+
+    PROJECT_POSITION = 0
+    SESSION_POSITION = 1
+
+    def __init__(self, pair):
+        self._pair = pair
+
+    @property
+    def project_id(self):
+        return self._pair[self.PROJECT_POSITION]
+
+    @property
+    def session_id(self):
+        return self._pair[self.SESSION_POSITION]
+
+    @classmethod
+    def current(cls, view):
+        return cls((HubSnapshot.project_identifier(view), view.sessions[view.selected].id))
+
+    def to_tuple(self):
+        return self._pair

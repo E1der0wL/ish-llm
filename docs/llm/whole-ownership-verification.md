@@ -8072,3 +8072,40 @@ Level 1은 위젯/헤더/마우스/배치, Level 2는 Home·설정 탭/viewport�
 저장·승인·예산·효과 계약 변경이 없어 전체 회귀는 관련 후속 UI 변경을 묶은 다음 게이트에서 실행한다.
 진행 중인 Gate48에는 이 변경이 포함되지 않는다. 최종 전체 회귀·정적·R3·문서·실환경 및 정확한 SHA
 원격 CI 완료 조건은 그대로 유지한다.
+
+
+## 중단·삭제 대기 표시·Composer 관찰 경계
+
+ComposerActions/HistoryDeletion/InterruptFeedback 세 파일 전체를 정리했다. 실제 Run 실행·취소·
+삭제 승인과 상태는 변경하지 않는다. 중단 표시는 원래의 대기 상태 집합을 그대로 사용하며
+단순 active=False나 명령 응답만으로 대기를 해제하지 않는다. 목표 Run의 종료 snapshot을 기다리고
+이미 교체된 요청에 대한 오래된 콜백은 현재 대기를 제거하지 않는다. 기존 본문·trace·durable status를
+보존하고 일시적인 헤더/활동 표시만 바꾼다. 삭제 표시도 기존 request 객체 동일성 검사를 유지한다.
+
+HubSnapshot이 마지막 관찰의 저장·optional/required 조회를 제공하고 실제 Live Writer와 기존
+Preparing/Answer/Question/Composer/Interrupt 소비자를 연결했다. optional 조회 후 필요한 지점의
+required 재조회도 유지한다. SessionIdentity는 기존 (Project, Session) tuple을 빌려 필요한 위치만
+읽으므로 잘못된 Project의 두 번째 필드를 먼저 읽지 않는다. IconSet.action은 고정 아이콘 조회
+경계이고 기존 주입 객체에 새 메서드를 요구하지 않는다. 누락 키의 KeyError 문자열도 유지한다.
+
+원본 SHA의 실제 중단 시작/관찰/종료·오래된 콜백·본문 투영·삭제·Composer·아이콘 오류·snapshot
+동일성 104개 관찰 결과가 최종 제안과 일치했다. 모든 Composer 정상 상태를 성공 guard로 확인했다.
+최초 비교 스크립트의 괄호 문법 오류만 고쳤고 로그를 보존한다. 제품 테스트·Assertion은 변경하지 않았다.
+model/icon/Live/Preparing/Answer/Question은 이번 관찰 경로만 정리했으며 전체 파일 완료로 세지 않는다.
+
+- `whole-hub-transient-feedback-l1-01`: discovered/started/pass 42/42/42, exit 0, 16.402476초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-transient-feedback-l1-01/hub.json --modules tests.hub.test_interrupt_feedback tests.hub.test_deletion_feedback tests.hub.test_mouse_widgets tests.hub.test_chrome`. source `8ae183fb7cdb881688ea30cd09314c037b43c8eefdc71d454ed33b6d9c466d3c`, input `bcbbe2da7e55e13ff4a3102c6f0ea0d71f7f96ea1aadb1eeb338182871d14da4`.
+
+- `whole-hub-transient-feedback-l2-01`: discovered/started/pass 53/53/53, exit 0, 89.608765초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-transient-feedback-l2-01/hub.json --modules tests.hub.test_live tests.hub.test_question_tools tests.hub.test_approval_continuation tests.hub.test_question_card tests.hub.test_turn_deletion tests.hub.test_settings_project_flow tests.hub.test_retry_ui tests.hub.test_retry_observations tests.hub.test_snapshot_projection`. source `8ae183fb7cdb881688ea30cd09314c037b43c8eefdc71d454ed33b6d9c466d3c`, input `bcbbe2da7e55e13ff4a3102c6f0ea0d71f7f96ea1aadb1eeb338182871d14da4`.
+
+- `whole-hub-transient-feedback-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.853195초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-transient-feedback-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `8ae183fb7cdb881688ea30cd09314c037b43c8eefdc71d454ed33b6d9c466d3c`, input `bcbbe2da7e55e13ff4a3102c6f0ea0d71f7f96ea1aadb1eeb338182871d14da4`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+같은 suite 중복 0, 전후 및 실행 사이 source/input manifest 동일이다.
+명령·exit·로그는 `hub-transient-feedback-draft/selected-results.json`, 독립 비교는
+`proof-commands.json`에 보존한다. Python 3.12.14/Clang, Host d833790, 동일 의존성과 실제 Linux/X11이다.
+R3 Mutation도 exit 0이다. Level 1은 중단/삭제 표시·마우스/Composer, Level 2는 Live·질문·승인
+연속 실행·대화 삭제·설정 Project·재시도 표시/관찰·snapshot 소비자이다. 공통 84개 안전성도 유지했다.
+
+승인·예산·외부 효과·Checkpoint·삭제 실행 경계를 바꾸지 않는 관찰 소단계이므로 전체 회귀는
+관련 후속 UI 변경과 묶는다. 진행 중인 Gate48에는 이 변경이 포함되지 않는다. 다음 Level 3 전체
+LLM/Hub·정적·R3·문서·실환경 및 정확한 SHA 원격 CI를 통과하기 전 통합/원격 완료로 기록하지 않는다.

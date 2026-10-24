@@ -3,7 +3,7 @@
 from llm.core.models import MessageStatus
 from dataclasses import dataclass, replace
 from llm.core.interactions import InteractionOption
-from ...model import StepSummary
+from ...model import HubSnapshot, StepSummary
 
 
 @dataclass(slots=True)
@@ -20,7 +20,7 @@ class AnswerFeedback:
     @classmethod
     def capture(cls, question, option_id):
         view, item = question.view, question.item
-        snapshot = getattr(view, "_last_snapshot", None)
+        snapshot = HubSnapshot.last_observed(view)
         run = snapshot.run if snapshot else None
         source = item["request"].get("source", {}).get("step_id")
         tool_id = next((step.id for step in run.steps if source and step.source_id == source), "") if run and run.id == item["run_id"] else ""

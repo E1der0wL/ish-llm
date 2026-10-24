@@ -78,6 +78,9 @@ class IconSet:
         AuxiliaryIcon.HISTORY.value: "☷", AuxiliaryIcon.TAGS.value: "▤", AuxiliaryIcon.FIND.value: "⌕", AuxiliaryIcon.ATTACH.value: "📎", AuxiliaryIcon.LOGS.value: "≡",
         AuxiliaryIcon.SETTINGS.value: "⚙", AuxiliaryIcon.FILTER.value: "⚲", AuxiliaryIcon.JSON.value: "⌘", AuxiliaryIcon.STOP.value: "■", AuxiliaryIcon.RESUME.value: "▶", AuxiliaryIcon.SEND.value: "↑"}))
 
+    def action(self, name):
+        return self.auxiliary[name]
+
     @property
     def values(self):
         return {"icon_sessions": self.sessions, "icon_reasoning": self.reasoning,
