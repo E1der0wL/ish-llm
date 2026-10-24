@@ -75154,8 +75154,8 @@
   },
   {
     "path": "llm/core/interactions.py",
-    "sha256": "2124cc11d69f99d837cf08c58dd5900beb122bc58fb203359560f5289a677be6",
-    "reason": "Whole source and dynamic-field review covers explicit/selected inputs, option identity vs effect, unknown extensions, JSON type distinction, persisted full-field snapshots, fingerprint/expiry/actor checks and public view projection. No automatic approval, implicit retry, legacy Reader or missing-state fallback was introduced. Request renewal snapshots/revision and Response comparable projection now own the shared pure construction; View reason declarations are canonical. Repository default option/revision consumers are connected and verified without relaxing expiry/cancellation/identity proof. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
+    "sha256": "e5122e209b754873fa3039789c3a90f272d8d5eb1f464ad8edf58a37e7ff74dc",
+    "reason": "Whole source and dynamic-field review covers explicit/selected inputs, option identity vs effect, unknown extensions, JSON type distinction, persisted full-field snapshots, fingerprint/expiry/actor checks and public view projection. No automatic approval, implicit retry, legacy Reader or missing-state fallback was introduced. Request renewal snapshots/revision and Response comparable projection now own the shared pure construction; View reason declarations are canonical. Repository default option/revision consumers are connected and verified without relaxing expiry/cancellation/identity proof. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -76045,6 +76045,12 @@
         "classification": "declaration",
         "owner": "InteractionView",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "65c051cca753889b20a968e324eed2a9f3b31f9eaebbb8073cecb18506c1801c",
+        "classification": "declaration",
+        "owner": "InteractionRequestObservation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -76052,10 +76058,16 @@
         "owner": "InteractionBinding / Selection / Option / Request / Response / View / Snapshot / JSON / Risk",
         "declaration": "llm/core/interactions.py",
         "consumers": [
+          "hub/backend/interactions/questions.py",
+          "hub/model.py",
           "hub/ui/input/json_document.py",
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/presets.py",
+          "hub/widget/feedback/answer_feedback.py",
+          "hub/widget/forms/answer_choices.py",
           "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/question.py",
+          "hub/widget/forms/question_card.py",
           "llm/core/checkpoint_records.py",
           "llm/services/api.py",
           "llm/services/runtime/interactions.py",
@@ -76071,18 +76083,26 @@
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_tool_retry.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_targets.py",
@@ -76117,6 +76137,7 @@
           "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_tool_registration_bindings.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -76126,10 +76147,16 @@
         "owner": "Interaction default option IDs and revision step — Repository consumers connected",
         "declaration": "llm/core/interactions.py",
         "consumers": [
+          "hub/backend/interactions/questions.py",
+          "hub/model.py",
           "hub/ui/input/json_document.py",
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/presets.py",
+          "hub/widget/feedback/answer_feedback.py",
+          "hub/widget/forms/answer_choices.py",
           "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/question.py",
+          "hub/widget/forms/question_card.py",
           "llm/services/api.py",
           "llm/services/runtime/interactions.py",
           "llm/services/runtime/runs.py",
@@ -76144,18 +76171,26 @@
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_tool_retry.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_targets.py",
@@ -76190,8 +76225,43 @@
           "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_tool_registration_bindings.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "InteractionRequestObservation / InteractionOptionObservation / InteractionOptionsObservation",
+        "declaration": "llm/core/interactions.py",
+        "consumers": [
+          "hub/model.py",
+          "hub/widget/forms/question_card.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
         ],
         "complete": true
       }
@@ -78368,8 +78438,8 @@
   },
   {
     "path": "llm/services/runtime/tool_approval_records.py",
-    "sha256": "bb71c575af30eade19cf0acffd14539a838f306ac620e86cb7188a0858943221",
-    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path.",
+    "sha256": "83c9967ab853f1cd31d4470a8faf64ab1c1aa7dcb8380b311000ad1161942516",
+    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path. Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -78385,19 +78455,19 @@
         "reason": "Python frozen/slots metadata for the derived approval action/source Writer."
       },
       {
-        "id": "b603ff0f635c05182ae9d71f54cf5d1cd70f34f1539a650ae8ca6a409690ce9f",
+        "id": "2b89859c7e6607528d66e0c559ba4bcf97356b7c10bae097b5c1079d144963b2",
         "classification": "non_contract",
         "owner": "ToolApprovalAction",
         "reason": "Python frozen/slots metadata for the derived approval action/source Writer."
       },
       {
-        "id": "64221645ba3d383bcd5154ba4bda7b2733112cf087e3e7984e4c99c63f69a05c",
+        "id": "e37750669bc347e0da239e02013ed0bfbbfff65ec46db6b45f5703fab7b613d3",
         "classification": "non_contract",
         "owner": "ToolApprovalAction",
         "reason": "Python frozen/slots metadata for the derived approval action/source Writer."
       },
       {
-        "id": "652ad385927efef6a6fb85bde75bc66cd2c31607855236a9dc33dfcd0e722728",
+        "id": "23dd0efadd4e7a23f8c5aa1f402d28e2b0461161fd1d99df3a36e01a10349d1f",
         "classification": "declaration",
         "owner": "ToolApprovalRecord",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
@@ -78408,28 +78478,44 @@
         "owner": "ToolApprovalRecord / ToolApprovalAction / ToolApprovalSource",
         "declaration": "llm/services/runtime/tool_approval_records.py",
         "consumers": [
-          "llm/services/runtime/tools.py",
-          "llm/engines/loop/engine.py",
-          "llm/engines/graph/engine.py",
-          "llm/engines/agents.py",
+          "hub/backend/interactions/questions.py",
+          "hub/model.py",
+          "hub/widget/feedback/answer_feedback.py",
+          "hub/widget/forms/answer_choices.py",
+          "hub/widget/forms/question.py",
+          "hub/widget/forms/question_card.py",
           "llm/components/tools/process.py",
-          "llm/services/runtime/runs.py"
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
           "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_tool_advice.py",
           "tests/hub/test_tool_history.py",
           "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_engine.py",
           "tests/llm/test_interaction_decisions.py",
           "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
           "tests/llm/test_isolated_tools.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_loop.py",
@@ -78438,6 +78524,7 @@
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_tool_constraints.py",
           "tests/llm/test_tool_registration_bindings.py",
           "tests/llm/test_tool_selection_records.py",
@@ -78445,6 +78532,39 @@
           "tests/llm/test_tool_workers.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolApprovalSourceView",
+        "declaration": "llm/services/runtime/tool_approval_records.py",
+        "consumers": [
+          "hub/widget/feedback/answer_feedback.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
         ],
         "complete": true
       }
@@ -89700,8 +89820,8 @@
   },
   {
     "path": "hub/widget/input_contract.py",
-    "sha256": "b99ac50e9281618c1ee85c663654b15e00e2433d2b6d5345f31f5bd30968d006",
-    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "sha256": "53b3a1a6d5386fb2ed069aea63f497ecc89ebb1a6fda5cc4d0c383f2d9147310",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -89751,6 +89871,18 @@
         "classification": "declaration",
         "owner": "MouseResult",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e58a4c5f2b1ac526d401cb23328942d5d979e99f37021e67a063908784a8ec0a",
+        "classification": "declaration",
+        "owner": "ControlFragment",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c83bd64d29af76f95620bf2aa8699bf4c0bbecffdab38272770f29ca70481a06",
+        "classification": "declaration",
+        "owner": "ControlFragment",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -89758,11 +89890,17 @@
         "owner": "EditableControl",
         "declaration": "hub/widget/input_contract.py",
         "consumers": [
+          "hub/backend/interactions/questions.py",
+          "hub/model.py",
           "hub/ui/settings/navigation.py",
           "hub/widget/auxiliary.py",
           "hub/widget/content_inset.py",
           "hub/widget/controls.py",
+          "hub/widget/feedback/answer_feedback.py",
           "hub/widget/focus.py",
+          "hub/widget/forms/answer_choices.py",
+          "hub/widget/forms/question.py",
+          "hub/widget/forms/question_card.py",
           "hub/widget/header.py",
           "hub/widget/mouse.py",
           "hub/widget/panel_edge.py",
@@ -89771,15 +89909,21 @@
           "hub/widget/text_editing.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_chrome.py",
           "tests/hub/test_escape_navigation.py",
           "tests/hub/test_header_actions.py",
           "tests/hub/test_home_navigation.py",
           "tests/hub/test_input_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_page_layout.py",
           "tests/hub/test_popup_completion.py",
           "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
@@ -89787,13 +89931,21 @@
           "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
           "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_tool_retry.py",
           "tests/hub/test_widget_chrome.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_tool_registration_bindings.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -89803,30 +89955,85 @@
         "owner": "ContainerControl / MouseResult",
         "declaration": "hub/widget/input_contract.py",
         "consumers": [
-          "hub/widget/tab_page.py",
+          "hub/backend/interactions/questions.py",
+          "hub/model.py",
+          "hub/widget/feedback/answer_feedback.py",
+          "hub/widget/forms/answer_choices.py",
+          "hub/widget/forms/question.py",
+          "hub/widget/forms/question_card.py",
+          "hub/widget/forms/settings_viewport.py",
           "hub/widget/sidebar.py",
-          "hub/widget/forms/settings_viewport.py"
+          "hub/widget/tab_page.py"
         ],
         "tests": [
-          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_escape_navigation.py",
           "tests/hub/test_header_actions.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_page_layout.py",
-          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_escape_navigation.py",
-          "tests/hub/test_chrome.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ControlFragment",
+        "declaration": "hub/widget/input_contract.py",
+        "consumers": [
+          "hub/widget/forms/question.py",
+          "hub/widget/forms/answer_choices.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
         ],
         "complete": true
       }
@@ -92208,6 +92415,757 @@
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/interactions/question_values.py",
+    "sha256": "271c2ded11749245872baab7b8f42c759173f86bc1e50ac06e8411f44db62ba9",
+    "reason": "Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4092c5424f2e98dbf791b9c1d43dd7f969c6e3fd32d363cb634b4647a18536bc",
+        "classification": "declaration",
+        "owner": "QuestionArguments",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "41684e6bd13cb5e7a189d8eabfdd12f6485a4e8556fca7c9366905369408bf97",
+        "classification": "declaration",
+        "owner": "QuestionArguments",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "9db96148b552f18b928bf0e323cc20d745ed1958c0e19a4c4ec3b4c179eda3dc",
+        "classification": "declaration",
+        "owner": "QuestionArguments",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "51d828bbb6dc97d390c13416da57510b7fe3dd9554977ad997f6c493b183c9a9",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "5b8b6461184966df51fe6e678fdffc0dd829d9b5cdc13883f24a8125d3f0ba27",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "9c04295a462640913a60f341c9e95aaadef89b68436ec968e5ae991b58c76f18",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "70357071606cb8c5c48351bdd3fa2058c67c45fea0d0158a88ed1e93356ee72d",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "15b711abff483df08f1cc4fd3e76677cfedc55afcd2651913d25d1ab9118074f",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "7874bd1f90b00a3f045694adf929c876c53c6cb67703507519f582a58d2e96ac",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "e64acf287c3b569cffba8a1762c041104575a7118cd4d3adebfa642d68ab5176",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "904ee7160341a1a8aa1768d047cbb021930fe44f5b8dedc1cef8cee1e56f3fac",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "4de2666411271b1cc70bc814ad6f48b1baaa9b9580dd82b3b634b167c3a61cf0",
+        "classification": "declaration",
+        "owner": "QuestionTool",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "bdb683786cd2239e5f05160bea8d1b1b39a21bc977cc2096ab543aa593e03fce",
+        "classification": "non_contract",
+        "owner": "QuestionReply",
+        "reason": "Python frozen dataclass declaration for the reply boundary."
+      },
+      {
+        "id": "ae876f551dfdc8b51eba11215fd821e938a1ac2e548af1c1dd5800aedcb7f9e3",
+        "classification": "non_contract",
+        "owner": "QuestionReply",
+        "reason": "Python slots declaration for instance layout."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "QuestionArguments / QuestionTool / QuestionReply",
+        "declaration": "hub/backend/interactions/question_values.py",
+        "consumers": [
+          "hub/backend/tools/builtin.py",
+          "hub/backend/interactions/questions.py",
+          "hub/widget/forms/question.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/interactions/questions.py",
+    "sha256": "0ba1ea942647d67048939785bbec40965cc60f8338126a6f91c385c0b1629a43",
+    "reason": "Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "34869bbcf6db81173701b03864ee1e835c465a49eba2e182cda93aeabea8ac02",
+        "classification": "non_contract",
+        "owner": "WaitingQuestion",
+        "reason": "Python slots declaration; the existing Future and identity fields remain unchanged."
+      },
+      {
+        "id": "a93ea0bdfca7269c970f61aa637e52542195b481ead822523f9f1ff5fdb58c6a",
+        "classification": "declaration",
+        "owner": "QuestionBroker",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "8115e8581a2c7a7d6eda7c4766ea4f226432be9ee4a87f7d3e836d9c47f6e4f1",
+        "classification": "declaration",
+        "owner": "QuestionBroker",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "d61f74aea21511e10dfadd467010ad0a6d03450250854569a4bec272bcd347b3",
+        "classification": "declaration",
+        "owner": "QuestionBroker",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "62f10c6b78c7b1d21ea85921e14cdf777b48a338270286d9538da68abc3c422c",
+        "classification": "declaration",
+        "owner": "QuestionBroker",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "0a61575f05e373ad91450d68af53441605f926b7d9ee4b28194438d9a0e9560b",
+        "classification": "declaration",
+        "owner": "QuestionBroker",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "38e61944be16beaceace065a92a419a4582dc1635507b67abd00c5b01968ae6b",
+        "classification": "non_contract",
+        "owner": "QuestionBroker.__init__",
+        "reason": "The default change observer is a no-op Python callback whose return is ignored."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "QuestionBroker / WaitingQuestion",
+        "declaration": "hub/backend/interactions/questions.py",
+        "consumers": [
+          "hub/backend/tools/builtin.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/question.py",
+    "sha256": "39e7fce10f8352a25928e409706738c7775d8f093d029746a1306cebc07af965",
+    "reason": "Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "47513a22fa07354c5f8481fb2b66043ab76dd9cd3372a7a259daeead3a62e165",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "55918ce9138080406ea6dbefe84f6ca7430d3a533fef0eb481c1a47a4d596503",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "99d33aba64a4313e81c8e482d74736ef367a139fc3c8bd779fcdf72b7416eebf",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "da4b5062936e28041a679611d24e5f7cf8ec86faa7015d5610b0ba3dd9df2669",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "b46c5f2cd7979d96120e69c2753e25fe2dc38c0ce02bd6461371a266a4a3ba93",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "db906d4197e911c97c2f25ad4b6e6a2e881c3d94e2ad521dbbffb024c76da386",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "3331dfc83a39004b31da980690d5f9eb0182b4af10b942b151c4c6820cf264c5",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "e78239100cac8c55077c128f014612de316518e5b10bf3467809ecb986a38e64",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "18cb63d7e88c1ae50722a036ea2eec00415d1509b3ad20cb7c8828180c5b2e22",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "816d841cc8362023e6a2b171e530916a628e371891c7a014edcdd572a91e08c9",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "d3ec082168eab388fca4a40a6358b0ffebcfccb350952fd6fc3be41a5f3b9693",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "ab264865d999120449ab6727bd8f6d30ed5d865dc4353ff4e10c37ba9acbf692",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "f5af18a5d729c78d3da6fa5a656ceb653db237d880dc733c798d51c06d1d7738",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "cf4d5bccbdde4b6461ba584b7f6829684a75a8432aceae56164ce4479906c279",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "7fb0f6dcd02e5b8966da48c6063fbc47f001284ac62eac37b1524b9fa9cce13a",
+        "classification": "declaration",
+        "owner": "QuestionComposer",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "QuestionComposer",
+        "declaration": "hub/widget/forms/question.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/live.py",
+          "hub/widget/feedback/preparing.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/question_card.py",
+    "sha256": "c6974b834438f26f9e2c4dd09e22593f5b12e6a0cc5ba1a2f7bb301ce347ea8b",
+    "reason": "Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3f574fe4aab9e388c46ed2099f472634019a0db6e27557a95932397b3d003644",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "01ea3af9a64c9890f7d87c1ea1dc3d6e09883301db9c6b4f3fe2a49e43a0c0ec",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "f25b449d3b072c6876430e0d49c937448520fb40d727fd71c60cdbed9bb488bf",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "62a5c9eaacf78e564d5982466ec4745d43bb0f83dc7460fd344bc66a11ab8b1c",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "dedf17f4eaff00a7210fd85c1608ca6cf9e9e9fbdcc0684688966f1b7f35a0f7",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "1f3a255fef39df055df25bb793c7ad42ef17d978784b0e7bd96fbd0f01cea0b1",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "673252678ac6a486b11be87c5b4e1a44df30134874c821b87f7514b24dcf0d3b",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "47d8a1fa36ad3c8ade096e9828c95870fbdb1e4accfe5afad8e50b08a12d45db",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "2a56800d721ec7c3997b684aba60a2e3871c66889777e3629b3fb734b8e3a1ff",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "2e570646bfbbc00b945f73edc7930cba12a1fc6e68004f92928d560d90e9fcf4",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "a1aeeece7b714f72985c3b489e92570f136936fa9fb6631d4e515defbba7b81d",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "2a5b44ccd10575a4827a559fdc6e789aae1a34a4d4ad8f7644f5f2f883dd1457",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "fb9dd0e2edfd10d77a3d49dc80a08f754da8d512db8d1f191761b17e2309dd6f",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "163b47b5ed38cf77455e955bec01838a59ae19ccb2d574d3c685cb039dd570ca",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "602237d638d3bf8a3c0a4c0580761cbb017c988e5b0cb3c56ef1fa001d66e7ef",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "f6ad104aa4b0730a131397ace42fa4db04201f61fbd60fefddde6ff5718ca565",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "51f94c9f9379a548ef056788e0cd8df434b15e468598851f33bebecdd598ce97",
+        "classification": "declaration",
+        "owner": "QuestionCard",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "39affb770b69ed417981ce93d3b738038d10c168c407f3edf3070b15a20518d9",
+        "classification": "non_contract",
+        "owner": "QuestionCard.set_request",
+        "reason": "Reset horizontal/vertical offsets to the coordinate origin for a new render request."
+      },
+      {
+        "id": "9d0d2c29e9ec1cf05ec5ce6eaad0d3255749ec01386c784f476896ec3b66168c",
+        "classification": "non_contract",
+        "owner": "QuestionCard.render_request.build",
+        "reason": "Compare with the first rendered line to apply the heading style; this is sequence indexing."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "QuestionCard",
+        "declaration": "hub/widget/forms/question_card.py",
+        "consumers": [
+          "hub/widget/forms/question.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/answer_choices.py",
+    "sha256": "9cdbccce635f2847da2a86d22d4e6a9cd1c3d19be967cdd08e1b63393b589ff5",
+    "reason": "Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fb2713ef14266f49bae3ad85ce76b3fa1a0d360844ed16df157cd5f9d83dcb71",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "37e28e7ea932abd7bd0f7e27554e2270f7a441ce155c2afa8bcebd30f4e42130",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "1770b67fc045d4110b03d6fb84da4208268a469931d7d7a27af77a81b95ccf3a",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "8d3caf1e17e0211a7d5c79e9c3067d7b1176817a7b52ea6b0de8a6eff4b00163",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "667b0d08286727ef101669e3ea54f92893f8ca5565a86f5073fad5969bad7f02",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "40f43f60a1973c51bcd945ebf65e328740725ea7a4510132a10f4604812dae1f",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "77eb92c72f36182c0d33d320b4d98e0e4c5d9ff22fbb583ca3c0c4061fe51033",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "da56de9660989835e5271df18df19d629ce13f0bdf705e9d2e16b3c1ab826db9",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "c63bae198081e03e6ce941e0cbd0d669aa14a764aa8503ebfbd99b2b56878b34",
+        "classification": "declaration",
+        "owner": "AnswerChoices",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "a15cc31dc2fde37238fbd891340b7b9bff7134c86082d9e6677e1500439dfd85",
+        "classification": "non_contract",
+        "owner": "AnswerChoices._get_text_fragments",
+        "reason": "Select the first token produced by string partition; the separator and one-based numbering are separately declared."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AnswerChoices",
+        "declaration": "hub/widget/forms/answer_choices.py",
+        "consumers": [
+          "hub/widget/forms/question.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/feedback/answer_feedback.py",
+    "sha256": "07530bcee162bbbd5228accf799e4de490d3be2f2c2a3fd402a3f6963a025b8d",
+    "reason": "Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "150d48b6578bab53926e055e3826c62f18e3eb559509e4393e054a3e75291af5",
+        "classification": "non_contract",
+        "owner": "AnswerFeedback",
+        "reason": "Python slots declaration on the existing mutable acknowledgement object."
+      },
+      {
+        "id": "870eda5a1298f524d007638089adfcdfc7b8e691b3f6d182d4917253b7e9f493",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "04f1c8cfaa4b7cfbd9e09e0377bc5d9779192cc21238edd3127a4f590b97c16a",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "992b71a8c310975656e955ea391b8e0ab0501efdf1b78e33ba95f70faf540cf8",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "e12d06687b62927ff66a88c5d799e603c760c47c5ee6b797799516c9b26ae3bb",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "4646515c4127630b8e2a5765f329f6b03a3ac2fc97390e9bb111563d0420eedc",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "e07a9abaa67bfb791c0eb39cb15d52a7edaa5fb0d619eeae10a8c9c064f30d51",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "6dfa5cfc880b48974183c7958c372a9dc97664c7ffcbb1591b3d627aa51ca6e6",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "9fabba6e66aa416e0e138b77c6b76a2f18ea7b67e036718d6bd05a3883902554",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "1370db1ba0019caa5237722665417ec48bbce2a12feca3f420e3ab52a8db9678",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "168d9b387af16eacdf3dce8522a7edd9b6363ccdd285ab8d3547891c14b1aa64",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "5a122c12b30722e26ae623f0edbce47f16e0289173ebe6300683863a1cd76db8",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "8d424a07a2da7859214cb15d6f04afca0d88080e37e8907fd6f68165a99ec597",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "423c40c309e349390fa1e36ff908eccd8b828acad95acc476b22a54f01bbae66",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "a36a69b554eae3659055d1fcf1609c25b413ba9865667bebe67dfe05aa289aec",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      },
+      {
+        "id": "db33e783f627a69b6ef4af18226e60fd34ef81734622aa0d185e6f83cb340854",
+        "classification": "declaration",
+        "owner": "AnswerFeedback",
+        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AnswerFeedback / project_answers",
+        "declaration": "hub/widget/feedback/answer_feedback.py",
+        "consumers": [
+          "hub/widget/forms/question.py",
+          "hub/widget/feedback/preparing.py"
+        ],
+        "tests": [
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_input_contract.py"
         ],
         "complete": true
       }

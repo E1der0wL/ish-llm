@@ -20,6 +20,17 @@ class ToolApprovalSource:
         return asdict(cls(call.project_id, call.session_id, call.run_id, call.step_id))
 
 
+class ToolApprovalSourceView:
+    """Optional observation of a Tool source; full ownership checks stay elsewhere."""
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def step_id(self):
+        return self._value.get(ToolApprovalSource.step_id.__name__)
+
+
 @dataclass(frozen=True, slots=True)
 class ToolApprovalAction:
     tool: str

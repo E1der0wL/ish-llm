@@ -1,6 +1,7 @@
 """Presentation data shared by Hub's backend adapter and widgets."""
 
 from llm.core.models import SessionStatus
+from llm.core.interactions import InteractionRequest, InteractionRequestObservation
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import ClassVar
@@ -12,6 +13,14 @@ class QuestionSource(StrEnum):
     """Hub live-question presentation fields, shared by Tool input and widgets."""
 
     SUGGESTIONS = "choices"
+
+    @classmethod
+    def suggestions(cls, source):
+        return source.get(cls.SUGGESTIONS.value, [])
+
+    @classmethod
+    def create(cls, suggestions):
+        return {cls.SUGGESTIONS.value: suggestions}
 
 
 class RAGAction(StrEnum):
@@ -195,6 +204,7 @@ class SessionIdentity:
 
     PROJECT_POSITION = 0
     SESSION_POSITION = 1
+    PAIR_SIZE = SESSION_POSITION + 1
 
     def __init__(self, pair):
         self._pair = pair
@@ -213,3 +223,60 @@ class SessionIdentity:
 
     def to_tuple(self):
         return self._pair
+
+    def prefix(self):
+        return self._pair[:self.PAIR_SIZE]
+
+
+@dataclass(frozen=True, slots=True)
+class QuestionPresentation:
+    LIVE: ClassVar[bool] = True
+    STORED: ClassVar[bool] = False
+
+    run_id: str
+    live: bool
+    request: InteractionRequest
+
+    def to_record(self):
+        cls = type(self)
+        return {cls.run_id.__name__: self.run_id, cls.live.__name__: self.live,
+                cls.request.__name__: self.request.to_dict()}
+
+    @classmethod
+    def live_request(cls, run_id, request):
+        return cls(run_id, cls.LIVE, request).to_record()
+
+    @classmethod
+    def stored_request(cls, run_id, request):
+        return cls(run_id, cls.STORED, request).to_record()
+
+    @classmethod
+    def observe(cls, value):
+        return QuestionObservation(value)
+
+    @classmethod
+    def identity(cls, project_id, session_id, value):
+        item = cls.observe(value)
+        return project_id, session_id, item.request.id, item.request.revision
+
+
+class QuestionObservation:
+    """Borrow the existing public record, including its original request alias."""
+
+    def __init__(self, value):
+        self._value = value
+
+    def to_record(self):
+        return self._value
+
+    @property
+    def run_id(self):
+        return self._value[QuestionPresentation.run_id.__name__]
+
+    @property
+    def live(self):
+        return self._value[QuestionPresentation.live.__name__]
+
+    @property
+    def request(self):
+        return InteractionRequestObservation(self._value[QuestionPresentation.request.__name__])

@@ -48,3 +48,14 @@ class MouseResult:
 
     HANDLED = None
     UNHANDLED = NotImplemented
+
+
+class ControlFragment:
+    """Reserved prompt_toolkit formatted-text control markers."""
+
+    CURSOR_POSITION = "[SetCursorPosition]"
+    TEXT_POSITION = 1
+
+    @classmethod
+    def text(cls, fragment):
+        return fragment[cls.TEXT_POSITION]

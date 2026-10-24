@@ -36,6 +36,12 @@ class HubView:
     SIDEBAR_WIDTH_CALLBACK = "on_sidebar_width"
     NO_SIDEBAR_WIDTH_CALLBACK = None
 
+    def composer_draft(self, default):
+        return self._drafts.get(self._draft_key(self.selected), default)
+
+    def store_composer_draft(self, text):
+        self._drafts[self._draft_key(self.selected)] = text
+
     @staticmethod
     def request_sidebar_focus(view):
         view._session_focus = HubView.SIDEBAR_FOCUS

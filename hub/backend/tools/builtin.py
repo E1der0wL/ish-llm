@@ -11,14 +11,12 @@ from pathlib import Path
 from threading import Lock
 import sys
 
-from llm.core.tool_contracts import ToolContract
-from llm.components.tools import Tool, ToolRegistry
+from llm.components.tools import ToolRegistry
 from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from .test_workspaces import HubTestWorkspaces
 
 from ..interactions.questions import QuestionBroker
-from ...model import QuestionSource
-from llm.core.tool_contracts import ToolEffect, ToolIsolation
+from ..interactions.question_values import QuestionTool
 
 
 class HubBuiltinTools(BuiltinToolComponent):
@@ -71,17 +69,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         toolkit.registry = ToolRegistry(tuple(
             replace(tool, handler=handlers[name]) if name in handlers else tool
             for name in toolkit.registry.names() for tool in (toolkit.registry.get(name),)))
-        toolkit.registry.register(Tool("ask_user",
-            "Ask the user a necessary question and wait for their answer, then continue the SAME task. "
-            "Use this instead of ending a response with a question when work needs user input. "
-            "Choices are optional suggestions; free-text answers are always accepted.",
-            {"type": "object", "properties": {"question": {"type": "string", "minLength": 1},
-                "description": {"type": "string"}, QuestionSource.SUGGESTIONS.value: {"type": "array", "items": {"type": "string"}}},
-             "required": ["question"], "additionalProperties": False},
-            self.questions.ask, contract=ToolContract(
-                revision='1', effect=ToolEffect.READ_ONLY,
-                isolation=ToolIsolation.NONE, approval_required=False,
-                operation_key_required=False, retry_fields=())))
+        toolkit.registry.register(QuestionTool.create(self.questions.ask))
         from .paths import bind_paths
         bind_paths(toolkit)
         from .advice import bind_advice

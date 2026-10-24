@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 612,
-    "unreviewed_files": 134,
+    "files": 613,
+    "unreviewed_files": 129,
     "stale_files": 0,
-    "unclassified": 6716,
+    "unclassified": 6497,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 134,
+    "unreviewed_dynamic_paths": 129,
     "unreadable_files": 0,
-    "candidates": 18874,
+    "candidates": 18739,
     "issues": 0
   },
   "files": [
@@ -244,14 +244,20 @@
     {
       "path": "hub/backend/interactions/approval.py",
       "status": "unreviewed",
-      "sha256": "f137ca2fee399794ea42eec698bfbe9130973d562d0768ffdccb4b9e9f234720",
-      "candidates": 77
+      "sha256": "c29eac57801a0b815aab912b35864b73e3c58282ea525ebfb05e7ed15d7dc697",
+      "candidates": 79
+    },
+    {
+      "path": "hub/backend/interactions/question_values.py",
+      "status": "reviewed",
+      "sha256": "271c2ded11749245872baab7b8f42c759173f86bc1e50ac06e8411f44db62ba9",
+      "candidates": 14
     },
     {
       "path": "hub/backend/interactions/questions.py",
-      "status": "unreviewed",
-      "sha256": "d075c47b739756a9324d5e08e5ae267cbc2e96114f10a2328be7df7c769f52ef",
-      "candidates": 26
+      "status": "reviewed",
+      "sha256": "0ba1ea942647d67048939785bbec40965cc60f8338126a6f91c385c0b1629a43",
+      "candidates": 7
     },
     {
       "path": "hub/backend/observability/__init__.py",
@@ -286,8 +292,8 @@
     {
       "path": "hub/backend/observability/snapshot.py",
       "status": "unreviewed",
-      "sha256": "5a63fb4378433191c212a1c9623ee31db5799206d9f4698ce8cfa8e4fe38dfc8",
-      "candidates": 71
+      "sha256": "d35e1013c69dee86fd72ce3b873534f6eda38fb929b8c7cd74be6d593ff2e219",
+      "candidates": 67
     },
     {
       "path": "hub/backend/project/__init__.py",
@@ -418,8 +424,8 @@
     {
       "path": "hub/backend/tools/builtin.py",
       "status": "unreviewed",
-      "sha256": "d7a903fd151997e1ffa18f0ef58923f41cc7318762b0e1520ae8243a2b791450",
-      "candidates": 80
+      "sha256": "c6e876173a368dce2a1e722bfbd7da0253ed22a14908281dcd413846cfefbbff",
+      "candidates": 55
     },
     {
       "path": "hub/backend/tools/management.py",
@@ -670,8 +676,8 @@
     {
       "path": "hub/model.py",
       "status": "unreviewed",
-      "sha256": "5196ef64a92c6c2b7fe687b10c3cce65e631c16d930f7260833a429d1f818583",
-      "candidates": 104
+      "sha256": "3b1d370fcc93c273f84079d1d1a3af24261badc3257a3285eb95e627a4f5a08f",
+      "candidates": 109
     },
     {
       "path": "hub/ui/__init__.py",
@@ -976,7 +982,7 @@
     {
       "path": "hub/ui/view.py",
       "status": "unreviewed",
-      "sha256": "1006707651f107207ffb8bcdbeed6fde7fa1da24acff1c0276c90f92692ba06c",
+      "sha256": "d8e640fb71c309f87d11ec109ba9e9f7d7f04b01d554106a37bea9e501014e20",
       "candidates": 114
     },
     {
@@ -1053,9 +1059,9 @@
     },
     {
       "path": "hub/widget/feedback/answer_feedback.py",
-      "status": "unreviewed",
-      "sha256": "214fb148fb52ce76b94073381b9780b85eb04e904fc2a3e25c36f3b86ad6afaa",
-      "candidates": 23
+      "status": "reviewed",
+      "sha256": "07530bcee162bbbd5228accf799e4de490d3be2f2c2a3fd402a3f6963a025b8d",
+      "candidates": 16
     },
     {
       "path": "hub/widget/feedback/history_deletion.py",
@@ -1078,8 +1084,8 @@
     {
       "path": "hub/widget/feedback/preparing.py",
       "status": "unreviewed",
-      "sha256": "4d0b627a80e4253209723a5a5572ec2068a2161bdf5a6870f4db87803531d330",
-      "candidates": 72
+      "sha256": "6c21e543ee97a6e6b17cc1a8b211eaf5490e0ae8eddc399d673a5719f0d39159",
+      "candidates": 71
     },
     {
       "path": "hub/widget/feedback/progress.py",
@@ -1113,9 +1119,9 @@
     },
     {
       "path": "hub/widget/forms/answer_choices.py",
-      "status": "unreviewed",
-      "sha256": "1c52c7ce0e2b039c02d0eb4a8b807251a61a590f8aa2005ee7f9c800bc75aaff",
-      "candidates": 23
+      "status": "reviewed",
+      "sha256": "9cdbccce635f2847da2a86d22d4e6a9cd1c3d19be967cdd08e1b63393b589ff5",
+      "candidates": 10
     },
     {
       "path": "hub/widget/forms/component_manager.py",
@@ -1155,15 +1161,15 @@
     },
     {
       "path": "hub/widget/forms/question.py",
-      "status": "unreviewed",
-      "sha256": "dc52b50dc550770b450f43ae82f81550db8de20ba6d2397d9955867f72372f10",
-      "candidates": 78
+      "status": "reviewed",
+      "sha256": "39e7fce10f8352a25928e409706738c7775d8f093d029746a1306cebc07af965",
+      "candidates": 15
     },
     {
       "path": "hub/widget/forms/question_card.py",
-      "status": "unreviewed",
-      "sha256": "25ccc1cf28e4034c58ba6e3afeeec853213289b4a7f119c18c0d69d0e1b0d17e",
-      "candidates": 46
+      "status": "reviewed",
+      "sha256": "c6974b834438f26f9e2c4dd09e22593f5b12e6a0cc5ba1a2f7bb301ce347ea8b",
+      "candidates": 19
     },
     {
       "path": "hub/widget/forms/rag_manager.py",
@@ -1216,8 +1222,8 @@
     {
       "path": "hub/widget/input_contract.py",
       "status": "reviewed",
-      "sha256": "b99ac50e9281618c1ee85c663654b15e00e2433d2b6d5345f31f5bd30968d006",
-      "candidates": 8
+      "sha256": "53b3a1a6d5386fb2ed069aea63f497ecc89ebb1a6fda5cc4d0c383f2d9147310",
+      "candidates": 10
     },
     {
       "path": "hub/widget/input_field.py",
@@ -2650,8 +2656,8 @@
     {
       "path": "llm/core/interactions.py",
       "status": "reviewed",
-      "sha256": "2124cc11d69f99d837cf08c58dd5900beb122bc58fb203359560f5289a677be6",
-      "candidates": 148
+      "sha256": "e5122e209b754873fa3039789c3a90f272d8d5eb1f464ad8edf58a37e7ff74dc",
+      "candidates": 149
     },
     {
       "path": "llm/core/json_data.py",
@@ -3628,7 +3634,7 @@
     {
       "path": "llm/services/runtime/tool_approval_records.py",
       "status": "reviewed",
-      "sha256": "bb71c575af30eade19cf0acffd14539a838f306ac620e86cb7188a0858943221",
+      "sha256": "83c9967ab853f1cd31d4470a8faf64ab1c1aa7dcb8380b311000ad1161942516",
       "candidates": 5
     },
     {

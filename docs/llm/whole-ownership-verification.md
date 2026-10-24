@@ -8109,3 +8109,53 @@ R3 Mutation도 exit 0이다. Level 1은 중단/삭제 표시·마우스/Composer
 승인·예산·외부 효과·Checkpoint·삭제 실행 경계를 바꾸지 않는 관찰 소단계이므로 전체 회귀는
 관련 후속 UI 변경과 묶는다. 진행 중인 Gate48에는 이 변경이 포함되지 않는다. 다음 Level 3 전체
 LLM/Hub·정적·R3·문서·실환경 및 정확한 SHA 원격 CI를 통과하기 전 통합/원격 완료로 기록하지 않는다.
+
+
+## 질문·승인 표시 Record와 실제 생산자/소비자
+
+QuestionBroker·QuestionTool/Arguments/Reply·QuestionComposer·QuestionCard·AnswerChoices·AnswerFeedback
+여섯 파일을 완료했다. QuestionPresentation이 기존 run_id/live/request 응답을 소유하고 live Broker와
+저장 승인 snapshot의 실제 두 Writer를 연결했다. borrowed Question/Interaction/option 관찰은 요청한
+필드만 읽는다. ToolApprovalSourceView는 정규 Source Owner의 step_id를 제공한다.
+원본 InteractionRequest 구현은 바이트 그대로 유지하고 관찰 타입만 추가했다. 저장 Reader,
+응답 선택/거부·identity/revision·승인 검증·재개 경계는 기존 경로에서 계속 실행한다.
+
+표시용 revision 생략 처리도 기존 INITIAL_REVISION을 재사용한다. 이는 저장 기록 보완이나 실행용
+호환 Reader가 아니다. 원본 요청·option·응답의 참조와 missing/null/명시값, 반복 조회/단락 순서를
+보존했다. AnswerFeedback이 자신의 pending/acknowledged/item 변경을 소유하고 실제 Composer가
+그 API를 사용한다. 화면 상태를 Backend 상태로 기록하거나 승인 권한으로 바꾸지 않는다.
+
+ask_user의 이름·문구·Schema·명시 ToolContract는 QuestionTool에 모았다. 각 Toolkit은 독립 Schema
+사본을 받고 실제 handler는 동일 Broker.ask이다. 질문/답변은 기존 미래값과 소유자 검사, 응답 검증,
+changed callback/finally 정리 순서를 유지한다. QuestionReply도 답변을 추가 복제하지 않는다.
+ApprovalReview의 기존 대상 필드 집합을 실제 일반/카드 표시 양쪽이 공유한다. 위험 점수·승인 임계값과
+모델 위험도 정책은 변경하지 않았다. ControlFragment와 AnswerChoices가 PTK 표시 필드/선택 번호를,
+SessionIdentity가 기존 identity prefix를 소유한다. HubView가 자신의 Composer 초안 map을 읽고 쓴다.
+
+고정 baseline의 실제 Broker·답변/취소/잘못된 소유자·Schema 격리 29개, UI 입력/응답/카드/부분 기록
+80개 결과가 최종 제안과 일치한다. 정상 Composer 40경로와 실제 답변/취소의 성공/취소 guard도 확인했다.
+Producer 비교 도구의 비동기 close 미대기 경고를 수정했고 RuntimeWarning 오류 모드로 다시 통과했다.
+최초 경고와 외부 제안 생성의 치환 실패 로그를 보존한다. 기존 제품 테스트와 안전성 Assertion은 그대로다.
+
+model/Live View/기존 Approval 표시/Backend snapshot/Builtin/Preparing의 이번 좁은 연결은 해당 파일
+전체 완료로 세지 않는다. 미검토 파일과 나머지 고정 구조 소비자는 전수 목록에서 계속 추적한다.
+
+- `whole-hub-question-records-core-01`: discovered/started/pass 58/58/58, exit 0, 11.780611초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-question-records-core-01/llm.json --modules tests.llm.test_interactions tests.llm.test_interaction_presence tests.llm.test_interaction_decisions tests.llm.test_tool_registration_bindings tests.llm.test_schema_ownership`. source `d4d472343cc72b4b282d8ee145b2c9ec340e83f22d0f2b36c5c05f2c9f758366`, input `22f52d43e24bd0ec06e5033c5dcdeee9423db5efc11f04bc518ecc03842febf9`.
+
+- `whole-hub-question-records-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.506003초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-question-records-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `d4d472343cc72b4b282d8ee145b2c9ec340e83f22d0f2b36c5c05f2c9f758366`, input `22f52d43e24bd0ec06e5033c5dcdeee9423db5efc11f04bc518ecc03842febf9`.
+
+- `whole-hub-question-records-l1-01`: discovered/started/pass 33/33/33, exit 0, 57.493237초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-question-records-l1-01/hub.json --modules tests.hub.test_question_tools tests.hub.test_question_card tests.hub.test_approval_continuation tests.hub.test_tool_advice tests.hub.test_snapshot_projection`. source `d4d472343cc72b4b282d8ee145b2c9ec340e83f22d0f2b36c5c05f2c9f758366`, input `22f52d43e24bd0ec06e5033c5dcdeee9423db5efc11f04bc518ecc03842febf9`.
+
+- `whole-hub-question-records-l2-01`: discovered/started/pass 46/46/46, exit 0, 92.70982초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-question-records-l2-01/hub.json --modules tests.hub.test_live tests.hub.test_interrupt_feedback tests.hub.test_retry_ui tests.hub.test_tool_retry tests.hub.test_settings_project_flow tests.hub.test_input_contract`. source `d4d472343cc72b4b282d8ee145b2c9ec340e83f22d0f2b36c5c05f2c9f758366`, input `22f52d43e24bd0ec06e5033c5dcdeee9423db5efc11f04bc518ecc03842febf9`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치, 같은 suite의 선택
+중복 0과 전후/실행 사이 source/input 동일성을 확인했다. 명령·exit·로그는
+`hub-question-records-draft/selected-results.json`, 독립 비교 네 실행은 `proof-commands.json`에 보존한다.
+Python 3.12.14/Clang, Host d833790, 동일 의존성 및 실제 Linux/X11 환경이다. R3 Mutation exit 0이다.
+Core는 Interaction·필수 필드·결정·Tool binding/Schema 계약, Level 1은 실제 질문·승인 연속 실행·
+위험도 표시·snapshot 소비자, Level 2는 Live·중단·재시도·설정/입력 소비자이다. 공통 안전성 84개를 유지한다.
+화면 회귀는 진행 중이던 Gate48의 전체 Hub 종료 후 실행해 서로 경쟁하지 않았다.
+
+이번 소단계만으로 전체 통합/원격 완료를 선언하지 않는다. 공유 Interaction 관찰과 승인 소비자 변경을
+앞선 위젯·중단/삭제 관찰 변경과 묶어 다음 Level 3 전체 LLM/Hub·정적·문서·R3·실환경 검증을 수행하고,
+성공한 정확한 SHA만 Push한 뒤 원격 CI 결과를 확인한다. 실행 권한·예산·외부 효과 계약은 완화하지 않는다.

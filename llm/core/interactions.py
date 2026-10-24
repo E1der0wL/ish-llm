@@ -658,3 +658,128 @@ class InteractionView:
             type(self).request.__name__: self.request.to_dict(),
             type(self).response.__name__: self.response.to_dict() if self.response else self.NO_RESPONSE,
         }
+
+
+class InteractionOptionObservation:
+    """Lazy public option observation; execution keeps InteractionOption.from_dict."""
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def id(self):
+        return self._value[InteractionOption.id.__name__]
+
+    @property
+    def label(self):
+        return self._value[InteractionOption.label.__name__]
+
+    @property
+    def effect(self):
+        return self._value.get(InteractionOption.effect.__name__)
+
+
+class InteractionOptionsObservation:
+    """Observe only the option fields needed by a public consumer."""
+
+    def __init__(self, values):
+        self._values = values
+
+    @property
+    def count(self):
+        return len(self._values)
+
+    def at(self, index):
+        return InteractionOptionObservation(self._values[index])
+
+    def labels(self):
+        return [InteractionOptionObservation(value).label for value in self._values]
+
+    def denies(self, option_id):
+        return any(InteractionOptionObservation(value).id == option_id
+                   and InteractionOptionObservation(value).effect == InteractionOption.EFFECT_DENY
+                   for value in self._values)
+
+
+class InteractionRequestObservation:
+    """Borrow a public presentation record without becoming a stored Reader.
+
+    Requiredness follows each existing observation. These methods do not create
+    an InteractionRequest, validate a decision, renew evidence or authorize use.
+    Execution continues to use the strict InteractionRequest Reader and methods.
+    """
+
+    EMPTY_TITLE = ""
+
+    def __init__(self, value):
+        self._value = value
+
+    def to_record(self):
+        return self._value
+
+    @property
+    def id(self):
+        return self._value[InteractionRequest.id.__name__]
+
+    @property
+    def revision(self):
+        return self._value.get(InteractionRequest.revision.__name__, InteractionRequest.INITIAL_REVISION)
+
+    @property
+    def kind(self):
+        return self._value.get(InteractionRequest.kind.__name__)
+
+    @property
+    def title(self):
+        return self._value[InteractionRequest.title.__name__]
+
+    @property
+    def title_or_empty(self):
+        return self._value.get(InteractionRequest.title.__name__, self.EMPTY_TITLE)
+
+    @property
+    def description(self):
+        return self._value.get(InteractionRequest.description.__name__)
+
+    @property
+    def required_description(self):
+        return self._value[InteractionRequest.description.__name__]
+
+    @property
+    def description_or_empty(self):
+        return self._value.get(InteractionRequest.description.__name__, InteractionRequest.EMPTY_DESCRIPTION)
+
+    @property
+    def action(self):
+        return self._value.get(InteractionRequest.action.__name__)
+
+    @property
+    def required_action(self):
+        return self._value[InteractionRequest.action.__name__]
+
+    @property
+    def source(self):
+        return self._value.get(InteractionRequest.source.__name__, {})
+
+    @property
+    def input_schema(self):
+        return self._value.get(InteractionRequest.input_schema.__name__)
+
+    @property
+    def risk(self):
+        return self._value.get(InteractionRequest.risk.__name__)
+
+    @property
+    def risk_scheme(self):
+        return self._value.get(InteractionRequest.risk_scheme.__name__)
+
+    @property
+    def options(self):
+        return InteractionOptionsObservation(self._value[InteractionRequest.options.__name__])
+
+    @property
+    def options_or_empty(self):
+        return InteractionOptionsObservation(self._value.get(InteractionRequest.options.__name__, []))
+
+    def denies(self, option_id):
+        return InteractionOptionsObservation(self._value.get(InteractionRequest.options.__name__, ())).denies(option_id)

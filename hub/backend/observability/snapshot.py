@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from typing import Any
 from time import monotonic
 
-from ...model import AgentSummary, ChatMessage, HubSnapshot, SessionSummary, RunSummary, TraceItem
+from ...model import QuestionPresentation, AgentSummary, ChatMessage, HubSnapshot, SessionSummary, RunSummary, TraceItem
 from ..execution.trace import merge_trace, tool_trace
 from ..execution.steps import display_steps
 from ..execution.engine_selection import agent_model, selected_engines
@@ -175,7 +175,7 @@ class SnapshotReader:
                     paused[question_handle.id] = question_handle
                 pending = []
                 for paused_handle in paused.values():
-                    pending.extend({"run_id": paused_handle.id, "live": False, "request": request.to_dict()}
+                    pending.extend(QuestionPresentation.stored_request(paused_handle.id, request)
                                    for request in await paused_handle.ainteractions(pending_only=True))
                 pending = tuple(pending)
                 item = SessionObservation(identifier, record, runtime, run, handle, pending)

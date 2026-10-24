@@ -5,13 +5,20 @@ from dataclasses import dataclass
 
 from llm.core.interactions import InteractionOption, InteractionRequest
 from llm.services.runtime.tools import current_tool_call
-from ...model import QuestionSource, SessionSummary
+from ...model import QuestionPresentation, SessionSummary
+from .question_values import QuestionArguments, QuestionTool, QuestionReply
 
 
 def waiting_status(questions):
-    return (SessionSummary.WAITING_APPROVAL
-            if any(item["request"].get("kind") == InteractionRequest.KIND_APPROVAL for item in questions)
-            else SessionSummary.WAITING_INPUT)
+    return (
+        SessionSummary.WAITING_APPROVAL
+        if any(
+            QuestionPresentation.observe(item).request.kind
+            == InteractionRequest.KIND_APPROVAL
+            for item in questions
+        )
+        else SessionSummary.WAITING_INPUT
+    )
 
 
 @dataclass(slots=True)
@@ -24,45 +31,64 @@ class WaitingQuestion:
 
 
 class QuestionBroker:
+    NO_CALL = None
+    NO_PENDING = None
+    ACTIVE_RUN_REQUIRED = "ask_user requires an active Run"
+    NOT_WAITING = "Question is no longer waiting"
+    ALREADY_ANSWERED = "Question already answered"
+
     def __init__(self):
         self.pending = {}
         self.changed = lambda: None
 
     async def ask(self, arguments):
         call = current_tool_call()
-        if call is None or not call.session_id:
-            raise RuntimeError("ask_user requires an active Run")
-        request = InteractionRequest(arguments["question"],
-            (InteractionOption("reply", "Reply"),), kind=InteractionRequest.KIND_INPUT, category="hub.question",
-            description=arguments.get("description", ""), input_schema={"type": "string", "minLength": 1},
-            source={QuestionSource.SUGGESTIONS.value: arguments.get(QuestionSource.SUGGESTIONS.value, [])})
+        if call is self.NO_CALL or not call.session_id:
+            raise RuntimeError(self.ACTIVE_RUN_REQUIRED)
+        values = QuestionArguments(arguments)
+        request = InteractionRequest(
+            values.question,
+            (InteractionOption(QuestionTool.REPLY_ID, QuestionTool.REPLY_LABEL),),
+            kind=InteractionRequest.KIND_INPUT,
+            category=QuestionTool.CATEGORY,
+            description=values.description,
+            input_schema=QuestionTool.input_schema(),
+            source=QuestionTool.source(values),
+        )
         future = asyncio.get_running_loop().create_future()
-        self.pending[request.id] = WaitingQuestion(call.project_id, call.session_id, call.run_id, request, future)
+        self.pending[request.id] = WaitingQuestion(
+            call.project_id, call.session_id, call.run_id, request, future
+        )
         self.changed()
         try:
-            return {"answer": await future}
+            return QuestionReply(await future).to_record()
         finally:
-            self.pending.pop(request.id, None)
+            self.pending.pop(request.id, self.NO_PENDING)
             self.changed()
 
     def views(self, project_id, session_id):
-        return tuple({"run_id": item.run_id, "live": True, "request": item.request.to_dict()}
-                     for item in self.pending.values()
-                     if (item.project_id, item.session_id) == (project_id, session_id))
+        return tuple(
+            QuestionPresentation.live_request(item.run_id, item.request)
+            for item in self.pending.values()
+            if (item.project_id, item.session_id) == (project_id, session_id)
+        )
 
     def answer(self, project_id, session_id, run_id, request, option_id, value):
         item = self.pending.get(request.id)
-        if item is None or (item.project_id, item.session_id, item.run_id) != (project_id, session_id, run_id):
-            raise ValueError("Question is no longer waiting")
+        if item is self.NO_PENDING or (
+            item.project_id,
+            item.session_id,
+            item.run_id,
+        ) != (project_id, session_id, run_id):
+            raise ValueError(self.NOT_WAITING)
         if item.result.done():
-            raise ValueError("Question already answered")
+            raise ValueError(self.ALREADY_ANSWERED)
         response = request.respond(option_id, value=value)
         answer = response.decision(item.request)
         item.result.set_result(answer)
-        self.pending.pop(request.id, None)
+        self.pending.pop(request.id, self.NO_PENDING)
         self.changed()
 
     def close(self):
         for item in tuple(self.pending.values()):
             item.result.cancel()
-

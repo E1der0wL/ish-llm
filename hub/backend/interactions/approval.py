@@ -9,6 +9,20 @@ from hub.locales.keys import MessageKey
 RISK_SCHEME = "hub-risk-v1"
 
 
+class ApprovalReview:
+    TARGET_FIELDS = frozenset(("path", "source", "destination", "cwd", "command", "argv", "workspace_id", "url"))
+    FIELD_SEPARATOR = ":"
+
+    @classmethod
+    def target_argument(cls, key):
+        return key in cls.TARGET_FIELDS
+
+    @classmethod
+    def target_line(cls, line):
+        return cls.target_argument(line.partition(cls.FIELD_SEPARATOR)[0])
+
+
+
 def review_lines(request, t):
     """Bounded, plain action details shared by the composer and Markdown review."""
     action = request["action"]
@@ -28,7 +42,7 @@ def review_lines(request, t):
         for key, value in list(arguments.items())[:12]:
             if key == FIELD:
                 continue
-            if key in {"path", "source", "destination", "cwd", "command", "argv", "workspace_id", "url"}:
+            if ApprovalReview.target_argument(key):
                 # Keep operation targets visible, but never dump file bodies.
                 import reprlib
                 preview = reprlib.Repr()

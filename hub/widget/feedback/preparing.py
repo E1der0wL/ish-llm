@@ -8,7 +8,7 @@ import asyncio
 from dataclasses import replace
 from time import monotonic
 
-from ...model import HubSnapshot, ChatMessage
+from ...model import HubSnapshot, ChatMessage, QuestionPresentation
 
 
 class PreparingResponse:
@@ -139,7 +139,7 @@ class PreparingResponse:
                         if message.role == "assistant":
                             target = message
                             break
-            if any(q["run_id"] == run_id for q in snapshot.questions) or (target and target.run_id and target.run_id != run_id):
+            if any(QuestionPresentation.observe(q).run_id == run_id for q in snapshot.questions) or (target and target.run_id and target.run_id != run_id):
                 self.finish(key)
             return
         request_id = self.pending.get(key)
