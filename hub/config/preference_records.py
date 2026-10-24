@@ -62,6 +62,18 @@ class PreferenceSnapshot:
         }
 
     @classmethod
+    def catalog(cls, profile, load, workspace):
+        from .metadata import SettingMetadata
+
+        values = {PreferenceSection.PROFILE.value: asdict(profile),
+                  PreferenceSection.GENERAL.value: asdict(GeneralSettings()), **load()}
+        general = values[PreferenceSection.GENERAL]
+        if general[GeneralSettings.workspace_root.__name__] == SettingMetadata.initial(
+                GeneralSettings, GeneralSettings.workspace_root):
+            general[GeneralSettings.workspace_root.__name__] = str(workspace())
+        return values
+
+    @classmethod
     def startup(cls, config, general):
         values = asdict(general)
         values[GeneralSettings.workspace_root.__name__] = str(config.workspace)

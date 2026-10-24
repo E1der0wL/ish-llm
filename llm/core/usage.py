@@ -167,6 +167,20 @@ class UsageSummary:
     period_seconds: float | None
 
     @classmethod
+    def calls_from_record(cls, value):
+        """Public query observation only; omitted listing never supplies missing metrics."""
+        return value.get(cls.calls.__name__, [])
+
+    @classmethod
+    def from_metrics(cls, value, *, calls):
+        return cls(calls=calls, **{item.name: value[item.name] for item in fields(cls)
+                                  if item.name != cls.calls.__name__})
+
+    def metrics_record(self):
+        return {item.name: getattr(self, item.name) for item in fields(self)
+                if item.name != type(self).calls.__name__}
+
+    @classmethod
     def collect(cls, calls, policy, *, at=None):
         clock = datetime.now(timezone.utc) if at is None else at
         calls = [call for call in calls if call.receipt.in_period(policy.period_seconds, at=clock)]

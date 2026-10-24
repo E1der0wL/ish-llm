@@ -239,6 +239,11 @@ class GeneralSettingsDraft:
     def __init__(self, value):
         self._value = value
 
+    @property
+    def workspace_selection(self):
+        return self._value.get(GeneralSettings.workspace_root.__name__,
+                               SettingMetadata.initial(GeneralSettings, GeneralSettings.workspace_root))
+
     def initialize_packs(self):
         self._value.setdefault(GeneralSettings.language_packs.__name__, {})
 

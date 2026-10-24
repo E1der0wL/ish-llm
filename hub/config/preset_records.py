@@ -6,6 +6,21 @@ from dataclasses import asdict, dataclass
 from llm.core.models import ConversationStorage, ProjectConfig
 from llm.services.configuration_records import ProjectConfigForm
 from ..backend.project.title_contract import TitleEngineIdentity
+from .sections import PreferenceSection
+from .general import GeneralSettings
+from .profile import UserProfile
+from .theme import HubTheme
+
+
+class PresetGlobals:
+    DEFAULT_PROFILE = None
+
+    @classmethod
+    def snapshot(cls, profile, load):
+        return {PreferenceSection.PROFILE.value: asdict(
+                    UserProfile() if profile is cls.DEFAULT_PROFILE else profile),
+                PreferenceSection.APPEARANCE.value: asdict(HubTheme()),
+                PreferenceSection.GENERAL.value: asdict(GeneralSettings()), **load()}
 
 
 class PresetProject:
@@ -56,6 +71,15 @@ class PresetProject:
 
     def overlay(self, form):
         return {**form.to_dict(), **deepcopy(self._value)}
+
+    def application_values(self, form):
+        candidate = self.overlay(form)
+        targets = ProjectConfig.from_dict(form.config).parameter_targets
+        if targets.has_engine(TitleEngineIdentity.NAME):
+            config = ProjectConfig.from_dict(candidate[self.CONFIG])
+            config.set_engine_parameters(TitleEngineIdentity.NAME, targets.engine(TitleEngineIdentity.NAME).to_dict())
+            candidate[self.CONFIG] = config.to_dict()
+        return candidate
 
     def to_dict(self):
         return deepcopy(self._value)

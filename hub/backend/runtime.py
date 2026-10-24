@@ -93,6 +93,10 @@ class HubConfig:
                 raise ValueError("Component factories must be callable")
 
     @property
+    def launch_workspace(self):
+        return self.workspace if self._workspace_anchor is WorkspaceSelection.UNBOUND_ANCHOR else self._workspace_anchor
+
+    @property
     def initial_engine(self):
         """Creation preset only; requests always select a saved Project Agent."""
         return "loop" if self.agent_definition is None else self.agent_definition["engine"]
@@ -131,6 +135,12 @@ class HubRuntime:
         self.general = GeneralSettings(**preferences.get("general", {}))
         from .project.naming import SessionNamer
         self.namer = SessionNamer(self)
+
+    def session_is_open(self, identifier):
+        return identifier in self._opened_sessions
+
+    def forget_open_sessions(self, identifiers):
+        self._opened_sessions.difference_update(identifiers)
 
     async def _engine_event(self, run, event) -> None:
         self.snapshot_reader.thinking.observe(run, event)

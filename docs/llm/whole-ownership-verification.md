@@ -7685,3 +7685,54 @@ Level 1은 저장/Preset/설정 JSON/Project 흐름, Level 2는 설정 편집·w
 추가된 버전 비교 두 곳은 exact int 검사와 정규 VERSION 전달을 각각 검토했다.
 현재 인벤토리는 606파일, 미검토 158, 미분류 7703, 미완료 소비자 계약 17,
 stale/위반/issues 0이다. 미완료를 정적 검사 통과와 혼동하지 않는다.
+
+
+## Hub 설정 서비스·공개 응답·Preset 조율 경계
+
+SettingsService/SettingsOperation/응답 projection, PresetService, PresetStore의 전체 파일을 검토했다.
+명령 이름과 위치 인자는 SettingsDispatch가, 고정 응답 필드는 타입이 소유한다.
+ErrorInfo와 결과 목록은 기존 객체를 보존하는 얕은 직렬화를 사용한다.
+Backend 사용량은 UsageSummary의 관찰 projection을 사용하며 Hub에서 재계산하지 않는다.
+선택적 호출 목록의 생략은 공개 조회 관찰에만 적용하며 필수 counter를 기본값으로 채우지 않는다.
+
+전역 설정 조합은 PreferenceSnapshot/PresetGlobals에 있고, 저장 Reader는 여전히 완전한 현재 기록을 검증한다.
+Preset의 관리된 제목 Engine 파라미터 보존은 PresetProject가 맡는다.
+다른 서비스가 호출하던 검증·Project 조회·idle 검사에는 공개 메서드를 사용한다.
+HubConfig의 launch workspace, Runtime의 열린 Session 조회/정리와 Namer의 active 조회를 연결했다.
+Runtime/naming 및 기존 공통 Owner는 좁은 변경이며 해당 파일 전체 완료를 뜻하지 않는다.
+
+독립 비교는 catalog 값/오류 순서 39, 전체 초안 검증 후 쓰기·부분 결과 18,
+CAS/삭제/취소/재시작 순서 24, 실제 전역 저장 bytes 5, 명령 dispatch/거부 16,
+오류·목록 identity/부분 응답 3, Preset 서비스 16 및 Host-lock 거부 1,
+전역 Preset 기본값/덮어쓰기/장애 순서 60이다. 모든 비교가 일치한다.
+최초 비교의 traceback 소스 frame 차이는 보존했다. Owner 이동으로 달라지는 frame만 비교에서 구분하고,
+traceback 존재와 마지막 예외, 메시지·code·분류·details·source·recovery는 그대로 확인했다.
+제품 시험과 기존 Assertion은 변경하지 않았다.
+
+- `whole-hub-settings-service-storage-01`: discovered/started/pass 1/1/1, exit 0, 0.004437초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-service-storage-01/hub.json --modules tests.hub.test_stores`. source `5b264e7fac36f4a0cf7be9d926bb1e467da685b4174d223f0c97fec6cdf7516a`, input `6aeb1a0b124784eedd7d22436d2397d99e9f977fcdc30e9b3b50c6c39a4062db`.
+
+- `whole-hub-settings-service-l1-01`: discovered/started/pass 32/32/32, exit 0, 53.230172초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-service-l1-01/hub.json --modules tests.hub.test_settings tests.hub.test_presets_widgets tests.hub.test_global_preferences tests.hub.test_settings_project_flow tests.hub.test_workspace_presence`. source `5b264e7fac36f4a0cf7be9d926bb1e467da685b4174d223f0c97fec6cdf7516a`, input `6aeb1a0b124784eedd7d22436d2397d99e9f977fcdc30e9b3b50c6c39a4062db`.
+
+- `whole-hub-settings-service-l2-01`: discovered/started/pass 31/31/31, exit 0, 48.748688초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-service-l2-01/hub.json --modules tests.hub.test_project_authority tests.hub.test_settings_json tests.hub.test_settings_editor tests.hub.test_workspace_settings tests.hub.test_settings_restart tests.hub.test_settings_usability tests.hub.test_settings_navigation tests.hub.test_naming`. source `5b264e7fac36f4a0cf7be9d926bb1e467da685b4174d223f0c97fec6cdf7516a`, input `6aeb1a0b124784eedd7d22436d2397d99e9f977fcdc30e9b3b50c6c39a4062db`.
+
+- `whole-hub-settings-service-usage-01`: discovered/started/pass 15/15/15, exit 0, 0.082505초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-settings-service-usage-01/llm.json --modules tests.llm.test_usage_ownership tests.llm.test_usage_declarations tests.llm.test_observation_values`. source `5b264e7fac36f4a0cf7be9d926bb1e467da685b4174d223f0c97fec6cdf7516a`, input `6aeb1a0b124784eedd7d22436d2397d99e9f977fcdc30e9b3b50c6c39a4062db`.
+
+- `whole-hub-settings-service-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.393152초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-settings-service-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `5b264e7fac36f4a0cf7be9d926bb1e467da685b4174d223f0c97fec6cdf7516a`, input `6aeb1a0b124784eedd7d22436d2397d99e9f977fcdc30e9b3b50c6c39a4062db`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치,
+선택 ID 중복 0과 전후·실행 사이 source/input manifest 동일을 확인했다.
+Python 3.12.14/Clang, Host d833790, 동일 의존성·Linux/X11/Bubblewrap이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0. 실제 argv·exit·로그는
+`hub-settings-service-draft/selected-results.json` 및 별도 `whole-hub-settings-service-storage-01`에 보존한다.
+저장 장애 시험은 같은 소스에서 별도 실행했으며 전체 회귀 하나로 합산하지 않는다.
+
+Level 1은 설정/Preset/usage 표시/Project/명시 anchor, Level 2는 권한·설정 편집/재시작/탐색·Namer다.
+Backend 사용량 Owner 및 승인·예산·효과·Checkpoint·삭제/저장·실행 경계와 R3를 포함한다.
+현재 atomic writer/검증/전이의 의미와 순서를 보존하는 범위를 증명하여 소단계 전체 회귀는 유예한다.
+관련 UI 연결 후 다음 Level 3 전체 게이트에서 검증한다. Gate46은 이전 고정 소스의 별도 결과다.
+UI 명령·응답과 시작 시 Preset Project 소비자는 실제 연결 전까지 미완료로 남긴다.
+
+정적 감사 S1–S7 exit 0(개별 검토 84, 신규/폐기 finding 없음), 감사기 자체 시험 16 pass/3.355초,
+문서 검사 exit 0(168문서/183 Python fence/1263 링크/37 anchor)다.
+현재 인벤토리는 607파일, 미검토 155, 미분류 7606, 미완료 소비자 계약 18,
+stale/위반/issues 0이다. 미완료 UI·시작 경로는 다음 소비자 연결 단계에서 계속 검증한다.

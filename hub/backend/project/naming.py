@@ -90,6 +90,9 @@ class SessionNamer:
         params.update(deepcopy(ImplementationParameters.read(ConfigurationView.read(configured).values).config.get("completion", {})))
         return params
 
+    def is_active(self, session_id):
+        return session_id in self.tasks
+
     def schedule(self, session, key):
         if self.runtime.config.auto_title and session.id not in self.tasks:
             task = asyncio.create_task(self._name(session, key))

@@ -1,14 +1,8 @@
 """Portable settings presets stored once at the Hub launch root."""
 
-from dataclasses import asdict
-
-from .general import GeneralSettings
 from .preferences import PreferencesStore
-from .profile import UserProfile
 from .store import WorkspaceJSONStore
-from .theme import HubTheme
-from .sections import PreferenceSection
-from .preset_records import PresetDefinition, PresetIndex, PresetName
+from .preset_records import PresetDefinition, PresetIndex, PresetName, PresetGlobals
 
 
 class PresetStore(WorkspaceJSONStore):
@@ -56,12 +50,7 @@ class PresetStore(WorkspaceJSONStore):
     def selected_project(self):
         return PresetIndex(self.read()).selected_project()
 
-    def globals(self, profile=None):
-        return {
-            PreferenceSection.PROFILE.value: asdict(
-                UserProfile() if profile is None else profile
-            ),
-            PreferenceSection.APPEARANCE.value: asdict(HubTheme()),
-            PreferenceSection.GENERAL.value: asdict(GeneralSettings()),
-            **PreferencesStore(self.workspace).load(),
-        }
+    def globals(self, profile=PresetGlobals.DEFAULT_PROFILE):
+        return PresetGlobals.snapshot(
+            profile, lambda: PreferencesStore(self.workspace).load()
+        )

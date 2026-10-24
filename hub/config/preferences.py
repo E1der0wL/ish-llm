@@ -78,12 +78,16 @@ class PreferencesStore(WorkspaceJSONStore):
         self.sidebar._write_json(SidebarWidth.create(width))
         return width
 
+    @classmethod
+    def input_record(cls, section, values):
+        return cls.SECTIONS[section](**values)
+
     def save(self, section, values):
         if section not in self.SECTIONS:
             raise ValueError(PreferenceRecord.UNKNOWN_SECTION)
         # Creation/edit input may omit owner-defined initial values. The saved
         # section is complete; load never fills missing stored fields.
-        record = self.SECTIONS[section](**values)
+        record = self.input_record(section, values)
         data = PreferenceSnapshot(self.load()).with_section_record(
             self.VERSION, section, record
         )

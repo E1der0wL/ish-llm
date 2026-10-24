@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 606,
-    "unreviewed_files": 158,
+    "files": 607,
+    "unreviewed_files": 155,
     "stale_files": 0,
-    "unclassified": 7703,
+    "unclassified": 7606,
     "violations": 0,
-    "incomplete_contracts": 17,
-    "unreviewed_dynamic_paths": 158,
+    "incomplete_contracts": 18,
+    "unreviewed_dynamic_paths": 155,
     "unreadable_files": 0,
-    "candidates": 19527,
+    "candidates": 19474,
     "issues": 0
   },
   "files": [
@@ -334,14 +334,14 @@
     {
       "path": "hub/backend/project/naming.py",
       "status": "unreviewed",
-      "sha256": "b77f98b0806496ffa56b15be92f3472d27036e1e6fab330624d55f7648a1ce54",
+      "sha256": "4653522871778e69639f10f520f6cdcb11524cdee21625cae29128ae4321bed1",
       "candidates": 65
     },
     {
       "path": "hub/backend/project/presets.py",
-      "status": "unreviewed",
-      "sha256": "79f13a53ca910eafc945c429f651c9b23fa3ed7d497cc4b65e527bcc1b8589b5",
-      "candidates": 11
+      "status": "reviewed",
+      "sha256": "94b91db3e86078dc97a77d9f2135559d894374450dd521983c8fe07b750eead3",
+      "candidates": 1
     },
     {
       "path": "hub/backend/project/rag_import.py",
@@ -369,9 +369,15 @@
     },
     {
       "path": "hub/backend/project/settings.py",
-      "status": "unreviewed",
-      "sha256": "a5518428b9e0fc6f66d2dc40d013849a5ef11684be128924225b81761e664908",
-      "candidates": 83
+      "status": "reviewed",
+      "sha256": "f9fcfcdbc10917af65bd607c68235456017007494d68a983fc9518ed2a8bed9a",
+      "candidates": 4
+    },
+    {
+      "path": "hub/backend/project/settings_contracts.py",
+      "status": "reviewed",
+      "sha256": "9baf7a871c0580c6a8d0c7756945bf59a9faa3649cef8d3de2cce34328f62ce0",
+      "candidates": 37
     },
     {
       "path": "hub/backend/project/settings_descriptions.py",
@@ -394,7 +400,7 @@
     {
       "path": "hub/backend/runtime.py",
       "status": "unreviewed",
-      "sha256": "d0e89cf3a21168d377d6504e43ddb61669df6dc305cf6ab5baa3d0b72dff8ee9",
+      "sha256": "03a8fa9207eab0bb847d09a8697585bc2a3ab4da2429f46f36d82af049fce476",
       "candidates": 183
     },
     {
@@ -496,7 +502,7 @@
     {
       "path": "hub/config/general.py",
       "status": "reviewed",
-      "sha256": "aee8ef7be43df0b2d58eb93676f0459571a88cfa0eb297d3ac715739dfa0c063",
+      "sha256": "c62591656e9ced897e3285b1f185bf0b65a4ddb400035fe4b31eb8ff02f978d1",
       "candidates": 39
     },
     {
@@ -514,26 +520,26 @@
     {
       "path": "hub/config/preference_records.py",
       "status": "reviewed",
-      "sha256": "9af132040e8f308330ced35c2f67d9a4e7898048a886731a65d251b2671fbedc",
+      "sha256": "a3d5e87c4cd5b71b36fcf47f73acff3f2c6d78398065680109ea17e611c522f5",
       "candidates": 8
     },
     {
       "path": "hub/config/preferences.py",
       "status": "reviewed",
-      "sha256": "1bb42d81584900ad9a18aef73cc186d360fe9454b8f3379e2de11dfef2e282f6",
+      "sha256": "3c2c592a53a73c33e25df70f7acec54eaa49e19ededb861d381ea39d16f8e109",
       "candidates": 0
     },
     {
       "path": "hub/config/preset_records.py",
       "status": "reviewed",
-      "sha256": "9d4aec60a27af7ef47d08ac6bd7b59362292d78bb6f0a81d421d4c3ecf681b08",
-      "candidates": 25
+      "sha256": "2053adeb7ef96c20742836fea42c20dd436c8b25ee1740c52c27839bbcfa3660",
+      "candidates": 26
     },
     {
       "path": "hub/config/presets.py",
-      "status": "unreviewed",
-      "sha256": "158fb60d882424f3debeeae870b74b6014a070379be01628470deb7766178974",
-      "candidates": 3
+      "status": "reviewed",
+      "sha256": "5dbbf564891129d84af60ac35b16bef87d7091fc7d44aa994197eab1386d5de3",
+      "candidates": 1
     },
     {
       "path": "hub/config/profile.py",
@@ -2758,7 +2764,7 @@
     {
       "path": "llm/core/usage.py",
       "status": "reviewed",
-      "sha256": "9977f4e8583acb3efea582b040fcbb93ee5aa33c76b82054d12becfe53666304",
+      "sha256": "87334483a40406e9f214802de991e285d0039f0cb4472a476b86dd4abe4e8824",
       "candidates": 41
     },
     {
