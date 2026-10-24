@@ -44,6 +44,7 @@ Component의 기존 검증 콜백은 정규 Document Owner에 위임합니다. �
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | RAGComponent/RAGConflictError와 EmbeddingModel/RerankModel/TripleExtractor의 공개 import입니다. |
+| [configuration.py](configuration.py) | 명시 설정의 Schema·배치·해석·검증, 커스텀 모델의 작업별 바인딩, 설정 조회·revision Projection을 소유합니다. |
 | [component.py](component.py) | 설정 검증과 문서·색인 generation의 원자적 공개·복제를 담당합니다. |
 | [document_views.py](document_views.py) | 공개 문서의 내부 증거 제외, 문서 변경 CAS 인자와 작업용 설정/원본 스냅샷 Projection입니다. |
 | [corpus_records.py](corpus_records.py) | 코퍼스 필드·버전·엄격한 문서 검증과 메모리 snapshot Projection을 소유합니다. |

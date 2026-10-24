@@ -70,6 +70,7 @@ class SchemaBoolean:
 
 
 class SchemaExtension:
+    RUNTIME_CONFIGURATION = "x-runtime-configuration"
     PREFIX = "x-"
     PARAMETER_KEY = "x-parameter-key"
     OWNER = "x-schema-owner"

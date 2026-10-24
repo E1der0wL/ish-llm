@@ -1,6 +1,7 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
 from .prompts import ExtractionOptions
+from .configuration import RAGConfiguration
 
 from llm.providers.diagnostic_values import ProviderRetryObservation
 
@@ -76,30 +77,17 @@ class RAGComponent(DefinitionComponent):
     data_class = RAGData
     # 일반 record CRUD는 Application 메모만 보관한다. 문서 색인은 document API가 소유한다.
     schema = object_schema({"metadata": metadata_schema()})
-    POLICY_FIELDS = ("embedding_concurrency", "provider", JobAdmission.KEY)
-    parameter_layout = ParameterLayout(
-        config=("chunk_size", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
-                "index_batch_size", SearchOptions.CONFIG_KEY, "graph", "document_kwargs", "query_kwargs",
-                "embedding_params", "extraction_params", "rerank_params"),
-        policy=POLICY_FIELDS,
-        paths={**{"extraction." + key: "config.extraction." + key
-                  for key in (ExtractionOptions.Field.JSON_MODE, ExtractionOptions.Field.PROMPT_ID, ExtractionOptions.Field.RELATION_TYPES)},
-               **{"extraction." + key: "policy.extraction." + key
-                  for key in (ExtractionOptions.Field.REPAIR_ATTEMPTS, ExtractionOptions.Field.FAILURE_POLICY)}})
+    parameter_layout = RAGConfiguration.LAYOUT
 
     def __init__(self, *, embedding=None, embedding_id=None, reranker=None, extractor=None):
         """모델 구현만 주입한다. 분할·동시성·검색 설정은 ProjectConfig에서 받는다."""
         self.embedding, self.reranker, self.extractor = embedding, reranker, extractor
         self.embedding_id = embedding_id
         values = {}
-        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
-                     "document_kwargs", "query_kwargs", "index_batch_size"):
-            setattr(self, name, deepcopy(values.get(name, {} if name.endswith("kwargs") else None)))
+        RAGConfiguration.bind_values(self, values)
         from .search import LexicalCache
         self.search_cache = LexicalCache(0)
-        self.search_options, self.graph_options = values.get(SearchOptions.CONFIG_KEY, {}), values.get("graph", {})
-        self.extraction_options, self.extraction_prompt = values.get("extraction", {}), {"messages": []}
-        self.provider_options = values.get("provider", {})
+        RAGConfiguration.initial_options(self, values)
         self.vector_cache = VectorCache()
         self.query_cache = VectorCache()
         from .cache import SnapshotCache
@@ -203,131 +191,16 @@ class RAGComponent(DefinitionComponent):
 
     # 공개 API: 직접 호출 시 workspace 소유권은 호출자가 보장해야 한다.
     def resolve_config(self, project):
-        if getattr(self, "_configuration_source", None) is not None:
-            return self._configuration_source.resolve_config(project)
-        client_values = {}
-        runtime = []
-        for name, client in (("embedding_params", self.embedding), ("extraction_params", self.extractor), ("rerank_params", self.reranker)):
-            if client is not None:
-                params = getattr(client, "params", {})
-                try:
-                    self.serialize(params)
-                    client_values[name] = params
-                except (ValueError, TypeError):
-                    runtime.append(name)
-        if getattr(self.extractor, "extraction", None):
-            client_values["extraction"] = deepcopy(self.extractor.extraction)
-        layers = [(ConfigurationSource.CLIENT, self.parameter_layout.pack(client_values)), *self.get_config_layers(project)]
-        view = resolve_config(layers, schema=self.describe_config())
-        from .embedding import EmbeddingModel
-        selected = EmbeddingModel() if self.embedding is None else self.embedding
-        view["enforced"] = {"config": {"embedding_params": deepcopy(getattr(selected, "enforced_configuration", {}))}}
-        view["model_providers"] = {name: resolve_config([
-            (ConfigurationSource.CLIENT, getattr(getattr(self, name), "provider_options", {})),
-            (ConfigurationSource.PROJECT, ImplementationParameters.read(ConfigurationView.read(view).values).policy.get("provider", {}))], schema=provider_schema())
-            for name in ("embedding", "extractor", "reranker")}
-        view["runtime"] = runtime
-        return view
+        return RAGConfiguration.resolve_config(self, project)
 
     def with_config(self, project, *, prompt=None):
-        """저장 설정을 작업별 사본으로 바인딩한다. 등록된 객체와 SDK 함수를 변경하지 않는다."""
-        from .embedding import EmbeddingModel
-        from .extraction import TripleExtractor
-        from .rerank import RerankModel
-        view = self.resolve_config(project)
-        values = self.parameter_layout.unpack(ConfigurationView.read(view).values)
-        worker = copy(self)
-        worker._configuration_source = self
-        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
-            setattr(worker, name, deepcopy(values.get(name, {} if name.endswith("kwargs") else None)))
-        worker.search_options, worker.graph_options = values.get(SearchOptions.CONFIG_KEY, {}), values.get("graph", {})
-        worker.extraction_options = deepcopy(values.get("extraction", {}))
-        worker.provider_options = values.get("provider", {})
-        worker._cache_namespace = project.id
-        worker._extraction_error = (ValueError("RAG prompt_id requires the selected prompts component through its Project handle")
-            if worker.extraction_options.get(ExtractionOptions.Field.PROMPT_ID) is not None and prompt is None else None)
-        worker.extraction_prompt = deepcopy({"messages": []} if prompt is None else prompt)
-        for name, key, factory in (("embedding", "embedding_params", EmbeddingModel),
-                                   ("extractor", "extraction_params", TripleExtractor), ("reranker", "rerank_params", RerankModel)):
-            client, params = getattr(self, name), values.get(key, {})
-            if client is None and params:
-                client = factory(**params)
-            elif client is not None and params:
-                configure = getattr(client, "with_config", None)
-                if configure is not None:
-                    client = configure(params)
-                elif self._options(project).get(key):
-                    raise ValueError(f"Custom {name} requires with_config(params) to apply project parameters")
-            if client is not None and callable(getattr(client, "with_provider", None)):
-                client = client.with_provider(ConfigurationView.read(view["model_providers"][name]).values)
-            setattr(worker, name, client)
-        bind_extraction = getattr(worker.extractor, "with_extraction", None)
-        if bind_extraction is not None:
-            worker.extraction_options = ProjectConfig.merge(getattr(worker.extractor, "extraction", {}), worker.extraction_options)
-            if prompt is None and getattr(worker.extractor, "prompt", None) is not None:
-                worker.extraction_prompt = deepcopy(worker.extractor.prompt)
-            worker.extractor = bind_extraction(worker.extraction_options, worker.extraction_prompt)
-        elif worker.extractor is not None and worker.extraction_options.keys() - {ExtractionOptions.Field.FAILURE_POLICY}:
-            raise ValueError("Custom extractor requires with_extraction(options, prompt) to apply extraction policies")
-        worker._configuration_version = revision_token({"configuration": values,
-            "model_providers": {k: ConfigurationView.read(v).values for k, v in view["model_providers"].items()}, "prompt": worker.extraction_prompt,
-                                                       "prompt_resolved": worker._extraction_error is None})
-        return worker
+        return RAGConfiguration.with_config(self, project, prompt=prompt)
 
     def describe_config(self):
-        from llm.core.schema import object_schema, open_schema, field
-        from .search import LexicalCache
-        from .embedding import EmbeddingModel
-        from .extraction import TripleExtractor
-        from .rerank import RerankModel
-        def child_schema(client, factory):
-            selected = factory() if client is None else client
-            describe = getattr(selected, "describe_config", None)
-            return describe() if describe else open_schema(type(selected).__qualname__ + ".with_config", category="implementation")
-        embedding_schema = child_schema(self.embedding, EmbeddingModel)
-        return self.parameter_layout.schema(object_schema({
-            "chunk_size": field("integer", minimum=1),
-            "embedding_concurrency": field("integer", minimum=1),
-            "embedding_cache_max_bytes": field("integer", minimum=0),
-            "query_cache_max_bytes": field("integer", "Query vector cache capacity; absent or zero disables caching", minimum=0),
-            "snapshot_cache_max_bytes": field("integer", "Corpus projection cache capacity; absent or zero disables caching", minimum=0),
-            "extraction_batch_size": field("integer", minimum=1),
-            "search_cache_chars": LexicalCache.capacity_schema(),
-            "index_batch_size": field("integer", minimum=1), SearchOptions.CONFIG_KEY: search_schema(),
-            "graph": object_schema({"buffer_pool_size": field("integer", minimum=1),
-                                    "max_num_threads": field("integer", minimum=1)}),
-            "document_kwargs": deepcopy(embedding_schema), "query_kwargs": deepcopy(embedding_schema),
-            "embedding_params": embedding_schema, "extraction_params": child_schema(self.extractor, TripleExtractor),
-            "extraction": extraction_schema(),
-            "provider": provider_schema(),
-            "rerank_params": child_schema(self.reranker, RerankModel),
-            JobAdmission.KEY: JobAdmission.schema()},
-            **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]}))
+        return RAGConfiguration.describe_config(self)
 
     def validate_config(self, data):
-        if any(key in data for key in ("embedding_batch_size", "embedding_batching")):
-            raise ValueError("Embedding batch configuration were removed; use embedding_concurrency and embedding_cache_max_bytes")
-        from jsonschema import Draft202012Validator
-        error = next(Draft202012Validator(self.describe_config()).iter_errors(data), None)
-        if error:
-            raise ValueError("Invalid RAG configuration: " + error.message)
-        data = self.parameter_layout.unpack(data)
-        for value in (data.get(JobAdmission.KEY, {}).get(JobAdmission.MAX_ACTIVE),):
-            if value is not None and type(value) is not int:
-                raise ValueError(JobAdmission.INTEGER_REQUIRED)
-        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
-            if name in data and type(data[name]) is not int:
-                raise ValueError(f"{name} requires an integer")
-        from .embedding import EmbeddingModel
-        from .extraction import TripleExtractor
-        from .rerank import RerankModel
-        for client, factory, key in ((self.embedding, EmbeddingModel, "embedding_params"),
-                                    (self.extractor, TripleExtractor, "extraction_params"),
-                                    (self.reranker, RerankModel, "rerank_params")):
-            selected = factory() if client is None else client
-            validate = getattr(selected, "validate_config", None)
-            if validate is not None and key in data:
-                validate(deepcopy(data[key]))
+        return RAGConfiguration.validate_config(self, data)
 
     def validate_backup(self, project):
         super().validate_backup(project)

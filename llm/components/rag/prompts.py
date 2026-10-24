@@ -50,6 +50,7 @@ class ExtractionJSONMode(StrEnum):
 
 
 class ExtractionOptions:
+    KEY = "extraction"
     NO_REPAIRS = 0
     MINIMUM_TYPE_LENGTH = 1
     REPAIR_DESCRIPTION = "검증 오류 수정 요청 횟수. 0이면 비활성화"

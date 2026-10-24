@@ -5221,3 +5221,94 @@ Hub 소비자, 승인·예산·외부 효과·Checkpoint·수명주기 검증을
 효과 Assertion으로 의도된 한도 누락 2개를 검출했다. 정적 dependency 12건을 재검토했다.
 파일 540·미검토 259(llm 82/hub 177)·미분류 16,998·미완 계약 3·issues 0이며
 이 수치는 전체 완료를 의미하지 않는다.
+
+
+## llm RAG 설정·모델 바인딩 Owner — Level 1·2
+
+기준 a675cc9. RAGConfiguration이 설정 필드·제약·배치·Schema·검증·해석과 작업별 모델
+바인딩을 소유한다. Component 공개 메서드는 이 Owner를 호출하고, 초기화와 작업 사본의
+값 적용은 같은 bind_values 구현을 사용한다. 등록 객체/클라이언트/저장 설정은 수정하지
+않으며 작업 사본이 원래 공유하던 캐시도 그대로 공유한다. RAGConfigurationView는
+enforced/model_providers/runtime 조회 Writer와 내부 읽기를, RAGConfigurationVersion은
+실제 기존 revision 입력을 소유한다. Optional custom-client 메서드 호출·오류 순서와
+원래의 Missing/Null/명시값 구분을 유지했다. SDK별 인자나 재시도 의미를 새로 해석하지 않는다.
+
+추출 옵션의 명시 키는 ExtractionOptions.KEY를 사용한다. 공통 schema annotation의
+정규 선언 SchemaExtension.RUNTIME_CONFIGURATION을 추가하고 RAG/Graph 두 실제
+소비자를 연결했다. 공통 Schema의 실행 로직과 Graph 실행/승인/예산/Resume 로직은
+변경하지 않았다. GraphEngine 전체 정리와 기존 core/schema의 미완 계약은 미완으로 남긴다.
+이번 단계에서 제품 테스트 코드/Fixture/Assertion은 변경하지 않았다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-configuration-draft/proof.py`
+(한 셸 명령), exit 0. 이전 Component 40·Prompt 2·Schema 13·Graph Engine 46개 전체 함수는
+실제 Owner 위임/Writer/속성을 확장하면 동등하다. parameter_layout과 완전한 Schema가
+동일하고, 필드 생략/null/타입/한도 208개 및 완전한 설정 해석·커스텀 클라이언트 바인딩·
+콜백 순서·원본 보존·공유 캐시·준비 fingerprint 96개 조합 비교가 통과했다. 보조 AST
+검사의 빈 Prompt factory 범위와 매개변수 재대입 context 처리 오류는 도구 단계에서
+수정했으며 실제 제품 테스트 통과와 구분한다. 새 파일의 formatter는 별도 도구 경로에만
+설치했고 제품의 고정 Python 의존성/실행 환경은 변경하지 않았다.
+
+- `whole-rag-configuration-l1-01`: discovered/started/pass 98/98/98, exit 0, 31.615011초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-configuration-l1-01/llm.json --modules tests.llm.test_rag_resilience tests.llm.test_rag_models tests.llm.test_explicit_configuration tests.llm.test_configuration_validation tests.llm.test_parameter_values tests.llm.test_schema_ownership tests.llm.test_operations_schema`. source `a1ce2c5b6ef129acf1831fc8f815e2a5ace17994846905afc4c03028e7a79428`, input `bcf27441cc120b73c77fd3ef28fc7d7215dd1e3cebc9c7a924d05745339f7434`.
+
+- `whole-rag-configuration-l2-01`: discovered/started/pass 332/332/332, exit 0, 330.081915초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-configuration-l2-01/llm.json --modules tests.llm.test_rag_catalog_integrity tests.llm.test_rag_corpus_integrity tests.llm.test_rag_storage tests.llm.test_rag_query_evidence tests.llm.test_rag_prepared_integrity tests.llm.test_rag_input_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_batch_source tests.llm.test_rag_batch_identity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_optimization tests.llm.test_rag_retention_policy tests.llm.test_rag_job_state_integrity tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_components tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_configuration_objects tests.llm.test_configuration_results tests.llm.test_configuration_targets tests.llm.test_configuration_values tests.llm.test_configuration_workflow_example tests.llm.test_graph_engine tests.llm.test_langgraph_engine tests.llm.test_nested_graph`. source `a1ce2c5b6ef129acf1831fc8f815e2a5ace17994846905afc4c03028e7a79428`, input `bcf27441cc120b73c77fd3ef28fc7d7215dd1e3cebc9c7a924d05745339f7434`.
+
+- `whole-rag-configuration-hub-01`: discovered/started/pass 38/38/38, exit 0, 164.747003초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-configuration-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_rag_defaults tests.hub.test_settings_project_flow tests.hub.test_settings_editor`. source `a1ce2c5b6ef129acf1831fc8f815e2a5ace17994846905afc4c03028e7a79428`, input `bcf27441cc120b73c77fd3ef28fc7d7215dd1e3cebc9c7a924d05745339f7434`.
+
+모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및 실행 간 동일.
+전체 발견 LLM 2,492·Hub 588 유지. L1과 L2 ID 중복은 없으며 같은 제품·시험·Fixture·고정
+의존성·Python 3.12.14/Clang·Host d833790·namespace/X11 실행의 증거만 재사용했다.
+설정/스키마/명시값·RAG 모델/재시도·Job/재개·공개/삭제/파일 장애·승인·예산·외부 효과·
+Checkpoint, 실제 Graph/Nested Graph 소비자 및 Hub 설정/검색/Job 소비자를 검증했다.
+
+공통 Schema 변경은 단일 annotation 선언과 동일 값 참조에 한정된다. 실행 정책 합성·
+SDK retry·저장/transaction 구현을 변경하지 않았고 현재 Schema/모델/Graph 소비 범위와
+실제 안전성 Assertion으로 영향을 검증했다. 소단계 전체 회귀는 다음 RAG 관련 통합
+Level 3 묶음으로 유예한다. 이전 고정 83b1614의 게이트 35는 이 단계의 전체 검증 증거가
+아니다. RAGComponent의 나머지 준비·저장 조율·Projection은 여전히 미완료다.
+
+설정 소단계 보조 검사: 정적 S1–S7 reviewed 110·new/stale/outstanding 0,
+문서 168개·Python fence 183개·링크 1,202개·anchor 37개 오류 0.
+`python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`
+16 pass/3.344초·exit 0. `python -m tests.llm.check_budget_mutation` exit 0이며 실제 효과
+Assertion으로 의도된 한도 누락 2개를 검출했다. 기존 S3 layout 검토 25f5fdfb…는 같은
+선언이 RAGConfiguration.LAYOUT으로 옮겨진 것을 확인 후 폐기했다(새 허용 예외 없음).
+정적 dependency 36건, 파일 541·미검토 259(llm 82/hub 177)·미분류 16,815·미완 계약 3·issues 0.
+core/schema의 기존 미완 계약을 완료로 승격하지 않았다.
+
+## 게이트 35 전체 로컬 검증·Push — 원격 CI 대기
+
+고정 SHA `83b16147055552ec77115de2f95cba9029079e4b`에서 검색/Job 기록/Job 실행/Data/
+정규 Document Reader의 관련 5개 소단계를 통합했다. 검증용 worktree는
+`/workspace/ish-llm-group35-validation`이며 후속 a675cc9·설정 분리의 제품 변경은 포함하지 않는다.
+
+첫 환경 구성에서 올바른 ish.platform 대신 ish 이름으로 링크를 만들어 두 환경 검사가
+exit 1이었다. 진행 중이던 whole-owners-group35-l3은 무효 환경 실행으로 중단해 기록을
+보존했고 성공/완전 실행으로 합산하지 않았다. 부분 실행은 완료 집계가 없으므로 Pass/누락을
+0으로 기록하지 않는다. 실제 제품 원본이나 Assertion을 바꾼 것은 없다.
+링크를 `/workspace/ish`의 고정 d833790 소스에 올바르게 연결하고 두 환경 검사 모두 exit 0을
+확인했다. 실행 환경 영향을 받을 수 있는 R3/SDK 검사도 수정된 환경에서 각각 exit 0을
+다시 확인했다. 소스만 읽는 동일 SHA의 정적/문서 검사 2개 결과는 재사용했다. 보조 검사별
+실제 명령과 원본 실행은 group35-auxiliary의 results/environment-fixed-results/runtime-fixed-results
+JSON으로 구분하며 여러 실행을 하나의 실행으로 표현하지 않는다.
+
+수정된 환경의 `whole-owners-group35-l3-02` 전체 실행 결과: LLM discovered/started/pass
+2,492/2,492/2,492, 1478.124404389초; Hub 588/588/588, 1131.516236765초.
+두 프로세스와 supervisor exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 모두 0.
+실제 명령(각각 고정 worktree에서 실행):
+
+- `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group35-l3-02/llm.json`
+- `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group35-l3-02/hub.json`
+
+source `7941c6bb770c831e3a25b2c8b7696056cffce7e8b9c28f4d4f4b38472cd491d3`,
+input `98968b68ce916132049ab14c4a1c2ebf99ca47dc043ee016d2cef99189e66a73`의 실행 전후 동일성을
+확인했다. Python 3.12.14/Clang, 고정 의존성·Host·namespace/X11, 보조 필수 검사 6종과
+정확한 SHA의 실제 결과를 group35-local-verified.json에 연결했다.
+
+main 94229cb8…·refactor/llm-backend bb094625…·작업 원격 0660f401…을 실제 조회하고
+fast-forward를 확인한 후 `git push origin 83b16147055552ec77115de2f95cba9029079e4b:refs/heads/refactor/llm-clean`
+exit 0. main/backend/Draft PR #1은 변경하지 않았다. 정확한 SHA의 원격 CI는 별도 조회하며
+실제 필수 Job/Step/전체 결과를 확인하기 전에는 성공으로 선언하지 않는다.
+
+2026-10-24T03:42:49Z 조회: [CI 40059398324](https://github.com/E1der0wL/ish-llm/actions/runs/40059398324)
+headSha가 위 SHA와 일치하며 두 필수 Job이 진행 중이다. 아직 원격 검증 성공이 아니다.

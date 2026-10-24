@@ -4,6 +4,8 @@
 상태 채널에는 JSON만 전달하고 런타임 객체를 저장 형식에 노출하지 않는다.
 """
 
+from llm.core.schema import SchemaExtension
+
 from llm.core.resource_references import ResourceTarget
 
 from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
@@ -668,7 +670,7 @@ class GraphEngine:
     def describe_config(self):
         from llm.core.schema import object_schema
         properties = self._option_schema()
-        return self.parameter_layout.schema(object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
+        return self.parameter_layout.schema(object_schema(properties, **{SchemaExtension.RUNTIME_CONFIGURATION: ["handlers", "revision", "config_keys"],
             **EngineConfigurationKey.schema_fields(self.parameter_key)}))
 
     def resolve_config(self, config, name, *, session_config=None):

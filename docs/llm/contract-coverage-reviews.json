@@ -2402,8 +2402,8 @@
   },
   {
     "path": "llm/core/schema.py",
-    "sha256": "4f74b5a66bbdf339b82fd66fe8bd2e06666865e329d824e5bb53909a618ad5ab",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked.",
+    "sha256": "391ceae54ad563c9983e6199ab59553b1492e6ccd65c36603cc6e3c2c48153b8",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete.",
     "dynamic_paths_reviewed": false,
     "decisions": [
       {
@@ -2725,205 +2725,211 @@
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "74ba87813b71a4838aaac103f6dc6a3e23421dc0f7fe49047458a0f7605bae36",
+        "id": "e9353a8bad611d3dfe90451925863a537dfe9d3cf1448c04cb456d8f5a88c018",
+        "classification": "declaration",
+        "owner": "SchemaExtension",
+        "reason": "Canonical runtime configuration schema annotation now shared by the existing RAG and Graph schema writers; complete unchanged schema and Graph methods and consumer tests preserve its wire value."
+      },
+      {
+        "id": "d4e4f1958e4ce840e4353cca6704e61dc0ee7c6b8c9cc91fbed01dc12022b77f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ed5216136d68807e2a2f7a8ee6e571a9f26a1cc764cdf9d94c6c38cee7afb371",
+        "id": "3bc7afd7b2c5327742658667f03c1c08d99bc1a86de8f0ebdb66406ca2a06961",
         "classification": "declaration",
         "owner": "SchemaExtension",
         "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
       },
       {
-        "id": "84dbada4b33b95a609aebaf7877665ee2966bc53ea137f08399d4dfd8c2a6497",
+        "id": "03f678bd124da13c816277dca0463864d8bf8f8a2dd59e76c8551b8273e47646",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5ff1a46966efc16b76c23f03887a4c7911c21d901c10ed54239f4598d5ee4998",
+        "id": "adf9d4ae0417900c5e37f6e4508cb7d3bbe615226c606bcf854117fce9087f83",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ae090cada712a579b766e11c6d9a27e58bfd85f68c95504adb4889d8697d2c3e",
+        "id": "ce5cbab13c262118280af5d17dfe4ff67c6c0a3e286d965a980417abbba82ea2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ef61b0bb8150cdd76e7d59500eef826437f583e1628ad60de4e5390586140e65",
+        "id": "78554890b4f6ce7c4fef5e7769bda9f9868784c4df97f37c32a4e93575777d8c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7e315cd8ee678687f57aac8c3321d5ef5c7ee739500da02bae4ebe221b933784",
+        "id": "147a716800211654f3c64c593bc5e61d840f143070942c99015ef488cf815905",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "df019b10d561eac829e8d2bef2917ed053372f0ee4f8c1b75aac1f070bd18161",
+        "id": "d3e65ee8b51229d811333f3bf5adc7029f2e9f909b4865aadbb23293c405269a",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "c91c52078c9c5b1159c8bbabd7fb08ec0782b64fcba4e143f389405a1ee35e96",
+        "id": "509729196a0bfacdb70b6528153262a0fca08bb3d21b4c23ec642d087375bcff",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "d1e854a2150dc69d5e7f959b40478582504ea65a5727da4b660ac4fae9cfbc2b",
+        "id": "a18eb948136adf14d6da5ea318f51af0aa2b808f230f78804fb599a5c3a5e91d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a1bb3856e7b0ad74d9e7aefb17d68f27485a1e13d5bb78b11546fb64a637463c",
+        "id": "e42450fea838e74c92ea0ed247be8266d9ee38ec8006f6eb99a7fda1bae4b60d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a025f0c8fa99ca31196a38e0f3a000fe223feff212702ceead00f3bbdf62af5e",
+        "id": "2a495f6023c4394dcc8c0736b78578f2f46355900dd0c983450a4ea5a0708670",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b9c341135374f75b76124cf50f476deeb866a9251599dcdb854005bd898aa5c9",
+        "id": "d35738acef26606fa483503cb4b7d0fd895459879dc32f3f87d7eeec35eda49c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "683f80195b827d66e5a3eba80c59db62b8537fbc9262ab2816d1c474ac1a872a",
+        "id": "5cddf96a1848ede40e45924505fe8a4f2bdef6ef05130b233da4546dfaf398e1",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "aa8f27f2edd2cb892f4de2ae2b8d49c469d0cc6752069d321b66f5cd8e8348f0",
+        "id": "0e37a266c0d7d1f85172c024e7f7114a770dde86d86f947222fd3d06cd650ce9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1a1fde0536262be488d7c7ac97e00452ff5c8286c185bd51088358441e154deb",
+        "id": "55742f500fe9e333622609c6010d36e818d684d150b3bbbea65fcba3eb2dad1d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a67048384bbe5becae879ae9acaa928ab35c2f7a47c538345a31d77d1dd46918",
+        "id": "d7e85212bc9e0f1197d05f7b38a74558aebc66a6d98267b114ed77966fb3321d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "997bf2087711c343cbaba5d4a541818c94cf058125c9dc0accf0f0f5caf9fce9",
+        "id": "0c0b7a495c1e82669fae0a3f526fcd96832b14c54724524f9148af4cc169a508",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "bce1f7159c69a7083390512720232c5417496affa62d13de685c881d87dce97d",
+        "id": "a4a6ffa5a2ffca6c166f702019abcb9dbf2cd40954926e1453eea98fa7be5a10",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7775b02a601da1fc886753e7307800c615535d697d8e4dfa292ecb44d710f10b",
+        "id": "28eed6e56bac4fd039981107efe8f04e4870b214d54e8dcf58d4a9ef986e9be6",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f9e944b7a1913b1f5a71e0925d9bf3194008396062da4212514e779570c73c6c",
+        "id": "ad657bae16f8410821affaec844690705c965a11caa448cdcdb8697191c1a69f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "098a4e4aaef9a02cf40dd119753b61bddfeeb8cd5b0d5a7ded8c87127af75de2",
+        "id": "02d51261daa69a034c10cecff3854fd420b1dca744600f153286f2aeb5ea717f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b6a362621651250103dea3825c416bfdd53f3f2286bca6d513ac65fb51469d22",
+        "id": "3256c735910a9eb32578a418c4bab61e69cba5bd2eba01fe59af871a26e7b134",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "6a9cd3362278ad62fbcada2f3afbe238b8208c16aefcc293d32294a429cac642",
+        "id": "5703b4e9527f4c15d0a3a012f3355a452565ed3f5dfc920ee008a81a445a1e98",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2be88d83c6a979a28a5421c19114ca0f98045058c3c518ca1cb5371849c6fd9b",
+        "id": "7f733a90ff2bd495b7fa243e1790f7f8f53479cf0204b21d6da4abee0bceafe4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1a94de1eb260797792a208d92f4e9f448807a2f8d38301a482ce3e779f407a79",
+        "id": "3eb05d723adb4869beaf520264c1c0f352b207e89c04bcd541785ddf832ed4f5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "711bd651aa7c3b1530047afbb82b91294db3caf92bc58f995d6db298f42bab6d",
+        "id": "2845ae04d9645717c2f4fdca271284d507f8ec8cd1cc6d4dcfbfb10168868025",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1329cfd7ec52ef27180610e458343872343d1db7ebd17c4463bbdbab9b10bff0",
+        "id": "e3d9ed35b19a0ef86c75ea396b3213082bde0b724befdee8385aedee0b61094a",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5a240582d65f8bd89b9ddc60de6c15266d345dd50a43d43a19bfc7d72e7e5e87",
+        "id": "54fe0d7d79eadaccc8b56a77f0f78b6beb958523f639237822e802716e3edf91",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "349699052a5a3659cb17dda4b5c3bd4cc6261ae08f2175f1c753f8be5ba50cf9",
+        "id": "e44da267ec17003fd4218654392e806b5b5fd9019ee480d9b526020d0841f48c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "09625ac3d79b3a3503996d7ad866099a3afdc7fabb80842f99bdf53ca40bfbd8",
+        "id": "31cfa0522770665376fe4dda10e1816c0baa7a4f952bad0e582f98149d5546f2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ecf6b37b8086d0ccda459da8bf9adc3fa5ee4fe2f94298f8427d992f2c7623c8",
+        "id": "e85aaf44cf0c5c90d779543ed01f59ce13ddc2b1a13f8b563161da8212b53d3b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "603de1a766d28a3a8b65f9233de6fa66e7bb174d5acfc7d296f31f5c988b0b23",
+        "id": "f73b6deba42879320520174310d05a55e2009f5d668d75aca4af62d4ef05a595",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
       },
       {
-        "id": "63e7b7085829bc2c32b56f1600ff9ea794604b831252f9eaf335d7c0499d286a",
+        "id": "ebc5ecf6da3314605be3ed61cc23b2911b80b8d521e7de98d8bd041a5d66697c",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
@@ -51264,291 +51270,297 @@
   },
   {
     "path": "llm/components/rag/prompts.py",
-    "sha256": "a2944bb15e57a1a4f701da7114044fedff4d292077ef7464acbdf68ff46be298",
-    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes.",
+    "sha256": "7d538f798a24f29c3b356f9b1038707b2616a123769855f5032fb570cf3a6677",
+    "reason": "Complete RAG configuration/prompt modules and dynamic selected-model consumers reviewed. Exact old/new method/schema/layout and 96 full callback/binding traces preserve optional custom clients, explicit provider policy, original settings and cache sharing. Current real configuration/RAG/Graph/Hub and safety regressions pass. Existing incomplete core/schema and Graph/Component whole-file scope remain pending.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "aebb5e40e2bb295336328b2a6b1599b727eb15d4441cd7ade39ff3d6b3455625",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "e8aa760dc75ec86d657bb980bac143c7da31e2d7b8ed724162bb3a69c4d5bee7",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "85cf09b2688f9740d5e4aae2a88ff4b0b3840625c131b3b1f6581d84f662c131",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "3b461662988196795445ac68c274394132339d4d78eb44b00c8a6c221750560b",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "a0046404debed0742b58960e8ee6ed93b7ad9f3aec13e259e15b815cdc06deef",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "784346ec9b074232486350655d25e0e5dfa245f723c88436b5901a8d49dc5933",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "5cd7f1fe1868f534d2e0363b0b252757de52deff70922224cdef809ec586f126",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "021f403518f7909cb5040846e1cc6ef2bbd8388a20bb231824e001c3057f121f",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "5399998b7172263b6a7c994dedf00048f3eb8d7eeb311798b7e6376615579acb",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "7d147c607b2f3dec6b9d76da535da67ba449dc2316e677761f8e7e88a660698f",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "4790742ddec12679639adb52e86ec05d5c3851bd375141b900df341ede3e735c",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "7692da5367a43e194a1593a32b84eacd308bff9deb5c76782a17d122cf71ece6",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "9095e239ccc8426791a801b6d527be7ceb76d22ec1838f6f8de172f11e251f7e",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "eb6512b80f4f8918c90e6ba7659aae990c01628d6b4c2d1496260dcf4f62ba14",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "8587a69c4d70bff87f1d3161575b7fa73a05c7c53fddb9054773e7fe67185732",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "8c8856eddcf6e7d1fe5d0a2f89cbee4c096da63ff5fb7b7bad79971a9022c8d0",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "8435232a5c31538fb0861cefb379d982f9952607647c598707519712c466736e",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "439650d5cf8c999d55af917d2f207c6043152a65e18acd6f58ac0ad23fc9f982",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "3eba96170b5a35ed606fe1b552a0d1e65203d4ac7879b86d20c087284e3107bc",
         "classification": "declaration",
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "2928e04921125bae9dc765fb020bd9c4b2449a76013bacae6e0b89be60e488e2",
         "classification": "declaration",
         "owner": "ExtractionFailurePolicy",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "2cac755dc7cf632576cff1850462bc6330570dbce64113fd4355f999bbf2c828",
         "classification": "declaration",
         "owner": "ExtractionFailurePolicy",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "e62ec654d082477bb5c9573a4c961d07e366c6161f955018c33da9cc1e19da4c",
         "classification": "declaration",
         "owner": "ExtractionFailurePolicy",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "e92aa152fc9a15e2d480e63ddf5ab381520afb20afd94489e4d012e49ddebf78",
         "classification": "declaration",
         "owner": "ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "377c69b7ffc313aef538d2157ffca7da0aa20c06c5cb4f6d04c3ef8895a00b52",
         "classification": "declaration",
         "owner": "ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
         "id": "77992ad182f8715131fcd56f761a208367efe6c33a567004e2ec36f59b9e0b1c",
         "classification": "declaration",
         "owner": "ExtractionJSONMode",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "41bc1202ccc9e092d9a74e5adc770433f7f9d95d2780efd757047968e434e94d",
+        "id": "2be3bc9aad98dea61dc30f97b918d892e23db089fa888ec47052591f5b4744e5",
         "classification": "declaration",
         "owner": "ExtractionOptions",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "08685293ad7950303797c73360f20b5bb221cbafc8d29804756005922a72733a",
+        "id": "c5230bc1998c4d5e0e5d94da1a1e7d25c7f04a16c75bd2d179ed68a5eb67fd68",
         "classification": "declaration",
         "owner": "ExtractionOptions",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "d5d7f33ff116bc626c4096c5c365b27dd0ad60d50c7c3bfb4403d3db46bd79a8",
+        "id": "db2cff9570c58449cf8dc4075ee0af9191100f953b0c95bacea732fa86b0ed0d",
         "classification": "declaration",
         "owner": "ExtractionOptions",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "d3ac371a9d57b12f8edb4233d0acd03f066ce802de3c845eb1231039a6226517",
+        "id": "ced26fcee08a8b3fe314ae905b487a6b4227b3dfcee4906995e28b6a6e040c69",
         "classification": "declaration",
         "owner": "ExtractionOptions",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "1dd8e537bdaff0aebcc5d54de647fdcf07cb55e0b4f127bb0e0fbb7b41153edc",
+        "id": "19e09c6d7eaf7fd01d3e50e0bc590ab49aa7dbf5f79bb22fd2b2dfb0edb932d9",
         "classification": "declaration",
         "owner": "ExtractionOptions",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "3329b1a008defd976e9934520236595db8844231613eb2271d30710f5b2b7200",
+        "id": "0a083d1800b1db7787128a903e3de71f445b7d91cb163ae77766ae188cf599dd",
+        "classification": "declaration",
+        "owner": "ExtractionOptions",
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
+      },
+      {
+        "id": "57441703fdce8b280b02f8d18fa04fd4b05f90dd4a733c42e90a1a7f6afbfa86",
         "classification": "declaration",
         "owner": "ExtractionOptions.Field",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "a1ecccdd75ce207cdbe836efa5facac272d068738e1cdd84bef4ac8f5dcf54dc",
+        "id": "9f06b50082717aaf2f1d2334e219329435d32c7a861c1638fc56e377ea000b41",
         "classification": "declaration",
         "owner": "ExtractionOptions.Field",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "6d4e7dceaccb953e2ccaaf8e6764d529eed3c5e9250aaca045f75634a9dcb333",
+        "id": "82864f42b9edbd173d936e73a94450ca8aa03838a3098d38d932ef835927b7ab",
         "classification": "declaration",
         "owner": "ExtractionOptions.Field",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "bc528a293949f45641f1e6aa843892341ccb45196e7e4c94415a9a143f5866e6",
+        "id": "d9aca2b84cd226f07c0382e569bd6633cf92da89f7ee7d32b7d7baa251a5d999",
         "classification": "declaration",
         "owner": "ExtractionOptions.Field",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "3f0c1734c46407e6bf99d3e6d0cf17e2e89588f9dd36a4933262da7ea52a7638",
+        "id": "6cf301261542e53147860470baf75a3a8437a96a9ac9d7409dc35efa48ede08b",
         "classification": "declaration",
         "owner": "ExtractionOptions.Field",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "79e0a23087b52d2d956882bdf4772599277cbdb5ad3a4172b49fb69a036f51c7",
+        "id": "8ba9c9a97114fb371bbdd9eb1e59083a41bd8ec901d2dadaf7777e096d6af2fd",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "957eecf9f883ba30622a977fec4d6eddaf0910997f38a6a413f29326b65ec0b3",
+        "id": "ea815cf9e005babec485da94ca372fa6bb7784b317334c2c6345cae37863d955",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "79af791f0516ac8b1b0415d5002219eeebab80249d3896fad72cc6eadeb17353",
+        "id": "3db1830ff54b9c3abc36b71d5cfa4262e749090b4e582610c57246d50f450e10",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "36045e33ee3d3593a0dced674cfe4c9f9db44e2a8f4ca08258ea6de6c04530be",
+        "id": "6c629f771edd1948dd000a09e825b357423205764422be1e94e84d00dda6dab8",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "60591c8135214a882ab7fd1b48d50cc97980b55eaa330c68e9fa22dc51aa69bd",
+        "id": "295b9c477a174c9dab14ddf172d0a9528d21aff825bf0f08f001c8ddd4753a40",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "954741ef4db54de204c38efceac9657f1d6b001d836f8993a0b1aab5d69ad82b",
+        "id": "a0fb1b6a8ce5470f7dce875193e0bd39f2151b9b230efe68247c41afeee6d3a9",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "66249e7ef3cdca4ac46440e1a5cfa9a4f1b8c2bff25a58d1ea97d11141c7008c",
+        "id": "266cd6b49d90a6050ac241ecef76c480a79f7daafacf3d9e3079b34d99750d75",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "e773624eed90a00e8efc7e747692663a69f639319646b1c798e8d1bf415bb270",
+        "id": "37dd463c2f6d37ce5088c217c40d2117031f48112e05a81435d6d80eaedee132",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "32549b8b8b5c816ad82f77dbe2aca2e965ce4c44e1920ec32bf29878940d87b0",
+        "id": "6259141b20c57fd44c7bc6d31ea432798d440a2ace4bf0528d82f2553b71f2a0",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "3485be229618de19ebf69a86acf701a49d8a162713f1133b45d8cebbc779d035",
+        "id": "1c47c9af9400119d65e3581e510a2f077980178124ef17e1b3f68e91fa2c7df1",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "0cf9fa5d44627d601d4c9fa8a7d1adaaaadbbc0a74c298d9614e716054e4bb39",
+        "id": "f6bb92d756b68599310f4b09d1787530006cf443b6eec2101a1922373c1acafc",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       },
       {
-        "id": "4da9238c8bf8e451b12b17047dfbab5c6cddd2b9632ff1e0bf9ed0d94b08a88e",
+        "id": "ae71affcac49d2f9956c985aa3d457afc0a4333f99397ca62b05093845bb4623",
         "classification": "declaration",
         "owner": "ExtractionExample",
-        "reason": "Protocol and relation examples are at the module declaration head; modes, policy choices, explicit repair settings, schema labels and example values live at their owning class head. Schema keywords/types and record keys refer to existing Owners. Default prompt returns fresh definitions; examples are never implicitly selected."
+        "reason": "Previously reviewed full prompt contract and algorithms are unchanged. ExtractionOptions additionally owns its existing configuration envelope key; RAG configuration references the sole declaration. Exact whole bodies and existing prompt/repair/retry/model tests preserve policy and wire semantics."
       }
     ],
     "contracts": [
@@ -51556,21 +51568,23 @@
         "owner": "ExtractionOptions/ExtractionExample/ExtractionFailurePolicy/ExtractionJSONMode",
         "declaration": "llm/components/rag/prompts.py",
         "consumers": [
+          "llm/components/rag/configuration.py",
           "llm/components/rag/extraction.py",
           "llm/components/rag/component.py",
           "llm/components/rag/jobs.py"
         ],
         "tests": [
-          "tests/llm/test_rag_models.py",
-          "tests/llm/test_rag_extraction_repair.py",
-          "tests/llm/test_rag_retry_presence.py",
-          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_explicit_configuration.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_parameter_values.py",
           "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_provider_transport.py",
-          "tests/llm/test_provider_diagnostics.py",
-          "tests/llm/test_component_record_integrity.py",
-          "tests/hub/test_rag_defaults.py",
-          "tests/hub/test_provider_recovery.py"
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_rag_defaults.py"
         ],
         "complete": true
       }
@@ -54456,6 +54470,381 @@
           "tests/llm/test_rag_retention_policy.py",
           "tests/llm/test_rag_components.py",
           "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/configuration.py",
+    "sha256": "0395ccacc2caa75a983416471fe677a7bf64c3259a9c6c91c8ecf2ddb75c70e9",
+    "reason": "Complete RAG configuration/prompt modules and dynamic selected-model consumers reviewed. Exact old/new method/schema/layout and 96 full callback/binding traces preserve optional custom clients, explicit provider policy, original settings and cache sharing. Current real configuration/RAG/Graph/Hub and safety regressions pass. Existing incomplete core/schema and Graph/Component whole-file scope remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "837f481566bfafc6e781774286e0103bf24feb6236f6362396de71ba1fef3294",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "6ca4323588f53f313bd6ad1fe34e7dfac59612fce128189a030423219b90872f",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "f8ee397103e44cde5afe79624e3f6857c7ee12b603d9cd4968a54d2f087ec148",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "33ac716cf3845f1bda03ba2aa32633129e819d3b5a5bd87f0e6732d2fa7fa660",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "463d8a796c1fe73256b1d2c660fe6727b190e7b33929ad399d65246d108780b8",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "e0f623cc7f8df2088870a6853d6f7258f3b9399e2e8444411dff4e2c22acf351",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "488256c64b26a233d93847f0129c34abf8b023587ed8e20da71073bb3fd03705",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "e0e0ff9640bcffc6a8b52013744df3268ee92a43b31a6c61cd8fee82c1a9d517",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "99635819d82b514fcd0c02487cf2d8a34d02945ccff3e2344d09b2b2b745d781",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "021626fe9bbeb2aa4afe2964d26cc8283cce55cb6038abeb5a13086bcbc49ccc",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "cda57c5eb11d353ba044b18f8112d88d050ace2d40f7e79ed1e98f3823f14bca",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "ce01a4fa57105f41bcc85ea609a29d95c6f9bdbce94e4691378dad1fce2cafac",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "09ac2c97e95a52e9036e77ed1d3b6a44bc0b097047ad1bc32a7efdc388166110",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "0e8cde3aa9a1b60501c12d42af34058e6312fc319da524b3ae9eae4838fd9a0b",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "4ca69b5e5b856d36dc802d7500d6f524251bd1bea3b7899e297e7e3aea3fd473",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "ce389c55845246061b325bce62a40bed528e25f26e3f6f05e12ee8e3c5024f54",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "a4111a595eb66ad6396e4aacfbfdb28dff4608eeb6ca6ea7463503836d9709aa",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "fa28df4350f18f3d0bc498f03aa93433102f4496e3b428432afcb074f7ebdaff",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "366b4cd421b1c86343534815644b220b06c1195ebe5ab474df504122619bc606",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "9e7b5079ee32c49b414da7355f2d016c929ac1c383ad3a013bc1f070f2af4f66",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "b6052e5c678e45c3476d9465f159896eaf209dc07218e239312c8a247de789fe",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "8f1f893caf725b4d864c12ca49a1dc0b436747e5caf38975812e57f899277986",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "e080d56023cd12b1c419b60d391cb9966d8144676a5ef8b49a92cbc912d25b78",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "24b6b253a5a52bf25bb028eb1fe1512c5040303b809c29df72116a419787720b",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "4b3b528834823d261484238975146587bca6719ea2ca2353e22ed18b013c9c40",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "836a68df74289f581a01e6280ce7d03d1782db997459187257b8253743374451",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "cfeed8bf399e81760d9b8cd0b74fbb555c34a36e39e89015a47f8e8f9184e70d",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "519a3858a6ce651ef94ebd729e8a13b5662f7bc379c801195efb28522d4d5641",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "f71c9208e38ad462bec2e4ca5dfbd7c49271573db008d2daae2f64c281cddac7",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "6e9d39c47e8bb75ab70bd3f1ec28b7d2bffc0bb6af4656cc2b195d6754aa178c",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "6480841db9b7e9826bad2523935457495555e28da6078c8675bbb13f3c923b8d",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "332499362bf9ad554f682c1989cdf3300ff0a2e00c12e1e71b4add52d638bf4e",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "e0a235288ccf12a01c293a8d9c155b9d39ad380f5abd34e30bbba73f9b855cf3",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "12fa77ca807837683dd9543678e7f73a337cff83e26e43a47aba296afb4b44ec",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "e8d8f7aeff6e0d61950880c44c00fd84e3cb4d34530e416d46b53611e51f6595",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "8415ddee06aa3269f315297eddfd0dbed4e8384370c070eafb46ce7ef41f331f",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "4b0466f8c8e83ffae1f5aa2c6dc8d09df57dc4a1e0d1f687c8f6e5129f486776",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "92d60c6b1d862594523c7cdcd472f9b1a1d8a1855467fe5d5dae7ee7610b82eb",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "e4f78e5ca1f80eaec713595c1d7a7f0b3fb42286de17a2d8b9ea1b7c5c0c1f63",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "39075d3de04858a55931a673e4847a66a060b60e51ccd7052bed81af95fb4d39",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "799048699c982a535df4ef067111d0618102f0b904d728b4d94a0857caf461a7",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "d7ae222a89b0cf777aef102bf2713e078edecb295de183415129bee967b23684",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Field",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "a58bf8fe5cfca155dcad2d9898b4e77b00c6eff30f4087ef6acabb02c76fb149",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Model",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "41efee2d346503ec8f6692843cb7e7a3156812715dd6d84f63ff44e5c5a4ac5e",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Model",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "497c50e818844767ef14a4f270350fc8b73527af2b6737e6ec3195b0f08339b8",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Model",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "da2d5678387b8c3c714cdb1b82748a9b941a161f237628a81ca1a8b20dd92eee",
+        "classification": "declaration",
+        "owner": "RAGConfiguration.Model",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "ae117f2e8cb1e801c1a9619101686f61355aa52d5bbba37f7515024c79078f77",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "b031e9b27948de8d1b152e2d17ca8582b02235ae5c17bf0ab1550ea56153c67b",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "17b2d0ce09287a9eaaf3e0cd955c04e0f0d9023db2f326099c62b484e604b4e8",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "288bc8934dcb2e12a02a2d556e76b83449723ed630b125828594eb00ff5ce471",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "01bec839c8607cad740357a3e52323e9cb14d4b20d179097e45fd06d61627cd1",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "8e0265991ae8a4771df7b55712705f395f94de9900c6bc5c1c8d2bc22a2a5c53",
+        "classification": "declaration",
+        "owner": "RAGConfiguration",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "ecc0b0fdb966f053d75a9d7929d3f9dfb08b9b62b35ab3bdaca86e3d62b4d7b5",
+        "classification": "declaration",
+        "owner": "RAGConfigurationView",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "c4b0da62e3c42e6aa8f169c274ba695ccb1bc91a5db8071e4aaa9827d37116fc",
+        "classification": "declaration",
+        "owner": "RAGConfigurationView",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "d69ae5aa7f7c78d272926976964155d777751d29f31ca9104b299b8262a110d0",
+        "classification": "declaration",
+        "owner": "RAGConfigurationVersion",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "378fd752c561b5caba157b61a6f83a617e65dff855c13f566829d5874f5ee0b9",
+        "classification": "declaration",
+        "owner": "RAGConfigurationVersion",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      },
+      {
+        "id": "042f63a28327267937b47f0c70a257ef9ec775054b154fa94a0585b0679ec0bf",
+        "classification": "declaration",
+        "owner": "RAGConfigurationVersion",
+        "reason": "Actual RAG setting fields, parameter layout, numeric constraints, optional client contracts and diagnostics are declared before implementation. Settings parsing/binding/validation has one Owner. View/fingerprint Writers preserve exact shape and mutation/evaluation order, use existing Schema/Prompt/Provider declarations, and do not create stored defaults. The shared bind_values loop keeps original initialization and per-job omission behavior."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGConfiguration/RAGConfigurationView/RAGConfigurationVersion",
+        "declaration": "llm/components/rag/configuration.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/data.py",
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_explicit_configuration.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_parameter_values.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_rag_defaults.py"
         ],
         "complete": true
       }
