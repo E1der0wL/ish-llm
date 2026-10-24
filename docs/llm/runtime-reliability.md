@@ -249,3 +249,23 @@ ResumeTurnDetails/TurnResumeEvidence/TurnDeletionEvidence는 원래 진단 상�
 같은 순서의 얕은 dict로 투영한다. 별도 저장본이나 재개 권한이 아니며 Run/Message/Interaction
 Reader가 제공한 원본 증거를 보존한다. Runtime attachment rollback, after_commit 정리,
 폐기 전 참조/예산 보호 및 원본 데이터 보존 계약은 그대로 적용한다.
+
+
+## 공개 Facade의 관찰과 명령행 경계
+
+RunManager.runtime_gauges는 live 실행·큐·미완료 작업의 현재 수를 RuntimeGauges로 반환한다.
+Facade는 이 공개 Projection을 합산하며 Manager의 내부 실행 자료를 직접 해석하지 않는다.
+이는 관찰이며 admission·완료·종료 권한이 아니다. 기존 조회 순서와 실행 중 작업 추적을 유지한다.
+EngineEvent.changed_interactions는 이미 사본으로 만든 Interaction 목록을 같은 event payload로
+운반한다. deepcopy → after_commit → event loop 예약 → task 추적 → publish 순서는 변하지 않는다.
+
+Run.RESUMABLE_STATES는 재개 가능 후보 상태의 단일 선언이다. 그 상태만으로 재개를 허용하지
+않으며 기존 binding·Checkpoint·승인·예산·외부 효과 검사를 모두 수행한다. Operation의 외부
+probe 미리보기는 OperationVerificationPreview의 얕은 공개 Projection이다. probe에는 원본의
+사본을 전달하고, 아직 적용하지 않은 observation을 검증된 효과 증거로 해석하지 않는다.
+적용 시 기존 inactive 재확인·revision/CAS·Operation Reader·Step 기록 순서를 유지한다.
+
+CommandLine은 CLI 옵션·표시·예제 입력을 소유하고, 선택 구현 옵션은 기존 LoopParameters와
+Adapter 선언을 참조한다. 실행 조율 및 main/run_request/print_event 진입점은 llm.llm에 남는다.
+원본 생략·명시 0, 실제 Agent 선택과 Tool 준비, 오류/종료 코드 및 정리 순서를 보존한다.
+Host의 PLUGIN_META는 정적 로더가 읽는 정규 선언이며 실제 literal_eval 가능 형식을 유지한다.

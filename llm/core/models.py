@@ -610,6 +610,7 @@ class RunIndex:
 @dataclass(slots=True)
 # 하나의 사용자 요청에 대응하는 실행 기록.
 class Run:
+    RESUMABLE_STATES = (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED)
     INVALID_BINDING = 'Run Agent identity must match its original binding'
     INVALID_EXECUTION_STATE = 'Run state requires its original start and end evidence'
     ACTIVE_STATES = frozenset((RunStatus.PENDING, RunStatus.RUNNING))

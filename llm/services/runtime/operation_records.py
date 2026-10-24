@@ -288,6 +288,7 @@ class OperationClaim:
 class OperationRecord:
     """Current ledger fields; nullable state is explicit, never supplied by a reader."""
 
+    STATUS_FIELD = "status"
     SCHEMA_VERSION = 1
     REQUIRED_IDENTITIES = ("project_id", "session_id", "run_id", "step_id", "name")
     MISSING_IDENTITY = "Operation requires {name}"
@@ -322,6 +323,11 @@ class OperationRecord:
     result: Any
     attempts: list
     observations: list
+
+    @classmethod
+    def status_from_record(cls, value):
+        """Required scalar observation after the selected Repository's current Reader."""
+        return value[cls.STATUS_FIELD]
 
     @classmethod
     def from_dict(cls, value):
@@ -434,3 +440,15 @@ class OperationRecord:
 
     def observed(self, observation, at):
         return replace(self, observations=[*self.observations, observation.stored_at(at)])
+
+
+@dataclass(frozen=True, slots=True)
+class OperationVerificationPreview:
+    """The original uncommitted probe result; only applying invokes ledger validation."""
+
+    operation: dict
+    observation: Any
+    version: str
+
+    def to_dict(self):
+        return {item.name: getattr(self, item.name) for item in fields(self)}

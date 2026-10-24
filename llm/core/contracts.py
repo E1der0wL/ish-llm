@@ -9,7 +9,7 @@ from pathlib import Path
 from types import UnionType
 from typing import Any, ClassVar, Optional, Union, get_args, get_origin, get_type_hints
 
-from .models import ResourceKind, RunStatus, StepStatus
+from .models import ResourceKind, RunStatus, StepStatus, Run
 from llm.core.json_data import JsonObject
 from llm.errors import exception_chain, stable_error_code, get_error_attribute
 
@@ -320,7 +320,7 @@ class ProjectActivityEvent(JsonValue):
         ActivityEventType.RUN_PAUSED: RunStatus.PAUSED.value,
         ActivityEventType.STEP_FAILED: StepStatus.FAILED.value,
     }
-    ABANDONABLE: ClassVar[frozenset] = frozenset((RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED))
+    ABANDONABLE: ClassVar[frozenset] = frozenset(Run.RESUMABLE_STATES)
     INVALID_LIFECYCLE: ClassVar[str] = "Invalid activity lifecycle"
     INVALID_REFERENCE: ClassVar[str] = "Invalid activity ownership reference"
     MISSING_TIMEZONE: ClassVar[str] = "Activity time requires a timezone"

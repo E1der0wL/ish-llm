@@ -2,6 +2,7 @@
 
 from llm.services.runtime.subscription_state import EventChannel
 from .run_values import (
+    RuntimeGauges,
     RunRecordIdentity,
     RunInteractionReadScope,
     RunCheckpointLineage,
@@ -742,7 +743,7 @@ class RunRepository:
         if ResumeAbandonment.read(run.metadata) is RunRepository.ABSENT:
             return RunRepository.RETAINED
         ResumeAbandonment.require(run.metadata)
-        if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
+        if run.status not in Run.RESUMABLE_STATES:
             raise ValueError(RunRepository.INVALID_ABANDONMENT)
         return RunRepository.ABANDONED
 
@@ -755,7 +756,7 @@ class RunRepository:
     def abandon_resume(self, run: Run, request_id: str | None = ABSENT) -> None:
         """잠금/트랜잭션을 소유한 수명 서비스 전용. 실행 결과나 효과 영수증은 변경하지 않는다."""
         self.require_resume(run)
-        if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
+        if run.status not in Run.RESUMABLE_STATES:
             raise ValueError(RunRepository.NOT_ABANDONABLE)
         ResumeAbandonment.for_request(now(), request_id).store(run.metadata)
         self.save(run)
@@ -825,7 +826,7 @@ class RunRepository:
         files = tree_snapshot(CheckpointRepository().root_path(run))
         interaction_files = InteractionRepository().snapshot(run)
         abandon = list(common)
-        if abandoned or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
+        if abandoned or run.status not in Run.RESUMABLE_STATES:
             abandon.append(
                 Diagnostic(PlanBlockerCode.NOT_RESUMABLE, RunRepository.ABANDON_REQUIRED, source=source)
             )
@@ -1225,6 +1226,17 @@ class RunManager:
         self.observability = observability if observability is not RunManager.ABSENT else Observability()
         if self._owns_subscriptions:
             self.subscriptions.observability = self.observability
+
+    def runtime_gauges(self):
+        """Observe the owned live runtime without loading records or starting work."""
+        runtime = self._active
+        values = RuntimeGauges()
+        values.unfinished_work = self.pending_work.active
+        if runtime is not self.ABSENT:
+            values.active_runs = sum(control.execution is not self.ABSENT and not control.execution.done()
+                                     for control in runtime.executions.values())
+            values.queued_requests = runtime.queue.qsize()
+        return values
 
     def _check_component_access(self):
         if self._closed:

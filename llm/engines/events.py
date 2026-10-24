@@ -32,6 +32,7 @@ class EngineEventType(StrEnum):
 @dataclass(frozen=True, slots=True)
 # Engine에서 서비스로 전달하는 관찰 이벤트. 사용자 이벤트는 문자열 이름을 사용한다.
 class EngineEvent:
+    INTERACTIONS: ClassVar[str] = "interactions"
     NO_CHECKPOINT: ClassVar[None] = None
     NO_INTERACTION: ClassVar[None] = None
     NO_OUTPUT: ClassVar[None] = None
@@ -71,6 +72,10 @@ class EngineEvent:
     # A completed Step and its resume receipt commit in one service transaction.
     # Only record operations are attachable; initialization remains a separate boundary.
     checkpoint: Optional["EngineEvent"] = NO_CHECKPOINT
+
+    @classmethod
+    def changed_interactions(cls, values):
+        return cls(EngineEventType.INTERACTION_CHANGED, metadata={cls.INTERACTIONS: values})
 
     @property
     def has_checkpoint(self):

@@ -7345,3 +7345,40 @@ Facade/가이드를 묶은 Gate45에서 수행한다. 이는 로컬 소단계 �
 원격 CI 완료가 아니다. 안전성 결함이 발견되면 검증 범위를 즉시 승격한다.
 
 수명 관리 마감 검사: `python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7` exit 0, 현행 82개 감사의 새/누락 항목 0. `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` 16/16, 3.464초, exit 0. `python -m tests.llm.check_docs` exit 0, 168문서/183Python fence/1257상대링크/37anchor, 오류 0. 전수 inventory 596파일, 미검토 190(llm13/Hub177), 미분류 9038, 미완료 계약 5, issues 0. 남은 llm 파일은 공개 API/Facade 두 구현 파일과 11개 가이드다.
+
+
+## llm 공개 API·Facade·CLI 전수 — Level 1·2
+
+기준 4b54e49. api.py와 llm.py 전체(공개 가이드 docstring 포함)를 검토했다. 공개 반환 dict는
+기존 RunView와 새로운 OperationVerificationPreview를 사용하고 live 통계는 RunManager의
+RuntimeGauges API로 조회한다. 재개 후보 상태는 Run이, Interaction 변경 payload는 EngineEvent가,
+명령행 옵션/표시/예제 payload는 CommandLine이 소유한다. 공개 시그니처와 순서·사본·M/N/V·CAS,
+주입 확장 seam, Host 정적 로더와 실제 CLI 경로는 유지한다. API의 남은 리터럴은 개별 Python
+annotation이고, entry의 __main__와 argv index는 Python 진입 구문으로 개별 분류한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/public-facade-draft/ast-proof.py`
+exit 0: 기존 전체 함수 372개의 선언 참조/단순 Projection 전개가 동일하며 다섯 표현
+변경을 개별 검토했다. 같은 경로 values-proof.py exit 0: public_signatures 161, literal_plugin_and_source 1, required_operation_status 6, interaction_event 1, runtime_gauges 31, runtime_fault_order 11, run_view 18, view_fault_order 6, operation_probe 24, probe_fault_cancel_order 14, missing_probe 1, cli_payload_order 36, cli_fault_cleanup 14, cli_parser_exit 27, preview_borrowed_identity 4.
+원본 lookup 오류, 미리보기의 borrowed identity, runtime 조회 및 probe 장애·취소 순서, 실제 argparse
+옵션/오류/종료 출력과 CLI factory/cleanup 연결을 비교했다. 이 보조 비교는 아래 실제 Host 로더,
+복사 배포 CLI, 저장·원장·승인·예산·Checkpoint·재개·삭제·트랜잭션 시험을 대체하지 않는다.
+
+- `whole-public-facade-l1-01`: discovered/started/pass 203/203/203, exit 0, 72.440629초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-public-facade-l1-01/llm.json --modules tests.llm.test_plugin tests.llm.test_linux_platform tests.llm.test_backend tests.llm.test_backend_contracts tests.llm.test_facade_requests tests.llm.test_current_api tests.llm.test_run_api tests.llm.test_observability tests.llm.test_observation_values tests.llm.test_execution_observations tests.llm.test_operations_schema tests.llm.test_engine_outputs tests.llm.test_configuration_results tests.llm.test_service_extensions tests.llm.test_extension_contracts`. source `284b45508e6054f6bd0c54a1e108ef67d544edf8082c90cf81171e836bb06360`, input `9adcc4ca1a579eea499681ab618da0814514c4464f97be8db1d8c5be048ca8d3`.
+
+- `whole-public-facade-l2-01`: discovered/started/pass 148/148/148, exit 0, 54.191908초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-public-facade-l2-01/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_output_integrity tests.llm.test_interaction_storage tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_run_reference_integrity tests.llm.test_interaction_decisions tests.llm.test_checkpoint_lifecycle tests.llm.test_execution_boundaries`. source `284b45508e6054f6bd0c54a1e108ef67d544edf8082c90cf81171e836bb06360`, input `9adcc4ca1a579eea499681ab618da0814514c4464f97be8db1d8c5be048ca8d3`.
+
+- `whole-public-facade-hub-01`: discovered/started/pass 30/30/30, exit 0, 43.181268초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-public-facade-hub-01/hub.json --modules tests.hub.test_backend_diagnostics tests.hub.test_engine_output tests.hub.test_output_interaction tests.hub.test_interaction_updates tests.hub.test_http_backend tests.hub.test_live`. source `284b45508e6054f6bd0c54a1e108ef67d544edf8082c90cf81171e836bb06360`, input `9adcc4ca1a579eea499681ab618da0814514c4464f97be8db1d8c5be048ca8d3`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견/실행/통과 ID 일치,
+LLM 선택 집합 간 중복 0, source/input은 실행 전후 및 실행 간 동일하다.
+Python3.12.14/Clang·Host d833790·동일 의존성과 격리 환경이다.
+`python -m tests.llm.check_budget_mutation` exit 0: 실제 효과 횟수의 R3 누락 검출 유지.
+기존 제품 테스트와 Assertion은 변경하지 않았다. 실제 권한·정책·저장 형식·효과 경계의 변경이
+아닌 Owner 참조와 공개 Projection 전환임을 소스 비교와 통합 소비자로 검증했다.
+전체 회귀는 남은 llm 가이드까지 묶은 Gate45에서 수행한다. 로컬 소단계 검증이며 전체 llm/Hub
+또는 정확한 SHA의 원격 CI 완료는 아직 아니다. Hub 전수 작업은 llm 이후로 유지한다.
+
+마감 검사: `python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7` exit 0, 현재 82건의 개별 정적 검토 유지(신규/제거 0).
+`python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` exit 0, 16 tests/3.406초.
+`python -m tests.llm.check_docs` exit 0, 문서 168·Python 예제 183·상대 링크 1257·anchor 37, 오류 0.
+전수 inventory 597파일, 미검토 188=llm 가이드 11+Hub 177, 미분류 8755, 미연결 계약 5(기존 Hub 후속), stale/위반/감사 오류 0. 구현 검토가 끝난 llm과 Hub 소비자 전환/전체 통합 완료를 구분한다.

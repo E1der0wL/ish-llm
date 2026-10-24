@@ -2,7 +2,13 @@
 
 Navigable service handles; these objects are never persisted domain models."""
 
-from llm.core.interactions import InteractionOperation
+from llm.core.interactions import InteractionOperation, InteractionActor
+from llm.core.continuations import ResumeRecord
+from llm.services.lifecycle.lifecycle_records import LifecycleDeletion
+from llm.services.lifecycle.projects import ProjectRepository, ProjectManager
+from llm.services.lifecycle.sessions import SessionRepository
+from llm.services.results import ResultQueryContract
+from llm.services.runtime.operation_records import OperationRecord, OperationVerificationPreview
 
 from llm.core.views import SessionRuntimeView, RunView, ActiveRunView
 from llm.core.plans import ResumePlan, RecoveryPlan, RecoveryResult, RetentionPlan, TurnDeletionPlan
@@ -33,17 +39,32 @@ class AsyncFacade:
 
 
 class Projects(AsyncFacade):
+
+    UNSPECIFIED = None
+    DEFAULT_TITLE = "Untitled project"
+
     def __init__(self, app: "LargeLanguageModel") -> None:
         self.app = app
 
-    def create(self, title: str = "Untitled project", *, config: Optional[dict] = None,
-               components: Sequence[str] = (),
-               conversation_storage: Optional[str] = None) -> "ProjectHandle":
+    def create(
+        self,
+        title: str = DEFAULT_TITLE,
+        *,
+        config: Optional[dict] = UNSPECIFIED,
+        components: Sequence[str] = (),
+        conversation_storage: Optional[str] = UNSPECIFIED,
+    ) -> "ProjectHandle":
         """대화 저장 방식을 프로젝트에 고정한다. 생략하면 백엔드 기본값을 사용한다."""
         self.app._check_open()
-        config = ProjectConfig.from_dict(config) if config is not None else None
-        return ProjectHandle(self.app, self.app.project_manager.create(
-            title, config=config, components=components, conversation_storage=conversation_storage))
+        config = (
+            ProjectConfig.from_dict(config) if config is not Projects.UNSPECIFIED else Projects.UNSPECIFIED
+        )
+        return ProjectHandle(
+            self.app,
+            self.app.project_manager.create(
+                title, config=config, components=components, conversation_storage=conversation_storage
+            ),
+        )
 
     def recover_deletions(self):
         self.app._check_open()
@@ -55,10 +76,17 @@ class Projects(AsyncFacade):
         self.app._check_open()
         return ProjectHandle(self.app, self.app.project_manager.load(project_id))
 
-    def list(self, *, include_deleted: bool = False, query: Optional[Query] = None) -> list["ProjectHandle"]:
+    def list(
+        self,
+        *,
+        include_deleted: bool = ProjectRepository.CURRENT_RECORDS,
+        query: Optional[Query] = UNSPECIFIED,
+    ) -> list["ProjectHandle"]:
         self.app._check_open()
-        return [ProjectHandle(self.app, model) for model in
-                self.app.project_manager.list(include_deleted=include_deleted, query=query)]
+        return [
+            ProjectHandle(self.app, model)
+            for model in self.app.project_manager.list(include_deleted=include_deleted, query=query)
+        ]
 
     def restore_backup(self, source) -> "ProjectHandle":
         self.app._check_open()
@@ -75,6 +103,8 @@ class Projects(AsyncFacade):
 class ProjectHandle(AsyncFacade):
     """Bind Project service operations without adding runtime fields to Project."""
 
+    UNSPECIFIED = None
+
     def __init__(self, app: "LargeLanguageModel", model: Project) -> None:
         self.app = app
         self._snapshot = deepcopy(model)
@@ -82,13 +112,16 @@ class ProjectHandle(AsyncFacade):
         self.components = Components(self)
         self.results = Results(self)
         from llm.services.lifecycle.agents import AgentHandle
-        self.agents = AgentHandle(app.project_manager.agents, self._snapshot).bind_runtime(
-            runner=app._storage_call, access_check=app._check_open)
 
-    def _describe_config(self, config=None, *, expected_version=None) -> dict:
+        self.agents = AgentHandle(app.project_manager.agents, self._snapshot).bind_runtime(
+            runner=app._storage_call, access_check=app._check_open
+        )
+
+    def _describe_config(self, config=UNSPECIFIED, *, expected_version=UNSPECIFIED) -> dict:
         self.app._check_open()
-        value = self.app.project_manager.describe_config(self._snapshot, config=config,
-                                                       expected_version=expected_version)
+        value = self.app.project_manager.describe_config(
+            self._snapshot, config=config, expected_version=expected_version
+        )
         return ProjectConfiguration.describe(self.app, value)
 
     @property
@@ -105,41 +138,56 @@ class ProjectHandle(AsyncFacade):
     def paths(self) -> ProjectPaths:
         return self._snapshot.paths
 
-    def save(self, *, title: Optional[str] = None, config: Optional[dict] = None,
-             conversation_storage: Optional[str] = None, expected_version=None,
-             components: Optional[Sequence[str]] = None, expected_components: Optional[Sequence[str]] = None) -> None:
+    def save(
+        self,
+        *,
+        title: Optional[str] = UNSPECIFIED,
+        config: Optional[dict] = UNSPECIFIED,
+        conversation_storage: Optional[str] = UNSPECIFIED,
+        expected_version=UNSPECIFIED,
+        components: Optional[Sequence[str]] = UNSPECIFIED,
+        expected_components: Optional[Sequence[str]] = UNSPECIFIED,
+    ) -> None:
         """제목/설정/선택을 함께 저장한다. components는 선택적이며 기존 선택을 유지할 수 있다.
 
         expected_components는 편집 시작 시 선택 목록이다. 설정 버전과 함께 충돌을 검사한다.
         대화 저장 방식은 Session이 없는 프로젝트만 변경할 수 있다.
         """
         current = self.data
-        if title is not None:
+        if title is not ProjectHandle.UNSPECIFIED:
             current.title = title
-        if config is not None:
+        if config is not ProjectHandle.UNSPECIFIED:
             current.config = ProjectConfig.from_dict(config)
-        if conversation_storage is not None:
+        if conversation_storage is not ProjectHandle.UNSPECIFIED:
             current.conversation_storage = conversation_storage
-        self.app.project_manager.save(current, expected_version=expected_version,
-                                      components=components, expected_components=expected_components)
+        self.app.project_manager.save(
+            current,
+            expected_version=expected_version,
+            components=components,
+            expected_components=expected_components,
+        )
 
     def describe_config(self) -> dict:
         """저장된 명시값·UI 스키마·Engine별 적용값을 반환한다. 기본값을 생성하지 않는다."""
         return self._describe_config()
 
-    def validate_config(self, config: dict, *, expected_version=None) -> dict:
+    def validate_config(self, config: dict, *, expected_version=UNSPECIFIED) -> dict:
         """전체 ProjectConfig 후보를 저장 없이 검증한다. 버전은 현재 저장 원본을 가리킨다."""
         return self._describe_config(config, expected_version=expected_version)
 
     avalidate_config = async_method(validate_config)
 
-    def recovery(self, *, apply=False, expected_version=None) -> Union[RecoveryPlan, RecoveryResult]:
+    def recovery(
+        self, *, apply=ProjectManager.APPLY_RECOVERY, expected_version=UNSPECIFIED
+    ) -> Union[RecoveryPlan, RecoveryResult]:
         self.app._check_open()
-        return self.app.project_manager.recovery(self._snapshot, apply=apply, expected_version=expected_version)
+        return self.app.project_manager.recovery(
+            self._snapshot, apply=apply, expected_version=expected_version
+        )
 
     arecovery = async_method(recovery)
 
-    def activity(self, *, limit=None, newest_first=True):
+    def activity(self, *, limit=UNSPECIFIED, newest_first=ProjectManager.NEWEST_FIRST):
         """최근 lifecycle 참조 조회. limit 생략 시 전체이며 상세 결과는 Run/Step에서 조회한다."""
         self.app._check_open()
         return self.app.project_manager.activity(self._snapshot, limit=limit, newest_first=newest_first)
@@ -152,18 +200,21 @@ class ProjectHandle(AsyncFacade):
 
     amodel_usage = async_method(model_usage)
 
-    def retention_plan(self, unit, *, counter=None, counter_params=None) -> RetentionPlan:
+    def retention_plan(self, unit, *, counter=UNSPECIFIED, counter_params=UNSPECIFIED) -> RetentionPlan:
         """Inspect eligible history without selecting or deleting any record."""
         self.app._check_open()
-        return self.app.project_manager.retention_plan(self._snapshot, unit, counter=counter,
-                                                        counter_params=counter_params)
+        return self.app.project_manager.retention_plan(
+            self._snapshot, unit, counter=counter, counter_params=counter_params
+        )
 
     aretention_plan = async_method(retention_plan)
 
     def prune_history(self, unit, targets, *, expected_version):
         """Delete only explicit eligible targets after revalidating the reviewed evidence."""
         self.app._check_open()
-        return self.app.project_manager.prune_history(self._snapshot, unit, targets, expected_version=expected_version)
+        return self.app.project_manager.prune_history(
+            self._snapshot, unit, targets, expected_version=expected_version
+        )
 
     aprune_history = async_method(prune_history)
 
@@ -173,12 +224,14 @@ class ProjectHandle(AsyncFacade):
 
     arecover_retention = async_method(recover_retention)
 
-    def configure_policies(self, changes: dict, *, expected_version=None) -> dict:
+    def configure_policies(self, changes: dict, *, expected_version=UNSPECIFIED) -> dict:
         """프로젝트 정책 일부를 병합한다. 새 Run부터 적용하며 원본 대화는 삭제하지 않는다."""
         self.app._check_open()
-        return self.app.project_manager.configure_policies(self._snapshot, changes, expected_version=expected_version)
+        return self.app.project_manager.configure_policies(
+            self._snapshot, changes, expected_version=expected_version
+        )
 
-    def delete(self, *, permanent: bool = False) -> None:
+    def delete(self, *, permanent: bool = LifecycleDeletion.DEFAULT) -> None:
         self.app._check_open()
         self.app.project_manager.delete(self._snapshot, permanent=permanent)
 
@@ -186,7 +239,7 @@ class ProjectHandle(AsyncFacade):
         self.app._check_open()
         self.app.project_manager.restore(self._snapshot)
 
-    def clone(self, *, title: Optional[str] = None) -> "ProjectHandle":
+    def clone(self, *, title: Optional[str] = UNSPECIFIED) -> "ProjectHandle":
         self.app._check_open()
         return ProjectHandle(self.app, self.app.project_manager.clone(self._snapshot, title=title))
 
@@ -208,27 +261,42 @@ class ProjectHandle(AsyncFacade):
 
 
 class Sessions(AsyncFacade):
+
+    UNSPECIFIED = None
+    DEFAULT_TITLE = "Untitled session"
+
     def __init__(self, project: ProjectHandle) -> None:
         self.project = project
         self.app = project.app
 
-    def create(self, title: str = "Untitled session", *,
-               config: Optional[dict] = None, agent_ids=UNSET) -> "SessionHandle":
+    def create(
+        self, title: str = DEFAULT_TITLE, *, config: Optional[dict] = UNSPECIFIED, agent_ids=UNSET
+    ) -> "SessionHandle":
         self.project.app._check_open()
         session = self.project.app.project_manager.sessions.create(
-            self.project._snapshot, title, config=config, agent_ids=agent_ids)
+            self.project._snapshot, title, config=config, agent_ids=agent_ids
+        )
         return SessionHandle(self.project, session)
 
     def load(self, session_id: str) -> "SessionHandle":
         self.project.app._check_open()
-        return SessionHandle(self.project, self.project.app.project_manager.sessions.load(
-            self.project._snapshot, session_id))
+        return SessionHandle(
+            self.project, self.project.app.project_manager.sessions.load(self.project._snapshot, session_id)
+        )
 
-    def list(self, *, include_deleted: bool = False, query: Optional[Query] = None) -> list["SessionHandle"]:
+    def list(
+        self,
+        *,
+        include_deleted: bool = SessionRepository.CURRENT_RECORDS,
+        query: Optional[Query] = UNSPECIFIED,
+    ) -> list["SessionHandle"]:
         self.project.app._check_open()
-        return [SessionHandle(self.project, session) for session in
-                self.project.app.project_manager.sessions.list(
-                    self.project._snapshot, include_deleted=include_deleted, query=query)]
+        return [
+            SessionHandle(self.project, session)
+            for session in self.project.app.project_manager.sessions.list(
+                self.project._snapshot, include_deleted=include_deleted, query=query
+            )
+        ]
 
     acreate = async_method(create)
     aload = async_method(load)
@@ -237,12 +305,16 @@ class Sessions(AsyncFacade):
 
 # Session 수정, 대화 조회와 요청 제출을 연결한다.
 class SessionHandle(AsyncFacade):
+
+    UNSPECIFIED = None
+
     def __init__(self, project: ProjectHandle, model: Session) -> None:
         self.project = project
         self.app = project.app
         self._snapshot = deepcopy(model)
         self.run = Runs(self)
         from llm.services.runtime.transfers import SessionExchange
+
         self.exchange = SessionExchange(self)
         self.results = Results(self)
 
@@ -259,23 +331,29 @@ class SessionHandle(AsyncFacade):
     def paths(self) -> SessionPaths:
         return self._snapshot.paths
 
-    def save(self, *, title: Optional[str] = None, config: Optional[dict] = None,
-             metadata: Optional[dict] = None, agent_ids=UNSET) -> None:
+    def save(
+        self,
+        *,
+        title: Optional[str] = UNSPECIFIED,
+        config: Optional[dict] = UNSPECIFIED,
+        metadata: Optional[dict] = UNSPECIFIED,
+        agent_ids=UNSET,
+    ) -> None:
         current = self.data
-        if config is None and agent_ids is UNSET:
+        if config is SessionHandle.UNSPECIFIED and agent_ids is UNSET:
             self.app.project_manager.sessions.update_details(current, title=title, metadata=metadata)
             return
-        if metadata is not None:
+        if metadata is not SessionHandle.UNSPECIFIED:
             current.metadata = deepcopy(metadata)
-        if title is not None:
+        if title is not SessionHandle.UNSPECIFIED:
             current.title = title
-        if config is not None:
+        if config is not SessionHandle.UNSPECIFIED:
             current.config = deepcopy(config)
         if agent_ids is not UNSET:
             current.agent_ids = deepcopy(agent_ids)
         self.app.project_manager.sessions.save(current)
 
-    def delete(self, *, permanent: bool = False) -> None:
+    def delete(self, *, permanent: bool = LifecycleDeletion.DEFAULT) -> None:
         self.app._check_open()
         self.app.project_manager.sessions.delete(self._snapshot, permanent=permanent)
 
@@ -283,10 +361,16 @@ class SessionHandle(AsyncFacade):
         self.app._check_open()
         self.app.project_manager.sessions.restore(self._snapshot)
 
-    def clone(self, *, title: Optional[str] = None, through_message_id: str | None = None) -> "SessionHandle":
+    def clone(
+        self, *, title: Optional[str] = UNSPECIFIED, through_message_id: str | None = UNSPECIFIED
+    ) -> "SessionHandle":
         self.app._check_open()
-        return SessionHandle(self.project, self.app.project_manager.sessions.clone(
-            self._snapshot, self.project._snapshot, title=title, through_message_id=through_message_id))
+        return SessionHandle(
+            self.project,
+            self.app.project_manager.sessions.clone(
+                self._snapshot, self.project._snapshot, title=title, through_message_id=through_message_id
+            ),
+        )
 
     def delete_turn_plan(self, request_id: str) -> TurnDeletionPlan:
         """영향받는 재개 Run과 변경 확인 revision. 조회 자체는 실행/대화를 변경하지 않는다."""
@@ -295,22 +379,26 @@ class SessionHandle(AsyncFacade):
 
     adelete_turn_plan = async_method(delete_turn_plan)
 
-    def delete_turn(self, request_id: str, *, abandon_runs=(), expected_revision=None) -> None:
+    def delete_turn(self, request_id: str, *, abandon_runs=(), expected_revision=UNSPECIFIED) -> None:
         """일반 대화에서 턴을 숨긴다. 재개 포기는 조회 후 확인한 Run ID와 revision이 필요하다."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
-            self.app.project_manager.sessions.delete_turn(self._snapshot, request_id,
-                abandon_runs=abandon_runs, expected_revision=expected_revision)
+            self.app.project_manager.sessions.delete_turn(
+                self._snapshot, request_id, abandon_runs=abandon_runs, expected_revision=expected_revision
+            )
             session = self.data
             store = self.app.project_manager.sessions.conversations(session)
             for identifier in abandon_runs:
                 run = self.app.run_repository.load(session, identifier)
-                self.app._interaction_changed(run, self.app.run_repository.interaction_views(session, run, store))
+                self.app._interaction_changed(
+                    run, self.app.run_repository.interaction_views(session, run, store)
+                )
 
     adelete_turn = async_method(delete_turn)
 
     def turns(self) -> list[list[Message]]:
         from llm.services.history.turns import conversation_turns
+
         return conversation_turns(self.conversation())
 
     aturns = async_method(turns)
@@ -318,13 +406,19 @@ class SessionHandle(AsyncFacade):
     def describe_config(self) -> dict:
         """Session 덮어쓰기까지 적용한 설정 조회. 실행 중 Run의 설정을 변경하지 않는다."""
         from llm.services.schema import SessionConfigurationView
+
         with self.app.project_manager.ownership.scope():
             session, project = self.data, self.project.data
             return SessionConfigurationView.describe(self.app, project, session).to_dict()
 
     adescribe_config = async_method(describe_config)
 
-    def conversation(self, *, query: Optional[Query] = None, include_deleted: bool = False) -> list[Message]:
+    def conversation(
+        self,
+        *,
+        query: Optional[Query] = UNSPECIFIED,
+        include_deleted: bool = SessionRepository.CURRENT_RECORDS,
+    ) -> list[Message]:
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             messages = self.app.project_manager.sessions.conversations(self.data).list()
@@ -343,6 +437,14 @@ class SessionHandle(AsyncFacade):
 class Runs(AsyncFacade):
     """Session-bound execution commands and read-only execution history."""
 
+    UNSPECIFIED = None
+    MINIMUM_QUEUED_LIMIT = 0
+    INVALID_QUEUED_LIMIT = "queued_limit must be a nonnegative integer"
+    INVALID_ACTIVE_RUNS = "Session active Run projection differs from its records"
+    MISSING_PROBE = "Configure ToolRuntime.operation_probe first"
+    CERTAIN_OPERATION = "Only uncertain operations need verification"
+    APPLY_VERIFICATION = False
+
     def __init__(self, session: SessionHandle) -> None:
         self.session = session
         self.app = session.app
@@ -353,56 +455,79 @@ class Runs(AsyncFacade):
     async def submit(self, content: str, *, recipients, request_context=UNSET) -> "RequestHandle":
         """Project Agent와 요청별 JSON 문맥을 저장한다."""
         message = await self.session.app._manager(self.session._snapshot).submit(
-            content, recipients=recipients, request_context=request_context)
+            content, recipients=recipients, request_context=request_context
+        )
         return RequestHandle(self.session, message.id)
 
-    async def steer(self, run_id: str, content: str, *, targets=None):
+    async def steer(self, run_id: str, content: str, *, targets=UNSPECIFIED):
         """실행 중 대상에 지시를 저장한다. Graph는 instruction_targets()의 ID 목록이 필수다."""
         return await self.app._manager(self.session._snapshot).steer(run_id, content, targets=targets)
 
     async def reserve_instruction(self, run_id: str, content: str, *, targets):
         """Run의 예약 경로별 다음 Agent 실행에 한 번만 전달한다."""
-        return await self.app._manager(self.session._snapshot).reserve_instruction(run_id, content, targets=targets)
+        return await self.app._manager(self.session._snapshot).reserve_instruction(
+            run_id, content, targets=targets
+        )
 
     async def resume_plan(self, run_id: str, *, agent_id: str) -> ResumePlan:
         return await self.app._manager(self.session._snapshot).resume_plan(run_id, agent_id=agent_id)
 
-    async def resume(self, run_id: str, *, agent_id: str, retry_nodes=(), decisions=None, partial_output=False,
-                     expected_revision=None) -> "RequestHandle":
+    async def resume(
+        self,
+        run_id: str,
+        *,
+        agent_id: str,
+        retry_nodes=ResumeRecord.FRESH_RETRY_NODES,
+        decisions=UNSPECIFIED,
+        partial_output=ResumeRecord.DEFAULT_PARTIAL_OUTPUT,
+        expected_revision=UNSPECIFIED,
+    ) -> "RequestHandle":
         """이전 Run의 체크포인트를 이어갈 새 요청. 실행 중이던 노드만 명시적으로 재시도한다."""
         message = await self.app._manager(self.session._snapshot).resume(
-            run_id, agent_id=agent_id, retry_nodes=retry_nodes, decisions=decisions, partial_output=partial_output,
-            expected_revision=expected_revision)
+            run_id,
+            agent_id=agent_id,
+            retry_nodes=retry_nodes,
+            decisions=decisions,
+            partial_output=partial_output,
+            expected_revision=expected_revision,
+        )
         return RequestHandle(self.session, message.id)
 
     async def restart(self, run_id: str, *, agent_id: str, expected_revision: str) -> "RequestHandle":
         message = await self.app._manager(self.session._snapshot).restart(
-            run_id, agent_id=agent_id, expected_revision=expected_revision)
+            run_id, agent_id=agent_id, expected_revision=expected_revision
+        )
         return RequestHandle(self.session, message.id)
 
     async def wait_idle(self) -> None:
         await self.session.app._manager(self.session._snapshot).wait_idle()
 
-    async def interrupt(self, run_id: Optional[str] = None) -> bool:
+    async def interrupt(self, run_id: Optional[str] = UNSPECIFIED) -> bool:
         return await self.session.app._manager(self.session._snapshot).interrupt(run_id)
 
     async def shutdown(self) -> None:
         """Detach just this Session; a later submit creates a fresh manager."""
         await self.session.app._stop_session(self.session._snapshot)
 
-    def status(self, *, queued_limit: Optional[int] = None) -> SessionRuntimeView:
+    def status(self, *, queued_limit: Optional[int] = UNSPECIFIED) -> SessionRuntimeView:
         """실행을 시작하지 않고 UI 상태를 조회한다. 과거 Run/Step 전체 목록을 읽지 않는다."""
-        if queued_limit is not None and (type(queued_limit) is not int or queued_limit < 0):
-            raise ValueError("queued_limit must be a nonnegative integer")
+        if queued_limit is not Runs.UNSPECIFIED and (
+            type(queued_limit) is not int or queued_limit < Runs.MINIMUM_QUEUED_LIMIT
+        ):
+            raise ValueError(Runs.INVALID_QUEUED_LIMIT)
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session = self.session.data
             store = self.app.project_manager.sessions.conversations(session)
             from llm.core.steering import is_queued_request
             from llm.services.runtime.requests import RequestAdmission
+
             records = self.app.run_repository.unfinished(session)
-            messages = {message.id: message for message in store.list(query=Query(status=MessageStatus.QUEUED))
-                        if is_queued_request(message)}
+            messages = {
+                message.id: message
+                for message in store.list(query=Query(status=MessageStatus.QUEUED))
+                if is_queued_request(message)
+            }
             messages.update((run.input_message_id, store.get(run.input_message_id)) for run in records)
             requests = []
             for message in messages.values():
@@ -410,20 +535,26 @@ class Runs(AsyncFacade):
                 for identifier in RequestAdmission.run_ids(message):
                     if identifier not in group:
                         group[identifier] = self.app.run_repository.load(session, identifier)
-                runs = RequestAdmission.runs(message, list(group.values()),
-                    project_id=session.project_id, session_id=session.id)
+                runs = RequestAdmission.runs(
+                    message, list(group.values()), project_id=session.project_id, session_id=session.id
+                )
                 if is_queued_request(message) or any(run.status == RunStatus.PENDING for run in runs):
                     requests.append(message)
             requests.sort(key=lambda message: (message.created_at, message.id))
-            queued = requests if queued_limit is None else requests[:queued_limit]
+            queued = requests if queued_limit is Runs.UNSPECIFIED else requests[:queued_limit]
             active = [run for run in records if run.status == RunStatus.RUNNING]
             if {run.id for run in active} != set(session.active_run_ids):
-                raise ValueError("Session active Run projection differs from its records")
+                raise ValueError(Runs.INVALID_ACTIVE_RUNS)
             return SessionRuntimeView(
-                session_id=session.id, status=session.status,
+                session_id=session.id,
+                status=session.status,
                 unfinished_work=self.app.unfinished_work(session),
-                active_runs=[ActiveRunView(run.id, run.agent_id, run.engine, run.started_at) for run in active],
-                queued_count=len(requests), queued_request_ids=[message.id for message in queued])
+                active_runs=[
+                    ActiveRunView(run.id, run.agent_id, run.engine, run.started_at) for run in active
+                ],
+                queued_count=len(requests),
+                queued_request_ids=[message.id for message in queued],
+            )
 
     def load(self, run_id: str) -> "RunHandle":
         self.session.app._check_open()
@@ -445,37 +576,49 @@ class Runs(AsyncFacade):
             self.app.project_manager.sessions.require_inactive(session)
             self.app.run_repository.reconcile_tool_operation(session, key, result=result, evidence=evidence)
             from llm.services.runtime.operations import record_operation_step
-            record_operation_step(self.app.run_repository, self.app.step_manager, session,
-                                  self.app.run_repository.tool_operation(session, key))
 
-    async def verify_operation(self, key: str, *, apply=False):
+            record_operation_step(
+                self.app.run_repository,
+                self.app.step_manager,
+                session,
+                self.app.run_repository.tool_operation(session, key),
+            )
+
+    async def verify_operation(self, key: str, *, apply=APPLY_VERIFICATION):
         """호스트 operation_probe로 외부 결과를 조회한다. apply=True만 원장에 반영한다."""
         from llm.services.infrastructure.storage import revision_token
         from llm.services.runtime.operations import OperationStatus
+
         probe = self.app.services.tool_runtime.operation_probe
-        if probe is None:
-            raise ValueError("Configure ToolRuntime.operation_probe first")
+        if probe is Runs.UNSPECIFIED:
+            raise ValueError(Runs.MISSING_PROBE)
+
         def snapshot():
             session = self.app.project_manager.sessions.require_inactive(self.session.data)
             value = self.app.run_repository.tool_operation(session, key)
-            if value["status"] != OperationStatus.STARTED.value:
-                raise ValueError("Only uncertain operations need verification")
+            if OperationRecord.status_from_record(value) != OperationStatus.STARTED.value:
+                raise ValueError(Runs.CERTAIN_OPERATION)
             return value
+
         value = await self._async_call(snapshot)
         version = revision_token(value)
         observation = await probe(deepcopy(value))
         if not apply:
-            return {"operation": value, "observation": observation, "version": version}
+            return OperationVerificationPreview(value, observation, version).to_dict()
+
         def commit():
             session = self.app.project_manager.sessions.require_inactive(self.session.data)
             value = self.app.run_repository.verify_tool_operation(session, key, observation, version)
             from llm.services.runtime.operations import record_operation_step
+
             record_operation_step(self.app.run_repository, self.app.step_manager, session, value)
             return value
+
         return await self._async_call(commit)
 
-    def list(self, *, query: Optional[Query] = None) -> list["RunHandle"]:
+    def list(self, *, query: Optional[Query] = UNSPECIFIED) -> list["RunHandle"]:
         from llm.services.runtime.runs import RunRepository
+
         self.session.app._check_open()
         with self.session.app.project_manager.ownership.scope():
             repository = self.app.run_repository
@@ -501,21 +644,33 @@ class Runs(AsyncFacade):
 
 # Run 데이터/응답/결과/Step을 조회하는 서비스 핸들.
 class RunHandle(AsyncFacade):
+
+    UNSPECIFIED = None
+    ADMITTED_INTERACTION = "Interaction cannot change after execution admission"
+    RESPONSE_OWNER = "Assistant message and Run ownership mismatch"
+    ACTIVE_RESPONSE = "Interaction responses require an inactive Run"
+    ALREADY_RESUMED = "This Run already has a resume request"
+    USER_CHOICE_REQUIRED = "Public responses must identify a user choice"
+    ALL_INTERACTIONS = False
+
     def __init__(self, session: SessionHandle, run_id: str) -> None:
         self.session = session
         self.app = session.app
         self.id = run_id
         self.steps = Steps(self)
 
-    def _change_interaction(self, request, operation, *, expires_at=None):
+    def _change_interaction(self, request, operation, *, expires_at=UNSPECIFIED):
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session, run = self.session.data, self.data
             store = self.app.project_manager.sessions.conversations(session)
-            if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED) or any(
-                    self.app.run_repository.resume_link(session, run, store)):
-                raise ValueError("Interaction cannot change after execution admission")
-            result = self.app.run_repository.change_interaction(session, run, request, operation=operation, expires_at=expires_at)
+            if run.status not in Run.RESUMABLE_STATES or any(
+                self.app.run_repository.resume_link(session, run, store)
+            ):
+                raise ValueError(RunHandle.ADMITTED_INTERACTION)
+            result = self.app.run_repository.change_interaction(
+                session, run, request, operation=operation, expires_at=expires_at
+            )
             self.app._interaction_changed(run, self.app.run_repository.interaction_views(session, run, store))
             return result
 
@@ -543,7 +698,7 @@ class RunHandle(AsyncFacade):
             run = self.app.run_repository.load(session, self.id)
             message = self.app.project_manager.sessions.conversations(session).get(run.assistant_message_id)
             if message.run_id != self.id or message.role != MessageRole.ASSISTANT:
-                raise ValueError("Assistant message and Run ownership mismatch")
+                raise ValueError(RunHandle.RESPONSE_OWNER)
             return message
 
     async def aget_data(self) -> Run:
@@ -555,7 +710,7 @@ class RunHandle(AsyncFacade):
     async def aresponse(self) -> Message:
         return await self._async_call(lambda: self.response)
 
-    def checkpoint(self, name: str | None = None) -> dict:
+    def checkpoint(self, name: str | None = UNSPECIFIED) -> dict:
         """Stored snapshot. Omit name for one checkpoint or an explicit resume reference."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
@@ -571,8 +726,9 @@ class RunHandle(AsyncFacade):
     def abandon_resume(self, *, expected_revision) -> None:
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
-            self.app.project_manager.sessions.abandon_resume(self.session.data, self.id,
-                                                             expected_revision=expected_revision)
+            self.app.project_manager.sessions.abandon_resume(
+                self.session.data, self.id, expected_revision=expected_revision
+            )
             run, session = self.data, self.session.data
             store = self.app.project_manager.sessions.conversations(session)
             self.app._interaction_changed(run, self.app.run_repository.interaction_views(session, run, store))
@@ -580,8 +736,9 @@ class RunHandle(AsyncFacade):
     def delete_checkpoints(self, *, expected_revision) -> None:
         """Run/Step/대화/효과 원장은 보존하고 재개 파일만 명시적으로 정리한다."""
         self.app._check_open()
-        self.app.project_manager.sessions.delete_checkpoints(self.session.data, self.id,
-                                                            expected_revision=expected_revision)
+        self.app.project_manager.sessions.delete_checkpoints(
+            self.session.data, self.id, expected_revision=expected_revision
+        )
 
     acheckpoint_plan = async_method(checkpoint_plan)
     aabandon_resume = async_method(abandon_resume)
@@ -600,6 +757,7 @@ class RunHandle(AsyncFacade):
     def instruction_targets(self):
         """저장된 실행 대상 스냅샷. 조회 후 종료될 수 있으므로 접수 시 다시 검증한다."""
         from llm.services.runtime.steering import instruction_targets
+
         return instruction_targets(self.data)
 
     ainstruction_targets = async_method(instruction_targets)
@@ -607,18 +765,23 @@ class RunHandle(AsyncFacade):
     def instruction_routes(self):
         """Graph 실행 스냅샷의 예약 가능한 경로 목록. 정의 편집을 반영하지 않는다."""
         from llm.services.runtime.steering import instruction_routes
+
         return instruction_routes(self.data)
 
     ainstruction_routes = async_method(instruction_routes)
 
-    def interactions(self, *, pending_only: bool = False) -> list[InteractionRequest]:
+    def interactions(self, *, pending_only: bool = ALL_INTERACTIONS) -> list[InteractionRequest]:
         """Run의 공통 사용자 요청. 응답/만료 상태는 별도 조회하며 요청 원본은 변경하지 않는다."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session, run = self.session.data, self.data
             if pending_only:
                 store = self.app.project_manager.sessions.conversations(session)
-                return [v.request for v in self.app.run_repository.interaction_views(session, run, store) if v.can_respond]
+                return [
+                    v.request
+                    for v in self.app.run_repository.interaction_views(session, run, store)
+                    if v.can_respond
+                ]
             return self.app.run_repository.interaction_requests(session, run)
 
     def interaction_responses(self) -> list[InteractionResponse]:
@@ -631,13 +794,13 @@ class RunHandle(AsyncFacade):
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session, run = self.session.data, self.data
-            if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
-                raise ValueError("Interaction responses require an inactive Run")
+            if run.status not in Run.RESUMABLE_STATES:
+                raise ValueError(RunHandle.ACTIVE_RESPONSE)
             store = self.app.project_manager.sessions.conversations(session)
             if any(self.app.run_repository.resume_link(session, run, store)):
-                raise ValueError("This Run already has a resume request")
-            if not isinstance(response, InteractionResponse) or response.actor != "user":
-                raise ValueError("Public responses must identify a user choice")
+                raise ValueError(RunHandle.ALREADY_RESUMED)
+            if not isinstance(response, InteractionResponse) or response.actor != InteractionActor.USER.value:
+                raise ValueError(RunHandle.USER_CHOICE_REQUIRED)
             result = self.app.run_repository.respond(session, run, response)
             self.app._interaction_changed(run, self.app.run_repository.interaction_views(session, run, store))
             return result
@@ -646,12 +809,14 @@ class RunHandle(AsyncFacade):
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session, run = self.session.data, self.data
-            return self.app.run_repository.interaction_views(session, run, self.app.project_manager.sessions.conversations(session))
+            return self.app.run_repository.interaction_views(
+                session, run, self.app.project_manager.sessions.conversations(session)
+            )
 
     def cancel_interaction(self, request: InteractionRequest):
         return self._change_interaction(request, InteractionOperation.CANCEL.value)
 
-    def renew_interaction(self, request: InteractionRequest, *, expires_at=None):
+    def renew_interaction(self, request: InteractionRequest, *, expires_at=UNSPECIFIED):
         return self._change_interaction(request, InteractionOperation.RENEW.value, expires_at=expires_at)
 
     ainteraction_views = async_method(interaction_views)
@@ -673,22 +838,30 @@ class RunHandle(AsyncFacade):
         with self.app.project_manager.ownership.scope():
             session = self.app.project_manager.sessions.require_inactive(self.session.data)
             run = self.app.run_repository.load(session, self.id)
-            return self.app.run_repository.reconcile_output(run, self.app.project_manager.sessions.conversations(session))
+            return self.app.run_repository.reconcile_output(
+                run, self.app.project_manager.sessions.conversations(session)
+            )
 
     areconcile_output = async_method(reconcile_output)
 
-    def view(self, *, after=0, limit=None) -> RunView:
+    def view(self, *, after=RunView.MINIMUM_CURSOR, limit=UNSPECIFIED) -> RunView:
         """UI 재접속/알림 유실 복구용 동일 잠금 스냅샷. cursor까지의 전체 출력과 이후 이벤트를 제공한다."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             run = self.data
             outputs = self.app.run_repository.outputs(run)
-            return RunView(**{"run": run, "outputs": outputs, "cursor": max((v.sequence for v in outputs), default=0),
-                    "events": self.app.run_repository.output_events(run, after=after, limit=limit)})
+            return RunView(
+                run=run,
+                outputs=outputs,
+                cursor=max((v.sequence for v in outputs), default=RunView.MINIMUM_CURSOR),
+                events=self.app.run_repository.output_events(run, after=after, limit=limit),
+            )
 
     aview = async_method(view)
 
-    def output_events(self, *, after: int = 0, limit: Optional[int] = None) -> list[Union[EngineDelta, EngineOutput]]:
+    def output_events(
+        self, *, after: int = RunView.MINIMUM_CURSOR, limit: Optional[int] = UNSPECIFIED
+    ) -> list[Union[EngineDelta, EngineOutput]]:
         """마지막 sequence 이후 EngineDelta/EngineOutput을 저장 순서대로 조회한다."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
@@ -702,18 +875,26 @@ class RunHandle(AsyncFacade):
 class RequestHandle(AsyncFacade):
     """저장된 사용자 요청. 파일은 영속적이고 메모리는 해당 저장소 수명 동안 유효하다."""
 
+    UNSPECIFIED = None
+    INVALID_REQUEST = "Request ID must identify a user message"
+
     def __init__(self, session: SessionHandle, message_id: str) -> None:
         self.session, self.app, self.id = session, session.app, message_id
 
     def _load_runs(self) -> list[Run]:
         """Validate the complete recipient group under the owning workspace lock."""
         from llm.services.runtime.requests import RequestAdmission
+
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session = self.session.data
             message = self.app.project_manager.sessions.conversations(session).get(self.id)
-            return RequestAdmission.runs(message, self.app.run_repository.list(session),
-                project_id=session.project_id, session_id=session.id)
+            return RequestAdmission.runs(
+                message,
+                self.app.run_repository.list(session),
+                project_id=session.project_id,
+                session_id=session.id,
+            )
 
     # 공개 API
     @property
@@ -722,14 +903,18 @@ class RequestHandle(AsyncFacade):
         with self.app.project_manager.ownership.scope():
             message = self.app.project_manager.sessions.conversations(self.session.data).get(self.id)
             from llm.core.steering import is_instruction
+
             if message.role != MessageRole.USER or is_instruction(message):
-                raise ValueError("Request ID must identify a user message")
+                raise ValueError(RequestHandle.INVALID_REQUEST)
             return message
 
     @property
     def recipients(self) -> list[str]:
         from llm.services.runtime.requests import RequestAdmission
-        value = RequestAdmission.read(self.data, project_id=self.session.project.id, session_id=self.session.id)
+
+        value = RequestAdmission.read(
+            self.data, project_id=self.session.project.id, session_id=self.session.id
+        )
         return value.recipients
 
     @property
@@ -740,7 +925,7 @@ class RequestHandle(AsyncFacade):
     def results(self) -> list[ExecutionResult]:
         return [ExecutionResult.from_run(self.session.project.id, run) for run in self._load_runs()]
 
-    async def wait(self, *, timeout: Optional[float] = None) -> list[RunHandle]:
+    async def wait(self, *, timeout: Optional[float] = UNSPECIFIED) -> list[RunHandle]:
         """Return every recipient's terminal Run, with the same shape for one recipient."""
         manager = self.app._manager(self.session._snapshot)
         runs = await manager.wait_request(self.id, timeout=timeout)
@@ -760,19 +945,26 @@ class RequestHandle(AsyncFacade):
         return await self._async_call(lambda: self.results)
 
 
-
 class Results(AsyncFacade):
     """Project/Session views over Run-owned observations; no duplicate result files."""
+
+    UNSPECIFIED = None
 
     def __init__(self, owner) -> None:
         self.owner, self.app = owner, owner.app
 
-    def list(self, *, include_deleted: bool = False,
-             include_running: bool = False, query: Optional[Query] = None) -> list[ExecutionResult]:
+    def list(
+        self,
+        *,
+        include_deleted: bool = ResultQueryContract.EXCLUDE_DELETED,
+        include_running: bool = ResultQueryContract.EXCLUDE_RUNNING,
+        query: Optional[Query] = UNSPECIFIED,
+    ) -> list[ExecutionResult]:
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
-            return self.app.project_manager.results.list(self.owner.data,
-                include_deleted=include_deleted, include_running=include_running, query=query)
+            return self.app.project_manager.results.list(
+                self.owner.data, include_deleted=include_deleted, include_running=include_running, query=query
+            )
 
     def load(self, run_id: str) -> ExecutionResult:
         self.app._check_open()
@@ -786,11 +978,13 @@ class Results(AsyncFacade):
 class Steps(AsyncFacade):
     """History access only: Engines and StepEventRecorder own Step transitions."""
 
+    UNSPECIFIED = None
+
     def __init__(self, run: RunHandle) -> None:
         self.run = run
         self.app = run.session.app
 
-    def list(self, *, query: Optional[Query] = None) -> list[Step]:
+    def list(self, *, query: Optional[Query] = UNSPECIFIED) -> list[Step]:
         self.run.session.app._check_open()
         with self.run.session.app.project_manager.ownership.scope():
             return self.app.step_manager.list(self.run.data, query=query)
@@ -807,6 +1001,8 @@ class Steps(AsyncFacade):
 class Components(AsyncFacade):
     """Named access to selected component data, not raw component implementations."""
 
+    PRIVATE_PREFIX = "_"
+
     def __init__(self, project: ProjectHandle) -> None:
         self.project = project
         self.app = project.app
@@ -814,12 +1010,16 @@ class Components(AsyncFacade):
     def __getitem__(self, name: str) -> ComponentData:
         self.project.app._check_open()
         handle = self.project.app.project_manager.component(self.project._snapshot, name)
-        return handle.bind_runtime(runner=self.app._storage_call, access_check=self.app._check_open,
-                                   provider_diagnostics=self.app.services.provider_diagnostics,
-                                   provider_calls=self.app.provider_calls, observability=self.app._observability)
+        return handle.bind_runtime(
+            runner=self.app._storage_call,
+            access_check=self.app._check_open,
+            provider_diagnostics=self.app.services.provider_diagnostics,
+            provider_calls=self.app.provider_calls,
+            observability=self.app._observability,
+        )
 
     def __getattr__(self, name: str) -> ComponentData:
-        if name.startswith("_"):
+        if name.startswith(Components.PRIVATE_PREFIX):
             raise AttributeError(name)
         return self[name]
 
@@ -827,10 +1027,9 @@ class Components(AsyncFacade):
         self.project.app._check_open()
         self.project.app.project_manager.set_components(self.project._snapshot, names)
 
-    def remove(self, name: str, *, permanent: bool = False) -> None:
+    def remove(self, name: str, *, permanent: bool = LifecycleDeletion.DEFAULT) -> None:
         self.project.app._check_open()
-        self.project.app.project_manager.remove_component(
-            self.project._snapshot, name, permanent=permanent)
+        self.project.app.project_manager.remove_component(self.project._snapshot, name, permanent=permanent)
 
     async def aget(self, name: str) -> ComponentData:
         return await self._async_call(self.__getitem__, name)

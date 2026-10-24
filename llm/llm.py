@@ -2,7 +2,12 @@
 
 ish plugin entry point for one streaming request: python -m llm.llm --help."""
 
+from llm.services.command_line import CommandLine
+
 from llm.core.results import OutputVisibility
+from llm.services.runtime.run_values import RuntimeGauges
+from llm.services.runtime.subscription_state import EventChannel
+from llm.services.lifecycle.sessions import SessionManager
 
 # The platform reads this literal with ast.literal_eval before importing us.
 # requirements lists other ish plugins; dependencies lists Python distributions.
@@ -38,12 +43,27 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Union
 
 from llm._platform import require_linux
-from llm.core.models import ConversationStorage, ConversationStorageInput, ProjectConfig, Run, RunStatus, Session
+from llm.core.models import (
+    ConversationStorage,
+    ConversationStorageInput,
+    ProjectConfig,
+    Run,
+    RunStatus,
+    Session,
+)
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent
 from llm.core.diagnostics import ErrorClassification, classify_diagnostic
 from llm.core.checkpoints import CheckpointError
 from llm.core.views import SessionRuntimeView, RunView
-from llm.core.plans import ResumePlan, JobResumePlan, RecoveryPlan, RetentionPlan, RetentionUnit, RecoveryResult, TurnDeletionPlan
+from llm.core.plans import (
+    ResumePlan,
+    JobResumePlan,
+    RecoveryPlan,
+    RetentionPlan,
+    RetentionUnit,
+    RecoveryResult,
+    TurnDeletionPlan,
+)
 from llm.components.processing import CompletionRecovery, CompletionRepair
 from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult, ResumeOutput
 from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
@@ -88,6 +108,9 @@ from llm.services.history.conversation import MemoryConversations, MemoryConvers
 from llm.services.runtime.events import EventSubscriptions
 
 
+ADD_TOOL_SOURCE = CommandLine.TOOL_SOURCE
+
+
 # 공개 진입점: 하나의 workspace와 이벤트 루프에 서비스/런타임을 묶는다.
 class LargeLanguageModel:
     """Project → Session → Run → Step을 탐색하고 Engine·Component 확장을 연결하는 공개 백엔드.
@@ -124,7 +147,7 @@ class LargeLanguageModel:
         # request.options, category, priority, risk, recommended_option_id로 UI를 구성한다.
         response = request.respond("approve")  # 사용자의 실제 선택 후 생성
         await paused_run.arespond(response)    # 원자적 응답 저장, 아직 실행하지 않음
-        resumed = await session.run.resume(paused_run.id, agent_id=paused_run.agent_id)
+        resumed = await session.run.resume(paused_run.id, agent_id=(await paused_run.aget_data()).agent_id)
         resumed_runs = await resumed.wait()
 
     InteractionRequest/InteractionOption/InteractionResponse는 llm 플러그인의 공개 클래스다.
@@ -182,7 +205,7 @@ class LargeLanguageModel:
     생성자 설정:
         workspace는 Project들을 담는 작업 공간이다. engines는 이름→Engine 인스턴스
         매핑이며 생략하면 "loop"가 등록된다. 등록과 실행 선택은 별개라서 submit에는
-        항상 engine을 지정해야 한다. 모델명과 인증은 사용하는 공급자에 맞게 설정한다.
+        항상 recipients에 Session의 Agent ID를 지정해야 한다. 모델명과 인증은 사용하는 공급자에 맞게 설정한다.
         components는 제공할 Component 인스턴스 목록이며 명시하면 기본 목록을 대체한다.
         실제로 사용할 종류는 Project 생성의 components=["tools", ...]에서 선택한다.
         services=BackendServices(...)로 저장소·계산기·로그·이벤트 처리기를 주입한다.
@@ -208,7 +231,7 @@ class LargeLanguageModel:
                 "memory": {'config': {'search_limit': 5}},
             }}),
         )
-        # 명시된 client 설정 위에 Project 설정을 적용한다.
+        # 명시적 Host 설정은 Project 설정보다 우선하며 유효값과 출처를 조회한다.
         # configure() 편의 API도 항상 같은 Project 설정을 갱신한다.
         view = await project.adescribe_config()
         print(view["components"]["rag"]["effective"]["sources"])
@@ -238,7 +261,7 @@ class LargeLanguageModel:
         # Session이 없는 프로젝트에서만 저장 방식을 바꿀 수 있다.
         await project.asave(conversation_storage="file")
 
-    Project의 id/paths로 식별자와 경로를 조회한다. config는 열린 JSON 설정이며
+    Project의 id/paths로 식별자와 경로를 조회한다. config는 공통 외형을 검증하는 설정이며 Application 확장은 data가 소유한다.
     save(config=...)는 전체 설정을 교체한다. 복제·삭제 전에는 소속 Session의 런타임을
     각각 await session.run.shutdown()으로 해제한다. wait_idle()만으로는 해제되지 않는다.
     저장 선택은 project.json에 남는다. memory의 대화와 대기 요청은 백엔드 종료 시
@@ -391,7 +414,7 @@ class LargeLanguageModel:
         view = await run.aview()                   # RunView: run/outputs/cursor/events
         payload = view.to_dict()                  # UI 전송용 JSON 사전
         restored = RunView.from_dict(payload)
-        plan = await session.run.resume_plan(run.id, agent_id=run.agent_id)  # ResumePlan
+        plan = await session.run.resume_plan(run.id, agent_id=(await run.aget_data()).agent_id)  # ResumePlan
         for issue in plan.blockers:               # Diagnostic
             print(issue.code, issue.message, issue.source)
         recovery = await project.arecovery()      # RecoveryPlan
@@ -411,16 +434,16 @@ class LargeLanguageModel:
     ResumePlan/RecoveryPlan/RecoveryResult/RetentionPlan/TurnDeletionPlan은 공개 데이터 클래스다.
     JSON은 to_dict/from_dict로 변환한다. dict 접근 별칭은 제공하지 않는다.
     진단의 severity나 진행률로 재시도·승인·완료를 결정하지 않는다. 도메인 상태와
-    실행 정책이 원본이다. 프로젝트 설정, 컴포넌트 정의, 공급자 인자는 열린 dict를 유지한다.
+    실행 정책이 원본이다. 프로젝트 설정과 컴포넌트 정의는 해당 Owner의 Schema를 따른다. 공급자 확장과 Application 데이터는 선언된 열린 영역을 사용한다.
 
     승인 UI와 명시적 재개::
 
         views = await run.ainteraction_views()  # InteractionView: 응답/실행 상태 분리
         request = views[0].request
         await run.arespond(request.respond("approve"))
-        plan = await session.run.resume_plan(run.id, agent_id=run.agent_id)
+        plan = await session.run.resume_plan(run.id, agent_id=(await run.aget_data()).agent_id)
         if plan.can_resume:
-            resumed = await session.run.resume(run.id, agent_id=run.agent_id)
+            resumed = await session.run.resume(run.id, agent_id=(await run.aget_data()).agent_id)
         # 만료/취소 요청은 acancel_interaction/arenew_interaction으로 관리한다.
 
     응답 저장은 실행을 시작하지 않는다. Project policies.approval의 기본값은 비활성이다.
@@ -490,8 +513,8 @@ class LargeLanguageModel:
     Component만 접근할 수 있다. project.components["skills"]도 지원한다. create/acreate의
     identifier=로 식별자를 지정할 수 있다.
     configure는 전체 설정을 교체하고 update는 최상위 키를 병합한다. 데이터는 Component
-    검증 규칙을 따르는 열린 JSON 사전이다. 기본 제공 종류는 tools/skills/mcp/rag/
-    agents/workflows/memory/prompts/vision/goals/refinement이며 정의 저장과 실제 실행은 별개다.
+    검증 규칙을 따른다. Skill의 정규 정의는 SKILL.md다. 기본 제공 Component는 tools/skills/data/mcp/rag/
+    workflows/memory/prompts/vision/goals/refinement이며 Agent는 독립 Project 도메인이다. 정의 저장과 실제 실행은 별개다.
 
     Goal과 Refinement — 실행 소유권 없이 목적과 개선 제안을 관리::
 
@@ -633,12 +656,12 @@ class LargeLanguageModel:
         request = await session.run.submit("작업", recipients=["coordinator"])
         run, = await request.wait()  # pause_before 노드에서는 status == RunStatus.PAUSED
         checkpoint = await run.acheckpoint()  # 헤더 + 노드별 started/completed/waiting
-        resumed = await session.run.resume(run.id, agent_id=run.agent_id)
+        resumed = await session.run.resume(run.id, agent_id=(await run.aget_data()).agent_id)
         next_run, = await resumed.wait()
 
-    workflow는 저장된 Workflow ID이며 생성자 대신 매 submit에서 명시한다.
-    engine_options는 QUEUED 요청과 Run에 저장된다. 정의는 Run 시작 시 읽고 실행 중 유지한다.
-    재개는 원본 engine_options를 복원하며 Workflow를 바꾸지 않는다.
+    workflow는 Agent 정의의 engine_options가 선택한 저장 Workflow ID다.
+    접수 시 선택한 Agent binding을 동결하고 실행 전 원본과 대조한다. 요청별 JSON 문맥은
+    request_context로 명시하며, 재개는 원본 binding/실행 증거를 복원하고 Workflow를 바꾸지 않는다.
     재개는 원본을 연결하는 새 Run이다. 완료된 노드는 호출하지 않는다. started 처리 노드는
     부작용이 불확실하므로 UI가 확인한 키만 retry_nodes=[...]로 승인해야 한다.
     Workflow/Agent/Tool 정의와 실행 설정이 바뀌면 거부한다. memory 대화가 종료로 소실된
@@ -749,107 +772,162 @@ class LargeLanguageModel:
     step_manager로 접근할 수 있지만 UI에서는 위 Facade API를 사용한다.
     """
 
-    NO_UNFINISHED_WORK = 0
+    DEFAULT_WORKSPACE = "workspace"
+    DEFAULT_ENGINE = "loop"
+    UNSPECIFIED = None
+    OPEN = False
+    CLOSED = True
+    OUTSIDE_STORAGE = False
+    INSIDE_STORAGE = True
+    DRAIN_ALL_RESULTS = True
+    STORAGE_CONTEXT = "llm_storage_operation"
+    CONVERSATION_FACTORY_CONFLICT = "Choose conversation_storage or BackendServices.conversations, not both"
+    FOREIGN_PROCESS = "Create a new LargeLanguageModel in each process"
+    SHUT_DOWN = "LargeLanguageModel is shut down or shutting down"
+    FOREIGN_LOOP = "Use LargeLanguageModel on its original event loop"
+    STOPPING_SESSION = "Session runtime is shutting down"
+    ALREADY_STOPPING_SESSION = "Session runtime is already shutting down"
 
-    def __init__(self, workspace: Union[str, Path] = "workspace", *,
-                 components: Optional[Iterable[ProjectComponent]] = None,
-                 engines: Optional[Mapping[str, Engine]] = None,
-                 services: Optional[BackendServices] = None,
-                 conversation_storage: Optional[str] = None) -> None:
+    NO_UNFINISHED_WORK = RuntimeGauges.ZERO
+
+    def __init__(
+        self,
+        workspace: Union[str, Path] = DEFAULT_WORKSPACE,
+        *,
+        components: Optional[Iterable[ProjectComponent]] = UNSPECIFIED,
+        engines: Optional[Mapping[str, Engine]] = UNSPECIFIED,
+        services: Optional[BackendServices] = UNSPECIFIED,
+        conversation_storage: Optional[str] = UNSPECIFIED,
+    ) -> None:
         require_linux()
         self.workspace = Path(workspace).absolute()
         from llm.providers.runtime import configure_logging
+
         configure_logging(self.workspace)
-        self.services = services if services is not None else BackendServices()
-        self.policy_resolver = (self.services.policy_resolver if self.services.policy_resolver is not None
-                                else ProjectPolicyResolver(self.services.token_counters))
-        self.provider_calls = (self.services.provider_calls if self.services.provider_calls is not None
-                               else ProviderCalls(self.services.provider_limits))
-        if conversation_storage is not None:
+        self.services = services if services is not LargeLanguageModel.UNSPECIFIED else BackendServices()
+        self.policy_resolver = (
+            self.services.policy_resolver
+            if self.services.policy_resolver is not LargeLanguageModel.UNSPECIFIED
+            else ProjectPolicyResolver(self.services.token_counters)
+        )
+        self.provider_calls = (
+            self.services.provider_calls
+            if self.services.provider_calls is not LargeLanguageModel.UNSPECIFIED
+            else ProviderCalls(self.services.provider_limits)
+        )
+        if conversation_storage is not LargeLanguageModel.UNSPECIFIED:
             ConversationStorage.validate(conversation_storage, nullable=ConversationStorageInput.EXPLICIT)
             if self.services.conversations not in (conversation_store, ConversationStorage.FILE):
-                raise ValueError("Choose conversation_storage or BackendServices.conversations, not both")
+                raise ValueError(LargeLanguageModel.CONVERSATION_FACTORY_CONFLICT)
             self.services = replace(self.services, conversations=conversation_storage)
         self.engines = EngineRegistry()
-        for name, engine in ({"loop": LoopEngine()} if engines is None else engines).items():
+        for name, engine in (
+            {LargeLanguageModel.DEFAULT_ENGINE: LoopEngine()}
+            if engines is LargeLanguageModel.UNSPECIFIED
+            else engines
+        ).items():
             self.engines.register(name, engine)
         # 제공 가능한 종류와 Project에서 선택한 종류는 다르다. 선택 시에만 디렉토리를 만든다.
-        available = [ToolComponent(), SkillComponent(), DataComponent(), MCPComponent(), RAGComponent(),
-                     WorkflowComponent(), MemoryComponent(), PromptComponent(),
-                     VisionComponent(), GoalComponent(), RefinementComponent()] if components is None else components
+        available = (
+            [
+                ToolComponent(),
+                SkillComponent(),
+                DataComponent(),
+                MCPComponent(),
+                RAGComponent(),
+                WorkflowComponent(),
+                MemoryComponent(),
+                PromptComponent(),
+                VisionComponent(),
+                GoalComponent(),
+                RefinementComponent(),
+            ]
+            if components is LargeLanguageModel.UNSPECIFIED
+            else components
+        )
         self.project_manager, self.run_repository, self.step_manager = self.services.build(
-            self.workspace, available, engines=self.engines)
+            self.workspace, available, engines=self.engines
+        )
         self.project_manager.usage_counters = dict(TokenCounters.from_resolver(self.policy_resolver))
         self.events = EventSubscriptions()
         from llm.services.infrastructure.observability import Observability, ObservabilityView
+
         self._observability = Observability(sink=self.services.observability_sink)
         self.events.observability = self._observability
-        self.observability = ObservabilityView(self._observability, self._runtime_gauges,
-                                              self.provider_calls, self.events)
+        self.observability = ObservabilityView(
+            self._observability, self._runtime_gauges, self.provider_calls, self.events
+        )
         self.event_handlers = self.services.event_handlers
         self.projects = Projects(self)
         self.project_manager.bind_config_validator(self.engines.validate_config)
         self._managers: dict[tuple[str, str], RunManager] = {}
         self._stopping: set[tuple[str, str]] = set()
-        self._loop = None
+        self._loop = LargeLanguageModel.UNSPECIFIED
         self._pid = os.getpid()
-        self._closed = False
-        self._closing = None
+        self._closed = LargeLanguageModel.OPEN
+        self._closing = LargeLanguageModel.UNSPECIFIED
         self._storage = StorageIO(self.project_manager.ownership)
         self._storage_tasks: set[asyncio.Task] = set()
         self._storage_processes = set()
         self._observation_tasks: set[asyncio.Task] = set()
-        self._storage_context = ContextVar("llm_storage_operation", default=False)
+        self._storage_context = ContextVar(
+            LargeLanguageModel.STORAGE_CONTEXT, default=LargeLanguageModel.OUTSIDE_STORAGE
+        )
 
     def _runtime_gauges(self):
         """기존 Session runtime을 읽기만 한다. 도메인 파일 조회/복구는 하지 않는다."""
-        active = queued = unfinished = 0
+        values = RuntimeGauges()
         for manager in tuple(self._managers.values()):
-            runtime = manager._active
-            unfinished += manager.pending_work.active
-            if runtime is not None:
-                active += sum(control.execution is not None and not control.execution.done()
-                              for control in runtime.executions.values())
-                queued += runtime.queue.qsize()
-        return {"active_runs": active, "queued_requests": queued, "unfinished_work": unfinished}
+            values.include(manager.runtime_gauges())
+        return values.to_dict()
 
     def _interaction_changed(self, run, views):
         """영속 상태가 원본이다. 트랜잭션 확정 이후에만 UI 알림을 예약한다."""
-        if self._loop is None or self._loop.is_closed():
+        if self._loop is LargeLanguageModel.UNSPECIFIED or self._loop.is_closed():
             return
         from copy import deepcopy
+
         run, values = deepcopy(run), [v.to_dict() for v in views]
+
         def schedule():
             async def publish():
-                event = EngineEvent(EngineEventType.INTERACTION_CHANGED, metadata={"interactions": values})
-                await self.events.publish("engine", run, event)
+                event = EngineEvent.changed_interactions(values)
+                await self.events.publish(EventChannel.ENGINE.value, run, event)
+
             pending = asyncio.create_task(publish())
             self._observation_tasks.add(pending)
+
             def finished(pending):
                 self._observation_tasks.discard(pending)
                 if not pending.cancelled():
                     pending.exception()
+
             pending.add_done_callback(finished)
+
         from llm.services.infrastructure.transactions import after_commit
+
         # 응답/취소/갱신이 rollback되면 알리지 않는다. 저장 transaction ContextVar도
         # 확정 콜백 전에 해제되므로 UI의 새 조회가 종료된 transaction에 참여하지 않는다.
         after_commit(lambda: self._loop.call_soon_threadsafe(schedule))
 
     def _check_open(self) -> None:
         if os.getpid() != self._pid:
-            raise RuntimeError("Create a new LargeLanguageModel in each process")
-        if self._closed or (self._closing is not None and not self._storage_context.get()):
-            raise RuntimeError("LargeLanguageModel is shut down or shutting down")
+            raise RuntimeError(LargeLanguageModel.FOREIGN_PROCESS)
+        if self._closed or (
+            self._closing is not LargeLanguageModel.UNSPECIFIED and not self._storage_context.get()
+        ):
+            raise RuntimeError(LargeLanguageModel.SHUT_DOWN)
 
     async def _storage_call(self, operation, *args, **kwargs):
         """Admit a complete facade transaction off-loop; drain it on shutdown."""
         self._check_open()
         self._bind_loop()
         from llm.services.infrastructure.processes import ProcessCancellation
+
         cancellation = ProcessCancellation()
 
         async def execute():
-            token = self._storage_context.set(True)
+            token = self._storage_context.set(LargeLanguageModel.INSIDE_STORAGE)
             try:
                 with cancellation.scope(), self._observability.scope():
                     return await self._storage.run(operation, *args, **kwargs)
@@ -872,35 +950,46 @@ class LargeLanguageModel:
 
     def _bind_loop(self) -> None:
         if os.getpid() != self._pid:
-            raise RuntimeError("Create a new LargeLanguageModel in each process")
+            raise RuntimeError(LargeLanguageModel.FOREIGN_PROCESS)
         loop = asyncio.get_running_loop()
-        if self._loop is None:
+        if self._loop is LargeLanguageModel.UNSPECIFIED:
             self._loop = loop
         elif self._loop is not loop:
-            raise RuntimeError("Use LargeLanguageModel on its original event loop")
+            raise RuntimeError(LargeLanguageModel.FOREIGN_LOOP)
 
     def unfinished_work(self, session: Session) -> int:
         """Observe pending work without creating a runtime or interpreting its internals."""
         self._check_open()
         manager = self._managers.get((session.project_id, session.id))
-        return manager.pending_work.active if manager is not None else self.NO_UNFINISHED_WORK
+        return (
+            manager.pending_work.active
+            if manager is not LargeLanguageModel.UNSPECIFIED
+            else self.NO_UNFINISHED_WORK
+        )
 
     def _manager(self, session: Session) -> RunManager:
         self._check_open()
         self._bind_loop()
         key = (session.project_id, session.id)
         if key in self._stopping:
-            raise RuntimeError("Session runtime is shutting down")
+            raise RuntimeError(LargeLanguageModel.STOPPING_SESSION)
         if key not in self._managers:
             self._managers[key] = RunManager(
-                self.project_manager.sessions, self.engines, session=session,
-                repository=self.run_repository, steps=self.step_manager,
+                self.project_manager.sessions,
+                self.engines,
+                session=session,
+                repository=self.run_repository,
+                steps=self.step_manager,
                 capabilities=self.project_manager.components,
-                event_handlers=self.event_handlers, subscriptions=self.events,
-                tool_runtime=self.services.tool_runtime, policy_resolver=self.policy_resolver,
-                provider_calls=self.provider_calls, output_buffer=self.services.output_buffer,
+                event_handlers=self.event_handlers,
+                subscriptions=self.events,
+                tool_runtime=self.services.tool_runtime,
+                policy_resolver=self.policy_resolver,
+                provider_calls=self.provider_calls,
+                output_buffer=self.services.output_buffer,
                 provider_diagnostics=self.services.provider_diagnostics,
-                observability=self._observability)
+                observability=self._observability,
+            )
         return self._managers[key]
 
     async def _stop_session(self, session: Session) -> None:
@@ -908,16 +997,16 @@ class LargeLanguageModel:
         self._bind_loop()
         key = (session.project_id, session.id)
         if key in self._stopping:
-            raise RuntimeError("Session runtime is already shutting down")
+            raise RuntimeError(LargeLanguageModel.ALREADY_STOPPING_SESSION)
         manager = self._managers.get(key)
-        if manager is None:
+        if manager is LargeLanguageModel.UNSPECIFIED:
             return
         self._stopping.add(key)
 
         async def stop():
             try:
                 await manager.shutdown()
-                self._managers.pop(key, None)
+                self._managers.pop(key, LargeLanguageModel.UNSPECIFIED)
             finally:
                 self._stopping.discard(key)
 
@@ -928,7 +1017,7 @@ class LargeLanguageModel:
         self._check_open()
         return self.services.describe()
 
-    def describe_project_config(self, *, components=None) -> dict:
+    def describe_project_config(self, *, components=UNSPECIFIED) -> dict:
         """UI용 Project 설정 JSON Schema의 독립 사본을 반환한다.
 
         components=None은 현재 등록된 모든 컴포넌트, []는 선택 없음이다.
@@ -940,6 +1029,7 @@ class LargeLanguageModel:
         """
         self._check_open()
         from llm.services.schema import describe_project_config
+
         return describe_project_config(self, components)
 
     async def shutdown(self) -> None:
@@ -947,24 +1037,31 @@ class LargeLanguageModel:
         self._bind_loop()
         if self._closed:
             return
-        if self._closing is None:
+        if self._closing is LargeLanguageModel.UNSPECIFIED:
+
             async def close():
                 # Accepted facade I/O must finish before ownership is released.
                 for cancellation in tuple(self._storage_processes):
                     cancellation.cancel()
-                await asyncio.gather(*tuple(self._storage_tasks), return_exceptions=True)
+                await asyncio.gather(
+                    *tuple(self._storage_tasks), return_exceptions=LargeLanguageModel.DRAIN_ALL_RESULTS
+                )
                 # Attempt every shutdown even if one worker reports an error.
                 results = await asyncio.gather(
                     *(manager.shutdown() for manager in self._managers.values()),
-                    return_exceptions=True)
-                await asyncio.gather(*tuple(self._observation_tasks), return_exceptions=True)
+                    return_exceptions=LargeLanguageModel.DRAIN_ALL_RESULTS,
+                )
+                await asyncio.gather(
+                    *tuple(self._observation_tasks), return_exceptions=LargeLanguageModel.DRAIN_ALL_RESULTS
+                )
                 await self.events.close()
-                self._closed = True
+                self._closed = LargeLanguageModel.CLOSED
                 for result in results:
                     if isinstance(result, BaseException):
                         raise result
                 self._managers.clear()
-                self.project_manager.sessions.close_conversations(when_idle=True)
+                self.project_manager.sessions.close_conversations(when_idle=SessionManager.CLOSE_WHEN_IDLE)
+
             self._closing = asyncio.create_task(close())
         await drain_on_cancel(self._closing)
 
@@ -977,53 +1074,50 @@ class LargeLanguageModel:
         await self.shutdown()
 
 
-ADD_TOOL_SOURCE = '\n'.join([
-    'from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation',
-    '@tool(ToolContract(revision="1", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))',
-    'async def main(a: float, b: float) -> dict:',
-    '    """Add two numbers."""',
-    '    return {"result": a + b}',
-    '',
-])
-
-
 def print_event(run: Run, event: EngineEvent) -> None:
     if event.type == EngineEventType.TEXT_DELTA and event.delta.visibility == OutputVisibility.USER:
-        print(event.delta.text, end="", flush=True)
+        print(event.delta.text, end=CommandLine.STREAM_END, flush=CommandLine.FLUSH_STREAM)
 
 
 async def run_request(args: argparse.Namespace) -> int:
-    from llm.core.implementation_parameters import ImplementationParameters
     async with LargeLanguageModel(
-        args.workspace, components=[ToolComponent()],
+        args.workspace,
+        components=[ToolComponent()],
         conversation_storage=args.conversation_storage,
-        engines={"loop": LoopEngine()},
+        engines={LargeLanguageModel.DEFAULT_ENGINE: LoopEngine()},
     ) as backend:
-        backend.events.subscribe(print_event, channel="engine")
-        parameters = ImplementationParameters.read({}).with_policy({key: value for key, value in
-            {'max_iterations': args.max_iterations, 'request_timeout': args.timeout}.items() if value is not None})
-        parameters = parameters.with_config({'completion': {key: value for key, value in
-            {'model': args.model, 'temperature': args.temperature, 'api_base': args.api_base}.items() if value is not None}})
+        backend.events.subscribe(print_event, channel=EventChannel.ENGINE.value)
+        parameters = CommandLine.parameters(args)
         config = ProjectConfig()
-        config.set_engine_parameters("loop", parameters)
-        project = await backend.projects.acreate("LoopEngine demo", config=config,
-            components=["tools"] if args.with_tools else [])
+        config.set_engine_parameters(LargeLanguageModel.DEFAULT_ENGINE, parameters)
+        project = await backend.projects.acreate(
+            CommandLine.PROJECT_TITLE,
+            config=config,
+            components=[ToolComponent.name] if args.with_tools else [],
+        )
         if args.with_tools:
-            selected_tools = await project.components.aget("tools")
-            await selected_tools.acreate({"source": ADD_TOOL_SOURCE}, identifier="add")
-            await selected_tools.aprepare("add")
-            await selected_tools.aenable("add")
-        print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
-        await project.agents.acreate({"engine": args.engine, "tools": ["add"] if args.with_tools else []}, identifier="demo")
-        session = await project.sessions.acreate("Streaming request", agent_ids=["demo"])
-        request = await session.run.submit(args.prompt, recipients=["demo"])
-        handle, = await request.wait()
+            selected_tools = await project.components.aget(ToolComponent.name)
+            await selected_tools.acreate(
+                CommandLine.tool_definition(ADD_TOOL_SOURCE), identifier=CommandLine.TOOL_ID
+            )
+            await selected_tools.aprepare(CommandLine.TOOL_ID)
+            await selected_tools.aenable(CommandLine.TOOL_ID)
+        print(CommandLine.PROJECT_LOCATION.format(path=project.paths.root.resolve()), file=sys.stderr)
+        await project.agents.acreate(CommandLine.agent_definition(args), identifier=CommandLine.AGENT_ID)
+        session = await project.sessions.acreate(CommandLine.SESSION_TITLE, agent_ids=[CommandLine.AGENT_ID])
+        request = await session.run.submit(args.prompt, recipients=[CommandLine.AGENT_ID])
+        (handle,) = await request.wait()
         run = await handle.aget_data()
         print()
         if run.status != RunStatus.COMPLETED:
-            print(f"Run {run.status}: {run.error or 'interrupted'}", file=sys.stderr)
-            return 1
-        return 0
+            print(
+                CommandLine.RUN_FAILURE.format(
+                    status=run.status, error=run.error or CommandLine.INTERRUPTED_ERROR
+                ),
+                file=sys.stderr,
+            )
+            return CommandLine.FAILURE
+        return CommandLine.SUCCESS
 
 
 def main(*argv: str) -> None:
@@ -1033,24 +1127,14 @@ def main(*argv: str) -> None:
     already running an event loop should use the async service APIs instead.
     """
     require_linux()
-    parser = argparse.ArgumentParser(prog="llm", description=__doc__)
-    parser.add_argument("--engine", required=True, choices=("loop",),
-                        help="Execution Engine (the command currently registers loop)")
-    parser.add_argument("--model", required=True, help="LiteLLM provider/model identifier")
-    parser.add_argument("--prompt", required=True)
-    parser.add_argument("--workspace", type=Path, default=Path("workspace"))
-    parser.add_argument("--conversation-storage", choices=("file", "memory"), default="file",
-                        help="Message storage; memory is lost when this command exits")
-    parser.add_argument("--api-base", help="Optional OpenAI-compatible endpoint URL")
-    parser.add_argument("--temperature", type=float, default=None, help="Omit for model default")
-    parser.add_argument("--max-iterations", type=int)
-    parser.add_argument("--timeout", type=float)
-    parser.add_argument("--with-tools", action="store_true", help="Register the example add tool")
+    parser = CommandLine.parser(
+        __doc__, engine=LargeLanguageModel.DEFAULT_ENGINE, workspace=LargeLanguageModel.DEFAULT_WORKSPACE
+    )
     args = parser.parse_args(list(argv))
     try:
         code = asyncio.run(run_request(args))
     except KeyboardInterrupt:
-        code = 130
+        code = CommandLine.INTERRUPTED
     # ish's worker ignores callable return values, so report failure by exit code.
     raise SystemExit(code)
 

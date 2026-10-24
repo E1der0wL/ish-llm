@@ -5,6 +5,25 @@ from typing import Any
 from llm.core.models import Run
 
 
+@dataclass(slots=True)
+class RuntimeGauges:
+    """Current live counts only; not serialized execution state or an admission policy."""
+
+    ZERO = 0
+
+    active_runs: int = ZERO
+    queued_requests: int = ZERO
+    unfinished_work: int = ZERO
+
+    def include(self, value):
+        self.unfinished_work += value.unfinished_work
+        self.active_runs += value.active_runs
+        self.queued_requests += value.queued_requests
+
+    def to_dict(self):
+        return {item.name: getattr(self, item.name) for item in fields(self)}
+
+
 class RunRecordIdentity:
     """Required identity before the existing complete Run Reader."""
 
