@@ -1,4 +1,5 @@
 """Model-call gaps cannot hide lost or changed RAG source evidence."""
+from llm.components.rag.corpus_storage import CorpusStorage
 
 from llm.core.model_protocol import EmbeddingResult, RankedDocument, RerankResult
 from types import SimpleNamespace
@@ -94,7 +95,7 @@ class QueryEvidenceProbe(unittest.IsolatedAsyncioTestCase):
                         moved.rename(path)
 
     async def test_changed_publication_proof_is_checked_without_reparsing_the_corpus(self):
-        control = self.project.paths.root / 'rag' / self.component.CONTROL_FILE
+        control = self.project.paths.root / 'rag' / CorpusStorage.CONTROL_FILE
         after_damage = {}
         async def rerank(*args):
             value = json.loads(control.read_bytes())
@@ -103,7 +104,7 @@ class QueryEvidenceProbe(unittest.IsolatedAsyncioTestCase):
             after_damage.update(self.snapshot_files())
             return RerankResult((RankedDocument(0, 1.0),))
         self.component.reranker = SimpleNamespace(rerank=rerank)
-        from llm.components.rag import component as owner
+        from llm.components.rag import corpus_storage as owner
         with patch.object(owner, 'read_json', wraps=owner.read_json) as read:
             with self.assertRaisesRegex(RuntimeError, 'source evidence changed'):
                 await self.rag.asearch_documents('backup', method='bm25', rerank=True)

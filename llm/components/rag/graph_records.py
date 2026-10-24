@@ -57,6 +57,10 @@ class GraphRelation:
         return self._value[self.Field.SOURCE_ID]
 
     @property
+    def document_id(self):
+        return self._value[self.Field.DOCUMENT_ID]
+
+    @property
     def extracted_at(self):
         return self._value[self.Field.EXTRACTED_AT]
 
@@ -127,9 +131,21 @@ class ExtractionCheckpoint:
     MINIMUM_CHUNK_SIZE = 1
     SIGNATURE_PATTERN = r"[a-f0-9]{64}"
 
+    def __init__(self, value):
+        self._value = value
+
+
     @classmethod
     def create(cls, chunks, chunk_size, graph):
         return {cls.Field.CHUNKS: chunks, cls.Field.CHUNK_SIZE: chunk_size, cls.Field.GRAPH: graph}
+
+    @property
+    def chunks(self):
+        return self._value[self.Field.CHUNKS]
+
+    @property
+    def chunk_size(self):
+        return self._value[self.Field.CHUNK_SIZE]
 
 
 class GraphEncoding:

@@ -117,3 +117,31 @@ class RAGToolResult:
     @classmethod
     def project(cls, component, value):
         return {cls.COMPONENT: component, **value}
+
+
+class GraphReadiness:
+    INCOMPLETE_DOCUMENTS = "graph_incomplete_documents"
+
+    @classmethod
+    def incomplete_documents(cls, documents):
+        return [identifier for identifier, doc in documents.items()
+                if RAGDocument(doc).graph_incomplete_observation]
+
+    @classmethod
+    def create(cls, incomplete):
+        return {RAGDocument.Field.GRAPH_COMPLETE: not incomplete, cls.INCOMPLETE_DOCUMENTS: incomplete}
+
+    @classmethod
+    def attach(cls, graph, status):
+        return {**graph, **status}
+
+
+class CombinedResult:
+    QUERY = "query"
+    DOCUMENTS = "documents"
+    SOURCES = "sources"
+
+    @classmethod
+    def create(cls, query, hits, graph, sources, incomplete):
+        return {cls.QUERY: query, cls.DOCUMENTS: hits, **graph, cls.SOURCES: list(sources.values()),
+                **GraphReadiness.create(incomplete)}

@@ -5377,3 +5377,88 @@ Level 3에서 실행한다. 이전 83b1614 게이트 결과는 이 변경의 전
 파일 542·미검토 259(llm 82/hub 177)·미분류 16,696·미완 계약 3·issues 0이다.
 선언 밖 두 수치 리터럴은 선택된 청크 배열의 ceiling-division과 첫 range index로 개별
 분류했으며 정책/한도/상태의 예외로 허용하지 않았다.
+
+
+## 게이트 35 정확한 SHA 원격 CI 확인
+
+2026-10-24T04:21:30Z, [CI 40059398324](https://github.com/E1der0wL/ish-llm/actions/runs/40059398324)
+head SHA 83b16147055552ec77115de2f95cba9029079e4b와 두 필수 contracts Job/Step 및 실제
+HTML 결과를 확인했다. LLM 2,492/2,492/2,492, 1,992.107290초; Hub 588/588/588,
+1,439.942124초. failure/error/skip/xfail/xpass/누락/추가/중복 모두 0, 전체 발견 목록과 일치.
+Python 3.12.14/GCC 원격 실행이며 로컬 Clang 실행과 별도 증거다. 그 이후 publication/
+configuration/preparation/storage 변경의 검증 성공으로 승계하지 않는다.
+
+## llm RAG 저장·Checkpoint 원본·조회 Projection / 전체 Component — Level 1·2
+
+기준 ca15a7f. CorpusStorage가 코퍼스 파일명·경로·엄격한 읽기·캐시 연결 증거·색인 구성/
+공개·명시적인 세대 정리를 소유한다. RAGComponent는 Project 초기화·백업·복제 순서와
+선택된 Component 콜백을 조율한다. 공개/삭제 transaction, 원본 보존, 활성 세대 보호,
+불확실한 공개 후 새 세대 보존, 기존 삭제 intent 복구와 명시적 삭제 선택은 그대로다.
+기본 _build만 증분 갱신을 사용하는 조건과 주입/상속 _build의 실제 호출 경로를 보존했다.
+원본/활성 포인터가 소실되면 기존대로 거부하며 새 identity나 빈 기록으로 복구하지 않는다.
+
+GenerationRow/GenerationCompactionPlan은 정리 계획과 CAS 증거를, GraphReadiness와
+CombinedResult는 조회 완전성 및 통합 응답을 소유한다. RAGCheckpointSource는 원본 입력의
+문서 위치·청크와 영수증의 대조를 소유하고 JobStorage/BatchCheckpointName/각 영수증
+Owner의 경로·정규 필드·검증을 사용한다. 저장 Reader와 준비/조회 관찰의 역할을 구분하며
+필수 증거는 유지한다. RAGConflictError의 정규 선언을 errors에 두고 기존 공개 import와
+모든 실제 소비자의 같은 예외 타입을 유지했다. 별도 레거시 Reader/실행 경로는 없다.
+
+파일 오류/중단 주입은 실제 corpus_storage 모듈로 옮겼다. subprocess 코드의 중단 지점,
+exit 77, 독립 기대값·파일 내용·원본/효과 횟수 Assertion을 그대로 유지했다. 변경된 시험
+8개는 정확한 패치 대상과 선언 참조 변경만 정규화하면 전체 AST가 이전과 동일하다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-storage-draft/proof.py`
+(한 셸 명령) exit 0. 실제 Owner 함수/속성을 확장한 기존 전체 함수 236개가 동등하다.
+별도로 실제 Reader를 사용한 원본/손상/누락/단건·배치/큰 위치 값의 Checkpoint 대조
+288개와 공개 import 3개가 동등하다. 초기 비교에서 profile 객체와 저장 profile 원본을
+구분해야 함을 검출하여 정확한 profile_record Projection으로 수정한 뒤 제품 시험을 시작했다.
+비교 보조기의 제거된 import 처리 오류도 수정했으며 초기 로그를 보존했다.
+
+L2 최초 명령은 존재하지 않는 test_component_protocol 모듈명 때문에 발견 단계에서 exit 2로
+종료했다. 성공/0개 pass로 처리하지 않았다. 실제 test_components·test_definition_components·
+test_component_storage_integrity를 확인하여 L2만 새 이름(-02)으로 실행했고 다른 실행은
+반복하지 않았다. 원래 실패 명령과 source/input·로그는 남겨 두었다.
+
+L2 -02는 296 discovered/started, 295 pass / 0 failure / 1 error, skip/xfail/xpass/누락/추가/
+중복 0, exit 1이다. test_optimized_queries의 Reader monkeypatch가 기존 component 모듈을
+가리킨 것이 원인이었다. 제품 코드는 그대로 두고 해당 import 한 줄을 실제 저장 Owner로
+수정했다. 원래 읽기/검색 1회 Assertion을 유지하고 해당 전체 모듈을 재실행했다.
+실패한 -02 실행을 성공으로 바꾸지 않으며 결과/실패 ID/원래 소스 해시를 보존한다.
+
+L2 -02 실제 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-storage-l2-02/llm.json --modules tests.llm.test_rag_components tests.llm.test_rag_models tests.llm.test_rag_resilience tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_prepared_integrity tests.llm.test_operations_schema tests.llm.test_rag_corpus_integrity tests.llm.test_rag_input_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_job_state_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_components tests.llm.test_definition_components tests.llm.test_component_storage_integrity tests.llm.test_settings_consistency tests.llm.test_record_generations tests.llm.test_optimized_queries`, 200.59459470701404초.
+
+- `whole-rag-storage-l1-01`: discovered/started/pass 69/69/69, exit 0, 65.987911초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-storage-l1-01/llm.json --modules tests.llm.test_rag_catalog_integrity tests.llm.test_rag_retention_policy tests.llm.test_rag_storage tests.llm.test_rag_optimization tests.llm.test_rag_query_evidence tests.llm.test_rag_batch_source tests.llm.test_rag_batch_identity`. source `cbac726f6d9d93b86bc823079860eb2c73241ae13d01c454949fc5ed2f28cd9e`, input `df33f79e8ef7cdda0a4ea034be4952a87b9eb33fd59a7dd1ca4a8c740990e5dd`.
+
+- `whole-rag-storage-query-fix-01`: discovered/started/pass 11/11/11, exit 0, 3.096697초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-storage-query-fix-01/llm.json --modules tests.llm.test_optimized_queries`. source `21b4dee2e1b07fc903a844b109952a8e3d8f2534b0462c06326989a9c980a26d`, input `ea4bf0b4c1aa0cdd9e224e0efaaeb3f0e5b820905d86b3f31ba853afe2b52230`.
+
+- `whole-rag-storage-hub-01`: discovered/started/pass 33/33/33, exit 0, 145.534498초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-storage-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_rag_defaults`. source `cbac726f6d9d93b86bc823079860eb2c73241ae13d01c454949fc5ed2f28cd9e`, input `df33f79e8ef7cdda0a4ea034be4952a87b9eb33fd59a7dd1ca4a8c740990e5dd`.
+
+위 세 개 성공 실행은 각각 failure/error/skip/xfail/xpass/누락/추가/중복 0이고
+discovered/started/pass가 동일하다. 모든 실행의 source/input은 실행 전후에 동일하다.
+최초 L1·Hub·L2 -02의 source/input은 서로 같다. 재실행은 제품·Fixture·의존성·발견 목록이
+같고 test_optimized_queries의 patch import 한 줄만 바뀌었다. 이 전체 모듈은 새 결과를
+사용하고 나머지 L2 모듈의 통과 ID만 재사용하며, 정확한 ID·소스·명령은 reuse.json에 기록했다.
+L1/L2 범위의 ID는 중복하지 않는다. 재실행 LLM 셸에서 Hub 전용 Xvfb/xclip 환경 변수는
+빠져 있으나 해당 LLM 모듈은 이를 사용하지 않으며 바이너리 해시 및 관련 환경은 동일하다.
+Python 3.12.14/Clang·고정 의존성·Host d833790·namespace, Hub는 X11 환경을 사용했다.
+관련 RAG 계약/소비자·실제 파일 손상과
+중단·원본 보존·삭제·캐시/Checkpoint/재개뿐 아니라 승인·예산·외부 효과 안전성도 포함한다.
+
+이번 저장 책임 분리는 파일 공개/정리를 다루므로 publication·configuration·preparation과
+묶어 바로 게이트 36 Level 3로 검증한다. 위 실행은 집중/관련 회귀이며 전체 회귀 실행으로
+합산하지 않는다. 전체 LLM/Hub·정적 감사·R3·문서·실제 환경이 통과한 정확한 SHA만 Push하고
+그 SHA의 실제 필수 원격 CI 결과를 확인한다. llm 전체 및 후속 hub 전수 완료는 아직 아니다.
+
+저장 소단계 최종 보조 검사: 정적 S1–S7 reviewed 110·new/stale/outstanding 0,
+문서 168개·Python fence 183개·링크 1,206개·anchor 37개 오류 0. 계약/architecture 감사
+16 pass / 3.178초 / exit 0. `python -m tests.llm.check_budget_mutation` exit 0,
+원래 실제 효과 Assertion으로 의도된 R3 한도 누락 2개를 검출했다. 정적 dependency 14건을
+재검토했다. Python 전용 보고 helper가 README를 파싱하려던 오류는 Markdown 검토와
+분리하여 수정했으며 제품 코드/시험 결과에는 영향이 없었다.
+
+동일성이 검증된 L2 285개 통과 ID와 수정 모듈 11개 통과 ID를 각각 기록했다.
+최종 전수 inventory는 파일 545·미검토 257(llm 80/hub 177)·미분류 16,580·미완 계약 3·
+issues 0이다. RAG Component·새 저장/Checkpoint/응답 Owner의 구현부 리터럴 후보는 0이며,
+Data의 기존 `-> None` 반환 타입 표기 두 개만 정확한 기술적 분류를 유지한다.

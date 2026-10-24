@@ -107,7 +107,7 @@ class RAGStorageTests(unittest.IsolatedAsyncioTestCase):
             atomic_json(path, value)
             if path.name == "active.json":
                 raise OSError("initial pointer publication failed")
-        with patch("llm.components.rag.component.atomic_json", side_effect=fail):
+        with patch("llm.components.rag.corpus_storage.atomic_json", side_effect=fail):
             with self.assertRaisesRegex(OSError, "initial pointer"):
                 await self.project.components.aselect(["rag"])
         self.assertFalse((self.project.paths.root / "rag").exists())

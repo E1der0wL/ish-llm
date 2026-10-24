@@ -134,6 +134,11 @@ class RAGDocument:
         return self._value[self.Field.GRAPH_COMPLETE]
 
     @property
+    def graph_incomplete_observation(self):
+        """Observe an explicit incomplete marker; stored validation remains strict."""
+        return self._value.get(self.Field.GRAPH_COMPLETE) is self.GRAPH_INCOMPLETE
+
+    @property
     def prior_preparation_fingerprint(self):
         """Optional direct preparation input; stored documents still require the field."""
         return self._value.get(self.Field.PREPARATION_FINGERPRINT)
@@ -299,6 +304,18 @@ class RAGDocumentInput:
 
 
     REQUIRED = frozenset((Field.IDENTIFIER, RAGDocument.Field.TITLE, SplitDocument.Field.CONTENT, RAGDocument.Field.METADATA))
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def content(self):
+        return self._value[self.Field.CONTENT]
+
+    @property
+    def identifier(self):
+        return self._value[self.Field.IDENTIFIER]
+
 
     @classmethod
     def create(cls, title, content, metadata, identifier):

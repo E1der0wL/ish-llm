@@ -238,13 +238,13 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
     async def test_snapshot_cache_reduces_reads_and_is_not_authoritative(self):
         await self.add()
         await self.configure(snapshot_cache_max_bytes=100_000)
-        from llm.components.rag.component import read_json
+        from llm.components.rag.corpus_storage import read_json
         reads = []
         def read(path):
             if path.name == "corpus.json":
                 reads.append(path)
             return read_json(path)
-        with patch("llm.components.rag.component.read_json", side_effect=read):
+        with patch("llm.components.rag.corpus_storage.read_json", side_effect=read):
             first = await self.rag.aget_document("manual")
             first["content"] = "caller mutation"
             second = await self.rag.aget_document("manual")
@@ -268,11 +268,11 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
     async def test_snapshot_cache_is_disabled_without_capacity_and_with_small_capacity(self):
         await self.add()
         self.assertNotIn("snapshot_cache_max_bytes", self.component.resolve_config(self.project.data)["values"]["config"])
-        from llm.components.rag.component import read_json
+        from llm.components.rag.corpus_storage import read_json
         for capacity in (None, 1, 0):
             if capacity is not None:
                 await self.configure(snapshot_cache_max_bytes=capacity)
-            with patch("llm.components.rag.component.read_json", wraps=read_json) as read:
+            with patch("llm.components.rag.corpus_storage.read_json", wraps=read_json) as read:
                 await self.rag.aget_document("manual")
                 await self.rag.aget_document("manual")
             self.assertEqual(sum(call.args[0].name == "corpus.json" for call in read.call_args_list), 2)

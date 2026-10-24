@@ -84,7 +84,7 @@ class RAGData(ComponentData):
     def _commit_documents(self, snapshot, prepared):
         project, component = self._current()
         if snapshot.get(RAGDataSnapshot.CONFIGURATION_VERSION) != component._configuration_version:
-            from .component import RAGConflictError
+            from .errors import RAGConflictError
             raise RAGConflictError(RAGData.MESSAGE_RAG_CONFIGURATION_CHANGED_DURING_PREPARATION__RETRY_EXPLICITLY)
         documents = dict(snapshot[RAGCorpus.Field.DOCUMENTS])
         documents.update({document[RAGDocument.Field.ID]: document for document in prepared})
@@ -93,7 +93,7 @@ class RAGData(ComponentData):
 
     def _current_snapshot(self, snapshot):
         """저장 트랜잭션 안에서 수명과 세대를 검사하고 이미 읽은 스냅샷을 재사용한다."""
-        from .component import RAGConflictError
+        from .errors import RAGConflictError
         project, component = self._current()
         current = component.source_version(project)
         if RAGCorpus(snapshot).binding != current[:RAGCorpus.IDENTITY_WIDTH]:

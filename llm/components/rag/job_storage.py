@@ -51,9 +51,21 @@ class JobBatchReceipt:
 
     FIELDS = frozenset((Field.KEY, Field.SIGNATURE, Field.VALUE))
 
+    def __init__(self, value):
+        self._value = value
+
+
     @classmethod
     def create(cls, key, signature, value):
         return {cls.Field.KEY: key, cls.Field.SIGNATURE: signature, cls.Field.VALUE: value}
+
+    @property
+    def value(self):
+        return self._value[self.Field.VALUE]
+
+    @property
+    def signature(self):
+        return self._value[self.Field.SIGNATURE]
 
 
 class JobDocumentBatch:
@@ -63,6 +75,10 @@ class JobDocumentBatch:
     @classmethod
     def signature_payload(cls, source, configuration):
         return {cls.INPUT: source, JobRecord.Field.CONFIGURATION: configuration}
+
+    @classmethod
+    def document(cls, payload, position):
+        return payload[cls.DOCUMENTS][position]
 
 
 class JobStorage:
@@ -127,6 +143,10 @@ class JobStorage:
     LEASE = "worker.lock"
     PREPARED = "prepared.json"
     BATCHES = "batches"
+
+    @classmethod
+    def batch_name(cls, key):
+        return key.removeprefix(cls.BATCHES + cls.CHECKPOINT_SEPARATOR).removesuffix(cls.CHECKPOINT_SUFFIX)
 
     def __init__(self, project, component):
         self.project_id, self.component = project.id, component.name

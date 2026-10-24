@@ -182,7 +182,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
         await self.data.aadd_document(identifier="manual", title="Manual", content="Alice owns Atlas")
 
     async def test_reranked_query_reads_corpus_and_searches_once(self):
-        from llm.components.rag import component as implementation
+        from llm.components.rag import corpus_storage as implementation
         self.component.reranker = SimpleNamespace(rerank=AsyncMock(return_value=RerankResult((RankedDocument(0, 0.9),))))
         for method in (self.data.asearch, self.data.asearch_documents):
             with patch.object(implementation, "read_json", wraps=implementation.read_json) as read, \

@@ -14,4 +14,11 @@ class RAGToolName(StrEnum):
 
 
 class RAGEvidenceIdentity:
+    ABSENT = None
+    INVALID = "RAG identity and generation require a stored UUID"
     PATTERN = re.compile(r"[a-f0-9]{32}")
+
+    @classmethod
+    def validate(cls, value):
+        if not isinstance(value, str) or cls.PATTERN.fullmatch(value) is cls.ABSENT:
+            raise ValueError(cls.INVALID)

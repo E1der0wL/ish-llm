@@ -1,4 +1,5 @@
 """Explicit Job retention must preserve its original input when publication proof is lost."""
+from llm.components.rag.corpus_storage import CorpusStorage
 
 from llm.providers.operations import LiteLLMOperations
 
@@ -28,7 +29,7 @@ class RAGJobRetentionTests(unittest.IsolatedAsyncioTestCase):
         cleanup = await self.rag.ajob_cleanup_plan()
         self.assertTrue(plan.can_delete)
         root = self.project.paths.root / 'rag'
-        path = self.corpus if name == RAGComponent.CORPUS_FILE else root / name
+        path = self.corpus if name == CorpusStorage.CORPUS_FILE else root / name
         path.unlink()
         before = tree_snapshot(root)
         rejected = False
@@ -45,13 +46,13 @@ class RAGJobRetentionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.effects.read_text(), 'called\n')
 
     async def test_job_original_is_preserved_when_active_pointer_is_missing(self):
-        await self.refuse_lost_publication(RAGComponent.ACTIVE_FILE)
+        await self.refuse_lost_publication(CorpusStorage.ACTIVE_FILE)
 
     async def test_job_original_is_preserved_when_identity_is_missing(self):
-        await self.refuse_lost_publication(RAGComponent.IDENTITY_FILE)
+        await self.refuse_lost_publication(CorpusStorage.IDENTITY_FILE)
 
     async def test_job_original_is_preserved_when_published_corpus_is_missing(self):
-        await self.refuse_lost_publication(RAGComponent.CORPUS_FILE)
+        await self.refuse_lost_publication(CorpusStorage.CORPUS_FILE)
 
     async def second(self):
         job = await self.rag.aenqueue_document(identifier='second', title='Second', content='New independent source')

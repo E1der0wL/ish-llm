@@ -9,6 +9,9 @@ from .chunk_records import RAGChunk, RAGContent
 
 
 class BatchCheckpointName:
+    DOCUMENT_POSITION_GROUP = 1
+    KIND_GROUP = 2
+    OFFSET_GROUP = 3
     EMBEDDING = "embedding"
     GRAPH = "graph"
     PATTERN = r"(?:d(0|[1-9][0-9]*)_)?(embedding|graph)_(0|[1-9][0-9]*)"
@@ -28,6 +31,18 @@ class BatchCheckpointName:
     @classmethod
     def parse(cls, name):
         return re.fullmatch(cls.PATTERN, name)
+
+    @classmethod
+    def document_position(cls, batch):
+        return batch[cls.DOCUMENT_POSITION_GROUP]
+
+    @classmethod
+    def kind(cls, batch):
+        return batch[cls.KIND_GROUP]
+
+    @classmethod
+    def offset(cls, batch):
+        return batch[cls.OFFSET_GROUP]
 
     @classmethod
     def embedding(cls, position):
@@ -98,6 +113,10 @@ class EmbeddingCheckpoint:
         return self._value[self.Field.CHUNK]
 
     @property
+    def chunk_size(self):
+        return self._value[self.Field.CHUNK_SIZE]
+
+    @property
     def vector(self):
         return self._value.get(self.Field.VECTOR)
 
@@ -157,6 +176,10 @@ class EmbeddingEvidence:
     @property
     def profile(self):
         return EmbeddingProfile(self._value[self.Field.PROFILE])
+
+    @property
+    def profile_record(self):
+        return self._value[self.Field.PROFILE]
 
     @property
     def optional_dimensions(self):

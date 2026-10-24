@@ -323,7 +323,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
             atomic_json(path, value)
             if path.name == "active.json":
                 raise OSError("directory sync failed after replace")
-        with patch("llm.components.rag.component.atomic_json", side_effect=uncertain_write):
+        with patch("llm.components.rag.corpus_storage.atomic_json", side_effect=uncertain_write):
             with self.assertRaisesRegex(OSError, "directory sync"):
                 await self.rag.aupdate_document("doc", content="Seoul deployment")
         self.assertEqual((await self.rag.aget_document("doc"))["revision"], 1)

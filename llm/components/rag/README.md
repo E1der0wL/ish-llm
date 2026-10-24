@@ -39,6 +39,12 @@ Component의 기존 검증 콜백은 정규 Document Owner에 위임합니다. �
 실제 Reader는 하나이며 서비스/저장소의 기존 콜백 확장 경계는 유지합니다.
 작업 스냅샷의 설정·원본 버전 대조와 문서 CAS 의미는 기존과 같습니다.
 
+파일 경로와 실제 읽기·공개·정리는 `CorpusStorage`, 기록 의미·검증·Projection은 각 Record
+Owner가 담당합니다. Component의 기존 공개 메서드와 선택 구현의 `_build`/검증 콜백은
+유지합니다. 초기화·백업·복제의 Project 수명 순서와 workspace transaction 경계도 같습니다.
+`GraphReadiness`는 명시적인 불완전 표시를 두 조회 경로에서 공유하고, `CombinedResult`는
+기존 통합 응답 필드를 구성합니다. 이는 저장 Reader의 필수 그래프 증거를 완화하지 않습니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |
@@ -46,10 +52,13 @@ Component의 기존 검증 콜백은 정규 Document Owner에 위임합니다. �
 | [__init__.py](__init__.py) | RAGComponent/RAGConflictError와 EmbeddingModel/RerankModel/TripleExtractor의 공개 import입니다. |
 | [preparation.py](preparation.py) | 임베딩 검증·쿼리 캐시, 준비 fingerprint, 문서·추출 준비/재사용 및 관찰을 소유합니다. 공개·삭제·Job 실행 허가는 변경하지 않습니다. |
 | [configuration.py](configuration.py) | 명시 설정의 Schema·배치·해석·검증, 커스텀 모델의 작업별 바인딩, 설정 조회·revision Projection을 소유합니다. |
-| [component.py](component.py) | 설정 검증과 문서·색인 generation의 원자적 공개·복제를 담당합니다. |
+| [component.py](component.py) | Project 수명·선택된 검증/확장 콜백과 모델 준비·검색·저장 Owner의 조율을 담당합니다. |
+| [corpus_storage.py](corpus_storage.py) | 코퍼스 파일 경로·읽기·색인 공개·캐시 증거·명시적인 세대 정리와 백업 검사를 소유합니다. |
+| [checkpoint_source.py](checkpoint_source.py) | 단건/배치 Checkpoint의 문서 위치와 원본 입력 청크 대조를 소유합니다. |
+| [errors.py](errors.py) | 준비/조회/공개의 공통 RAGConflictError 타입을 선언합니다. |
 | [document_views.py](document_views.py) | 공개 문서의 내부 증거 제외, 문서 변경 CAS 인자와 작업용 설정/원본 스냅샷 Projection입니다. |
 | [corpus_records.py](corpus_records.py) | 코퍼스 필드·버전·엄격한 문서 검증과 메모리 snapshot Projection을 소유합니다. |
-| [publication_records.py](publication_records.py) | identity·active 포인터·공개 manifest·카탈로그의 정규 필드, 무결성 검증과 Writer를 소유합니다. 파일 효과는 수행하지 않습니다. |
+| [publication_records.py](publication_records.py) | identity·active 포인터·공개 manifest·카탈로그·세대 정리 계획의 정규 필드, 무결성 검증과 Writer를 소유합니다. 파일 효과는 수행하지 않습니다. |
 | [data.py](data.py) | Project 수명·잠금 경계를 유지하는 문서 CRUD·검색·Job 공개 API입니다. |
 | [document_records.py](document_records.py) | 원본 입력·준비 문서·revision/CAS의 정규 필드와 엄격한 Reader, 추출 manifest Writer를 소유합니다. |
 | [chunk_records.py](chunk_records.py) | 분할 문서·섹션·청크의 형식·순서/ID·내용 digest와 원본/섹션 연결 검증을 소유합니다. |
@@ -70,7 +79,7 @@ Component의 기존 검증 콜백은 정규 Document Owner에 위임합니다. �
 | [files.py](files.py) | 세대 구성 시 파일 복사/reflink 등 Linux 파일 처리를 돕습니다. |
 | [indexing.py](indexing.py) | 문서 벡터를 Chroma 색인으로 구성합니다. |
 | [graph_indexing.py](graph_indexing.py) | Kuzu 엔티티·관계·출처 색인을 구성합니다. |
-| [retrieval_records.py](retrieval_records.py) | 검색 결과·출처·페이지 커서·목록 응답의 정규 필드와 Projection을 소유합니다. |
+| [retrieval_records.py](retrieval_records.py) | 검색 결과·출처·그래프 완전성·통합 응답·페이지 커서·목록 응답의 정규 필드와 Projection을 소유합니다. |
 | [search.py](search.py) | BM25/vector/hybrid 검색, RRF 결합과 섹션 확장입니다. |
 | [graph_search.py](graph_search.py) | 검색 문서·엔티티에 연결된 그래프 증거를 탐색합니다. |
 | [tools.py](tools.py) | rag_search와 rag_list_documents Tool의 schema와 handler입니다. |
@@ -275,7 +284,7 @@ identity가 있는 worker.lock을 함께 저장한다. 정확한 Job 집합·리
 유효한 Job 메타데이터 조회와 안전성이 확인된 명시 삭제는 기존 진단·삭제 계약을 따른다.
 
 Job은 생성 시 미취소 False·미포기 None·빈 실패 이력 []·진행/관찰 객체를 명시한다.
-다섯 상태값은 공개 `RAGJobStatus`가 선언하며 JobStorage의 허용 집합·전이 표와 RAGJobs,
+다섯 상태값은 공개 `RAGJobStatus`가 선언하며 JobRecord의 허용 집합·전이 표와 RAGJobs,
 Data·Hub 소비자는 이 선언을 참조한다. 저장 문자열과 전이 의미는 그대로이며 공개 상태값은
 상태 변경·재개·삭제 권한을 부여하지 않는다. JobStorage는 필수 증거와 원자적 저장을 소유한다.
 필드 소실을 이 초기 상태로 복원하지 않는다. 실행한 Job은 시작 시각·worker PID·설정 증거,
@@ -311,7 +320,7 @@ Component는 검증된 Job 입력을 저장된 chunk_size로 분할해 문서 �
 구분한다. 실행 시도 없는 준비 기록은 거부한다.
 임베딩 배치 영수증의 fingerprint/text_hash/vector 필수 필드·signature·유효 벡터는 ingestion owner가
 생성/재사용과 JobStorage Reader/Writer/backup에서 함께 검증한다. 단건/배치 문서 위치도
-RAGComponent가 확인하며 손상 payload를 비어 있는 새 작업으로 복원하지 않는다.
+RAGComponent의 기존 콜백을 통해 RAGCheckpointSource가 확인하며 손상 payload를 비어 있는 새 작업으로 복원하지 않는다.
 저장된 graph 배치는 extraction owner가 정규 entity/relation의 정확한 필드·ID·참조·필수 metadata를
 검증한다. 저장 metadata 소실은 모델 응답용 기본값으로 복원하지 않는다. 준비 재사용은 이어서 실제
 chunk의 원문 인용과 기존 signature/configuration을 검증한다.
@@ -334,7 +343,7 @@ chunk의 원문 인용과 기존 signature/configuration을 검증한다.
 `ingestion_records.py`의 EmbeddingCheckpoint는 단일 청크 영수증의 필드·서명·검증을,
 EmbeddingProfile/EmbeddingEvidence는 저장된 모델·차원·벡터 조회를 소유한다.
 BatchCheckpointName은 임베딩/그래프 배치 이름을 소유하며, 실제 원본 청크와의 대조는
-Component가 계속 수행한다. 누락된 영수증 필드는 채우지 않는다.
+RAGCheckpointSource가 수행한다. Component와 JobStorage는 같은 검증 콜백을 사용하며 누락된 영수증 필드는 채우지 않는다.
 IngestionObservation은 통계·진행 Projection을 소유한다. 메타데이터만 변경하는 준비 결과는
 기존의 별도 필드 집합을 유지하며 일반 임베딩 통계를 기본값으로 추가하지 않는다.
 

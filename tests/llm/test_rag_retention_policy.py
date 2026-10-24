@@ -1,4 +1,5 @@
 """Applications select retired generations; publication and inspection never delete them."""
+from llm.components.rag.corpus_storage import CorpusStorage
 
 import asyncio
 import json
@@ -23,10 +24,10 @@ class RAGRetentionPolicyTests(unittest.IsolatedAsyncioTestCase):
 
     def active(self):
         root = self.project.paths.root / 'rag'
-        return json.loads((root / RAGComponent.ACTIVE_FILE).read_text())['generation']
+        return json.loads((root / CorpusStorage.ACTIVE_FILE).read_text())['generation']
 
     def generation(self, identifier):
-        return self.project.paths.root / 'rag' / RAGComponent.GENERATIONS_DIRECTORY / identifier
+        return self.project.paths.root / 'rag' / CorpusStorage.GENERATIONS_DIRECTORY / identifier
 
     async def publish_twice(self):
         await self.add(identifier='original')
@@ -70,7 +71,7 @@ class RAGRetentionPolicyTests(unittest.IsolatedAsyncioTestCase):
             await self.rag.acompact([old], expected_version=plan['version'])
         self.assertEqual(tree_snapshot(root), before)
         plan = await self.rag.acompaction_plan()
-        artifact = self.generation(old) / RAGComponent.CORPUS_FILE
+        artifact = self.generation(old) / CorpusStorage.CORPUS_FILE
         artifact.write_bytes(artifact.read_bytes() + b'\n')
         before = tree_snapshot(root)
         with self.assertRaisesRegex(ValueError, 'conflict'):
@@ -95,7 +96,7 @@ class RAGRetentionPolicyTests(unittest.IsolatedAsyncioTestCase):
     async def test_corrupt_retired_source_refuses_inspection_and_deletion_in_place(self):
         old, active = await self.publish_twice()
         plan = await self.rag.acompaction_plan()
-        path = self.generation(old) / RAGComponent.CORPUS_FILE
+        path = self.generation(old) / CorpusStorage.CORPUS_FILE
         path.write_bytes(b'{corrupt retired source')
         root = self.project.paths.root / 'rag'
         before = tree_snapshot(root)
@@ -112,7 +113,7 @@ class RAGRetentionPolicyTests(unittest.IsolatedAsyncioTestCase):
         plan = await self.rag.acompaction_plan()
         root = self.project.paths.root / 'rag'
         before = tree_snapshot(root)
-        from llm.components.rag import component as owner
+        from llm.components.rag import corpus_storage as owner
         remove = owner.remove_named_tree
         calls = []
         def fail_after_remove(*args):
@@ -168,7 +169,7 @@ class RAGRetentionPolicyTests(unittest.IsolatedAsyncioTestCase):
         active = self.active()
         preserved = tree_snapshot(self.generation(active))
         plan = await self.rag.acompaction_plan()
-        from llm.components.rag import component as owner
+        from llm.components.rag import corpus_storage as owner
         remove = owner.remove_named_tree
         entered, finish = threading.Event(), threading.Event()
         def paused(*args):
@@ -224,7 +225,7 @@ class RAGRetentionPolicyTests(unittest.IsolatedAsyncioTestCase):
             from llm.providers.operations import LiteLLMOperations
             from llm.llm import LargeLanguageModel
             from llm.components.rag import RAGComponent, EmbeddingModel
-            from llm.components.rag import component as owner
+            from llm.components.rag import corpus_storage as owner
             from llm.services.infrastructure import transactions
             from llm.services.infrastructure.storage import tree_snapshot
             from tests.llm.configuration_fixtures import rag_project

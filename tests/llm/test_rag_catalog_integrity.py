@@ -1,4 +1,5 @@
 """RAG publication evidence protects catalog reads, source preservation and recovery."""
+from llm.components.rag.corpus_storage import CorpusStorage
 from llm.components.rag.publication_records import CorpusCatalog
 
 from llm.providers.operations import LiteLLMOperations
@@ -16,7 +17,7 @@ from unittest.mock import patch
 from tests.llm import test_rag_storage as storage
 from tests.llm import test_rag_corpus_integrity as corpus_tests
 from llm.components.rag import RAGComponent, EmbeddingModel
-from llm.components.rag import component as owner
+from llm.components.rag import corpus_storage as owner
 from llm.services.infrastructure.storage import revision_token
 from llm.llm import LargeLanguageModel
 from tests.llm.test_rag_components import Extractor
@@ -55,8 +56,8 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         await corpus_tests.CorpusContractTests.asyncSetUp(self)
         self.rag_root = self.project.paths.root / 'rag'
-        self.control = self.rag_root / RAGComponent.CONTROL_FILE
-        self.catalog = self.corpus.parent / RAGComponent.CATALOG_FILE
+        self.control = self.rag_root / CorpusStorage.CONTROL_FILE
+        self.catalog = self.corpus.parent / CorpusStorage.CATALOG_FILE
 
     snapshot_files = storage.RAGStorageTests.snapshot_files
 
@@ -125,8 +126,8 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
                 self.control.write_bytes(proof)
 
     async def test_replayed_pointer_and_valid_but_replaced_identity_cannot_delete_newest_source(self):
-        active = self.rag_root / RAGComponent.ACTIVE_FILE
-        identity = self.rag_root / RAGComponent.IDENTITY_FILE
+        active = self.rag_root / CorpusStorage.ACTIVE_FILE
+        identity = self.rag_root / CorpusStorage.IDENTITY_FILE
         old_pointer = active.read_bytes()
         old_generation = self.corpus.parent
         await self.rag.aupdate_document(self.identifier, title='Newest')
@@ -148,7 +149,7 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
         outside = self.root / 'outside.json'
         outside.write_text('{}')
         for path in (self.control, self.catalog, self.corpus,
-                     self.rag_root / RAGComponent.IDENTITY_FILE, self.rag_root / RAGComponent.ACTIVE_FILE):
+                     self.rag_root / CorpusStorage.IDENTITY_FILE, self.rag_root / CorpusStorage.ACTIVE_FILE):
             original = path.read_bytes()
             for kind in ('directory', 'link', 'fifo'):
                 with self.subTest(path=path.name, kind=kind):
@@ -188,7 +189,7 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
     async def test_catalog_reads_no_corpus_and_still_detects_changed_publication(self):
         read = owner.read_json
         def forbid_corpus(path):
-            if path.name == RAGComponent.CORPUS_FILE:
+            if path.name == CorpusStorage.CORPUS_FILE:
                 raise AssertionError('catalog parsed corpus')
             return read(path)
         with patch.object(owner, 'read_json', side_effect=forbid_corpus):
@@ -202,8 +203,8 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
     async def test_publication_failure_rolls_back_pointer_manifest_and_new_generation(self):
         write = owner.atomic_json
         before = self.snapshot_files()
-        for boundary in (RAGComponent.CATALOG_FILE, RAGComponent.CORPUS_FILE,
-                         RAGComponent.ACTIVE_FILE, RAGComponent.CONTROL_FILE):
+        for boundary in (CorpusStorage.CATALOG_FILE, CorpusStorage.CORPUS_FILE,
+                         CorpusStorage.ACTIVE_FILE, CorpusStorage.CONTROL_FILE):
             with self.subTest(boundary=boundary):
                 def fail(path, value):
                     write(path, value)
@@ -239,7 +240,7 @@ class PublicationCrashTests(unittest.IsolatedAsyncioTestCase):
             from llm.providers.operations import LiteLLMOperations
             from unittest.mock import patch
             from llm.llm import LargeLanguageModel
-            from llm.components.rag import RAGComponent, EmbeddingModel, component as owner
+            from llm.components.rag import RAGComponent, EmbeddingModel, corpus_storage as owner
             from tests.llm.configuration_fixtures import rag_project
             from tests.llm.test_rag_components import Extractor, fake_embedding
             root, boundary = Path(sys.argv[1]), sys.argv[2]
@@ -277,8 +278,8 @@ class PublicationCrashTests(unittest.IsolatedAsyncioTestCase):
                     crash('committed')
             asyncio.run(main())
         ''')
-        for boundary in (RAGComponent.CATALOG_FILE, RAGComponent.CORPUS_FILE,
-                         RAGComponent.ACTIVE_FILE, RAGComponent.CONTROL_FILE, 'committed'):
+        for boundary in (CorpusStorage.CATALOG_FILE, CorpusStorage.CORPUS_FILE,
+                         CorpusStorage.ACTIVE_FILE, CorpusStorage.CONTROL_FILE, 'committed'):
             with self.subTest(boundary=boundary), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 child = subprocess.run([sys.executable, '-c', code, directory, boundary],
@@ -311,6 +312,6 @@ class PublicationCrashTests(unittest.IsolatedAsyncioTestCase):
                         plan = await rag.acompaction_plan()
                         await rag.acompact([row["generation"] for row in plan["candidates"]],
                                           expected_version=plan["version"])
-                        self.assertEqual(len(list((source / RAGComponent.GENERATIONS_DIRECTORY).iterdir())), 1)
+                        self.assertEqual(len(list((source / CorpusStorage.GENERATIONS_DIRECTORY).iterdir())), 1)
                     await project.abackup(root / 'backup')
                     self.assertEqual((root / 'effects').read_text(), 'called\n')

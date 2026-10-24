@@ -2,7 +2,7 @@
 
 import re
 from llm.components.base import validate_name
-from llm.services.infrastructure.storage import revision_token
+from llm.services.infrastructure.storage import revision_token, SnapshotFile
 from .corpus_records import RAGCorpus
 from .document_records import RAGDocument
 
@@ -152,3 +152,48 @@ class CorpusCatalog:
         if revision_token(rows) != CorpusControl(control).catalog_revision:
             raise ValueError(cls.CHANGED)
         return rows
+
+
+class GenerationRow:
+    GENERATION = RAGCorpus.Field.GENERATION
+    BYTES = SnapshotFile.BYTES
+    REVISION = "revision"
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def generation(self):
+        return self._value[self.GENERATION]
+
+    @classmethod
+    def create(cls, generation, files):
+        return {cls.GENERATION: generation, cls.BYTES: sum(item[SnapshotFile.BYTES] for item in files.values()),
+                cls.REVISION: revision_token(files)}
+
+
+class GenerationCompactionPlan:
+    IDENTITY = RAGCorpus.Field.IDENTITY
+    ACTIVE_GENERATION = "active_generation"
+    CANDIDATES = "candidates"
+    PROTECTED = "protected"
+    VERSION = "version"
+
+    def __init__(self, value):
+        self._value = value
+
+    @classmethod
+    def create(cls, identity, active_generation, candidates, protected):
+        result = {cls.IDENTITY: identity, cls.ACTIVE_GENERATION: active_generation,
+                  cls.CANDIDATES: candidates, cls.PROTECTED: protected}
+        return {**result, cls.VERSION: revision_token(result)}
+
+    @property
+    def evidence(self):
+        current = dict(self._value)
+        current.pop(self.VERSION)
+        return current
+
+    @property
+    def eligible(self):
+        return {GenerationRow(row).generation for row in self._value[self.CANDIDATES]}
