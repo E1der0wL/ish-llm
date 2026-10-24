@@ -34,7 +34,10 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | 공통 Component와 Registry의 공개 import입니다. 개별 종류는 하위 패키지에서 가져옵니다. |
-| [base.py](base.py) | 이름·디렉터리·JSON 직렬화·공통 CRUD·초기화·복제 계약입니다. |
+| [base.py](base.py) | ProjectComponent 프로토콜과 선택 구현의 검증·설정·수명·복제 콜백을 조율합니다. |
+| [storage.py](storage.py) | 공통 정의/사용량 파일의 경로·목록·무결성·원자적 쓰기/삭제를 소유합니다. 실행 허가와 Component 업무 정책은 해석하지 않습니다. |
+| [record_manifest.py](record_manifest.py) | 정의 목록의 정규 필드·버전·소유권/해시 검증·Writer와 열린 JSON 레코드 codec을 소유합니다. |
+| [naming.py](naming.py) | Component 디렉터리/기록 식별자의 정규 선언과 단일 검증을 소유합니다. |
 | [usage.py](usage.py) | Component 모델 영수증의 현재 필드·예약 불변식·상태·manifest 형식을 선언합니다. [사용량 계약](../../docs/llm/model-usage-contract.md)을 따릅니다. |
 | [registry.py](registry.py) | 이름·디렉터리 충돌을 검사하고 선택한 capability를 해석합니다. |
 | [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
@@ -133,6 +136,13 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 재선택은 남은 자료를 검증합니다. 백업은 비활성 상태로 보존된 owner의 scope와 validator도
 호출하며 미등록 owner를 생략하지 않습니다. 삭제·clone·backup은 Project 서비스의 수명 검사를
 통과해야 합니다.
+
+`ComponentStorage`는 선택 구현의 `_record_path`, `_record_files`, `_decode_record`,
+`validate_record`와 사용량 조회 콜백을 유지합니다. Component의 기존 layout 속성은 정규
+저장/manifest 선언을 참조하여 FileComponent 등 선택 구현의 경로 계약을 보존합니다.
+`ModelUsageRecord.require_reservation()`과 `validate_update()`가 신규/기존 영수증의 허용
+상태를 검사합니다. 공통 저장은 예산이나 실행 허가를 계산하지 않습니다. 기존 Project
+디렉터리·저장 형식·workspace transaction·공개 API는 그대로이며 이중 Reader는 없습니다.
 
 공통 JSON 저장은 `records.manifest.json`으로 전체 기록의 존재와 원본 바이트를 검증합니다.
 기록·목록·디렉터리 소실이나 미선언 자료를 빈 상태로 읽거나 다시 만들지 않습니다.

@@ -114,7 +114,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
                 await self.memory.aupdate("m", changes, expected_generation=(await self.memory.aload("m", include_deleted=True))["generation"], expected_revision=1)
         with self.assertRaises(ValueError):
             await self.memory.acreate({"content": "escape"}, identifier="../outside")
-        with patch("llm.components.base.atomic_json", side_effect=OSError("disk")):
+        with patch("llm.components.storage.atomic_json", side_effect=OSError("disk")):
             with self.assertRaises(OSError):
                 await self.memory.aupdate("m", {"content": "new"}, expected_generation=(await self.memory.aload("m", include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual((await self.memory.aload("m"))["revision"], 1)

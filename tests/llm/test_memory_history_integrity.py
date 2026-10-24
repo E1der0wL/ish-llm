@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from llm.llm import LargeLanguageModel
 from llm.components.memory import MemoryComponent
-from llm.components import base
+from llm.components import storage as base
 
 
 class HistoryContractTests(unittest.IsolatedAsyncioTestCase):

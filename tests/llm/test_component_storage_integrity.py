@@ -195,7 +195,7 @@ class ComponentReceiptTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_failed_completion_manifest_write_keeps_reservation_and_quota(self):
         await self.create()
-        from llm.components import base
+        from llm.components import storage as base
         original = base.atomic_json
         terminal = False
         def fail(path, value):
@@ -248,7 +248,7 @@ class ComponentReceiptTests(unittest.IsolatedAsyncioTestCase):
         code = textwrap.dedent('''
             import asyncio, os, sys
             from pathlib import Path
-            from llm.components import base
+            from llm.components import storage as base
             from llm.components.base import Component
             from llm.llm import LargeLanguageModel
             from llm.providers.observations import ModelCall, observed_call

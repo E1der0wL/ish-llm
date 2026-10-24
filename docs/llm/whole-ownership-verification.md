@@ -5462,3 +5462,65 @@ Python 3.12.14/Clang·고정 의존성·Host d833790·namespace, Hub는 X11 환�
 최종 전수 inventory는 파일 545·미검토 257(llm 80/hub 177)·미분류 16,580·미완 계약 3·
 issues 0이다. RAG Component·새 저장/Checkpoint/응답 Owner의 구현부 리터럴 후보는 0이며,
 Data의 기존 `-> None` 반환 타입 표기 두 개만 정확한 기술적 분류를 유지한다.
+
+
+## llm 공통 Component 저장·목록·식별자 Owner — Level 1·2
+
+기준 6df7247. ComponentRecordManifest가 정의 목록의 필드·버전·소유권/해시 검증과
+empty/record/remove Writer를, ComponentRecordEncoding이 기존 열린 JSON 직렬화를
+소유한다. ComponentName.validate는 기존 식별자 검증의 유일한 구현이다. ComponentStorage는
+공통 정의/사용량 파일 효과·목록/원본 검증을 소유하고 Component는 선택된 구현의 검증·
+설정·수명·복제 콜백을 조율한다. 기존 layout 속성은 정규 Owner 선언을 참조하며 FileComponent
+등의 선택된 `_record_path`/`_record_files`·decode/validate·사용량 조회 확장 지점을 유지한다.
+
+사용량의 신규 예약 조건은 ModelUsageRecord.require_reservation으로 옮겨 상태 의미를
+기록 Owner에 모았다. 기존 validate_update와 함께 처음에는 started, 이후에는 기존 예약의
+불변 필드와 종료 증거를 요구한다. 저장소는 Component 업무 정책·예산·실행 허가를 계산하지
+않는다. 원래 디렉터리/저장 형식·ProjectConfig 원본·transaction과 실제 파일 효과 순서,
+비활성 저장 선언·필수 manifest/영수증·원본 손상 거부를 보존한다. 새 기본값·재시도·
+허가나 레거시 Reader를 추가하지 않았다.
+
+원래 정의/사용량 원자적 쓰기의 실패 및 subprocess 중단 주입 대상을 실제 storage 모듈로
+옮겼다. Memory 원본·Data 격리·Vision 삭제 증거의 패치도 실제 호출 관계로 확인했다.
+제품 시험 6개 파일은 그 정확한 패치 경로만 정규화하면 원래 전체 AST가 같으며 독립
+원본 비교·효과 횟수·77 중단 코드와 모든 Assertion을 보존했다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/component-manifest-draft/proof.py`
+(한 셸 명령) exit 0. 실제 위임/Reader/Writer를 확장한 기존 Base 전체 53개·Usage 13개
+함수 동등, 원래 엄격한 manifest 검증 164개·식별자 24개 변형, Writer/누락 키 5개 및
+신규 사용량 예약 상태 3개를 검증했다. 비교 보조기의 중첩 statement-list 처리를 보정했고
+원래 로그를 보존했다. 제품 코드 수정으로 검증 범위를 축소하지 않았다.
+
+- `whole-component-storage-l1-01`: discovered/started/pass 56/56/56, exit 0, 26.592279초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-component-storage-l1-01/llm.json --modules tests.llm.test_component_record_integrity tests.llm.test_component_storage_integrity tests.llm.test_memory_history_integrity tests.llm.test_data_quarantine`. source `d3181279f3662aaef731ff27f16d01b7a44e616b28d74d52e3e7d6eef73d6e41`, input `025aa3df462eccace03862726062bbd3c1d5af5934086ee9ad43b91e7f1b48a9`.
+
+- `whole-component-storage-l2-01`: discovered/started/pass 192/192/192, exit 0, 85.193254초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-component-storage-l2-01/llm.json --modules tests.llm.test_components tests.llm.test_definition_components tests.llm.test_component_dependencies tests.llm.test_project_component_settings tests.llm.test_memory_component tests.llm.test_data_component tests.llm.test_skill_packages tests.llm.test_vision tests.llm.test_rag_components tests.llm.test_usage_ownership tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `d3181279f3662aaef731ff27f16d01b7a44e616b28d74d52e3e7d6eef73d6e41`, input `025aa3df462eccace03862726062bbd3c1d5af5934086ee9ad43b91e7f1b48a9`.
+
+- `whole-component-storage-hub-01`: discovered/started/pass 21/21/21, exit 0, 141.537612초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-component-storage-hub-01/hub.json --modules tests.hub.test_components tests.hub.test_component_managers tests.hub.test_component_catalog tests.hub.test_resource_tools tests.hub.test_usage_definitions_system`. source `d3181279f3662aaef731ff27f16d01b7a44e616b28d74d52e3e7d6eef73d6e41`, input `025aa3df462eccace03862726062bbd3c1d5af5934086ee9ad43b91e7f1b48a9`.
+
+모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, discovered/started/pass 일치.
+각 실행의 source/input 전후 및 실행 간 동일, L1/L2 ID 중복 없음. 제품·테스트·Fixture·
+전체 발견 목록·고정 의존성·Python 3.12.14/Clang·Host d833790·namespace/X11을 기록했다.
+공통 정의/사용량 Reader의 실제 파일 손상·소실·원본 보존·예약/완료 경계 중단, 직접
+Memory/Data/Skill/Vision/RAG·Hub 소비자와 승인·예산·효과·Checkpoint·수명 안전성을 포함한다.
+
+변경은 기존 공통 저장 계약의 Owner 이동이며 파일 효과·호출 순서·선택 콜백의 동등성을
+확인했다. 직접 소비자와 필수 안전성은 위 Level 2로 검증했고, 다음 관련 공통 Component
+정리와 묶은 Level 3 게이트에서 전체 회귀를 실행한다. 병행하는 게이트 36은 RAG의 고정
+6df7247만 검증하므로 이 소단계의 전체 회귀 증거로 승계하지 않는다. llm 전수 완료와
+후속 hub 작업 범위는 그대로 유지한다.
+
+공통 Component 소단계 최종 보조 검사: 정적 reviewed 111·new/stale/outstanding/review_errors 0,
+문서 168개·fence 183개·링크 1,209개·anchor 37개 오류 0. 최종 계약/정적 감사
+16 pass / 3.332초 / exit 0. R3 Mutation exit 0, 실제 효과 Assertion으로 의도된
+한도 누락 2개를 검출했다. 새로운 S4 한 건은 원래 manifest의 정확한 int/현재 버전 비교가
+Owner로 이동한 항목이며 코드·계약 Markdown·원래 손상/중단 시험을 해시로 연결했다.
+기존 정적 dependency 15건을 재검토했다.
+
+보고 helper가 위치 이동 후의 Usage 감사 ID를 직접 재사용하려던 오류는 기존 소스 해시와
+정확한 symbol/role/literal/occurrence를 대조해 해결했다. 갱신 도중 최초 감사는 2 failure였고,
+새 S4 항목의 계약 Markdown 해시 누락도 정적 검사에서 거부되었다. 기록을 보강한 뒤
+위 최종 검사를 통과했으며 초기 실패 로그와 결과를 보존했다. 제품 시험/Assertion이나
+기존 Nullable 분류를 완화하지 않았다. 파일 547·미검토 256(llm 79/hub 177)·미분류
+16,486·미완 계약 3·issues 0. Base/Storage의 33개 잔여 후보는 각각 식별한 Python 반환
+타입·Protocol stub·가변 tuple 타입 표기이며 런타임 계약 리터럴은 남기지 않았다.

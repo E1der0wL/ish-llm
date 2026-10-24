@@ -204,7 +204,7 @@ class ComponentRecordIntegrityTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(self.snapshot(), before)
 
     async def test_manifest_write_failure_rolls_back_creation_update_and_deletion(self):
-        from llm.components import base
+        from llm.components import storage as base
         for operation in ('create', 'save', 'delete'):
             with self.subTest(operation=operation):
                 await self.create()
@@ -230,7 +230,7 @@ class ComponentRecordIntegrityTests(unittest.IsolatedAsyncioTestCase):
         code = textwrap.dedent('''
             import asyncio, os, sys
             from pathlib import Path
-            from llm.components import base
+            from llm.components import storage as base
             from llm.components.base import Component
             from llm.services.infrastructure import storage
             from llm.llm import LargeLanguageModel

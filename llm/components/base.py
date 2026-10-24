@@ -7,25 +7,19 @@ from llm.core.history_references import HistoryReferenceRecord
 from llm.core.configuration import ConfigurationSource
 
 from copy import deepcopy
-import hashlib
-import json
-import re
 from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
-from llm.core.models import Project, new_id
-from llm.core.json_data import JsonObject
-from llm.core.paths import ProjectPaths
+from llm.core.models import Project
 from .naming import ComponentName
-from llm.services.infrastructure.storage import atomic_json, remove_named_tree
+from .record_manifest import ComponentRecordManifest, ComponentRecordEncoding
+from .storage import ComponentStorage
 
 
 def validate_name(value: str) -> str:
     """컴포넌트 경로와 레코드 ID로 사용할 단일 식별자를 검증한다."""
-    if not isinstance(value, str) or not re.fullmatch(ComponentName.PATTERN, value):
-        raise ValueError(ComponentName.INVALID)
-    return value
+    return ComponentName.validate(value)
 
 
 class ProjectComponent(Protocol):
@@ -34,15 +28,19 @@ class ProjectComponent(Protocol):
 
     def initialize(self, project: Project) -> None: ...
     def get_config(self, project: Project) -> dict: ...
-    def create(self, project: Project, data: dict, *, identifier: Optional[str] = None) -> str: ...
+    def create(
+        self, project: Project, data: dict, *, identifier: Optional[str] = ComponentStorage.AUTO_IDENTIFIER
+    ) -> str: ...
     def load(self, project: Project, identifier: str) -> dict: ...
     def list(self, project: Project) -> dict[str, dict]: ...
     def save(self, project: Project, identifier: str, data: dict) -> None: ...
     def update(self, project: Project, identifier: str, changes: dict) -> dict: ...
     def delete(self, project: Project, identifier: str) -> None: ...
     def delete_directory(self, project: Project) -> None: ...
+
     capabilities: tuple[str, ...]
     required_components: tuple[str, ...]
+
     def resolve(self, project: Project, capability: str) -> Any: ...
     def clone(self, source: Project, destination: Project) -> None: ...
     def backup_scope(self, project: Project): ...
@@ -61,9 +59,12 @@ class Component:
 
     name: str
     directory: str
-    SCHEMA_VERSION = 1
-    RECORDS_DIRECTORY = "records"
-    RECORDS_MANIFEST = "records.manifest.json"
+    SCHEMA_VERSION = ComponentRecordManifest.SCHEMA_VERSION
+    RECORDS_DIRECTORY = ComponentStorage.RECORDS_DIRECTORY
+    RECORDS_MANIFEST = ComponentStorage.RECORDS_MANIFEST
+    NO_CONFIG_ERROR = None
+    INVALID_CONFIGURATION = "Invalid {name} configuration: {message}"
+    UNSUPPORTED_CAPABILITY = "Unsupported component capability"
     capabilities: tuple[str, ...] = ()
     # 영속 도메인의 정확한 identity 의존성이다. runtime capability와 별개다.
     required_components: tuple[str, ...] = ()
@@ -81,50 +82,42 @@ class Component:
         self.model_usage(project)
 
     def root(self, project: Project) -> Path:
-        directory = validate_name(self.directory)
-        if directory.lower() in ProjectPaths.CORE_DIRECTORIES:
-            raise ValueError("Component directory conflicts with core storage")
-        root = self._checked(project.paths.root / directory)
-        if self.name in project.initialized_components and not root.is_dir():
-            raise ValueError("Initialized Component storage is missing")
-        return root
+        return ComponentStorage.root(self, project)
 
     @staticmethod
     def _checked(path: Path) -> Path:
-        for entry in (path, *path.parents):
-            if entry.is_symlink():
-                raise ValueError("Component storage cannot follow linked paths")
-        return path
+        return ComponentStorage._checked(path)
 
     def _record_path(self, project: Project, identifier: str) -> Path:
-        return self._checked(self.root(project) / self.RECORDS_DIRECTORY / f"{validate_name(identifier)}.json")
+        return ComponentStorage._record_path(self, project, identifier)
 
     @staticmethod
     def serialize(data: dict) -> str:
         """Encode an open JSON object without dropping unknown keys."""
-        JsonObject.validate(data)
-        return json.dumps(data, ensure_ascii=False, allow_nan=False)
+        return ComponentRecordEncoding.encode(data)
 
     @staticmethod
     def deserialize(value: str) -> dict:
-        data = json.loads(value)
-        JsonObject.validate(data)
-        return data
+        return ComponentRecordEncoding.decode(value)
 
     def describe_config(self) -> dict:
         """미선언 설정은 받지 않는다. 확장 구현체가 자신의 설정 계약을 선언한다."""
         from llm.core.schema import implementation_schema
+
         return implementation_schema()
 
     def resolve_config(self, project) -> dict:
         """명시된 설정값과 출처를 UI에 제공한다. 실행 객체는 직렬화하지 않는다."""
         from llm.core.configuration import resolve_config
+
         return resolve_config(self.get_config_layers(project), schema=self.describe_config())
 
     def get_config_layers(self, project):
         """설정 원본은 ProjectConfig뿐이다. 컴포넌트 파일을 대체 설정으로 읽지 않는다."""
         self.get_config(project)
-        return [(ConfigurationSource.PROJECT, project.config.parameter_targets.component(self.name).to_dict())]
+        return [
+            (ConfigurationSource.PROJECT, project.config.parameter_targets.component(self.name).to_dict())
+        ]
 
     def validate_project_config(self, project):
         """검증을 컴포넌트에 위임하되 Project 저장은 서비스가 담당한다."""
@@ -139,128 +132,41 @@ class Component:
         return []
 
     def _has_storage(self, project):
-        """A disabled Component retains its storage declaration."""
-        root = self.root(project)
-        if self.name not in project.initialized_components:
-            if root.exists():
-                raise ValueError("Undeclared Component storage exists")
-            return False
-        if not root.is_dir():
-            raise ValueError("Initialized Component storage is missing")
-        return True
+        return ComponentStorage._has_storage(self, project)
 
     def _model_usage_records(self, project):
-        from llm.components.usage import ModelUsageRecord, ModelUsageManifest
-        from llm.services.infrastructure.storage import read_json, revision_token
-        if not self._has_storage(project):
-            raise ValueError("Component model usage storage is not initialized")
-        root = self._usage_root(project)
-        manifest = ModelUsageManifest.from_dict(
-            read_json(self._checked(root / ModelUsageRecord.MANIFEST)), project_id=project.id, component=self.name)
-        actual = {self._checked(path).name for path in root.iterdir()}
-        if actual != {ModelUsageRecord.MANIFEST, *(ModelUsageRecord.filename(identifier) for identifier in manifest.records)}:
-            raise ValueError("Component model usage files are missing or undeclared")
-        records = {}
-        for identifier in sorted(manifest.records):
-            value = read_json(self._checked(root / ModelUsageRecord.filename(identifier)))
-            record = ModelUsageRecord.from_dict(value)
-            if (record.id != identifier or record.component != self.name or record.project_id != project.id
-                    or revision_token(value) != manifest.records[identifier]):
-                raise ValueError("Component model usage owner or revision mismatch")
-            records[identifier] = record
-        return manifest, records
+        return ComponentStorage._model_usage_records(self, project)
 
     def model_usage(self, project) -> list:
-        """All retained receipts, including disabled Component storage."""
-        if not self._has_storage(project):
-            return []
-        return [record.to_dict() for record in self._model_usage_records(project)[1].values()]
+        return ComponentStorage.model_usage(self, project)
 
     def _usage_root(self, project):
-        from llm.components.usage import ModelUsageRecord
-        return self._checked(self.root(project) / ModelUsageRecord.DIRECTORY)
+        return ComponentStorage._usage_root(self, project)
 
     def save_model_usage(self, project, entry):
-        from llm.components.usage import ModelUsageRecord, ModelUsageStatus
-        from llm.services.infrastructure.storage import revision_token
-        record = ModelUsageRecord.from_dict(entry)
-        if record.component != self.name or record.project_id != project.id:
-            raise ValueError("Component model usage owner mismatch")
-        manifest, records = self._model_usage_records(project)
-        if record.id in records:
-            record.validate_update(records[record.id])
-        elif record.status != ModelUsageStatus.STARTED:
-            raise ValueError("New Component model usage requires a reservation")
-        root = self._usage_root(project)
-        value = record.to_dict()
-        manifest = manifest.with_record(record.id, revision_token(value))
-        atomic_json(root / ModelUsageRecord.filename(record.id), value)
-        atomic_json(root / ModelUsageRecord.MANIFEST, manifest.to_dict())
+        return ComponentStorage.save_model_usage(self, project, entry)
 
     def _record_files(self, project):
-        root = self._checked(self.root(project) / self.RECORDS_DIRECTORY)
-        if not root.is_dir():
-            raise ValueError("Component records directory is missing")
-        paths = {}
-        for path in root.iterdir():
-            self._checked(path)
-            if path.suffix != ".json" or not path.is_file():
-                raise ValueError("Invalid Component record entry")
-            paths[validate_name(path.stem)] = path
-        return paths
+        return ComponentStorage._record_files(self, project)
 
     def _record_inventory(self, project):
-        """Validate existence and bytes before an owner decodes or caches records."""
-        from llm.services.infrastructure.storage import read_json
-        if not self._has_storage(project):
-            raise ValueError("Component record storage is not initialized")
-        manifest = read_json(self._checked(self.root(project) / self.RECORDS_MANIFEST))
-        if (not isinstance(manifest, dict)
-                or manifest.keys() != {"schema_version", "project_id", "component", "records"}
-                or type(manifest["schema_version"]) is not int
-                or manifest["schema_version"] != self.SCHEMA_VERSION
-                or manifest["project_id"] != project.id or manifest["component"] != self.name
-                or not isinstance(manifest["records"], dict)):
-            raise ValueError("Invalid Component record manifest")
-        for identifier, digest in manifest["records"].items():
-            validate_name(identifier)
-            if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
-                raise ValueError("Invalid Component record digest")
-        paths = self._record_files(project)
-        if paths.keys() != manifest["records"].keys():
-            raise ValueError("Component records are missing or undeclared")
-        records = {}
-        for identifier in sorted(paths):
-            raw = paths[identifier].read_bytes()
-            if hashlib.sha256(raw).hexdigest() != manifest["records"][identifier]:
-                raise ValueError("Component record integrity mismatch")
-            records[identifier] = raw
-        return manifest, records
+        return ComponentStorage._record_inventory(self, project)
 
     def _decode_record(self, identifier, raw):
-        value = self.deserialize(raw.decode("utf-8"))
+        value = self.deserialize(raw.decode(ComponentRecordEncoding.TEXT_ENCODING))
         self.validate_record(identifier, value)
         return value
 
-    def _initialize_storage(self, project, *, records=True, record_catalog=True):
-        from llm.components.usage import ModelUsageRecord, ModelUsageManifest
-        from llm.services.infrastructure.storage import make_directory
-        self.get_config(project)
-        root = self.root(project)
-        if self.name in project.initialized_components:
-            self._model_usage_records(project)
-            if record_catalog:
-                self._record_inventory(project)
-            return
-        if root.exists():
-            raise ValueError("Cannot initialize undeclared Component storage")
-        make_directory(root / self.RECORDS_DIRECTORY if records else root)
-        atomic_json(self._usage_root(project) / ModelUsageRecord.MANIFEST,
-                    ModelUsageManifest.empty(project_id=project.id, component=self.name).to_dict())
-        if record_catalog:
-            atomic_json(root / self.RECORDS_MANIFEST, {
-                "schema_version": self.SCHEMA_VERSION, "project_id": project.id,
-                "component": self.name, "records": {}})
+    def _initialize_storage(
+        self,
+        project,
+        *,
+        records=ComponentStorage.CREATE_RECORDS,
+        record_catalog=ComponentStorage.CREATE_RECORD_CATALOG,
+    ):
+        return ComponentStorage._initialize_storage(
+            self, project, records=records, record_catalog=record_catalog
+        )
 
     def resolve_runtime(self, project: Project, capability: str, *, data_factory):
         """필요한 경우 현재 프로젝트의 수명 검사 핸들로 실행 기능을 구성한다.
@@ -276,11 +182,13 @@ class Component:
 
     def validate_config(self, data: dict) -> None:
         from llm.core.schema import validate_parameters
+
         validate_parameters(data, scope=self.name)
         from jsonschema import Draft202012Validator
-        error = next(Draft202012Validator(self.describe_config()).iter_errors(data), None)
+
+        error = next(Draft202012Validator(self.describe_config()).iter_errors(data), self.NO_CONFIG_ERROR)
         if error:
-            raise ValueError(f"Invalid {self.name} configuration: {error.message}")
+            raise ValueError(self.INVALID_CONFIGURATION.format(name=self.name, message=error.message))
 
     def validate_record(self, identifier: str, data: dict) -> None:
         pass
@@ -290,48 +198,29 @@ class Component:
 
     def get_config(self, project: Project) -> dict:
         # 기존 파일은 무시해서 설정을 잃지 않도록 명시적으로 거부한다. 변환/삭제는 하지 않는다.
-        if self._checked(self.root(project) / "component.json").exists():
-            raise ValueError("Legacy component.json is unsupported; configure ProjectConfig.parameters.components")
+        ComponentStorage.reject_retired_configuration(self, project)
         data = deepcopy(project.config.parameter_targets.component(self.name).to_dict())
         self.serialize(data)
         self.validate_config(data)
         return data
 
-    def create(self, project: Project, data: dict, *, identifier: Optional[str] = None) -> str:
-        identifier = new_id() if identifier is None else identifier
-        path = self._record_path(project, identifier)
-        if path.exists():
-            raise FileExistsError("Component record already exists")
-        self._write(project, identifier, data)
-        return identifier
+    def create(
+        self, project: Project, data: dict, *, identifier: Optional[str] = ComponentStorage.AUTO_IDENTIFIER
+    ) -> str:
+        return ComponentStorage.create(self, project, data, identifier=identifier)
 
     def _write(self, project: Project, identifier: str, data: dict) -> None:
-        value = self.deserialize(self.serialize(data))
-        self.validate_record(identifier, value)
-        manifest, _ = self._record_inventory(project)
-        path = self._record_path(project, identifier)
-        atomic_json(path, value)
-        manifest["records"][identifier] = hashlib.sha256(path.read_bytes()).hexdigest()
-        atomic_json(self.root(project) / self.RECORDS_MANIFEST, manifest)
+        return ComponentStorage._write(self, project, identifier, data)
 
     def load(self, project: Project, identifier: str) -> dict:
-        self._record_path(project, identifier)
-        _, records = self._record_inventory(project)
-        if identifier not in records:
-            raise FileNotFoundError(identifier)
-        return self._decode_record(identifier, records[identifier])
+        return ComponentStorage.load(self, project, identifier)
 
     def list(self, project: Project) -> dict[str, dict]:
-        if not self._has_storage(project):
-            return {}
-        _, records = self._record_inventory(project)
-        return {identifier: self._decode_record(identifier, raw) for identifier, raw in records.items()}
+        return ComponentStorage.list(self, project)
 
     def save(self, project: Project, identifier: str, data: dict) -> None:
         """Replace an existing definition; create is explicit."""
-        if not self._record_path(project, identifier).is_file():
-            raise FileNotFoundError("Component record does not exist")
-        self._write(project, identifier, data)
+        return ComponentStorage.save(self, project, identifier, data)
 
     def update(self, project: Project, identifier: str, changes: dict) -> dict:
         """Shallow key update; nested values are replaced as complete values."""
@@ -342,29 +231,17 @@ class Component:
         return data
 
     def delete(self, project: Project, identifier: str) -> None:
-        self._record_path(project, identifier)
-        manifest, records = self._record_inventory(project)
-        if identifier not in records:
-            raise FileNotFoundError(identifier)
-        self._decode_record(identifier, records[identifier])
-        self._remove_record(project, identifier)
-        del manifest["records"][identifier]
-        atomic_json(self.root(project) / self.RECORDS_MANIFEST, manifest)
+        return ComponentStorage.delete(self, project, identifier)
 
     def _remove_record(self, project, identifier):
-        from llm.services.infrastructure.storage import unlink_file
-        unlink_file(self._record_path(project, identifier))
+        return ComponentStorage._remove_record(self, project, identifier)
 
     def delete_directory(self, project: Project) -> None:
-        """Explicit permanent removal, including component-owned artifacts."""
-        root = self.root(project)
-        if root.exists():
-            self.validate_backup(project)
-            remove_named_tree(project.paths.root, root, self.directory)
+        return ComponentStorage.delete_directory(self, project)
 
     def resolve(self, project: Project, capability: str) -> Any:
         """Create only the requested, declared runtime capability."""
-        raise ValueError("Unsupported component capability")
+        raise ValueError(self.UNSUPPORTED_CAPABILITY)
 
     def clone(self, source: Project, destination: Project) -> None:
         for identifier, data in self.list(source).items():

@@ -12914,8 +12914,8 @@
   },
   {
     "path": "llm/components/usage.py",
-    "sha256": "fe2e782270f80a2c949eb247e0d394ed83fdbe995ee01b500615504d1a369455",
-    "reason": "Reviewed the complete strict current receipt/manifest Readers, immutable reservation field metadata, terminal transition, wire serialization and filename contract. Missing fields, invalid time/status/owner/revision and changed reservation reject without repair. MappingProxyType remains detached and immutable. All diagnostics precede implementation. Independent 181 receipt/45 manifest cases preserve output or exact errors; original corruption assertions and effect tests remain.",
+    "sha256": "b1f896571b3661053446188bccb0ae5326ab93ae65a5b30be7c163c220d3d8de",
+    "reason": "Reviewed the complete strict current receipt/manifest Readers, immutable reservation field metadata, terminal transition, wire serialization and filename contract. Missing fields, invalid time/status/owner/revision and changed reservation reject without repair. MappingProxyType remains detached and immutable. All diagnostics precede implementation. Independent 181 receipt/45 manifest cases preserve output or exact errors; original corruption assertions and effect tests remain. All 13 original methods remain equivalent; require_reservation owns the original creation-state predicate/diagnostic, verified with actual quota/effect/crash tests. Prior nullable/type classifications are reused by exact symbol/role/literal/occurrence after declaration line movement, not expanded to new code.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -13081,37 +13081,37 @@
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "3722e311d32978a84b2a2b79e282eaaa38ace40cb1ab14b0e9bcb917b01a4e0c",
+        "id": "b7bb2eac39ef1972227bdf112c6c98873f7662949338bfd926adf284369f1e2d",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord",
+        "reason": "ModelUsageRecord owns the existing required-reservation diagnostic; ComponentStorage consumes its creation-state validation API."
+      },
+      {
+        "id": "d6517a7f4aacbeca92d22dc955c630e2ef675b60190b338a92c059b045273d4f",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "98b7ff9eda934a674f61f4fc1f0ab4662418e85349e2f1e955ab9a0907fc14fa",
+        "id": "c79b68dbc29757210a6bc69d1ba2a2c2fded0f9ca8c6d29e1b5c876c48cf409a",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "428ff3b62ce0dabce9ddd8ae5c1b5885b48e1db23b670fbb62ffbcea297c2370",
+        "id": "c1dfb53c08ffac71c348a95570291e2aaba649b5cd5863034d84cc217d51a069",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "9ba508d671b478f9925aececdd75fa2c3ea8c18df401167bc733994c4fa0089b",
+        "id": "3c14664df30b045d1ead7bcb9ca54249c934f7e13a4fa8cd910b5447aa9d48db",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "bf89ab25cb513ce771430fccbfa12ed8f9bdb78d799638f10000de065443c3c5",
-        "classification": "declaration",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
-      },
-      {
-        "id": "6ef2a6bf8c51a2a998e32bc1705e55fa653bec0f1719adeb7500dbded41e9ab6",
+        "id": "6030a0571f41ca3b8d9b1b8c18d736d8778b44b904a452e59722729cdc69522c",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
@@ -13123,271 +13123,277 @@
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "cece3727b61f9c80398a0de67c930be6f1233e78564480959f990956bd8e21e4",
+        "id": "7f3dfa1e5d17c542bb122e9de82e8a5e9851770ab15c51d2a6a1810e7b9398a2",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "cccb7daca6378cbaa83c49a8ba628e1884f08a0c35c5062505fc964616cac108",
+        "id": "363fcb58e21c6e56f12aaa14fc4aa50e2955b074a4d29a1ad9645c13fe57aa4e",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "5a223ddf3829c37a0ff475d88e835c9d90f793f539344af2bb22ed349e74ea68",
+        "id": "53cd7fcfdd8e8c9c323a249732230a8d353afa250c1fbbf6a6eb30dde03a1d79",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "3cabd404c9ca97695c0ca033389c26b486bf4c2ff9ececfb5bcade6075f2237f",
+        "id": "013238d0c71ee69c84048ab8ba1a7c4cba7a3893998c65f0e93bd5705d79cd61",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "e07553ee856f7f2145b279910adcf36b73907a3e0e24e6851a4cc9f6fa2a4877",
+        "id": "f6fc8e1ac622bd5caaee738bab8523374869b11f4d397c06013ac4e7b330847a",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "3db46f0c4519581c1857f98740200904ae9df2be9cbb02c0a2c033f6366705df",
+        "id": "856cf067c431f2700f194e8dfce401b7d3aebcfae53f0f7b072a25362325b030",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "7b5a304777f7b5997ac7cfa9dac96602677489e8fc5c1d9fd9a617370e2d5fb5",
+        "id": "bf170b887aa99cce2ff64d771aabdf3c187a3f103061d454faf1644f8a038918",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "13937588c489b24efc49f775d36ad373260da262d10868b06b5694deb2061d2d",
+        "id": "f683d217925fffdebf8c86a747f49fa526968da610e968578e0f664ac3ea1172",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "5d64035af9051b1ee870d34f436844ff92609c08ec21cc25c8ace72697a03985",
+        "id": "6dbac11d7ffbcef6786299495f565f23bbc73ab5f9aec6d9c54432c1ab52fe03",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "245ad9e7cf42512d8a0cf00c7133e1b0d0cfc290bc2ced06de969e7d9dfc703d",
+        "id": "4126902d33eee2cf8928005618f2483c719c65da3909c0777208d8346bbfe488",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "2b01d2727b99fbaf774675f9fca4e89685062a399c1bec32acab7ee2c2ebd6db",
+        "id": "f29031a86bc0ac1d2e210ff15bc342924b75da624f416b014d2e077982d36a56",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "982233c8f5a21e22a1225d8546ea90f9db25a8d50781fde14e1c17dd6707391b",
+        "id": "f052b3a671cf8bd77a564b1995f71292ca848f6a8377e71c6a0a7ef820291340",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "89e82d429b0c9da2c337e9f2b9f867977a4ef89b1f839fdd422480751ccc3584",
+        "id": "5bc85a9cacfc0ec8dcf9e5eb68c8dad7e4a14eec32fc96bae2ec309c37999bae",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "fce9a1267b22065f615a3339161866855719ee5264691d3213df3c21f6784f9e",
+        "id": "64118d0bd8bc9805ec3660e58d9d81d2167df1f041209b5de38633081e5a815e",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "fd2049dcd14829d9fa6a1e58f2b744ccd0771d8964d21835b05b4695187bd8a6",
+        "id": "2de4b904d24c0c1a98348c338c42a11b4e8343200505d62aa1f9a9db18d71ab2",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "4916f035cd15d7c6b1f1733dbd18a5756a669b4feb6fed08ae907acfdfa2edd2",
+        "id": "5eaf48c3b0fef62e66aa963ef1f402b86bb66914cd41427ceb0b732278a89c9a",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "94d4de6f8511153569c2f11b0dde4bbf1dcbd5f5cf70506b0d3d47f95b84c986",
+        "id": "94a5e258c9d701436f6186ec85e2b1cf510fbbcc0c4c33c7742b76f2c1054b1b",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "999694ff6abb4a4eb79fa41e21c66b05a07eec9017c120c2e7014011d30d3fb8",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "d93f5ce31eb7d0a6ddc56a7f197d0d793b2d9ec597a7da7a1760ddfe08b95d5c",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "49dbcf5002f3d61daf59217ac7c75d0495eaa2a40c2047d681fc78fc36e7d48a",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "164d1a2209a8cdb570421b867083fd256f8595b5e8932d12ab568558f9e22985",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "c13b9983c878f1d5e2ef32388b011083c4902df9f6762e89517e8b2e6cdb1683",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "453280b6dbcadc8a69fd9db375f502aee22eab7a6bbcd595854e007daa0e280d",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "c896821b11ac0cbf072989658c2d3807682be55dfe8179ec1488ffd9901134fa",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "9ab1c678a33af353fc3e3fee5a0ea3da58481e1889d4c5f7cb87c5d987a2e3e7",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "64bdebd71e87e1e4878a5cf1bcca2cbad67b057613975985a71d510cbb7806b6",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "44909086f02fbff5c1b98384d77266e5d53863f2c740cecd259e3626b4f9b68d",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "f8d8fc4879955bdaf196d56834b5ff542bff12aceabcfed30193c96ca73ed06f",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "a83288aea1413549ad70109ee4c9547f6dad94ab852bb81f9815f44050bf9331",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "8db4fb4f963cc33ede9803e7fc29aae251378a08d1d99575b236143b32ba39aa",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "f8942e3827b04cb19fa6692cb4a3e150a57080b753d4f412969ccf1f7d14ecf4",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "33a56dc8a558434ba066432aab9071534d9c51c891b2feaa2b01d6633df5d965",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "100bd56ba6fc94461cc3b104f9dc13cb4ef803b1cb2cccab6e497f2a0a4488cd",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "0a4af4070789266795ebb9562bb79c88f097c5c3e4beee667bd3c2f315fbb9fa",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "b8a7dfaba7ec4774c3cd1c690854b7ceb0424df9743935f3326ed887dd5f3689",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "9863898b89f919228362ca62305609e816a9c9e302ab7fee2e64879a3e7b68bf",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "794d04b4f5541ef5e84f160f1063c7f00acc61d87cdcf39883b31c597ef66ced",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "66d2ad6a8aadac6f02fbeb354043a9e8ea299177df487f7ff5b78635f104a846",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "07c0db21810ae44da85ed3d9ee0cdb8cbcc5e77e164f843b66fb4829a7c7c454",
-        "classification": "non_contract",
-        "owner": "ModelUsageRecord / ModelUsageManifest",
-        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
-      },
-      {
-        "id": "e224b1b389a8f5d769eee74b0274df6b39a6d36ca8ea62eafcc4b3167096a595",
+        "id": "d693cef3a0aabd93772bb737a2c3c713a6d69307ea52a81bbd1fcf8f5a07dc60",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "4fc95dc7fbdfe736cd90aedfd5e01e32e60a3bd8357145cadc0bf99fc384595f",
+        "id": "5beee342c15a7c1ac842b79fd9f27627d84689d323fba8907f6daddafd8c1e7f",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "4deb3075f918e104776c190e5bf52ce867d578e39b1090878d20a42a3743de4a",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "ef6d77fe3c6a44a06c942001f2471e717f699f68bb5b1e4b90bad5c55ddb3344",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "bbaf0a9783da365f30236958d31299865fa034fbc97776dfaf69b0870aeb5007",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "f1fa473b0c3bfe9d31cd76afa72d3b5fd2cc095c83011064c3da3e8cc3a18bf4",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "dae73345424d387efdf0c70c7344fcc7a97c120155f8aaa28ca7d15ea57258fd",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "6af3b69463452b01a641b1a8e50343b4421909aad322a05740200dabf394cf48",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "8e7d2dd03520b2162be3cdb53536b2c948a9f5fa0aef96005ec22b3c4e16ad1e",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "e35553851c242381f61c906962fe004fe7bd2c987ebf6bdcf9f61fed2b12a33a",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "10651897d3245fac108df51dab51585e9fa2ace32c1c9d723b25b681dc8405c0",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "9f1a92e5ae3517e820c8fb5cb81fb69ad98f1124fd12d58db476b9fb18b0540f",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "24b8b0470b8b6d37d00b36f10babadc85fc9b58850c5dfe2af889193fd8a53c6",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "3e544d13a0cad93d75a72796eeac87f8dc8cde414f9fdaa71f91501279be0d22",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "27698a769c574c6f6d93847754f4e02712ce6b3ab1145968804590f437126b88",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "664776af6fbb2d801dddd16828774f696ab46794d9f1604b7c776582af572c1c",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "cb563b2c06a89921e5bba4e417fb0b1a265159b93bbce03f040577e7dfde23d6",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "680e8bb4aa1430790bff2d5cd9be1c35608870c34d13560915aa164d715505ea",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "49a338aa3fc461ecddcf97f8cb1f6a3b6ae168e188d77f5e65425977f9dcc4ee",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "ad677f2b9e00b9966e0130fef266109b80a702ff4f01d2537377e898f1fc4151",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "acfc9c7b9785fc165e5422147b846c4df2c10028c116a5a804d5ebcb1d8e930a",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "a43a55b599cdb2613eb40fc5a3916066983ca47439e2dd8f299fcae488f50f21",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "0eedf8d03fadbff98792003d2180227162d4ab3ad78c10ce45cc7159ef925597",
+        "classification": "non_contract",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Python absence/type option or arithmetic identity/increment over already validated observations. No persisted omission is restored, policy chosen or permission inferred."
+      },
+      {
+        "id": "b265865a2419846b5f845c6fa66917ed65ee9027707ff48a80a2e75d5a65fb21",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "de587424bf04166253fe478d143d29126df39065d5ee3958a754f5a951c9dacc",
+        "id": "824068c0ef3e333a5222e68a54d1f217add7667761803a279f9ab1f9a27df89a",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "377d8132deed5cd69b1c1a8b8b1723fac152b565913bef52c8f2a5e14bb7b49b",
+        "id": "f48ace7e2d3ed79a2b925d2efb39b5b9bb79cea1dceccb57f293909a53935d14",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "ea2fc3f3aac9c8fc764409a5bf618f5c87585fbef22f3e0dc9b1a50045dbb37d",
+        "id": "e3e196881dede00f1add8ba6631e66923938e7e35162280db4d0529718832756",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
       },
       {
-        "id": "086816cfc51813c4f32c10b73fae20f69c981b87998b757578d68be3e233f61f",
+        "id": "c8b6694b510266ffdd9b96cd06a5801c4158ce6d051860130384071a1a3ab189",
+        "classification": "declaration",
+        "owner": "ModelUsageRecord / ModelUsageManifest",
+        "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
+      },
+      {
+        "id": "bc3b4d815f2b2005e1efd6b513619ebd81c51075f519c29d512ead4e2c8a37c4",
         "classification": "declaration",
         "owner": "ModelUsageRecord / ModelUsageManifest",
         "reason": "Owner field, diagnostic, enum, context or technical default declaration precedes its implementation."
@@ -13399,7 +13405,8 @@
         "declaration": "llm/components/usage.py",
         "consumers": [
           "llm/components/base.py",
-          "llm/services/runtime/usage.py"
+          "llm/services/runtime/usage.py",
+          "llm/components/storage.py"
         ],
         "tests": [
           "tests/llm/test_usage_declarations.py",
@@ -13407,7 +13414,15 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_component_storage_integrity.py",
           "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_usage_definitions_system.py"
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_components.py",
+          "tests/hub/test_component_managers.py"
         ],
         "complete": true
       }
@@ -51736,33 +51751,33 @@
   },
   {
     "path": "llm/components/naming.py",
-    "sha256": "bba86f8f0b091110626abd9de81475bc064621dd8c0a50d9114a0fb8fa77ff99",
-    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes.",
+    "sha256": "b93dec68c2b468b846b5173c305eaf762a8330d75afe04e52a36f4c5d464fd61",
+    "reason": "Whole common Component/Protocol, generic filesystem storage, manifest/codec and identifier validation reviewed, including inherited/overridden file layouts and live public callbacks. Actual full function equivalence and original safety/effect/fault assertions verify required evidence and unchanged state/effect boundaries. Component README/Registry/remaining domain implementations remain separately tracked.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "59223bf1b782483fab73584492f8e29b1ebf3cfee7324c83159b1bfa53c5362a",
+        "id": "6458f751427f0c0c08a8d0413780cff2b57c0d170b7a9099bc8a04b434f410b6",
         "classification": "declaration",
         "owner": "ComponentName",
-        "reason": "Component directory/record identifier grammar, schema anchoring and validation diagnostic are the sole lightweight declarations. They do not import storage, services, Engines or SDKs."
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
       },
       {
-        "id": "e8065ce2c09c09dae3a977deba1539887f9348ce9b677f8b663d9552203653a0",
+        "id": "8598ed9845169e242794c6218170ac3f874884f42bdc768504d4a1e55689d04a",
         "classification": "declaration",
         "owner": "ComponentName",
-        "reason": "Component directory/record identifier grammar, schema anchoring and validation diagnostic are the sole lightweight declarations. They do not import storage, services, Engines or SDKs."
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
       },
       {
-        "id": "bc631eed26074ff0e25201a8cca1608422ab58c3786d6558344e3cef98de258a",
+        "id": "0b9957796b4664dda7db498d6c7e9fdd61291b13ad2d6dc57411b55ae20481c3",
         "classification": "declaration",
         "owner": "ComponentName",
-        "reason": "Component directory/record identifier grammar, schema anchoring and validation diagnostic are the sole lightweight declarations. They do not import storage, services, Engines or SDKs."
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
       },
       {
-        "id": "b657b4b3a0aacc38bec6ca755e8bcc77ea6e0992c8ce03ede6413d5baa4e831c",
+        "id": "64f142e34ae7ce3a4863b3f0a04749e6f271273a107ea138b47393e8fe329a93",
         "classification": "declaration",
         "owner": "ComponentName",
-        "reason": "Component directory/record identifier grammar, schema anchoring and validation diagnostic are the sole lightweight declarations. They do not import storage, services, Engines or SDKs."
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
       }
     ],
     "contracts": [
@@ -51770,20 +51785,23 @@
         "owner": "ComponentName",
         "declaration": "llm/components/naming.py",
         "consumers": [
-          "llm/components/base.py",
-          "llm/components/rag/prompts.py"
+          "llm/components/files.py",
+          "llm/components/definitions.py",
+          "llm/components/registry.py",
+          "llm/services/lifecycle/components.py",
+          "llm/core/usage.py"
         ],
         "tests": [
-          "tests/llm/test_rag_models.py",
-          "tests/llm/test_rag_extraction_repair.py",
-          "tests/llm/test_rag_retry_presence.py",
-          "tests/llm/test_operations_schema.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_provider_transport.py",
-          "tests/llm/test_provider_diagnostics.py",
           "tests/llm/test_component_record_integrity.py",
-          "tests/hub/test_rag_defaults.py",
-          "tests/hub/test_provider_recovery.py"
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_component_managers.py"
         ],
         "complete": true
       }
@@ -55629,6 +55647,570 @@
           "tests/llm/test_rag_checkpoint_integrity.py",
           "tests/llm/test_component_storage_integrity.py",
           "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/base.py",
+    "sha256": "2389fb7cd898017898f342a599517dc97168f376d84dacf790f32916f17d13b2",
+    "reason": "Whole common Component/Protocol, generic filesystem storage, manifest/codec and identifier validation reviewed, including inherited/overridden file layouts and live public callbacks. Actual full function equivalence and original safety/effect/fault assertions verify required evidence and unchanged state/effect boundaries. Component README/Registry/remaining domain implementations remain separately tracked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "65dac5480433b83c67ea08992109f081f0c2986d6d7501e0b3b594943c21b35c",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.initialize",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "24a1c5c879e679a9d12d6f55fea9757c78e2656fb664fb8a4ecfa77bc3d625cd",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.initialize",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "7470068a8773091e1132f285c2365746ec7f6a084cbd7bee4c8e4b4c6686a1cb",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.get_config",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "00ac9b4191d745a8d511b83e4dd1d7c5fb5ee53d81c84b8e851c2b28e06c86ae",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.create",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "22cc022e4d8153cabea4b592b8888c862b0e049426a51c771829e12e53bcf268",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.load",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "343127bb69f39e74fb297cce68f960605bac6d455a8b8b6a43045e3d68e9d6cf",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.list",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "fe5a89f8dc228712dba2101bb887bdc0eeb9c3b52afa83056342841a3937564b",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.save",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "03b9ed01f1ee9dd2cedfb06ee4de05da054d8ca1aa87990e25bf5a1f3a3a882b",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.save",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "21f6965bcb48b911b520ae27ca36c08c238d21e19c40d72d57b843e97d8041be",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.update",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "f89828ae7d40d31d7c7a17b98022f226a6ff65d49491c443401a56e687a028c9",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.delete",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "d1ba93032b8d9f57814c98abf987ab9db0a1c0e20727aa3fa811b772eb5101e5",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.delete",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "44931ed41e1232dfc4547bfed4c5954f2d7b3f2f9461b70dedeb843c03dd1f8f",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.delete_directory",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "f9620b397cc3ba0f9c0378a6284744edff9fe8c6b096c840935b9d1cc72046a2",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.delete_directory",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "99cba3613a35dd4fe96128eada55b8142769bc9dfce2c15787a3b1fd77eb9b1d",
+        "classification": "non_contract",
+        "owner": "ProjectComponent",
+        "reason": "Python tuple[str, ...] variadic type annotation for declared capabilities/required_components; no runtime marker or default."
+      },
+      {
+        "id": "fa4812be7f6d926f982ef0ed61ee94d3285bbf2f9848a2886b1379be4fd0d252",
+        "classification": "non_contract",
+        "owner": "ProjectComponent",
+        "reason": "Python tuple[str, ...] variadic type annotation for declared capabilities/required_components; no runtime marker or default."
+      },
+      {
+        "id": "f9b4c8943530a291d8cfdc7971f6e49d4df7d159053a5a1cbe7f0d04812325d0",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.resolve",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "1e9ff4fbefa0ad67654771f8ded1d2782bbc15d9a2bef63d963ed9db0c2c5121",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.clone",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "bb848a6d112670a9cb122714a0cd88466780b463f5eb458aef34df7aed6806b9",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.clone",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "e9fe230bc3a410ce52a063ee2915c27f2028b5820c9d8eb1e58c0c052f12149b",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.backup_scope",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "8d7d75780aabb39ce456fd56f8b2c0470746b3d7ffeb7ac477dfce6e982b0842",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.validate_backup",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "7c9aa692b57067a24d9365144b861e63fb0d8fc0c0b28c6235937205c1551c91",
+        "classification": "non_contract",
+        "owner": "ProjectComponent.validate_backup",
+        "reason": "Python Protocol method stub syntax; the actual runtime implementation is selected by the registered Component."
+      },
+      {
+        "id": "261a869b1dbd147a479a2a011fe1d619fc26a37d366c19b951b9edd2edcb85ab",
+        "classification": "declaration",
+        "owner": "Component",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "e9a701a04480c21c6637047acddfe2ad8c3dd6d3811de7d0c66d75aaf928c765",
+        "classification": "declaration",
+        "owner": "Component",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "cb278f7caa13863a67c3576ad90b2cbfdf8c3affa993f72ada511537a64617a3",
+        "classification": "declaration",
+        "owner": "Component",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "e05c0e00df625de97da2ab0cae382ba923f440d49ccb5af489252bf0abb831b5",
+        "classification": "declaration",
+        "owner": "Component",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "a0034cd812098afc3783d213d47cd7ad6eac2f8c36c1fd818570cb817e77aa85",
+        "classification": "declaration",
+        "owner": "Component",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "d46fa01130ba694e3e80899090adc7b15541ecfc6973f365a7f43260dc64c0b0",
+        "classification": "declaration",
+        "owner": "Component",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "8164a7e7dece5d4e5b94870d6bde5aff9fc05c73e5b12ab87c2445263fc246a9",
+        "classification": "non_contract",
+        "owner": "Component.validate_backup",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "2c3bfea06ab8d12578cbe7acce042800b9b47522a337566bbb2bc672d4ef2920",
+        "classification": "non_contract",
+        "owner": "Component.validate_config",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "133f9a09d95c89fddfdbb91db7f8dc17c1ddf1b73c04f5f965f4c8072144f98f",
+        "classification": "non_contract",
+        "owner": "Component.validate_record",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "1c2a7f32f1d22d5588738f2e0cf076ca9059bcf6573c60eebae0a8ea4f339c59",
+        "classification": "non_contract",
+        "owner": "Component.initialize",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "ac96c30ceca147e458007929a4c8711c269673ae5132eeffbcdfc09bb7ff7ce1",
+        "classification": "non_contract",
+        "owner": "Component._write",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "82f57997b627729615d78a0ea62892685cddc8f1e22d7420dfcba485cee8f33e",
+        "classification": "non_contract",
+        "owner": "Component.save",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "9c4f13fbfd45a84d5a6166031dc39ffa77ae766969d55db27fba5f54800de2e6",
+        "classification": "non_contract",
+        "owner": "Component.delete",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "7c3baff41f50a8194f6b7b6a153dc97a62447c0ffb66bc3faf35b05147f330d1",
+        "classification": "non_contract",
+        "owner": "Component.delete_directory",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "126ac714896d702da66b7d81af3f395ea8c5a080a5ceedee6bc646db8cb2b93c",
+        "classification": "non_contract",
+        "owner": "Component.clone",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectComponent / Component",
+        "declaration": "llm/components/base.py",
+        "consumers": [
+          "llm/components/files.py",
+          "llm/components/definitions.py",
+          "llm/components/registry.py",
+          "llm/services/lifecycle/components.py",
+          "llm/core/usage.py"
+        ],
+        "tests": [
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/storage.py",
+    "sha256": "fb3bbc1e262e2d217fccbced58d940e5584b7a1811327af969038dcd8ba33b1a",
+    "reason": "Whole common Component/Protocol, generic filesystem storage, manifest/codec and identifier validation reviewed, including inherited/overridden file layouts and live public callbacks. Actual full function equivalence and original safety/effect/fault assertions verify required evidence and unchanged state/effect boundaries. Component README/Registry/remaining domain implementations remain separately tracked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9f8e188088960536ab96193b651911eb6c72a9cb032b31a94a3193ea101435ca",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "3eb8985fc9eac6c8f953868e45dc784e34e9d22f98b5e2d98f20122c4b0bc6d7",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "46051de39b81d28d6395f6d656d3c579aede74f49777b38db93627f8f0e1f1ed",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "89229af154edb9aecb156900d6442deaa095326ef017866829b047c975047424",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "c4b634c7278d0b889c28b7a638564d51a5640e5c74685642f344f2483002fbd7",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "cba632fbbd82e5c8be6566d3629f3b852bdb33b0990dafff787959fe70808f25",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "859c0d1fae6a63f909063c227b45866eed316a45d52a61bfc003703cffcf3da0",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "ee463ac04194a0e12ad0afe6b22f29ba6683eb09994ccfb459b5151b06ae9615",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "ac5ab2467a2c659f86ab860b4df4ce4d5f55e450e4af046f8b698ff7541efb97",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "628cf8e4c710ee33b8e953745543e56f142dc2533ba47354090167b7610e95c8",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "d884da4902e33207210d38dbe93fbace9cc225acf462569d2d99016fead276ce",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "09f833ba8d8b1f1793cd6ada28f0f30f29c7c1cca2712e6d071c9bb3df9d457c",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "6d0c55ab7d95046ccfceee576970e509d8c9f7c5aa5993906b3831978a6216fc",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "6ab8e40bff72c113c9334cc7c82212ee8bf11a246a6f731b50c349f0db2a6565",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "56382884365de523a4bdc5dcc6c3ab2dabc018387578dc62ccbbf3c16efb613f",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "068a2ab454781bec4ed66b17c126429534d7338c8e4b6a4fa1a245c367941baa",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "860b5e03db42ae46d6824b9a57db809cd0631350e2bcc386021c4334af2d1be1",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "49474067751c78e5af826b3c657621397c0c0014464f16cd7603f7115c8fde5f",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "acaf6f9e1337778ed14bfd177138e7ddba1b1c77f82ce5cace55db64c6aed9b3",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "fd483f4fbf716583398321f02515dd2d51649eb685edcb4c9edb4c57b004c645",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "c733f2e7de280e9835f75338d5b8b664b0d1bb2fce9a4f46c88b815933cf5948",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "611d31fc25c4e3434f8ecb20b05aa705057ae3d79ccd69d853f954d2c0370ebf",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "4379506cc219c2c23e33da239287e69a2ab542150a7fdbec9f7885dcfba0cba8",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "6f32426562428e51dbb4313d79b2e2c5ab71de327619042befe5809091d9ce7c",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "768780b4af12007ec007b6b3ffbdfecf07955f9e1f72e76369580883599b4c9b",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "36b836330970f9a2225cd36f07c04f4197384e48db19125d08e89af02e986798",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "6f6e1c607a0be8cf9eff15095bf0cc4296acc3296b4497b38d9779bf5292ce93",
+        "classification": "declaration",
+        "owner": "ComponentStorage",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "d94280a3cc986f9179d5e36e5698f5a5d6b93428364fa90f134e633acee4f199",
+        "classification": "non_contract",
+        "owner": "ComponentStorage._write",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "7c78c2d6829a211f446c9f17ca18034a192010d406dba96fe7bd24c1ab014aab",
+        "classification": "non_contract",
+        "owner": "ComponentStorage.delete",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      },
+      {
+        "id": "01405ee5c33f2b0993e7c551e73091a6295789f5ee9a2414a7977bd202b34f7b",
+        "classification": "non_contract",
+        "owner": "ComponentStorage.delete_directory",
+        "reason": "Python return type annotation -> None, not a runtime default, state, field or policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComponentStorage",
+        "declaration": "llm/components/storage.py",
+        "consumers": [
+          "llm/components/files.py",
+          "llm/components/definitions.py",
+          "llm/components/registry.py",
+          "llm/services/lifecycle/components.py",
+          "llm/core/usage.py"
+        ],
+        "tests": [
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/record_manifest.py",
+    "sha256": "183ffb33112f638e25418ad866e3e55200a798ada00cd21558a6fbb8254bb00d",
+    "reason": "Whole common Component/Protocol, generic filesystem storage, manifest/codec and identifier validation reviewed, including inherited/overridden file layouts and live public callbacks. Actual full function equivalence and original safety/effect/fault assertions verify required evidence and unchanged state/effect boundaries. Component README/Registry/remaining domain implementations remain separately tracked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bff6f43edaf28d88c30323fa94595d3a8abe7b8ea8b1baff29c5e4b3cb4b11b6",
+        "classification": "declaration",
+        "owner": "ComponentRecordEncoding",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "8c4699dc6f84293ea89e79d222713f76ee707c99e082a9031b86ede9e07df07f",
+        "classification": "declaration",
+        "owner": "ComponentRecordEncoding",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "57147a109479055fbd620a235b161a04dd6dc001521cabe92c703675dafb419b",
+        "classification": "declaration",
+        "owner": "ComponentRecordEncoding",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "de6e1486c0916a6d79b2f52eb103e984b05209cc01d920a467152318b4bbe79c",
+        "classification": "declaration",
+        "owner": "ComponentRecordManifest",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "4d23ed3935f917ccbb9bfe317aef5f757785c3d5975472da560bbc93df54819f",
+        "classification": "declaration",
+        "owner": "ComponentRecordManifest",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "19b7695081229f82d4be8ca53af9b3258c042029094083f3681d9f32a0b5efd5",
+        "classification": "declaration",
+        "owner": "ComponentRecordManifest",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "4002209e4d5edad9dcc122be581e3b2d71a6d5a8c209221e36ab3b99c880f14b",
+        "classification": "declaration",
+        "owner": "ComponentRecordManifest",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "5450103a90f8092ee55615ac7daff0fc537fa5525c32f6706889c36c01d6b2d2",
+        "classification": "declaration",
+        "owner": "ComponentRecordManifest.Field",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "6b7a26ba88b018bcf7387371f885faff60f6981dfcdf637657ce84540379d12c",
+        "classification": "declaration",
+        "owner": "ComponentRecordManifest.Field",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "e8d250980d79689d232f06fec5af9b8c5da3acfae8df33ac9386050169f978a2",
+        "classification": "declaration",
+        "owner": "ComponentRecordManifest.Field",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      },
+      {
+        "id": "48a6185274a54aeaf12b6502d21a8cb046969467e2223bb685ee69796a6b4565",
+        "classification": "declaration",
+        "owner": "ComponentRecordManifest.Field",
+        "reason": "Actual storage/name/manifest/codec/API/default/layout contracts are at their Owner heads; selected Component layout properties reference canonical declarations. Business validation remains in selected Component/Record APIs. No implementation literal except individually identified Python type/Protocol syntax."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComponentRecordManifest / ComponentRecordEncoding",
+        "declaration": "llm/components/record_manifest.py",
+        "consumers": [
+          "llm/components/files.py",
+          "llm/components/definitions.py",
+          "llm/components/registry.py",
+          "llm/services/lifecycle/components.py",
+          "llm/core/usage.py"
+        ],
+        "tests": [
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_component_managers.py"
         ],
         "complete": true
       }

@@ -42,6 +42,7 @@ class ModelUsageRecord:
     INVALID_END = "Model usage ended before it started"
     COMPLETED_EVIDENCE = "Completed model usage cannot claim a failure"
     FAILED_EVIDENCE = "Failed model usage requires its diagnostic and unknown usage"
+    REQUIRED_RESERVATION = "New Component model usage requires a reservation"
     INVALID_TRANSITION = "Model usage requires a started-to-terminal transition"
     CHANGED_RESERVATION = "Model usage reservation identity changed"
 
@@ -133,6 +134,10 @@ class ModelUsageRecord:
             elif (not isinstance(self.error, str) or not self.error
                     or self.diagnostic_code != self.error or self.usage_complete or self.usage):
                 raise ValueError(self.FAILED_EVIDENCE)
+
+    def require_reservation(self):
+        if self.status != ModelUsageStatus.STARTED:
+            raise ValueError(self.REQUIRED_RESERVATION)
 
     def validate_update(self, previous):
         """Only a current reservation may acquire a terminal result."""

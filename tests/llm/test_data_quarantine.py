@@ -357,7 +357,7 @@ class DataQuarantineTests(unittest.IsolatedAsyncioTestCase):
             from pathlib import Path
             from llm.llm import LargeLanguageModel, DataComponent
             from llm.components.data import component as data_module
-            from llm.components import base, files
+            from llm.components import storage as base, files
             from llm.services.infrastructure import transactions
             directory, operation, boundary = sys.argv[1:]
             root = Path(directory)

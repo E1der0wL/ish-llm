@@ -147,7 +147,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_commit_failure_rolls_back_blob_and_record(self):
         before = sorted(p.name for p in (self.project.paths.root / "vision/assets").iterdir())
-        with patch("llm.components.base.atomic_json", side_effect=OSError("disk full")):
+        with patch("llm.components.storage.atomic_json", side_effect=OSError("disk full")):
             with self.assertRaises(OSError):
                 await self.vision.aimport_image(picture((2, 2)), title="failed", identifier="failed")
         self.assertEqual(sorted(p.name for p in (self.project.paths.root / "vision/assets").iterdir()), before)
