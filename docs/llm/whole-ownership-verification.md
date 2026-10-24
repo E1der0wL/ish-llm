@@ -7503,3 +7503,46 @@ R3는 `python -m tests.llm.check_budget_mutation`, exit 0이다. 실제 Python �
 이동했으며 실행 lane/효과 순서가 같다. 이 개별 정적 검토는 필수 기록 검증을 면제하지 않는다.
 제품 603파일 중 미검토 168, 미분류 8,338, 미완료 공유 계약 13이며 stale/위반/issues 0이다.
 llm/ 378파일 전수 검토는 유지되고 남은 범위는 Hub 및 명시한 Hub 소비자 연결이다.
+
+
+## Hub Theme 선언과 렌더링 Owner
+
+상태·전역 설정 소단계 다음의 관련 표시 변경이다. HubTheme 전체 구현의 기본값·색 계산·
+한도·오류 문구·semantic property를 선언부로 모으고 dataclass slot으로 검증 필드를 참조한다.
+ThemeMode와 IconStyle은 현재 dark/light, nerd/unicode 값의 Owner이다. Icon 파일의 변경은
+스타일 판별자 연결뿐이며 전체 검토 완료로 처리하지 않는다.
+
+ThemeStyle은 기존 순서의 selector→문구 template와 알림 selector 생성을 소유한다. HubTheme의
+Style.from_dict 호출 경계, 알림의 순서, property의 지연 읽기와 subclass override를 유지한다.
+예외 발생 전 읽은 property 순서도 비교했다. 설정 값·JSON·UI 기본값은 변경하지 않았다.
+
+독립 비교: 필드 값/거부 341, 검증 순서 121, 필드 선언/기본 dark palette 각 1,
+파생 property·실제 PTK style_rules 각각 7, 전경 계산 35·surface 계산 140,
+렌더링 순서/override 2·property 장애 순서 278, 아이콘 선택 8·기존 혼합 glyph projection 1.
+이는 준비 단계의 비교 증거이며 아래 실제 제품 회귀와 구분한다.
+
+Level 1은 Theme·설정·레이아웃·아이콘·알림 직접 소비자, Level 2는 출력·대화·렌더링·
+갱신 주기·질문·실제 Host 통합을 선택했다. 승인·예산·효과·Checkpoint·삭제/저장·실행 경계
+안전성 모듈과 R3도 유지했다. 기존 시험과 assertion은 수정하지 않았다.
+
+- `whole-hub-theme-l1-01`: discovered/started/pass 36/36/36, exit 0, 49.039474초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-theme-l1-01/hub.json --modules tests.hub.test_widget_chrome tests.hub.test_chrome tests.hub.test_settings_usability tests.hub.test_settings tests.hub.test_page_layout tests.hub.test_presets_widgets tests.hub.test_notifications`. source `41e0c50793497db5d649216059f854b912c6b31fb06d1d04ccb13021cefc79bc`, input `45127a7ae384af9d7aa9ca45ae21f3da9ade6d8eeb47d4ae0263734883b5589a`.
+
+- `whole-hub-theme-l2-01`: discovered/started/pass 44/44/44, exit 0, 5.511776초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-theme-l2-01/hub.json --modules tests.hub.test_output tests.hub.test_conversation tests.hub.test_render_pipeline tests.hub.test_render_intervals tests.hub.test_question_card tests.hub.test_ish_integration`. source `41e0c50793497db5d649216059f854b912c6b31fb06d1d04ccb13021cefc79bc`, input `45127a7ae384af9d7aa9ca45ae21f3da9ade6d8eeb47d4ae0263734883b5589a`.
+
+- `whole-hub-theme-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.149788초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-theme-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `41e0c50793497db5d649216059f854b912c6b31fb06d1d04ccb13021cefc79bc`, input `45127a7ae384af9d7aa9ca45ae21f3da9ade6d8eeb47d4ae0263734883b5589a`.
+
+모든 실행의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치,
+선택 모듈 중복 0, 실행 전후와 실행 사이 source/input manifest 동일을 확인했다.
+실제 환경은 Python 3.12.14/Clang, Host d833790, 같은 Linux/X11/Bubblewrap·의존성이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0. 정확한 argv/exit/log는
+`hub-theme-draft/selected-results.json`과 각 focus 디렉터리에 보존한다.
+
+외부 상태/실행 정책 변경이 없는 표시 소단계이며 전체 회귀는 관련 Hub 변경을 묶은 다음
+Level 3에서 수행한다. 이전 전체 통과를 이번 제품 소스의 전체 통과로 승계하지 않는다.
+Theme 필드/제약을 독립 선언하는 GlobalPage 등 잔여 소비자와 ThemeSelector/NotificationKind의
+미연결 소비자는 계속 incomplete다. 아직 Hub 전체 완료를 선언하지 않는다.
+
+Theme 소단계 마감: S1–S7 정적 검사 83개 finding의 신규 미검토/invalid review 0,
+전수 감사 16개와 문서 검사 모두 exit 0이다. 전체 603파일 중 미검토 167·미분류 8,127,
+미완료 공유 계약 14, stale/위반/issues 0이다. 새 Theme 필드·enum 소비자 연결을 남은 계약에
+추가했으므로 단순히 미완료 수를 줄여 전체 완료처럼 표시하지 않았다.

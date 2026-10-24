@@ -85180,417 +85180,861 @@
   },
   {
     "path": "hub/config/theme_style.py",
-    "sha256": "16695bc4c52aeaec54a0a87bd17f18ae4cb081d1841629b2db89447fbe411acd",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references.",
+    "sha256": "da7be0d241c31de8b28072d466fa78b21a1c17e41ed9dc8017827df0bbcf2045",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "0dfea9b1b8e2a1ec0d282fa3596f7e296108ce96e59873e445c55e524e8ab568",
+        "id": "6acafffca21af3fdeb113895ae403ddc92df88d866902323687dd9a5817c569d",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "8a41705c6c5d7ebc6208684b351e1f6a9c5e55a047a909689c06eda9e56bf749",
+        "id": "58552603e044075cbbe0d98e6a7244843ddf50f03ee85f67771ef9b3a70fd110",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "465703296f264fd053594340efeb0f82d96c2cdabfa4c21099775403aa973f87",
+        "id": "77d5cba5633f6c488b5bcb281c120621fac69f0a54b7f02262bd9508c3a3b001",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "d7ef29152c551e42a6960115e3f03e99b641e78ceafbe26bc537f37a17acb65d",
+        "id": "b79c9fe82ee9aa71abfab4520d9207861efb83206c7116257dccea2b8f74d40c",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "28511b4be818e542daef798dfe1061d1cf1830b64ea7634b2f9e1a366c41e09e",
+        "id": "21752687d72cc40966b58093c4a3465c023e52a1b2437244ea18b5268708df4f",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "52fcc41061d99a0946acb37fa3b2c84341e35e3d24c09de85a4ead39b2c91425",
+        "id": "37f31db663a282a00db36a3c2f94ec698a49f271b643d65793a0c8d459f928b3",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "aa2574aff62fc0247ee1ecb99f8f81faca729b69ff29a6f3808138d6a4db26bb",
+        "id": "dbb3389f6dcd3f45bc48beb0dda709a76755acf613ad4b2ad1976e846279394b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "6e18663fd202d7d4823ce99fff2e5b64ea1fd52deb42ec8be43659b637355c88",
+        "id": "9d60e529e36eb7a47dfd2323d3acfddc768114756dde41ff41a92d26d0196c96",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "07c666acf445507caa3c6d2b2ba53e91398eac2050ef8306a1fab12fe12ea8ca",
+        "id": "67ed206a833148f908b17c0e4078d71bc3325bb1c5009956873e8b8a1cb947bd",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "10adde3e54e9c9e1800dee9e76f7edfa27f9e1322c7f55e475ea6ed0ffdbed9a",
+        "id": "7a1a452f65349b9eaed63dfb3e511b257e299c996e57152beba33ae1d8dc7723",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "664ff9b700c8173c33a4012eef85dad758a855fe2085acd27d2c31a695c8a6f3",
+        "id": "3e7ff7b33fc47be99518267559c7885faaffb902fd1e3521ddf652c6bd299678",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "0e7dad82db778d176f4dacb93e1e6faaf4bda9e202d3265a27c37fa757808eaf",
+        "id": "20d80347c8ca613ae7968b0e3454f06274b5f17bca69a548e9ab5a1a85799b70",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "b130636ee9699c83cea47a34a1b7b1e750aee2cea19b9ef0fcedb7c594ed2dcd",
+        "id": "b6504e02e96960176e78414b30d77248ead865f0e2b5102e0d43d0ba66940de3",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "6c9c3917a02e64a692eb78e64224e03e61d298f865ffed8414af21db06b57a16",
+        "id": "db398317ae393cb401ec137869767380ea22edd0f1bc4cf8e8466531c131231a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "a0acd3b6b80cbcb83d114b9b94bf3c5643e3ff081cedabf1fb097f779ca7e161",
+        "id": "73cecdcbe935636108ffe514acf8fcc98bd6b621824648ce135c031175c89138",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "753762f29a02182e17f70468da5bba3119ead718f9a7c6b84fb6acc4db6cb60a",
+        "id": "34b106cddd23606c4403140a89870df3adc1035faf18228a1f39310efed42f37",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "262999e0e60597d068ede7d7ca6ccd595b8a6648aabd2b49f83ac4d927b0dc66",
+        "id": "22779d7850c489b89a2f1a0d34ff3ad5c672015071245b56c34c0902a9bbbdfd",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e512a367530928a2a8a6ff03f35a5c2cf7f5d8c9dc19c362bde6db71f7f3f237",
+        "id": "7579fc8ddfeb14e0ab88df2cd3f02ab0723e7de01d476e4078a1512fca55afaf",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "fca2fbaea606f47e8bfa0f1f11cca69626a7b82a9e15f30a88995e4aaa6469e0",
+        "id": "e5a43a6ecea3415bdfddabdb7cbdacf4ab90d8275bd1154760fbbadfd7ffb3c8",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "4b21cc5ed96037c4a919840c074cfa4f33ed78b74ef57a66154f6fe603241f41",
+        "id": "5cc03e6e99357d37a258446998760378b9ac5330cb6f2a09680882fe7aa19505",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "3b6b87978bcfeb7883532a222c8b95e274ac310875c27cbf8ded30824d3f6539",
+        "id": "5f8a3b6904f11910780c25061387d67f91d26f76cf2627b20061c7d7d5a50cd9",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "29eb1ea42738424db90fb0b00ab220991820f221f2adfcf1889b61f67e55d930",
+        "id": "62c5b55c1ace5038ca6ccac3929ec0ef319d0af5be2c00ecb3631f0cda722715",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "a83dab72f3aeb87c964dcbff72a91b014f3f3d9d9843fd87de7c41d9133ff34e",
+        "id": "1808587b57de8620f119c96de0a0eb9309f876786b069318116e5d00828869dc",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "8c3e282fdbe379d45a455c1002fdb02b96a3f9221cbdcf452cce759130cf3493",
+        "id": "2d7586de4e22ed8b7448e080805c90b55f2c9dd77661818efd99b215f7574155",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "83fa131fedd0747d6c1479a1b6d4c5d53ef29bf32289a7ad3f770ae628afad15",
+        "id": "69013dd67093298844631f5326689d0fc3a37052f82fbe8985d86484284e8c71",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e6f7b5a0bd1bb51dba0db8a9db1b1d48bd23b9806ac0cc378ccff1510924fe06",
+        "id": "4762d04226ef91f0b25c28eced6965dd49ba6133b6f236e005d07203075d10c0",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "ea6f4b6a8b7e0fa905cfe2b47669a7e2ab173e216b63acfa15433807119b2e53",
+        "id": "8f96f81dd3695d12fb2ec53bd21f456cd8965ecc168fee75737c058d1ff15908",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "a74bf2a7e9d56b341f62b38228373c638aa1cce2c5886e0ff9d7c681c142568b",
+        "id": "bb888dd25ac7c98dac598fa3f99fb2ac70536ed25e0886a0cd5068788f8bf536",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1bbc8912fd50698e004cbf26a11c46fa522af058c0d4ff642834010ccda74a08",
+        "id": "16480a1814d09388fc4170dbd066be8d656b6df9ac67eb832d15fa44f70df324",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "6c057f5e7870e446ea2ab8089838f1457b086a580ced70fdadba66a0af9500d0",
+        "id": "58257b90a9534362d5c1723c3751c5fe91e8a24a7b248b170d7994d30bfc1cdc",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "433c5058e4cadcbcfbf29d28f05b0eb03f234f9d273880864768d8484f2d4347",
+        "id": "a96b5226ad10798e9e5d25ab1d633802a02df6e8143dbbb33c9062c820da77f2",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "28623387c4745ff1c8f481492dda7623e76dd7caf81f393e7d5414deda56ffef",
+        "id": "0c97ad6933e675dba8607c84d0c2dfd90b44144e95559393cbf9627c437897bc",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "4171f9ffb8f339f9711ace428bf40be73f7c5e6562d549f919397170bbf66301",
+        "id": "b5b06d276248f5723c1de1f20d721ac00be5512272388e84490abc688ea58718",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "686cbc45cb29b21fa7dfedc690fd8a5a710243dc2c497acde795fa6061110cba",
+        "id": "86afce7ab22f1eba57af4ebb8f36d8b74086b96aaa6bc63cbe4731d1f73f9d06",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "5426724ac3798451af3a01c1ccfdcc0bc043446575832f72d4674c3cf88096f0",
+        "id": "1e44e8f04044e00dea88dce32ef121b56f99227de9f52c4dc50c3582ea689d09",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "5d9e169087812b43c33cb4da6bfbfb7faf3dec2bf816fbec1acee56ce1145c7d",
+        "id": "c528fa03118ddc485ed6122a88a26a64d297454d327e7655f8109a08097c65c2",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "ad4eea88873ad1459e299434e1d666a1a6b0c505502ad6aff73646150b693537",
+        "id": "ee4a737a52abef8621560ecc49b49d3c1296bea510c507eaafe0a40b0509bfc8",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "fcfcba71d857aa1da1f5f254fbfb15da44f9dd0ffe371f96a4e9e5d00315e34b",
+        "id": "f8b99f72f595506c0fbba5305fbfb0b5c03bb9fae6de5d27d4ca03c3c2c2104c",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "d1e4f96661c68f69597253edfb964462a09caa650c436b94cce70b0b9751c417",
+        "id": "5b44a5439c9c88c9d11a52f727b5eaa6d3292d92e3d8e46528f89abeb3ebc080",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e601940f0a04f583c1ca27b186fcbbed76609d224a7f19711ab5fe3a76b5c75a",
+        "id": "a93a85875294518a214b8cf1529d1366cc654e7de0e83f5b646ae85caeb8a908",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "0e299d62c27677af3790907517887fe35d0af275792627be666fb52f87f476b0",
+        "id": "953c357fd4600e731c48e5ebcae80a670866743fca474fd47a93fda6a71dee0a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "d1bb4fbf6f5844d80291f3d002d2586293cb8558bb654617f45871d42e2c64b0",
+        "id": "2a87d8e4055c0ead1dd91e4bbb7ce1430c11f8c7988d0985de056b38dd25f1e9",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1186490736dc50294cf116b2f4354ee6788c5f695b7db745e1f8a4cda6903066",
+        "id": "bc06581be259015b239a852cf6d96afc87c3993d073e5df908fe010911bcf937",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "c2333dcf67d0a53e466ecf0d9a234222531fd9ebb8acfc0b9ec82c99ab82eeea",
+        "id": "4758a0083456b9c4b53bf99a33eb45152114b9210cd8b94521897f6fae91ad0a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "0571c30557913134e1f1fa55fa1f0550fa2877333654d472e05bd03376395b83",
+        "id": "43e002d62ea4550e369fec65916dc5d720e82983f32d18a62cfc6cbfc3233aa4",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "190b83656afbf0649c2e3cc9c73897d8b66ecdb6e864100ab13a99a4c1f2b468",
+        "id": "d119f52f527d341ca923bdb7acddf22d14ce1fb95b24a80ff06b4933a2beab32",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "0f3bac239557d383d688761085d143ac8d1f16b8eaf26740a309e11998fdf86b",
+        "id": "31f84094ab3858797f56dab1ecc175f58c4e7a6d64e5626555821d88dd7f0acb",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "f0597d6841b2a0dbc8307ecc12471238eca5b865f54ee5e17eea11ccb029ccf1",
+        "id": "064f505fb90fcf94d8456cfff3f344544f4f292ba4f44a5d38098684dec89da7",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "f2c988dccff7fd3341d07a349710ddfdee5ad8bb5d2a5d051c3ba0be93904725",
+        "id": "497a0391bd3b4cd0963b904d6662a706a0a1711582605b5a3eb60f0efde80df8",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "660a299706f98d73c9a88ac9d6c04bcbec822f02819d4a9dc141678a45934f40",
+        "id": "62a9325f0328e5c8aa7ebb3bd8684c60e539976be4ec9fc4afabc162e5923888",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1ef5f028500607b34d18258c3eb5e4a80b54d39e52f8ac102c05acbe9a32077b",
+        "id": "ebf618935e5a90f07f4e008434c83982c9036c6853f2f2a65090846ed6753689",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "162be446bc9a35f11abad6fb0491d58b8ae01497490194018712eb92d9218ed9",
+        "id": "2e98a3d9b74441038bd0e7d2cf03303af64ccf28bf4c540e495f5e783e5f4094",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "2bc7f93fd3aedce668ce34d3e207534868e6a6ffd61aa3a0e4858f3b96b793bb",
+        "id": "eb0f6570dfd0678606672adad5531f5c797fbc3884f15baf9ebfd4cc3ed0653f",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "87a5bd54ec7469440e2b6022dbdba1f64fbe57394bbff43bf583d525e80bebfc",
+        "id": "97eef56a15f06d6942bbe435332c41f20ca2c20bfb79ab2a4a6a6963762f2a4f",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "9b6bbbf72b1032cbf73adf2e02a84fa813ba417be1cd96d3e766661974c34b08",
+        "id": "5d815b007727124102500daa80d0823ba75425e2b48742aaeb73220bf3f7d61b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1d2dcc3e4f5084d515e530cee55e62f5b8da6dc03dd6fc11aeb8d992a12b0066",
+        "id": "e0a56aeceb3d6db9cb4b3b6f541070386fb7d1fa0449057bd6f306ef53da560f",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "f1cafe10356b3db07f000883029e3e420fbd6723356942f4233f6f02ce20b43d",
+        "id": "79746a56c38999bd8f1728dc1c64254720586bdc89ed9af7de909d2272f355be",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e94e8aed6443c0bbb7847181a565528f772d1a4c352bc6bccd2e681b18eb1b34",
+        "id": "10ffdcdcc6dda302c5ad684bc7c8051f2f526fd01b2aa7c54501644cf8aee23e",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "6e1561c6841928f34cde988bac756d50076ab37bcb458085cc268894eeb0ea12",
+        "id": "9512582bc27638f9487c36b0513a56ef9f0c38ac36bdf9f91695d2af2ccef3cb",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "d180787fd52c8fd86a10d87d67fc382e233758948311125e7e133e5d80a60ad2",
+        "id": "6b74443d053d9aece0bd666c3c43ebaa9a9a4d726c56f6e1a3bc60ec27622537",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "626437bf9657fa898f155f1d877f34309026cc9f9913032740e12539f3e8d73f",
+        "id": "1af67ad67aeb6d9a07a5ca31b6c39d12ea023aa80a70dd2e045f328489f06ff8",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "8e5a058aa06a200332c5e4b9c2fdd5efe30f7119e3d007501084a6d68b54ee20",
+        "id": "1718f74b96e60fd1aa87f5a0d7a926eec0219f8e5b49aa9d069df8612371cf91",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "df2ceae794da4772868e9b1229328b45ad3e9231d33571c0cb42e1f6284c5a5b",
+        "id": "46db34c3bda630713ba1ab6b8de88ca1310d0cc826cdc145dc782a3996f4ff72",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "94c5df379fba09e49ff2bb9c8915d59f21d0d35d26c85e80efc112a9e591b978",
+        "id": "50498008248b87093e4cf4eeeb9ec202395c29d398c12957fc83259144bf0fef",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "7c24ed62be593a1ac931ba5b9eecb978f453f7edcebeab32932c1311887381f3",
+        "id": "951af0194ea1e9276d0e02c9a9a5c461102b11e295092b0cfa8b868a034a2efe",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "0d35fd1cd8c3c2ad7a1a1957183b0dc9ae1e07b14b9d8094927c23207fe3ec57",
+        "id": "fff20ad230e7e9cd38603ae7976fb168ad916fc50189fa3ae3652eaf907c1c0b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "142ee40c4ebc20b305393de5ba303eb9f236028cc9db220456479feaa78695d9",
+        "id": "1e6f4c8520b29e0acf3a427cdad01c6da75c1e841d1a15c2f3aa08c7d8e4dbe6",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "7968e452d46f27eb98215b767123db05a7c3e971e5f6e22ae940052e28a3f9b3",
+        "id": "b5e71cb5e6634e4c6a856520a36161feaa5454db51dc3ad6f5a28be4d3728c1e",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "b3218ab92df8125e665e1f3456a037735614dae2aa913dd8b463ca141ce78eb6",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d6cf3f24507dc09b37c9728318b039a2084b5b077c3377aedf2f3c140fc156ec",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "67047db230e721770ed0da19b579010389a69606c740728fab409703f81fe240",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "02cddd626c66017dc52fdc7da3610059152e9ebe2a99d24ce278b7eac834a339",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e31d59946628f0b29222022b9ba85f71ce7e8943dbb2a23488022bb0c99b3514",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ee5261d7cdaecc7d18a984f53baf98117c72bf8f79ea1e84eadd011bc72c660b",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7f8e0c924cbe67f79341cbdd04c1f165cfe8c39bbec731100d98fc00eaa79f4c",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b161ad20a7bd9dd0ebc8e1683ddc14a167bfb06afc5ad485c3eed937a112abdd",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9207df02dd57eb4771d47da5f247c81142998c7ca867cfc26dc142e006c383a2",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "fa83c3d33268ee73d7eed9a32c3a1f3a4efe0ee1fd7937f7b68a0434288cd79c",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b4a1afa20f1a37a29ed30cb21ff82c03f192aafb9fc4010f4b8822c8caf40400",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d0d844a8e8c007bff0efbc21860515a611242b68b983e6856b0565fa38ab0555",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1342a3d24e1a16cee227cd5e13ad0778be992a65a1b71bdd7daba2c14aa09f30",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "32de0c808f8d0e2b421930f7301cffcddccf6704adfb92d431f63d5a640049f9",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3023bd319db034c9fb2a727f726357f7179447caff942ad14a3de5f66b614d62",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d9eec8a1192adb7babcc8787a3e59ccbeb4e96ec876d074d4dda4dd030dc2fc3",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8066e3dafa59c5b9711adf6231e479d6241e5097dd4b27635d96a1857d2a3438",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "5f474781c081144b7876fc0f81a139e0e6554d4c63744f87f8235bf109f6a072",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b9299ce3405fd4f2d61a900ca5457f9323d24623b7b2032cf27a017ee2d70c8b",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a025ee4bdab3f9f836367d2e1ca383f6517b3341618ea6d5b2a2a30f647b0d35",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "53f648d9115ccd3b90c05f600133e03b6b22b0d5e6044562e36229ccf45f5975",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a4845ffabdad9edf3cc4ee6524916bcacad186ecd1c1a8ff1035a300eecaf34f",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d65bb48650473ee1b3312027673ddcf2932ff0a7e37b7871ab05d013a226d34e",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7989cf94d9d4db8cb34f749101d7665a11cfa6f3fa9c1fc6a5fd2ea0bb0cb15f",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7b60c6f88bfad4512136ce1a636461a061e377b28f9ca6ea3ab91a2f274f541a",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9b54ca6cd7153177985cdc13a59f170d89909ab4fbed01e46dc269834c78665d",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "fce870866e34f33cc0d95485e4c48106db91b5e52b3a1250aa6a8c558de04275",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ef5a44293ec8cb96e1dd008bfa1de91a2ddeda543614820425b56930b390eba1",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1788830c45b125e14cd5a903437c5c15e3831cebf178307e6bd02a3c5cf4eaba",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9ab4f2f5b61b71d65e6cefa0b221d52176ef88888638044bce4cc6365a3fe73f",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ce64a9736802b1f68176e529e57c49319b126e781a4b862a6d67964be92a8246",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "4e66d4e68a08fab0e1aa5c804f3e463e363904e62f5258f4686f5d862a7dbed5",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "932c8c87f210f87bbf25a53fc8a702cb95c51df22ab798b8d80f20342502b6a4",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7749794ed22b4fad6767969b6efa3b5b253cafc3c3e0db3aad6020935cf2e40c",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1da98864c020332bb72ca22a39d7dc4c5eb5a7a3389fed53897512e02dd4a88b",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8582f1f8102794c55282026ca7642742cff6329f768fa257641cf0042c8e5f53",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f4f146e3cbe174a71ccb315cae9c5a63af40c3349c6a8c7a9e491b36b602e4ba",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "648c29324e160f9430e2ddeece99f63aa136bb38453161cefb2ce00a2a6d8503",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c29d89fd1ad99b0c04380632965ab0ad9664af647ec87e4d89f7fe32df714aef",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "0d9443451ede40229db650c40d962de17e516a84277f4b9694a7f571185fa6f0",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "27109e48117eb7b65c880ade070ded5826983779727c34853792108c081e7488",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "4a676a8103bcae07531013faec1ee3bf092181d7c4489208671ca32929cba8ba",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9742a2c4ff99ea5537c4266e083d3cc9c610691a94bb87728c8dae9e6457a322",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "51397d44e8bc3d0ed44405990a2ab5b84f6abc0dd9747010d70543289b84b4ff",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "78c8410d9659d3dc9207a86d3681149fd73e7d736a672db9996dc665a6f902bc",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e42e9314abc5d28ef69e8ab83c43f19fdebdc11751e5d7d363c39baa5bc6bfb5",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c2d8788928b60204055d0b168a6d0f32030611b6092186c85d81aaa5ca7fd643",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "5fb62c6e53c5358888a2471ac4118decf8566726df7da88c0bb324d2c51242af",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a77fcfbb58b688b321af7db5c29599cad7185d4ce083ad4b56c518fbedfa2782",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f0f10638deea7f2b94b688c150a9860c99b277a98d500602d100dd908d338012",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1fe8dcdc6eafb9770ddb5bbc4a7124a8711f51be05365a3c602c8d92f80e4856",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e79a1507e97be036f8a5c2f8f0ab8792dda483f99b518bced6d1b2a64f4920a2",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8e82cdac2a0f10bf07310bea84f31f2efd188005dc69fd02abe8d37b06cfa449",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3dbe444f8e12b9bb6e6c31f5e97718353915908eb998e65faf48c4f17926a707",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "14186297ceb8c2192d9d02b38939ea05b28c356bdb357c9db1e2277e99e9a053",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c43af47126866291cc8e5783f36abb4e114cd532eb900d119ef84015ead3ce60",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b494cf474f188cb7d3cad10ee14bf396a9ea913fd728d3e6e26f351bb68d04a5",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c90a6fca020983cc2a32c72a735d4a7147c08111a841d4e1dd6419490f03f18e",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "5386075a45abd60d3bcb6c0ad41eb44155df9221010d954d5f7a6da24c5b5b1f",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b173ce06e0d8fc034777710a842c7f3af640f1d5ab683d6ec48b935bb339b31f",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ca863b3668d1b7e4552b2d2d6c5974119a9b3708a3c5178c374cf3b3e4035188",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a78bc76c34748f412456fb8b83448b8d8bf1cf4f822b99b3c9b60ac435fc4373",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "eb8df1f183a6172a906580168e10639f92555c986f8a98e30199e48a117615e5",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e88e5a7e3179fc8dcd920c2f0ace45eda9b6a758cb72ad66c92ef5b8dd92a4f2",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ffa24b125d3978f2414c2df9a9b8ef602c9b55bac0192b0f5956cd9c5c6733a7",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ccd307805f92bf355ef1989cb7e84faaaa55985bd41f514576fdee7b92eac148",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c95a0e99e146a6911f6104ff86ae6abd33315c5161a55a7ed8d3939c487e2166",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7ff9296fac0e50e5992e171298bb511c06aad8e3ebeec528d82d276c53eac054",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f5b43b7388e8bb8843d96fe0fe53dfa67558d9edc76f636f6f76e9146ab33a18",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "910ae0848041573666b9771a7b8d8bd2aca9390b9408cb5cb231f66e82cc7352",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "97a646a00ef45520c8c1500584692b1b768fc304d7f95b44a6268cd3a06b1df9",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "10b33889475bc2ed32f8f528c860bf27292e4f7b007d3a1196aefaf50a531375",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "79692531d596c7e004d6af5b8f794eaaa594cf955bd94f6e7b46cdcddefbbeaa",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8ce5f0d2d8bd117a044dd6c0a2d5003b501d44ad859d09269fd889fd94558f3f",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -85599,41 +86043,49 @@
         "declaration": "hub/config/theme_style.py",
         "consumers": [
           "hub/config/theme.py",
-          "hub/widget/forms/general_settings.py",
           "hub/ui/settings/pages.py",
+          "hub/widget/forms/general_settings.py",
           "hub/widget/transcript/conversation.py"
         ],
         "tests": [
-          "tests/hub/test_stores.py",
-          "tests/hub/test_reading_positions.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_workspace_presence.py",
-          "tests/hub/test_general_options.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_settings_usability.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_question_tools.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_tool_retry.py",
-          "tests/hub/test_request_history.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_coding_skill.py",
-          "tests/hub/test_provider_recovery.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_stores.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": false
       }
@@ -85806,6 +86258,368 @@
           "tests/llm/test_execution_boundaries.py"
         ],
         "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/config/theme.py",
+    "sha256": "ece5469c45d73c354f229e2a9ea97b8b223eeb5cbc974b2746491dc394a183fd",
+    "reason": "Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. GlobalPage and other Hub consumers still redeclare appearance fields, form constraints and enum choices; their closure is pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "41f05e8690d37b10a5f9a720b6f11c28729a3f37e7c0a26d03dfae427ac4251e",
+        "classification": "declaration",
+        "owner": "ThemeMode",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "8f3f4607ed2a319bfd3e96687f43c788c24db5e4dbcbefeb9ad0cffca1bdaeae",
+        "classification": "declaration",
+        "owner": "ThemeMode",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "466f460fe47d698510e9f9ac7804c1a001f4d9cf53d7b360a3c9a22afd18eb95",
+        "classification": "non_contract",
+        "owner": "HubTheme",
+        "reason": "Python type annotation/decorator layout metadata; not a wire field or execution policy."
+      },
+      {
+        "id": "d280fe11d36c6e5b709b400c304c3c2ca299fa27d577df46b908ab182da68af5",
+        "classification": "non_contract",
+        "owner": "HubTheme",
+        "reason": "Python type annotation/decorator layout metadata; not a wire field or execution policy."
+      },
+      {
+        "id": "987bb6187e96227f8b248bf65adf22cb875253471d9086b1349535511860af11",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "4af424745edb94426ff930862b4b797821a2065a7d98d4d9fe4bcdf15a53a119",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "6f11badb766680c0db115ede5457fd438ae1aee370ed3d8c4fae28bba61fb886",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "969426c88a9513f5462e199a5db28ffa40e59a10d1bf4838dc06438e2b06dfae",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "6a6841995c08fc1ed8606395b5e0e086f7ed6affd660dddbae9a0af01f321d79",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "8bf68f3620c491fba689aea0158beff9f6b7988b919b4c0980779d39ec9937d5",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "45ea0436d4bce2d6f7770ec94f1fb74b908760d021bd0e6e77301d98645f9ef7",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "96e3b0451eb2a28a44a3bb50f31fff1f0d99ac3012964a3f4a93d9bffa74501b",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "7142af001dcdd432272d094c2c62238bb21e5fa3154d7e93f39770584e59a9f9",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "022a03188256956e90590881f8c8cfcb1d9dfc711e2b40a43fc1b51799b89547",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "e500c4854f852e96f6d09bf80fe4233d3a7aa7812c4c0a3e619c92cd189fee82",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "bac60f580064450d0e6a2f505e0c815e91e4ed7be4b036f22d90937e1a7da3c6",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "fd3e4a4602678ee12594da26c8a78874ed539b5a4e755c0e1eb8d65d2e128083",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "2150045c69f4742c0a19c45fa0addd896c9aedf982a5445f4e2c1b23102454c5",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "6ce245b771919738d565ccd75b0234b3c14c51cb04e8d06c62f4038618eff228",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "9c1e3c11ff266471b8d9146f4487c24e738e609241d80c313cd83665830755b4",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "fba4f0c53987d3784966cee4ac715de5b40c0ea316efb99a5fb83f6271809900",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "cfa850967e0ed1341b20e3f8db055d4fc20a93f56ce62df60ba73d2e2fedd77d",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "3621eafcd7ec4f9afb9de2d933896a116a07a63dfbf332fb293cdc0d6f37faef",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "1461a259eb2a324087fe2c9138a65485b32d5e80f4ce38f8d5b5a4878f492cae",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "5b07aa503562cb179a577440b6012cd8a7ccf7e496fa8087ed7f45084beae175",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "9ab42c480f39635163a03b8fc860af63b87432723f7bdd324eaf64863aeeac53",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "7e0bc13737d13fbc7586cd2b1d2f6fe904a701c3630e6c40cd965044d14145a3",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "fc608080171454c60d21af806d98e02c724258f8f939c93753960aec8bcdcb80",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "0a0fe24dd209fb1c27c99e0761df458b1248fcbcce61d1dfcf00686a647a0e10",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "d4092cf913ccf543c0fb0e9c75a11e092ca84ffea965bc1518ba58a2518cab86",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "c3f531557f11182da03acc48f6c32d05bbe87b7f4fa1b5391afadd7bc75e0dba",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "e8b4f9e6725a9e08f6b19cd2a2fe337eca3a7baf3674d5db06d27ef3ca743222",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "8af4965451ea9da17e8c25b6c2020f631f17d1135b5497c505d5b287ea268bff",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "b35a17f17a50fb7af994986f8f6d2643ca297c353e25a6a16fb4698141871bee",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "f784b8dd62f56a4e7a9487489a90ece5eccca20796d0df16c551562219aa244c",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "8129628fa6fa6dc3065e4f8faa743f95203177a1b15b016fcf77bda3f521f469",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "3342458f095cb42ae9180fae3d965a523a9f1b02fd1048f30ae5589833913f15",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "8d353d01552abd5ea073b22e0f260bf24c567b96db15f963347165b47e3060be",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "790386f658fb99d423b59936384990c0db42b65fba82576ed7bc18b954b896ff",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "29f0c4c35f66f0d14bd8d5de864381d41b455373a8ef4552b2c407bc11ca58a1",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "0b7102553917d29bdf76f58c359d70c7b44da695576070e97b739040b6504b9f",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "be1972bb361d682f1eb3d7aac32b513082977cf70c51fe1f45814222a3f80223",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "335bca9817bec1870583ad5d55b6ae0ffb92da6e4f2f782ae7f13738245ca9d3",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "b2290db8bfb4e040afa04083eb42e129318587c0cc11b1c3d15028b1c1ca1851",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "9f08221bcbcd08be54471e5d56e08cbb2d40ac1847dd5103e3b5016b555948ee",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "656a85a8c1ac96b86d7e063611358cbf1403e8a9d99d50602f028103baf5f12e",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "36b28b25ebebbc82d35f8ef8e40b33cd092a1b98ddda47d0b240af933fbed480",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "8fd04f16921a215bd3d4d9888b3b99702c5de077485c3ecb2a1160091b73b375",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "244492f55801af38f8755c52ea06a03085a765a7fbbab902f18a756db2bb5afb",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "942405b8812bfc9484d9cff41f996ff431976444f71ca22300759309aff64513",
+        "classification": "declaration",
+        "owner": "HubTheme",
+        "reason": "Theme defaults, RGB computation parameters, bounds, semantic palette properties and errors are declared before methods. Canonical dataclass slots identify fields; Style rendering delegates ordered templates to ThemeStyle. No new preference defaults or validation behavior."
+      },
+      {
+        "id": "02839011aa356bcd8afd4d2226f3e4302e5fe1b4cb0e089c617adfa6c33e7b92",
+        "classification": "non_contract",
+        "owner": "HubTheme._blend",
+        "reason": "Algebraic complement (1 - amount) in weighted color interpolation; not a configuration limit."
+      },
+      {
+        "id": "f336e6bd59f8e26d5c6d37bc554b6b42fcd4858bd12289f765eafa9a47a2daed",
+        "classification": "non_contract",
+        "owner": "HubTheme.__post_init__",
+        "reason": "Python type annotation/decorator layout metadata; not a wire field or execution policy."
+      },
+      {
+        "id": "33b2c2e0422e1591376088bb526bad3df430dbf05678e0094245e246a0c3f6e1",
+        "classification": "non_contract",
+        "owner": "HubTheme.dark",
+        "reason": "Python type annotation/decorator layout metadata; not a wire field or execution policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubTheme / ThemeMode",
+        "declaration": "hub/config/theme.py",
+        "consumers": [
+          "hub/config/theme_style.py",
+          "hub/config/preferences.py",
+          "hub/config/preference_records.py",
+          "hub/ui/settings/pages.py",
+          "hub/widget/transcript/conversation.py"
+        ],
+        "tests": [
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
       }
     ]
   }

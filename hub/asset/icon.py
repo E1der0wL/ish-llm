@@ -1,8 +1,14 @@
 """Terminal glyphs used by Hub. Change visual symbols here."""
 
 from types import MappingProxyType
+from enum import StrEnum
 from dataclasses import dataclass, field
 from collections.abc import Mapping
+
+class IconStyle(StrEnum):
+    NERD = "nerd"
+    UNICODE = "unicode"
+
 
 SELECTED = "▶"
 HEADER_MARK = ""
@@ -78,6 +84,6 @@ UNICODE = IconSet("•", "☷", REASONING, WAITING, EDIT,
 
 
 def for_style(style: str) -> IconSet:
-    if style not in ("nerd", "unicode"):
+    if style not in (IconStyle.NERD, IconStyle.UNICODE):
         raise ValueError("icon_style must be 'nerd' or 'unicode'")
-    return NERD if style == "nerd" else UNICODE
+    return NERD if style == IconStyle.NERD else UNICODE
