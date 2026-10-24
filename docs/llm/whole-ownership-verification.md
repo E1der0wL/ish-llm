@@ -5095,3 +5095,76 @@ S2 occurrence e4c3552b… 하나만 검토 목록에서 제거했다. 명시되�
 전체 inventory 538개, 미검토 259개(llm 82/hub 177), 미분류 17,261개,
 미완료 계약 4개·stale/분류 오류 0. 상세 증거:
 `/workspace/llm-clean-resume/whole-ownership/rag-data-draft/`.
+
+
+## llm RAG 정규 입력·준비 문서 Reader — 수정 후 Level 1·2, 다음 통합 L3 승격
+
+기준 cdeb1b4. RAGDocument/RAGDocumentInput을 document_records.py의 단일 정의로 옮기고
+원본 입력·준비 문서·revision/CAS의 필수 필드와 엄격한 검증을 해당 Owner로 이동했다.
+Component의 기존 validate_input/validate_document/_check_revision 콜백은 같은 Owner를
+호출한다. 저장소가 선택 Component에서 얻는 콜백 및 코퍼스의 cls.validate_document 호출은
+유지하므로 기존 확장 지점을 우회하지 않는다. 실제 검증 로직이나 레거시 Reader를 복제하지
+않았다. ExtractionManifestEntry는 기존 signature/entity_ids/offset/count Writer와 digest
+필드를, RAGEvidenceIdentity는 원래 UUID 형식만 소유한다. 모든 직접 import 소비자를
+정규 모듈로 이동하고 3개 테스트는 필수 필드의 선언 Owner 참조만 변경했다.
+
+첫 검증은 카탈로그의 self._validate_versions 소비자를 놓쳐 실패했다.
+전체 함수 비교만으로 제거된 메서드의 잔존 호출을 검출하지 못했으며 실제 회귀가 이를
+검출했다. 단일 카탈로그 호출을 RAGDocument.validate_versions로 수정하고 모든 llm 소스에서
+제거된 속성 호출이 남지 않음을 추가 확인했다. 초기 실행은 다음과 같이 보존하며 성공으로
+합산하지 않는다(복수 subtest 오류 때문에 failed test 수와 failure/error 수의 합은 다를 수 있다).
+
+- whole-rag-documents-l1-01: discovered/started 64/64, pass 47, failed test 17, failure 0/error 18, exit 1.
+- whole-rag-documents-l2-01: discovered/started 213/213, pass 111, failed test 102, failure 14/error 98, exit 1.
+- whole-rag-documents-hub-01: discovered/started 33/33, pass 16, failed test 17, failure 1/error 16, exit 1.
+
+이전 호출의 AttributeError 때문에 공개/조회와 프로세스 중단 주입 지점 진입이 막혔다.
+실패 소스/input·명령·전체 로그·원래 기대 Assertion을 보존하고 진행 중 실행의 수집 완료 후
+수정했다. 모든 실패 실행의 Skip/xfail/xpass/누락/추가/중복은 0이었다. 기존 프로세스 종료값
+77과 원본/효과 보존 Assertion을 바꾸지 않고 동일 L1·L2·Hub 선택 범위를 재실행했다.
+생성 스크립트의 async 함수 위치/선언 순서 오류와 AST 도구의 중첩 statement 정규화 오류도
+제품 테스트 전/보조 도구 단계에서 수정했으며 통과한 실제 실행과 구분한다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-documents-draft/proof.py`
+(한 셸 명령), 수정 후 exit 0. 실제 Owner·위임 Reader를 확장한 전체 기존 함수 223개가
+동등하다. 독립 필드/형식/Writer 4·준비 문서/원본/그래프/manifest 손상 2,418·엄격한 입력
+111·CAS 생략/유형/세대 272·identity 형식 185·선택된 Component 콜백 1개를 비교했다.
+
+- `whole-rag-documents-l1-02`: discovered/started/pass 64/64/64, exit 0, 73.005589초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-documents-l1-02/llm.json --modules tests.llm.test_rag_prepared_integrity tests.llm.test_rag_corpus_integrity tests.llm.test_rag_input_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_batch_source tests.llm.test_operations_schema`. source `4a5327170b4d5253a0a2ce6677207a6f33828deaad2774c58706be9a5af3014e`, input `504d8ae0c6e25c1393476c3d8f0d3bf2fcf05c6036793ff02e38a5ffb5383d7f`.
+
+- `whole-rag-documents-l2-02`: discovered/started/pass 213/213/213, exit 0, 176.361922초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-documents-l2-02/llm.json --modules tests.llm.test_rag_batch_identity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_catalog_integrity tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_optimization tests.llm.test_rag_retention_policy tests.llm.test_rag_storage tests.llm.test_rag_job_state_integrity tests.llm.test_rag_models tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_query_evidence tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_components tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `4a5327170b4d5253a0a2ce6677207a6f33828deaad2774c58706be9a5af3014e`, input `504d8ae0c6e25c1393476c3d8f0d3bf2fcf05c6036793ff02e38a5ffb5383d7f`.
+
+- `whole-rag-documents-hub-02`: discovered/started/pass 33/33/33, exit 0, 146.39234초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-documents-hub-02/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_rag_defaults`. source `4a5327170b4d5253a0a2ce6677207a6f33828deaad2774c58706be9a5af3014e`, input `504d8ae0c6e25c1393476c3d8f0d3bf2fcf05c6036793ff02e38a5ffb5383d7f`.
+
+수정 후 모든 성공 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및
+실행 간 동일. L1 재사용은 수정 후 동일 제품·시험·Fixture·의존성·환경 결과에만 적용하며
+L2와 ID 중복은 없다. LLM 전체 발견 2,492·Hub 588 유지. Python 3.12.14/Clang·Host
+d833790·동일 고정 의존성과 실제 namespace/X11 환경이다. 실제 필수 기록/원본/손상·
+그래프/임베딩·Job/재개·프로세스 중단/트랜잭션·승인/예산/Tool 효과/Checkpoint 및 직접 Hub
+소비자 Assertion을 모두 유지한다.
+
+이번 Reader 이동에서 실제 소비자 연결 누락이 발생했으므로 단순 소단계 유예로 끝내지 않는다.
+수정·관련 검증 후 검색/Job 기록/Job 실행/Data/이번 문서 Reader의 5개 관련 소단계를
+묶은 Level 3를 실행한다. 전체 LLM/Hub·보조 검사 성공 전 Push하지 않으며 정확한 SHA의
+원격 CI도 별도로 확인한다. Component의 나머지 설정·저장·준비 조율은 아직 미완료다.
+
+## 게이트 34 원격 CI 확정
+
+2026-10-24T02:48:05Z에 정확한 SHA `0660f40179c84867db0be0c60a04eaa0791557b7`의
+[CI 40053702193](https://github.com/E1der0wL/ish-llm/actions/runs/40053702193)를 확인했다.
+두 필수 Job과 환경·문서·정적 감사·R3 Mutation·실제 SDK 진단·전체 실행·증거 보존 Step이
+모두 성공했다. 실제 전체 결과: LLM 2,492/2,492/2,492 pass, 1232.690831951초;
+Hub 588/588/588 pass, 1418.446164646초. failure/error/skip/xfail/xpass/누락/추가/중복 0.
+원격 Python 3.12.14/GCC 실행은 로컬 Clang 실행과 구분한다. 후속 검색/Job/Data/문서 변경의
+성공 증거로 승계하지 않는다. 상세 Job·Step·결과는 정확한 SHA별 ci 디렉터리에 보존한다.
+
+문서 Reader 소단계 보조 검사: 정적 S1–S7 reviewed 111·new/stale/outstanding 0,
+문서 168개·Python fence 183개·링크 1,200개·anchor 37개 오류 0,
+`python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`
+16 pass/3.203초·exit 0. `python -m tests.llm.check_budget_mutation` exit 0,
+원래 실제 효과 Assertion으로 의도한 R3 한도 누락 mutation 2개를 검출했다.
+검토 dependency 14건, 파일 539·미검토 259(llm 82/hub 177)·미분류 17,119·미완 계약 3·issues 0.
+집중 검증 이후 chunk_records.py EOF의 빈 줄 하나만 정리했다. 위치 정보 포함 AST가 동일함을
+확인했다(이전 `3840eff2aad1c5d71d0b380fbb5a4b1f320f0e290ac1f18fbdab0366b020a248`, 현재 `a3806b3e6ade46c00364606e211254a110780e085099a7a2b7496cd6a7b888af`). 위 집중 결과는 명시한 이전 source hash의
+실행으로 유지하며, 현재 커밋의 실제 전체 검증은 다음 Level 3에서 별도로 수행한다.

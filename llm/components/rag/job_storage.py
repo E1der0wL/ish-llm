@@ -2,7 +2,8 @@
 
 from .status import RAGJobStatus
 from .job_records import JobRecord
-from .chunk_records import RAGDocument, RAGDocumentInput, SplitDocument
+from .chunk_records import SplitDocument
+from .document_records import RAGDocument, RAGDocumentInput
 import fcntl
 import os
 import re

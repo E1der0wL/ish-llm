@@ -1,8 +1,6 @@
 """RAG split-document, section and chunk shapes and original-source bindings."""
 
 import hashlib
-from copy import deepcopy
-from uuid import uuid4
 
 
 class RAGContent:
@@ -13,42 +11,6 @@ class RAGContent:
         return hashlib.sha256(text.encode(cls.ENCODING)).hexdigest()
 
 
-class RAGDocument:
-    INITIAL_REVISION = 1
-    REVISION_INCREMENT = 1
-    class Field:
-        ID = "id"
-        TITLE = "title"
-        METADATA = "metadata"
-        GENERATION = "generation"
-        REVISION = "revision"
-        DESCRIPTION = "description"
-        PREPARATION_CONFIGURATION = "preparation_configuration"
-        PREPARATION_FINGERPRINT = "preparation_fingerprint"
-        EXTRACTION_MANIFEST = "extraction_manifest"
-
-    def __init__(self, value):
-        self._value = value
-
-    @property
-    def identifier(self):
-        return self._value[self.Field.ID]
-
-    @property
-    def title(self):
-        return self._value[self.Field.TITLE]
-
-    @property
-    def metadata(self):
-        return self._value[self.Field.METADATA]
-
-    @property
-    def generation(self):
-        return self._value[self.Field.GENERATION]
-
-    @property
-    def revision(self):
-        return self._value[self.Field.REVISION]
 
 
 class RAGSection:
@@ -190,43 +152,3 @@ class SplitDocument:
     @property
     def content(self):
         return self._value[self.Field.CONTENT]
-
-
-class RAGDocumentInput:
-    ABSENT = None
-    INVALID_BATCH = "documents must be a nonempty list"
-    INVALID_SOURCE = "documents[{position}] has unsupported fields"
-    DUPLICATE_ID = "Duplicate document identifier: {identifier}"
-    class Field:
-        IDENTIFIER = "identifier"
-        TITLE = RAGDocument.Field.TITLE
-        CONTENT = SplitDocument.Field.CONTENT
-        METADATA = RAGDocument.Field.METADATA
-        DESCRIPTION = RAGDocument.Field.DESCRIPTION
-
-
-    @classmethod
-    def create(cls, title, content, metadata, identifier):
-        return {cls.Field.TITLE: title, cls.Field.CONTENT: content,
-                cls.Field.METADATA: metadata, cls.Field.IDENTIFIER: identifier}
-
-    @classmethod
-    def prepare_batch(cls, documents):
-        """Validate the entire explicit create batch before model calls or queue admission."""
-        from .component import RAGComponent
-        from llm.components.base import validate_name
-        if not isinstance(documents, list) or not documents:
-            raise ValueError(cls.INVALID_BATCH)
-        result, identifiers = [], set()
-        for position, source in enumerate(documents):
-            if not isinstance(source, dict):
-                raise ValueError(cls.INVALID_SOURCE.format(position=position))
-            item = deepcopy(source)
-            identifier = uuid4().hex if item.get(cls.Field.IDENTIFIER) is cls.ABSENT else validate_name(item[cls.Field.IDENTIFIER])
-            if identifier in identifiers:
-                raise ValueError(cls.DUPLICATE_ID.format(identifier=identifier))
-            identifiers.add(identifier)
-            item.update({cls.Field.IDENTIFIER: identifier, cls.Field.METADATA: {} if item.get(cls.Field.METADATA) is cls.ABSENT else item[cls.Field.METADATA]})
-            RAGComponent.validate_input(item)
-            result.append(item)
-        return result

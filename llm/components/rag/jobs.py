@@ -24,7 +24,8 @@ from .job_storage import JobStorage, JobBatchReceipt, JobDocumentBatch
 from .job_records import JobRecord, JobProgress, JobFailure
 from .job_views import JobPlanEvidence, JobCleanupRow, JobCleanupPlan
 from .job_policy import JobAdmission
-from .chunk_records import RAGDocument, RAGDocumentInput, SplitDocument
+from .chunk_records import SplitDocument
+from .document_records import RAGDocument, RAGDocumentInput
 
 
 class RAGJobs:

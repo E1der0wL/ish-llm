@@ -1,4 +1,5 @@
 """Queued original inputs cannot acquire creation defaults after storage."""
+from llm.components.rag.document_records import RAGDocumentInput
 
 from copy import deepcopy
 import json
@@ -71,7 +72,7 @@ class InputIntegrityTests(unittest.IsolatedAsyncioTestCase):
     async def test_stored_fields_types_and_identity_are_required_even_with_matching_hashes(self):
         original = json.loads((self.path / 'input.json').read_bytes())
         cases = []
-        for key in RAGComponent.INPUT_FIELDS:
+        for key in RAGDocumentInput.REQUIRED:
             value = deepcopy(original)
             del value[key]
             cases.append(value)
@@ -95,7 +96,7 @@ class InputIntegrityTests(unittest.IsolatedAsyncioTestCase):
         cases = [{}, {'documents': None}, {'documents': {}}, {'documents': []},
                  {'documents': inputs[:1]}, {'documents': inputs[::-1]},
                  {'documents': [inputs[0], inputs[0]]}, {**original, 'extra': True}]
-        for key in RAGComponent.INPUT_FIELDS:
+        for key in RAGDocumentInput.REQUIRED:
             value = deepcopy(original)
             del value['documents'][1][key]
             cases.append(value)

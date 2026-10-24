@@ -1,4 +1,5 @@
 """Prepared RAG evidence must be meaningful before reuse or backup."""
+from llm.components.rag.document_records import RAGDocument
 import unittest
 import json
 from copy import deepcopy
@@ -47,7 +48,7 @@ class PreparedContractTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_every_stored_document_field_is_required_even_with_a_matching_hash(self):
         original = await self.prepared()
-        for key in RAGComponent.DOCUMENT_FIELDS:
+        for key in RAGDocument.REQUIRED:
             with self.subTest(key=key):
                 value = deepcopy(original)
                 del value[key]

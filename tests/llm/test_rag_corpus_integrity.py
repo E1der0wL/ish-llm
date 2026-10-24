@@ -1,4 +1,5 @@
 """Published RAG corpus fields protect original data and model effects."""
+from llm.components.rag.document_records import RAGDocument
 import json
 from copy import deepcopy
 import unittest
@@ -66,7 +67,7 @@ class CorpusContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await self.app.projects.alist()), 1)
 
     async def test_each_published_document_field_protects_all_consumers_before_new_effects(self):
-        for key in RAGComponent.DOCUMENT_FIELDS:
+        for key in RAGDocument.REQUIRED:
             with self.subTest(key=key):
                 value = deepcopy(self.original)
                 del value['documents'][self.identifier][key]

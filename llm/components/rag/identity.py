@@ -1,6 +1,7 @@
 """RAG public capability and Tool identities, independent of index/storage dependencies."""
 
 from enum import StrEnum
+import re
 
 
 class RAGIdentity:
@@ -10,3 +11,7 @@ class RAGIdentity:
 class RAGToolName(StrEnum):
     SEARCH = "rag_search"
     LIST_DOCUMENTS = "rag_list_documents"
+
+
+class RAGEvidenceIdentity:
+    PATTERN = re.compile(r"[a-f0-9]{32}")

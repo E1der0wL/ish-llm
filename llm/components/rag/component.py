@@ -25,11 +25,12 @@ from llm.components.definitions import DefinitionComponent
 from llm.services.infrastructure.storage import atomic_json, read_json, remove_named_tree, recover_deletions, revision_token, tree_snapshot, check_revision
 from llm.services.infrastructure.logging import log_event
 from .data import RAGData
-from .identity import RAGIdentity
+from .identity import RAGIdentity, RAGEvidenceIdentity
 from .indexing import build_index, update_index, ChromaIndex
 from .search import search, search_schema, SearchOptions
 from .splitting import split_markdown
-from .chunk_records import RAGChunk, RAGSection, RAGDocument, SplitDocument
+from .chunk_records import RAGChunk, RAGSection, SplitDocument
+from .document_records import RAGDocument, RAGDocumentInput, ExtractionManifestEntry
 from .retrieval_records import RetrievalSource, CatalogCursor, CatalogRequest, CatalogPage
 from .graph_records import GraphEntity, GraphRelation, GraphRecord, GraphSearchResult, ExtractionCheckpoint, validate_graph, validate_extraction_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import ExtractionFailurePolicy, extraction_schema
@@ -71,13 +72,7 @@ class RAGComponent(DefinitionComponent):
     CATALOG_FILE = "catalog.json"
     CATALOG_FIELDS = frozenset(("id", "title", "generation", "revision"))
     GENERATIONS_DIRECTORY = "generations"
-    IDENTITY_PATTERN = re.compile(r"[a-f0-9]{32}")
     GRAPH_SCHEMA_VERSION = 1
-    INPUT_FIELDS = frozenset(("identifier", "title", "content", "metadata"))
-    DOCUMENT_FIELDS = frozenset(("id", "title", "content", "metadata", "revision", "generation",
-        "sections", "chunks", "sha256", EmbeddingEvidence.Field.VECTORS, EmbeddingEvidence.Field.FINGERPRINT, EmbeddingEvidence.Field.INGESTION, EmbeddingEvidence.Field.PROFILE,
-        "graph_complete", "graph_diagnostics", GraphRecord.Field.GRAPH, "extraction_manifest",
-        "preparation_configuration", "preparation_fingerprint"))
 
     name = directory = RAGIdentity.CAPABILITY
     capabilities = (RAGIdentity.CAPABILITY, ToolRegistry.CAPABILITY)
@@ -119,7 +114,7 @@ class RAGComponent(DefinitionComponent):
 
     @classmethod
     def _validate_identity(cls, value):
-        if not isinstance(value, str) or cls.IDENTITY_PATTERN.fullmatch(value) is None:
+        if not isinstance(value, str) or RAGEvidenceIdentity.PATTERN.fullmatch(value) is None:
             raise ValueError("RAG identity and generation require a stored UUID")
 
     def initialize(self, project):
@@ -149,17 +144,7 @@ class RAGComponent(DefinitionComponent):
 
     @classmethod
     def validate_input(cls, source):
-        """Require a complete original document input without creation defaults."""
-        if (not isinstance(source, dict) or not cls.INPUT_FIELDS <= source.keys()
-                or source.keys() - cls.INPUT_FIELDS - {"description"}):
-            raise ValueError("RAG document input fields are incomplete or unknown")
-        JsonObject.validate(source)
-        validate_name(source["identifier"])
-        if (any(not isinstance(source[key], str) or not source[key].strip() for key in ("title", "content"))
-                or not isinstance(source["metadata"], dict)
-                or (source.get("description") is not None and not isinstance(source["description"], str))):
-            raise ValueError("Invalid RAG document input")
-        return source
+        return RAGDocumentInput.validate(source)
 
     @classmethod
     def validate_batch_checkpoint(cls, job, key, receipt, payload):
@@ -187,91 +172,8 @@ class RAGComponent(DefinitionComponent):
 
     @classmethod
     def validate_document(cls, document):
-        """Validate a stored RAG document without filling fields or consulting live settings."""
-        if not isinstance(document, dict):
-            raise ValueError("Stored RAG document must be an object")
-        identifier = validate_name(document.get("id"))
-        cls._validate_versions({identifier: document})
-        graph = document.get(GraphRecord.Field.GRAPH)
-        if not isinstance(graph, dict) or not GraphRecord.FIELDS <= graph.keys():
-            raise ValueError("RAG documents require graph entities and relations")
-        if (not cls.DOCUMENT_FIELDS <= document.keys()
-                or document.keys() - cls.DOCUMENT_FIELDS - {"description"}):
-            raise ValueError("Prepared RAG document fields are incomplete or unknown")
-        JsonObject.validate(document)
-        if (not isinstance(document["title"], str) or not document["title"].strip()
-                or not isinstance(document["content"], str) or not document["content"].strip()
-                or not isinstance(document["metadata"], dict)
-                or not isinstance(EmbeddingEvidence(document).observations, dict)
-                or ("description" in document and not isinstance(document["description"], str))):
-            raise ValueError("Invalid prepared RAG document source or observations")
-        if document["sha256"] != sha256(document["content"].encode("utf-8")).hexdigest():
-            raise ValueError("Prepared RAG content digest changed")
-        for key in (EmbeddingEvidence.Field.FINGERPRINT, "preparation_fingerprint", "preparation_configuration"):
-            value = document[key]
-            if key == "preparation_configuration" and value is None:
-                continue  # Standalone preparation has no bound Project configuration.
-            if not isinstance(value, str) or re.fullmatch(r"[a-f0-9]{64}", value) is None:
-                raise ValueError("Invalid prepared RAG configuration evidence")
-        sections, chunks = SplitDocument(document).sections, SplitDocument(document).chunks
-        if not isinstance(sections, dict) or not sections or not isinstance(chunks, list) or not chunks:
-            raise ValueError("Prepared RAG document requires sections and chunks")
-        if sections.keys() != {RAGSection.identifier_for(identifier, position) for position in range(RAGSection.FIRST_ORDINAL, len(sections) + RAGSection.FIRST_ORDINAL)}:
-            raise ValueError("Invalid prepared RAG section identities")
-        for key, section in sections.items():
-            RAGSection.validate_source(section, key, SplitDocument(document).content)
-        for position, chunk in enumerate(chunks, RAGChunk.FIRST_ORDINAL):
-            RAGChunk.validate_source(chunk, document_id=identifier, ordinal=position, sections=sections)
-        profile = document[EmbeddingEvidence.Field.PROFILE]
-        EmbeddingProfile.validate(profile)
-        from llm.core.embeddings import validate_vectors
-        vectors = validate_vectors(document[EmbeddingEvidence.Field.VECTORS], dimensions=EmbeddingProfile(profile).dimensions)
-        if len(vectors) != len(chunks):
-            raise ValueError("Prepared RAG chunk/vector count mismatch")
-        validate_stored_graph(document[GraphRecord.Field.GRAPH], chunks, identifier)
-        if type(document["graph_complete"]) is not bool or not isinstance(document["graph_diagnostics"], list):
-            raise ValueError("Invalid prepared RAG graph observations")
-        for value in document["graph_diagnostics"]:
-            if not isinstance(value, dict) or value.keys() != {field.name for field in fields(Diagnostic)}:
-                raise ValueError("Incomplete prepared RAG graph diagnostic")
-            source = value["source"]
-            if source is not None and (not isinstance(source, dict)
-                    or source.keys() != {field.name for field in fields(ResourceRef)}):
-                raise ValueError("Incomplete prepared RAG graph diagnostic source")
-            Diagnostic.from_dict(value)
-        manifest = document["extraction_manifest"]
-        if not isinstance(manifest, list):
-            raise ValueError("Invalid prepared RAG extraction manifest")
-        grouped, covered = group_evidence(document[GraphRecord.Field.GRAPH]), set()
-        for entry in manifest:
-            if (not isinstance(entry, dict) or entry.keys() != {"signature", "entity_ids", "offset", "count", "digest"}
-                    or type(entry["offset"]) is not int or type(entry["count"]) is not int
-                    or entry["offset"] < 0 or entry["count"] < 1
-                    or entry["offset"] + entry["count"] > len(chunks)
-                    or not isinstance(entry["entity_ids"], list)
-                    or any(not isinstance(item, str) for item in entry["entity_ids"])
-                    or len(set(entry["entity_ids"])) != len(entry["entity_ids"])
-                    or any(not isinstance(entry[key], str) or re.fullmatch(r"[a-f0-9]{64}", entry[key]) is None
-                           for key in ("signature", "digest"))):
-                raise ValueError("Invalid prepared RAG extraction batch")
-            indices = set(range(entry["offset"], entry["offset"] + entry["count"]))
-            if covered & indices:
-                raise ValueError("Overlapping prepared RAG extraction batches")
-            covered.update(indices)
-            graph = select_graph(grouped, entry["entity_ids"], chunks[entry["offset"]:entry["offset"] + entry["count"]])
-            if revision_token(graph) != entry["digest"]:
-                raise GraphValidationError("Stored extraction batch integrity mismatch")
-        if document["graph_complete"] and covered != set(range(len(chunks))):
-            raise ValueError("Prepared RAG complete graph has missing extraction batches")
-        return document
+        return RAGDocument.validate(document)
 
-    @classmethod
-    def _validate_versions(cls, documents):
-        for identifier, document in documents.items():
-            if (document.get("id") != identifier or type(document.get("revision")) is not int
-                    or document["revision"] < 1 or not isinstance(document.get("generation"), str)
-                    or cls.IDENTITY_PATTERN.fullmatch(document["generation"]) is None):
-                raise ValueError("RAG documents require a stored generation and positive revision; re-register sources without them")
 
     @classmethod
     def validate_corpus(cls, value):
@@ -294,15 +196,7 @@ class RAGComponent(DefinitionComponent):
 
     @classmethod
     def _check_revision(cls, document, expected_revision, expected_generation):
-        """명시적인 CAS는 문서 생성 세대까지 비교한다. 코퍼스 publish 세대와는 별개다."""
-        if expected_revision is None and expected_generation is None:
-            return  # 두 값 모두 생략한 기존 unconditional document API 계약.
-        if type(expected_revision) is not int or expected_revision < 1:
-            raise ValueError("Document CAS requires a positive expected_revision")
-        if not isinstance(expected_generation, str) or cls.IDENTITY_PATTERN.fullmatch(expected_generation) is None:
-            raise ValueError("Document CAS requires expected_generation from the document")
-        if (document["generation"], document["revision"]) != (expected_generation, expected_revision):
-            raise RAGConflictError("Document generation or revision changed")
+        return RAGDocument.check_revision(document, expected_revision, expected_generation, RAGConflictError)
 
     def _identity(self):
         if self.embedding is None:
@@ -566,7 +460,7 @@ class RAGComponent(DefinitionComponent):
                     or row.keys() - self.CATALOG_FIELDS - {"description"}):
                 raise ValueError("RAG catalog requires complete current document fields")
             identifier = validate_name(row["id"])
-            self._validate_versions({identifier: row})
+            RAGDocument.validate_versions({identifier: row})
             if not isinstance(row["title"], str) or not row["title"].strip():
                 raise ValueError("RAG catalog title must be non-empty text")
             if "description" in row and not isinstance(row["description"], str):
@@ -688,8 +582,8 @@ class RAGComponent(DefinitionComponent):
         metadata = self.deserialize(self.serialize(metadata))
         fingerprint = self._preparation_fingerprint()
         if (previous is not None and previous["content"] == content
-                and previous.get("preparation_fingerprint") == fingerprint
-                and (previous["graph_complete"] or policy == ExtractionFailurePolicy.DISABLED.value)):
+                and previous.get(RAGDocument.Field.PREPARATION_FINGERPRINT) == fingerprint
+                and (previous[RAGDocument.Field.GRAPH_COMPLETE] or policy == ExtractionFailurePolicy.DISABLED.value)):
             from llm.core.embeddings import validate_vectors
             vectors = previous[EmbeddingEvidence.Field.VECTORS]
             validate = getattr(self.embedding, "validate_vectors", None)
@@ -716,10 +610,10 @@ class RAGComponent(DefinitionComponent):
         document.update(graph_complete=policy != ExtractionFailurePolicy.DISABLED.value, graph_diagnostics=[])
         IngestionObservation.start_extraction(EmbeddingEvidence(document).observations)
         if policy == ExtractionFailurePolicy.DISABLED.value:
-            document["graph_diagnostics"].append(diagnostic("graph_extraction_disabled").to_dict())
+            document[RAGDocument.Field.GRAPH_DIAGNOSTICS].append(diagnostic("graph_extraction_disabled").to_dict())
         entities, relations = {}, []
         manifest, reused_sources = [], set()
-        previous_batches = {entry["signature"]: entry for entry in previous.get("extraction_manifest", [])} if previous else {}
+        previous_batches = {entry[ExtractionManifestEntry.Field.SIGNATURE]: entry for entry in previous.get(RAGDocument.Field.EXTRACTION_MANIFEST, [])} if previous else {}
         previous_graph = group_evidence(previous[GraphRecord.Field.GRAPH]) if previous_batches else None
         extraction_total = ((len(SplitDocument(document).chunks) + self.extraction_batch_size - 1) // self.extraction_batch_size
                             if policy != ExtractionFailurePolicy.DISABLED.value else 0)
@@ -746,9 +640,9 @@ class RAGComponent(DefinitionComponent):
             graph = validate_extraction_checkpoint(saved, signature) if saved is not None else None
             if graph is None and reuse_signature in previous_batches:
                 entry = previous_batches[reuse_signature]
-                graph = select_graph(previous_graph, entry["entity_ids"], batch,
+                graph = select_graph(previous_graph, entry[ExtractionManifestEntry.Field.ENTITY_IDS], batch,
                                      relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
-                if revision_token(graph) != entry["digest"]:
+                if revision_token(graph) != entry[ExtractionManifestEntry.Field.DIGEST]:
                     raise GraphValidationError("Stored extraction batch integrity mismatch")
                 reused_sources.update(RAGChunk(chunk).identifier for chunk in batch)
                 EmbeddingEvidence(document).observations[IngestionObservation.Field.EXTRACTION_REUSED] += 1
@@ -767,8 +661,8 @@ class RAGComponent(DefinitionComponent):
                             ProviderErrorCode.TIMEOUT.value, ProviderErrorCode.CONNECTION.value, ProviderErrorCode.UNAVAILABLE.value,
                             ProviderErrorCode.RATE_LIMIT.value, ProviderErrorCode.EMPTY_RESPONSE.value, ProviderErrorCode.INVALID_RESPONSE.value)):
                         raise
-                    document["graph_complete"] = False
-                    document["graph_diagnostics"].append(diagnostic("graph_incomplete", severity=DiagnosticSeverity.WARNING.value,
+                    document[RAGDocument.Field.GRAPH_COMPLETE] = False
+                    document[RAGDocument.Field.GRAPH_DIAGNOSTICS].append(diagnostic("graph_incomplete", severity=DiagnosticSeverity.WARNING.value,
                         batch_offset=offset, cause=code if code != ProviderErrorCode.FAILED.value else GraphValidationError.code).to_dict())
                     continue
                 finally:
@@ -786,16 +680,16 @@ class RAGComponent(DefinitionComponent):
                 await extraction_progress()
             entities.update({e[GraphEntity.Field.ID]: e for e in graph[GraphRecord.Field.ENTITIES]})
             relations.extend(graph[GraphRecord.Field.RELATIONS])
-            manifest.append({"signature": reuse_signature, "entity_ids": [e[GraphEntity.Field.ID] for e in graph[GraphRecord.Field.ENTITIES]],
-                             "offset": offset, "count": len(batch)})
+            manifest.append(ExtractionManifestEntry.create(reuse_signature,
+                [e[GraphEntity.Field.ID] for e in graph[GraphRecord.Field.ENTITIES]], offset, len(batch)))
         document[GraphRecord.Field.GRAPH] = enrich_graph(validate_graph(
             GraphRecord.create(list(entities.values()), relations), SplitDocument(document).chunks,
             relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ())), identifier)
         # Manifest stores identities/digests, not a second copy of the graph.
         grouped = group_evidence(document[GraphRecord.Field.GRAPH])
         for entry in manifest:
-            batch = SplitDocument(document).chunks[entry["offset"]:entry["offset"] + entry["count"]]
-            entry["digest"] = revision_token(select_graph(grouped, entry["entity_ids"], batch,
+            batch = SplitDocument(document).chunks[entry[ExtractionManifestEntry.Field.OFFSET]:entry[ExtractionManifestEntry.Field.OFFSET] + entry[ExtractionManifestEntry.Field.COUNT]]
+            entry[ExtractionManifestEntry.Field.DIGEST] = revision_token(select_graph(grouped, entry[ExtractionManifestEntry.Field.ENTITY_IDS], batch,
                 relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ())))
         if reused_sources:
             def edge_key(edge):
@@ -805,9 +699,9 @@ class RAGComponent(DefinitionComponent):
             for edge in document[GraphRecord.Field.GRAPH][GraphRecord.Field.RELATIONS]:
                 if edge_key(edge) in stamps:
                     edge[GraphRelation.Field.EXTRACTED_AT] = stamps[edge_key(edge)]
-        document["extraction_manifest"] = manifest
-        document["preparation_configuration"] = getattr(self, "_configuration_version", None)
-        document["preparation_fingerprint"] = fingerprint
+        document[RAGDocument.Field.EXTRACTION_MANIFEST] = manifest
+        document[RAGDocument.Field.PREPARATION_CONFIGURATION] = getattr(self, "_configuration_version", None)
+        document[RAGDocument.Field.PREPARATION_FINGERPRINT] = fingerprint
         return document
 
     def publish(self, project, previous, documents, *, progress=None):
@@ -931,8 +825,8 @@ class RAGComponent(DefinitionComponent):
 
     def graph_search(self, project, *, seed, max_hops, limit):
         snapshot = self.snapshot(project)
-        incomplete = [identifier for identifier, doc in snapshot["documents"].items() if doc.get("graph_complete") is False]
-        status = {"graph_complete": not incomplete, "graph_incomplete_documents": incomplete}
+        incomplete = [identifier for identifier, doc in snapshot["documents"].items() if doc.get(RAGDocument.Field.GRAPH_COMPLETE) is False]
+        status = {RAGDocument.Field.GRAPH_COMPLETE: not incomplete, "graph_incomplete_documents": incomplete}
         path = (self._generation_path(project, snapshot["generation"]) / GraphStore.FILE_NAME
                 if snapshot["generation"] else None)
         if path is None:
@@ -963,9 +857,9 @@ class RAGComponent(DefinitionComponent):
                 chunk_indexes[identifier] = {RAGChunk(c).identifier: c for c in SplitDocument(doc).chunks}
             chunk = chunk_indexes[identifier][relation[GraphRelation.Field.SOURCE_ID]]
             sources[RAGChunk(chunk).identifier] = RetrievalSource.from_document(chunk, doc)
-        incomplete = [identifier for identifier, doc in documents.items() if doc.get("graph_complete") is False]
+        incomplete = [identifier for identifier, doc in documents.items() if doc.get(RAGDocument.Field.GRAPH_COMPLETE) is False]
         return {"query": query, "documents": hits, **graph, "sources": list(sources.values()),
-                "graph_complete": not incomplete, "graph_incomplete_documents": incomplete}
+                RAGDocument.Field.GRAPH_COMPLETE: not incomplete, "graph_incomplete_documents": incomplete}
 
     def clone(self, source, destination):
         JobStorage(source, self).validate_sources()

@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 538,
+    "files": 539,
     "unreviewed_files": 259,
     "stale_files": 0,
-    "unclassified": 17261,
+    "unclassified": 17119,
     "violations": 0,
-    "incomplete_contracts": 4,
+    "incomplete_contracts": 3,
     "unreviewed_dynamic_paths": 261,
     "unreadable_files": 0,
-    "candidates": 24984,
+    "candidates": 24877,
     "issues": 0
   },
   "files": [
@@ -1744,7 +1744,7 @@
     {
       "path": "llm/components/rag/README.md",
       "status": "unreviewed",
-      "sha256": "d275608aadb278552eb2aa9a4f02cbae5878aea68623c5e0a4b6ecc6621a28bd",
+      "sha256": "4b88a34f383b59813fa4409204b5cd2bad6a9719603cb8255fa31bba9fd53260",
       "candidates": 0
     },
     {
@@ -1768,14 +1768,14 @@
     {
       "path": "llm/components/rag/chunk_records.py",
       "status": "reviewed",
-      "sha256": "4a7386cb0ffb24cfd4dbc9cd38529a53433ddcadb940c249987bd67a2ed54fc5",
-      "candidates": 37
+      "sha256": "a3806b3e6ade46c00364606e211254a110780e085099a7a2b7496cd6a7b888af",
+      "candidates": 21
     },
     {
       "path": "llm/components/rag/component.py",
       "status": "unreviewed",
-      "sha256": "923dc7569dfe6fda9e8aefd348384911c0624d13d7b128fcc5b7f948120a6715",
-      "candidates": 680
+      "sha256": "325429beff1e644483f46fea456116e25d34b17d08db2f78ed04c2cbee4bb8d7",
+      "candidates": 538
     },
     {
       "path": "llm/components/rag/corpus_records.py",
@@ -1786,13 +1786,19 @@
     {
       "path": "llm/components/rag/data.py",
       "status": "reviewed",
-      "sha256": "d696f9c8dfd09b799694f9b903cdc1f80f661226ec98bb56b9542cf343130244",
+      "sha256": "097fc44f563a890a25661986b4fbf11d93fe16cd0269241599d7a8a548278900",
       "candidates": 22
+    },
+    {
+      "path": "llm/components/rag/document_records.py",
+      "status": "reviewed",
+      "sha256": "1c4eed4036a41f81888660a44e08d416f6155dbd4a1770d90f4a866c169303d5",
+      "candidates": 50
     },
     {
       "path": "llm/components/rag/document_views.py",
       "status": "reviewed",
-      "sha256": "ad040572b641cef8ab03892ba9ba3ac4490aea86963a4f9d5d48b18f7783a446",
+      "sha256": "35ccb753887591bed03670ad43307062536603f71e1467b191069cf11931b3ad",
       "candidates": 5
     },
     {
@@ -1816,7 +1822,7 @@
     {
       "path": "llm/components/rag/graph_indexing.py",
       "status": "reviewed",
-      "sha256": "1c8e55494cea930f30162ca5d04e625825bbe975ce03c915ae7b9968d7f375b9",
+      "sha256": "91db33e40933ded7ee9c89bab0734608562bff3a3b088dfecafa553b82f8523b",
       "candidates": 26
     },
     {
@@ -1834,13 +1840,13 @@
     {
       "path": "llm/components/rag/identity.py",
       "status": "reviewed",
-      "sha256": "86fe0765836dc2d74a69ebe0f5dd7431bb979ca63ae72bbcb082fcc077b25ae1",
-      "candidates": 3
+      "sha256": "de31fd62f05b1396583b1b005c4f25daefe0ad2fe8e991308f577d1935f0f568",
+      "candidates": 4
     },
     {
       "path": "llm/components/rag/indexing.py",
       "status": "reviewed",
-      "sha256": "6c86d37c1788f037a9c3082ef2d1bcb8402fa3515f36d0d5ec68fa6efab89843",
+      "sha256": "0184b8400fa02310ad4d25e8ae54e60623b5a428e579464f1a335db5229ce6b3",
       "candidates": 11
     },
     {
@@ -1870,7 +1876,7 @@
     {
       "path": "llm/components/rag/job_storage.py",
       "status": "reviewed",
-      "sha256": "13879cd3a51167f1c300b3686920d89cbed50b82a718c7075982ff5af2f87f56",
+      "sha256": "73fb345d55910c5bfd40c13c3e1dcac147c6b2e5c43ebc48fdbddeea833c7eb6",
       "candidates": 72
     },
     {
@@ -1882,7 +1888,7 @@
     {
       "path": "llm/components/rag/jobs.py",
       "status": "reviewed",
-      "sha256": "9edcd6f9d252447bf033c0f1a5ff9e62e47878d4fd437c6ee7456310a4a830ad",
+      "sha256": "5a38d07310432caea0f217bfbbd2f3a82ea020939981ff132c525fa4544d10d2",
       "candidates": 39
     },
     {
@@ -1900,7 +1906,7 @@
     {
       "path": "llm/components/rag/retrieval_records.py",
       "status": "reviewed",
-      "sha256": "b5b4374890030b389d2cbc138e1886c80948ee2e62ee75978a2ffe845eb10c0d",
+      "sha256": "3913cd5673fcfee6cb0ca2fdec4622a713785631ed4ffc74ca496aa6e18f4076",
       "candidates": 17
     },
     {

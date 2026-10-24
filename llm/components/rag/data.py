@@ -7,7 +7,8 @@ from .status import RAGJobStatus
 from copy import deepcopy
 from .search import SearchMethod, validate_search_options, SearchOptions
 from .retrieval_records import RetrievalHit
-from .chunk_records import RAGDocument, RAGDocumentInput, RAGChunk, SplitDocument
+from .chunk_records import RAGChunk, SplitDocument
+from .document_records import RAGDocument, RAGDocumentInput
 from .corpus_records import RAGCorpus
 from .document_views import DocumentView, DocumentChange, RAGDataSnapshot
 from .job_records import JobRecord

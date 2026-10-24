@@ -35,6 +35,8 @@ Job의 의미 검증과 상태 변경 허용 조건은 `job_records.JobRecord`�
 문서 생성 배치의 ID/metadata 준비는 `RAGDocumentInput.prepare_batch()`, 공개 응답은
 `DocumentView.project()`가 소유합니다. 같은 준비 구현을 Data와 Job이 사용합니다. 생성 시
 허용된 원래 정규화와 저장 입력의 필수 검증은 구분되며 저장 기록의 누락을 복구하지 않습니다.
+Component의 기존 검증 콜백은 정규 Document Owner에 위임합니다. 준비 문서·원본 입력의
+실제 Reader는 하나이며 서비스/저장소의 기존 콜백 확장 경계는 유지합니다.
 작업 스냅샷의 설정·원본 버전 대조와 문서 CAS 의미는 기존과 같습니다.
 
 ## 파일 안내
@@ -46,6 +48,7 @@ Job의 의미 검증과 상태 변경 허용 조건은 `job_records.JobRecord`�
 | [document_views.py](document_views.py) | 공개 문서의 내부 증거 제외, 문서 변경 CAS 인자와 작업용 설정/원본 스냅샷 Projection입니다. |
 | [corpus_records.py](corpus_records.py) | 코퍼스 identity·generation·필수 문서 컨테이너의 정규 필드와 조회입니다. 전체 저장 검증은 Component가 계속 소유합니다. |
 | [data.py](data.py) | Project 수명·잠금 경계를 유지하는 문서 CRUD·검색·Job 공개 API입니다. |
+| [document_records.py](document_records.py) | 원본 입력·준비 문서·revision/CAS의 정규 필드와 엄격한 Reader, 추출 manifest Writer를 소유합니다. |
 | [chunk_records.py](chunk_records.py) | 분할 문서·섹션·청크의 형식·순서/ID·내용 digest와 원본/섹션 연결 검증을 소유합니다. |
 | [splitting.py](splitting.py) | MarkdownSplitter가 fence·제목 계층·문단 분할을 소유하며 정규 섹션/청크 Writer로 결과를 구성합니다. |
 | [embedding.py](embedding.py) | 단일 입력 임베딩 클라이언트와 정규 결과 검증입니다. 모델/차원 키는 Provider의 ModelParameters/EmbeddingParameters를 사용합니다. |
@@ -206,7 +209,7 @@ manifest/fingerprint가 없거나 일치하지 않으면 재계산하며 저장 
 `aadd_documents(documents)`는 호출자가 명시한 문서 목록을 준비한 후 **한 세대**로 공개합니다.
 각 항목은 `identifier`(선택), `title`, `content`, `metadata`(선택), `description`(선택)입니다.
 생성 시 identifier/metadata의 부재 또는 None에만 초기값을 적용하며 False/0/잘못된 타입은
-거부합니다. 저장한 입력에서는 RAGComponent.INPUT_FIELDS의 모든 필드가 필수이며,
+거부합니다. 저장한 입력에서는 RAGDocumentInput.REQUIRED의 모든 필드가 필수이며,
 RAGComponent.validate_input와 JobStorage가 Job의 문서 수·순서·ID·digest를 함께 검증합니다.
 description은 부재/None/문자열을 허용합니다. 저장 Reader·claim·재개 계획·backup/clone에서
 소실된 필드를 생성 기본값으로 채우지 않고 원본을 보존하며 거부합니다.

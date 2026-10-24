@@ -1,7 +1,8 @@
 """RAG retrieval, source and catalog projections with their exact public field sets."""
 
 from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean
-from .chunk_records import RAGChunk, RAGDocument
+from .chunk_records import RAGChunk
+from .document_records import RAGDocument
 from .corpus_records import RAGCorpus
 
 

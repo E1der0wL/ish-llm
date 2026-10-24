@@ -2,7 +2,8 @@
 
 from .ingestion_records import EmbeddingEvidence
 
-from .chunk_records import RAGChunk, RAGDocument, SplitDocument
+from .chunk_records import RAGChunk, SplitDocument
+from .document_records import RAGDocument
 
 from contextlib import contextmanager
 

@@ -1,6 +1,6 @@
 """RAG public document and operation snapshot projections."""
 from copy import deepcopy
-from .chunk_records import RAGDocument
+from .document_records import RAGDocument
 from .graph_records import GraphRecord
 from .ingestion_records import EmbeddingEvidence
 

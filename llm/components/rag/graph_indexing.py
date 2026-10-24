@@ -2,7 +2,7 @@
 
 from contextlib import contextmanager
 from .graph_records import GraphEntity, GraphRelation, GraphRecord
-from .chunk_records import RAGDocument
+from .document_records import RAGDocument
 import json
 
 
