@@ -57,3 +57,14 @@ class ErrorInfo:
     def __str__(self) -> str:
         # Original text for ordinary Python consumers, not a localized UI view.
         return self.message or self.detail or self.code
+
+
+class ErrorRepairProjection:
+    """The existing bounded model evidence, projected from a serialized ErrorInfo."""
+
+    FIELDS = (ErrorInfo.code.__name__, ErrorInfo.message.__name__, ErrorInfo.category.__name__,
+              ErrorInfo.reason.__name__, ErrorInfo.confidence.__name__, ErrorInfo.origin.__name__, ErrorInfo.evidence.__name__)
+
+    @classmethod
+    def from_record(cls, record):
+        return {key: record[key] for key in cls.FIELDS}

@@ -1,20 +1,23 @@
 """Accept model-supplied absolute paths only inside the captured working root."""
 
-from llm.components.tools.builtin.workspace_values import WorkspaceCreateArguments
-
 from dataclasses import replace
 from pathlib import Path
-
 from llm.components.tools import ToolRegistry
+from llm.components.tools.builtin.path_values import BuiltinPathArguments
+
+
+class PathBinding:
+    OUTSIDE_ROOT = "Path must stay inside the working root ({root}); use a path inside this directory"
+    REVISION_PREFIX = "hub-relative-paths-v1:"
 
 
 def relative_path(root: Path, value):
     if not isinstance(value, str) or not value or not Path(value).is_absolute():
-        return value  # The backend validates invalid values and relative paths.
+        return value
     try:
         return str(Path(value).relative_to(root))
     except ValueError:
-        raise ValueError(f"Path must stay inside the working root ({root}); use a path inside this directory") from None
+        raise ValueError(PathBinding.OUTSIDE_ROOT.format(root=root)) from None
 
 
 def bind_paths(toolkit):
@@ -23,25 +26,24 @@ def bind_paths(toolkit):
 
     def handler(tool):
         async def invoke(arguments):
-            args = dict(arguments)
-            # Isolated workspace paths belong to that workspace, not the host root.
-            if "workspace_id" not in args:
-                keys = ("cwd",) if tool.name in ("process_start", "shell_execute") else (
-                    ("path", "destination") if tool.name.startswith("file_") else ())
-                for key in keys:
-                    if key in args:
-                        args[key] = relative_path(root, args[key])
-                if tool.name == WorkspaceCreateArguments.NAME and isinstance(args.get("source_paths"), list):
-                    args["source_paths"] = [relative_path(root, value) for value in args["source_paths"]]
+            args = BuiltinPathArguments.remap(
+                tool.name, arguments, lambda value: relative_path(root, value)
+            )
             return await tool.handler(args)
+
         return invoke
 
     tools = []
     for name in toolkit.registry.names():
         tool = toolkit.registry.get(name)
-        if name.startswith("file_") or name in ("process_start", "shell_execute", WorkspaceCreateArguments.NAME):
+        if BuiltinPathArguments.adapts(name):
             contract = tool.contract
-            tool = replace(tool, handler=handler(tool), contract=replace(contract,
-                revision="hub-relative-paths-v1:" + contract.revision))
+            tool = replace(
+                tool,
+                handler=handler(tool),
+                contract=replace(
+                    contract, revision=PathBinding.REVISION_PREFIX + contract.revision
+                ),
+            )
         tools.append(tool)
     toolkit.registry = ToolRegistry(tuple(tools))

@@ -182,3 +182,31 @@ class CompletionReception:
     @classmethod
     def observed(cls, details):
         return bool(details.get(cls.chunks_received.__name__) or details.get(cls.response_received.__name__))
+
+
+class ProviderRetryDetails:
+    """Optional normalized retry observations; display consumers own correlation."""
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def operation(self):
+        return self._value.get(ProviderDiagnosticContext.operation.__name__)
+
+    def run_id(self, fallback):
+        from llm.core.contracts import ResourceRef
+        return self._value.get(ResourceRef.run_id.__name__, fallback)
+
+    @property
+    def delay_seconds(self):
+        from .options import ProviderOptions
+        return self._value.get(ProviderOptions.Field.DELAY_SECONDS)
+
+    @property
+    def attempt(self):
+        return self._value.get(ProviderAttempt.attempt.__name__)
+
+    @property
+    def call_id(self):
+        return self._value.get(ProviderAttempt.call_id.__name__)

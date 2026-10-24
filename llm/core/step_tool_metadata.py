@@ -46,6 +46,10 @@ class ToolStepMetadata:
                 cls.OPERATION_KEY: call.operation_key, cls.IDEMPOTENCY_KEY: call.idempotency_key}
 
     @classmethod
+    def retry_progress(cls, phase, attempt):
+        return {**StepEventMetadata.phase(phase), cls.RETRY_ATTEMPT: attempt}
+
+    @classmethod
     def retrying(cls, phase, attempt, effect, error, failures):
         return {**StepEventMetadata.phase(phase), cls.RETRY_ATTEMPT: attempt,
                 cls.EFFECT: effect, cls.RETRY_ERROR: error, cls.RETRY_FAILURES: deepcopy(failures)}
@@ -92,3 +96,18 @@ class OperationReceiptView:
 
     def snapshot(self):
         return StepOperationReceipt(**{item.name: self._value[item.name] for item in fields(StepOperationReceipt)})
+
+
+class ToolRetryProgress:
+    """Borrowed UI observations, separate from the persisted Tool retry state."""
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def phase(self):
+        return StepEventMetadata.observed_phase(self._value)
+
+    @property
+    def attempt(self):
+        return self._value.get(ToolStepMetadata.RETRY_ATTEMPT)

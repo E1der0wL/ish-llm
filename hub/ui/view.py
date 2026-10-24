@@ -1,4 +1,5 @@
 """Localized PTK layout and input behavior shared by preview and live mode."""
+from hub.backend.execution.engine_selection import HubEngineIdentity
 
 from hub.locales.codes import LanguageCode
 
@@ -77,8 +78,8 @@ class HubView:
         self._agent_choices = {}
         self._default_agent_id = DEFAULT_AGENT
         self.agents = ("assistant",)
-        self.agent_engines = {"assistant": "loop"}
-        self.engines = ("loop",)
+        self.agent_engines = {"assistant": HubEngineIdentity.LOOP}
+        self.engines = (HubEngineIdentity.LOOP,)
         self.file_root = Path.cwd()
         self.project_title = "Hub"
         self.model = ""
@@ -169,7 +170,7 @@ class HubView:
             ("tags", lambda: self.output.invoke("tags")), ("find", lambda: self.output.invoke("find")),
             ("attach", lambda: attach_file(self)),
             ("logs", lambda: self.on_activity() if self.on_activity else self._not_connected()),
-            ("settings", lambda: self.settings.open_engine("loop")),
+            ("settings", lambda: self.settings.open_engine(HubEngineIdentity.LOOP)),
         ], lambda: self.icons, self._focus_composer)
         conversation = HSplit([
             DynamicContainer(lambda: self.output),

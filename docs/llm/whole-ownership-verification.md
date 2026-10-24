@@ -8278,3 +8278,61 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 143파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## 재시도 관찰·Tool 보정·경로 투영의 Owner 연결
+
+Retries·EngineSelection·ToolRetry·RetryEvidence·Paths·RetryStatus 여섯 기존 파일과 세 새 Owner
+파일을 전수 정리했다. 먼저 BuiltinPathArguments와 좁은 LLM 공개 관찰/Writer를 연결한 뒤 Hub
+소비자를 전환했다. ProviderRetryDetails는 Provider의 operation/attempt/call/delay와 ResourceRef의
+Run ID 선언을 참조하고, ObservationRecord와 Step 관찰은 기존 조회 순서·선택적 누락을 보존한다.
+RetryMonitor는 실행 여부를 결정하지 않으며 RetryPolicy의 기존 최대 횟수 계산을 사용한다.
+Tool 실제 실행 관찰 뒤에만 표시 횟수를 증가시키고 서로 다른 Run·call·Tool의 상태를 분리한다.
+
+ToolRetryRequest가 보정 모델 문서의 8,000자 task·7개 Error projection을 소유하며 원문 증거는
+사용자 chooser에 그대로 전달한다. ToolModelReply는 exact changes-key 응답만 읽고 null/비객체는
+기존대로 보정을 거부한다. 실제 helper metadata Writer와 재시도 관찰 Reader를 같은 선언에
+연결했다. 권한·효과·예산·deadline 판단은 기존 Backend에 남고, unchanged/잘못된 인자·constraint
+위반으로 새 실행을 허용하지 않는다. 명시적 Provider/SDK 설정이나 저장 형식은 변경하지 않는다.
+
+BuiltinPathArguments는 실제 Builtin 필드 선언으로만 경로 인자를 고른다. Hub는 캡처한 root의
+상대 경로 변환만 소유한다. 기존 open file_ 확장 이름, workspace_id의 명시적 None을 포함한
+존재 판별, 원본 인자·승인 증거 보존과 contract revision 값을 유지한다. FileCandidateSearch는
+기존 시간/개수/깊이/유사도 제한·symlink 제외·constraint 확인을 그대로 수행한다. 파일을 변경하지
+않으며 모델이 임의 경로나 권한을 만들어내는 근거로 사용하지 않는다.
+
+HubEngineIdentity의 loop 등록명은 Bootstrap·Project·Runtime·View·정의 Form의 실제 소비자에
+연결했다. config/completion/model 해석은 기존 Owner API로 이동했고 명시적 None과 생략된 빈
+모델 표시를 구분한다. Host runtime completion의 모델 요구 면제, Graph/custom Engine 판단은
+기존과 같다. 해당 좁은 소비자 파일의 다른 미완료 계약까지 완료로 바꾸지 않았다.
+
+독립 원본/제안 137개 관찰이 일치했다. 실제 ToolRegistry 경로 wrapper, 원본 인자 보존,
+읽기 전용 파일 효과, 실제 모델 helper 문서/응답, sync/async chooser, 재시도 관찰·한국어/영어
+표시 및 실제 Engine 설정 소비자를 포함한다. 비교 도구의 초기 Diagnostic 비유한 값·Tool
+필수 contract/schema·RuntimeConfiguration fixture 오류는 고쳤으며 최초 로그를 보존한다.
+최종 비교에는 정상 모델 선택·runtime 면제·최대 횟수·실제 후보·실제 helper의 독립 Assertion을
+두어 두 실행이 같은 초기 오류만 반환하는 것으로 통과하지 못하게 했다.
+ToolRetrySelector의 retry_safe=True 실행 인자가 Owner 선언을 참조하므로 기존 S3 발생 위치
+9c6a6112… 한 건이 실제로 사라졌다. 새 정적 후보는 없고 나머지 77개 ID는 그대로다.
+해당 위치의 이전 개별 검토는 Git 이력과 resolved-static-occurrence.json에 보존하고 활성 검토
+목록에서 종료했다. 검사 규칙·기존 안전성 Assertion·필수 테스트 범위는 변경하지 않았다.
+
+- `whole-hub-retry-boundaries-core-01`: discovered/started/pass 81/81/81, exit 0, 24.702593초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-retry-boundaries-core-01/llm.json --modules tests.llm.test_retry tests.llm.test_builtin_file_values tests.llm.test_builtin_process_values tests.llm.test_builtin_catalog_values tests.llm.test_execution_observations tests.llm.test_completion_processing tests.llm.test_provider_diagnostics tests.llm.test_configuration_values`. source `c8ed2b6e2f409e64547cb884b637177d21d1333a46f4d1f9d81c0d729a46b6eb`, input `8472c243989956696bf399565233a2fff9d377afafbf14e5218c798702998e19`.
+
+- `whole-hub-retry-boundaries-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.219439초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-retry-boundaries-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `c8ed2b6e2f409e64547cb884b637177d21d1333a46f4d1f9d81c0d729a46b6eb`, input `8472c243989956696bf399565233a2fff9d377afafbf14e5218c798702998e19`.
+
+- `whole-hub-retry-boundaries-l1-01`: discovered/started/pass 47/47/47, exit 0, 151.499975초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-retry-boundaries-l1-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_retry_observations tests.hub.test_retry_ui tests.hub.test_provider_recovery tests.hub.test_agent_selection`. source `c8ed2b6e2f409e64547cb884b637177d21d1333a46f4d1f9d81c0d729a46b6eb`, input `8472c243989956696bf399565233a2fff9d377afafbf14e5218c798702998e19`.
+
+- `whole-hub-retry-boundaries-l2-01`: discovered/started/pass 18/18/18, exit 0, 49.789445초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-retry-boundaries-l2-01/hub.json --modules tests.hub.test_shell_environment tests.hub.test_bootstrap tests.hub.test_settings_project_flow tests.hub.test_agent_graph`. source `c8ed2b6e2f409e64547cb884b637177d21d1333a46f4d1f9d81c0d729a46b6eb`, input `8472c243989956696bf399565233a2fff9d377afafbf14e5218c798702998e19`.
+
+각 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치다. 동일 suite
+선택 ID 중복 0, 집중 실행 전후·사이 source/input 동일성을 확인했다. 명령·exit는
+`hub-retry-boundaries-draft/selected-results.json`, 독립 비교 명령은 `proof-commands.json`에 보존한다.
+Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux/X11 환경이다. Core는 Retry·Builtin
+필드·실행 관찰·completion/Provider·설정 소비자, Level 1은 실제 Tool/Provider 복구·재시도 UI·
+Agent 선택, Level 2는 실제 shell 환경·Bootstrap·설정 화면·Agent Graph, 공통 안전성은 84개다.
+R3 Mutation도 exit 0이며 원래 테스트/실제 효과 Assertion을 제거하거나 완화하지 않았다.
+
+Owner API/투영 이동의 범위가 실제 호출 관계와 137개 관찰로 제한됨을 확인하여 소단계는 Level 2로
+보존한다. 전체 회귀를 생략한 사실을 명시하며 전체/원격 완료로 해석하지 않는다. 오류·복구·재시도
+경계를 묶는 Gate50에서 전체 LLM/Hub·정적/문서/R3·실환경과 정확한 SHA의 원격 CI를 수행한다.

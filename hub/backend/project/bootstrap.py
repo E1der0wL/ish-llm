@@ -1,4 +1,5 @@
 """Hub의 최초 작업 공간 선택 정책. llm에는 일반 Project CRUD만 요구한다."""
+from hub.backend.execution.engine_selection import HubEngineIdentity
 
 import asyncio
 import fcntl
@@ -38,10 +39,10 @@ async def select_or_create(backend, config):
         if supplied:
             # Title generation resolves the current source settings at execution
             # time; copying them here would leave a stale, independent title model.
-            parameters = project_config.parameter_targets.engine("loop")
+            parameters = project_config.parameter_targets.engine(HubEngineIdentity.LOOP)
             values = parameters.config
             values.setdefault("completion", {}).update(supplied)
-            project_config.set_engine_parameters("loop", parameters.with_config(values).to_dict())
+            project_config.set_engine_parameters(HubEngineIdentity.LOOP, parameters.with_config(values).to_dict())
         return await create_project(backend, "Hub", config=project_config,
             components=preset["components"] if preset else list(backend.describe_project_config()["x-components"]),
             conversation_storage=preset["conversation_storage"] if preset else CONVERSATION_STORAGE,

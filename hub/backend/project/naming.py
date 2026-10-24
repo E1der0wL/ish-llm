@@ -1,4 +1,5 @@
 """Automatic titles use an ordinary, isolated backend Session/Run."""
+from hub.backend.execution.engine_selection import HubEngineIdentity
 
 from hub.locales.keys import MessageKey
 
@@ -72,7 +73,7 @@ class SessionNamer:
                       await session.project.agents.aload(record.metadata.get("hub_title_agent", self.runtime.config.agent_id)))
         selected = self.runtime.backend.engines.resolve_agent(definition)
         params = {}
-        for name in dict.fromkeys((definition["engine"], "loop")):
+        for name in dict.fromkeys((definition["engine"], HubEngineIdentity.LOOP)):
             if name not in self.runtime.backend.engines.names():
                 continue
             implementation = selected if name == definition["engine"] else self.runtime.backend.engines.get(name)

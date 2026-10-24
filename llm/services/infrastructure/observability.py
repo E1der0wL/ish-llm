@@ -137,6 +137,22 @@ class ObservationRecord:
         return cls(event)
 
     @property
+    def kind(self):
+        return self._value.get(self.KIND)
+
+    @property
+    def status(self):
+        return self._value.get(self.STATUS)
+
+    @property
+    def run_id(self):
+        return self._value.get(ResourceRef.run_id.__name__)
+
+    @property
+    def step_id(self):
+        return self._value.get(ResourceRef.step_id.__name__)
+
+    @property
     def has_code(self):
         return self.CODE in self._value
 

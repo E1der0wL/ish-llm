@@ -79,6 +79,7 @@ class BaseEngine:
 
     required_capabilities = ()
     ABSENT = None
+    COMPLETION_ADAPTER = "completion_adapter"
     INCLUDE_COMPLETION_EVENTS = CompletionInvocationOptions.EVENTS_INCLUDED
     RETRYABLE_REQUEST = True
     MINIMUM_COMPLETION_LIMIT = 1
@@ -145,6 +146,10 @@ class BaseEngine:
     def validate_selections(self, context):
         """Validate durable Tool selections in this Engine's local checkpoint scope."""
         context.tools.validate_selections(context)
+
+    @classmethod
+    def has_completion_adapter(cls, engine):
+        return hasattr(engine, cls.COMPLETION_ADAPTER)
 
     @staticmethod
     async def instruction_event(context: EngineContext, operation: str, **metadata) -> AsyncIterator[EngineEvent]:

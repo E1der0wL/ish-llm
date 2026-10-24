@@ -13,6 +13,7 @@ class SDKOperation:
 
 class ModelParameters:
     MODEL = "model"
+    NO_MODEL_NAME = ""
 
     def __init__(self, value):
         self._value = value
@@ -20,6 +21,10 @@ class ModelParameters:
     @property
     def optional_model(self):
         return self._value.get(self.MODEL)
+
+    @property
+    def model_or_empty(self):
+        return self._value.get(self.MODEL, self.NO_MODEL_NAME)
 
     @property
     def model(self):

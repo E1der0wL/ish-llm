@@ -1,4 +1,5 @@
 """Hub-owned creation templates; existing projects are never reseeded on open."""
+from hub.backend.execution.engine_selection import HubEngineIdentity
 
 from copy import deepcopy
 import asyncio
@@ -78,12 +79,12 @@ async def create_project(backend, title, *, config, components, conversation_sto
                 selection = ToolSelection.selected(defaults, scope=builtin.name)
             project_config.set_component_parameters("builtin_tools", parameters.with_config(selection.to_dict()).to_dict())
     engines = ProjectConfiguration.engine_parameter_schemas(backend.describe_project_config())
-    if "system_prompt" in engines.get("loop", {}).get("properties", {}).get("config", {}).get("properties", {}):
-        parameters = project_config.parameter_targets.engine("loop")
+    if "system_prompt" in engines.get(HubEngineIdentity.LOOP, {}).get("properties", {}).get("config", {}).get("properties", {}):
+        parameters = project_config.parameter_targets.engine(HubEngineIdentity.LOOP)
         values = parameters.config
         values.setdefault("system_prompt", SYSTEM_PROMPT)
-        project_config.set_engine_parameters("loop", parameters.with_config(values).to_dict())
-    for name in ("loop", TitleEngineIdentity.NAME):
+        project_config.set_engine_parameters(HubEngineIdentity.LOOP, parameters.with_config(values).to_dict())
+    for name in (HubEngineIdentity.LOOP, TitleEngineIdentity.NAME):
         if "provider" in engines.get(name, {}).get("properties", {}).get("policy", {}).get("properties", {}):
             parameters = project_config.parameter_targets.engine(name)
             values = parameters.policy

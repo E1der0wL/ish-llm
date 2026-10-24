@@ -1,4 +1,5 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
+from hub.backend.execution.engine_selection import HubEngineIdentity
 
 from hub.locales.codes import LanguageCode
 
@@ -81,7 +82,7 @@ class HubConfig:
         if self.engine_factories is not None:
             if not isinstance(self.engine_factories, dict):
                 raise TypeError("engine_factories must be a dictionary or None")
-            if self.initial_engine not in ("loop", "graph") and self.initial_engine not in self.engine_factories:
+            if self.initial_engine not in (HubEngineIdentity.LOOP, "graph") and self.initial_engine not in self.engine_factories:
                 raise ValueError("Initial engine must be registered in engine_factories")
             if any(not isinstance(name, str) or not name.strip() or name.startswith("_hub_") or not callable(factory)
                    for name, factory in self.engine_factories.items()):
@@ -99,7 +100,7 @@ class HubConfig:
     @property
     def initial_engine(self):
         """Creation preset only; requests always select a saved Project Agent."""
-        return "loop" if self.agent_definition is None else self.agent_definition["engine"]
+        return HubEngineIdentity.LOOP if self.agent_definition is None else self.agent_definition["engine"]
 
 
 class HubRuntime:

@@ -22,6 +22,10 @@ class WorkspaceSelection(BuiltinArguments):
     workspace_id: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA:
         {"type": "string", "pattern": WorkspaceIdentity.SCHEMA_PATTERN}})
 
+    @classmethod
+    def supplied(cls, arguments):
+        return cls.workspace_id.__name__ in arguments
+
     @property
     def selected(self):
         return self.workspace_id is not UNSET

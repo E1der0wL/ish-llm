@@ -21,6 +21,10 @@ class StepEventMetadata:
         ERROR_CODE = "error_code"
 
     @classmethod
+    def observed_phase(cls, metadata):
+        return metadata.get(cls.Field.PHASE)
+
+    @classmethod
     def read_phase(cls, metadata, default):
         value = metadata.get(cls.Field.PHASE)
         return value if isinstance(value, str) and value.strip() else default

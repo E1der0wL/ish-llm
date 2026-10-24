@@ -33,6 +33,14 @@ class FilePathArguments(FileLimits):
     path: str = field(metadata={BuiltinArguments.SCHEMA: {'type': 'string', 'minLength': 1}})
 
     @classmethod
+    def optional_path(cls, arguments):
+        return arguments.get(cls.path.__name__)
+
+    @classmethod
+    def with_path(cls, arguments, path):
+        return {**arguments, cls.path.__name__: path}
+
+    @classmethod
     def provided_path(cls, arguments):
         """Explicit path projection for the workspace's special-file guard."""
         return arguments.get(cls.path.__name__, UNSET)

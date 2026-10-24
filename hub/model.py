@@ -1,4 +1,5 @@
 """Presentation data shared by Hub's backend adapter and widgets."""
+from llm.providers.diagnostic_values import ProviderAttempt
 
 from llm.core.models import SessionStatus
 from llm.core.interactions import InteractionRequest, InteractionRequestObservation
@@ -118,6 +119,7 @@ class StepSummary:
 
 @dataclass(frozen=True, slots=True)
 class RetrySummary:
+    NO_RETRY_AT: ClassVar[None] = None
     PROVIDER: ClassVar[str] = "provider"
     TOOL: ClassVar[str] = "tool"
     RECOVERY: ClassVar[str] = "recovery"
@@ -131,10 +133,14 @@ class RetrySummary:
 
     attempt: int
     maximum: int
-    retry_at: float | None = None
+    retry_at: float | None = NO_RETRY_AT
     kind: str = PROVIDER
     name: str = ""
     phase: str = ACTIVE
+
+    @classmethod
+    def next_attempt(cls, value):
+        return value.attempt + ProviderAttempt.ORDINAL_INCREMENT
 
 
 @dataclass(frozen=True, slots=True)

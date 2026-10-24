@@ -98,6 +98,10 @@ class LoopParameters:
     def final_review(self):
         return self._value.get(self.FINAL_REVIEW)
 
+    @classmethod
+    def has_completion(cls, value):
+        return cls.COMPLETION in value
+
     @property
     def completion(self):
         return self._value.get(self.COMPLETION, {})

@@ -1,4 +1,5 @@
 """Compose Hub adapters and host resources; runtime owns their active lifetime."""
+from hub.backend.execution.engine_selection import HubEngineIdentity
 
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -42,12 +43,12 @@ def create_backend(config: "HubConfig"):
     recovery = ProviderRecovery(general, monitor, language)
     diagnostics = ProviderDiagnostics(error_details=True,
         request_summary=general.provider_request_summary, max_detail_chars=general.provider_max_detail_chars)
-    factories = {"loop": HubLoopEngine, **(config.engine_factories if config.engine_factories is not None else {})}
+    factories = {HubEngineIdentity.LOOP: HubLoopEngine, **(config.engine_factories if config.engine_factories is not None else {})}
     if config.initial_engine not in factories and config.initial_engine != GRAPH_ENGINE_NAME:
         raise ValueError("Register the selected engine in HubConfig.engine_factories")
     engines = {name: factory() for name, factory in factories.items()}
     engines.setdefault(GRAPH_ENGINE_NAME, GraphEngine(handlers={
-        "agent": AgentNode(engines={"loop": engines["loop"]}), "tool": ToolNode()}))
+        "agent": AgentNode(engines={HubEngineIdentity.LOOP: engines[HubEngineIdentity.LOOP]}), "tool": ToolNode()}))
     if config.auto_title:
         engines[TITLE_ENGINE] = TitleEngine()
     for engine in engines.values():
@@ -72,7 +73,7 @@ def create_backend(config: "HubConfig"):
     builtins = builtins if isinstance(builtins, HubBuiltinTools) else None
     selector = ToolRetrySelector(chooser=config.tool_retry_chooser,
         evidence={**({"file_read": file_candidates} if builtins else {}), **config.tool_retry_evidence},
-        fallback_engine=engines["loop"], builtins=builtins)
+        fallback_engine=engines[HubEngineIdentity.LOOP], builtins=builtins)
     engines = {name: EnvironmentEngine(engine, builtins, recovery=selector, retry_monitor=monitor,
                                       provider_recovery=recovery)
                if not name.startswith("_hub_") else engine

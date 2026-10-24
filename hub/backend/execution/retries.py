@@ -6,27 +6,52 @@ from llm.core.policies import ToolRetryPolicy
 from contextlib import aclosing
 from contextvars import ContextVar
 from dataclasses import dataclass, replace
+from typing import ClassVar
 import math
 from time import monotonic
 
 from llm.engines.loop import LoopEngine
 from llm.engines.base import EngineEventType
+from llm.engines.events import EngineEvent
+from llm.engines.completion_state import CompletionInvocationOptions
+from llm.providers.options import ProviderOptions
+from llm.providers.diagnostic_values import (
+    ProviderAttempt,
+    ProviderRetryObservation,
+    ProviderRetryDetails,
+)
+from llm.core.model_protocol import ModelOperation
+from llm.core.step_tool_metadata import ToolRetryProgress
+from llm.services.runtime.tools import ToolExecutionPhase
+from ..tools.retry_values import ToolRepairPhase
+from .retry_values import RetryIdentity
 from llm.core.contracts import Diagnostic
 from llm.policies.retry import RetryPolicy
-from llm.providers.requests import resolve_provider_options
 from llm.providers.runtime import diagnostic_scope
-from llm.services.infrastructure.observability import ObservationKind, ObservationStatus
+from llm.services.infrastructure.observability import (
+    ObservationKind,
+    ObservationStatus,
+    ObservationRecord,
+)
 from ...model import RetrySummary
 from .provider_recovery import CompletionRecoveryMixin
 
 
 @dataclass(slots=True)
 class CompletionWatch:
+    INITIAL_ATTEMPT: ClassVar[int] = 0
+    NO_COMPLETION: ClassVar[str] = ""
+    NO_CALL: ClassVar[str] = ""
+
     run_id: str
     policy: dict
-    attempt: int = 0
-    completion_id: str = ""
-    call_id: str = ""
+    attempt: int = INITIAL_ATTEMPT
+    completion_id: str = NO_COMPLETION
+    call_id: str = NO_CALL
+
+    @property
+    def maximum(self):
+        return RetryPolicy(ProviderOptions(self.policy).max_attempts).attempts
 
 
 @dataclass(slots=True)
@@ -43,9 +68,31 @@ class RetryObservation:
 
 
 class RetryMonitor:
+    RUN_CONTEXT = "hub_retry_run"
+    CALL_CONTEXT = "hub_retry_completion"
+    NO_RUN = ""
+    NO_WATCH = None
+    NO_STATE = None
+    NO_DELAY = 0
+    NO_ATTEMPT = 0
+    UNSCHEDULED = math.inf
+    TOOL_PROGRESS_PHASES = (ToolRepairPhase.REPAIRING, ToolExecutionPhase.RETRYING)
+    TERMINAL_TOOL_EVENTS = (
+        EngineEventType.STEP_COMPLETED,
+        EngineEventType.STEP_FAILED,
+        EngineEventType.STEP_INTERRUPTED,
+        EngineEventType.STEP_CANCELLED,
+    )
+    RECOVERY_EVENTS = (
+        ProviderRetryObservation.RECOVERY,
+        ProviderRetryObservation.RECOVERY_REJECTED,
+    )
+
     def __init__(self) -> None:
-        self.run: ContextVar[str] = ContextVar("hub_retry_run", default="")
-        self.call: ContextVar[CompletionWatch | None] = ContextVar("hub_retry_completion", default=None)
+        self.run: ContextVar[str] = ContextVar(self.RUN_CONTEXT, default=self.NO_RUN)
+        self.call: ContextVar[CompletionWatch | None] = ContextVar(
+            self.CALL_CONTEXT, default=self.NO_WATCH
+        )
         self.states: dict[int | tuple[str, str], RetryObservation] = {}
         self.tools: dict[tuple[str, str], ToolWatch] = {}
 
@@ -54,88 +101,177 @@ class RetryMonitor:
 
     def observe_tool(self, context, event):
         """Called after the owning service consumes each Engine event."""
-        key = (context.run.id, event.step_id)
+        key = RetryIdentity.create(context.run.id, event.step_id)
         if event.type == EngineEventType.STEP_STARTED and event.kind == StepKind.TOOL:
             policy = ToolRetryPolicy.from_run(context.run)
             if policy.max_retries:
                 delay = policy.delay_seconds
-                self.tools[key] = ToolWatch(event.name, policy.max_retries + 1,
-                                            0 if delay is None else delay)
+                self.tools[key] = ToolWatch(
+                    event.name,
+                    policy.max_retries + ProviderAttempt.ORDINAL_INCREMENT,
+                    RetryPolicy.NO_DELAY if delay is RetryPolicy.UNSPECIFIED else delay,
+                )
         watch = self.tools.get(key)
-        if watch is None:
+        if watch is self.NO_WATCH:
             return
-        if event.type in (EngineEventType.STEP_COMPLETED, EngineEventType.STEP_FAILED,
-                          EngineEventType.STEP_INTERRUPTED, EngineEventType.STEP_CANCELLED):
-            self.states.pop(key, None)
-            self.tools.pop(key, None)
+        if event.type in self.TERMINAL_TOOL_EVENTS:
+            self.states.pop(key, self.NO_STATE)
+            self.tools.pop(key, self.NO_WATCH)
         elif event.type == EngineEventType.STEP_UPDATED:
-            phase = event.metadata.get("phase")
-            attempt = event.metadata.get("retry_attempt")
-            if phase in ("repairing", "retrying") and type(attempt) is int and attempt > 0:
-                self.set(key, context.run.id, RetrySummary(attempt, watch.maximum,
-                    monotonic() + watch.delay if phase == "retrying" else None,
-                    RetrySummary.TOOL, watch.name, RetrySummary.REPAIRING if phase == "repairing" else RetrySummary.WAITING))
+            progress = ToolRetryProgress(event.metadata)
+            phase = progress.phase
+            attempt = progress.attempt
+            if (
+                phase in self.TOOL_PROGRESS_PHASES
+                and type(attempt) is int
+                and attempt > self.NO_ATTEMPT
+            ):
+                self.set(
+                    key,
+                    context.run.id,
+                    RetrySummary(
+                        attempt,
+                        watch.maximum,
+                        (
+                            monotonic() + watch.delay
+                            if phase == ToolExecutionPhase.RETRYING
+                            else RetrySummary.NO_RETRY_AT
+                        ),
+                        RetrySummary.TOOL,
+                        watch.name,
+                        (
+                            RetrySummary.REPAIRING
+                            if phase == ToolRepairPhase.REPAIRING
+                            else RetrySummary.WAITING
+                        ),
+                    ),
+                )
 
     def clear_tools(self, run_id):
-        for key in [key for key in self.tools if key[0] == run_id]:
+        for key in [key for key in self.tools if RetryIdentity.run_id(key) == run_id]:
             self.tools.pop(key)
-            self.states.pop(key, None)
+            self.states.pop(key, self.NO_STATE)
 
     def __call__(self, event: dict) -> None:
         # Executions is emitted immediately before the actual Tool call, including
         # unchanged-argument retries that have no new STEP_UPDATED event.
-        if event.get("kind") == ObservationKind.TOOLS.value and event.get("status") == ObservationStatus.EXECUTIONS.value:
-            key = (event.get("run_id"), event.get("step_id"))
+        observation = ObservationRecord(event)
+        if (
+            observation.kind == ObservationKind.TOOLS.value
+            and observation.status == ObservationStatus.EXECUTIONS.value
+        ):
+            key = RetryIdentity.create(observation.run_id, observation.step_id)
             previous = self.states.get(key)
-            if previous is not None and previous.summary.phase != RetrySummary.ACTIVE:
-                self.set(key, previous.run_id, replace(previous.summary,
-                    attempt=previous.summary.attempt + 1, retry_at=None, phase=RetrySummary.ACTIVE))
+            if (
+                previous is not self.NO_STATE
+                and previous.summary.phase != RetrySummary.ACTIVE
+            ):
+                self.set(
+                    key,
+                    previous.run_id,
+                    replace(
+                        previous.summary,
+                        attempt=RetrySummary.next_attempt(previous.summary),
+                        retry_at=RetrySummary.NO_RETRY_AT,
+                        phase=RetrySummary.ACTIVE,
+                    ),
+                )
             return
 
     def observe_provider(self, event: Diagnostic) -> None:
         """The provider owns Retry-After/jitter/deadlines; project its chosen delay."""
         watch = self.call.get()
-        if watch is None:
+        if watch is self.NO_WATCH:
             return
-        if event.code in ("completion_recovery", "completion_recovery_rejected"):
-            state = self.states.get((watch.run_id, RetrySummary.RECOVERY))
-            if state is not None:
-                self.set((watch.run_id, RetrySummary.RECOVERY), watch.run_id,
-                    replace(state.summary, phase=RetrySummary.RETRYING if event.code == "completion_recovery" else RetrySummary.REJECTED, retry_at=None))
+        if event.code in self.RECOVERY_EVENTS:
+            state = self.states.get(
+                RetryIdentity.create(watch.run_id, RetrySummary.RECOVERY)
+            )
+            if state is not self.NO_STATE:
+                self.set(
+                    RetryIdentity.create(watch.run_id, RetrySummary.RECOVERY),
+                    watch.run_id,
+                    replace(
+                        state.summary,
+                        phase=(
+                            RetrySummary.RETRYING
+                            if event.code == ProviderRetryObservation.RECOVERY
+                            else RetrySummary.REJECTED
+                        ),
+                        retry_at=RetrySummary.NO_RETRY_AT,
+                    ),
+                )
             return
-        if event.code != "provider_retry":
+        if event.code != ProviderRetryObservation.RETRY:
             return
-        details = event.details
-        if details.get("operation") != "completion" or details.get("run_id", watch.run_id) != watch.run_id:
+        details = ProviderRetryDetails(event.details)
+        if (
+            details.operation != ModelOperation.COMPLETION.value
+            or details.run_id(watch.run_id) != watch.run_id
+        ):
             return
-        delay, attempt, call_id = details.get("delay_seconds"), details.get("attempt"), details.get("call_id")
-        if (type(delay) not in (int, float) or not math.isfinite(delay) or delay < 0
-                or type(attempt) is not int or attempt != watch.attempt + 1
-                or not isinstance(call_id, str) or not call_id or watch.call_id not in ("", call_id)):
+        delay, attempt, call_id = (
+            details.delay_seconds,
+            details.attempt,
+            details.call_id,
+        )
+        if (
+            type(delay) not in (int, float)
+            or not math.isfinite(delay)
+            or delay < self.NO_DELAY
+            or type(attempt) is not int
+            or attempt != watch.attempt + ProviderAttempt.ORDINAL_INCREMENT
+            or not isinstance(call_id, str)
+            or not call_id
+            or watch.call_id not in (CompletionWatch.NO_CALL, call_id)
+        ):
             return
         watch.call_id = call_id
-        self.states.pop((watch.run_id, RetrySummary.RECOVERY), None)
-        self.set(id(watch), watch.run_id, RetrySummary(attempt - 1,
-            RetryPolicy(watch.policy.get("max_attempts")).attempts, monotonic() + delay))
+        self.states.pop(
+            RetryIdentity.create(watch.run_id, RetrySummary.RECOVERY), self.NO_STATE
+        )
+        self.set(
+            id(watch),
+            watch.run_id,
+            RetrySummary(
+                attempt - ProviderAttempt.ORDINAL_INCREMENT,
+                watch.maximum,
+                monotonic() + delay,
+            ),
+        )
 
     def view(self, run_id: str) -> RetrySummary | None:
-        states = [item.summary for item in self.states.values() if item.run_id == run_id]
-        recovery = next((state for state in states if state.kind == RetrySummary.RECOVERY), None)
-        if recovery is not None:
+        states = [
+            item.summary for item in self.states.values() if item.run_id == run_id
+        ]
+        recovery = next(
+            (state for state in states if state.kind == RetrySummary.RECOVERY),
+            self.NO_STATE,
+        )
+        if recovery is not self.NO_STATE:
             return recovery
         # Parallel Graph agents keep separate calls. Finishing one must not
         # erase another's backoff; show the next scheduled attempt first.
-        return min(states, key=lambda state: state.retry_at if state.retry_at is not None else float("inf"),
-                   default=None)
+        return min(
+            states,
+            key=lambda state: (
+                state.retry_at
+                if state.retry_at is not RetrySummary.NO_RETRY_AT
+                else self.UNSCHEDULED
+            ),
+            default=self.NO_STATE,
+        )
 
 
 class RetryObservationMixin:
     """Use with BaseEngine implementations; callbacks never replace their retry loop."""
-    retry_monitor: RetryMonitor | None = None
+
+    NO_MONITOR = None
+    retry_monitor: RetryMonitor | None = NO_MONITOR
 
     async def execute(self, context):
         monitor = self.retry_monitor
-        if monitor is None:
+        if monitor is self.NO_MONITOR:
             async with aclosing(super().execute(context)) as events:
                 async for event in events:
                     yield event
@@ -153,14 +289,18 @@ class RetryObservationMixin:
 
     async def stream_completion(self, request, **kwargs):
         monitor = self.retry_monitor
-        if monitor is None or not monitor.run.get() or kwargs.get("include_events", True) is False:
+        if (
+            monitor is self.NO_MONITOR
+            or not monitor.run.get()
+            or CompletionInvocationOptions(kwargs).events_excluded
+        ):
             async with aclosing(super().stream_completion(request, **kwargs)) as events:
                 async for event in events:
                     yield event
             return
-        provider = kwargs.get("provider")
-        watch = CompletionWatch(monitor.run.get(),
-                                resolve_provider_options({} if provider is None else provider))
+        watch = CompletionWatch(
+            monitor.run.get(), CompletionInvocationOptions(kwargs).resolved_provider()
+        )
         try:
             async with aclosing(super().stream_completion(request, **kwargs)) as events:
                 while True:
@@ -174,17 +314,25 @@ class RetryObservationMixin:
                         break
                     finally:
                         monitor.call.reset(token)
-                    completion = getattr(event, "completion", None)
+                    completion = EngineEvent.observed_completion(event)
                     if completion and completion.id != watch.completion_id:
                         watch.completion_id = completion.id
-                        watch.attempt += 1
-                        if watch.attempt > 1:
-                            monitor.states.pop((watch.run_id, RetrySummary.RECOVERY), None)
-                            monitor.set(id(watch), watch.run_id, RetrySummary(
-                                watch.attempt, RetryPolicy(watch.policy.get("max_attempts")).attempts))
+                        watch.attempt += ProviderAttempt.ORDINAL_INCREMENT
+                        if watch.attempt > ProviderAttempt.ORDINAL_INCREMENT:
+                            monitor.states.pop(
+                                RetryIdentity.create(
+                                    watch.run_id, RetrySummary.RECOVERY
+                                ),
+                                RetryMonitor.NO_STATE,
+                            )
+                            monitor.set(
+                                id(watch),
+                                watch.run_id,
+                                RetrySummary(watch.attempt, watch.maximum),
+                            )
                     yield event
         finally:
-            monitor.states.pop(id(watch), None)
+            monitor.states.pop(id(watch), RetryMonitor.NO_STATE)
 
 
 class HubLoopEngine(CompletionRecoveryMixin, RetryObservationMixin, LoopEngine):

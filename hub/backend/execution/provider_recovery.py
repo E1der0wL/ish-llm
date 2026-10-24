@@ -34,6 +34,7 @@ from ...errors.adapters import from_diagnostic
 from ...errors.contracts import ErrorOrigin
 from ...errors.recovery_annotation import RecoveryAnnotation
 from .recovery_input import reductions, encoded
+from .retry_values import RetryIdentity
 from .recovery_model import model_events, InvalidRecoveryResponse
 
 
@@ -184,12 +185,12 @@ class ProviderRecovery:
             self.current.reset(token)
             if state is not self.NO_STATE:
                 self.monitor.states.pop(
-                    (frame.context.run.id, RetrySummary.RECOVERY), self.NO_STATE
+                    RetryIdentity.create(frame.context.run.id, RetrySummary.RECOVERY), self.NO_STATE
                 )
 
     def _show(self, state, phase, name=NO_NAME):
         self.monitor.set(
-            (state.frame.context.run.id, RetrySummary.RECOVERY),
+            RetryIdentity.create(state.frame.context.run.id, RetrySummary.RECOVERY),
             state.frame.context.run.id,
             RetrySummary(
                 state.attempts,
@@ -425,7 +426,7 @@ class ProviderRecovery:
                     state.outcome = RecoveryState.ANALYSIS_FAILED
             if state.outcome:
                 observed = self.monitor.states.get(
-                    (state.frame.context.run.id, RetrySummary.RECOVERY)
+                    RetryIdentity.create(state.frame.context.run.id, RetrySummary.RECOVERY)
                 )
                 rejected = (
                     observed is not self.NO_STATE
@@ -453,7 +454,7 @@ class ProviderRecovery:
             raise
         finally:
             self.monitor.states.pop(
-                (state.frame.context.run.id, RetrySummary.RECOVERY), self.NO_STATE
+                RetryIdentity.create(state.frame.context.run.id, RetrySummary.RECOVERY), self.NO_STATE
             )
 
 
