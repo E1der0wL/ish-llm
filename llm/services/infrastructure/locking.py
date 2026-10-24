@@ -13,6 +13,7 @@ from functools import wraps
 from pathlib import Path
 
 from llm._platform import require_linux
+from llm.core.paths import WorkspacePaths
 from llm.services.infrastructure.logging import logging_scope
 from llm.services.infrastructure.observability import ObservationRuntime
 from llm.services.infrastructure.transactions import TransactionManager, watch
@@ -20,7 +21,7 @@ from llm.services.infrastructure.transactions import TransactionManager, watch
 
 class WorkspaceLock:
     ABSENT = None
-    FILE = ".ish.lock"
+    FILE = WorkspacePaths.LOCK
     ZERO_REFERENCES = 0
     REFERENCE = 1
     ATTACHED = "Session already has an attached runtime"

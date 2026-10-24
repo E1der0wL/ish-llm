@@ -6,7 +6,6 @@ JSON 교체는 이전 inode, JSONL 추가는 이전 길이만 보관한다. 외�
 """
 
 import json
-import hashlib
 import os
 import re
 import shutil
@@ -21,10 +20,23 @@ from pathlib import Path
 from typing import Callable, Iterator, Optional
 from uuid import uuid4
 
+from llm.core.paths import WorkspacePaths
+from .durability import sync_directory as durable_directory
+from .transaction_records import TransactionJournal, UndoEnvelope, UndoKind, UndoOperation
+
 
 NO_TRANSACTION = None
+TRANSACTION_CONTEXT = "llm_storage_transaction"
+DATACLASS_PARAMETERS = "__dataclass_params__"
 
-_current = ContextVar("llm_storage_transaction", default=NO_TRANSACTION)
+_current = ContextVar(TRANSACTION_CONTEXT, default=NO_TRANSACTION)
+
+
+class TransactionStorage:
+    INVALID_PATH = "Transaction paths cannot escape or follow links"
+    INVALID_CREATION = "Transaction creation supports regular files and directories only"
+    INVALID_REPLACEMENT = "Transaction replacement requires a regular file"
+    INVALID_APPEND = "Transaction append requires a regular file"
 
 
 def current_transaction() -> Optional["Transaction"]:
@@ -32,37 +44,33 @@ def current_transaction() -> Optional["Transaction"]:
 
 
 def _sync(path):
-    fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
-    try:
-        os.fsync(fd)
-    finally:
-        os.close(fd)
+    durable_directory(path)
 
 
 def _checked(path):
     path = Path(path).absolute()
-    if ".." in path.parts or any(p.is_symlink() for p in (path, *path.parents)):
-        raise ValueError("Transaction paths cannot escape or follow links")
+    if TransactionJournal.PARENT in path.parts or any(p.is_symlink() for p in (path, *path.parents)):
+        raise ValueError(TransactionStorage.INVALID_PATH)
     return path
 
 
 def _write(path, data):
-    fd, name = tempfile.mkstemp(prefix=".write-", dir=path.parent)
+    fd, name = tempfile.mkstemp(prefix=TransactionJournal.WRITE_PREFIX, dir=path.parent)
     try:
-        with os.fdopen(fd, "wb") as stream:
+        with os.fdopen(fd, TransactionJournal.BINARY_WRITE) as stream:
             stream.write(data)
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(name, path)
         _sync(path.parent)
     finally:
-        Path(name).unlink(missing_ok=True)
+        Path(name).unlink(missing_ok=TransactionJournal.MISSING_OK)
 
 
 def after_commit(callback: Callable[[], None]) -> None:
     """관찰/캐시 해제는 저장 확정 후에만 수행한다."""
     transaction = current_transaction()
-    if transaction is None:
+    if transaction is NO_TRANSACTION:
         callback()
     else:
         transaction.after_commit(callback)
@@ -71,11 +79,17 @@ def after_commit(callback: Callable[[], None]) -> None:
 def watch(model: object) -> None:
     """실패한 저장이 호출자가 보유한 도메인 객체까지 변경하지 않도록 한다."""
     transaction = current_transaction()
-    if transaction is not None:
+    if transaction is not NO_TRANSACTION:
         transaction.watch(model)
 
 
 class Transaction:
+    CLEAN = False
+    FAILED = True
+    NO_WRITES = 0
+    WRITE = 1
+    MODEL_PARTICIPANT = "model"
+
     def __init__(self, manager: "TransactionManager") -> None:
         self.manager = manager
         self.path = manager.journal / uuid4().hex
@@ -85,38 +99,38 @@ class Transaction:
         self._rollback = {}
         self._errors = {}
         self._committed = []
-        self.failed = False
-        self.writes = 0
+        self.failed = self.CLEAN
+        self.writes = self.NO_WRITES
 
     def _target(self, path):
         path = _checked(path)
         relative = path.relative_to(self.manager.root)
-        if not relative.parts or relative.parts[0] in (".transactions", ".ish.lock"):
-            raise ValueError("Reserved transaction target")
+        if WorkspacePaths.reserved(relative):
+            raise ValueError(UndoOperation.RESERVED_TARGET)
         return path, relative.as_posix()
 
     def _ensure(self):
         if self.path.exists():
             return
-        self.manager.journal.mkdir(exist_ok=True, mode=0o700)
+        self.manager.journal.mkdir(
+            exist_ok=TransactionJournal.EXIST_OK, mode=TransactionJournal.DIRECTORY_MODE
+        )
         _sync(self.manager.root)
-        self.path.mkdir(mode=0o700)
+        self.path.mkdir(mode=TransactionJournal.DIRECTORY_MODE)
         _sync(self.manager.journal)
 
     def _entry(self, value):
         self._ensure()
-        name = f"{len(self.entries):08d}.json"
-        payload = json.dumps(value, sort_keys=True, allow_nan=False).encode()
-        envelope = {"format_version": self.manager.FORMAT_VERSION, "operation": value,
-                    "checksum": hashlib.sha256(payload).hexdigest()}
-        _write(self.path / name, json.dumps(envelope, allow_nan=False).encode())
+        name = TransactionJournal.entry(len(self.entries))
+        _write(self.path / name, UndoEnvelope.encode(value, self.manager.FORMAT_VERSION))
         self.entries.append(value)
 
     def _new(self, path):
         # 격리 후 같은 이름을 재생성하면 새 undo가 필요하다. 이전 신규 트리의
         # 제거 기록보다 재생성 제거가 먼저 실행되어야 원본 격리를 되돌릴 수 있다.
-        return (any(root == path or root in path.parents for root in self.created)
-                and not any(root == path or root in path.parents for root in self.removed))
+        return any(root == path or root in path.parents for root in self.created) and not any(
+            root == path or root in path.parents for root in self.removed
+        )
 
     def _sync_created(self):
         # 컴포넌트 초기화/clone이 복사한 파일도 마커 전에 내구성을 확보한다.
@@ -124,14 +138,14 @@ class Transaction:
         for root in self.created:
             if not root.exists():
                 continue
-            paths = [root, *root.rglob("*")] if root.is_dir() else [root]
+            paths = [root, *root.rglob(TransactionJournal.ALL_FILES)] if root.is_dir() else [root]
             for path in paths:
                 mode = _checked(path).stat().st_mode
                 if stat.S_ISREG(mode):
-                    with path.open("rb") as stream:
+                    with path.open(TransactionJournal.BINARY_READ) as stream:
                         os.fsync(stream.fileno())
                 elif not stat.S_ISDIR(mode):
-                    raise ValueError("Transaction creation supports regular files and directories only")
+                    raise ValueError(TransactionStorage.INVALID_CREATION)
             for path in reversed(paths):
                 if path.is_dir():
                     _sync(path)
@@ -158,7 +172,7 @@ class Transaction:
 
     def changed(self) -> None:
         """파일 밖 참여자도 중첩 작업 실패를 바깥 확정에 전파한다."""
-        self.writes += 1
+        self.writes += self.WRITE
 
     def after_commit(self, callback: Callable[[], None]) -> None:
         self._committed.append(callback)
@@ -166,28 +180,36 @@ class Transaction:
     def staging_directory(self) -> Path:
         """큰 복원 사본은 도메인 목록에서 보이지 않는 저널 아래에 준비한다."""
         self._ensure()
-        path = Path(tempfile.mkdtemp(prefix="stage-", dir=self.path))
+        path = Path(tempfile.mkdtemp(prefix=TransactionJournal.STAGE_PREFIX, dir=self.path))
         _sync(self.path)
         return path
 
     def temporary_file(self) -> tuple[int, str]:
         """원자 교체의 임시 파일도 저널과 같이 회수되도록 배치한다."""
         self._ensure()
-        return tempfile.mkstemp(prefix="value-", dir=self.path)
+        return tempfile.mkstemp(prefix=TransactionJournal.VALUE_PREFIX, dir=self.path)
 
     def watch(self, model: object) -> None:
-        if not is_dataclass(model) or isinstance(model, type) or getattr(type(model), "__dataclass_params__").frozen:
+        from llm.core.models import Project
+
+        if (
+            not is_dataclass(model)
+            or isinstance(model, type)
+            or getattr(type(model), DATACLASS_PARAMETERS).frozen
+        ):
             return
-        key = ("model", id(model))
+        key = (self.MODEL_PARTICIPANT, id(model))
         if key in self._rollback:
             return
         # SessionRuntime 등 asyncio 객체를 가진 실행 컨테이너는 대상이 아니다.
-        if not hasattr(model, "paths"):
+        if not hasattr(model, Project.paths.__name__):
             return
         snapshot = {field.name: deepcopy(getattr(model, field.name)) for field in fields(model)}
+
         def restore():
             for name, value in snapshot.items():
                 setattr(model, name, value)
+
         self.on_rollback(key, restore)
 
     def mkdir(self, path: Path) -> None:
@@ -209,7 +231,7 @@ class Transaction:
             raise FileExistsError(path)
         self.changed()
         if not self._new(path):
-            self._entry({"kind": "create", "path": name})
+            self._entry(UndoOperation.create(name))
             self.created.append(path)
 
     def before_replace(self, path: Path) -> None:
@@ -223,12 +245,12 @@ class Transaction:
             self.prepare_create(path)
             return
         if not path.is_file():
-            raise ValueError("Transaction replacement requires a regular file")
+            raise ValueError(TransactionStorage.INVALID_REPLACEMENT)
         self._ensure()
-        backup = f"{len(self.entries):08d}.data"
+        backup = TransactionJournal.backup(len(self.entries), UndoKind.REPLACE)
         os.link(path, self.path / backup)
         _sync(self.path)
-        self._entry({"kind": "replace", "path": name, "backup": backup})
+        self._entry(UndoOperation.replace(name, backup))
 
     def before_append(self, path: Path) -> None:
         path, name = self._target(path)
@@ -241,8 +263,8 @@ class Transaction:
             self.prepare_create(path)
         else:
             if not path.is_file():
-                raise ValueError("Transaction append requires a regular file")
-            self._entry({"kind": "append", "path": name, "size": path.stat().st_size})
+                raise ValueError(TransactionStorage.INVALID_APPEND)
+            self._entry(UndoOperation.append(name, path.stat().st_size))
 
     def before_truncate(self, path: Path, size: int) -> None:
         """깨진 JSONL 끝을 수리할 때도 제거한 꼬리만 보관한다."""
@@ -251,20 +273,20 @@ class Transaction:
         if self._new(path):
             return
         self._ensure()
-        backup = f"{len(self.entries):08d}.tail"
-        with path.open("rb") as stream:
+        backup = TransactionJournal.backup(len(self.entries), UndoKind.TRUNCATE)
+        with path.open(TransactionJournal.BINARY_READ) as stream:
             stream.seek(size)
             data = stream.read()
         _write(self.path / backup, data)
-        self._entry({"kind": "truncate", "path": name, "size": size, "backup": backup})
+        self._entry(UndoOperation.truncate(name, size, backup))
 
     def remove(self, path: Path) -> None:
         """큰 트리는 복사 없이 격리한다. 실제 제거는 확정 후 재시도 가능한 GC다."""
         path, name = self._target(path)
         self.changed()
         self._ensure()
-        backup = f"{len(self.entries):08d}.removed"
-        self._entry({"kind": "remove", "path": name, "backup": backup})
+        backup = TransactionJournal.backup(len(self.entries), UndoKind.REMOVE)
+        self._entry(UndoOperation.remove(name, backup))
         self.removed.append(path)
         os.rename(path, self.path / backup)
         # 목적지 엔트리를 먼저 보존한 뒤 원래 위치의 제거를 확정한다.
@@ -275,45 +297,34 @@ class Transaction:
 class TransactionManager:
     """WorkspaceOwnership 한 개가 소유한다. context는 동기이며 Engine 실행을 감싸지 않는다."""
 
-    FORMAT_VERSION = 1
+    FORMAT_VERSION = UndoEnvelope.FORMAT_VERSION
+    INVALID_SEQUENCE = "Invalid transaction journal sequence"
+    INVALID_UNDO_MARKER = "Invalid transaction rollback marker"
+    MISSING_APPEND_SOURCE = "Transaction append source is missing or shortened"
+    REMOVAL_DESTINATION_CHANGED = "Transaction removal destination changed"
+    LINKED_CLEANUP = "Linked contents in transaction cleanup"
+    CLEANUP_WARNING = "Committed transaction cleanup will be retried"
+    INVALID_DIRECTORY = "Invalid transaction journal directory"
+    INVALID_COMMIT_MARKER = "Invalid transaction commit marker"
+    CROSS_WORKSPACE = "Cross-workspace nested transactions are not supported"
+    NESTED_FAILURE = "Nested storage operation failed; transaction aborted"
+    OBSERVER_WARNING = "Post-commit observer failed"
+    PENDING_COMMIT = False
+    COMMITTED = True
 
     def __init__(self, root: Path) -> None:
         self.root = Path(root).absolute()
-        self.journal = self.root / ".transactions"
+        self.journal = WorkspacePaths(self.root).transactions
 
     def _entries(self, directory):
         _checked(directory)
         values = []
-        for index, path in enumerate(sorted(directory.glob("*.json"))):
-            if path.name != f"{index:08d}.json":
-                raise ValueError("Invalid transaction journal sequence")
+        for index, path in enumerate(sorted(directory.glob(TransactionJournal.RECORDS))):
+            if path.name != TransactionJournal.entry(index):
+                raise ValueError(TransactionManager.INVALID_SEQUENCE)
             envelope = json.loads(_checked(path).read_text())
-            if (type(envelope.get("format_version")) is not int
-                    or envelope["format_version"] != self.FORMAT_VERSION):
-                raise ValueError("Unsupported transaction journal format")
-            value = envelope["operation"]
-            payload = json.dumps(value, sort_keys=True, allow_nan=False).encode()
-            if envelope.get("checksum") != hashlib.sha256(payload).hexdigest():
-                raise ValueError("Transaction journal checksum mismatch")
-            name, kind = value.get("path"), value.get("kind")
-            if not isinstance(name, str) or Path(name).is_absolute():
-                raise ValueError("Invalid transaction target")
-            target = _checked(self.root / name)
-            relative = target.relative_to(self.root)
-            if not relative.parts or relative.parts[0] in (".transactions", ".ish.lock"):
-                raise ValueError("Reserved transaction target")
-            if kind not in ("create", "replace", "append", "remove", "truncate"):
-                raise ValueError("Invalid transaction operation")
-            if kind in ("append", "truncate") and (type(value.get("size")) is not int or value["size"] < 0):
-                raise ValueError("Invalid append recovery offset")
-            if kind in ("replace", "remove", "truncate"):
-                suffix = {"replace": "data", "remove": "removed", "truncate": "tail"}[kind]
-                if value.get("backup") != f"{index:08d}.{suffix}":
-                    raise ValueError("Invalid transaction backup")
-                _checked(directory / value["backup"])
-            if kind in ("replace", "truncate") and not (directory / value["backup"]).is_file():
-                raise ValueError("Missing transaction backup")
-            values.append((value, target))
+            value = UndoEnvelope.read(envelope, self.FORMAT_VERSION)
+            values.append(UndoOperation.read(value, self.root, directory, index, _checked))
         return values
 
     def _rollback(self, directory):
@@ -322,77 +333,77 @@ class TransactionManager:
         entries = self._entries(directory)
         for index in reversed(range(len(entries))):
             value, target = entries[index]
-            done = directory / f"undone-{index:08d}"
+            done = directory / TransactionJournal.undone(index)
             _checked(done)
             if done.exists():
-                if done.read_bytes() != b"1\n":
-                    raise ValueError("Invalid transaction rollback marker")
+                if done.read_bytes() != TransactionJournal.COMPLETE_MARKER:
+                    raise ValueError(TransactionManager.INVALID_UNDO_MARKER)
                 continue
-            kind = value["kind"]
-            if kind == "create":
+            kind = value.kind
+            if kind == UndoKind.CREATE:
                 if target.is_dir():
                     self._remove(target)
                 else:
-                    target.unlink(missing_ok=True)
-            elif kind == "replace":
+                    target.unlink(missing_ok=TransactionJournal.MISSING_OK)
+            elif kind == UndoKind.REPLACE:
                 # 백업은 복구 완료 때까지 유지한다. 복구 자체가 중단되어도 재시도 가능하다.
-                fd, name = tempfile.mkstemp(prefix=".restore-", dir=directory)
+                fd, name = tempfile.mkstemp(prefix=TransactionJournal.RESTORE_PREFIX, dir=directory)
                 os.close(fd)
                 temporary = Path(name)
                 try:
                     temporary.unlink()
-                    os.link(directory / value["backup"], temporary)
+                    os.link(directory / value.backup, temporary)
                     os.replace(temporary, target)
                 finally:
-                    temporary.unlink(missing_ok=True)
-            elif kind == "truncate":
-                with target.open("r+b") as stream:
-                    stream.seek(value["size"])
-                    stream.write((directory / value["backup"]).read_bytes())
+                    temporary.unlink(missing_ok=TransactionJournal.MISSING_OK)
+            elif kind == UndoKind.TRUNCATE:
+                with target.open(TransactionJournal.BINARY_UPDATE) as stream:
+                    stream.seek(value.size)
+                    stream.write((directory / value.backup).read_bytes())
                     stream.truncate()
                     stream.flush()
                     os.fsync(stream.fileno())
-            elif kind == "append":
-                if not target.exists() or target.stat().st_size < value["size"]:
-                    raise ValueError("Transaction append source is missing or shortened")
-                with target.open("r+b") as stream:
-                    stream.truncate(value["size"])
+            elif kind == UndoKind.APPEND:
+                if not target.exists() or target.stat().st_size < value.size:
+                    raise ValueError(TransactionManager.MISSING_APPEND_SOURCE)
+                with target.open(TransactionJournal.BINARY_UPDATE) as stream:
+                    stream.truncate(value.size)
                     stream.flush()
                     os.fsync(stream.fileno())
             else:
-                backup = directory / value["backup"]
+                backup = directory / value.backup
                 if backup.exists():
                     if target.exists():
-                        raise ValueError("Transaction removal destination changed")
+                        raise ValueError(TransactionManager.REMOVAL_DESTINATION_CHANGED)
                     os.rename(backup, target)
                     _sync(target.parent)
                     _sync(directory)
             if target.parent.exists():
                 _sync(target.parent)
-            _write(done, b"1\n")
+            _write(done, TransactionJournal.COMPLETE_MARKER)
 
     @staticmethod
     def _remove(path):
         _checked(path)
         # 같은 사용자에 의한 경로 교체를 격리하는 보안 경계는 아니다.
         if path.is_dir():
-            if any(p.is_symlink() for p in path.rglob("*")):
-                raise ValueError("Linked contents in transaction cleanup")
+            if any(p.is_symlink() for p in path.rglob(TransactionJournal.ALL_FILES)):
+                raise ValueError(TransactionManager.LINKED_CLEANUP)
             shutil.rmtree(path)
         else:
-            path.unlink(missing_ok=True)
+            path.unlink(missing_ok=TransactionJournal.MISSING_OK)
 
     def _retire(self, path):
         if not path.exists():
             return
-        garbage = path.with_name("gc-" + path.name)
+        garbage = path.with_name(TransactionJournal.GC_PREFIX + path.name)
         os.rename(path, garbage)
         _sync(self.journal)
         try:
             self._remove(garbage)
             _sync(self.journal)
         except OSError:
-            warnings.warn("Committed transaction cleanup will be retried", RuntimeWarning)
+            warnings.warn(TransactionManager.CLEANUP_WARNING, RuntimeWarning)
 
     def recover(self) -> None:
         """읽기 전 OS 잠금을 가진 호출자만 사용한다. LLM/Tool을 호출하지 않는다."""
@@ -400,21 +411,24 @@ class TransactionManager:
         if not self.journal.exists():
             return
         for directory in sorted(self.journal.iterdir()):
-            if not re.fullmatch(r"(?:gc-)?[a-f0-9]{32}", directory.name) or not directory.is_dir():
-                raise ValueError("Invalid transaction journal directory")
+            if (
+                not re.fullmatch(TransactionJournal.DIRECTORY_PATTERN, directory.name)
+                or not directory.is_dir()
+            ):
+                raise ValueError(TransactionManager.INVALID_DIRECTORY)
             _checked(directory)
-            if directory.name.startswith("gc-"):
+            if directory.name.startswith(TransactionJournal.GC_PREFIX):
                 try:
                     self._remove(directory)
                     _sync(self.journal)
                 except OSError:
-                    warnings.warn("Committed transaction cleanup will be retried", RuntimeWarning)
+                    warnings.warn(TransactionManager.CLEANUP_WARNING, RuntimeWarning)
                 continue
-            marker = directory / "COMMITTED"
+            marker = directory / TransactionJournal.COMMITTED
             _checked(marker)
             if marker.exists():
-                if marker.read_bytes() != b"1\n":
-                    raise ValueError("Invalid transaction commit marker")
+                if marker.read_bytes() != TransactionJournal.COMPLETE_MARKER:
+                    raise ValueError(TransactionManager.INVALID_COMMIT_MARKER)
             else:
                 self._rollback(directory)
             self._retire(directory)
@@ -422,34 +436,34 @@ class TransactionManager:
     @contextmanager
     def scope(self) -> Iterator[Transaction]:
         parent = current_transaction()
-        if parent is not None:
+        if parent is not NO_TRANSACTION:
             if parent.manager is not self:
-                raise RuntimeError("Cross-workspace nested transactions are not supported")
+                raise RuntimeError(TransactionManager.CROSS_WORKSPACE)
             count = parent.writes
             try:
                 yield parent
             except BaseException:
                 if parent.writes != count:
-                    parent.failed = True
+                    parent.failed = Transaction.FAILED
                 raise
             return
         self.recover()
         transaction = Transaction(self)
         token = _current.set(transaction)
-        committed = False
+        committed = self.PENDING_COMMIT
         try:
             yield transaction
             if transaction.failed:
-                raise RuntimeError("Nested storage operation failed; transaction aborted")
+                raise RuntimeError(TransactionManager.NESTED_FAILURE)
             if transaction.path.exists():
                 transaction._sync_created()
-                _write(transaction.path / "COMMITTED", b"1\n")
-            committed = True
+                _write(transaction.path / TransactionJournal.COMMITTED, TransactionJournal.COMPLETE_MARKER)
+            committed = self.COMMITTED
         except BaseException:
             # rename 이후 fsync 오류는 확정 여부가 불명확하다. 이미 공개된 마커를
             # 되돌리지 않고 다음 소유권 진입에서 판정한다. 실행 효과는 재시도하지 않는다.
             try:
-                if not (transaction.path / "COMMITTED").exists():
+                if not (transaction.path / TransactionJournal.COMMITTED).exists():
                     transaction._undo()
                     self._retire(transaction.path)
             finally:
@@ -462,9 +476,9 @@ class TransactionManager:
             try:
                 self._retire(transaction.path)
             except OSError:
-                warnings.warn("Committed transaction cleanup will be retried", RuntimeWarning)
+                warnings.warn(TransactionManager.CLEANUP_WARNING, RuntimeWarning)
             for callback in transaction._committed:
                 try:
                     callback()
                 except Exception:
-                    warnings.warn("Post-commit observer failed", RuntimeWarning)
+                    warnings.warn(TransactionManager.OBSERVER_WARNING, RuntimeWarning)

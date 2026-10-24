@@ -1605,180 +1605,210 @@
   },
   {
     "path": "llm/core/paths.py",
-    "sha256": "6479b4300c63d73c4fcd592f3ef0a1af2349b6e6c3a2b0b8dfb4693d6487fe61",
-    "reason": "Each domain Paths class declares its existing filename/directory components before methods. Accessors compose these same values without new paths or normalization. RunPaths.output_path still supports injected structural state paths. Reviewed every accessor and actual file Reader/Writer, retention containment, backup and injected state-path consumers. Other workspace/Provider logs have separate roots and are not aliases of a domain path.",
+    "sha256": "f3c49a91fab48a093c8195b5ce1a2458422b22ad64ec58e0576becf67a14cf5a",
+    "reason": "Each domain Paths class declares its existing filename/directory components before methods. Accessors compose these same values without new paths or normalization. RunPaths.output_path still supports injected structural state paths. Reviewed every accessor and actual file Reader/Writer, retention containment, backup and injected state-path consumers. Other workspace/Provider logs have separate roots and are not aliases of a domain path. WorkspacePaths now supplies the lock/journal/reserved path contract to both ordinary and recovery targets; directory durability has one implementation with original public forwarding seams. Original storage/transaction/locking and direct safety consumers pass; prior independent contracts remain tracked.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "00fafd5a3c85f73c39ef1c7b3008f7866c07f04aea02dd0fb901734be22ed4ed",
+        "id": "107034456225cc00d6ec888fc533d1962c1aa3a6428e7aec3a0656d2eaf5c160",
+        "classification": "non_contract",
+        "owner": "WorkspacePaths",
+        "reason": "Python frozen/slots dataclass declaration metadata, following the existing path record types; not a serialized or execution-policy value."
+      },
+      {
+        "id": "ae25fd461c3a024dbe329233f8bfc9539362e780f2342f65df0b8b288656f791",
+        "classification": "non_contract",
+        "owner": "WorkspacePaths",
+        "reason": "Python frozen/slots dataclass declaration metadata, following the existing path record types; not a serialized or execution-policy value."
+      },
+      {
+        "id": "1111ea69aec3316f661fb90b98e0a880804e081af94435c9721f3f9ff72e0005",
+        "classification": "declaration",
+        "owner": "WorkspacePaths",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9dc1481688b4724b1aea73d7da199ba67029998cb8eda0ff733e2b15e2329986",
+        "classification": "declaration",
+        "owner": "WorkspacePaths",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "586b54350c247665f57c6df9a3f8ea330722cde040c84e0b8769b4a58c3d0fe2",
+        "classification": "non_contract",
+        "owner": "WorkspacePaths.reserved",
+        "reason": "First component of an already parsed relative Path; structural indexing, not a persisted field or policy default."
+      },
+      {
+        "id": "a61bd9247723ec512f547d799cd978902bd076b573c9b35622b162922fea99dc",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "1204f8c92d95e52bfc8414e060f9ecf05ded4bf96643d987418f0b892b731192",
+        "id": "618ae4d68ef0906a354d0d7730f86d726c98eb2f5718de92145f38e3137e5e0e",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "625c73dd9ae325c8cfebaa0d2d5d18c539cf9053342568b36028efa54833f571",
+        "id": "ccfe3af201ad69cc13354e6e8d037e659f71b72eb084599912ea882cf9aa3c49",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "758e60e61f49e2e01211edc23178f291773e3c0e01d3131f3363463667f87af1",
+        "id": "dffcad21d5dbcc1b7518f7d680921f7d94daacdaac32c1c74540fe187f2df780",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "e389c2d9c80903f68779626623a4de1459c5a3f7492798d90eb03d1a1eb5820e",
+        "id": "4d0b59005d464f8f7766fa5292c5cea774b438bdce11c2a92e7e4d3b152a9071",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "fda17adaaaeaecb1a544de6aeb2e9ebee5e6cd22dcbe66bb842afc8fe99ec01f",
+        "id": "3e892e1e51ed3ebe8ba1ee453755be8c717c0ef87f480b9d16acbe24db91322f",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "e2001f7191958ae87ce681b8b0058e3f71764787fe50bd23dcf1cc4e621c1e7b",
+        "id": "7a8457838547534c155b382dc78a243118e02cb54529e95b2e1b4f06ff1ec112",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "ed9a7386d253c870712fc7855f13b4208db81728fb78b3e838d532da73d1ec42",
+        "id": "40514be4bceaf80a9fb4738e16a96488255282bbd71023f855cb01f03bac5380",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "aa46968bfebff303259b3439c5fca6f82e334eb6b29b44f6593342eaeeefdc48",
+        "id": "ea209b44e0fe847e9765e9c2c22ef400503ef8cb331aec6d97af03fbf6333f9f",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "29faa9b2f7b80ebe68e0bd1a2d96ca9d8489bb813233f2d573267af484b76006",
+        "id": "593d28fc749172f74c30a3378fd7d422f46da0cba60d17c65c20bc014432f8e5",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "3b2627fcaa3f36af566f2051d2abda6a7915fdd9a6c6caf3562ed9dcdd6003d7",
+        "id": "6f1efc731cdb5aff808a178c38a84260cc6f8e450acd8e88ca99301cd77e488d",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "e98f9a7271fe1035e6cac9c04f2d7dd06292432f30127bc8a14177b035d22a9f",
+        "id": "d0aaaac2a159f122ffa109e14aa862255dc1c4213646469675f73b0f2274a9b2",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "95aa0f68e5fa2f03b05ca5aaff7d01302a1fa87fd46369821491d05eb8618c19",
+        "id": "2e7dcd161136c8d29d0d9b16aab9604964a336fdf5575fa3f0f2bbaf2f65a0a9",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "4c63a70efc490edd583c1fec15f4b7af7f2f2ba6038d89a0eef2ee14354e30d1",
+        "id": "e5d55ad4c513bc38816bf29729e34e5f25d8138d1d8ac5d3924702a3df3a6bec",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "5cd40e29d8056c84d1bd60ef028060aefb443dfb8ad1577dfee46d1502c099ef",
+        "id": "d9ff8196fcf866ef4c465a7a1f6fe75a5c630536502891da1da6b91884961f7c",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "096ebedb74196a57cf1ec0bc6b5fc732572774845a186f83027a0884bff2da87",
+        "id": "22e0b5eafae0ee4092e0a963aa40b05c1ec26661a830da158c6b9742aed2e58c",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "4e30ab7732a5aca51723fa3819ee729e566ef9c5a9bf8ebdd3babf0cb241bfd5",
+        "id": "779b839aac2237612f2d46781108607231a3be4152d35193c650d84038cb776f",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "e95259d575b42ee9d9cef1f5f21f5320107dc4d06a1d3b78499d599da2c126ab",
+        "id": "4fd610cfd3f4e4e822113b1b5ababcd0dfb8ea02f05505a187f34300a06c4faa",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "7a4d7fb3721caaa7744fed1e61c85b6b3cd8b86ab0ab0debd4b49c3d5f80949c",
+        "id": "81ef9549c8243f86d38ab761dc46fc0835c7c058db1e2d87be571c3caa341740",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "03745a7ce6ee5774091569a2709fbfb4814437c2eedc68ae7fa47629d547575c",
+        "id": "5edf253f81b95196841fb4e27e8eead5b6b64a42cb76ee1bbf4551cde0babd32",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "118cc5e74b7b21d40900296e28a06a4148af8cdb66b32b891ceb5a45259ab1c5",
+        "id": "c9cb0457b38dfd8f601fc984a28fa916b6dc5f7b25c4e28d3aa2cb56ece0f728",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "d7947a058b00b4cbd1ae9249815a586bfedc071e151a47116a5a0e1ad242db72",
+        "id": "bf8f7cb6bc617372aa446a97ce32b39dd28ce6cde4191448833c661e492c9747",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "1737af69f595eea8f6554ac8f41da34d4dfd2fb861607130590c180b7f45b240",
+        "id": "2aaa7d4909279b625a545f83c89bd1f9637d5f97a67b32e2f89a36913bc2bbac",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "e7b498376466e5edf4d997cb969f45736aa2749cb4c1f81b7fefffb47063cd74",
+        "id": "81ad6ce5774c8c35cb97087093c85ddffc6661be767372b66eaf14e30c0ce188",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "479c0dc0e95ce400dbe2c5b3f1ad1a9a12b8e5a4bdcff1cf7615f530719e8b4f",
+        "id": "5d26764f48baded5c0949151f9147f2c83cbed6f8be6b7c34c2b8daa7c407e50",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "c391347dcc727fd65244491cecc8d6700772a5f4de3c9c1e05dce8d0e47d02b8",
+        "id": "60ba2f63fbc8e22b9f32eea078e6b809c5427b6e5ea6ccdfc38de2e0f188fa70",
         "classification": "declaration",
         "owner": "StepPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "cdf4e9a89b25dea262f6ddf788e025d007cbe2ce9d836d5b6271417514ed958b",
+        "id": "9404ed14bf818fa21a49ede07ddfb0c3e3f677d43eda76e709a43ac10d32467d",
         "classification": "declaration",
         "owner": "StepPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "0032fa51444e7604d10220b2b989000effff8f79cea4b1f3947fb17cd367b3d5",
+        "id": "98f8deec0dea159c71188baec117f39c0f59957e69a8530f76f86a3358a4dc78",
         "classification": "declaration",
         "owner": "StepPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "2f64ede68200cbb7a114ed188b01a3805105a486dc061d5a72a9c08304405071",
+        "id": "a6c12957b8f7b687664f26812498817760638d5ef6c503a259a42c048404da7a",
         "classification": "declaration",
         "owner": "StepPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
@@ -1789,18 +1819,67 @@
         "owner": "ProjectPaths / SessionPaths / RunPaths / StepPaths",
         "declaration": "llm/core/paths.py",
         "consumers": [
+          "llm/services/history/conversation.py",
+          "llm/services/history/retention.py",
+          "llm/services/infrastructure/locking.py",
+          "llm/services/infrastructure/storage.py",
           "llm/services/lifecycle/projects.py",
           "llm/services/lifecycle/sessions.py",
           "llm/services/lifecycle/steps.py",
-          "llm/services/runtime/runs.py",
-          "llm/services/history/retention.py"
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
           "tests/llm/test_domain_record_values.py",
-          "tests/llm/test_persistence.py",
-          "tests/llm/test_repositories.py",
           "tests/llm/test_history_retention_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py"
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_persistence.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_repositories.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "WorkspacePaths",
+        "declaration": "llm/core/paths.py",
+        "consumers": [
+          "llm/services/infrastructure/locking.py",
+          "llm/services/infrastructure/transactions.py",
+          "llm/services/infrastructure/transaction_records.py"
+        ],
+        "tests": [
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -70718,10 +70797,10 @@
   },
   {
     "path": "llm/services/infrastructure/README.md",
-    "sha256": "2041ab1c79a576b147811c3d271a045a01e131a2ca28f5054eb4c13831fc76f1",
+    "sha256": "0ea166e779af7da435c801984a9403318ff848636310f840972d1a6632b5ceac",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit. Added current deletion-intent/backup projection and shared snapshot accounting; transaction/output work remains explicitly pending. Added mandatory source and optional derived-index typed ownership; publication/validation boundaries and public APIs remain unchanged.",
+    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit. Added current deletion-intent/backup projection and shared snapshot accounting; transaction/output work remains explicitly pending. Added mandatory source and optional derived-index typed ownership; publication/validation boundaries and public APIs remain unchanged. Added complete undo-record ownership and common workspace path/durability boundaries; pending duplicate lock filename resolved.",
     "contracts": [
       {
         "owner": "Infrastructure observation/ownership guide",
@@ -71523,102 +71602,96 @@
   },
   {
     "path": "llm/services/infrastructure/locking.py",
-    "sha256": "fe027b9abee12f654082522a4625721be8c991b186255ed5a2ea7514f3dcc06a",
-    "reason": "Complete current-file review includes dynamic extension labels/status maps, injected sinks/handlers, snapshot isolation, warning-as-error behavior, after-commit execution, read-order/error boundaries and nested process/thread ownership. Original functions are equivalent after bounded projection expansion; actual bytes and fault/effect safety regressions pass. This does not complete other storage/runtime/Hub files.",
+    "sha256": "2c16ff21087f17eaca557b05192228c2384930462ea9a2334c12a8c8e9fb15e8",
+    "reason": "Complete current-file review includes dynamic extension labels/status maps, injected sinks/handlers, snapshot isolation, warning-as-error behavior, after-commit execution, read-order/error boundaries and nested process/thread ownership. Original functions are equivalent after bounded projection expansion; actual bytes and fault/effect safety regressions pass. This does not complete other storage/runtime/Hub files. WorkspacePaths now supplies the lock/journal/reserved path contract to both ordinary and recovery targets; directory durability has one implementation with original public forwarding seams. Original storage/transaction/locking and direct safety consumers pass; prior independent contracts remain tracked.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "bfa3ede1302bed5436449af0b4bedce0f1df71180d37426f33a472f2d258d2d0",
+        "id": "058767a30b735f1451c943ada2083d1aad04faabdc3a5b4fe02e138974ddfff3",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "0fbb860e1f378f716aee9b65a48272e9914d299ec16f5cb0990a5e16ef234843",
+        "id": "c93585480c499ddf3afb977eb1e8789ffc09e98b3fdb11488b23b284dffae6bb",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "63fb53df3092db451faeb04ebf9a0facf343bcbc9e95146d0c3498429f585b90",
+        "id": "d313086e3fb4825e9dab1eb406305a34aa58ed2c9c61b6925014bd09f639bd9b",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "998eec423e7df94e19f2807609e05f1ed9b2bb618bb8225f1e2943e787b9787d",
+        "id": "7837ad30753cc2eaa52dc8ba24d5b23ceff05e31cc3937c7d68b285fd05f814f",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "bf30f01a39ccedb328b8623007a795492974f0829d74aff427c860d8f746596b",
+        "id": "3e5c38c7c4d6aa17e5340462d94230a9cebbdb8fd030c04f95bde4cac2cf03f9",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "54818fb0cf4f476dbd7df5d3b954517be844bad263ce9f708cfe72bf2c7720ab",
+        "id": "b6a784ef50fe79f86a293767b7910c2f61383853c8d7c0fbb0e637e6b4ab6f3b",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "c71d7f457b62c32b2a7146438482e66d66c7853d873bcd5ca8348b8d5733da79",
+        "id": "d5826efd13af37a21b96f2bfa746f94808f40bd70f9ef6e41b731294921d3068",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "aa228863eef2067204081f6a3a9dfc67a49c74060e0b1dd9ef7d98dcd06bf247",
+        "id": "6c06481ce67e347d414bcf710042d78278ab3d76f108062a056090e2db764b08",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "511b3f560ae56023d250cd9f96e93aee0047ada18985356f8a23591d992e7c2e",
+        "id": "a9d2ec55bff5532bd6d4229c8201575927e63267acc9beec4a47f7c8f3386b8d",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "2009c309f3fd94abde27a31862e00c8956ba826e820de40e747beeaf5a0fa8cf",
+        "id": "44e43009995eb021045e7aeba24a915f4653a442733cda16c9e8de2f43ff0c58",
         "classification": "declaration",
         "owner": "WorkspaceLock",
         "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
       },
       {
-        "id": "480ad3fe27ef30c06cb5c00ed92719d0b22c73aa83e65354946d531679734817",
-        "classification": "declaration",
-        "owner": "WorkspaceLock",
-        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
-      },
-      {
-        "id": "f8eacd270d5d3ab2686ae20857b4cfc9b7a8050b8934771247ec3736c67a963f",
+        "id": "2570662cfbca671fe9b5ace95d306d5914497ec2314c89e6ad97a5f5cddbaf11",
         "classification": "non_contract",
         "owner": "WorkspaceOwnership.__init__",
         "reason": "Python None return annotation only, not a runtime default or stored/policy value."
       },
       {
-        "id": "03f17ce92073c3866ba4c57d8006cc6f1389caa3ea9c9b0239c89f27650ab29c",
+        "id": "ee5c3ebdc9e636d613f97c2d16f6db1a5d645f2780efa3dbfac4c61bdbe559a5",
         "classification": "non_contract",
         "owner": "WorkspaceOwnership.claim_session",
         "reason": "Python None return annotation only, not a runtime default or stored/policy value."
       },
       {
-        "id": "9e001afcd85d1846637546cdddd9c6fca336602a887ba3da09f6b01d6e90642f",
+        "id": "cde31174ceb315650a73fccc722ebb65433ad6a5de29fd1d4b25eec0df337b1b",
         "classification": "non_contract",
         "owner": "WorkspaceOwnership.release_session",
         "reason": "Python None return annotation only, not a runtime default or stored/policy value."
       },
       {
-        "id": "683cdba8d3b2bf9fe011f4c018a039f01eb3c65794b826b5b52f60b2d23cb2f5",
+        "id": "ca2509f8809d35d5dd26008703f45e5833e3d55f8683beb3c4445d9a93d665b8",
         "classification": "non_contract",
         "owner": "WorkspaceOwnership.retain",
         "reason": "Python None return annotation only, not a runtime default or stored/policy value."
       },
       {
-        "id": "69a6a7d34bb1312d551339f67556a34c2e03ba0f56c01104521507179ef61748",
+        "id": "4782ee501ca775f79bffc399bfc04308ae1a6f61d51dcfd745fd2cc5b7307520",
         "classification": "non_contract",
         "owner": "WorkspaceOwnership.release",
         "reason": "Python None return annotation only, not a runtime default or stored/policy value."
@@ -71629,29 +71702,42 @@
         "owner": "WorkspaceLock / WorkspaceOwnership",
         "declaration": "llm/services/infrastructure/locking.py",
         "consumers": [
-          "llm/services/runtime/runs.py",
-          "llm/services/runtime/tools.py",
-          "llm/services/runtime/events.py",
+          "hub/backend/observability/logging.py",
           "llm/llm.py",
-          "llm/services/lifecycle/projects.py",
+          "llm/services/history/conversation.py",
+          "llm/services/infrastructure/locking.py",
+          "llm/services/infrastructure/storage.py",
           "llm/services/lifecycle/components.py",
-          "hub/backend/observability/logging.py"
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/events.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
           "tests/hub/test_activity.py",
           "tests/hub/test_log_retention.py",
+          "tests/hub/test_project_authority.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_response_reliability.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_backup_owner_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
           "tests/llm/test_execution_observations.py",
+          "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_lifecycle_logging.py",
           "tests/llm/test_locking_io.py",
           "tests/llm/test_observability.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
           "tests/llm/test_project_activity.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_service_extensions.py",
           "tests/llm/test_transactions.py",
@@ -71660,417 +71746,439 @@
         "complete": true
       },
       {
-        "owner": "WorkspaceLock.FILE — Transaction reserved-path consumers pending",
+        "owner": "WorkspaceLock.FILE — canonical WorkspacePaths lock/journal consumers connected",
         "declaration": "llm/services/infrastructure/locking.py",
         "consumers": [
-          "llm/services/infrastructure/transactions.py"
+          "llm/services/history/conversation.py",
+          "llm/services/infrastructure/locking.py",
+          "llm/services/infrastructure/storage.py",
+          "llm/services/infrastructure/transactions.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_locking_io.py"
+          "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "llm/services/infrastructure/storage.py",
-    "sha256": "811a96e21e8cf399513282c5fd7f8053e7dd7f4ea22f89faaf319a4418b64a5d",
-    "reason": "Complete files reviewed for dynamic names/extension metadata, current schema validation, owned path and link checks, explicit deletion protection, checksums/revision bytes, injection/overrides, staging publication, all fsync/error/finally ordering, transaction enrollment and cancellation draining. Internal fixed records use their Owner projections; no source recovery, compatibility path, policy default or re-execution was added.",
+    "sha256": "0374d2546317032de2d02404f939b05d57985a65184c232a64bb8266a1b35348",
+    "reason": "Complete files reviewed for dynamic names/extension metadata, current schema validation, owned path and link checks, explicit deletion protection, checksums/revision bytes, injection/overrides, staging publication, all fsync/error/finally ordering, transaction enrollment and cancellation draining. Internal fixed records use their Owner projections; no source recovery, compatibility path, policy default or re-execution was added. WorkspacePaths now supplies the lock/journal/reserved path contract to both ordinary and recovery targets; directory durability has one implementation with original public forwarding seams. Original storage/transaction/locking and direct safety consumers pass; prior independent contracts remain tracked.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "4d612ed35b3795ef18d8e249b2365e5915c62272ab8b7c5497940aedf0a25323",
+        "id": "bb52a7edececb80ea4a04fd1a4223e59a0bb49afc87ce01ffa02aee4b516be3a",
         "classification": "declaration",
         "owner": "StorageFormat / StorageDrain / SnapshotFile / DeletionIntent / DeletionJournal / StorageIO",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "0a66d641f615b13c0e8dc8e99a2990c9947dad0fb227a0de36bda7b377585596",
+        "id": "10dcd166d4c7d482406ddbbfa732d3e0001d3e007905e7a05bcacff82e6b87ad",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "a9128de648ca3d043075f173b1a6109db5a7197edee7758de307df7682901d43",
+        "id": "718503417990431a8d2f9496785cd3db9047b0137e2558ba4352e6624c2933bc",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "4d6df900eb2926603e7403941ab60534ce44cddf8db67bf5eaf2525fb3c1003e",
+        "id": "675144f54cfcd888279851d3f50e40928a9fd7df988fedb4c4e75302e99a4f9f",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "b0bfbc6efe54463b40feb5922aa276ccefb5a3ce43fb4b1f540e0cf3c5b10dd5",
+        "id": "480ebcdb3c550adea4bb2508c74ba54fd8d638f61c831474955d6e59224a1b6c",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "3ff167e19a27fccefca4c81fc6edc630907b55c46709f0602827c4eeb5b3e949",
+        "id": "1ba705ea43ae264f65a45fcafec47386502fd0f6dc4b342fce0b0687a38d8662",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "0de8db522e6bfdd248c23a484cb413c2408ffc3e07f18a941621e45dfd1eabd1",
+        "id": "2151dbc98bb09b8ccb0b7a7baf1316b1a7d6d1ab45ad754f1f0bae1bb6160434",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "9c9ca2fe16ef3427936a00ab6f43e5d56a5ec6b9c460daf48096552371b363e6",
+        "id": "f95fe4109dd98fd5a5b649ccff5e1dc45267714abc60c4b1a66b2cc1eed9654b",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "77780b383dc2126b9968b5d052769fc9863cd235d5359797d0679a73cecc51d0",
+        "id": "df03dfe5993bbdd3320e76e4a644e4930bb1800476f53a866a5b5d3aeae60136",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "4f7a00048f8f26aa25c74e4691c83f60dd15be457bc0ffedd18e2af99dec2f28",
+        "id": "bcefb4c3b96939f80a7fd81f422f216d38f170ae1e5cb9f4e194dff8df86265c",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "91e84024986295e73c73a5b75c89cdf7574fc81f0082c6268d825e378a94c15d",
+        "id": "2f66652d759b0e5ebe1cbec7d6ca23fb66f26f0cdc79e864b666d5299b3118c6",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "5af78381254234d536ef338878c4c57b816773f1e63cbb91a3854a7617a4af5d",
+        "id": "89b126bc46e75905eb4ca70cce5160273fc6f79cda74ba9a1335342df80fd236",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "afbf0a4378966cfaf00b6a82e1da37f8426e586ef16d94eb7b28e28c387c0653",
+        "id": "187200f17b67ad48f9ef20d39aaca99f6c8293831ce07e3ceaa0718e0912ee04",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "0aa71d8194cdc8ca79ab3a3ba6f655fe1ac7fd15c9756c5918488f39547413c7",
+        "id": "1141f7f13c53b67f6c5568d15dac392d689531799f5d79247d7f941e519b92d5",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "a10d08d933d384096cc2131e2e0645579726a3f5821f0890e48a06f49b3903a5",
+        "id": "e3700bfdfefaf35d208564e84d5aa1bd7fe9c5653a3015aaaaaec3481241a56b",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "d4fad342025cc3782124c17975860ed95dea9409f157d6be4dc93800584a8255",
+        "id": "bef449b382bf1e3f355b82587aef30570c47229a1dc9c643e4ac9ce92b701c78",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "daa61734a85e8e2aa669449ef7d1106d2e24125bc3866682b73bef9fe38e91d4",
+        "id": "774f35a461a7bb747fbf10800959b49057bb51d820d5741dfd47e33610267547",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "1f6ed728cb82542c6df806bd694901b1b9a8ad5cfbc217d5d9b13c702cd82793",
+        "id": "57212c7741b83a4f5901a8e1af901c994b5e0c15a0ccb3ab1f840f212fc3d43c",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "10a68d0bd1582cfefde15d1b223a08df19c64a22c68ecf42be9e923e299e6179",
+        "id": "a4bf01703ce10fe371148853270bbea0d5277ef1654a9057f108a7abe635ce10",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "22a8acf84a4471237144dcb19f4661f34d9a58e8744cc94c64953ace24430557",
+        "id": "fcc728ac6e91996c6af8b9eb6e2202b31ad3460dcd90ac9476a7b7b0816e5f4e",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "5add430da78e06ee0aa4e2043bcf094fbf5880a301b75f51fa7812d822def171",
+        "id": "64c03fe912286bdc57ecf753772c597f34dc15ff0fb0bac653c5b5570bf9d8a4",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "cc884abb99d9ca42484d90ae02d7b1eaaaaac494c5fc54b5d08d0fe868c81102",
+        "id": "463d373e54e7b984824a61cb241faa59069d678c4bf82164af009f67eac0db79",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "b6acf63290fe544b18a50e1afb9c379cc0cd3e05f135884ca631d04b4c89f0b9",
+        "id": "13b95849d41ac6f6c686e3778f2a23777a8aa4693213333a1edc9a9cade44baa",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "7b1b1d5b3270c770393007d1b524f43c6b35fd0744f3dc9562610d09b3156fc3",
+        "id": "8b0026a2b3ed5949df5c2adfa610ad664406703b5238ddc77e39b827d9e5f023",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "7284fcc1318330334642e5ebb5ab81e5a023e85f2425b63739942522271a0c5b",
+        "id": "bace695138d18f6a517e6e194e2967fd201df4c8aeded0c6ff7cd93fd6856be5",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "7e4b63bd844e44075f43e378657da134559cba862cf2eb36fede45af63bff87d",
+        "id": "03488154fb70b621d17f2dd7fa76bc44baff2efedefbd3c577a847f492f15190",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "255fad0bbc74c5d3dc385463a6ea0960078eedb056378ae728c74aaf64fd95ce",
+        "id": "294a46e57b5663926baa5aa58980ae63fdd09f674e10994591469f0d469a9690",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "72cb82601a9671493d5f7adbbd5e3c8cf758b02feace1b7a76e9137da6828d5e",
+        "id": "1918fbe6f0013f817429aeb9d34005b22b00643ac5612b6cd3ad833f5103cf42",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "95c502c09d3dac393abc2af0791ceadb137247fd799935741b6c8d3f7ea02fba",
+        "id": "362e34bdbd645d4aef1a43c90c39d7aa80312d25e52923cccc76afb03ca4a6d9",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "b4fd14513256cc6e05a85b8944f6e6c622af43d725836dd9e3e2075937496c87",
+        "id": "3e9e1f0eea78c3c0bbab6d9b178b047f74f1715c5a4baceb02e80a8ee134ca74",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "aad5f436dcf3371b64dc84dbf3be7e71b1a2b2f9002ddef114a8057a9c5ca36a",
+        "id": "4efa71b4a19ee611e3d1133fc7d37ccd508afa02231cbe3c562cef07f3b1f5f2",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "71c76cd841fff21463cf369d6538b5961e21d12e2256da430cf968f08cf059a8",
+        "id": "0f959a143496057015d1cad6ed0b2889522641ff613207bf658d92afeec42614",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "1bd4ec94915357a6a5d7555849396fdb326b88490c35b56fc04a79e48b50281b",
+        "id": "5d548f0718fa52c63c91e4c6765a7f39eb7b1963579c8c02f5249518700e57a8",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "c1b407ead93acc24f011db3cf2ec187601de2d2f060fe28712458f29e9895fde",
+        "id": "58eb98515c7afe5258b563566552025244021a6d2ce5ce0799b49024048d9ad0",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "00ea0fe046545f0954b28862593c6bb375ac0e599481164690fde18fd54dc91a",
+        "id": "772767c713967827f20989911062d59bcff903b9345fb3eda3ee7f4e3dfca508",
         "classification": "declaration",
         "owner": "StorageFormat",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "c3d6c1756f9901317bebff3815307f01fb918fcc07d73c6f607d49f8a2a1dea9",
+        "id": "0d634a289307648ecba9094d22b1c920108f0e2c5bf5f22928a6a16ddbf27fef",
         "classification": "declaration",
         "owner": "StorageDrain",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "d841f27a0865b1aa0bbf998fbd04259ff6e8ac2728695ff592bed0ff158a2021",
+        "id": "4d7282a5fdea5806aa8f0eb6545d3bf91a640fd2749ae7020c1675ed1b42e66d",
         "classification": "declaration",
         "owner": "StorageDrain",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "2667f06fa5a8e9ba6f46bb64b4307e929cbd60e68e33fa47b1538a587bebea4a",
+        "id": "d64cdbf143d34ccb9496bbd6a4c6328bf12dc18d737726d28f68a49937c1adc2",
         "classification": "declaration",
         "owner": "SnapshotFile",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "7820fa200fcb44bcb585c6a8b9a111b4c7ee5e14065c0c5608dbd3cdf259b993",
+        "id": "188e941a9f63dbae6c4e7ea8857d38654b4015d0633faf0b5b97ef0a257cbcbf",
         "classification": "declaration",
         "owner": "SnapshotFile",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "53fcda210daf2933d364e35692dc41fc91285355733468e8bb96084d98980bc6",
+        "id": "a1a4fbe1cbbb12a28fb4e8211d1068f735c58b6cda1f6449c7aa55d499e54bb2",
         "classification": "declaration",
         "owner": "DeletionJournal",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "8376512a5c8fce342fe91863a707c5572af5d0ae1ace27a286cf554d3409c4b3",
+        "id": "559199b11f036cb50536580bbbfc6dd89ddf6c1ccba71ebf055ed9a8a5a3afc6",
         "classification": "declaration",
         "owner": "DeletionJournal",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "19748e1ad79427eba9dc453d898e9f01216b538617e6c92e3827073b221a54fe",
+        "id": "9aab2cb39066e48acae3e7335ed34c3272c2b6aaf348cc03316e5808cf008d93",
         "classification": "declaration",
         "owner": "DeletionJournal",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "40c8ae41bf3c2f94bae63815b8903b6d5eace0c57eb35ee7af53cd88b1621711",
+        "id": "ff6ad99caaaea5ebefa46dabd095e44bec35a01762fd2a6690024b9a60d293d6",
         "classification": "declaration",
         "owner": "DeletionIntent",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "21764527d97179e1d49ff45cdc740d8d730de2b6ddaeb6c6ee436aeb573eb1cd",
+        "id": "3fc1e7a0d83eb75861b08788fd8e9a612c842fa67572b7048b5eb6ccd4178578",
         "classification": "declaration",
         "owner": "DeletionIntent",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "cb6c8825e33c96e57ba24bb3c8b7b18c2eff09b04c6d942445de5ef782354bca",
+        "id": "cd44b92e5b8f0f87aafc5dee97ffb6122057740d156b9badc8789f91e8c479e9",
         "classification": "declaration",
         "owner": "DeletionIntent",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "2b74cff72345a526afe785cdb6381d36698874fd92646ba7954f98ec82c14f16",
+        "id": "462684590585b4a6d1cfce505094bca15aff06b32b868af599ce7702c351b7a1",
         "classification": "declaration",
         "owner": "DeletionIntent",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "397ea649ef603c0c48acee19d916a5eca7dd92f67d2ecbf6216cbd7ab7e24bd6",
+        "id": "e62ab2367a168bc1425b847f23f1afb0b6fb5e4f642265cc22198b92ed5b6d03",
         "classification": "declaration",
         "owner": "DeletionIntent",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "96c12b02078cb15b4f17932a8cd1c32e86c05a53352a864e7dd225ca6d63ac43",
+        "id": "7fe190245297cc1004552f132bdbe6741209a661d7d08d78901d217f3a8eef0c",
         "classification": "non_contract",
         "owner": "check_revision",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "85b9f3047aa15196352203d07344752e0088aa9812f70d455a68bb515517d871",
+        "id": "f3e35ba18923495ae1302cf087f2836ff4c9811ca534bb52124866b26980311f",
         "classification": "non_contract",
         "owner": "sync_directory",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "5b379a221cecdb726f2a3906cdf43896fbe1e02c01044cb32eecd469938e7659",
+        "id": "383513713088be94e615fba57bc0a5ff1205b3263d4abb3ae186f6a97d41089d",
         "classification": "non_contract",
         "owner": "atomic_json",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "19e9c54af1226beae9bd358696bc1589f7ff90a6e995a2dde26f3a3b5c7270fb",
+        "id": "7818e10a47acc61af19475350cc28af221e2be15009b3eed516eccced06019a7",
         "classification": "non_contract",
         "owner": "atomic_bytes",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "ea5ce0ae032c2c28ff2e81986f4103e5e883ed844753a50f0e57e6cc543a9e03",
+        "id": "03bed5b1c1b115e76aa99b62ad7b961efe0fc1078b0450dd17ae8ca14a0ae24a",
         "classification": "non_contract",
         "owner": "prepare_replace",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "42d95ad31041c5966c0cc29b84e4adee6b3ef38e2ecb53e63a1f61d6ca7fdbd5",
+        "id": "861574ea03ae80f1402e87c82f80031c2ade0662ff8cd2c8aa84907dc7fd78d3",
         "classification": "non_contract",
         "owner": "make_directory",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "2774741ff443f39ca321e8ab8878a6b8ba621a8fc462fdc44ee1ef80158eb2b7",
+        "id": "27a510ce5bad702ecfa7f53b3cf0d88b0298fa7723acd99c3276b3f04c24bc18",
         "classification": "non_contract",
         "owner": "prepare_create",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "a6738548ba072ed0bdb9ccc18d740be0944f35e05a3773ec39160a6e4c27800a",
+        "id": "dc781fe003032bc3379b48e8087785bef969b2a7874db56e211c2748078055b3",
         "classification": "non_contract",
         "owner": "append_bytes",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "4d0c55bb4af4e75c924a570ccc3864ba40c10fc8bafb590718a36b062dd93e20",
+        "id": "81a370cddf8af6e55a2b5d360a25c0943a73af6afbacc7473b6f09cf31ee1eb1",
         "classification": "non_contract",
         "owner": "unlink_file",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "c0b84344ffd9932a535ec76a095e570298f404532a1061a814dcc2c4088e8c04",
+        "id": "5b26f13361d0e5d06343745edffe76c784ed1b448e5700bfc2965d613b03c587",
         "classification": "non_contract",
         "owner": "read_domain_record",
         "reason": "Python exception-chaining suppression syntax; the new safe contextual message remains declared by its storage boundary. No missing value is reconstructed."
       },
       {
-        "id": "cab99db226caedfa1bf6009a0f4110c362400097e1b622989106db38ce6f09be",
+        "id": "edf4cf223f33ee834a7f42ce3306ee1ed82ec9ecf0428954134fde4358a6c0b8",
         "classification": "non_contract",
         "owner": "atomic_domain_json",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "dae90af86c4dbe80967971686e8cf9efe7ebcf62c32d209cdd92596ba11f588b",
+        "id": "ad469f5ba28502af70976c00a511d3cca5e1fa6adf6aa8bddb8b2a7eb74f3a77",
         "classification": "non_contract",
         "owner": "remove_owned_tree",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "21fcb07894e5f64ee982270313d8d8b06660a075165c089464b60ab2b7f02e65",
+        "id": "8c005c38154db7b14ae87fbe03a99d195537e3c3af2b488180f7808d9209f1e3",
         "classification": "non_contract",
         "owner": "remove_named_tree",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "c45ad070058ba468a535ffde45cc8b6253337b809d70325426937c22052f5cd2",
+        "id": "a49b561201e3ec5572653b15c9026854cb1a69fcf59b04af8ffcf549104eecd1",
         "classification": "non_contract",
         "owner": "_remove_tree",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "b9aeda95f213edc954d9270cb9328636f8ff535e6faeb521497439dec7b21c7e",
+        "id": "de0309fa46098510b9e85b86390acb43e4c4f03defd05f7da856931727240dd2",
         "classification": "non_contract",
         "owner": "_remove_tree.fail",
         "reason": "Python None return annotation only, not a product default or stored state."
       },
       {
-        "id": "e760e855f2d04f69c0ff40742a3a0003653e77b70092a748ba9032e9bd7dc611",
+        "id": "cea226e255a788564eb1e0b70312e348fb02537c35fcb9948d8cf26068755d86",
         "classification": "non_contract",
         "owner": "async_method",
         "reason": "Callable variadic type annotation syntax only, not a runtime sentinel or fixed schema value."
       },
       {
-        "id": "b018aee258e9e38a492d7e7c24a34c586f1d97506dfb8bf3b7d14ebb9576c1a9",
+        "id": "88ae5527fc1f32357e44bc9e373f4f97ef3e4306555ae711ea8718288c2a8347",
         "classification": "non_contract",
         "owner": "async_method",
         "reason": "Callable variadic type annotation syntax only, not a runtime sentinel or fixed schema value."
       },
       {
-        "id": "88601fdbde2cee2882b83d8d75ecfd0fcf4cfacf5646dcf5a94174b6bad65746",
+        "id": "5ad7af89b2ead5ca5f858c541f47d4b98b618ed3293cf4e81f6e5bfd8628e735",
         "classification": "declaration",
         "owner": "StorageIO",
         "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
       },
       {
-        "id": "40f03438b1ddd2db6792c9baf1598732ecc7c1a3672dadb3ce6537b930a84c98",
+        "id": "19fbc32630adef27c7eeaafa2730a05f3e8c86320e619ead50f994d8cd0a1716",
         "classification": "non_contract",
         "owner": "StorageIO.__init__",
         "reason": "Python None return annotation only, not a product default or stored state."
@@ -72081,21 +72189,28 @@
         "owner": "StorageFormat / StorageDrain / SnapshotFile / DeletionIntent / DeletionJournal / StorageIO",
         "declaration": "llm/services/infrastructure/storage.py",
         "consumers": [
+          "llm/components/rag/jobs.py",
+          "llm/components/rag/publication_records.py",
+          "llm/services/history/conversation.py",
+          "llm/services/history/retention.py",
+          "llm/services/infrastructure/locking.py",
+          "llm/services/infrastructure/storage.py",
           "llm/services/lifecycle/projects.py",
           "llm/services/lifecycle/sessions.py",
-          "llm/services/runtime/runs.py",
-          "llm/services/history/retention.py",
-          "llm/components/rag/jobs.py",
-          "llm/components/rag/publication_records.py"
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_history_retention.py",
+          "tests/hub/test_project_authority.py",
           "tests/hub/test_rag_jobs.py",
           "tests/hub/test_rag_retention.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/llm/test_backup_owner_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
           "tests/llm/test_current_contracts.py",
+          "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_deletion_integrity.py",
           "tests/llm/test_lifecycle_integrity.py",
@@ -72103,9 +72218,12 @@
           "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
           "tests/llm/test_rag_corpus_integrity.py",
           "tests/llm/test_rag_job_integrity.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -72778,6 +72896,702 @@
           "tests/llm/test_output_integrity.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/transactions.py",
+    "sha256": "f69d13363849ea41ea18f63d7f89fc89b3f0deac7ca6e9a5b51646c669ff69b7",
+    "reason": "Complete source and dynamic-path review covers journal write/read/preflight/undo, regular-file and symlink guards, raw storage boundary, typed rollback properties, commit uncertainty, restart recovery, nesting, memory rollback, callbacks and GC. Exact stored bytes and original safety assertions are retained. No duplicate policy, legacy reader or missing-record repair was introduced.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "02119461acc0e452eda6ee6a40894887d77ba25b9ddf4be909179e06cecedc8e",
+        "classification": "declaration",
+        "owner": "Transaction / TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "4d14b2c4d8536fa0067eec28730233c4fc7b8194cd4298ba0494e8a152fc4341",
+        "classification": "declaration",
+        "owner": "Transaction / TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "83cd29fb80a1eb4063663dfbd9ddffe6cc6cf42349e461a771700656a8951605",
+        "classification": "declaration",
+        "owner": "Transaction / TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "32b16f9188c8f9869e7e1ad8199f3af65deab3fd64d471aad7b83cb15a98ab98",
+        "classification": "declaration",
+        "owner": "TransactionStorage",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "4e45039a4b3d45dc20a922c6965814c982f6a651ac02bf4ba54899aafa7769d5",
+        "classification": "declaration",
+        "owner": "TransactionStorage",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "6928ce939ed8e9e30aa2919a25f32360f271d79e433baa7086aa6f329ed2a386",
+        "classification": "declaration",
+        "owner": "TransactionStorage",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "a6169af0b9162c98c2458de1f79c7b3fc4ce254b0e5da77a632a71ae54c65d89",
+        "classification": "declaration",
+        "owner": "TransactionStorage",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "dfc2b4f4fc7670dd4665072103a978eb06f020846270695f5ca3d66f8074d431",
+        "classification": "non_contract",
+        "owner": "current_transaction",
+        "reason": "Python forward type annotation naming the actual class."
+      },
+      {
+        "id": "d05ce5147f21efc6b8c0cef548c0d697d0f8be6199a063543334c4b01feccbdb",
+        "classification": "non_contract",
+        "owner": "after_commit",
+        "reason": "Python Callable return type annotation only; no runtime policy or default."
+      },
+      {
+        "id": "807628f4da03d857602185b4751efec2a3075f4a1e3435f64fde41c7384e7929",
+        "classification": "non_contract",
+        "owner": "after_commit",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "3696794aeeec6efab4b7ea026267b26cedd4ee9b1c128b18299de2e3d952f645",
+        "classification": "non_contract",
+        "owner": "watch",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "84d899a3ec4667a0d488bff2065257e097040c4a84b715da2e496f1997791a7a",
+        "classification": "declaration",
+        "owner": "Transaction",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "a218c2de4434f2b02a55865ea671e0bac0354023213a3d1926367843678faad8",
+        "classification": "declaration",
+        "owner": "Transaction",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "bbaed39e1f416c78efe437a192c120eea9bea5991beab104ca9479f3d9959eb8",
+        "classification": "declaration",
+        "owner": "Transaction",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "3d51f6e59f6a915ee1efa5e27c2493a6e156f892d334a4de6383e2802550c7ee",
+        "classification": "declaration",
+        "owner": "Transaction",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "bf6ec47ef9997830aca7666237a565ae5930d46f4afb5b71100ba417e19cc8d7",
+        "classification": "declaration",
+        "owner": "Transaction",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "cf96d1b1abb4163bf7989949c8b4e87949f8557f55c80e41a85d11d175762690",
+        "classification": "non_contract",
+        "owner": "Transaction.__init__",
+        "reason": "Python forward type annotation naming the actual class."
+      },
+      {
+        "id": "6f6c36393f399a8601a14be9f4fd2226938619febdec53554e1ccc6fd2a24a25",
+        "classification": "non_contract",
+        "owner": "Transaction.__init__",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "097776bfae18673cd5a942b76d75a47e4435af6029244414a94ce68fe928aafd",
+        "classification": "non_contract",
+        "owner": "Transaction.on_rollback",
+        "reason": "Python Callable return type annotation only; no runtime policy or default."
+      },
+      {
+        "id": "d4652bd3d62d775ec7b525a1487f87cec7f896e99c59654024f341c608d20d62",
+        "classification": "non_contract",
+        "owner": "Transaction.on_rollback",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "2c2618b73a6cb08a852a02d633770e6f97ab4cb7f0795adb8f653e061bde4e64",
+        "classification": "non_contract",
+        "owner": "Transaction.on_error",
+        "reason": "Python Callable return type annotation only; no runtime policy or default."
+      },
+      {
+        "id": "1f0a60a6aa205d3ad4736886205f8077622e5211a6087182db0d04770367c251",
+        "classification": "non_contract",
+        "owner": "Transaction.on_error",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "a981eb2d9285d6b2df592bf41c0ee20110a4b1762af96861a7f3d3fc70b31481",
+        "classification": "non_contract",
+        "owner": "Transaction.changed",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "3e2afff31a39506aada04a5d32dbdb9231158bcbbde391587e3cad68c7e6edcb",
+        "classification": "non_contract",
+        "owner": "Transaction.after_commit",
+        "reason": "Python Callable return type annotation only; no runtime policy or default."
+      },
+      {
+        "id": "3c165cce99d28106cd40cebda80de184b9d321a9b5976fec3097e950be355e13",
+        "classification": "non_contract",
+        "owner": "Transaction.after_commit",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "12d4438d824000e53c0bfbbea9fe53c9de6aa52a6feceda8fc9e5c41dc7f5dad",
+        "classification": "non_contract",
+        "owner": "Transaction.watch",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "e874f26a989d6df2392df21606c83e3f74c6576382f2e35986ab89ba36327828",
+        "classification": "non_contract",
+        "owner": "Transaction.mkdir",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "5a06f36927afb529b9fc677f731c40a81fcb1a99e6ab7d1a88f54590640e170a",
+        "classification": "non_contract",
+        "owner": "Transaction.prepare_create",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "974c8b3b6cabfe89c740f29ab66ceaf0017b5eb80620bcafba0b9b9910890396",
+        "classification": "non_contract",
+        "owner": "Transaction.before_replace",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "784d53093dd94d09478ac1a0d785c345080ed8d9bd949ef72352359d97f17bab",
+        "classification": "non_contract",
+        "owner": "Transaction.before_append",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "72506153710a485e280c2bf893d9493f771526455ccc5b73482c48356e14dcb7",
+        "classification": "non_contract",
+        "owner": "Transaction.before_truncate",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "6071e4ee1785e4e09f211dd8ccc73e540a88aba162ccc250955cd981d9ae87c8",
+        "classification": "non_contract",
+        "owner": "Transaction.remove",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "026a125aaf38d6678daab639250f95ec10e698169badb2f4bf7922965e392f31",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "56e7263b397639bbd8a74fb18665e323be75bf4ec81b039437adcf9041f61482",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "9379e8f92b132b155d970460c1c94cc369d0c9060d030cf77bb028dc40c771d9",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "a4aa00faa7178116048af3fcb173c836281da46c3f5b353c98242e4117485281",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "e55d5d7b6968af8d664a62af6d20c40f9dc092b023546eb626e44585c85f09fb",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "ccf27431f5d7e9cadd26458e9e49fb0c9e0644d37346e5cba633dc1457fc093f",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "2a61f2014b8aab2d026721423a7b43e09e17ca985e07c2daa07ae253bdbd5706",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "f63108e5f01cefa6ea7721ab649cc8b26f3395ba9cfab32af87689484e72233e",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "00d774afe85853898cfc8394ef2d63e3146a5c0832fc25014aedc12357abc80a",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "313b51dcd267959d7eaa8006aa68364a3b2bbab7e0dd9b3f19a6b362b1e64a5b",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "6e5c934a76b249fe772479e7e9cd54cf8d039e891451259c9a269806d589cec5",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "4cb4098d1b9d810b6e421cd8069323a91ca048c41c06fb7c25cdb94f4cc50926",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "a3dfa76ad0248729e82f57b1a627e22cd86820eb1002bed1ca4382f7f9c51e67",
+        "classification": "declaration",
+        "owner": "TransactionManager",
+        "reason": "Existing transaction state, technical values and diagnostics stay at their implementation head; durable schema/path/version/kind values reference their canonical Owners."
+      },
+      {
+        "id": "415a9a87883ec358a32053fff433320a0ea0f1413daf8c031b22fbeda00d88f0",
+        "classification": "non_contract",
+        "owner": "TransactionManager.__init__",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      },
+      {
+        "id": "649ae5b59375dbe2f272f9b4d16c87c6683422db25ca07ec4b41d38de4e9229c",
+        "classification": "non_contract",
+        "owner": "TransactionManager.recover",
+        "reason": "Python return type annotation; no runtime default, missing-evidence fallback or stored field."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Transaction / TransactionManager",
+        "declaration": "llm/services/infrastructure/transactions.py",
+        "consumers": [
+          "llm/services/infrastructure/storage.py",
+          "llm/services/infrastructure/locking.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/conversation.py"
+        ],
+        "tests": [
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/transaction_records.py",
+    "sha256": "bd6c67eef48b0735b6e246c233013daf2320b09dc0c0915526d09d85632429f5",
+    "reason": "Complete source and dynamic-path review covers journal write/read/preflight/undo, regular-file and symlink guards, raw storage boundary, typed rollback properties, commit uncertainty, restart recovery, nesting, memory rollback, callbacks and GC. Exact stored bytes and original safety assertions are retained. No duplicate policy, legacy reader or missing-record repair was introduced.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "81971eb1b1d1a6a34661d2755025cde094b1d0d535762cf75783beb114636294",
+        "classification": "declaration",
+        "owner": "UndoKind",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "84315396c2025385079c92215f2af678175edd44b3185363eb196fee4f08f142",
+        "classification": "declaration",
+        "owner": "UndoKind",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "2d9996ae5ebcf79da8bdaad35a7fe7b08a4e84b3f60c9f887f8d8df7eaabeac5",
+        "classification": "declaration",
+        "owner": "UndoKind",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "a0f748524b9588c87df32cc91809178a28b2ca1311d2e717540aa2a346ecdc3a",
+        "classification": "declaration",
+        "owner": "UndoKind",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "a1b22136c743eb8658ad568d5f5237be529ed53dbd967f5bd30f595e15dff40c",
+        "classification": "declaration",
+        "owner": "UndoKind",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "18a7ec926c434f81a52c1e23edcc76e8dc4099e927649f2106c5655b072572a0",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "3b1f7dec001a37e88689c784d1f3ec487af09aa042d4c658556d2913f630ed92",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "bc1bf314726462b6ef06bd13cee24477ae8c7c280eed92b90e1cb073e946a0c2",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "c8d6c0cfec179fdc773ee864e98e3350e1e2f138f5a372c0286415f66b67b133",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "cb101ce2e09156d9ecfe3f55c659d703b95a06a44d1e694a3d408be01f82b788",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "41997320c03a1522aa904a926dcf61e85c1fbf3d080effdc15de2a50b3a340d0",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "82c1a00a99ce69046d888cca9bcf7dc1427afe0b131153044700a56251f76729",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "e9ca85ffa77973588cc59ec90f358c0a5a12e9225391f267350c26d8629a90d8",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "ec037819829998d496e3fff8f82bbcfc24b26e917bea6ea405e55f18d3bd4144",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "787c6b15cbc7b8f18d62862daa650cef6935415551be6b2db00a6adc6dbab834",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "dd28ef7db12e25a229445779a0939a7b0f7153b99ed82d6b9c334f40d05d741d",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "5fa479f5121bbed230f2893a437bb0f4f4e2d2e15c8e257d55c8afe61b454e8a",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "2434361a6cb6724a5fd31642b555f866e5b0936b3d29bc9789380531ed3ded73",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "2398166dc3c1aa5da4747450871a1c74a8c7a688d54833f24cec80045b7d7580",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "136114293fe1f3c9a78d2b0ca41da722ba73ae062ab0b62b2ad916cc45cb3fe9",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "21055f4cae65fc0ef735ba843105424aebbc2eebd1e70933b467f7352d6bb37b",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "9245442cc07f60c7172ef5933fd51beb3770b8ad3c4cf5d27b750a39a7acc537",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "bcdcd0156bde58ccf98366238a11236d701564f1ca4eff7d70f9386436946be7",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "818da493fb24e49c18ed97357f656c052bbcfc3e78dcfbb346c4c25cfec4dada",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "ec3f58806b7c22598f0239769140573ea8fc1d40efefc479e394c718924533b1",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "d43c46f5add012184304b0d774822f14e7cd3211c31a294071ff91c60e035040",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "7307fe7d3066a51539286b42c66563d2ca3a0bc48939dedfe638bd7cc7dd6708",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "bec791d8cb7e3bb263453974115e58d4f120978b6fff517e3594fdd14e3c3680",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "ca9b1e9f796c2f85c56f88c9c51d0689728a39d5f1857fa1c653059d83000214",
+        "classification": "declaration",
+        "owner": "TransactionJournal",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "3d2a586e14757cec5edceee5455c4b12324620ed8a873f4db90a4a81a6b4da56",
+        "classification": "declaration",
+        "owner": "UndoEnvelope",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "d09b0b3ee56592a725c3102fc3ce10b8a6614bde138e9c26097c96a4276cbe5f",
+        "classification": "declaration",
+        "owner": "UndoEnvelope",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "537a94fb65dc532e16de667a44068b4f2644a1ed76a01ada9d67e82298d4ebe8",
+        "classification": "declaration",
+        "owner": "UndoEnvelope",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "3db095c1a9f7118ade8a04bdc91d9813a51581af4f24a21037fcfe0216089749",
+        "classification": "declaration",
+        "owner": "UndoEnvelope",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "8f59308f013a66bc54213f05136cfb7580fe655b99c25ad375ef4da84273b8bf",
+        "classification": "declaration",
+        "owner": "UndoEnvelope",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "552175a194848998853c4af680849294630e27694ccd5efa344b88fa833f4647",
+        "classification": "declaration",
+        "owner": "UndoEnvelope",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "f5b4d532994fe31088a739e573f46e853b3fd248bb036c0cd72c734eaf5ecc57",
+        "classification": "declaration",
+        "owner": "UndoEnvelope",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "4923d9123d2289b24fc3509e22e186e421c2905d3aec519c2da2b5f56b65a67e",
+        "classification": "declaration",
+        "owner": "UndoEnvelope",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "e3ab8fff41218f563b1327f9ba9475a3dccd9ad3a2e26214629502f46f146330",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "4be0622821db0e3f87b932518f8b8908e268774bf8c05123089a2cbeb946fb7a",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "708a195b8e909ccf1a5992d8cbf9d61119e98a45fa1cb8a78483a41754fcfd28",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "91a2ff361793bfa3ea93ba41f4c6aea53b3e96858348d36c68db6e9c1ffa96f3",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "403cff29d58f54bcecc2d293db060a71c3a98e6bfa2eb86eb086c2f3b4e18d81",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "896fad542d65c6b2c15cd64553b556104d982a7cddecf139e1a5d3b40cb44c08",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "d26ab5ccd87d8b97c84fe7e67e5f685e5094c5e04a1707db74f4b912f68e07c5",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "d4178249c320b0f62c95fe54ce76b996847a4dac365dfadd9e299768a3f9c054",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "0a7484089c23ed15c11186a452dacc37960f776815e1e44b23fb45320fd6028e",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "bc1392200ea61fee6a175e19d016ae56cb82d78f6d799dd728eab1c090237987",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      },
+      {
+        "id": "cc53b8eca5eb8c1184e5a4a16abd2fd059bea81f08a8182eb5edccab63ddabbc",
+        "classification": "declaration",
+        "owner": "UndoOperation",
+        "reason": "Canonical current undo fields, values, version, path format, marker bytes and errors are declared at each Owner head; full Readers/Writers and properties consume these declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "UndoKind / TransactionJournal / UndoEnvelope / UndoOperation",
+        "declaration": "llm/services/infrastructure/transaction_records.py",
+        "consumers": [
+          "llm/services/infrastructure/transactions.py"
+        ],
+        "tests": [
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/durability.py",
+    "sha256": "b7cf373550f40545cc68f87c6f96414c69e84f6f7e6860058b81fd163ee48fb5",
+    "reason": "Complete source and dynamic-path review covers journal write/read/preflight/undo, regular-file and symlink guards, raw storage boundary, typed rollback properties, commit uncertainty, restart recovery, nesting, memory rollback, callbacks and GC. Exact stored bytes and original safety assertions are retained. No duplicate policy, legacy reader or missing-record repair was introduced.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "60ecc4b8d759808a4a647d9cfd851e1bf42bda7c1b46712645520a7de2f33bb9",
+        "classification": "non_contract",
+        "owner": "sync_directory",
+        "reason": "Python return type annotation only; not a persisted value or runtime fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "sync_directory",
+        "declaration": "llm/services/infrastructure/durability.py",
+        "consumers": [
+          "llm/services/infrastructure/storage.py",
+          "llm/services/infrastructure/transactions.py"
+        ],
+        "tests": [
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_output_integrity.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_transactions.py",

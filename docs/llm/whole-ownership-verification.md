@@ -6878,3 +6878,42 @@ exit 0 (168문서/183 Python fence/1248 링크/37 anchor). 이동된 source/inde
 전수 분류 583파일, 미검토 205(llm 28/Hub 177), 미분류 11397, 미완료 연결 계약 4,
 stale/확정 위반/issue 0. `git diff --check` exit 0. 관련 검증을 마친 로컬 소단계이며
 Gate43 전체 검증 및 원격 CI를 대체하지 않는다. 다음 Transaction Owner 정리를 계속한다.
+
+
+## llm 공통 트랜잭션·Workspace 경로 Owner — Level 1·2
+
+기준 10e4fb2. UndoEnvelope/UndoOperation/TransactionJournal로 undo 기록의 선언·완전한
+Reader/Writer·typed projection을 옮겼다. WorkspacePaths에 lock/journal/예약 경로를
+일원화하여 WorkspaceLock과 Transaction의 신규 target·복구 검사가 함께 사용한다.
+storage/transaction의 같은 directory fsync 본문은 durability로 공유하며 기존 호출 경계를
+보존했다. 직렬화·checksum·필드 순서·version·missing/null 거부·opaque 필드 보존은 그대로다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/transaction-draft/ast-proof.py`
+exit 0: 기존 함수 87개는 선언 전개 후 전체 AST가 동일하고 fsync 본문 2개는 공유 구현과
+동일하다. 표현이 바뀐 13개 함수는 전체 AST 동일 주장에 포함하지 않았다. 같은 경로
+`values-proof.py` exit 0: writer_bytes 15, reader_cases 235, reserved_paths 9, effect_traces 2, boundary_faults 116, preflight_no_effect 1, durability_forwarding 6.
+동일 실제 경로·고정 journal identity에서 이전/현재 저장 bytes·오류·파일 효과와 복구 결과를
+정규화 없이 비교했다. Workspace 예약 경로는 Path.parts 문자열 도메인에서만 tuple/set
+판정의 동일성을 확인했다. 전체 preflight 이후 undo, 파일 fsync 실패 시 fd close,
+불확실 commit과 복구 callback/GC 순서를 유지한다. 원래 실제 process death·fault matrix·
+원본 보존 및 외부 효과 Assertion을 변경하지 않았다.
+
+- `whole-transaction-l1-01`: discovered/started/pass 109/109/109, exit 0, 26.087717초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-transaction-l1-01/llm.json --modules tests.llm.test_transactions tests.llm.test_current_contracts tests.llm.test_locking_io tests.llm.test_operational_storage tests.llm.test_backup_owner_integrity tests.llm.test_output_integrity tests.llm.test_conversation_mutation_integrity`. source `0cc09856664b7f813a50c33341d0ab3d8a68c6c8068bceca8daf90f0603d8a97`, input `8924dc2f3b5afe21cf3e58d834552afbd27c9f33fcf7a677798639cd48c8d422`.
+
+- `whole-transaction-l2-01`: discovered/started/pass 97/97/97, exit 0, 51.579501초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-transaction-l2-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_runtime_reliability tests.llm.test_history_retention_integrity tests.llm.test_run_reference_integrity`. source `0cc09856664b7f813a50c33341d0ab3d8a68c6c8068bceca8daf90f0603d8a97`, input `8924dc2f3b5afe21cf3e58d834552afbd27c9f33fcf7a677798639cd48c8d422`.
+
+- `whole-transaction-hub-01`: discovered/started/pass 6/6/6, exit 0, 0.215831초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-transaction-hub-01/hub.json --modules tests.hub.test_project_authority tests.hub.test_snapshot_projection`. source `0cc09856664b7f813a50c33341d0ab3d8a68c6c8068bceca8daf90f0603d8a97`, input `8924dc2f3b5afe21cf3e58d834552afbd27c9f33fcf7a677798639cd48c8d422`.
+
+각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 ID 일치.
+LLM 집합 간 중복 0. 제품·시험/Fixture·discovery·의존성과 Python3.12.14/Clang·Host d833790·
+격리 환경의 source/input은 실행 전후 및 실행 간 동일하다. R3
+`python -m tests.llm.check_budget_mutation` exit 0. 이후 변경된 감사 fixture/문서는 별도 정적·
+감사·문서 검사 및 묶음 전체 게이트 대상이며 앞선 실행에 포함된 것처럼 기록하지 않는다.
+
+집중 범위는 transaction 원자성·매 fsync 실제 종료·재복구·현재 형식·잠금·백업·출력·대화 변이,
+관련 범위는 승인·예산·효과·Checkpoint·RAG·lifecycle·보관·Run 참조와 Hub 권한/조회 소비자다.
+공통 저장 경계에 해당하므로 이 소단계의 검증만으로 Push하지 않는다. History 유지관리,
+관찰/잠금, 공통 삭제/백업, 출력, transaction 변경을 함께 Gate43의 동일 SHA에서 전체 LLM/Hub·
+정적 감사·문서·R3·환경 검증 후 Push한다. 이 기록은 전체/원격 완료 선언이 아니다.
+
+마감 검사: `python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7` exit 0, 검토된 발견 84개·미검토/오래된 근거 0. `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` 16개 통과/3.416초, exit 0. `python -m tests.llm.check_docs` exit 0. 전체 파일 585개 중 미검토 204개(llm 27/Hub 177), 미분류 11214·미완료 계약 3개를 계속 추적하며 전수 완료를 선언하지 않는다. Gate43 전체 검증을 다음 필수 경계로 유지한다.

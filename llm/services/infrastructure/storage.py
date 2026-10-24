@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Awaitable, Callable, TypeVar
 
 from llm.core.models import DomainRecord, DOMAIN_STORAGE_VERSION, validate_domain_version
+from .durability import sync_directory as durable_directory
 from llm.services.infrastructure.locking import WorkspaceOwnership
 from llm.services.infrastructure.transactions import NO_TRANSACTION, current_transaction, watch
 
@@ -182,11 +183,7 @@ def child(root: Path, identifier: str) -> Path:
 
 
 def sync_directory(path: Path) -> None:
-    fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
-    try:
-        os.fsync(fd)
-    finally:
-        os.close(fd)
+    durable_directory(path)
 
 
 def atomic_json(path: Path, value: dict) -> None:

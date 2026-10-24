@@ -8,6 +8,8 @@
 | --- | --- |
 | [__init__.py](__init__.py) | 공통 기반 서비스 패키지 설명입니다. |
 | [storage.py](storage.py) | atomic JSON, append, 파일 작업과 순차 비동기 StorageIO 경계입니다. |
+| [transaction_records.py](transaction_records.py) | undo envelope·operation의 단일 Reader/Writer와 journal 선언입니다. |
+| [durability.py](durability.py) | 저장·트랜잭션이 공유하는 directory fsync 구현입니다. |
 | [transactions.py](transactions.py) | 여러 파일 변경의 undo journal, fsync, commit·rollback·복구를 구현합니다. |
 | [locking.py](locking.py) | Linux 파일 잠금과 workspace 소유권 범위를 관리합니다. |
 | [output_records.py](output_records.py) | 출력 event·필수 source manifest·재생성 가능한 index의 Reader/Writer와 typed projection입니다. |
@@ -45,10 +47,9 @@ Writer를, FileLogSink/LoggingFormat이 기존 파일 출력 경계를 소유한
 목록은 기존 Session/Message/Run 선언을 참조하며 자동으로 새 상태를 허용하지 않는다.
 주입 sink·handler·Application 회전 정책과 경고·after-commit 순서는 유지한다.
 
-WorkspaceLock은 기존 영구 잠금 파일과 OS 잠금 기술값을 선언한다. WorkspaceOwnership의
+WorkspacePaths는 workspace 잠금 파일·transaction journal·예약 경로를 선언하고 WorkspaceLock은 이를 참조하며 OS 잠금 기술값을 소유한다. WorkspaceOwnership의
 참조 수·프로세스 identity·중첩 잠금·트랜잭션/관찰 scope 순서를 바꾸지 않는다.
-Transaction의 예약 경로에 남은 동일 잠금 파일명은 저장 계층 후속 연결 대상으로 추적하며
-현재 이 문서의 검토가 저장·트랜잭션 파일 전체 완료를 뜻하지 않는다.
+Transaction의 target 검사와 복구 Reader도 같은 WorkspacePaths 예약 경로 판정을 사용한다.
 
 
 ## 삭제 의도·백업 manifest
@@ -63,7 +64,7 @@ DirectoryBackups는 파일 재검사·staging·게시·실패 정리를 조율�
 같은 Owner의 project_root로 archive 내부를 조회한다. 주입된 backups에 새 메서드를
 요구하지 않는다. opaque metadata·원본/저장 형식·도메인별 검증 책임은 유지한다.
 SnapshotFile.total_bytes가 필요한 바이트 합산을 소유하며 RAG 보관/Checkpoint 계획도
-같은 projection을 사용한다. 공통 트랜잭션과 출력 저널의 전수 정리는 후속 범위다.
+같은 projection을 사용한다. 공통 트랜잭션과 출력 저널의 Owner 구분은 아래 절을 따른다.
 
 
 ## 출력 원본과 파생 인덱스
@@ -78,3 +79,18 @@ OutputIndex/OutputAnchor/OutputIndexEnvelope는 파생 인덱스의 검증·위�
 이후에만 재생성할 수 있고, prefix 전체 digest·파일 identity/mtime·sequence 검사를
 유지한다. 원본과 인덱스의 버전은 별도 계약이며 같은 숫자라는 이유로 합치지 않는다.
 기존 JSONL/manifest/cache 형식·index stride·공개 read/iter_events/append 계약은 유지한다.
+
+
+## 트랜잭션 기록과 내구성
+
+UndoEnvelope가 현재 버전·operation checksum·정확한 JSON Writer/Reader를 소유하고,
+UndoOperation이 kind·target·offset·backup의 완전한 검증과 속성을 소유한다. Manager는
+파일 읽기와 복구를 조율하며 고정 딕셔너리 필드를 다시 해석하지 않는다. TransactionJournal은
+entry/backup/undo/commit/GC 이름·마커·파일 기술값의 단일 선언이다. 기존 _entry의 raw
+입력은 저장 경계이며 별도 호환 Reader를 두지 않는다. 알 수 없는 opaque 필드를 보존한다.
+
+복구는 전체 기록을 검증한 뒤에만 역순으로 적용한다. 실패·프로세스 중단 후 원본 또는 완전한
+새 상태를 유지하고, commit marker의 fsync가 불확실하면 게시된 마커를 되돌리지 않는다.
+복구 완료 마커·재복구·GC·관찰 callback 격리 및 메모리 객체 rollback 순서는 그대로다.
+shared directory fsync는 durability.py 한 곳에 있으며 기존 storage/transaction 호출 경계와
+파일 핸들 정리를 유지한다. 경로 guard의 서로 다른 계약은 합치지 않는다.

@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 583,
-    "unreviewed_files": 205,
+    "files": 585,
+    "unreviewed_files": 204,
     "stale_files": 0,
-    "unclassified": 11397,
+    "unclassified": 11214,
     "violations": 0,
-    "incomplete_contracts": 4,
-    "unreviewed_dynamic_paths": 207,
+    "incomplete_contracts": 3,
+    "unreviewed_dynamic_paths": 206,
     "unreadable_files": 0,
-    "candidates": 21440,
+    "candidates": 21357,
     "issues": 0
   },
   "files": [
@@ -2590,8 +2590,8 @@
     {
       "path": "llm/core/paths.py",
       "status": "reviewed",
-      "sha256": "6479b4300c63d73c4fcd592f3ef0a1af2349b6e6c3a2b0b8dfb4693d6487fe61",
-      "candidates": 29
+      "sha256": "f3c49a91fab48a093c8195b5ce1a2458422b22ad64ec58e0576becf67a14cf5a",
+      "candidates": 34
     },
     {
       "path": "llm/core/plans.py",
@@ -3220,7 +3220,7 @@
     {
       "path": "llm/services/infrastructure/README.md",
       "status": "reviewed",
-      "sha256": "2041ab1c79a576b147811c3d271a045a01e131a2ca28f5054eb4c13831fc76f1",
+      "sha256": "0ea166e779af7da435c801984a9403318ff848636310f840972d1a6632b5ceac",
       "candidates": 0
     },
     {
@@ -3242,6 +3242,12 @@
       "candidates": 24
     },
     {
+      "path": "llm/services/infrastructure/durability.py",
+      "status": "reviewed",
+      "sha256": "b7cf373550f40545cc68f87c6f96414c69e84f6f7e6860058b81fd163ee48fb5",
+      "candidates": 1
+    },
+    {
       "path": "llm/services/infrastructure/journal.py",
       "status": "reviewed",
       "sha256": "6767586297285f99ba98739cde86ca9903e98f017209731598d84b898c347402",
@@ -3256,8 +3262,8 @@
     {
       "path": "llm/services/infrastructure/locking.py",
       "status": "reviewed",
-      "sha256": "fe027b9abee12f654082522a4625721be8c991b186255ed5a2ea7514f3dcc06a",
-      "candidates": 16
+      "sha256": "2c16ff21087f17eaca557b05192228c2384930462ea9a2334c12a8c8e9fb15e8",
+      "candidates": 15
     },
     {
       "path": "llm/services/infrastructure/logging.py",
@@ -3310,14 +3316,20 @@
     {
       "path": "llm/services/infrastructure/storage.py",
       "status": "reviewed",
-      "sha256": "811a96e21e8cf399513282c5fd7f8053e7dd7f4ea22f89faaf319a4418b64a5d",
+      "sha256": "0374d2546317032de2d02404f939b05d57985a65184c232a64bb8266a1b35348",
       "candidates": 66
     },
     {
+      "path": "llm/services/infrastructure/transaction_records.py",
+      "status": "reviewed",
+      "sha256": "bd6c67eef48b0735b6e246c233013daf2320b09dc0c0915526d09d85632429f5",
+      "candidates": 48
+    },
+    {
       "path": "llm/services/infrastructure/transactions.py",
-      "status": "unreviewed",
-      "sha256": "bdce3a5b77218d72f5bd47456a331593e3e90bdc78140785b21572fa0dfe242d",
-      "candidates": 183
+      "status": "reviewed",
+      "sha256": "f69d13363849ea41ea18f63d7f89fc89b3f0deac7ca6e9a5b51646c669ff69b7",
+      "candidates": 47
     },
     {
       "path": "llm/services/lifecycle/README.md",

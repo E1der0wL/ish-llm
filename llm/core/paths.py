@@ -6,6 +6,28 @@ from typing import ClassVar
 
 
 @dataclass(frozen=True, slots=True)
+class WorkspacePaths:
+    """Permanent lock and transaction namespace of the existing repository root."""
+
+    LOCK: ClassVar[str] = ".ish.lock"
+    TRANSACTIONS: ClassVar[str] = ".transactions"
+    RESERVED: ClassVar[frozenset[str]] = frozenset((LOCK, TRANSACTIONS))
+    root: Path
+
+    @property
+    def lock(self) -> Path:
+        return self.root / self.LOCK
+
+    @property
+    def transactions(self) -> Path:
+        return self.root / self.TRANSACTIONS
+
+    @classmethod
+    def reserved(cls, relative: Path) -> bool:
+        return not relative.parts or relative.parts[0] in cls.RESERVED
+
+
+@dataclass(frozen=True, slots=True)
 class ProjectPaths:
     RECORD: ClassVar[str] = 'project.json'
     AGENTS: ClassVar[str] = "agents"
