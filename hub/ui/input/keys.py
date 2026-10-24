@@ -35,6 +35,7 @@ class ShortcutAction:
     NEWLINE = "newline"
     SELECT = "select"
     SCROLL = "scroll"
+    SIDEBAR = "sidebar"
 
 
 class ShortcutLabel:
@@ -44,3 +45,5 @@ class ShortcutLabel:
     CONTROL_SPACE = "Ctrl+Space"
     ALT_ENTER = "Alt+Enter"
     DIRECTIONS = "↑↓←→"
+    HORIZONTAL = "←→"
+    ESCAPE = "ESC"

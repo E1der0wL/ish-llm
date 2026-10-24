@@ -85,6 +85,8 @@ class ThemeSelector(StrEnum):
 
 
 class ThemeStyle:
+    BOLD = "bold"
+    MODIFIER_SEPARATOR = " "
     CLASS_REFERENCE = "class:{selector}"
 
     BEFORE_ALERTS = MappingProxyType(
@@ -168,6 +170,14 @@ class ThemeStyle:
     ALERT_FOREGROUND = "alert_{kind}_foreground"
     ALERT_BACKGROUND = "alert_{kind}_background"
     ALERT_COLORS = "fg:{foreground} bg:{background}"
+
+    @classmethod
+    def joined(cls, *parts):
+        return cls.MODIFIER_SEPARATOR.join(parts)
+
+    @classmethod
+    def alert_style(cls, kind):
+        return cls.CLASS_REFERENCE.format(selector=cls.ALERT_CLASS.format(kind=kind))
 
     @classmethod
     def alert_selectors(cls, kind):

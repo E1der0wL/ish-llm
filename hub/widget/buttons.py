@@ -4,6 +4,15 @@ from .controls import Button
 
 
 class SaveButton(Button):
-    def __init__(self, label, dirty, handler, *, width=10):
+    DEFAULT_WIDTH = 10
+    DIRTY_PREFIX = "* "
+    CLEAN_PREFIX = ""
+
+    def __init__(self, label, dirty, handler, *, width=DEFAULT_WIDTH):
         self.label, self.dirty = label, dirty
-        super().__init__(lambda: ("* " if self.dirty() else "") + self.label(), handler=handler, width=width)
+        super().__init__(
+            lambda: (self.DIRTY_PREFIX if self.dirty() else self.CLEAN_PREFIX)
+            + self.label(),
+            handler=handler,
+            width=width,
+        )

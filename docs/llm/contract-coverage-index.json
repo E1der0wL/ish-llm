@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 604,
-    "unreviewed_files": 165,
+    "unreviewed_files": 159,
     "stale_files": 0,
-    "unclassified": 7953,
+    "unclassified": 7805,
     "violations": 0,
-    "incomplete_contracts": 15,
-    "unreviewed_dynamic_paths": 165,
+    "incomplete_contracts": 16,
+    "unreviewed_dynamic_paths": 159,
     "unreadable_files": 0,
-    "candidates": 19668,
+    "candidates": 19600,
     "issues": 0
   },
   "files": [
@@ -556,8 +556,8 @@
     {
       "path": "hub/config/theme_style.py",
       "status": "reviewed",
-      "sha256": "da7be0d241c31de8b28072d466fa78b21a1c17e41ed9dc8017827df0bbcf2045",
-      "candidates": 142
+      "sha256": "8922ab28008f9d5226ccfb06834e26aa9bc38a5cf8fa60923355f7d6a967cb35",
+      "candidates": 144
     },
     {
       "path": "hub/config/view_records.py",
@@ -652,7 +652,7 @@
     {
       "path": "hub/model.py",
       "status": "unreviewed",
-      "sha256": "84f408497725d79d4afedee5c4e7f8980b160e3cff8977f8e0de618367a88628",
+      "sha256": "fed9801e4a2939bcee77ff8e8f7c2c853d05ed036b11e80a1c3b69cbc6eec212",
       "candidates": 98
     },
     {
@@ -760,8 +760,8 @@
     {
       "path": "hub/ui/input/keys.py",
       "status": "reviewed",
-      "sha256": "3018c66daf3382af1910af10ee8fbe53ecda69493ae05d01b6af77fb284e031d",
-      "candidates": 22
+      "sha256": "bf65318ed03e8a3c1fba1b7d644878c4a3438f2e8b028dd5b90940b488088d44",
+      "candidates": 25
     },
     {
       "path": "hub/ui/input/registry.py",
@@ -934,8 +934,8 @@
     {
       "path": "hub/ui/view.py",
       "status": "unreviewed",
-      "sha256": "eb75ad4ea0bc8998db0c52a10f9698d4d19ca5caed1657757b750fb24cc18487",
-      "candidates": 111
+      "sha256": "f40ccb381cb0f517249f458ce95b3dda8b264aa4c4f437ca1bb214c1318404f0",
+      "candidates": 112
     },
     {
       "path": "hub/widget/__init__.py",
@@ -951,9 +951,9 @@
     },
     {
       "path": "hub/widget/actions.py",
-      "status": "unreviewed",
-      "sha256": "c83cc381115a4a28857d9d44828aad57fa2f71295268f069a5801eb784a3d5ac",
-      "candidates": 31
+      "status": "reviewed",
+      "sha256": "15128d451b0973c155ba24dc77bbb52dae09d3e3b9c3d02b288d7fea7cc69c45",
+      "candidates": 17
     },
     {
       "path": "hub/widget/auxiliary.py",
@@ -963,8 +963,8 @@
     },
     {
       "path": "hub/widget/buttons.py",
-      "status": "unreviewed",
-      "sha256": "a35fe20da4524f8583592fd8f8732f33c510a2e38c208cfd522f1bdb543dcbd4",
+      "status": "reviewed",
+      "sha256": "f8336b5b09608e4263be45e4dde0cf867c2dbea62eee349107f7542503501e11",
       "candidates": 3
     },
     {
@@ -1029,9 +1029,9 @@
     },
     {
       "path": "hub/widget/feedback/notifications.py",
-      "status": "unreviewed",
-      "sha256": "2831d1c961a93a60f448c6c96b5772f8140d0197ea7819cbcce440a1d3cc93c1",
-      "candidates": 70
+      "status": "reviewed",
+      "sha256": "243e2e6232c4266662b714b995749649ce91e1a06b7f3aeb52d822011a1783e6",
+      "candidates": 33
     },
     {
       "path": "hub/widget/feedback/preparing.py",
@@ -1269,21 +1269,21 @@
     },
     {
       "path": "hub/widget/profile.py",
-      "status": "unreviewed",
-      "sha256": "eeacc0fd6628e38557ded6adcb2ea376f2cb5604a356e8cf6e25b61e9a87b3d3",
-      "candidates": 27
+      "status": "reviewed",
+      "sha256": "08248ba64301bc8e9c5c94febd42f5a6ad568a97867572909ce27b612fcea610",
+      "candidates": 13
     },
     {
       "path": "hub/widget/section.py",
-      "status": "unreviewed",
-      "sha256": "e4a31b7e3326a0f72a0c38bda74500651a8d04d7c3032bcef11927474a38a809",
-      "candidates": 3
+      "status": "reviewed",
+      "sha256": "7a5a9230dd88aa1be3a79661ca8df5e4f5a606257f997d8698f300bc94f40685",
+      "candidates": 1
     },
     {
       "path": "hub/widget/shortcuts.py",
-      "status": "unreviewed",
-      "sha256": "6b08f0c2814efc6b7d57ce5acfe03a4eaed246441a55e1e04ceb7fe34f57b1f4",
-      "candidates": 15
+      "status": "reviewed",
+      "sha256": "f890559b96528de8cd1b53c167353e0f6bb3ca2eae2326aeffb1faa5ea2c9420",
+      "candidates": 8
     },
     {
       "path": "hub/widget/sidebar.py",

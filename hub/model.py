@@ -77,6 +77,7 @@ class SubmissionResult:
 class SessionSummary:
     WAITING_INPUT: ClassVar[str] = "waiting_input"
     WAITING_APPROVAL: ClassVar[str] = "waiting_approval"
+    WAITING_STATES: ClassVar[tuple] = (WAITING_INPUT, WAITING_APPROVAL)
 
     id: str
     title: str

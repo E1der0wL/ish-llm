@@ -32,6 +32,8 @@ from ..backend.project.agents import DEFAULT_AGENT
 
 
 class HubView:
+    SIDEBAR_FOCUS = True
+
     def __init__(self, sessions=(), theme=None, language=LanguageCode.DEFAULT, language_packs=None, *, output_factory=None) -> None:
         self.t = Language(language, language_packs, icons=lambda: self.icons)
         self.general = GeneralSettings()
@@ -214,6 +216,9 @@ class HubView:
     @property
     def active_page(self):
         return self.settings.layout if self.settings_open else self.chat_page
+
+    def mark_sidebar_focus(self):
+        self._session_focus = self.SIDEBAR_FOCUS
 
     def _focus_sessions(self):
         self.composer.buffer.cancel_completion()

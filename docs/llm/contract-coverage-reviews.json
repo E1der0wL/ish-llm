@@ -85220,8 +85220,8 @@
   },
   {
     "path": "hub/config/theme_style.py",
-    "sha256": "da7be0d241c31de8b28072d466fa78b21a1c17e41ed9dc8017827df0bbcf2045",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending.",
+    "sha256": "8922ab28008f9d5226ccfb06834e26aa9bc38a5cf8fa60923355f7d6a967cb35",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -85627,451 +85627,463 @@
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "b5e71cb5e6634e4c6a856520a36161feaa5454db51dc3ad6f5a28be4d3728c1e",
+        "id": "a9d997e71b5869e408fd1412f617c3547b002fc193580dcb5f4453bb72565da7",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "163bc5de400493a4e8249058ee5f5bd815ec36aeb52d784976789f5933591f05",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "271863906d8dfa6093452556ba53dd53d74eac39aac643414f42030968d88b6d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "b3218ab92df8125e665e1f3456a037735614dae2aa913dd8b463ca141ce78eb6",
+        "id": "8def30d83672bd8c5e181549806f53407bcdc96c7f82238628d1f9d33cc9f740",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d6cf3f24507dc09b37c9728318b039a2084b5b077c3377aedf2f3c140fc156ec",
+        "id": "eea6a82c145b33edeb20d42222e191c7910cd5e7a3bc49918ea8893ded338a02",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "67047db230e721770ed0da19b579010389a69606c740728fab409703f81fe240",
+        "id": "ce0a761bd4a9d0a97a2ac5168250a3dbba8a9d703a27fc1ca8ef1ca3526f51ba",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "02cddd626c66017dc52fdc7da3610059152e9ebe2a99d24ce278b7eac834a339",
+        "id": "86955f30ba9e129e33b322651d8329e37222f35be070b9059364e7a1dea658c7",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e31d59946628f0b29222022b9ba85f71ce7e8943dbb2a23488022bb0c99b3514",
+        "id": "6559dc8b53d048c070842f1ec597d0fe96cbf66cb45486f0e9d05e0325ff8adc",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ee5261d7cdaecc7d18a984f53baf98117c72bf8f79ea1e84eadd011bc72c660b",
+        "id": "46471221f3a7aa0c69f6d598c8f371a3ceecd7e61dc25f93cbcf8383b8067004",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7f8e0c924cbe67f79341cbdd04c1f165cfe8c39bbec731100d98fc00eaa79f4c",
+        "id": "2bc0a2382cabfbb619b232c82638e0060620c6a96cc680076fa7317c060ffe63",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b161ad20a7bd9dd0ebc8e1683ddc14a167bfb06afc5ad485c3eed937a112abdd",
+        "id": "dc00052975a32669ec7278e7638e29d2bc1bcf353acd61a3455728c4d6ea7b3d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9207df02dd57eb4771d47da5f247c81142998c7ca867cfc26dc142e006c383a2",
+        "id": "7a02056651e659bee025ec66fe4ee310bc5b8a942155808f28a8064454013833",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fa83c3d33268ee73d7eed9a32c3a1f3a4efe0ee1fd7937f7b68a0434288cd79c",
+        "id": "afca8a6f6722ba7b0da63caa18d93c84141e2330869db6bd046286947d1195e9",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b4a1afa20f1a37a29ed30cb21ff82c03f192aafb9fc4010f4b8822c8caf40400",
+        "id": "9467d3ca4b98ded05ca23002ae0b0823d7a8953460d9ba75b176711b38f10bd2",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d0d844a8e8c007bff0efbc21860515a611242b68b983e6856b0565fa38ab0555",
+        "id": "19de22c652a48a444b476a74fc2153dba5f357a164ecd206a2e4c17c898f3442",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1342a3d24e1a16cee227cd5e13ad0778be992a65a1b71bdd7daba2c14aa09f30",
+        "id": "84b1c22c08052017bfdb1684c0a048fd35959158d3fb30f27f6e6c8261973fd2",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "32de0c808f8d0e2b421930f7301cffcddccf6704adfb92d431f63d5a640049f9",
+        "id": "706b99089978fbaa4b606c42d071180966568b8127cea38fbc190df9f7e4671b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3023bd319db034c9fb2a727f726357f7179447caff942ad14a3de5f66b614d62",
+        "id": "f2898da7f0d0c3dff766c53140f6b8765f03af1141cb929c95a745bb9a713948",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d9eec8a1192adb7babcc8787a3e59ccbeb4e96ec876d074d4dda4dd030dc2fc3",
+        "id": "d454f83be0cb8b44a906c2e64f34d42c4bfc253486e76e3b2b332e60ec358195",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8066e3dafa59c5b9711adf6231e479d6241e5097dd4b27635d96a1857d2a3438",
+        "id": "cef8324b35ae4dc5e24fc33cd524bd7df09cce93f1117c796c299dff90974464",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5f474781c081144b7876fc0f81a139e0e6554d4c63744f87f8235bf109f6a072",
+        "id": "e229d6d7d588efd111f6991d761629c8279964f4c00355cf2d07166502ffd3e9",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b9299ce3405fd4f2d61a900ca5457f9323d24623b7b2032cf27a017ee2d70c8b",
+        "id": "73407cad9f7f81b815a5f71972b019eb60cdec2e2a14ee192fe001a6d22bd666",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a025ee4bdab3f9f836367d2e1ca383f6517b3341618ea6d5b2a2a30f647b0d35",
+        "id": "c3d05019a42c8375a1d2f14810229d20b5ff78e7c6667fbc6aa493dfea94b0e1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "53f648d9115ccd3b90c05f600133e03b6b22b0d5e6044562e36229ccf45f5975",
+        "id": "ab49ea3e4bd34ac925ac0ac49cd663b8e256aa4f5c46a4534dd08d2000f4e6f3",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a4845ffabdad9edf3cc4ee6524916bcacad186ecd1c1a8ff1035a300eecaf34f",
+        "id": "36a8d856daff5cbb1d00503754eef66bb4805e590838548a50b1563582b78e33",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d65bb48650473ee1b3312027673ddcf2932ff0a7e37b7871ab05d013a226d34e",
+        "id": "633d72a7f20a744a0b09f3a5b8a27ff789399889c40f36e9e76098a9454cfc82",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7989cf94d9d4db8cb34f749101d7665a11cfa6f3fa9c1fc6a5fd2ea0bb0cb15f",
+        "id": "4cae4ce281c824a09a6a6f75d705b718ac071542647ed5ac6c35c5a4e2185251",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7b60c6f88bfad4512136ce1a636461a061e377b28f9ca6ea3ab91a2f274f541a",
+        "id": "5f820e5019b607bcba160b4c7550f9a7b7216b0560ea02d4bd90e58b36f4e432",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9b54ca6cd7153177985cdc13a59f170d89909ab4fbed01e46dc269834c78665d",
+        "id": "688fa39f1f788d26418f2d77201fdf01e4c5c44eae6ad5b22f1c7bec8b246eed",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fce870866e34f33cc0d95485e4c48106db91b5e52b3a1250aa6a8c558de04275",
+        "id": "5c3d986437e84e66c6abbef81a89b8398081c72cbd1d74135e1d40537f9250bd",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ef5a44293ec8cb96e1dd008bfa1de91a2ddeda543614820425b56930b390eba1",
+        "id": "3c96ae0b098b3c2562168a3863658f0744baa8a4fb9fe3fc1fdc2baf1924256f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1788830c45b125e14cd5a903437c5c15e3831cebf178307e6bd02a3c5cf4eaba",
+        "id": "d3de4d4c0e802cd27c573f7798205d19a726e0284bbbd31e2b0015ed11daa865",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9ab4f2f5b61b71d65e6cefa0b221d52176ef88888638044bce4cc6365a3fe73f",
+        "id": "58f9df711769d7d60ee7b3bcbe4ea4d89d6f1df3fec30cbbcdf789c43d297cce",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ce64a9736802b1f68176e529e57c49319b126e781a4b862a6d67964be92a8246",
+        "id": "c40ec1095a585b7053322954cfad746dcf40c0b0876ba61b5e3c41fff859fa22",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4e66d4e68a08fab0e1aa5c804f3e463e363904e62f5258f4686f5d862a7dbed5",
+        "id": "d7da85aa8782a30fb2cedbbbf38060e49cdbf86137948537a134e7681f213b5b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "932c8c87f210f87bbf25a53fc8a702cb95c51df22ab798b8d80f20342502b6a4",
+        "id": "9ac931985eab3dc0dad7c1ad778246c31497d52e5b832518bc6cffdd294aef17",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7749794ed22b4fad6767969b6efa3b5b253cafc3c3e0db3aad6020935cf2e40c",
+        "id": "2895d438ba3ef2fb89279da6548813a94db6bd227485599c7f3752855aa54aa2",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1da98864c020332bb72ca22a39d7dc4c5eb5a7a3389fed53897512e02dd4a88b",
+        "id": "7896eea632c981be906a5fefdb0fbe29c95bf565614a8bafdb10ab4a3cc4bf40",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8582f1f8102794c55282026ca7642742cff6329f768fa257641cf0042c8e5f53",
+        "id": "67649197a0632d9264b8363f4f9b9d80b42f82ae8263c38d4aa5473797ba8a68",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f4f146e3cbe174a71ccb315cae9c5a63af40c3349c6a8c7a9e491b36b602e4ba",
+        "id": "c3453a55d58526225e5369cc9b334fec2ae2a493f4ae9d3e53db89d01deb8f6a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "648c29324e160f9430e2ddeece99f63aa136bb38453161cefb2ce00a2a6d8503",
+        "id": "cb2a72c87815fa78c81c5ccfddafc57fb9cc9ecd0777b5f3c0a51a22b96e8638",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c29d89fd1ad99b0c04380632965ab0ad9664af647ec87e4d89f7fe32df714aef",
+        "id": "25639f19a96e4cfcebba7745ee4d76e14fa4e37c75cea93b7f0634eba80e5b1c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0d9443451ede40229db650c40d962de17e516a84277f4b9694a7f571185fa6f0",
+        "id": "d992c3cc3008d3e03570badc23030bbee6b9fcf064b862ea411d8779a191b2ca",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "27109e48117eb7b65c880ade070ded5826983779727c34853792108c081e7488",
+        "id": "d7f582bd56f1eb244101fb05e4d41820fb0f107daf9567447bee8e53bf475cd9",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4a676a8103bcae07531013faec1ee3bf092181d7c4489208671ca32929cba8ba",
+        "id": "26d32a0cc6a3ab86f901de9aff6dd1136be4c549b735bfc905127a364b782cc1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9742a2c4ff99ea5537c4266e083d3cc9c610691a94bb87728c8dae9e6457a322",
+        "id": "e6c03c7827db59dab59bac08bdb6f63134c472887791cee0623a40cab9fc1a66",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "51397d44e8bc3d0ed44405990a2ab5b84f6abc0dd9747010d70543289b84b4ff",
+        "id": "97245337953e7885243edc91b35b6260575caf8ee0ed776b904a7a0839af6c0b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "78c8410d9659d3dc9207a86d3681149fd73e7d736a672db9996dc665a6f902bc",
+        "id": "893bbf766d42f10a3b4c8483a5a98ed9fc1fa8b9c369ccdee7213a6b2a4a9318",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e42e9314abc5d28ef69e8ab83c43f19fdebdc11751e5d7d363c39baa5bc6bfb5",
+        "id": "06ddd87b5b272466abea4ef921284a6f871eeb19ca6310345ab2c9b6a07382ed",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c2d8788928b60204055d0b168a6d0f32030611b6092186c85d81aaa5ca7fd643",
+        "id": "3090efe27f5065244c8a6694a73a4e10dc28743cb57f99607c2fa08f9310d7a4",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5fb62c6e53c5358888a2471ac4118decf8566726df7da88c0bb324d2c51242af",
+        "id": "592b50da2f15362ba76d171b6d410f32b30a328690ac13811e34f2ff90793877",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a77fcfbb58b688b321af7db5c29599cad7185d4ce083ad4b56c518fbedfa2782",
+        "id": "f7b05ec3eed96c7ee04a707dd4299bde269e9bceb3f37f9837cb506bb24c95bb",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f0f10638deea7f2b94b688c150a9860c99b277a98d500602d100dd908d338012",
+        "id": "a47fce95d1090a40f3b2cbc3e6ca7581c1724aca93e780968f7cf1fe9df3dd5c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1fe8dcdc6eafb9770ddb5bbc4a7124a8711f51be05365a3c602c8d92f80e4856",
+        "id": "c4d6ed586c748e3d20c2ae1336abe8f6b1176779accde22f3b0bfab9afef88ec",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e79a1507e97be036f8a5c2f8f0ab8792dda483f99b518bced6d1b2a64f4920a2",
+        "id": "a7e0a551ab8375e9da35893664c7194bfc6680a40c2e58fc134aa9b14b896dba",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8e82cdac2a0f10bf07310bea84f31f2efd188005dc69fd02abe8d37b06cfa449",
+        "id": "d0645ab011a408d11cca5c7bc241ddc9aa60552054665f2b7c3bf31151d52856",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3dbe444f8e12b9bb6e6c31f5e97718353915908eb998e65faf48c4f17926a707",
+        "id": "e33925fe2653b82157fde4932c9b97dd690dc94f211c0c9094019d502573b0bf",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "14186297ceb8c2192d9d02b38939ea05b28c356bdb357c9db1e2277e99e9a053",
+        "id": "1ff2c1c6068d44be47beb69ee6fab0ae1381ffb8ee728308915b5c2ce0be362d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c43af47126866291cc8e5783f36abb4e114cd532eb900d119ef84015ead3ce60",
+        "id": "f15a1c613bf0dfb191ed60eaa8a71e7728b6a4008071cf33802e7e902f3bff5b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b494cf474f188cb7d3cad10ee14bf396a9ea913fd728d3e6e26f351bb68d04a5",
+        "id": "848ccbf439563ed71ae1c9b4fb6d575c9b404930d063a09da571a97f9e5f69b6",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c90a6fca020983cc2a32c72a735d4a7147c08111a841d4e1dd6419490f03f18e",
+        "id": "1f3276e8838fa2f0465ed5cf9945e19565975ce05d369a2d6fbafa9ac311cad4",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5386075a45abd60d3bcb6c0ad41eb44155df9221010d954d5f7a6da24c5b5b1f",
+        "id": "fe3c9410768e96e7a90720d25be3a9d3dfd9f2c8fc700bb81b54aa09ad0291b7",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b173ce06e0d8fc034777710a842c7f3af640f1d5ab683d6ec48b935bb339b31f",
+        "id": "0bd74f737a7d91e1c0dc365608d01c4346ce0f01e2ddfbf7ae1b46e8428fa51f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ca863b3668d1b7e4552b2d2d6c5974119a9b3708a3c5178c374cf3b3e4035188",
+        "id": "851551d269af7a0f9245ddfe2ab45af5d519d4e1a8e3d4b921ed62db89a57063",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a78bc76c34748f412456fb8b83448b8d8bf1cf4f822b99b3c9b60ac435fc4373",
+        "id": "31f558d97947ef9dbd93d252cecacb1ad4516aacb6fbc49ec46e689e94b808fe",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "eb8df1f183a6172a906580168e10639f92555c986f8a98e30199e48a117615e5",
+        "id": "1904659281ba9f6bd9dacecabd485cee7874a9fe067ee08613ae0e0087246e5f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e88e5a7e3179fc8dcd920c2f0ace45eda9b6a758cb72ad66c92ef5b8dd92a4f2",
+        "id": "260700e1590f6678f99882febb283227ab0babcfdc27b330d4d0b478ea37098a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ffa24b125d3978f2414c2df9a9b8ef602c9b55bac0192b0f5956cd9c5c6733a7",
+        "id": "ba4a579c4f055e36b14b50722954c42fc5801ef46931363bf7a833144676bab1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ccd307805f92bf355ef1989cb7e84faaaa55985bd41f514576fdee7b92eac148",
+        "id": "88e6c945569c6aef020ece610f29a595638437771159c6a05bf772322f17d6c9",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c95a0e99e146a6911f6104ff86ae6abd33315c5161a55a7ed8d3939c487e2166",
+        "id": "dcfd4ccc965f25f579187594fd1bf940eb47309e58c63b3f194d5d1cd9d24b07",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7ff9296fac0e50e5992e171298bb511c06aad8e3ebeec528d82d276c53eac054",
+        "id": "8daf8bc43418c17f9a86033406e20dc49f2e995bdf88fe440cab899c24762449",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f5b43b7388e8bb8843d96fe0fe53dfa67558d9edc76f636f6f76e9146ab33a18",
+        "id": "1faa01eabf508a66866ebae8c3132800bcbf5b1144b34f2b1c153315d4c8ee1d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "910ae0848041573666b9771a7b8d8bd2aca9390b9408cb5cb231f66e82cc7352",
+        "id": "3064e50201b763598f8854dca17a6899ceddc65390f038224eaa8eb45f3d9e8b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "97a646a00ef45520c8c1500584692b1b768fc304d7f95b44a6268cd3a06b1df9",
+        "id": "a632b658fc427016af37db790faefba9800e22a70f06e961b807fc6ca56ea10d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "10b33889475bc2ed32f8f528c860bf27292e4f7b007d3a1196aefaf50a531375",
+        "id": "65da9d08ad46aef47b311a14c79b7aac0fe85134ba24b8e78e340a0a5dc8bfca",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "79692531d596c7e004d6af5b8f794eaaa594cf955bd94f6e7b46cdcddefbbeaa",
+        "id": "f5f50cfb33d36a4908faa886b52db6e95d111d85650bbf7d9bf5b8339e87ce88",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8ce5f0d2d8bd117a044dd6c0a2d5003b501d44ad859d09269fd889fd94558f3f",
+        "id": "e8c74c05e8d1c31afc96623be271a715fe55aeb7a1db06d96490e4e412d1bfca",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -86084,22 +86096,31 @@
         "consumers": [
           "hub/config/theme.py",
           "hub/ui/settings/pages.py",
+          "hub/widget/actions.py",
+          "hub/widget/feedback/notifications.py",
           "hub/widget/forms/general_settings.py",
+          "hub/widget/profile.py",
+          "hub/widget/section.py",
+          "hub/widget/shortcuts.py",
           "hub/widget/transcript/conversation.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_auxiliary.py",
           "tests/hub/test_chrome.py",
           "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_general_options.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_ish_integration.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output.py",
           "tests/hub/test_page_layout.py",
           "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_preview.py",
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_question_card.py",
           "tests/hub/test_question_tools.py",
@@ -86110,10 +86131,12 @@
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_settings_usability.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stores.py",
           "tests/hub/test_tool_retry.py",
           "tests/hub/test_widget_chrome.py",
@@ -86665,8 +86688,8 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "3018c66daf3382af1910af10ee8fbe53ecda69493ae05d01b6af77fb284e031d",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners.",
+    "sha256": "bf65318ed03e8a3c1fba1b7d644878c4a3438f2e8b028dd5b90940b488088d44",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86766,40 +86789,58 @@
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "8e079a6bad05d0e23cb6efb0db5eea62a93a2c436a80569075985472fec747f7",
+        "id": "638ed73b0a5ecd872f3586b5ef02d25f3692b51bf0ba393a88d6d3463def92a8",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "198443f2bbe1229430b010bb644a7a950fd843999b95dc5653bb77d7009f9fb6",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "2a217734ba60adc0961a5dae802cb2147f03fbf879e9eb8bb87bd26715ac8f28",
+        "id": "714aa7de3f89b7487ac2822ad147935a72d1246c95ec79c7cb72816958a21695",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "ccf8ebf0faa11210e3a194cfc1c98bf54956966e74650bce56d0f2d708d742d0",
+        "id": "d1550805de08f845e3345b973fead5dad4f5ed96ba004e20a263060d5600ae27",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "11b75a751dfb5302641c307955269be0bfe733065cdd1f3a9af9ba9acf1a9e11",
+        "id": "c4d419eadefb61bb8ec78bac03bbdf8174e487d3000cb902d7859334f7fa4a0a",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "c004224e866283c5428989446218d1d2a0cc088bce00ed55750d9811791f3a9a",
+        "id": "0dec8d99f4b6f7780a7098a092080a4a50e552f62eee777ae31d5ed22daba09e",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "bd442a41f7d4a8e1763f52a999e11c91a96e988dfb851ce3b3cef58555a26f38",
+        "id": "19031da85610a35d67c31e889cb187dc7d3bccbe5449b1ef472d70c79b600d95",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "39109ebc2c65e8bd3a87b891657f30ac4369ab996cec3eb5875277aa7f1b89ea",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "57be780f6b7e810387f5f3ecd9a2d52bab894f87d432c87f603ee8ce95bd1792",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -86807,37 +86848,49 @@
         "owner": "KeyName / ShortcutAction / ShortcutLabel",
         "declaration": "hub/ui/input/keys.py",
         "consumers": [
-          "hub/ui/input/registry.py",
-          "hub/widget/forms/settings.py",
           "hub/ui/input/bindings.py",
+          "hub/ui/input/registry.py",
+          "hub/widget/actions.py",
+          "hub/widget/feedback/notifications.py",
+          "hub/widget/forms/settings.py",
           "hub/widget/profile.py",
-          "hub/widget/actions.py"
+          "hub/widget/section.py",
+          "hub/widget/shortcuts.py"
         ],
         "tests": [
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_general_options.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_notifications.py",
           "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_settings_tabs.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_preview.py",
           "tests/hub/test_question_card.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_configuration_validation.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": false
       }
@@ -87249,6 +87302,702 @@
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/buttons.py",
+    "sha256": "f8336b5b09608e4263be45e4dde0cf867c2dbea62eee349107f7542503501e11",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d3900d590683a5abab7ebd4d04f40e440097013fc9f836fe5522ee36b674ffb1",
+        "classification": "declaration",
+        "owner": "SaveButton",
+        "reason": "Draft label prefixes and default button width belong to the SaveButton declaration; dirty state remains provided by its caller."
+      },
+      {
+        "id": "e412c6c74a6e166243a9008b426b65ab1f103340a14694547b3b1c0fd06df34b",
+        "classification": "declaration",
+        "owner": "SaveButton",
+        "reason": "Draft label prefixes and default button width belong to the SaveButton declaration; dirty state remains provided by its caller."
+      },
+      {
+        "id": "9a3775e9fb477ce42b388ce5a4a82473639b968b8bb032b9149614d2dc4c131f",
+        "classification": "declaration",
+        "owner": "SaveButton",
+        "reason": "Draft label prefixes and default button width belong to the SaveButton declaration; dirty state remains provided by its caller."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SaveButton",
+        "declaration": "hub/widget/buttons.py",
+        "consumers": [
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/section.py",
+    "sha256": "7a5a9230dd88aa1be3a79661ca8df5e4f5a606257f997d8698f300bc94f40685",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "36662bcbb1e9e1ce1426e1e5bc91b72151eddbfbff8c5b17c4b2d868489894f3",
+        "classification": "declaration",
+        "owner": "Section heading presentation",
+        "reason": "Heading style composes canonical Theme selectors/modifiers; rule glyph remains owned by assets and height by this section."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Section heading presentation",
+        "declaration": "hub/widget/section.py",
+        "consumers": [
+          "hub/ui/settings/pages.py",
+          "hub/widget/forms/general_settings.py"
+        ],
+        "tests": [
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/profile.py",
+    "sha256": "08248ba64301bc8e9c5c94febd42f5a6ad568a97867572909ce27b612fcea610",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3ec036b0833218edf93a42917b92bd3bf55a9f061ecc69120afed0d6cbb4eb3a",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "e7e34048f50fb1d92f7e972a5e930b13511bd8f6d21583993309d286d96c6c5a",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "04c7d64380f413ee69c3944344eb946f286f82b739c748e5e448b0227c0566fe",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "154b5805607ae6a0d4c9e575753b40e870a5c847ce67777873fad473c5ea05b2",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "63e4032cf2c7b274cdaff29378d30f2f18a312119a0def2cb34aa271db5c71df",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "a6330c5c69abf052f3d3d0b86ed0d1299d24efdea25b55a25549700ef2ff3327",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "b93b3748de9e6ee61bd551c0be565b8ea210c3771f0444b3f311daf57cfd338e",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "73e181df9036f2fd090f948b9ce686f31a41152bf0ae360d85a42a3dc35b4e12",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "2bed6459525f56e8a17573cc097c8508afebca388a6680eebb41068f4661c29e",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "525676a504384168dcd928e18c7fa412bbabf0440fdf0a3890fded676393be24",
+        "classification": "declaration",
+        "owner": "ProfileBar",
+        "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
+      },
+      {
+        "id": "96fe065b7a05f10a9887f6c03f3c306cf19f8a6337eb88a3309180f88075ccc6",
+        "classification": "non_contract",
+        "owner": "ProfileBar.__init__",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "51d4875977a4e7baeeaa8cf8507e3b24d07074741834033bb80f9064da272637",
+        "classification": "non_contract",
+        "owner": "ProfileBar.__init__",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "71248c5f418ab92bc2402cabeaa16b1e469c09c4553f2b29a3b1f648b39ee22f",
+        "classification": "non_contract",
+        "owner": "ProfileBar.__init__",
+        "reason": "The intentional no-op key callback returns Python None; no record, decision or fallback is created."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProfileBar",
+        "declaration": "hub/widget/profile.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/shortcuts.py",
+    "sha256": "f890559b96528de8cd1b53c167353e0f6bb3ca2eae2326aeffb1faa5ea2c9420",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "71e1e2a2a913f07d4c3d6717987345170cd043a68a3b6b6e304386e6af91983c",
+        "classification": "declaration",
+        "owner": "ShortcutBar",
+        "reason": "Legend layout, separators and ellipsis are owned here; terminal widths derive the declared glyphs and theme selector is canonical."
+      },
+      {
+        "id": "ef7438f9e31a4d8b41b6e821a64ad4232708cb141e5cac73ad60d7e117976ec2",
+        "classification": "declaration",
+        "owner": "ShortcutBar",
+        "reason": "Legend layout, separators and ellipsis are owned here; terminal widths derive the declared glyphs and theme selector is canonical."
+      },
+      {
+        "id": "ec419a991ea737d2595d34a0b772de692140b7595395355d2247480e3ff6be85",
+        "classification": "declaration",
+        "owner": "ShortcutBar",
+        "reason": "Legend layout, separators and ellipsis are owned here; terminal widths derive the declared glyphs and theme selector is canonical."
+      },
+      {
+        "id": "421bbd619125bdc97767354c3f2475b7c3b408dc9acfe5569266b45728ee10bf",
+        "classification": "declaration",
+        "owner": "ShortcutBar",
+        "reason": "Legend layout, separators and ellipsis are owned here; terminal widths derive the declared glyphs and theme selector is canonical."
+      },
+      {
+        "id": "73f2ea1f2a5c10fca8209cef9fa1813b6a37dbbdf2528b4ff8da80114e8d9aa8",
+        "classification": "declaration",
+        "owner": "ShortcutBar",
+        "reason": "Legend layout, separators and ellipsis are owned here; terminal widths derive the declared glyphs and theme selector is canonical."
+      },
+      {
+        "id": "a20fc54977d3c1007647f568e262bd8c84414373e581830af1b3e7314bf8b137",
+        "classification": "declaration",
+        "owner": "ShortcutBar",
+        "reason": "Legend layout, separators and ellipsis are owned here; terminal widths derive the declared glyphs and theme selector is canonical."
+      },
+      {
+        "id": "f8f4d1bf3464b0057801d28c4963803dbe9d22234595f896611d37c2eae7e3c4",
+        "classification": "non_contract",
+        "owner": "ShortcutBar.fragments",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "e25fb3febc64849a9a811b719508f37686d0bf3712b87ec8239686b1b76498e8",
+        "classification": "non_contract",
+        "owner": "ShortcutBar.fragments",
+        "reason": "No next item means no extra ellipsis reservation; an algorithmic zero rather than a configured width."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ShortcutBar",
+        "declaration": "hub/widget/shortcuts.py",
+        "consumers": [
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/actions.py",
+    "sha256": "15128d451b0973c155ba24dc77bbb52dae09d3e3b9c3d02b288d7fea7cc69c45",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4c814832b965b377bccecff592fe9dbadd9adcb6f3c7462acdb714d0007680c4",
+        "classification": "declaration",
+        "owner": "ButtonNavigation",
+        "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
+      },
+      {
+        "id": "a2a9849a6580965f81ac72c74e5c08a4804289de99c38f98881b19aeb6f89259",
+        "classification": "declaration",
+        "owner": "ButtonNavigation",
+        "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
+      },
+      {
+        "id": "88ab1f192a29364ca207d5a13a1dca0b28fca79c98a6649bc530f55ecd59af6d",
+        "classification": "declaration",
+        "owner": "ButtonNavigation",
+        "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
+      },
+      {
+        "id": "4a4ad23e89703ad0d87efded02d7732b996dc182ff9c2a025dce3c7e39a109a3",
+        "classification": "declaration",
+        "owner": "ActionFrame",
+        "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
+      },
+      {
+        "id": "6b855341f2d15422b2b5c1e3ebbb1d2736320fcc9ae32d2d56aebc1a5f41e5b4",
+        "classification": "non_contract",
+        "owner": "bind_button_navigation.move",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "1542bfc3192ea3d00b54c155ea4820d2ea317063703a14b32c05c7735e135b68",
+        "classification": "non_contract",
+        "owner": "bind_button_navigation.move",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "025f8aed8e7bb6710633f067f9cc5a8c34f0ddc64f3d3192be0ecc8eae6a5eb2",
+        "classification": "non_contract",
+        "owner": "bind_button_navigation.move",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "671640d27bf3a0902520751c519ec66e60b49fe80611669160c63ff9b59031d8",
+        "classification": "non_contract",
+        "owner": "bind_button_navigation.move",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "17d86e6d572ac9c242df20e7c52dd0899d967d913dcbcf83d54f51d3a9c6e0d4",
+        "classification": "non_contract",
+        "owner": "bind_button_navigation.move",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "fd83a2cd0b3fbf7fc9258026457f071c2858d5a79c64191e59ac0368bbbb3adc",
+        "classification": "non_contract",
+        "owner": "bind_button_navigation",
+        "reason": "The intentional no-op key callback returns Python None; no record, decision or fallback is created."
+      },
+      {
+        "id": "ac697a75b7ca6a4cdcffc9ab98dedb220fcb9bb82317206911c2ceae0a421291",
+        "classification": "declaration",
+        "owner": "ActionBar",
+        "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
+      },
+      {
+        "id": "57f44301e34bf8037a3af1da2336e33fcb427a32c463d4c5b92ba7ce76a9086c",
+        "classification": "declaration",
+        "owner": "ActionBar",
+        "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
+      },
+      {
+        "id": "a03a498cb4061d78848bfb3f7c4a613b36d0aca6359b01f85670085bb1b33b35",
+        "classification": "declaration",
+        "owner": "ActionBar",
+        "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
+      },
+      {
+        "id": "b4b28b2f94b0f00db18924f9e5fef38f5c9476295aa2af9ea5c6750e50634057",
+        "classification": "non_contract",
+        "owner": "ActionBar.rows",
+        "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
+      },
+      {
+        "id": "aacfafd7c16ad8c892a839e6cca8f1895a3b597adbecfcf14ccae5026c09cad3",
+        "classification": "non_contract",
+        "owner": "ActionBar.rows",
+        "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
+      },
+      {
+        "id": "c7df0b4a436206dccb4a20e2b378e989f958c9e7b663e185ce738fbf1bc2dfd2",
+        "classification": "non_contract",
+        "owner": "ActionBar.preferred_width",
+        "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
+      },
+      {
+        "id": "4ad5fcdf928cf7a68e0b93836f701c14915db9518463c612592cd734ac1d2571",
+        "classification": "non_contract",
+        "owner": "ActionBar._container",
+        "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ButtonNavigation / ActionFrame / ActionBar",
+        "declaration": "hub/widget/actions.py",
+        "consumers": [
+          "hub/widget/profile.py",
+          "hub/ui/settings/pages.py",
+          "hub/widget/forms/general_settings.py"
+        ],
+        "tests": [
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/feedback/notifications.py",
+    "sha256": "243e2e6232c4266662b714b995749649ce91e1a06b7f3aeb52d822011a1783e6",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Live notification producers still construct Project/Session pairs and literal notification kinds; their Owner connection remains explicitly pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "73afd97c2eefce308137163af4146dffbf1658fed940fe8625d5003e5f3a05bf",
+        "classification": "declaration",
+        "owner": "SessionAlertKey",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "b4ddca41ba88ea19cd7e60fba5802a4ca1cd3e69d6b64733aae4e86ba6d5b0ef",
+        "classification": "non_contract",
+        "owner": "Alert",
+        "reason": "Python dataclass immutability/slot annotation; not domain policy or transport data."
+      },
+      {
+        "id": "b62694524dca642b3849f0bbd3927a4c8aeb02f8d4d6e68bd094d3534c8520eb",
+        "classification": "non_contract",
+        "owner": "Alert",
+        "reason": "Python dataclass immutability/slot annotation; not domain policy or transport data."
+      },
+      {
+        "id": "699f5d572a2d19632b17dc1dff0a4897071b7017b0ce975a1c6e6a2936d6e6b3",
+        "classification": "declaration",
+        "owner": "Alert",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "3aa117b5d7e5f371da197a8ae8bd709d12cae43de254127a7426c4f3363dda02",
+        "classification": "non_contract",
+        "owner": "Alert.removed_waiting_session",
+        "reason": "Logical predicate result for a non-waiting alert; not a stored state or an authorization decision."
+      },
+      {
+        "id": "e49cecfc902e4a7b26d4b1e22d7b0cb981f4afe72712a1ba1abb0a49d1fc6b34",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "34ab5b49ebbd5793c01ba5a72111e53cb2f3490709c3b461c19ab80f797dd770",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "05a78b2d02acce93e76eefcd212c14b7479ac748a9e4028dcf33901469259d56",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "269b4cd6cec7bd7a5856ce4a18b95daddd7977af3af6060eaf85fe51699462bd",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "e3e9760a7e7c85f9483a88a12cd55203a7e0549c802dc5325cc58b9765690e7e",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "a1f114b6f78d6c899df0d589b7c6bb18c13fdfd54a92714924f6948e6f7f96b2",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "984b6d9c479bff1d18c27c263bf872ceaaf940a4b9990b13c580f0cdcf9ddaf3",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "6947c1da08c629c8d73ebd0cfdf3e5f94b12acd038681596e893df0a526e4233",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "c7c1372336ebbb0526fe192b0d63019e0b63afe93fbc8b093582db659ad78c52",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "d493a9f6868d6bb4d9e489908473617cbd6716d1279ffd1cd80f8fec15992aac",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "86f23648197ad696e50e18a3f77db5ce339d7daab8a655921aaa4928e7f03472",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "bd8bc4953c7115cdea1b7664fdb7e156d3ec0ad2aa9d4a23378af8046400c927",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "4bcf36f84bdf42a063ca6208c8c69ba9d5ddcd8090e72b0cb4c03c97b1542caf",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "dd20190efd9a543289f38ec83f94d7b172a31e10c6633bb10c34ab84c6b71f42",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "1a694ce507fc9200072ced20b5041977bfb5c8a9007e7a832e456fbc7cd48730",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "509c478a426999db7fbf58da62794476463775a80d61dfbae49c80cfa250cadf",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "0b1d80e9f7ad295b8047bd61a35c09cf81c9389cb4d8beefe41a67303459f2b2",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "8b3d31d7dc5a7b5d043e1bf817db2506eff7eab06c71c3a57cbd886f4578e19b",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "3f28fa9847fb6bbd12737590ead16c73409ee0578cbc18b73a3616fd58adaad6",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "2f9ccc719853e0bbc37cce768972abcf88ab49127f590e3c72b63bcf8a1e8f2b",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "c7bfb14c0d1b3e70a9e76df601d8d50877c3f6e7b7bbc2ded23bb865d53598b3",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "c90943fc4ef94e21f6182101e632c41363f4aa4fd13855fc406d41facb4e77ce",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "945d296fbc653c9183b9137d7e6b859ce1932312d1b12ccd258e165e9387752a",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "aa63e85b00655f0df6a0cc5e66f1c7432318f6985452263994832c542de34c02",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "2bc84dce5180b3c33bc66c81ae93632b15e226e05110e6319f61c73c442784f2",
+        "classification": "declaration",
+        "owner": "SessionToasts",
+        "reason": "Notification geometry, display text and timer/cache absence are explicit. Alert key observation and typed layout/cache tuples own their fields; session status, notification kinds and styles reference their canonical declarations."
+      },
+      {
+        "id": "40fdde5b0cf39fbf326c9fb14c731b14a1d21ab08aec3fd7b7bec5b67ca53a43",
+        "classification": "non_contract",
+        "owner": "SessionToasts._layout",
+        "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
+      },
+      {
+        "id": "72e641d26ddf35c167a6dc5a5478d8c2baee9b9d262239968695f54174285401",
+        "classification": "non_contract",
+        "owner": "SessionToasts._schedule_expiry",
+        "reason": "Clamp an already-due callback to the nonnegative timer origin; the actual expiry policy remains GeneralSettings.notification_seconds."
+      },
+      {
+        "id": "26df111d27e81b20680b3c679918122876414f224d30da7856d443a93f523e6a",
+        "classification": "non_contract",
+        "owner": "SessionToasts.alert",
+        "reason": "Increment the in-memory serial by one; no configured limit, persisted revision or budget is defined."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SessionToasts / Alert / SessionAlertKey / ToastLayout",
+        "declaration": "hub/widget/feedback/notifications.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/ui/view.py",
+          "hub/ui/application.py"
+        ],
+        "tests": [
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",

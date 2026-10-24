@@ -7597,3 +7597,46 @@ SchemaKeyword 선언이며 다른 LLM 구현은 변경하지 않았다. 기존 s
 전수 감사 16개·문서 검사 모두 exit 0이다. 604파일 중 미검토 165·미분류 7,953,
 미완료 공유 계약 15, stale/위반/issues 0이다. 새 입력 경계와 ChoiceField의 남은 소비자를
 명시적으로 열었고, Schema의 다른 Hub 소비자는 계속 추적한다. 전체 완료 기록이 아니다.
+
+
+## Hub 공통 위젯·알림 소비자 연결
+
+ActionBar/Frame·SaveButton·Section·ShortcutBar·ProfileBar·SessionToasts 여섯 파일 전체를 정리했다.
+기존 input/theme Owner에 연결하고, View의 sidebar 상태 변경은 HubView.mark_sidebar_focus가 소유한다.
+SessionSummary의 대기 상태 집합을 공유한다. HubView/model은 좁은 변경이며 전체 검토로 표시하지 않는다.
+알림의 opaque key에서 Session 참조를 관찰하는 타입과 layout/cache tuple 타입을 추가했다.
+기존 tuple 동등성, 알림 필터·정렬·교체·단일 만료 timer와 취소 순서를 유지한다.
+
+정규화 AST 53개 전체 함수는 같고, 11개 표현 변경은 위임·명시 gap 계산·typed tuple에 한정한다.
+이 숫자에는 변경 없는 HubView 메서드가 포함되며 HubView 전체 검토 증거로 확대하지 않는다.
+독립 비교는 버튼 fragment 6·단축키 셀 28·Section 셀 21·Action geometry/그룹 identity 36,
+화살표 callback 6·Profile 값/키 3·실제 View 포커스 순서 1,
+알림 실제 PTK 셀/캐시/close 64·Session key 관찰 50·상태→알림 종류 9·교체/만료 callback 1이다.
+초기 비교기의 서로 다른 handler 객체 identity 비교 실패는 보존하고, 실제 fragment 값과
+handler 존재를 비교하도록 바로잡았다. 제품 실패나 성공으로 잘못 합산하지 않는다.
+
+Level 1은 알림·공통 위젯·페이지·Preset·입력, Level 2는 실제 Component Manager의 그룹 control,
+설정 navigation/usability·chrome/auxiliary·preview/Host·snapshot을 포함한다.
+승인·예산·효과·Checkpoint·삭제/저장·실행 경계와 R3도 유지했다. 기존 assertion은 변경하지 않았다.
+
+- `whole-hub-widgets-l1-01`: discovered/started/pass 24/24/24, exit 0, 22.921438초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-widgets-l1-01/hub.json --modules tests.hub.test_notifications tests.hub.test_widget_chrome tests.hub.test_page_layout tests.hub.test_presets_widgets tests.hub.test_input_contract`. source `d9865d9927fb3c9811caef97279c6a532cb03307f6c8d592d6bf3a639f0ef426`, input `6df4898f9f4f1d31dae73abcb52527c498fc986282479b0cf267bbdbc9779962`.
+
+- `whole-hub-widgets-l2-01`: discovered/started/pass 32/32/32, exit 0, 43.123027초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-widgets-l2-01/hub.json --modules tests.hub.test_component_managers tests.hub.test_settings_navigation tests.hub.test_settings_usability tests.hub.test_chrome tests.hub.test_auxiliary tests.hub.test_preview tests.hub.test_ish_integration tests.hub.test_snapshot_projection`. source `d9865d9927fb3c9811caef97279c6a532cb03307f6c8d592d6bf3a639f0ef426`, input `6df4898f9f4f1d31dae73abcb52527c498fc986282479b0cf267bbdbc9779962`.
+
+- `whole-hub-widgets-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.183377초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-widgets-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `d9865d9927fb3c9811caef97279c6a532cb03307f6c8d592d6bf3a639f0ef426`, input `6df4898f9f4f1d31dae73abcb52527c498fc986282479b0cf267bbdbc9779962`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치,
+선택 중복 0, 전후/실행 사이 source/input manifest 동일을 확인했다.
+Python 3.12.14/Clang, Host d833790, 동일 의존성·실제 Linux/X11/Bubblewrap이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0. 실제 argv/exit/log는
+`hub-common-widgets-draft/selected-results.json`과 각 focus 디렉터리에 보존한다.
+
+이 소단계에서는 전체 회귀를 반복하지 않는다. 상태·전역 설정·Theme·설정 폼/단축키와 이번
+공통 위젯을 Gate46의 Level 3로 묶는다. 전체 LLM/Hub·보조 검사·정확한 SHA 원격 CI는 필수다.
+아직 남은 Live 알림 생산자, 다른 key/theme 소비자와 미검토 Hub 파일은 완료로 표시하지 않는다.
+
+공통 위젯 소단계 마감: S1–S7 정적 검사 82개 finding의 신규 미검토/invalid review 0,
+전수 감사 16개·문서 검사 모두 exit 0이다. Alert의 inline 빈 status는 동일 Owner의
+NO_STATUS 선언을 참조하게 되어 해당 S3 발생 지점이 사라졌다. 기존 표시 의미/본문 선택은 같다.
+604파일 중 미검토 159·미분류 7,805, 미완료 공유 계약 16, stale/위반/issues 0이다.
+Gate46을 수행해도 이 잔여 Hub 범위를 전체 완료로 표시하지 않는다.
