@@ -6917,3 +6917,40 @@ LLM 집합 간 중복 0. 제품·시험/Fixture·discovery·의존성과 Python3
 정적 감사·문서·R3·환경 검증 후 Push한다. 이 기록은 전체/원격 완료 선언이 아니다.
 
 마감 검사: `python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7` exit 0, 검토된 발견 84개·미검토/오래된 근거 0. `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` 16개 통과/3.416초, exit 0. `python -m tests.llm.check_docs` exit 0. 전체 파일 585개 중 미검토 204개(llm 27/Hub 177), 미분류 11214·미완료 계약 3개를 계속 추적하며 전수 완료를 선언하지 않는다. Gate43 전체 검증을 다음 필수 경계로 유지한다.
+
+
+## llm Interaction 도메인 선언·직렬화 Owner — Level 1·2
+
+기준 7995167. InteractionRequest/Option/Response/View/Binding의 오류·선택·revision·
+지문·부재 의미를 각 클래스 선언으로 연결했다. 고정 wire 필드는 실제 dataclass 선언에서
+얻고 selection 결과는 InteractionSelection Writer로 만든다. InteractionJSON과
+InteractionRisk가 기존 검증 envelope·정확한 JSON 비교·척도 검증을 소유한다.
+기본 option ID와 effect, 표시 상태와 영속 상태는 의미가 달라 별도 선언을 유지한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/interaction-domain-draft/ast-proof.py`
+exit 0: 기존 함수 37개의 전체 AST가 선언/검증 위임 전개 후 동일하다. selection Writer
+표현이 바뀐 decision_for는 전체 AST 동일 주장에 포함하지 않았다. 같은 경로
+`values-proof.py` exit 0: exact_json_values 225, risk 105, decision_for 540, select_decision 360, find_approval 12, empty_confirmation 48, request_record 126, revision 7, response_lifetime 5, response_status 4, response_actor 16, view_wire 2, default_approval_factory 2.
+JSON 값 도메인에서 값·오류·wire 결과를 이전 구현과 비교했다. 생성 factory의 ID/시간만
+명시 값으로 교체한 뒤 비교했고 그 외 결과를 정규화하지 않았다. true/1/1.0, 선택/입력,
+명시 빈 confirmation, 누락 필드, revision, 만료/상태, actor/policy 검사를 보존했다.
+
+- `whole-interaction-domain-l1-01`: discovered/started/pass 73/73/73, exit 0, 23.783516초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-interaction-domain-l1-01/llm.json --modules tests.llm.test_interactions tests.llm.test_interaction_decisions tests.llm.test_interaction_presence tests.llm.test_interaction_storage tests.llm.test_policy_values tests.llm.test_policy_consumers tests.llm.test_policy_ownership`. source `aa646398e8dbeb33720a19219a02fdd260aa64540353f85e49de12e1ebb88855`, input `8bed52fb7866a67ed0267848e68eba2904c84c5cae5eee6b2f7bb4dafd33aef3`.
+
+- `whole-interaction-domain-l2-01`: discovered/started/pass 58/58/58, exit 0, 22.700878초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-interaction-domain-l2-01/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_current_contracts`. source `aa646398e8dbeb33720a19219a02fdd260aa64540353f85e49de12e1ebb88855`, input `8bed52fb7866a67ed0267848e68eba2904c84c5cae5eee6b2f7bb4dafd33aef3`.
+
+- `whole-interaction-domain-hub-01`: discovered/started/pass 21/21/21, exit 0, 22.626278초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-interaction-domain-hub-01/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_output_interaction tests.hub.test_approval_continuation`. source `aa646398e8dbeb33720a19219a02fdd260aa64540353f85e49de12e1ebb88855`, input `8bed52fb7866a67ed0267848e68eba2904c84c5cae5eee6b2f7bb4dafd33aef3`.
+
+각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 ID 일치.
+LLM 집합 간 중복 0. source/input은 실행 전후 및 실행 간 동일하다. Python3.12.14/Clang·
+Host d833790·의존성/격리 환경을 유지했고 R3 `python -m tests.llm.check_budget_mutation`
+exit 0이다. 기존 시험·안전성 Assertion·CI 필수 범위를 수정하지 않았다.
+
+직접 계약은 interaction/decision/presence/storage·정책 값과 소비자, 관련 검증은
+효과·Checkpoint·예산·lifecycle·RAG·현재 형식과 Hub interaction/approval continuation이다.
+공개 wire·판정/실행 경계를 바꾸지 않는 도메인 표현 변경으로 범위를 한정했다. 저장소와
+이어지는 관련 단계까지 묶어 다음 전체 Gate44를 수행한다. Gate43은 이전 7995167의
+History/공통 저장 묶음이며 이 새 변경의 전체 검증으로 재사용하지 않는다.
+Repository의 기본 option/revision 소비자는 아직 미완료 계약으로 유지한다.
+
+마감: S1–S7 정적 감사 exit 0(검토된 발견 84개·미검토/오래된 근거 0), 감사 자체 시험 16개/3.578초 통과, 문서 검사 exit 0. 전체 미검토 203개(llm 26/Hub 177), 미분류 11035·미완료 계약 4개이며 새 항목은 Repository의 기본 option/revision 연결이다. 전체 완료를 선언하지 않고 다음 소단계에서 연결한다.

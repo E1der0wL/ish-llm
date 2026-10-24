@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 585,
-    "unreviewed_files": 204,
+    "unreviewed_files": 203,
     "stale_files": 0,
-    "unclassified": 11214,
+    "unclassified": 11035,
     "violations": 0,
-    "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 206,
+    "incomplete_contracts": 4,
+    "unreviewed_dynamic_paths": 205,
     "unreadable_files": 0,
-    "candidates": 21357,
+    "candidates": 21319,
     "issues": 0
   },
   "files": [
@@ -2559,9 +2559,9 @@
     },
     {
       "path": "llm/core/interactions.py",
-      "status": "unreviewed",
-      "sha256": "745e77d9a9c1b768d5028809642a4fa06aac60d946f01d8b8aca3d14c29daa51",
-      "candidates": 179
+      "status": "reviewed",
+      "sha256": "22dc881fc32d36fce3a147d677c0f87982d551dd431e3ca57b4bf9e0ea5968ed",
+      "candidates": 141
     },
     {
       "path": "llm/core/json_data.py",

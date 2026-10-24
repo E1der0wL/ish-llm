@@ -215,3 +215,23 @@ choice에는 적용하지 않는다. 여러 option에 동일한 값이 있으면
 서비스가 갱신된 요청의 응답을 검증하므로 bridge는 원본 체크포인트의 옛 만료 시각을
 다시 승인 기준으로 삼지 않는다. 부모/자식 요청과 source Run은 변경하지 않는다.
 Graph의 기존 approved/state 계약과 중첩 Tool 승인에서 부모 state 편집 금지는 유지한다.
+
+
+## 값 선언과 직렬화의 소유권
+
+InteractionRequest가 현재 revision·단일 선택·지문 형식과 입력/선택/만료의 부재 의미를,
+InteractionOption이 공통 effect와 기본 승인 선택지의 ID·label·bool 값을 소유한다.
+기본 option ID와 effect는 의미가 다른 계약이며 같은 문자열이라는 이유로 합치지 않는다.
+Application의 사용자 정의 option ID·effect·source/action/binding 확장은 계속 보존한다.
+
+고정 직렬화 필드의 정규 이름은 dataclass 선언에서 얻는다. 선택 결과는 기존
+InteractionSelection Writer를 사용하며 임의 서비스에서 option_id/value를 재작성하지 않는다.
+InteractionJSON은 검증용 값/결정 envelope와 JSON 비교 옵션을 소유하고,
+InteractionRisk는 기존 척도/risk 검증을 소유한다. _stored_fields는 모든 현재 필드와 JSON
+값을 검사하며 생성 초기값으로 저장 스냅샷의 누락을 복원하지 않는다.
+
+InteractionView의 표시 상태와 InteractionStatus의 영속 상태는 서로 다른 계약이다.
+만료·현재 pending·요청 ID/revision/fingerprint·actor/policy ID 검증 순서와
+거절/빈 confirmation/응답 누락 구분은 그대로다. 이 도메인 정리는 승인 권한이나
+재실행을 추가하지 않는다. Repository의 control projection·갱신/기본 선택지 선언 연결은
+후속 소단계이며 도메인 파일 검토만으로 모든 소비자 완료를 선언하지 않는다.
