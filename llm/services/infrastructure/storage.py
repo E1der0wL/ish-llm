@@ -28,6 +28,10 @@ class SnapshotFile:
     def create(cls, size, digest):
         return {cls.BYTES: size, cls.DIGEST: digest}
 
+    @classmethod
+    def total_bytes(cls, snapshots):
+        return sum(value[cls.BYTES] for value in snapshots.values())
+
 
 class DeletionJournal:
     DIRECTORY = ".deletions"

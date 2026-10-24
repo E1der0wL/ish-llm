@@ -36275,8 +36275,8 @@
   },
   {
     "path": "llm/core/models.py",
-    "sha256": "af92884ac4a777a7eb96dfc76adae1a5e20be9271435fa64e10a8dd83bdd14a3",
-    "reason": "Read complete model file and consumer connections: current-format field/version validation, timezone requirements, pure transition validation, extensible configuration and its closed sections, every Project/Session/Message/Run/Step declaration and Reader. Run edges now use a read-only map of frozensets; Step edges a frozenset; exact allowed transitions/reasons/diagnostics remain. ConversationStorage schema uses canonical Schema declarations and input policy; llm bootstrap and ProjectConversations explicit choice paths share it. Project/Session JSON copies/target validation, components initialization, Agent binding and active Run identity/evidence remain. Dynamic configuration/record fields derive from their schema/type declarations. Step observations delegate the existing typed envelope Owner; clocks/UUIDs are generated only by creation, never missing-record repair. Context-specific mode categories now have one predicate declaration; Message unbound Run and detached-copy mutation are explicit. All prior methods and current stored fields/defaults remain unchanged; prior shared contract decisions are retained. Message.validate_changes delegates complete proposed-record validation to its existing Reader without new fields, defaults or mutable state. Existing consumers and their prior decisions are preserved.",
+    "sha256": "7f8d41437c3b3c604d92de65fe02496e7e287b9585e541afcb7eca144ccd6776",
+    "reason": "Read complete model file and consumer connections: current-format field/version validation, timezone requirements, pure transition validation, extensible configuration and its closed sections, every Project/Session/Message/Run/Step declaration and Reader. Run edges now use a read-only map of frozensets; Step edges a frozenset; exact allowed transitions/reasons/diagnostics remain. ConversationStorage schema uses canonical Schema declarations and input policy; llm bootstrap and ProjectConversations explicit choice paths share it. Project/Session JSON copies/target validation, components initialization, Agent binding and active Run identity/evidence remain. Dynamic configuration/record fields derive from their schema/type declarations. Step observations delegate the existing typed envelope Owner; clocks/UUIDs are generated only by creation, never missing-record repair. Context-specific mode categories now have one predicate declaration; Message unbound Run and detached-copy mutation are explicit. All prior methods and current stored fields/defaults remain unchanged; prior shared contract decisions are retained. Message.validate_changes delegates complete proposed-record validation to its existing Reader without new fields, defaults or mutable state. Existing consumers and their prior decisions are preserved. History consumers share existing Session retention marker and Message pending states without coercion, default or category change; prior Owner contracts and classifications remain intact.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -37096,169 +37096,175 @@
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "721fcbd4caed07b736473b37c144124da8c1108be6fddeb293d6f861df5bea40",
+        "id": "a32b3470a0850ca9f948a0bc7d13ca59a9a1a81b7715f0948457fc7f8a9c1637",
+        "classification": "declaration",
+        "owner": "Session",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3a03b1f3b222ee45e4ef38e89a8d2bdb8f9066c3e938ea22dc34451e125f1066",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "4cc4004ff6d70107a8c34cda35062a5cb694ed78a82549f1eaa8411bbc2db758",
+        "id": "03c97de13987d094c843dca82ac8dbff8cba8e86911afcefafff88f5e66d5fd6",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "63416f664df19df287b87742fd161f33cdb74b2f8687cac09781043bb9442e8d",
+        "id": "af9136ccde3750ecbf5f49650b4bb81078e9185dbfd8baad5f8d9b92e031e74b",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "d0a5ff16fb4076723c8694a3df176062f21ded6386d4775c8992c4e2d7bd1465",
+        "id": "3e6470e335498bb9c2fcd163b8cb68bf20188afe95fcbf29191d1eb08adcc2ec",
         "classification": "declaration",
         "owner": "Message",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5386d0e053abcb7f7a462b5b2ff79bb96ab9cd4ad4b4c056ce09bcd233ab8490",
+        "id": "a9a114c707dacfa36c69b4bbf5ecfa770923c0b7a715327557c53f25cc7506b1",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "a5b487da87d1a3ed0c3001ac29b3b9385b7d261130b922f644aeda071c017507",
+        "id": "d23b1a54fbfd6be5de5d1ef16223235548442f0eec35b8eb72b0c7013cb2732a",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "772feecf8784a392e209896fb1a1b0c484ea340191da674d3773891a7c66d6ac",
+        "id": "199917bc3b8daf88b2c3f0c4878ca21a8247865d9f95376118c900409837e758",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "d4c702c5f668aea0afb0c1eb49c282871ca35a9b498e195dab6309c7183ff4be",
+        "id": "8d7c1015574107cf688e839e5d16d24c2d1b168f062e73b8c21cab174e0cc908",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "dd40e5d2f6674ce068210a1869908737278a1cb85bee1f6218cc0a1f9ab8b45f",
+        "id": "8a29e10a5b985997f022d7ab8408939b3f33f74abcf87395ba80f108f5e975de",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "2cef6b230e6ddde47d5631e1f8d22fd06ffaedd3fea288dc4a7788e5745c13e4",
+        "id": "e3e62881e662654893c865728a35b1d59756ff259c0efe88e17b345151ce3d31",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "aa12c21cc724aeb31900318df4847d71b2c8643f8a1143af4eca99e60b364f1e",
+        "id": "60faa9f8d46b35ce9254fd0381ac7ded254b9f4cff2bb7e38517b1ed46ebfa43",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "e51ff866922384df7204ae7cc14f828c081483e3bde31ccbfc56ba9d44ba3e78",
+        "id": "ee5833258e7be1b0db272f743fceeb919005a506e6af7a64f2788c0d7cdfd6b8",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "5694af8e14b4452b85d815c9d572d59489338178181ad4be348bc568373280af",
+        "id": "e948b46ee7339a93a638251bfe747f84780a3a320107fd02ba6e107e7c22fa28",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "ed4f5779df8eb5ed334b8ce72390a97f9d55beaa1300c820e4cad3b9a7bf3609",
+        "id": "f63425f700e5731a71abc59c09f887d45a0f93c3a59f7fb57002eb19fc8fbe4b",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "84f6a4d9cd77ca7a8679e7cf3675d7f0968b2148a5cdc322bc762fed880c77b4",
+        "id": "e6c976c215c1f89dba29a2f8eb69da59658124281320a5600c11621d1e3568ff",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "46930532f594fe6c0dba6bbb276061d22cc0fcd30405aa5febce9a4961612213",
+        "id": "dee90559b4bf5ca576c60fa4d98e03bdda854fa02a6a69aaed202babbbe16e78",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "c6a4ccf6984193983c8fad85b73424b94181f7a79f14943225334355d287536f",
+        "id": "6ecbcb272bb87f69ddd8a689f3348878ad9a9e7bb323822bf94a7616ded62130",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "30bd75eb4f3acbcb1d6d90004cf2a245257d8db861d7c75322db6b30f0d9f511",
+        "id": "6cb9999ef81d8f79ce88bc8688c8a91eee35c0da2b6a35af8c339ed2accfd952",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "5a6668c158d0b6f4e685f8d0ca52986f6b66b7f654595a3e95b64d969141afba",
+        "id": "b9a425e3093e9fd6ddfc5f99ef3d7937e69cf4e8f0cb15d544ddfa87ab88c042",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "742aacd7194bd16166c87bf5ef8c7c1ed8ba0d6f37fc55e2934ad890759a0c8f",
+        "id": "6c1258b9c7664843d5535721647618c84d72bfabdb0a2d8a6ce355826107eb72",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "57e8030a3a4008a3dc1bdbd3e0d6f8845335fd28b25ccabbd33434b2c4d4f422",
+        "id": "2546ee9d28f1a83ae562208b81d9d0d1cb97857a7cff7a86369528d067f2bbad",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "141e55a1f8a52df77a24ec6f0f26ad736fb915bb98f654e6583c104b36d1536c",
+        "id": "fce09c881b283f945f390ecd802246894a94277990c0b336b89ce364ad646ec6",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "99048800b18b8fc748744ab28baa9bec00ebf1e366bc84394a2b40497357b5f5",
+        "id": "ceb092cab8912649bc0850344796535856bad306bcbf7c942f9f08b3b3631a24",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "b674a6352bc76b223cac227d2fbd03e00774446a6e9ca3dc6cc7aa965e82aaf3",
+        "id": "e256ae5d872ae2186501fe97ce2cb6d68addc25cb0e09060af3878e75fd3e983",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "d6982f70ecda821aff8eb9a0f99acdd28faaca53e038f84d71f348748d2f0b94",
+        "id": "522c740c21bc7a3108c79f796360bbe6d281786e88fe62e963fb132c3f4d1812",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "0a527e94b1af504b49fd48578dd7dbdc1ee5e19206e9d1f7b9571af3d431545d",
+        "id": "5acc11b88242ac144e1006b75774860097bf41a461ed85eb02619804b953f02a",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "51fd9bbdb0838e1514f3aad7c41935a559d3f7c899713abd600c3e6619c9d585",
+        "id": "98cddfb1ebb429ebc925ef8976df355e07ccd95e8ba40169b5d591c3fe55b95f",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "11b88a64e245fe1da2e82fab09432720a0dfd7ce07220155c0ddd69eb3c26322",
+        "id": "e814ae64031288223b9bf62f87196afc018565f314971a830110f87e93a88b77",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python forward type annotation, not a reflection key or external protocol name."
@@ -37270,10 +37276,12 @@
         "declaration": "llm/core/models.py",
         "consumers": [
           "llm/llm.py",
+          "llm/services/api.py",
           "llm/services/history/context.py",
           "llm/services/history/conversation.py",
           "llm/services/history/conversation_records.py",
           "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
           "llm/services/history/turns.py",
           "llm/services/lifecycle/projects.py",
           "llm/services/lifecycle/sessions.py",
@@ -37282,11 +37290,13 @@
           "llm/services/schema.py"
         ],
         "tests": [
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_composer_history.py",
           "tests/hub/test_conversation.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_state_owners.py",
+          "tests/hub/test_turn_deletion.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_checkpoint_lifecycle.py",
           "tests/llm/test_completion_integrity.py",
@@ -37300,15 +37310,18 @@
           "tests/llm/test_instruction_values.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
           "tests/llm/test_loop_steering.py",
           "tests/llm/test_memory_conversation.py",
           "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
           "tests/llm/test_owner_declarations.py",
           "tests/llm/test_policy_consumers.py",
           "tests/llm/test_policy_values.py",
           "tests/llm/test_project_conversation_storage.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_recovery_probe.py",
           "tests/llm/test_repositories.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_run_transitions.py",
@@ -69100,10 +69113,10 @@
   },
   {
     "path": "llm/services/history/README.md",
-    "sha256": "e81ea9bccb7a97540892efa9f60c2f9810dba567ff42b181c7cf23a182d8827e",
+    "sha256": "151c2bc838e60309e3931b60600f7449a34423b8222b03eb81e464ccf3000b76",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Read the complete guide and checked storage/factory, Run recovery, scoped instructions and protected turn deletion claims against current contracts; added exact context/turn Owner paths without claiming other History files complete. Added current event/journal Owner and prewrite/replay preservation boundary, after reading the complete guide; no claim that recovery/retention/transactions are fully reviewed.",
+    "reason": "Read the complete guide and checked storage/factory, Run recovery, scoped instructions and protected turn deletion claims against current contracts; added exact context/turn Owner paths without claiming other History files complete. Added current event/journal Owner and prewrite/replay preservation boundary, after reading the complete guide; no claim that recovery/retention/transactions are fully reviewed. Reviewed maintenance/retention ownership guide and current paths/projections with unchanged protection and persistence contracts.",
     "contracts": [
       {
         "owner": "History storage/context/recovery/retention guide",
@@ -69358,8 +69371,8 @@
   },
   {
     "path": "llm/services/history/conversation.py",
-    "sha256": "1c41f24df41fad9d58e9a341731aa49a816ff43df72def81fbd26ffce34cfb43",
-    "reason": "Complete file review includes fixed dictionaries and dynamic event kind dispatch, injected hooks, file/memory factories, exact JSONL encoding, incremental replay/refresh, streaming buffers, count/cache invalidation, prune and transaction rollback. Existing semantics are preserved for valid input; invalid mutation acceptance is intentionally corrected by canonical preflight/replay validation. Full Gate42 and remote CI remain outstanding; this review does not mark the entire refactor or other infrastructure files complete.",
+    "sha256": "f807a36a8f6eccc4fece28f96cc9c88db4c06827c11959aa6512463a21d00c05",
+    "reason": "Complete file review includes fixed dictionaries and dynamic event kind dispatch, injected hooks, file/memory factories, exact JSONL encoding, incremental replay/refresh, streaming buffers, count/cache invalidation, prune and transaction rollback. Existing semantics are preserved for valid input; invalid mutation acceptance is intentionally corrected by canonical preflight/replay validation. Full Gate42 and remote CI remain outstanding; this review does not mark the entire refactor or other infrastructure files complete. History consumers share existing Session retention marker and Message pending states without coercion, default or category change; prior Owner contracts and classifications remain intact.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -69638,23 +69651,33 @@
         "owner": "Conversation / ConversationStore / MemoryConversationStore / ProjectConversations",
         "declaration": "llm/services/history/conversation.py",
         "consumers": [
-          "llm/services/lifecycle/sessions.py",
-          "llm/services/runtime/runs.py",
+          "llm/llm.py",
+          "llm/services/api.py",
           "llm/services/history/context.py",
-          "llm/services/history/retention.py"
+          "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_turn_deletion.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_conversation_mutation_integrity.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
           "tests/llm/test_memory_conversation.py",
           "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
           "tests/llm/test_project_conversation_storage.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_recovery_probe.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_transactions.py",
@@ -69840,6 +69863,720 @@
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/recovery.py",
+    "sha256": "b5e80485310380138aee81831f71cec92097040683d6b58ec566edf04e164105",
+    "reason": "Complete file and dynamic path review covers runtime/manual recovery, diagnostics, sparse public rows, target collection and identity, revision fingerprints excluding token estimates, references/quotas/receipts, injected counter behavior and all deletion/recovery effect ordering. No new policy, missing-record fallback, legacy Reader or stored format. L1/L2 and independent differential evidence complete; bundled Level 3 and its exact-SHA CI remain required.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bf85fa91ca6ab7fe084f2b0dbbe9a9c15552a2d5212c9b9a2cc9a178aaf4bdd3",
+        "classification": "declaration",
+        "owner": "SessionRecovery",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "0357c69901e174179186d11d089d8367f1ac02fd6cbfdb94898d7f7c55d7b973",
+        "classification": "declaration",
+        "owner": "SessionRecovery",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "ddec1fde3f017b4b006a08274dced436bd853d5ebd5e399556f054989dd457ec",
+        "classification": "declaration",
+        "owner": "ProjectRecovery",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "aef720820e3992813f0c20cb9932e52570bd6ee796d9cbef78666f27ea95dbd0",
+        "classification": "declaration",
+        "owner": "ProjectRecovery",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "f1abb47cb47b429c4d6446f8ad20816fe8afe843b8222f58af251d14adbcac5f",
+        "classification": "declaration",
+        "owner": "ProjectRecovery",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "597746167bbc37b71297b9d5811912e46fc445c15a9df647185784ca69fc5ff0",
+        "classification": "declaration",
+        "owner": "ProjectRecovery",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "b7fe0c2765014c073b07b56b888c978169c7a4dc463745cdc17b8fdf2705e05b",
+        "classification": "declaration",
+        "owner": "ProjectRecovery",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SessionRecovery / ProjectRecovery",
+        "declaration": "llm/services/history/recovery.py",
+        "consumers": [
+          "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/api.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_project_conversation_storage.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/retention.py",
+    "sha256": "c39eed1b76876cf03dd8b00d51ac1967e954c41a45e2916bf0b2f7bd81594200",
+    "reason": "Complete file and dynamic path review covers runtime/manual recovery, diagnostics, sparse public rows, target collection and identity, revision fingerprints excluding token estimates, references/quotas/receipts, injected counter behavior and all deletion/recovery effect ordering. No new policy, missing-record fallback, legacy Reader or stored format. L1/L2 and independent differential evidence complete; bundled Level 3 and its exact-SHA CI remain required.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "695d1e55d1072c487bf466626e4b2f011338ecf643008bd5f91ef04f5c1d8cc5",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "50b6b13355159d03af39bdc20034ffdd9c9b6a927aa7a3c61c03c04ceea74ee0",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "44578a473b2583bb8c63ddbe1d7f6c21721973553df0f5cdbb0e054936478401",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "24c3ef6e9510bd71a0e7816d4ebe2696a9943dff1baa7b09dccf09832ff45899",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "db67b9f62e28063fb9c8e4488d2e95bd26bb393806c5282a50cf5b89bbe73c24",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "e5909ce98b5df836779dd4a0713e3d7bf7cefe902fbf3bbfdd92b659f7e1a27f",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "9aa917e0cb9be040281164ca151e2e15b511e9fd1635a668112228a38eeeb2b0",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "e7f1227e60255b493bdf8444ca77dd6462c12e8f9359416ca5fa418e15932979",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "3fafdaf8758c2c7ec13fe775ab53096e83c38ce1f66b79fa7411a1160ddf0148",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "bc617bb6f0ebdd95a98e08e3cb243e3c94dea4cd3f7fdfc13b07c0f9d89d44b0",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "cb5aa9001972c22367c822b06da74ea17799dcfbc6820ff362cec5fbbfcf4a15",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "5b0cd74ac9684a5797002fcca9e512d4aa42ec0b22666c42fa4ee0593e73a8c2",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "7d338facca4ab39ae51ee4219550f58e0464d24b85bee5dbdb7ade5e80b9bc61",
+        "classification": "non_contract",
+        "owner": "HistoryRetention._run_plan",
+        "reason": "Zero selects the first deterministically sorted recipient for accounting the shared User bytes once; it is only a local sequence index, not a record field, policy, status or stored contract."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HistoryRetention",
+        "declaration": "llm/services/history/retention.py",
+        "consumers": [
+          "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/api.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_project_conversation_storage.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/maintenance_records.py",
+    "sha256": "3ef3304974ec3eab9c7d85df37f6df3991a28b3f6b44dd866f50e3524379dcd9",
+    "reason": "Complete file and dynamic path review covers runtime/manual recovery, diagnostics, sparse public rows, target collection and identity, revision fingerprints excluding token estimates, references/quotas/receipts, injected counter behavior and all deletion/recovery effect ordering. No new policy, missing-record fallback, legacy Reader or stored format. L1/L2 and independent differential evidence complete; bundled Level 3 and its exact-SHA CI remain required.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e4c43fde04071c465b017f7d6896fd3b885ceca60b1a1886fb97ff12a82be561",
+        "classification": "declaration",
+        "owner": "HistoryMaintenanceStorage",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "d593d1ea20b85ef0464913714aad3814e2cdb30e911a6320b598b86ac6c6ef82",
+        "classification": "declaration",
+        "owner": "HistoryMaintenanceStorage",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "1786ab0a5cc0d938a57b389561c9518542da363440cd6f7bfb49f9245ccd86c1",
+        "classification": "declaration",
+        "owner": "HistoryMaintenanceStorage",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "9f01d0ed1d0e1fba8ab6d08a2490d407f91b13bc046766a89322c1561c6d1232",
+        "classification": "declaration",
+        "owner": "HistoryMaintenanceStorage",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "9422d8f407bb13aec3f105c61302225d25135f2749b67ef932c662a78b233c56",
+        "classification": "declaration",
+        "owner": "HistoryMaintenanceStorage",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "dba0b02b477e4779ba406a1d4c4c921e869398eadfe1423601229e23e5558c4a",
+        "classification": "declaration",
+        "owner": "HistoryMaintenanceStorage",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "356100726b10bfd5aa7afd4a9a4c41bd5770506411dc64b07d04894429435698",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "6f21f46b3bdd790be2938893f290f030be126aa67f2bf0725b4e35a26652997a",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "020e5bb0313e44f6d329b9a698fe0addabe0e763e59a671d5eb03ba2ade2ab51",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "3552ac10897fd4906e04c0c9a36f1cfa958731ba0b2dcbbe050711dead7fb743",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "155d099153b1b4ab3c49fd94a307bc662aa98554ca1d5f942bebdaf666a55f32",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "a2541a9725ba9f9d88d15d1c024137aff7678dff6c7351b6436db0a2d4a5e51d",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "d3122b41e7e1fcb459c5d63549f58d7eef7020752f441d6f3677942f73b7a2ef",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "424082fd061d6df4011d224864b1b703fb71978e48ff267ac037ef15c65d4c1e",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "de4a5cbc53eb3f24013b835d34b17a191567b6434a5b2331576f7e8866ee82a7",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "97423e4cc018c5410671bfbb376d7fbfef6e23f9717ebdeb0952af30a67d945d",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "8093c93a369334480993e68267db2fac8f73cb27244f3df996207082359a059d",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "46f07b9b8faa1615b1f6b8d4e80b3a47c1d17f50c5b47409bce57108bf938844",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "66059f3689111e563dcc22144859e8845636fb4d57c49d8052995f2b3feb7567",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "e47ca953cce8299b022f2ab83764253a7d68d974d85a58f78e4ff308e1e6d2bd",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "ed58bb92f715a07afadb2f083a1f75e6e470bde509f05baa5c2be63e4bc639ff",
+        "classification": "declaration",
+        "owner": "HistoryIssueCode",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "a61a1596b32ddc48ababd869a5c7b9dc5efe755739412b11fe4cdb15ac62e835",
+        "classification": "declaration",
+        "owner": "RecoveryDiagnostic",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "3799331d03d5f54af7796f7b286b08aea9939b1abb04dc041a615126db777f77",
+        "classification": "declaration",
+        "owner": "RecoveryDiagnostic",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "95b0f3106c7d6bf5d8859d8b93097b225ad124a9170b55ec17513f01c4a0971d",
+        "classification": "declaration",
+        "owner": "RecoveryDiagnostic",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "54c2583d0a7f50e67481a0c33f43db904d35721327996e4a7e3d270b8aea0964",
+        "classification": "declaration",
+        "owner": "RecoveryDiagnostic",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "2e307a36e15625a9a148b4d64b398d7c052db69d91c706a5ae1c29d22ae14dfa",
+        "classification": "declaration",
+        "owner": "RecoveryDiagnostic",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "b58b43ec73edbc2da09acd4c5b79ae38fd082be28fe54b543c08d086c321c520",
+        "classification": "declaration",
+        "owner": "RecoveryDiagnostic",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "e43b385857cad9cf8342dc31d4aeee38f47856f58733d91f4e178baed5e7feb7",
+        "classification": "declaration",
+        "owner": "RecoveryDiagnostic",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "ae97e3b506c9b3f18335c238b3b920cfd582a6ee4e735544669be20efec4f37a",
+        "classification": "declaration",
+        "owner": "RecoveryDiagnostic",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "9d1874f89e3fa70eb3c830a51240aed1bc58e4e9329a62e652121c10ec579268",
+        "classification": "declaration",
+        "owner": "HistoryEvidence",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "b35f118a670c882d322a38efdaddc6ca1eae43187ea48d43d16fc9de35f19a09",
+        "classification": "declaration",
+        "owner": "RecoveryEvidence",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "24d28bdacd53dd0cf27b39bbb4f02deb17bac752e521830bb647868f96e5040d",
+        "classification": "declaration",
+        "owner": "RecoveryProgress",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "24488dc9405abcf015b2678e7ff3f047ad36d12bf46657d9f9e3a9009626257c",
+        "classification": "declaration",
+        "owner": "RecoveryProgress",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "b38df32dcdd4713a12b262dc7cd774d61d1024e10d02ba32f04723ef8ed072d4",
+        "classification": "declaration",
+        "owner": "RecoveryProgress",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "f789ea03d80652654ad14a5cd1e6bea0a9c51710dc1f85bdee4f561c51cb7b38",
+        "classification": "declaration",
+        "owner": "RecoveryProgress",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HistoryMaintenanceStorage / RecoveryDiagnostic / RecoveryProgress / RecoveryEvidence",
+        "declaration": "llm/services/history/maintenance_records.py",
+        "consumers": [
+          "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/api.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_project_conversation_storage.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/retention_records.py",
+    "sha256": "bb30437d9ef3454ee55fe5fcc2252f5fc93a2f49ce25123e620f735adfb73608",
+    "reason": "Complete file and dynamic path review covers runtime/manual recovery, diagnostics, sparse public rows, target collection and identity, revision fingerprints excluding token estimates, references/quotas/receipts, injected counter behavior and all deletion/recovery effect ordering. No new policy, missing-record fallback, legacy Reader or stored format. L1/L2 and independent differential evidence complete; bundled Level 3 and its exact-SHA CI remain required.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0df1c4321b615b2c4c87826dd5380e540b670f2bc4186eb9fdc83abdf2f52bae",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "5d274a7ced13ffb256ac31db905477ae7207db99866ece41fd4d02e6dedcac6b",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "2eab414afdf69ac4ad2882ff349cf15ab0f29a124d287b7d675a3ee904ead272",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "a8e616bad7eb1d3b2f18743b630f0f0322c17605181360330564bfa650aa4818",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "4d9f91daee1cc656abd419dd5f2999f4a41a42a1b1471ac1c3c9a8debcc69099",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "04d3bc2812f286fd9ab1411be4b0bd70465d5304fd7e02ee1371377c9b0c2723",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "8e2296667e41a108cd475630c484023a6de0a5be8b9c7952677d73c3bc32c0a4",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "dbd8a2d5a150632be701582b5405ba2ad721b78935f791c0a6f1f7e649dc2dca",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "237c34aa82b877628e2a403da07821e38a53e1b33c1008ef2c6a14629e83dc10",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "416ba61d0f173631b58379bc96897d7a004ed2f3ec798e96dfc16b323ba58115",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "013733be602933dfc0a3efdc4ff5d064c2b24a1c255bd5605a8483a190ef0fa3",
+        "classification": "declaration",
+        "owner": "RetentionProtection",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "1e194566639827f0f07cdca64670ee4e23dc4d171c113e7128125615040acc9d",
+        "classification": "declaration",
+        "owner": "HistoryMeasurement",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "242de31279dbb3d29a62b1684a8e8b063b45a6d23307243af43ce6de5ae9dc88",
+        "classification": "declaration",
+        "owner": "HistoryMeasurement",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "ff8a28ea69d929a0941a9836441a0069fc831b618ea80ac3e692c7a3745d58c7",
+        "classification": "declaration",
+        "owner": "HistoryMeasurement",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "2d215460de6f4f83804cca17217aadb2e1308984662cbd816c080c63ff0fec4a",
+        "classification": "declaration",
+        "owner": "RetentionCounter",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "c71a98ef0b9616454d7d3f0f1c659fc75e4fc0454146dd5162ce58b05d0d9f4f",
+        "classification": "declaration",
+        "owner": "RetentionCounter",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "045a064a056d1e93eb79691c79542705abe61209341b1d0e3f6edeef3779afc8",
+        "classification": "declaration",
+        "owner": "RetentionCounter",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "753427790cfa803153c821026988bfa737baa6a37cf90873c4874db5f1fbd4bd",
+        "classification": "declaration",
+        "owner": "RetentionCounter",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "f29fe7b16d7a18ef4baa62e0512ed136229df5b35914c3713ef2a545e887a96c",
+        "classification": "declaration",
+        "owner": "RetentionCounter",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "6a3389fcf66732c7fbdb84cca8419b8b4a5a2c9a2492361dccf349bb4af2131f",
+        "classification": "declaration",
+        "owner": "RetentionCounter",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "d37bcbe614b73dab0cb9958fc79898dc55071eeb117667c71315e2c2c19b1ede",
+        "classification": "declaration",
+        "owner": "RetentionRow",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "057b6386d1fe6f58d94d87b8ace3af57cf00c26805e1fae38fd1efb24c3271fb",
+        "classification": "declaration",
+        "owner": "RetentionRow",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "8c78dec11c7df145b253212115689efa5a9dd13fc267d47766c99d9e021aa655",
+        "classification": "declaration",
+        "owner": "RetentionRow",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "937879579bb8877291648221912ab92074c30aa6129d78b4aceb8512a49a4502",
+        "classification": "declaration",
+        "owner": "RetentionRow",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "244b29ca80cdbb519aadb02f665013a4365d13d95609685f3a9fa445b9c0ae52",
+        "classification": "declaration",
+        "owner": "RetentionRow",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "1de30b3250ea304598881e035476b86da9db59a106e235fb739e9222971aabe4",
+        "classification": "declaration",
+        "owner": "RetentionRow",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "1d1a1b780a79b36976631f91d36707cea03d4602db9dff9fcb734a1d034925c6",
+        "classification": "declaration",
+        "owner": "RetentionRow",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "58d1206ec2a3e83082ddd76eda42ba6db597a848944c25be24e4902969ae12b7",
+        "classification": "declaration",
+        "owner": "RetentionTarget",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "a7721c1737ce7769c07a2f0e4dc038fbcdd4da258717938322bc97e8b2656ac5",
+        "classification": "declaration",
+        "owner": "RetentionTarget",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "1be7ed9c08beb03b9f9ff329029e75bbbc8a88b0fdfbecb28dcda6a3bc8757e0",
+        "classification": "declaration",
+        "owner": "RetentionTarget",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "284afeefa4b3f5a86799dfc0bc064975706a6c5bcc25859e2e110f38414827fb",
+        "classification": "declaration",
+        "owner": "RetentionIntent",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "55d7a2eb5ab88164de52f9fb2e99fef18c586dda10bd26062844667204b3009c",
+        "classification": "declaration",
+        "owner": "RetentionIntent",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "5b3e141df4efcfb0b71cdb6a22b4602841101c5f4947900cf502f0d1c1ed6083",
+        "classification": "declaration",
+        "owner": "RetentionIntent",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      },
+      {
+        "id": "ac2aad7896e91303c5a14661e5a0653661f81fb4a97aa05116336129042dc56a",
+        "classification": "declaration",
+        "owner": "RetentionIntent",
+        "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RetentionRow / RetentionTarget / RetentionIntent / RetentionCounter / HistoryMeasurement",
+        "declaration": "llm/services/history/retention_records.py",
+        "consumers": [
+          "llm/services/history/recovery.py",
+          "llm/services/history/retention.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/api.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_long_running.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_project_conversation_storage.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_turn_deletion.py",
           "tests/llm/test_usage_deletion.py"

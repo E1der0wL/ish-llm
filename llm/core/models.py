@@ -503,6 +503,7 @@ class Session:
     INVALID_AGENTS = 'Session agent_ids must be a list'
     NONCANONICAL_AGENTS = 'Session agent_ids must be unique and canonical'
     INVALID_EXECUTION_STATE = 'Session execution state requires its exact active Run declarations'
+    RETAIN = "retain"
     id: str
     project_id: str
     title: str
@@ -514,6 +515,10 @@ class Session:
     config: dict = field(default_factory=dict)
     agent_ids: list[str] = field(default_factory=list)
     storage_version: int = DOMAIN_STORAGE_VERSION
+
+    @property
+    def retained(self):
+        return self.metadata.get(self.RETAIN)
 
     @staticmethod
     def validate_agents(values):
@@ -548,6 +553,7 @@ class Message:
     CONVERSATION_DELETED = "conversation_deleted"
     DELETION_MARKER = True
     UNBOUND_RUN = None
+    PENDING_STATES = (MessageStatus.QUEUED, MessageStatus.STREAMING)
 
     id: str
     role: MessageRole

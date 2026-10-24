@@ -237,7 +237,7 @@ class ConversationStore(Conversation):
     INITIAL_OFFSET = 0
     NO_SIGNATURE = None
     ROLLBACK_KEY = "conversation"
-    PRUNE_PROTECTED_STATES = (MessageStatus.QUEUED, MessageStatus.STREAMING)
+    PRUNE_PROTECTED_STATES = Message.PENDING_STATES
     PENDING_PRUNE = "Cannot prune pending messages"
     INCOMPLETE_EVENT = "Incomplete conversation event; preserve the original journal"
 

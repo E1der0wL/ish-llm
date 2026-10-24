@@ -11,6 +11,8 @@ Session의 대화 저장과 모델에 전달할 문맥을 관리합니다. 재�
 | [conversation_records.py](conversation_records.py) | 대화 이벤트의 정규 필드·Writer/Reader·사전 검증과 JSONL 기술 형식을 소유합니다. |
 | [context.py](context.py) | ContextPolicy에 따른 공통 대화 선택입니다. 모델 입력 예산은 공용 CompletionPolicy가 담당합니다. |
 | [turns.py](turns.py) | Run별 요청·응답·추가 지시의 조회 묶음과 시점 복제 범위를 선택합니다. 새 저장소를 만들지 않습니다. |
+| [maintenance_records.py](maintenance_records.py) | 유지보수 경로·진단과 복구 진행 기록의 정규 선언입니다. |
+| [retention_records.py](retention_records.py) | 보존 후보·명시적 대상·삭제 의도·영수증과 계수 입력 projection을 소유합니다. |
 | [recovery.py](recovery.py) | stale Run/Step/Assistant 상태를 복구하고 대기 요청 재구성을 지원합니다. |
 | [retention.py](retention.py) | 기간·용량·토큰 등의 명시된 보관 정책에 따른 계획·보호 검사·정리를 담당합니다. |
 
@@ -72,3 +74,20 @@ ConversationEvent가 고정 이벤트 종류·필드와 변이 검증을 소유�
 ConversationJournal은 기존 JSONL 바이트 형식을, ConversationFileStamp는 증분 읽기의 파일
 identity·크기·수정 시각을 소유한다. fsync 후 상태 적용·rollback 무효화·부분 끝줄 거부·명시적
 prune의 원자 교체 순서는 유지하며, 토큰마다 전체 대화나 누적 본문을 복사하지 않는다.
+
+
+## 복구·보존 기록의 단일 Owner
+
+HistoryMaintenanceStorage가 기존 유지보수 경로를 소유하며 Session 연결 검사도 같은
+pending 조회를 사용한다. RecoveryDiagnostic/RecoveryProgress는 진단·진행 기록을,
+SessionRecovery는 Runtime과 명시적 복구가 공유하는 실행 없는 복구 처리를 소유한다.
+
+RetentionRow/RetentionTarget/RetentionIntent가 후보·명시적 대상·삭제 의도와 영수증을
+소유한다. 공개 계획과 결과의 dictionary 형식은 유지하고 서비스 내부에서는 projection의
+속성을 사용한다. HistoryRetention은 현재 참조·예약 사용량·외부 효과·재개와 전체 수신자
+그룹을 보호하고, 명시적 대상과 최신 version을 확인한 뒤 기존 순서대로 처리한다.
+보관 정책이나 새 자동 삭제·복구 기본값을 추가하지 않는다.
+
+RetentionCounter는 명시적으로 선택한 계수기에 전달하는 기존 role/content 입력과
+계수 결과 검증을 소유한다. 토큰 추정은 삭제 권한이나 CAS 증거가 아니다. 필수 기록의
+누락을 빈 값으로 대체하지 않으며 경로 배치·저장 형식·revision·트랜잭션 경계는 유지한다.

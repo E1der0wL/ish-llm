@@ -6604,3 +6604,122 @@ exit 0 (168문서/183 Python fence/1245 링크/37 anchor). `git diff --check` ex
 stale/확정 위반/검사 issue 0이다. 이 수치는 남은 범위를 나타내며 전수 완료가 아니다.
 관련 변경을 로컬 커밋으로 고정하여 Gate42를 실행하되, 안전성 수정의 최종 완료와 Push는
 전체 게이트 성공 뒤에만 선언한다. Hub 제품 변경은 llm 전수 완료 이후 진행한다.
+
+
+## Gate41 원격 Hub 최초 실패 — 증거 보존 및 동일 SHA 검증
+
+2026-10-24 11:46 UTC 조회에서 정확한 05bf5cf의 CI 40089353972 첫 Hub Job
+120858673367은 588개 발견/실행, 587 pass·0 failure·1 error·skip/xfail/xpass/누락/추가/중복 0,
+1489.256443초로 실패했다. `tests.hub.test_component_managers.RecordManagerTests.
+test_commands_open_shared_manager_import_edit_and_delete`의 실제 import/edit/delete 이전
+초기 `await eventually(lambda: view.connected)` (test line 197, 기존 3초 제한)에서
+TimeoutError가 발생했다. 제품 안전성 Assertion 실패나 환경 문제로 단정하지 않는다.
+원본 trace/집계는 `ci/05bf5cf9c93a9016514b241e7c35f902a51e7e5c/hub-job.html` 및
+`hub-job-summary.txt`에 보존했다. 전체 run 진행 중 로그 조회는 사용할 수 없었고 완료된
+Job의 공개 HTML에 있는 실제 JSON 결과를 확인했다.
+
+직전 원격 성공 Gate40 이후 이 SHA의 Hub 제품과 tests/hub는 변경되지 않았다. 이번 SHA의
+기존 로컬 Gate41 전체 588/588 결과에는 같은 모듈의 6개 모두 포함된다. 이미 검증한 같은
+소스의 집중 시험을 불필요하게 반복하지 않고 그 증거를 재사용한다. 과거 Gate36에서도 같은
+초기 연결 대기의 실패가 있었으나 그것을 이번 원인의 증명이나 통과 증거로 승계하지 않는다.
+LLM Job 종료 뒤 실패한 Hub Job 전체를 같은 SHA에서 재실행하여 실제 원격 결과를 확인한다.
+대기 제한·시험·Assertion·제품 코드는 변경하지 않으며 최초 실패를 삭제하거나 다른 실행의
+성공과 합쳐 단일 전체 실행으로 표현하지 않는다. 현재 원격 게이트는 미완료다.
+
+2026-10-24 11:56 UTC 최초 원격 run 종료 확인: LLM 2492/2492/2492,
+2000.475818초, 모든 bad 항목 0, 필수 단계 success. Hub의 위 1 error 때문에 전체 run은
+failure이며 원격 완료가 아니다. `attempt1-status.json`/`attempt1-run.json`/`attempt1-run.html`에
+전체 최초 결과를 별도 보존했다. `gh run rerun --repo E1der0wL/ish-llm --job 120858673367`
+exit 0 후 API에서 동일 SHA·run_attempt=2·in_progress를 확인했다. 전체 Hub Job의 필수 검사와
+588개 시험을 재실행하고 최초 성공 LLM Job은 보존한다. 최종 성공 시에도 두 실행의 출처를
+구분하여 보고해야 한다. 재실행의 성공은 아직 확인되지 않았다.
+
+
+## Gate42 — 대화 쓰기 전 무결성 수정의 전체 로컬 검증
+
+고정 SHA 83ebe73688c6abe31a550675e91b35d7b3549b9d에서 Query/Context/Conversation 변경을
+통합 검증했다. `python /workspace/llm-clean-resume/whole-ownership/gate-sequential.py
+whole-owners-group42-l3` exit 0. LLM discovered/started/pass 2502/2502/2502
+(1441.107218초), 이어서 Hub 588/588/588 (1104.101851초), 각 scope=full이며
+failure/error/skip/xfail/xpass/누락/추가/중복 0. 새 대화 무결성 회귀 10개를 포함하고
+기존 실제 효과·중단·재개 Assertion은 그대로다. 실행 전후 source
+`e3e959c8eb28c3f3b2f4b931046632f6bf0ebd031f56d36ea20b45f84f1a9f26`, input
+`f6210ac3a76875184ecd02e1261e3f257f9c1a93c8088283f75aa8106dc847c3` 일치.
+
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py group42-auxiliary`의
+정적 S1–S7·문서·R3·실제 SDK·LLM/Hub 환경 6개 명령 모두 exit 0. 동일
+Python3.12.14/Clang·Host d833790·고정 의존성·namespace/X11 환경이다.
+`verify-gate42-local.py` exit 0으로 고정 SHA, 전체 발견/실행/통과 ID, 모든 필수
+집계와 전후 동일성을 검증했다. 소스 수정 없이 한 번의 순차 LLM→Hub 전체 실행이다.
+
+기존 잘못된 입력의 저장/재열기 결함은 관련 집중·안전성과 전체 게이트에서 수정이 확인됐다.
+후속 llm History Owner 정리를 계속한다. Gate41 원격 Hub 재실행 결과를 추적 중이며
+이 Gate42 SHA는 아직 Push/원격 검증 전이다. llm 전수 및 hub 전수 완료를 뜻하지 않는다.
+
+
+## llm History 복구·보존 Owner — Level 1·2 완료, 다음 묶음 전체 게이트 대기
+
+기준 83ebe73688c6abe31a550675e91b35d7b3549b9d. recovery.py/retention.py의 고정
+진단·진행 기록·계획 증거·대상/후보·삭제 의도·영수증을 maintenance_records.py와
+retention_records.py의 각 Owner로 연결했다. 서비스 내부의 raw dictionary 재해석을
+typed projection으로 대체하고 공개 dictionary와 저장 byte/field 의미는 유지했다.
+SessionRecovery가 Runtime/명시적 복구의 기존 단일 처리를 소유한다. 계수 입력·결과 검증은
+RetentionCounter가 소유하며 선택되지 않은 계수기나 보관 정책을 만들지 않는다.
+
+공유 변경은 Session.retained의 기존 metadata 조회, Message.PENDING_STATES의 기존
+두 상태, SnapshotFile.total_bytes, Session 연결의 동일 pending 경로 조회로 제한했다.
+storage.py와 sessions.py 전체를 검토 완료로 분류하지 않는다. 잘못된 source·명시적 대상,
+recipient 일부 삭제·현재 reservation·외부 효과·Checkpoint 참조의 거부와 fail-closed,
+intent 기록→재검사→prune→Run 삭제→receipt→intent 제거 순서를 그대로 유지한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/history-maintenance-draft/ast-proof.py`
+exit 0: 기존 전체 함수 169개의 Owner 전개 동등성. representation이 바뀐 10개 함수는 이
+주장에서 제외했다. 같은 경로 `values-proof.py`, `effects-proof.py` exit 0: 독립 입력·오류와
+실제 완료/pinned/attached/output-gap 저장 데이터의 이전/현재 계획을 비교했다. 실제 모델
+호출 2회 이후 planning이 원본 트리 bytes를 바꾸거나 호출을 추가하지 않음을 확인했다.
+별도 actual-planning probe 1개 pass (5.165초), 기존 회귀 집계에 합산하지 않는다.
+동일 경계의 모든 도달 callback 실패를 주입해 오류·호출 순서·기록 결과를 비교한 수치는
+domain_declarations 5, message_pending_states 1, domain_active_membership 20, counter_configuration 32, diagnostic_projection 72, retention_marker 6, recovery_path 1, intent_path 1, receipt_path 1, pending_path 4, real_snapshot 1, message_bytes 1, snapshot_bytes 5, plan_proof 9, real_completed_retention 12, real_completed_recovery 1, real_pinned_retention 12, real_pinned_recovery 1, real_attached_retention 12, real_attached_recovery 1, real_output_gap_retention 12, real_output_gap_recovery 1, apply_trace 72, apply_callback_failure 22, finish_intent_trace 52, finish_callback_failure 167, recovery_apply_trace 12, recovery_callback_failure 57, retention_recovery_trace 4, retention_recovery_failure 8.
+이 differential은 실제 파일/중단/재개 회귀를 대체하지 않는다.
+
+- `whole-history-maintenance-l1-01`: discovered/started/pass 98/98/98, exit 0, 47.74053초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-history-maintenance-l1-01/llm.json --modules tests.llm.test_operations_schema tests.llm.test_history_retention_integrity tests.llm.test_long_running tests.llm.test_memory_history_integrity tests.llm.test_transactions tests.llm.test_conversation_mutation_integrity`. source `3cce585b9d4dc76cba3c528d1d9b53809cce7048c0cc7d815be04e957815267c`, input `74c929a47e56e82041a89652ea369bfe6776a3d93c9fe8f99db562d8fe673972`.
+
+- `whole-history-maintenance-l2-01`: discovered/started/pass 84/84/84, exit 0, 57.832732초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-history-maintenance-l2-01/llm.json --modules tests.llm.test_recovery_probe tests.llm.test_run_reference_integrity tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_turn_deletion tests.llm.test_memory_conversation tests.llm.test_project_conversation_storage`. source `3cce585b9d4dc76cba3c528d1d9b53809cce7048c0cc7d815be04e957815267c`, input `74c929a47e56e82041a89652ea369bfe6776a3d93c9fe8f99db562d8fe673972`.
+
+- `whole-history-maintenance-hub-01`: discovered/started/pass 27/27/27, exit 0, 81.914648초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-history-maintenance-hub-01/hub.json --modules tests.hub.test_history_retention tests.hub.test_request_history tests.hub.test_turn_deletion tests.hub.test_component_managers`. source `3cce585b9d4dc76cba3c528d1d9b53809cce7048c0cc7d815be04e957815267c`, input `74c929a47e56e82041a89652ea369bfe6776a3d93c9fe8f99db562d8fe673972`.
+
+세 실행 모두 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견·실행·통과 ID
+일치, LLM 선택 ID 간 중복 0. 전후 및 실행 간 제품/시험/Fixture·discovery·의존성·환경
+source/input 동일. Python3.12.14/Clang, Host d833790, 기존 namespace/X11 환경이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0, 호출 한도 누락이 실제 효과 Assertion으로
+검출됐다. 원래 Assertion과 제품/시험 실행 정책·저장 Schema는 변경하지 않았다.
+
+범위는 History 계약·삭제/복구·장기 문맥·실제 트랜잭션·대화 무결성 및 직접 Hub 소비자,
+승인·사용량 보존·Tool 효과·Checkpoint·RAG·수명주기 안전성이다. 제품 변경은 기존 Owner
+의미/상태/파일 효과의 동등 범위로 한정됨을 증명했으므로 이 소단계의 전체 회귀는 유예한다.
+다음 관련 llm 변경과 Gate43에서 전체 LLM/Hub·정적 감사·R3·문서·환경을 통합 검증 후
+Push한다. 이 기록은 로컬 소단계 완료이며 상위 전체 또는 원격 CI 완료가 아니다.
+
+
+## Gate41 원격 재검증 완료 및 Gate42 Push
+
+2026-10-24 12:21:32 UTC, 정확한 05bf5cf의 [CI 40089353972](https://github.com/E1der0wL/ish-llm/actions/runs/40089353972)
+attempt 2의 전체 필수 Job/단계 성공을 확인했다. LLM은 첫 실행 2492/2492/2492
+(2000.475818초)를 그대로 보존한 Job이고, Hub는 두 번째 실행 588/588/588
+(857.283177초)이다. 두 실행 모두 full scope, 모든 bad 항목 0. LLM의 원래/보존 Job 실행
+시각 동일성도 확인했다. 처음 Hub의 1 error 기록은 그대로 보존하며, 두 실행을 새 단일
+전체 실행으로 합치지 않는다. `verify-gate41-ci-retry.py` exit 0 및 attempt2-verified.json에
+정확한 SHA·실제 집계·필수 단계·실행 출처 검증을 저장했다.
+
+Gate42의 이미 검증된 83ebe73688c6abe31a550675e91b35d7b3549b9d를 보호 ref와 조상
+확인 후 refactor/llm-clean에 Push했다. main/backend/PR #1은 변경하지 않았다.
+2026-10-24 12:43:21 UTC [CI 40093618572](https://github.com/E1der0wL/ish-llm/actions/runs/40093618572)는
+정확한 SHA의 전체 LLM/Hub 회귀 진행 중이다. 이 시점은 원격 통과가 아니다. 이후 History
+변경은 이 SHA의 검증 범위에 포함되지 않는다.
+
+정적 종료 `python /workspace/llm-clean-resume/whole-ownership/close-checks.py history-maintenance-draft`:
+S1–S7 exit 0 (finding 84, new/stale 0), 감사 회귀 16개 pass (3.398초), 문서 검사
+exit 0 (168문서/183 Python fence/1247 링크/37 anchor). `git diff --check` exit 0.
+전수 분류 582파일, 미검토 215(llm 38/Hub 177), 미분류 11929, 미완료 연결 계약 3,
+stale/확정 위반/issue 0. History 소단계를 독립 로컬 커밋으로 보존하고 다음 llm 관련 범위를
+계속한다. 전체 refactor 완료나 Hub 구현 착수를 의미하지 않는다.

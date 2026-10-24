@@ -29,6 +29,7 @@ from llm.core.plans import TurnDeletionPlan
 from llm.core.checkpoints import ResumeAbandonment
 from llm.services.history.conversation import Conversation, ProjectConversations, conversation_store
 from llm.services.history.context import ConversationContextBuilder
+from llm.services.history.maintenance_records import HistoryMaintenanceStorage
 from llm.services.lifecycle.access import ProjectAccess
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.logging import log_event
@@ -334,7 +335,7 @@ class SessionManager:
     @workspace_locked
     def attach_runtime(self, session: Session) -> None:
         self._owner(session)
-        if any((session.paths.state / "maintenance").glob("*.json")):
+        if HistoryMaintenanceStorage.pending(session):
             raise ValueError("Session maintenance is pending; recover retention before starting runtime")
         with self._runtime_lock:
             key = (session.project_id, session.id)
