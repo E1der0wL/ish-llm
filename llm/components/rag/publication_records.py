@@ -168,7 +168,7 @@ class GenerationRow:
 
     @classmethod
     def create(cls, generation, files):
-        return {cls.GENERATION: generation, cls.BYTES: sum(item[SnapshotFile.BYTES] for item in files.values()),
+        return {cls.GENERATION: generation, cls.BYTES: SnapshotFile.total_bytes(files),
                 cls.REVISION: revision_token(files)}
 
 

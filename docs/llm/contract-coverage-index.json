@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 582,
-    "unreviewed_files": 208,
+    "unreviewed_files": 206,
     "stale_files": 0,
-    "unclassified": 11727,
+    "unclassified": 11593,
     "violations": 0,
     "incomplete_contracts": 4,
-    "unreviewed_dynamic_paths": 210,
+    "unreviewed_dynamic_paths": 208,
     "unreadable_files": 0,
-    "candidates": 21614,
+    "candidates": 21570,
     "issues": 0
   },
   "files": [
@@ -1924,7 +1924,7 @@
     {
       "path": "llm/components/rag/jobs.py",
       "status": "reviewed",
-      "sha256": "5a38d07310432caea0f217bfbbd2f3a82ea020939981ff132c525fa4544d10d2",
+      "sha256": "59869d3b827bc1a184669f2e335c40b4ee027a7517158ab1b1f2c3e4d64b5721",
       "candidates": 39
     },
     {
@@ -1942,7 +1942,7 @@
     {
       "path": "llm/components/rag/publication_records.py",
       "status": "reviewed",
-      "sha256": "cb5e4a54ce93b6268b0238cd3df86f94cf486cdc6a347e5fa2e82c69c52e07c5",
+      "sha256": "87a8fd0f64379b596b235014649141d4b44dfee697e2941c9a684506004433f7",
       "candidates": 30
     },
     {
@@ -3220,7 +3220,7 @@
     {
       "path": "llm/services/infrastructure/README.md",
       "status": "reviewed",
-      "sha256": "f3f96903bf4f53dac1c3972e907eef5c0fb06b105e0fd0d0ecd120821bb1fd1d",
+      "sha256": "c3675da44dc21ff57bc0f8645bfb3b4c6e6f07f7a15dff3399dc6de49c1d8f23",
       "candidates": 0
     },
     {
@@ -3237,9 +3237,9 @@
     },
     {
       "path": "llm/services/infrastructure/backups.py",
-      "status": "unreviewed",
-      "sha256": "059be805bd7f1b0ad1a9cc6c980eb9ba0812d0ce54c58e1f3786530a67518704",
-      "candidates": 39
+      "status": "reviewed",
+      "sha256": "a1550a787692838f54132d50c4550a47abb18f09f7ac4803a1c54d9df54f6d38",
+      "candidates": 24
     },
     {
       "path": "llm/services/infrastructure/journal.py",
@@ -3303,9 +3303,9 @@
     },
     {
       "path": "llm/services/infrastructure/storage.py",
-      "status": "unreviewed",
-      "sha256": "c80f8810755dd22b7d17c793ed7c4ac0c3570154c3c545a778149b4d54d5dc3c",
-      "candidates": 94
+      "status": "reviewed",
+      "sha256": "811a96e21e8cf399513282c5fd7f8053e7dd7f4ea22f89faaf319a4418b64a5d",
+      "candidates": 66
     },
     {
       "path": "llm/services/infrastructure/transactions.py",
@@ -3346,8 +3346,8 @@
     {
       "path": "llm/services/lifecycle/projects.py",
       "status": "unreviewed",
-      "sha256": "a3b6062a10099132d0de622639faa1e44579d1b1ea566087d8b56e277f4faabb",
-      "candidates": 122
+      "sha256": "4b159569474c74e5168cc04e30406d477a5e11340686b482f07634376d2426f9",
+      "candidates": 121
     },
     {
       "path": "llm/services/lifecycle/references.py",

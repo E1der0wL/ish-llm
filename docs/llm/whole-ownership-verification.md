@@ -6781,3 +6781,52 @@ Owner·검증 근거와 함께 개별 재분류했다. 검사를 비활성화하
 전수 분류 582파일, 미검토 208(llm 31/Hub 177), 미분류 11727, 미완료 연결 계약 4,
 stale/확정 위반/issue 0. 추가 1개는 Transaction 예약 경로 연결로, 다음 단계에서 해소한다.
 `git diff --check` exit 0. 로컬 소단계 커밋만 보존하고 Gate43 전에는 Push하지 않는다.
+
+
+## llm 저장 primitive·삭제 의도·백업 manifest — Level 1·2
+
+기준 010fa42. storage.py의 파일 형식·경로·오류·취소 상태 선언을 정리하고,
+DeletionIntent가 기존 삭제 기록의 단일 Writer/Reader와 검증된 이름 projection을
+소유하도록 연결했다. BackupManifest가 기존 버전/파일 목록을, DirectoryBackups가
+archive 경로를 소유한다. 공개 verify 결과는 기존 dictionary이고 restore 내부는
+Owner projection을 사용한다. 파일 형식·버전·metadata·삭제 승인 의미를 바꾸지 않았다.
+
+ProjectManager.restore_backup은 DirectoryBackups.project_root를 사용한다. 기존 주입
+backups 계약에 새 메서드 요구를 추가하지 않았다. 이미 감사한 RAGJobs/GenerationRow의
+바이트 합산은 SnapshotFile.total_bytes로 좁게 연결했고 기존 리뷰·소비 계약을 보존했다.
+projects.py 전체 검토 완료를 선언하지 않는다. NO_TRANSACTION의 기존 선언을 재사용하며
+JSON 직렬화→이전 상태 보존→write/fsync/replace→부모 fsync 순서와 취소 drain을 유지한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/storage-primitives-draft/ast-proof.py`
+exit 0: 기존 전체 함수 120개 동등성. 표현이 바뀐 recover_deletions 및 backup
+create/verify/restore 4개는 이 주장에 포함하지 않았다. 같은 경로 `values-proof.py` exit 0:
+intent_value_errors 22, actual_deletion_recovery 50, actual_backup_create 4, backup_fault_create 9, actual_backup_verify 6, actual_backup_restore 4, backup_fault_restore 7. 실제 원본/결과 파일 트리·bytes,
+거부된 삭제의 무변경, 백업 파일 callback의 모든 도달 실패 지점·예외/효과 순서를 이전 구현과
+비교했다. 최초 probe의 DirEntry 객체 identity 비교 차이는 외부 검증기의 PathLike 정규화로
+수정했으며 제품 차이나 통과 시험으로 집계하지 않았다. 초기 원시 probe 로그와 최종 결과를
+분리 보존했다. 기존 실제 프로세스 중단/복구·원본 보존 Assertion은 수정하지 않았다.
+
+- `whole-storage-primitives-l1-01`: discovered/started/pass 86/86/86, exit 0, 29.604341초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-storage-primitives-l1-01/llm.json --modules tests.llm.test_operational_storage tests.llm.test_backup_owner_integrity tests.llm.test_current_contracts tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions`. source `4ebbfb83797cbca5844758efa1c4d8d41207029b9a16663837a5c22e7f699301`, input `5cdfcca6db82a6503cb5c295da49c256571c41d4c740c03a428b6a3e4f1b2cae`.
+
+- `whole-storage-primitives-l2-01`: discovered/started/pass 106/106/106, exit 0, 57.847747초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-storage-primitives-l2-01/llm.json --modules tests.llm.test_locking_io tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_rag_job_integrity tests.llm.test_rag_corpus_integrity tests.llm.test_component_record_integrity tests.llm.test_memory_history_integrity`. source `4ebbfb83797cbca5844758efa1c4d8d41207029b9a16663837a5c22e7f699301`, input `5cdfcca6db82a6503cb5c295da49c256571c41d4c740c03a428b6a3e4f1b2cae`.
+
+- `whole-storage-primitives-hub-01`: discovered/started/pass 24/24/24, exit 0, 44.374862초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-storage-primitives-hub-01/hub.json --modules tests.hub.test_history_retention tests.hub.test_rag_retention tests.hub.test_rag_jobs`. source `4ebbfb83797cbca5844758efa1c4d8d41207029b9a16663837a5c22e7f699301`, input `5cdfcca6db82a6503cb5c295da49c256571c41d4c740c03a428b6a3e4f1b2cae`.
+
+각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견/실행/통과 ID 일치,
+LLM 선택 집합 중복 0. 전후 및 실행 간 source/input·제품/시험/Fixture·discovery·의존성·
+Python3.12.14/Clang·Host d833790·namespace/X11 환경 동일. R3
+`python -m tests.llm.check_budget_mutation` exit 0으로 한도 누락을 실제 효과 Assertion이 검출했다.
+
+범위는 backup/restore·현재 형식·삭제 참조·실제 트랜잭션/잠금·승인·예산·Tool 효과·
+Checkpoint·RAG·Component 기록·장기 문맥 무결성과 직접 Hub 보관/RAG 소비자다.
+공통 primitive의 기존 함수와 효과 경계는 동일하고 네 개 표현 변경은 실제 파일/장애 비교 및
+관련 통합 안전성 검증으로 한정했다. 전체 회귀는 History/관찰 및 다음 출력/트랜잭션 정리와
+Gate43으로 묶는다. 이 소단계는 전체 llm/Hub 완료 또는 원격 성공을 뜻하지 않는다.
+
+정적 종료 `python /workspace/llm-clean-resume/whole-ownership/close-checks.py storage-primitives-draft`:
+S1–S7 exit 0 (finding 81, new/stale 0), 감사 회귀 16개 pass (3.368초), 문서 검사
+exit 0 (168문서/183 Python fence/1247 링크/37 anchor). BackupManifest의 이동된 버전
+비교 occurrence 1개는 exact-int와 기존 현재 형식 시험을 근거로 개별 분류했다.
+전수 분류 582파일, 미검토 206(llm 29/Hub 177), 미분류 11593, 미완료 연결 계약 4,
+stale/확정 위반/issue 0. `git diff --check` exit 0. 이 로컬 소단계는 Gate43 대기 상태로
+보존하며 다음 출력 저널/트랜잭션 Owner 작업을 이어간다.

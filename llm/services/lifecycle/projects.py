@@ -457,7 +457,7 @@ class ProjectManager:
     def restore_backup(self, source: Path) -> Project:
         """동일 ID가 없는 workspace에 복원한다. 기존 프로젝트/실행은 덮어쓰거나 재실행하지 않는다."""
         self.backups.verify(source)
-        project = self._validate_archive(Path(source) / "project")
+        project = self._validate_archive(DirectoryBackups.project_root(source))
         destination = self.repository.paths(project.id).root
         self.backups.restore(source, destination,
                              validate=self._validate_archive)

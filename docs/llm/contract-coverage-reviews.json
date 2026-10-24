@@ -53726,8 +53726,8 @@
   },
   {
     "path": "llm/components/rag/jobs.py",
-    "sha256": "5a38d07310432caea0f217bfbbd2f3a82ea020939981ff132c525fa4544d10d2",
-    "reason": "Complete strict input/document records and their direct/dynamic import/callback consumers reviewed. Prior full chunk/identity/import-only consumer reviews preserve every existing classification. Real regression caught the removed catalog method call; fixed current-source L1/L2 and unchanged safety/fault Assertions pass. Component remains pending whole-file scope and these related stages require an escalated full integration gate.",
+    "sha256": "59869d3b827bc1a184669f2e335c40b4ee027a7517158ab1b1f2c3e4d64b5721",
+    "reason": "Complete strict input/document records and their direct/dynamic import/callback consumers reviewed. Prior full chunk/identity/import-only consumer reviews preserve every existing classification. Real regression caught the removed catalog method call; fixed current-source L1/L2 and unchanged safety/fault Assertions pass. Component remains pending whole-file scope and these related stages require an escalated full integration gate. Only existing snapshot byte summation delegates to SnapshotFile.total_bytes. Complete prior domain contracts/decisions stay intact; the previous/current whole function is identical after projection expansion.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -53970,18 +53970,41 @@
         "owner": "RAGJobs",
         "declaration": "llm/components/rag/jobs.py",
         "consumers": [
-          "llm/components/rag/data.py"
+          "llm/components/rag/data.py",
+          "llm/components/rag/jobs.py",
+          "llm/components/rag/publication_records.py",
+          "llm/services/history/retention.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
-          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_catalog_integrity.py",
           "tests/llm/test_rag_corpus_integrity.py",
           "tests/llm/test_rag_input_integrity.py",
           "tests/llm/test_rag_job_integrity.py",
-          "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_prepared_integrity.py",
           "tests/llm/test_rag_retention_policy.py",
-          "tests/llm/test_operations_schema.py",
-          "tests/hub/test_resource_tools.py"
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -54858,8 +54881,8 @@
   },
   {
     "path": "llm/components/rag/publication_records.py",
-    "sha256": "cb5e4a54ce93b6268b0238cd3df86f94cf486cdc6a347e5fa2e82c69c52e07c5",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately.",
+    "sha256": "87a8fd0f64379b596b235014649141d4b44dfee697e2941c9a684506004433f7",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Only existing snapshot byte summation delegates to SnapshotFile.total_bytes. Complete prior domain contracts/decisions stay intact; the previous/current whole function is identical after projection expansion.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -55048,24 +55071,46 @@
         "owner": "CorpusIdentity/CorpusPointer/CorpusControl/CorpusCatalog",
         "declaration": "llm/components/rag/publication_records.py",
         "consumers": [
+          "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/component.py",
           "llm/components/rag/corpus_storage.py",
-          "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/data.py",
-          "llm/components/rag/jobs.py"
+          "llm/components/rag/jobs.py",
+          "llm/components/rag/publication_records.py",
+          "llm/services/history/retention.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
           "tests/llm/test_rag_catalog_integrity.py",
-          "tests/llm/test_rag_retention_policy.py",
-          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_corpus_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
           "tests/llm/test_rag_optimization.py",
           "tests/llm/test_rag_query_evidence.py",
-          "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_batch_identity.py",
-          "tests/llm/test_rag_components.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_component_storage_integrity.py",
-          "tests/hub/test_rag_retention.py"
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -70673,10 +70718,10 @@
   },
   {
     "path": "llm/services/infrastructure/README.md",
-    "sha256": "f3f96903bf4f53dac1c3972e907eef5c0fb06b105e0fd0d0ecd120821bb1fd1d",
+    "sha256": "c3675da44dc21ff57bc0f8645bfb3b4c6e6f07f7a15dff3399dc6de49c1d8f23",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit.",
+    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit. Added current deletion-intent/backup projection and shared snapshot accounting; transaction/output work remains explicitly pending.",
     "contracts": [
       {
         "owner": "Infrastructure observation/ownership guide",
@@ -71625,6 +71670,634 @@
           "tests/llm/test_locking_io.py"
         ],
         "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/storage.py",
+    "sha256": "811a96e21e8cf399513282c5fd7f8053e7dd7f4ea22f89faaf319a4418b64a5d",
+    "reason": "Complete files reviewed for dynamic names/extension metadata, current schema validation, owned path and link checks, explicit deletion protection, checksums/revision bytes, injection/overrides, staging publication, all fsync/error/finally ordering, transaction enrollment and cancellation draining. Internal fixed records use their Owner projections; no source recovery, compatibility path, policy default or re-execution was added.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4d612ed35b3795ef18d8e249b2365e5915c62272ab8b7c5497940aedf0a25323",
+        "classification": "declaration",
+        "owner": "StorageFormat / StorageDrain / SnapshotFile / DeletionIntent / DeletionJournal / StorageIO",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "0a66d641f615b13c0e8dc8e99a2990c9947dad0fb227a0de36bda7b377585596",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "a9128de648ca3d043075f173b1a6109db5a7197edee7758de307df7682901d43",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "4d6df900eb2926603e7403941ab60534ce44cddf8db67bf5eaf2525fb3c1003e",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "b0bfbc6efe54463b40feb5922aa276ccefb5a3ce43fb4b1f540e0cf3c5b10dd5",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "3ff167e19a27fccefca4c81fc6edc630907b55c46709f0602827c4eeb5b3e949",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "0de8db522e6bfdd248c23a484cb413c2408ffc3e07f18a941621e45dfd1eabd1",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "9c9ca2fe16ef3427936a00ab6f43e5d56a5ec6b9c460daf48096552371b363e6",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "77780b383dc2126b9968b5d052769fc9863cd235d5359797d0679a73cecc51d0",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "4f7a00048f8f26aa25c74e4691c83f60dd15be457bc0ffedd18e2af99dec2f28",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "91e84024986295e73c73a5b75c89cdf7574fc81f0082c6268d825e378a94c15d",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "5af78381254234d536ef338878c4c57b816773f1e63cbb91a3854a7617a4af5d",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "afbf0a4378966cfaf00b6a82e1da37f8426e586ef16d94eb7b28e28c387c0653",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "0aa71d8194cdc8ca79ab3a3ba6f655fe1ac7fd15c9756c5918488f39547413c7",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "a10d08d933d384096cc2131e2e0645579726a3f5821f0890e48a06f49b3903a5",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "d4fad342025cc3782124c17975860ed95dea9409f157d6be4dc93800584a8255",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "daa61734a85e8e2aa669449ef7d1106d2e24125bc3866682b73bef9fe38e91d4",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "1f6ed728cb82542c6df806bd694901b1b9a8ad5cfbc217d5d9b13c702cd82793",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "10a68d0bd1582cfefde15d1b223a08df19c64a22c68ecf42be9e923e299e6179",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "22a8acf84a4471237144dcb19f4661f34d9a58e8744cc94c64953ace24430557",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "5add430da78e06ee0aa4e2043bcf094fbf5880a301b75f51fa7812d822def171",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "cc884abb99d9ca42484d90ae02d7b1eaaaaac494c5fc54b5d08d0fe868c81102",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "b6acf63290fe544b18a50e1afb9c379cc0cd3e05f135884ca631d04b4c89f0b9",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "7b1b1d5b3270c770393007d1b524f43c6b35fd0744f3dc9562610d09b3156fc3",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "7284fcc1318330334642e5ebb5ab81e5a023e85f2425b63739942522271a0c5b",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "7e4b63bd844e44075f43e378657da134559cba862cf2eb36fede45af63bff87d",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "255fad0bbc74c5d3dc385463a6ea0960078eedb056378ae728c74aaf64fd95ce",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "72cb82601a9671493d5f7adbbd5e3c8cf758b02feace1b7a76e9137da6828d5e",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "95c502c09d3dac393abc2af0791ceadb137247fd799935741b6c8d3f7ea02fba",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "b4fd14513256cc6e05a85b8944f6e6c622af43d725836dd9e3e2075937496c87",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "aad5f436dcf3371b64dc84dbf3be7e71b1a2b2f9002ddef114a8057a9c5ca36a",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "71c76cd841fff21463cf369d6538b5961e21d12e2256da430cf968f08cf059a8",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "1bd4ec94915357a6a5d7555849396fdb326b88490c35b56fc04a79e48b50281b",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "c1b407ead93acc24f011db3cf2ec187601de2d2f060fe28712458f29e9895fde",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "00ea0fe046545f0954b28862593c6bb375ac0e599481164690fde18fd54dc91a",
+        "classification": "declaration",
+        "owner": "StorageFormat",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "c3d6c1756f9901317bebff3815307f01fb918fcc07d73c6f607d49f8a2a1dea9",
+        "classification": "declaration",
+        "owner": "StorageDrain",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "d841f27a0865b1aa0bbf998fbd04259ff6e8ac2728695ff592bed0ff158a2021",
+        "classification": "declaration",
+        "owner": "StorageDrain",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "2667f06fa5a8e9ba6f46bb64b4307e929cbd60e68e33fa47b1538a587bebea4a",
+        "classification": "declaration",
+        "owner": "SnapshotFile",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "7820fa200fcb44bcb585c6a8b9a111b4c7ee5e14065c0c5608dbd3cdf259b993",
+        "classification": "declaration",
+        "owner": "SnapshotFile",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "53fcda210daf2933d364e35692dc41fc91285355733468e8bb96084d98980bc6",
+        "classification": "declaration",
+        "owner": "DeletionJournal",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "8376512a5c8fce342fe91863a707c5572af5d0ae1ace27a286cf554d3409c4b3",
+        "classification": "declaration",
+        "owner": "DeletionJournal",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "19748e1ad79427eba9dc453d898e9f01216b538617e6c92e3827073b221a54fe",
+        "classification": "declaration",
+        "owner": "DeletionJournal",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "40c8ae41bf3c2f94bae63815b8903b6d5eace0c57eb35ee7af53cd88b1621711",
+        "classification": "declaration",
+        "owner": "DeletionIntent",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "21764527d97179e1d49ff45cdc740d8d730de2b6ddaeb6c6ee436aeb573eb1cd",
+        "classification": "declaration",
+        "owner": "DeletionIntent",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "cb6c8825e33c96e57ba24bb3c8b7b18c2eff09b04c6d942445de5ef782354bca",
+        "classification": "declaration",
+        "owner": "DeletionIntent",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "2b74cff72345a526afe785cdb6381d36698874fd92646ba7954f98ec82c14f16",
+        "classification": "declaration",
+        "owner": "DeletionIntent",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "397ea649ef603c0c48acee19d916a5eca7dd92f67d2ecbf6216cbd7ab7e24bd6",
+        "classification": "declaration",
+        "owner": "DeletionIntent",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "96c12b02078cb15b4f17932a8cd1c32e86c05a53352a864e7dd225ca6d63ac43",
+        "classification": "non_contract",
+        "owner": "check_revision",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "85b9f3047aa15196352203d07344752e0088aa9812f70d455a68bb515517d871",
+        "classification": "non_contract",
+        "owner": "sync_directory",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "5b379a221cecdb726f2a3906cdf43896fbe1e02c01044cb32eecd469938e7659",
+        "classification": "non_contract",
+        "owner": "atomic_json",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "19e9c54af1226beae9bd358696bc1589f7ff90a6e995a2dde26f3a3b5c7270fb",
+        "classification": "non_contract",
+        "owner": "atomic_bytes",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "ea5ce0ae032c2c28ff2e81986f4103e5e883ed844753a50f0e57e6cc543a9e03",
+        "classification": "non_contract",
+        "owner": "prepare_replace",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "42d95ad31041c5966c0cc29b84e4adee6b3ef38e2ecb53e63a1f61d6ca7fdbd5",
+        "classification": "non_contract",
+        "owner": "make_directory",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "2774741ff443f39ca321e8ab8878a6b8ba621a8fc462fdc44ee1ef80158eb2b7",
+        "classification": "non_contract",
+        "owner": "prepare_create",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "a6738548ba072ed0bdb9ccc18d740be0944f35e05a3773ec39160a6e4c27800a",
+        "classification": "non_contract",
+        "owner": "append_bytes",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "4d0c55bb4af4e75c924a570ccc3864ba40c10fc8bafb590718a36b062dd93e20",
+        "classification": "non_contract",
+        "owner": "unlink_file",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "c0b84344ffd9932a535ec76a095e570298f404532a1061a814dcc2c4088e8c04",
+        "classification": "non_contract",
+        "owner": "read_domain_record",
+        "reason": "Python exception-chaining suppression syntax; the new safe contextual message remains declared by its storage boundary. No missing value is reconstructed."
+      },
+      {
+        "id": "cab99db226caedfa1bf6009a0f4110c362400097e1b622989106db38ce6f09be",
+        "classification": "non_contract",
+        "owner": "atomic_domain_json",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "dae90af86c4dbe80967971686e8cf9efe7ebcf62c32d209cdd92596ba11f588b",
+        "classification": "non_contract",
+        "owner": "remove_owned_tree",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "21fcb07894e5f64ee982270313d8d8b06660a075165c089464b60ab2b7f02e65",
+        "classification": "non_contract",
+        "owner": "remove_named_tree",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "c45ad070058ba468a535ffde45cc8b6253337b809d70325426937c22052f5cd2",
+        "classification": "non_contract",
+        "owner": "_remove_tree",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "b9aeda95f213edc954d9270cb9328636f8ff535e6faeb521497439dec7b21c7e",
+        "classification": "non_contract",
+        "owner": "_remove_tree.fail",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      },
+      {
+        "id": "e760e855f2d04f69c0ff40742a3a0003653e77b70092a748ba9032e9bd7dc611",
+        "classification": "non_contract",
+        "owner": "async_method",
+        "reason": "Callable variadic type annotation syntax only, not a runtime sentinel or fixed schema value."
+      },
+      {
+        "id": "b018aee258e9e38a492d7e7c24a34c586f1d97506dfb8bf3b7d14ebb9576c1a9",
+        "classification": "non_contract",
+        "owner": "async_method",
+        "reason": "Callable variadic type annotation syntax only, not a runtime sentinel or fixed schema value."
+      },
+      {
+        "id": "88601fdbde2cee2882b83d8d75ecfd0fcf4cfacf5646dcf5a94174b6bad65746",
+        "classification": "declaration",
+        "owner": "StorageIO",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "40f03438b1ddd2db6792c9baf1598732ecc7c1a3672dadb3ce6537b930a84c98",
+        "classification": "non_contract",
+        "owner": "StorageIO.__init__",
+        "reason": "Python None return annotation only, not a product default or stored state."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "StorageFormat / StorageDrain / SnapshotFile / DeletionIntent / DeletionJournal / StorageIO",
+        "declaration": "llm/services/infrastructure/storage.py",
+        "consumers": [
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/retention.py",
+          "llm/components/rag/jobs.py",
+          "llm/components/rag/publication_records.py"
+        ],
+        "tests": [
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_rag_corpus_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/backups.py",
+    "sha256": "a1550a787692838f54132d50c4550a47abb18f09f7ac4803a1c54d9df54f6d38",
+    "reason": "Complete files reviewed for dynamic names/extension metadata, current schema validation, owned path and link checks, explicit deletion protection, checksums/revision bytes, injection/overrides, staging publication, all fsync/error/finally ordering, transaction enrollment and cancellation draining. Internal fixed records use their Owner projections; no source recovery, compatibility path, policy default or re-execution was added.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "77502dc341bf4970d2ca68f216c8d47c428ddbc1c9eca4e5a8c99a51c3bc5152",
+        "classification": "declaration",
+        "owner": "BackupManifest",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "ba0473a423c7fad0277deac7742bd39d810dcff89390e70d47b156818fb70ae7",
+        "classification": "declaration",
+        "owner": "BackupManifest",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "f30294d943737400b3397df72bb90e7c29acf75fa56583ff7dd57e2b4f6e8e4e",
+        "classification": "declaration",
+        "owner": "BackupManifest",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "d7014837b1bf63df36e994f3b54063e87ecfb345a1ae9c4c1e124e16ba4c7f91",
+        "classification": "declaration",
+        "owner": "BackupManifest",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "4409f6067f36d3be06950b5a987f018283042e718365cee89bb02047e47b1888",
+        "classification": "declaration",
+        "owner": "BackupManifest",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "e1ce822acc31911ec2239d9aa893c137b2f5dc184de41facf1e2c2d2623ec7f5",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "d0761a128d554f5bd227ef803e3d524d29e22253ec9fdb9f11ff4cf2235330a7",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "a8b4bc188b5c6514a7cd6d56872399ef8b8159c9474e0849bef2ac2dc249898d",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "19e707d82f40b1bf63f84c8ed9b8774568e1713ff1db6893d73fd87b0e59423a",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "6b9fa3193c829d8b7c2680542d0f96ca727c0bab6308ebfb119b977a567434f0",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "961d0273e519fda933bed85e34b0f53ac1893d2f825416ceb74ac1665b1c15b4",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "e6403488f467a60c16d599bb4969ab7f6919a2fcdc3e81a93c7ae87496cbedaf",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "55d7df66ab998929e5f9d95daf77b47091e36f242aedab662213262b5885f513",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "8f3eceff7d6a5de844607d5e2304fd7a75d159a29c170c15e78a445e4e8e8ec9",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "ae2b7e0af20e0528213f29d621799ba70ea21b03f9374bb7b640e772f106bf77",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "4a9d66260059e4816d38b59a7fa9d7df1a58e5b6fe7ec283963dc29ead3e6421",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "3798f1e978aacd60b9779792fd38e0b11bd9cf8fd4cbafb435599a1410eb8758",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "0ead5783add4d22677cdbd5c46c155a61cba156a1030de077a277c4c66fc4929",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "c448bd840c734eef144750c0ff3abe1d59d67997f79dfb1fbb8e7c3cbb581b5e",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "17798088d72a474b7110e1ef32e6a608dbe0d4fb990b92a91abd8a0feee89933",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "ec4cb4e54447154f49dddda06d619868a3807e037a0245bdabf3bcbc2d5d2544",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "e762c86d37d1ef070a834b3ad2b733c248c3fb3da63dbbd4aaf5ee58166a30ba",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "7b0febbaea8eb16d33ecc9ffa4ce2d8df16b3658241551fe6784d0721bd822d9",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      },
+      {
+        "id": "e40011adad4f8ac818d5a416d410f0d3b3f8d42650e18bcd01d5079dd8363a3a",
+        "classification": "declaration",
+        "owner": "DirectoryBackups",
+        "reason": "File format/path/error and current deletion/backup record declarations stay at each Owner head. Existing DomainRecord and NO_TRANSACTION are referenced; generic files/metadata maps stay opaque or dynamically keyed."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "BackupManifest / DirectoryBackups",
+        "declaration": "llm/services/infrastructure/backups.py",
+        "consumers": [
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/retention.py",
+          "llm/components/rag/jobs.py",
+          "llm/components/rag/publication_records.py"
+        ],
+        "tests": [
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/llm/test_backup_owner_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_deletion_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operational_storage.py",
+          "tests/llm/test_rag_corpus_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
       }
     ]
   }

@@ -48,3 +48,18 @@ WorkspaceLock은 기존 영구 잠금 파일과 OS 잠금 기술값을 선언한
 참조 수·프로세스 identity·중첩 잠금·트랜잭션/관찰 scope 순서를 바꾸지 않는다.
 Transaction의 예약 경로에 남은 동일 잠금 파일명은 저장 계층 후속 연결 대상으로 추적하며
 현재 이 문서의 검토가 저장·트랜잭션 파일 전체 완료를 뜻하지 않는다.
+
+
+## 삭제 의도·백업 manifest
+
+DeletionIntent가 기존 삭제 이름·operation·파일 identity의 Writer/Reader를 소유한다.
+recover_deletions는 검증된 이름을 소비하고 기존 protected/allowed 검사와 삭제·fsync·
+intent 정리 순서를 유지한다. StorageFormat/StorageDrain은 기존 파일 형식·원자 쓰기와
+취소 drain의 기술값을 선언하며 새 삭제나 재시도를 만들지 않는다.
+
+BackupManifest가 기존 manifest의 버전 검증·파일 목록 projection과 Writer를 소유한다.
+DirectoryBackups는 파일 재검사·staging·게시·실패 정리를 조율하고 ProjectManager는
+같은 Owner의 project_root로 archive 내부를 조회한다. 주입된 backups에 새 메서드를
+요구하지 않는다. opaque metadata·원본/저장 형식·도메인별 검증 책임은 유지한다.
+SnapshotFile.total_bytes가 필요한 바이트 합산을 소유하며 RAG 보관/Checkpoint 계획도
+같은 projection을 사용한다. 공통 트랜잭션과 출력 저널의 전수 정리는 후속 범위다.

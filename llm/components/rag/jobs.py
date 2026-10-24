@@ -101,7 +101,7 @@ class RAGJobs:
             delete.append(Diagnostic(PlanBlockerCode.RESUME_REQUIRED, RAGJobs.MESSAGE_ABANDON_THE_JOB_BEFORE_DELETING_IT, source=source))
         declarations = self._storage().checkpoint_declarations(identifier)
         keys = sorted(declarations)
-        return CheckpointPlan(source, keys, sum(v[SnapshotFile.BYTES] for v in files.values()), abandoned,
+        return CheckpointPlan(source, keys, SnapshotFile.total_bytes(files), abandoned,
             abandon, delete, revision_token(JobPlanEvidence.checkpoint(source.to_dict(), job, files, declarations, live)))
 
     def _resume_plan(self, identifier, *, live):
