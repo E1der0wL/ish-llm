@@ -7835,3 +7835,73 @@ Level 1은 Preset 위젯·오류 계약·RAG 작업 진단, Level 2는 설정/Pr
 새 observation 타입의 frozen/slots는 Python 클래스 선언 문법으로 각 발생을 개별 검토했다.
 감사 기록을 쓰기 전 시도는 이 네 발생이 미분류여서 차단됐으며 기록 후 같은 검사를 통과했다.
 기록 전 실패 로그도 보존한다. 현황 608파일/미검토 152/미분류 7,509/미완료 공유 계약 18, stale/위반/issues 0이다.
+
+
+## Gate46 — Hub 설정·입력·공통 위젯 통합·정확한 SHA 원격 검증
+
+동결 SHA `8f8ca1447f9bbd7a10f6dc08488ef20cb85022dc`, 작업 트리 `/workspace/ish-llm-group46-validation`.
+Gate45 이후 상태·전역 설정·Theme·설정 폼/단축키·공통 위젯의 관련 소단계를 묶었다.
+전체 LLM 다음 전체 Hub를 하나의 변경 없는 소스·환경에서 순서대로 실행했다. 소단계 결과를 합산한 전체 실행이 아니다.
+
+- LLM: 발견/실행/pass/available 2502/2502/2502/2502, 1442.0474878370296초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group46-l3/llm.json`.
+- HUB: 발견/실행/pass/available 588/588/588/588, 1098.6685039940057초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group46-l3/hub.json`.
+
+각 suite의 failure/error/skip/xfail/xpass/누락/추가/중복은 0, 발견·실행·통과 ID가 일치한다.
+source `d9865d9927fb3c9811caef97279c6a532cb03307f6c8d592d6bf3a639f0ef426`, input `3bedf5b4561a4cac725094c2b5043b472fc0cf24e45d51dd131705daf1724c4e`는 전체 실행 전후 동일하다.
+Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 의존성·실제 Linux/X11/Bubblewrap 환경이다.
+보조 검사 S1–S7·문서·R3 Mutation·offline Provider·LLM/Hub 환경 검사 여섯 명령도 모두 exit 0이다. 실제 argv/exit는 `group46-auxiliary/results.json`, 전체 로그/엄격 집계/manifest는 `whole-owners-group46-l3`에 보존한다.
+
+검증한 SHA만 `refactor/llm-clean`에 fast-forward Push했다. 원격 main/refactor/llm-backend와 Draft PR #1의 전후 값은 동일하다.
+원격 [40129751549](https://github.com/E1der0wL/ish-llm/actions/runs/40129751549)의 head SHA를 대조하고 2026-10-24T21:03:00Z에 두 필수 Job과 전체 필수 Step의 실제 success를 확인했다.
+- 원격 HUB: 발견/실행/pass/available 588/588/588/588, 1485.261890454초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+- 원격 LLM: 발견/실행/pass/available 2502/2502/2502/2502, 2094.195384316초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+
+로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
+이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
+동결 소스의 미검토 159파일·미완료 공유 계약 16건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## 공유 입력 표식·텍스트 편집·설정 탐색·Viewport
+
+EditableControl이 Hub 입력 표식의 등록과 writable 판독을 소유한다. TextArea Writer와
+포커스·키보드 편집·마우스 소비자를 연결하고 read_only 및 short circuit 순서를 유지한다.
+KeyName의 PTK 이름·modifier 변환과 SettingsZone의 필드/동작 영역을 사용한다.
+Navigation의 상태와 Screen의 위치 초기화를 한 구현으로 연결하고, GlobalPage가 자신의
+선택적 사용량 출력 조회를 제공한다. viewport 측정 상한/캐시 상태/간격은 해당 layout Owner에 있다.
+
+순수 순회/인접 인덱스는 현행 계약대로 인위적인 상수로 만들지 않는다. 각 발생의 실제 알고리즘
+역할을 개별 분류했다. None 반환 annotation도 언어 문법으로 분류한다.
+전체 파일 검토는 input_contract/focus/text_editing/settings_viewport/navigation 다섯 파일이다.
+controls/mouse/Screen/Pages는 직접 연결만 수정했으며 전체 완료로 표시하지 않는다.
+
+기준 c14786d와 독립 비교: 실제 PTK Buffer 편집 570, 커서/선택 이동 3,040,
+binding 순서/조건 24, 포커스의 선택/커서 효과 12, 입력 표식 판독 6 및 등록/참조 6,
+viewport 측정/cache/그릴 행/좌표 84, 설정 탐색/경계 864, 필드 편집 guard·nullable suffix·오류/취소·
+정리 84 흐름이 일치한다. 실제 화면/마우스 입력은 아래 기존 회귀로 확인한다.
+제품 테스트와 Fixture 기대값, 실패 재현/실제 효과 Assertion은 변경하지 않았다.
+
+초기 안전성 실행도 통과했으나 순수 인덱스의 불필요한 명명 정리 후에는 최종 소스의 별도
+안전성 실행을 사용한다. 당시 실행 중인 시험은 없었으며 UI 시험 대기 큐만 교체했다.
+첫 결과와 소스를 before-index-refinement 파일 및 safety-01에 보존한다.
+최종 독립 비교는 git 기준 파일을 별도로 읽어 수행했고 적용 후 코드끼리 비교하지 않았다.
+
+- `whole-hub-settings-input-safety-02`: discovered/started/pass 84/84/84, exit 0, 36.65724초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-settings-input-safety-02/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `df7ea794a616abd8cb2109887777ce97a074565308e7aae93c8a4af693f8882e`, input `5133cd736702e1c9ab410360890e14434a8a133f52625a7b92576d4b04b79da5`.
+
+- `whole-hub-settings-input-l1-01`: discovered/started/pass 34/34/34, exit 0, 21.316721초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-input-l1-01/hub.json --modules tests.hub.test_text_editing tests.hub.test_settings_navigation tests.hub.test_settings_viewport tests.hub.test_mouse_widgets`. source `df7ea794a616abd8cb2109887777ce97a074565308e7aae93c8a4af693f8882e`, input `5133cd736702e1c9ab410360890e14434a8a133f52625a7b92576d4b04b79da5`.
+
+- `whole-hub-settings-input-l2-01`: discovered/started/pass 32/32/32, exit 0, 64.468215초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-input-l2-01/hub.json --modules tests.hub.test_input_contract tests.hub.test_settings_editor tests.hub.test_settings_json tests.hub.test_settings_project_flow tests.hub.test_presets_widgets tests.hub.test_home_navigation tests.hub.test_escape_navigation tests.hub.test_popup_completion tests.hub.test_settings_usability`. source `df7ea794a616abd8cb2109887777ce97a074565308e7aae93c8a4af693f8882e`, input `5133cd736702e1c9ab410360890e14434a8a133f52625a7b92576d4b04b79da5`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+같은 suite의 선택 중복 0과 전후·실행 사이 source/input manifest 동일을 확인했다.
+실제 명령·exit는 `hub-settings-input-draft/selected-results.json`과 각 focus 결과에 있다.
+Python 3.12.14/Clang, Host d833790와 동일 의존성·Linux/X11/Bubblewrap이다. R3 Mutation exit 0이다.
+진행 중이던 Gate47의 전체 Hub 회귀를 먼저 끝낸 후 집중 Hub 시험을 실행해 UI 경합을 피했다.
+
+Level 1은 텍스트·마우스·설정 포커스/viewport, Level 2는 입력 계약·설정 외부/JSON 편집·Project/
+Preset·Home/escape/Popup 소비자이다. 필수 승인·예산·효과·Checkpoint·저장/삭제 회귀를 유지했다.
+입력/표시의 관찰 가능한 동작과 Backend 실행/저장 정책을 바꾸지 않는 소단계이므로 전체 회귀는
+Preset UI 및 후속 설정 Pages 묶음의 Level 3로 유예한다. 이번 변경은 Gate47 원격 검증 범위 밖이다.
+
+마감 검사: S1–S7 개별 검토 82, new/stale/outstanding/review error 0; 감사 회귀 16개와 문서 검사 exit 0이다.
+현황 609파일/미검토 148/미분류 7,366/미완료 공유 계약 18, stale/위반/issues 0이다.
+선행 Gate46의 실제 원격 CI 통과 기록도 함께 보존했으며, 현재 소스의 원격 통과로 승계하지 않는다.

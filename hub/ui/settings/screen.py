@@ -17,7 +17,7 @@ from .pages import GlobalPage, ProjectPage, SettingsTab
 from ...config.theme import HubTheme
 from ...widget.controls import TextArea
 from ...widget.forms.settings_viewport import SettingsPane
-from .navigation import SettingsNavigation
+from .navigation import SettingsNavigation, SettingsZone
 from .drafts import SettingsDrafts
 from ...widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from ..layout import TwoPanelPage
@@ -67,7 +67,7 @@ class SettingsScreen:
         self.actions = ActionFrame(bottom, width=self.main_dimension, title=self.action_title)
         from ...widget.auxiliary import AuxiliaryBar
         self.auxiliary = AuxiliaryBar([("filter", self.search), ("json", self.show_json)],
-                                      lambda: view.icons, lambda: self.navigation.focus_zone(1))
+                                      lambda: view.icons, lambda: self.navigation.focus_zone(SettingsZone.ACTIONS))
         self.layout = TwoPanelPage(
             header=HeaderActions(HeaderBar(lambda: self.t(MessageKey.SETTINGS_TITLE), icons=lambda: view.icons), view),
             sidebar=DynamicContainer(lambda: self._left),
@@ -97,11 +97,11 @@ class SettingsScreen:
         elif self.page is not None:
             self.page.filter(self.query)
         self.main.vertical_scroll = 0
-        self.navigation.positions = [0, 0]
+        self.navigation.reset_positions()
 
     def enter_tab(self):
         if self.page and self.page.body_widgets():
-            self.navigation.focus_zone(0)
+            self.navigation.focus_zone(SettingsZone.FIELDS)
 
     def main_dimension(self):
         # The host may inset Hub's Float. The terminal width is a preference,
@@ -181,9 +181,9 @@ class SettingsScreen:
         self.query = query.strip()
         self.page.filter(self.query)
         self.main.vertical_scroll = 0
-        self.navigation.positions = [0, 0]
+        self.navigation.reset_positions()
         self.status = ""
-        self.navigation.focus_zone(0)
+        self.navigation.focus_zone(SettingsZone.FIELDS)
 
     def search(self):
         if self.page is None or self.busy:
@@ -362,7 +362,7 @@ class SettingsScreen:
         self.page = page
         page.filter(self.query)
         self.main.vertical_scroll = 0
-        self.navigation.positions = [0, 0]
+        self.navigation.reset_positions()
         if self._engine_target and getattr(page, "identifier", None) == self._engine_target[0]:
             _, engine = self._engine_target
             self._engine_target = None

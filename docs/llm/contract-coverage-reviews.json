@@ -86892,8 +86892,8 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "bf65318ed03e8a3c1fba1b7d644878c4a3438f2e8b028dd5b90940b488088d44",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "sha256": "4fbd71f9633468584d392887cbf7ef99403c6e0501d62d7719bd8747402349af",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86939,109 +86939,127 @@
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "2a1dbe3f04c0449f25271e178dcf4c422934ff55e4581cf59460c8ef06d6830d",
+        "id": "2383441dc53314c5809c823d73ad2be6b15ab4ff26e3f247572cc36d601096bd",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ae8ec0828c9e475e5dc2017a75a7c18137c2fe3be2272fc9c6707a3f3fa86725",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "914345f4f93f61c7fd324d705cd8fbdc47186efce4ac778059b1231112d9e77b",
+        "id": "43ce2091861cce9c7e95b1fadc1370805fab33ae7fc336fbee64d39cbd89d2c1",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "54fc75d75a613866fdcdfa657f8677d6ca051dac9d9d9a665f0273768c7e4877",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "fcee08d0850009f28e37a7fab4c743c35b954338fa4ffb9e18323417855e8939",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "83fcf98018a73d1d8469a15c7fb90efa9e65049899230e337e2931ae57e2f6ff",
+        "id": "7c0522a4c58c97e7e178aa5aa8d4d840be80c673cad4b3af7b64de8cfdd9c316",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "11d6561df6e3baf7922901b6e7e10d3845e5c9036d21ecb1e869c000573d29f9",
+        "id": "10897e593272a2fb9f1e06d873145346a258c22ab363ba18baaec02b0057d700",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "df53710505ad1273b2850947320f263ec01e92bd691687ecd0d18213717976ba",
+        "id": "da7e00cb959d6b8c2d0997016e841a8a6cb574832360b33946abecba4aa667f0",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "49db89e0a1630cc955307f27436ed1638ae84bac4d66ef83f54ed761526e92cf",
+        "id": "9147fc64b996a20fe90d07c4a2b8d90b62336734ad6b2a64e28f9eba81b2aa9a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "3c66bd98df1746d61e2e4b2d9f10e8ceeb7f3a90652a4d8f4dbb7f31b894e8bb",
+        "id": "825b04d743968386ae4c77e7d57e5a360eab43152f0183bc55493a10aee18fe8",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "32a6c6d18b365b73ca4f8fd4790fcf2f2d6b4278699463b088c8015f932482ed",
+        "id": "6556505f525d406729973c1876d7176afcce2b90e6cc6f061721a72f5adbd556",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "c01f8247f91c0ba7aa7cfa025eb468b07195603ae7cc7d3ef4fb57470ad10dc8",
+        "id": "44d7abd5e6b4807192d1d66a2ce12a123171b8d89fe7e7557cf1f7dff8e9d1e6",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "638ed73b0a5ecd872f3586b5ef02d25f3692b51bf0ba393a88d6d3463def92a8",
+        "id": "dfa9868e4774c377a25ad1927355ca60123f62bbfa7cb3ab0eae11cb21352a81",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "198443f2bbe1229430b010bb644a7a950fd843999b95dc5653bb77d7009f9fb6",
+        "id": "1f1ffc8d584cf7dd696b1ce1a5b78da6a7163437e05fb4997fe1b5f704ab29f3",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "714aa7de3f89b7487ac2822ad147935a72d1246c95ec79c7cb72816958a21695",
+        "id": "20abd8e94cf655327d67ff363df8665d78f88b7946d06ff65769f4f36c8dcd3a",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "d1550805de08f845e3345b973fead5dad4f5ed96ba004e20a263060d5600ae27",
+        "id": "742f7919ec27ade06122daee37f6f56be564359a49b5633492b3d98bbbf27f11",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "c4d419eadefb61bb8ec78bac03bbdf8174e487d3000cb902d7859334f7fa4a0a",
+        "id": "68c43f1ce6958f029a8af0d0e3d7025f6ce123c529ac2a418ba8a8e825af66b8",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "0dec8d99f4b6f7780a7098a092080a4a50e552f62eee777ae31d5ed22daba09e",
+        "id": "322d3951a9e403cac091b0d5a8ff1ad21afb982adea8f10d5714226fe158fffc",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "19031da85610a35d67c31e889cb187dc7d3bccbe5449b1ef472d70c79b600d95",
+        "id": "dd3f3792eb9d7ff73b49b5941621a59fed8e33f6a37fb1e314c3c1b7b4267f2b",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "39109ebc2c65e8bd3a87b891657f30ac4369ab996cec3eb5875277aa7f1b89ea",
+        "id": "88198ad9e372652c8a7ff447f1c6bd604cfd2126cdb353a71dc0f02114a476c8",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "57be780f6b7e810387f5f3ecd9a2d52bab894f87d432c87f603ee8ce95bd1792",
+        "id": "ac5888b6034a7a4b00b78a48e9a220412cb98b73b2bd29b4dc05319524631ba5",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -87054,22 +87072,28 @@
         "consumers": [
           "hub/ui/input/bindings.py",
           "hub/ui/input/registry.py",
+          "hub/ui/settings/navigation.py",
           "hub/widget/actions.py",
           "hub/widget/feedback/notifications.py",
           "hub/widget/forms/settings.py",
           "hub/widget/profile.py",
           "hub/widget/section.py",
-          "hub/widget/shortcuts.py"
+          "hub/widget/shortcuts.py",
+          "hub/widget/text_editing.py"
         ],
         "tests": [
           "tests/hub/test_auxiliary.py",
           "tests/hub/test_chrome.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_escape_navigation.py",
           "tests/hub/test_general_options.py",
+          "tests/hub/test_home_navigation.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_ish_integration.py",
+          "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
           "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_preview.py",
@@ -87083,6 +87107,7 @@
           "tests/hub/test_settings_usability.py",
           "tests/hub/test_settings_viewport.py",
           "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_text_editing.py",
           "tests/hub/test_widget_chrome.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
@@ -89362,6 +89387,509 @@
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/input_contract.py",
+    "sha256": "cb029a386bfe34b915d4a7848447618e69e71d13ba30e39ec36a7f959f593ab6",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2a7f5ff786c0f2326063e826aa60bc4f6236d4e8f115409a54d93841a1a2da2b",
+        "classification": "declaration",
+        "owner": "EditableControl",
+        "reason": "The PTK input boundary owns the Hub writable marker, registration state and widget/control projection. Writer and all actual readers use this API; read-only checks and short circuit order are preserved."
+      },
+      {
+        "id": "d42cabff70702372987bb8205ae16f18b77f60caffa24bdf48709fd39840fc42",
+        "classification": "declaration",
+        "owner": "EditableControl",
+        "reason": "The PTK input boundary owns the Hub writable marker, registration state and widget/control projection. Writer and all actual readers use this API; read-only checks and short circuit order are preserved."
+      },
+      {
+        "id": "f439caca689ceea445397fe5030e8ce62bde0a371ee69ecc5e0753d5eb873337",
+        "classification": "declaration",
+        "owner": "EditableControl",
+        "reason": "The PTK input boundary owns the Hub writable marker, registration state and widget/control projection. Writer and all actual readers use this API; read-only checks and short circuit order are preserved."
+      },
+      {
+        "id": "d5d2f43bbe715e19716298d6ad9e012bbb308da74c550d8b07ab27211f293f1a",
+        "classification": "declaration",
+        "owner": "EditableControl",
+        "reason": "The PTK input boundary owns the Hub writable marker, registration state and widget/control projection. Writer and all actual readers use this API; read-only checks and short circuit order are preserved."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EditableControl",
+        "declaration": "hub/widget/input_contract.py",
+        "consumers": [
+          "hub/widget/controls.py",
+          "hub/widget/focus.py",
+          "hub/widget/mouse.py",
+          "hub/widget/text_editing.py",
+          "hub/ui/settings/navigation.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_text_editing.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_settings_usability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/focus.py",
+    "sha256": "a183f642c4bc2a885765923e7decc2bca1f8277f1e9006f41a3a821e157eb8fa",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7b9a5be1f42b8c51003670abc780c0284f370b74a8e17f0d24aa13df84fb020e",
+        "classification": "non_contract",
+        "owner": "focus_control",
+        "reason": "The function return annotation is Python typing syntax, not a state, default or serialized field."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "focus_control",
+        "declaration": "hub/widget/focus.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/dialogs.py",
+          "hub/ui/settings/navigation.py",
+          "hub/widget/output_inspector.py",
+          "hub/widget/auxiliary.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_text_editing.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_settings_usability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/text_editing.py",
+    "sha256": "ed37842a71bb6cd92bf4dc8134e31ec3fd643bad2b8c609e3d6477ce3d6a5cd8",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2251e4c5f4c7d390ed86c7139f3ce4a0a7ae051a8807e45203e0beb7aad9f429",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "2701d4e89a97720fb914b143a0a1228b643903e45ba4fdcdb592d660fb3cdd06",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "7753cbc3bd250fce94d8688f6d7ccde4f5177c537ad52a66ae71981650ca98e1",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "0f88e9741cdc9ba1cafc4ecf9a76f189f0aa3f01411eee97d6945fd660824881",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "c85e746565d252077e7060155af76fe90f56edafaa3b3b15dff0d5190c1e3030",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "95b013ac64bfcead04eecdd642ed81402c5b46b4fda0cc87c0061a96e8e595fb",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "36813b352870bbf32b97213d363ca7b1377305067c54dbe67b7ce76384ac3bbf",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "aabcd59b105051cf27d417082e8b2d78c4dab71a96a58e2334a874ccb6007b24",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "4c0f5ebd94f9c7511ea121692b421f9000d78ccc463e76e914820d6aa2b85bbd",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "bef0230e3744700863c93795682dc9389cdcdfb1cc4993793faf8c7b141e2c65",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "acbfbaa876b7b3e538ef026d3036fa622b599e63af33a4af3865305d981b600f",
+        "classification": "declaration",
+        "owner": "TextEditing",
+        "reason": "Shortcut behavior, selection movement groups, newline normalization and undo declarations belong to the text editing Owner; PTK key spelling comes from KeyName. Real Buffer selection/cursor/cut/paste behavior is preserved."
+      },
+      {
+        "id": "50d874bf92aa5f81bae48589b0ca3909a24220cbc93a440d748d32d09807d1f9",
+        "classification": "non_contract",
+        "owner": "TextEditing.move",
+        "reason": "This exact occurrence is the -1 index selecting the last PTK key event; it is ordinary sequence indexing, not a contract value."
+      },
+      {
+        "id": "4c26e28127f9c7e113d3ae12fcadcfdbbd346153a8ffe9562629c76c59dc8d91",
+        "classification": "non_contract",
+        "owner": "TextEditing.extend",
+        "reason": "This exact occurrence is the -1 index selecting the last PTK key event; it is ordinary sequence indexing, not a contract value."
+      },
+      {
+        "id": "2aa068e7899b9a4af08b4e0d0445a96e0260894e6be6fffda8a741f20a758f40",
+        "classification": "non_contract",
+        "owner": "TextEditing.collapse",
+        "reason": "This exact occurrence is the -1 index selecting the last PTK key event; it is ordinary sequence indexing, not a contract value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TextEditing",
+        "declaration": "hub/widget/text_editing.py",
+        "consumers": [
+          "hub/ui/input/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_text_editing.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_settings_usability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/settings_viewport.py",
+    "sha256": "50dc1a06c0e0d4e2549eaf4d466868d668049239b0368dfac80041d456a9852f",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "27d9b6ee30ade18fae3ee5dce2f82945ad14b628539c4f15c76d8a93a3e24166",
+        "classification": "declaration",
+        "owner": "SettingsBody",
+        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
+      },
+      {
+        "id": "8a4d00142a4dd593a91be971f238c6be5f6e0467344071db1dfe9191fd360d33",
+        "classification": "declaration",
+        "owner": "SettingsBody",
+        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
+      },
+      {
+        "id": "4b5ae9e6cc5ebba70fed3cee939b59b746165531e3bbc8c1d3d8ec1f31f12134",
+        "classification": "declaration",
+        "owner": "SettingsBody",
+        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
+      },
+      {
+        "id": "535f9f083f1ea6b64fae946ff1762be4c223afdcf32da664e70880185cf1fb14",
+        "classification": "declaration",
+        "owner": "SettingsBody",
+        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
+      },
+      {
+        "id": "032fc78da731f24d245f13b9db345da29b7e6e42f7432e69ce38a6a1aba0bc12",
+        "classification": "declaration",
+        "owner": "SettingsBody",
+        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
+      },
+      {
+        "id": "dce68d348a1e79408774c1b906754ad74e5846bba02341e7e1efe4412f83493d",
+        "classification": "declaration",
+        "owner": "SettingsBody",
+        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
+      },
+      {
+        "id": "00d5d30d7b9709f1b7055f3cf2dd6c055f83e27ac1cf7acfe652719600120925",
+        "classification": "non_contract",
+        "owner": "SettingsBody.__init__",
+        "reason": "Initial cumulative offsets start at the arithmetic additive identity; no stored or public policy is represented."
+      },
+      {
+        "id": "eace3f3fe00cd45ea8d0d28938a3b78f364e892bfe40c8aae5f17bb901696b17",
+        "classification": "non_contract",
+        "owner": "SettingsBody._measure",
+        "reason": "This is the cumulative-height accumulator origin, not a user setting or state code."
+      },
+      {
+        "id": "647a09ec6fafb7499f82fc609921e455cb5f2ba5f817d7c89acc41bae20321bd",
+        "classification": "non_contract",
+        "owner": "SettingsBody._measure",
+        "reason": "Negative indexing selects the previous cumulative offset for the next arithmetic sum."
+      },
+      {
+        "id": "f0c9695baadaa47319785a6219da6e70b8020bbe3a5d45445df40bc653e1ccb6",
+        "classification": "non_contract",
+        "owner": "SettingsBody.preferred_height",
+        "reason": "Negative indexing selects the terminal cumulative height."
+      },
+      {
+        "id": "1a0c125fb5e2a9ea2c675883059bde9c61fa2ace18bcc567ae2e0b4219b19269",
+        "classification": "non_contract",
+        "owner": "SettingsBody.write_to_screen",
+        "reason": "The next offset bounds the focused row; this is adjacent-index arithmetic."
+      },
+      {
+        "id": "88b76aba963dd96853c4e6855b4c44af374363f7fc85fa0533470091c477d539",
+        "classification": "non_contract",
+        "owner": "SettingsBody.write_to_screen",
+        "reason": "Clamp the binary-search index to the beginning of the list."
+      },
+      {
+        "id": "19bfc7d3770c6243265262a3c85e758d814d6dc651934ba3a2d86689de8710ac",
+        "classification": "non_contract",
+        "owner": "SettingsBody.write_to_screen",
+        "reason": "Subtract one from the binary-search insertion point to identify the covering interval."
+      },
+      {
+        "id": "5567c5ee4366a811b88fa3d45a960a212a01b47f17c10ff95621e61b17a0ce4c",
+        "classification": "non_contract",
+        "owner": "SettingsBody.write_to_screen",
+        "reason": "Subtract adjacent cumulative offsets to obtain the rendered row height."
+      },
+      {
+        "id": "204316c0d83b47130d787d6b888606c10824c578b9fbae13dd0567b7ca508b31",
+        "classification": "declaration",
+        "owner": "SettingsPane",
+        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
+      },
+      {
+        "id": "bc569a3999c408cebfc05577f7cd694f9579b251f94f91c88c1f2d60391d6be9",
+        "classification": "non_contract",
+        "owner": "SettingsPane.write_to_screen",
+        "reason": "Select the sole resolved child returned by the PTK DynamicContainer traversal; no new schema or discriminator is defined."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SettingsBody / SettingsPane",
+        "declaration": "hub/widget/forms/settings_viewport.py",
+        "consumers": [
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_text_editing.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_settings_usability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/settings/navigation.py",
+    "sha256": "278eae0a74ed971d58a1b0833e86d73a59704ce19684a26a5ceec2f7947939d4",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d721219a5ce91799e60f4d9660c5243a5b1464273af8aeac14daad1ce6f6108c",
+        "classification": "declaration",
+        "owner": "SettingsZone",
+        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
+      },
+      {
+        "id": "0783f07fdaae421ffb129bd1eee6d06a24eeaa7c4f977d07240993fab8835475",
+        "classification": "declaration",
+        "owner": "SettingsZone",
+        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
+      },
+      {
+        "id": "4f156f3a5d5697f01984aa0ac3d4bd5e02e8c811d724d25907f4a86d0b563ca9",
+        "classification": "declaration",
+        "owner": "SettingsNavigation",
+        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
+      },
+      {
+        "id": "35de9d7badfaac1b4328564e02e5ef26dc17f8b614bf8a17eed6ffe440b0dd6a",
+        "classification": "declaration",
+        "owner": "SettingsNavigation",
+        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
+      },
+      {
+        "id": "afc04f235b43d809774ac04adc88ce38f99f41b443da165c2ca4d5feb401f041",
+        "classification": "declaration",
+        "owner": "SettingsNavigation",
+        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
+      },
+      {
+        "id": "3bc1a3682918f089380d08291b64e3a39fa0996d15ca93597825c31f5287d81a",
+        "classification": "declaration",
+        "owner": "SettingsNavigation",
+        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
+      },
+      {
+        "id": "1a13b73f49b7547a455fd65f0f64da360f3f396d8e8ec715744a6c931483333a",
+        "classification": "declaration",
+        "owner": "SettingsNavigation",
+        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
+      },
+      {
+        "id": "a155b6456f8a3b99b7caa0d95c0bd32b26b7b55e4e568dbb3a94fdbd811b9e38",
+        "classification": "declaration",
+        "owner": "SettingsNavigation",
+        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
+      },
+      {
+        "id": "214e4f10e0051a2beb2a1ddfb6eea176ae956b3a1cedc88168e9cb3a0ba12a78",
+        "classification": "non_contract",
+        "owner": "SettingsNavigation.focus_zone",
+        "reason": "Convert a list length to its final valid index before clamping the remembered position."
+      },
+      {
+        "id": "6df1607c873dc3f95a584e4d30d558e86eeea8d6f83c71486848b8157e94dbaf",
+        "classification": "non_contract",
+        "owner": "SettingsNavigation.focus",
+        "reason": "One predecessor step in modular iteration; no independent state code or policy is declared."
+      },
+      {
+        "id": "28cdca4516a7aaab4b57898ef5511b9b288310f716e5410fff08804071ca8440",
+        "classification": "non_contract",
+        "owner": "SettingsNavigation.focus",
+        "reason": "One successor step in modular iteration."
+      },
+      {
+        "id": "f4e91305e1c3c4ef07e6fa037f9d64f34a8bd574734bba532d0c039e149d1927",
+        "classification": "non_contract",
+        "owner": "SettingsNavigation.move",
+        "reason": "Move to the adjacent predecessor in the field list."
+      },
+      {
+        "id": "ab8cd08cf473ddb01793500eb72204dff024bca94eecdf317b045ccc4826fea5",
+        "classification": "non_contract",
+        "owner": "SettingsNavigation.move",
+        "reason": "Move to the adjacent successor in the field list."
+      },
+      {
+        "id": "f25c1c2f3c6823c8b69a72ecf9250345d82dc4b9b1d6001ef86c03e3abcbbafe",
+        "classification": "non_contract",
+        "owner": "SettingsNavigation.move",
+        "reason": "Convert the field count to its last valid index for boundary clamping."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SettingsNavigation / SettingsZone",
+        "declaration": "hub/ui/settings/navigation.py",
+        "consumers": [
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_text_editing.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_settings_usability.py"
         ],
         "complete": true
       }

@@ -9,6 +9,7 @@ from prompt_toolkit.mouse_events import MouseButton, MouseEventType as M
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.containers import to_container
 from prompt_toolkit.utils import get_cwidth
+from .input_contract import EditableControl
 
 
 @dataclass(slots=True)
@@ -411,8 +412,7 @@ class MouseController:
                 self._select(window, event.position)
                 self.app.invalidate()
                 return None
-            if (getattr(window.content, "hub_editable", False)
-                    and not window.content.buffer.read_only()
+            if (EditableControl.writable(window.content)
                     and self.app.layout.current_control is window.content):
                 self._select_input(window, event, native)
                 self.app.invalidate()

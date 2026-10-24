@@ -213,6 +213,13 @@ class ProjectPage(Page):
         self.screen.saved_project(record)
 
 class GlobalPage(Page):
+    USAGE_OUTPUT = "usage_output"
+    NO_USAGE_OUTPUT = None
+
+    @classmethod
+    def usage_output_for(cls, page):
+        return getattr(page, cls.USAGE_OUTPUT, cls.NO_USAGE_OUTPUT)
+
     def __init__(self, screen, name, values):
         self.screen, self.name = screen, name
         if name == "appearance":

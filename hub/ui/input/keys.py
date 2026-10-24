@@ -22,8 +22,30 @@ class KeyName:
     EDIT = "e"
     EDIT_UPPER = "E"
     CLEAR = "d"
+    BACKSPACE = "backspace"
+    DELETE = Keys.Delete.value
+    CONTROL_A = Keys.ControlA.value
+    CONTROL_X = Keys.ControlX.value
+    CONTROL_Z = Keys.ControlZ.value
+    CONTROL_Y = Keys.ControlY.value
+    CONTROL_LEFT = Keys.ControlLeft.value
+    CONTROL_RIGHT = Keys.ControlRight.value
+    CONTROL_HOME = Keys.ControlHome.value
+    CONTROL_END = Keys.ControlEnd.value
     CONTROL_PREFIX = "c-"
+    SHIFT_PREFIX = "s-"
+    CONTROL_SHIFT_PREFIX = CONTROL_PREFIX + SHIFT_PREFIX
+    NO_MODIFIER = ""
     MOVEMENT = (UP, DOWN, LEFT, RIGHT, HOME, END, PAGE_UP, PAGE_DOWN)
+
+    @classmethod
+    def shifted(cls, key):
+        return (cls.CONTROL_SHIFT_PREFIX + key[len(cls.CONTROL_PREFIX):]
+                if key.startswith(cls.CONTROL_PREFIX) else cls.SHIFT_PREFIX + key)
+
+    @classmethod
+    def unshifted(cls, key):
+        return key.replace(cls.SHIFT_PREFIX, cls.NO_MODIFIER)
 
 
 class ShortcutAction:

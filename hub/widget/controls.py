@@ -10,6 +10,7 @@ from ..ui.input.registry import ShortcutRegistry
 from prompt_toolkit.key_binding import merge_key_bindings
 from prompt_toolkit.application.current import get_app
 from .mouse import ScrollbarGeometry, hover_style
+from .input_contract import EditableControl
 
 
 def _arrows(window) -> None:
@@ -186,7 +187,7 @@ class TextArea(PTKTextArea):
         super().__init__(*args, **kwargs)
         _arrows(self.window)
         hover_style(self.window)
-        self.control.hub_editable = True
+        EditableControl.register(self.control)
         if not self.buffer.read_only():
             self.buffer.cursor_position = len(self.buffer.text)
         native_mouse = self.control.mouse_handler
