@@ -13,6 +13,10 @@ schema를 제공해야 하며 승인·Tool 실행·저장 책임은 가지지 �
 | [__init__.py](__init__.py) | LoopEngine 공개 import를 제공합니다. |
 | [engine.py](engine.py) | 설정 해석, 스트리밍, Tool 호출, 반복 제한, 체크포인트·명시적 재개를 구현합니다. |
 | [review.py](review.py) | Loop 반복 증거·검토 계약/예약/결정의 정규 필드·키·Writer/검증과 재개 제한을 소유합니다. |
+| [configuration.py](configuration.py) | 등록 인자·Loop parameter layout/schema·원본 생략을 보존하는 Agent override Projection입니다. |
+| [binding.py](binding.py) | 실행 snapshot의 portable 표현·Adapter identity·결정적 digest를 소유합니다. |
+| [records.py](records.py) | Loop Tool checkpoint·header·Step metadata·불완전 출력 참고자료·지시 경계의 Writer/조회 API입니다. |
+
 
 ## 등록과 실행
 
@@ -97,3 +101,16 @@ steer → ConversationStore에 pending 저장
 Loop가 요청하는 capability는 `tools`, `completion_processors`입니다. RAG 검색이나 Memory 처리를 추가할 때 Loop 내부에 전용 저장 코드를 넣지 않고 Component의 capability를 연결하세요. 출력·취소·오류 경계는 [상위 Engine 계약](../README.md)을 따릅니다.
 
 [상위 안내](../README.md)
+
+
+Loop는 공통 모델 요청과 Adapter의 공개 계약만 사용합니다. CompletionAdapterContract가
+공개 실행 identity와 호출 플래그를 선언하며 SDK wire 필드의 의미를 Loop에 추가하지 않습니다.
+Tool/Graph handler의 명시적 resumable container 선언은 ResumableHandlerContract가 읽습니다.
+CompletionPolicy의 prepare_turn 탐색도 해당 Owner를 사용합니다. 선택적 hook을 호출하는
+시점, exact-True 판정, 없는 hook·명시적 null·잘못된 값의 실패 의미는 그대로 유지합니다.
+
+LoopCheckpointRecord는 공통 상태 필드를 참조하고 시작 기록의 container/requires_retry
+증거를 검증합니다. LoopToolRecord는 Tool 결과와 출처의 필수 조회를, LoopPriorOutput은
+불완전 답변의 참고 문구를 소유합니다. 참고 출력은 완료 응답이나 승인으로 복원하지 않습니다.
+완료 Tool 재사용·배치 전체 prepare·검토 예약/결정·지시 입력·저장 ACK의 실행 순서는 Engine에
+남습니다. 새로운 재시도, 저장 기본값, 별도 레거시 Reader를 만들지 않습니다.

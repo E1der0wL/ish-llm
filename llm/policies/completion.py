@@ -21,6 +21,8 @@ class CompletionPolicy:
         RESERVE_TOKENS = "reserve_tokens"
         COUNTER = "counter"
 
+    PREPARE_TURN = "prepare_turn"
+    NO_PREPARE_TURN = None
     NAME = "completion"
     MINIMUM_TOKENS = 1
     MINIMUM_RESERVE = 0
@@ -41,6 +43,10 @@ class CompletionPolicy:
     INVALID_COUNT = "Token counter must return a nonnegative integer"
     BUDGET_EXCEEDED = "Current request, tools and output reserve exceed the context budget"
     INCONSISTENT_COUNT = "Token counter returned inconsistent results"
+
+    @classmethod
+    def turn_preparer(cls, policy):
+        return getattr(policy, cls.PREPARE_TURN, cls.NO_PREPARE_TURN)
 
     def __init__(self, max_tokens: int, *, counter: Callable, reserve_tokens: int = DEFAULT_RESERVE):
         self.validate_config({self.Field.MAX_TOKENS: max_tokens, self.Field.RESERVE_TOKENS: reserve_tokens})

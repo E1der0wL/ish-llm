@@ -1,6 +1,6 @@
 """Loop-owned final review receipts; checkpoint storage keeps its existing owner."""
 
-from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords
+from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords, CheckpointStep
 from copy import deepcopy
 import json
 import re
@@ -20,9 +20,11 @@ from llm.policies import ExecutionLimitError
 
 
 class LoopIterationRecord:
-    STATUS = "status"
+    STATUS = CheckpointStep.Field.STATUS.value
     RESPONSE = "response"
     REVIEW_OBSERVATION = "review_observation"
+    FIRST_ITERATION = 1
+    ITERATION_INCREMENT = 1
     KEY_PREFIX = "iteration:"
     KEY_PATTERN = r"iteration:[1-9][0-9]*"
 
@@ -41,6 +43,10 @@ class LoopIterationRecord:
     @classmethod
     def observation(cls, value):
         return value[cls.REVIEW_OBSERVATION]
+
+    @classmethod
+    def attach_observation(cls, record, observation):
+        record[cls.REVIEW_OBSERVATION] = observation
 
 
 class LoopReview:
@@ -82,6 +88,20 @@ class LoopReview:
     ATTEMPTS_EXHAUSTED = "Final review attempt budget exhausted"
     ATTEMPTS_CODE = "completion_review_attempts"
     ATTEMPTS_ERROR = "Explicit review attempt budget exhausted"
+    INITIAL_CONTINUATIONS = 0
+    CONTINUATION_INCREMENT = 1
+    BLOCKED_CODE = "completion_review_blocked"
+    BLOCKED_ERROR = "Final candidate was blocked"
+    CONTINUATION_CODE = "completion_review_limit"
+    CONTINUATION_ERROR = "Explicit review continuation budget exhausted"
+
+    @classmethod
+    def header_projection(cls, review):
+        return {cls.HEADER_FIELD: review.contract} if review is not cls.ABSENT else {}
+
+    @classmethod
+    def has_contract(cls, header):
+        return cls.HEADER_FIELD in header
 
     @classmethod
     def attempt_key(cls, iteration):

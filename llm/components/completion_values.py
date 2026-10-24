@@ -37,6 +37,7 @@ class CompletionMessage:
     NO_SOURCE = None
     NO_RESULT_REFERENCE = None
     NEW_INPUT = False
+    CONTINUED_INPUT = True
     INVALID_MESSAGE = "CompletionMessage requires ModelMessage"
 
     message: ModelMessage

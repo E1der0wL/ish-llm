@@ -6104,3 +6104,77 @@ GraphEngine S3 2개만 퇴역시키고 원본을 보존했으며, 변경된 의�
 stale/violation/issue 0이다. Workflow 선언의 Graph 소비자 연결 두 미완 계약은 닫았으며
 그 외 미완 계약과 기존 공통 Owner의 복수 계약은 그대로 보존했다. 구현 및 L1·2 완료,
 상위 게이트 40의 전체/원격 검증은 아직 남아 있다.
+
+
+## 게이트 40 고정 전체 검증 착수
+
+`f46dbd35cd27c49c501b7b9e2b44014e36145dac`의 별도 clone에서 `group40-auxiliary`
+정적·문서·R3·Provider·LLM/Hub 환경 6개 검사 exit 0을 확인했다. `gate-sequential.py
+whole-owners-group40-l3`로 전체 LLM→Hub를 실행한다. 실행 전 source
+3bf4b6165e9f3dede1b44fc381ac759b5618613b4ee7bf3c77a91508fe188d8b, input
+c6efa3e75ead70b3479c4ec3729c14dea7b6031e7ae40ed5a82006d00c9a7d19이다.
+이 기록에서 전체 완료나 원격 성공을 선언하지 않는다. 이후 Loop 변경은 Gate40에 포함되지 않는다.
+
+## llm Loop 실행·재개·공개 Adapter 계약 Owner — Level 1·2
+
+기준 f46dbd3. LoopRegistration/Parameters/Policy/AgentOptions로 설정 해석을,
+LoopExecutionBinding으로 portable snapshot·Adapter identity·digest를,
+LoopCheckpointRecord/ToolRecord/Header/StepMetadata/PriorOutput/InstructionBoundary로
+고정 기록 생성·조회·시작 증거 검증을 연결했다. 기존 LoopReview/IterationRecord는 재사용했다.
+CompletionAdapterContract는 선택 Adapter의 공개 identity/호출 플래그만 선언한다.
+ResumableHandlerContract와 EngineHooks는 Graph/Loop의 같은 handler 선언을 읽고,
+CompletionPolicy는 자기 prepare_turn hook 탐색을 소유한다. 새 실행 기본값은 없다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/loop-runtime-draft/runtime-proof.py`
+및 같은 경로 `extended-proof.py` 각각 exit 0. Loop 전체 함수 17개와 portable 재귀 함수 1개,
+기존 공통 함수 93개를 정규 Owner로 전개해 이전 본문과 같음을 확인했다. 등록 15·설정 109·
+Agent 선택 34·원본을 보존한 지시 override 18, 재개 증거/누락/null/타입/중복 retry 1260,
+checkpoint 이벤트 315, binding digest와 실제 호출 순서 27, receipt Writer/alias 6,
+경계 키 9, 불완전 출력 참고문구 2를 이전 구현/독립 기대값과 비교했다.
+
+설정 단계 L1 `whole-loop-configuration-l1-01` 59통과/16.10907초와 첫 통합 L1
+`whole-loop-runtime-l1-01` 124통과/60.260296초는 각각 그 소스의 기록으로 보존했다.
+정적 S5가 신규 helper 인자명 settings 2곳을 검출해 configuration으로 바꿨다. 기존 binding의
+settings 필드와 digest는 그대로 유지했고 예외를 추가하지 않았다. 최종 소스의 검증은 아래와
+같으며 다른 실행을 합쳐 한 번의 전체 실행으로 표현하지 않는다.
+
+- `whole-loop-runtime-l1-02`: discovered/started/pass 124/124/124, exit 0, 60.666937초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-loop-runtime-l1-02/llm.json --modules tests.llm.test_loop tests.llm.test_loop_steering tests.llm.test_completion_review tests.llm.test_completion_review_crash tests.llm.test_configuration_values tests.llm.test_configuration_validation tests.llm.test_schema_ownership tests.llm.test_common_provider_acceptance`. source `da322fbd6f544bf1fb945495b8b7a252434301911117e7621730cb15b76b81a2`, input `9f39f0fef0f9de7167b337e3e30bbcac356af8dd14b15c697a9f35f941d13465`.
+
+- `whole-loop-runtime-l2-01`: discovered/started/pass 180/180/180, exit 0, 109.735348초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-loop-runtime-l2-01/llm.json --modules tests.llm.test_graph_checkpoints tests.llm.test_nested_graph tests.llm.test_agent_execution tests.llm.test_agent_delegation tests.llm.test_instruction_reservations tests.llm.test_steering_values tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_usage_ownership tests.llm.test_lifecycle_integrity tests.llm.test_completion_integrity tests.llm.test_provider_codec tests.llm.test_provider_choices`. source `da322fbd6f544bf1fb945495b8b7a252434301911117e7621730cb15b76b81a2`, input `9f39f0fef0f9de7167b337e3e30bbcac356af8dd14b15c697a9f35f941d13465`.
+
+- `whole-loop-runtime-hub-01`: discovered/started/pass 14/14/14, exit 0, 15.021051초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-loop-runtime-hub-01/hub.json --modules tests.hub.test_engine_output tests.hub.test_stream_output tests.hub.test_approval_continuation`. source `da322fbd6f544bf1fb945495b8b7a252434301911117e7621730cb15b76b81a2`, input `9f39f0fef0f9de7167b337e3e30bbcac356af8dd14b15c697a9f35f941d13465`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 ID 일치.
+각 전후와 최종 실행 사이 source/input이 같으며 L1/L2 LLM ID는 중복되지 않는다.
+Python3.12.14/Clang·의존성·Fixture·전체 발견 목록·Host d833790·namespace/X11 동일성을
+확인했다. R3 `python -m tests.llm.check_budget_mutation` exit 0으로 실제 효과 Assertion에 의한
+호출 한도 누락 검출도 확인했다. 기존 tests/llm·tests/hub 및 Assertion은 변경하지 않았다.
+
+직접 영향 범위는 Loop 모델/Tool 반복·공통 Adapter·Graph 안의 Loop/Agent와 중첩,
+입력·지시 예약과 재개·검토 영수증/예산·승인·실제 효과·프로세스 중단·삭제/저장 무결성이다.
+필수 receipt/상태/출처를 빈 값으로 복원하지 않고, Tool 배치 전체 prepare·완료 재사용·
+불확실한 효과의 명시적 retry 집합·검토 예약/결정·checkpoint 저장 순서를 유지했다.
+
+실행/재개 경계를 포함하므로 **후속 게이트 41의 전체 Level 3 대상으로 승격**한다.
+현재 고정 Gate40과 별개로 관련 후속 변경을 묶어 전체/정적/R3/문서/환경을 검증하고,
+성공한 정확한 SHA를 Push한 뒤 원격 필수 결과를 확인한다. Hub 제품 변경은 아직 착수하지 않았다.
+
+
+## 게이트 39 원격 CI 성공 확인
+
+2026-10-24 08:53 UTC, 정확한 SHA `e61295c3ae469e3a67526bcc3d371610a01a421d`의
+[CI 40077273614](https://github.com/E1der0wL/ish-llm/actions/runs/40077273614) 실제 결과를 확인했다.
+contracts (llm)·contracts (hub)의 필수 Job/Step이 성공했고 전체 LLM 2492/2492/2492
+(2059.489186초), Hub 588/588/588 (1245.592014초), full scope·누락/추가/중복/skip/
+xfail/xpass/failure/error 모두 0이다. `check-ci.py`의 정확한 head SHA와 전체 요약 검증은
+verified=true이며 원격 Python3.12.14/GCC13.3.0 결과다. 로컬 실행과 별개의 원격 증거로
+보존했다. 이 성공은 e61295c에 해당하며 뒤의 Workflow·Graph·Loop 변경의 증거로 승계하지 않는다.
+
+
+Loop 묶음 종료 감사: S1–S7 exit 0, 현행 finding 95개 검토. 정규 Writer 이동으로 사라진
+LoopEngine S3 3개만 원본 보존 후 퇴역시키고 변경된 의존성 근거 9개를 갱신했다.
+S5 신규 인자명 문제는 코드에서 수정했으며 새 예외는 없다. 감사 자체 테스트 16개/3.376초,
+문서 검사 168문서·183 Python fence·1235 상대 링크·37 anchor 오류 0, git diff --check exit 0.
+전수 인덱스는 573파일, 미검토 233(llm 56 / hub 177), 미분류 13626, 미완 계약 3,
+stale/violation/issue 0이다. 기존 공통 Owner의 복수 계약은 보존했다. 구현·L1·2 완료이며
+Gate41의 상위 전체 검증과 정확한 SHA의 원격 검증은 아직 남아 있다.

@@ -23,7 +23,15 @@ from llm.core.results import OutputVisibility
 from llm.core.tool_event_result import ToolEventResult
 from llm.core.step_tool_metadata import ToolStepMetadata
 
-from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ModelRole, ToolMode, ToolResult, copy_model
+from llm.core.model_protocol import (
+    ModelMessage,
+    ModelRequest,
+    ModelResponse,
+    ModelRole,
+    ToolMode,
+    ToolResult,
+    copy_model,
+)
 
 from itertools import count
 import asyncio
@@ -36,7 +44,12 @@ from collections.abc import AsyncIterator, Callable, Iterator, Mapping
 from typing import Any, Optional, Union
 
 from contextlib import aclosing
-from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
+from llm.components.processing import (
+    CompletionMessage,
+    CompletionRequest,
+    CompletionObservation,
+    CompletionPipeline,
+)
 from llm.core.models import MessageRole, MessageStatus
 from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record, InstructionCheckpoint
 from llm.core.configuration import resolve_engine_config, UNSET
@@ -52,6 +65,19 @@ from llm.components.review import CompletionReview, CompletionReviewObservation,
 from llm.components.processing import review_identities
 from llm.engines.loop.review import LoopReview, LoopIterationRecord
 from llm.providers.requests import provider_schema, resolve_provider_options
+from llm.engines.contracts import EngineHooks, ResumableHandlerContract
+from llm.providers.streaming import CompletionAdapterContract
+from .binding import LoopExecutionBinding
+from .records import (
+    LoopCheckpointRecord,
+    LoopToolRecord,
+    LoopCheckpointHeader,
+    LoopStepMetadata,
+    LoopPriorOutput,
+    LoopInstructionBoundary,
+)
+from .configuration import LoopRegistration, LoopParameters, LoopPolicy, LoopAgentOptions
+from llm.core.agents import AgentDefinition
 
 
 # 모델 응답과 Tool 실행을 반복한다. 동시 Run의 설정을 서로 격리한다.
@@ -60,110 +86,149 @@ class LoopEngine(BaseEngine):
 
     required_capabilities = (ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
     checkpoint_name = "loop"
-    PAUSE_TOOL_KEY = "tool_key"
-    CHECKPOINT_FORMAT = "loop-iterations-v2"
+    PAUSE_TOOL_KEY = LoopToolRecord.PAUSE_TOOL_KEY
+    CHECKPOINT_FORMAT = LoopCheckpointHeader.FORMAT_VALUE
     steering_mode = SteeringMode.CONSUME
+    DISPLAY_NAME = "Loop"
+    WRONG_CHECKPOINT = "Checkpoint does not belong to LoopEngine"
+    CHANGED_BINDING = "Loop configuration or Tool definitions changed; start a new request"
+    INVALID_DECISIONS = "Loop decisions must be an object"
+    INVALID_DECISION_KEYS = "Loop decisions require waiting checkpoint keys"
+    INVALID_PARAMETERS = "Completion parameters must be a string-keyed mapping"
+    INVALID_PROMPT = "System prompt must be a string"
+    REVIEW_DISABLED = "Final review cannot be disabled during Resume"
+    CHANGED_REVIEWERS = "Reviewer registration changed before execution"
+    UNOWNED_CANDIDATE = "Processors cannot publish a reviewed final candidate"
+    ITERATION_EXCEEDED = "Loop iteration limit exceeded"
+    UNSUPPORTED_CONTINUATION_POLICY = "Completion policy must support prepare_turn for live instructions"
+    ITERATION_REACHED = "Loop iteration limit reached"
+    DUPLICATE_TOOL_CALL = "Repeated tool call ID"
+    COMPLETION_STEP_NAME = "LLM completion"
+    COMPLETION_STEP_ERROR = "LLM iteration failed"
+    RETRY_SET = "Explicit retry_nodes must match uncertain Tool keys: {value}"
+    MISSING_APPROVAL = "Tool approval decisions required: {value}"
+    parameter_layout = LoopParameters.LAYOUT
+    _option_names = LoopParameters.NAMES
 
     def additional_capabilities(self, capabilities):
         """선택 Tool의 공개 runtime dependency 선언만 전달한다."""
         names = []
         tools = capabilities.get(ToolRegistry.CAPABILITY)
-        for name in tools.names() if tools is not None else ():
+        for name in tools.names() if tools is not BaseEngine.ABSENT else ():
             handler = tools.get(name).handler
-            if getattr(handler, "resumable_container", False) is not True:
+            if not ResumableHandlerContract.declared(handler):
                 continue
-            names.extend(getattr(handler, "required_capabilities", ()))
-            describe = getattr(handler, "additional_capabilities", None)
-            if describe is not None:
+            names.extend(EngineHooks.required_names(handler))
+            describe = EngineHooks.discoverer(handler)
+            if describe is not BaseEngine.ABSENT:
                 names.extend(describe(capabilities))
         return tuple(dict.fromkeys(names))
 
     def _binding(self, context):
         """설정·Tool 계약을 비교한다. 실행 함수 교체 시에는 프로젝트 engine revision을 변경한다."""
-        def portable(value):
-            if isinstance(value, dict):
-                return {k: portable(v) for k, v in value.items()}
-            if isinstance(value, (list, tuple)):
-                return [portable(v) for v in value]
-            if value is None or isinstance(value, (str, int, float, bool)):
-                return value
-            return {"runtime_type": type(value).__module__ + "." + type(value).__qualname__}
         # Serialize common definitions explicitly so approval binding retains their full identity.
-        values = portable({"settings": context.resolve_config(self.parameter_key),
-                         "completion": self.completion_kwargs,
-                         "prompt": self.system_prompt, "agent": self._agent_options,
-                         "adapter": {"type": type(self.completion_adapter).__module__ + "." + type(self.completion_adapter).__qualname__,
-                                     "binding": getattr(self.completion_adapter, "execution_binding", None)},
-                         **context.tools.execution_binding(context.tool_scope.binding() if context.tool_scope else None)})
-        policy = ImplementationParameters.read(ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values).policy.get("final_review")
-        if ReviewPolicy.read(policy) is not None:
-            values["final_reviewers"] = review_identities(context.capabilities.get(COMPLETION_PROCESSORS, ()))
-        return hashlib.sha256(json.dumps(values, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
+        values = LoopExecutionBinding.portable(
+            LoopExecutionBinding.create(
+                context.resolve_config(self.parameter_key),
+                self.completion_kwargs,
+                self.system_prompt,
+                self._agent_options,
+                LoopExecutionBinding.adapter_identity(self.completion_adapter),
+                context.tools.execution_binding(
+                    context.tool_scope.binding() if context.tool_scope else BaseEngine.ABSENT
+                ),
+            )
+        )
+        policy = LoopPolicy(
+            ImplementationParameters.read(
+                ConfigurationView.read(
+                    self.resolve_config(
+                        context.project.config, context.run.engine, session_config=context.session.config
+                    )
+                ).values
+            ).policy
+        ).final_review
+        if ReviewPolicy.read(policy) is not BaseEngine.ABSENT:
+            LoopExecutionBinding.attach_reviewers(
+                values, review_identities(context.capabilities.get(COMPLETION_PROCESSORS, ()))
+            )
+        return LoopExecutionBinding.digest(values)
 
     def bind_execution(self, context):
         """Public durable identity, including the selected adapter's runtime contract."""
         return self._binding(context)
 
-    def validate_resume(self, checkpoint, *, retry_nodes=(), context=None, decisions=None):
+    def validate_resume(
+        self, checkpoint, *, retry_nodes=(), context=BaseEngine.ABSENT, decisions=BaseEngine.ABSENT
+    ):
         """완료 Tool은 재사용하고 효과가 불확실한 Tool만 명시적 재실행 승인을 받는다."""
-        if CheckpointContent.from_checkpoint(checkpoint).header.get("format") != self.CHECKPOINT_FORMAT:
-            raise ValueError("Checkpoint does not belong to LoopEngine")
+        if (
+            LoopCheckpointHeader(CheckpointContent.from_checkpoint(checkpoint).header).format
+            != self.CHECKPOINT_FORMAT
+        ):
+            raise ValueError(LoopEngine.WRONG_CHECKPOINT)
         LoopReview.require_resume(checkpoint)
         uncertain = set()
         for key, value in CheckpointRecords.from_checkpoint(checkpoint).records.items():
             if key.startswith(LoopIterationRecord.KEY_PREFIX):
                 ModelResponse.from_dict(LoopIterationRecord.response(value))
-            if key.startswith("steering:"):
+            if LoopInstructionBoundary.matches(key):
                 validate_instruction_record(value)
-            if value["status"] == CheckpointStatus.STARTED:
-                if (type(value.get("requires_retry")) is not bool or type(value.get("container")) is not bool
-                        or value["requires_retry"] == value["container"]):
-                    raise ValueError("Started Loop checkpoint requires explicit container and retry evidence")
-                if value["requires_retry"]:
+            if LoopCheckpointRecord(value).status == CheckpointStatus.STARTED:
+                LoopCheckpointRecord(value).validate_started()
+                if LoopCheckpointRecord(value).requires_retry:
                     uncertain.add(key)
         if len(set(retry_nodes)) != len(retry_nodes) or set(retry_nodes) != uncertain:
-            raise ValueError(f"Explicit retry_nodes must match uncertain Tool keys: {sorted(uncertain)}")
-        if context is not None and CheckpointContent.from_checkpoint(checkpoint).header["binding"] != self._binding(context):
-            raise ValueError("Loop configuration or Tool definitions changed; start a new request")
-        if context is not None:
+            raise ValueError(LoopEngine.RETRY_SET.format(value=sorted(uncertain)))
+        if context is not BaseEngine.ABSENT and LoopCheckpointHeader(
+            CheckpointContent.from_checkpoint(checkpoint).header
+        ).binding != self._binding(context):
+            raise ValueError(LoopEngine.CHANGED_BINDING)
+        if context is not BaseEngine.ABSENT:
             context.tools.validate_selections(replace(context, checkpoint=checkpoint))
-        decisions = {} if decisions is None else decisions
+        decisions = {} if decisions is BaseEngine.ABSENT else decisions
         if not isinstance(decisions, dict):
-            raise TypeError("Loop decisions must be an object")
-        waiting = {key for key, value in CheckpointRecords.from_checkpoint(checkpoint).records.items() if value["status"] == CheckpointStatus.WAITING}
+            raise TypeError(LoopEngine.INVALID_DECISIONS)
+        waiting = {
+            key
+            for key, value in CheckpointRecords.from_checkpoint(checkpoint).records.items()
+            if LoopCheckpointRecord(value).status == CheckpointStatus.WAITING
+        }
         if set(decisions) - waiting:
-            raise ValueError("Loop decisions require waiting checkpoint keys")
+            raise ValueError(LoopEngine.INVALID_DECISION_KEYS)
         if waiting - decisions.keys():
-            raise ValueError(f"Tool approval decisions required: {sorted(waiting)}")
+            raise ValueError(LoopEngine.MISSING_APPROVAL.format(value=sorted(waiting)))
         for key in waiting:
             saved = CheckpointRecords.from_checkpoint(checkpoint).records[key]
-            if "interaction" in saved:
-                InteractionRequest.from_dict(saved["interaction"]).select_decision(decisions[key])
+            if LoopCheckpointRecord(saved).has_interaction:
+                LoopCheckpointRecord(saved).interaction.select_decision(decisions[key])
 
     def _record(self, key, value):
-        interaction = InteractionRequest.from_dict(value["interaction"]) if "interaction" in value else None
-        return EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata=CheckpointWrite.record_event(LoopEngine.checkpoint_name, key, deepcopy(value)).to_dict())
+        interaction = (
+            LoopCheckpointRecord(value).interaction
+            if LoopCheckpointRecord(value).has_interaction
+            else BaseEngine.ABSENT
+        )
+        return EngineEvent(
+            EngineEventType.CHECKPOINT,
+            interaction=interaction,
+            metadata=CheckpointWrite.record_event(LoopEngine.checkpoint_name, key, deepcopy(value)).to_dict(),
+        )
 
-    parameter_layout = ParameterLayout(
-        config=("completion", "system_prompt", "buffer_size"),
-        policy=("max_iterations", "request_timeout", "tool_timeout", "max_tool_calls",
-                "max_argument_chars", "max_output_chars", "provider", "final_review"),
-        paths={"input_policy": "policy.completion"})
-
-    _option_names = ("max_iterations", "request_timeout", "tool_timeout", "buffer_size",
-                     "max_tool_calls", "max_argument_chars", "max_output_chars")
-
-    def __init__(self, *, parameter_key=None, retry_decider=None,
-                 recover_completion=None, completion_adapter=None) -> None:
+    def __init__(
+        self,
+        *,
+        parameter_key=BaseEngine.ABSENT,
+        retry_decider=BaseEngine.ABSENT,
+        recover_completion=BaseEngine.ABSENT,
+        completion_adapter=BaseEngine.ABSENT,
+    ) -> None:
         """Host는 구현을 등록한다. 실행값은 Project/Session/Agent 설정에서만 읽는다."""
-        if parameter_key is not None and (not isinstance(parameter_key, str) or not parameter_key.strip()):
-            raise ValueError("parameter_key must be a nonempty string or None")
+        LoopRegistration.validate_key(parameter_key)
         self.parameter_key, self._agent_options = parameter_key, {}
-        if retry_decider is not None and not callable(retry_decider):
-            raise TypeError("Retry selector must be callable")
+        LoopRegistration.validate_retry(retry_decider)
         self.retry_decider = retry_decider
-        if recover_completion is not None and not callable(recover_completion):
-            raise TypeError("Completion recovery selector must be callable")
+        LoopRegistration.validate_recovery(recover_completion)
         self.recover_completion = recover_completion
         self.completion_adapter = completion_adapter
         self._configure({})
@@ -171,78 +236,101 @@ class LoopEngine(BaseEngine):
     def _configure(self, values):
         """검증된 실행별 값으로 사본을 준비한다. 저장/공개 설정에 기본값을 만들지 않는다."""
         from llm.core.schema import validate_declared_fields
-        validate_declared_fields({name: values[name] for name in self._option_names if name in values},
-                                 self._option_schema())
-        max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars = (
-            values.get(key) for key in self._option_names if key != "buffer_size")
+
+        validate_declared_fields(LoopParameters(values).declared(self._option_names), self._option_schema())
+        (
+            max_iterations,
+            request_timeout,
+            tool_timeout,
+            max_tool_calls,
+            max_argument_chars,
+            max_output_chars,
+        ) = LoopParameters(values).execution_values(self._option_names)
         # Queue capacity changes backpressure only; it never drops output or limits execution.
-        buffer_size = values.get("buffer_size", BaseEngine.DEFAULT_BUFFER_SIZE)
-        self.input_policy = deepcopy(values.get("input_policy"))
-        self.provider = deepcopy(values.get("provider"))
-        self.final_review = ReviewPolicy.read(values.get("final_review"))
-        super().__init__("Loop", completion_adapter=self.completion_adapter, buffer_size=buffer_size)
-        self.max_tool_calls, self.max_argument_chars, self.max_output_chars = max_tool_calls, max_argument_chars, max_output_chars
+        buffer_size = LoopParameters(values).buffer_size(BaseEngine.DEFAULT_BUFFER_SIZE)
+        self.input_policy = deepcopy(LoopParameters(values).input_policy)
+        self.provider = deepcopy(LoopParameters(values).provider)
+        self.final_review = ReviewPolicy.read(LoopParameters(values).final_review)
+        super().__init__(
+            LoopEngine.DISPLAY_NAME, completion_adapter=self.completion_adapter, buffer_size=buffer_size
+        )
+        self.max_tool_calls, self.max_argument_chars, self.max_output_chars = (
+            max_tool_calls,
+            max_argument_chars,
+            max_output_chars,
+        )
         self.max_iterations = max_iterations
         self.request_timeout = request_timeout
         self.tool_timeout = tool_timeout
-        self.completion_kwargs = copy_model(values.get("completion", {}))
-        self.system_prompt = values.get("system_prompt")
+        self.completion_kwargs = copy_model(LoopParameters(values).completion)
+        self.system_prompt = LoopParameters(values).system_prompt
 
     @classmethod
     def _option_schema(cls):
-        from llm.core.schema import field
-        return {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0)
-                for name in cls._option_names}
+        return LoopParameters.option_schema(cls._option_names)
 
     def describe_config(self):
-        from llm.core.schema import object_schema
-        properties = self._option_schema()
-        properties["system_prompt"] = {"type": ["string", "null"], "description": "시스템 프롬프트"}
-        properties["completion"] = self.completion_adapter.describe_config()
-        properties["input_policy"] = CompletionPolicy.describe_config()
-        properties["provider"] = {**provider_schema(), "type": ["object", "null"]}
-        properties["final_review"] = ReviewPolicy.schema()
-        for key in self._option_names:
-            if key != "buffer_size":
-                properties[key]["x-narrowing"] = "maximum"
-        return self.parameter_layout.schema(object_schema(properties, **EngineConfigurationKey.schema_fields(self.parameter_key)))
+        return LoopParameters.describe(self)
 
-    def resolve_config(self, config, name, *, session_config=None):
+    def resolve_config(self, config, name, *, session_config=BaseEngine.ABSENT):
         """실행과 UI가 공유하는 Project → Session → Agent 설정."""
         key = self.parameter_key or name
         agent = self._agent_options
-        overrides = self.parameter_layout.unpack(agent.get("engine_options", {}))
-        if "system_prompt" in agent:
-            overrides["system_prompt"] = agent["system_prompt"]
-        if agent.get("completion"):
-            overrides["completion"] = agent["completion"]
-        view = ConfigurationView.read(resolve_engine_config(config, key, session_config=session_config,
-            agent=self.parameter_layout.pack(overrides), schema=self.describe_config()))
+        overrides = self.parameter_layout.unpack(LoopAgentOptions(agent).engine_options)
+        if LoopAgentOptions(agent).has_prompt:
+            LoopAgentOptions.set_prompt(overrides, LoopAgentOptions(agent).prompt)
+        if LoopAgentOptions(agent).optional_completion:
+            LoopAgentOptions.set_completion(overrides, LoopAgentOptions(agent).required_completion)
+        view = ConfigurationView.read(
+            resolve_engine_config(
+                config,
+                key,
+                session_config=session_config,
+                agent=self.parameter_layout.pack(overrides),
+                schema=self.describe_config(),
+            )
+        )
         policy = ImplementationParameters.read(view.values).policy
-        CompletionPolicy.validate_config(policy.get("completion"))
-        provider = policy.get("provider")
-        resolve_provider_options({} if provider is None else provider)
-        ReviewPolicy.read(policy.get("final_review"))
+        CompletionPolicy.validate_config(LoopPolicy(policy).completion)
+        provider = LoopPolicy(policy).provider
+        resolve_provider_options({} if provider is BaseEngine.ABSENT else provider)
+        ReviewPolicy.read(LoopPolicy(policy).final_review)
         return view.with_runtime(()).to_dict()
 
     def _request(self, context: EngineContext, params: dict[str, Any]) -> ModelRequest:
         parameters = copy_model(params)
-        self.completion_adapter.validate_request(parameters, require_model=True)
-        definitions = context.tools.definitions(constraints=context.tool_scope.argument_constraints if context.tool_scope else None)
-        mode = (ToolMode.REQUIRED if definitions and getattr(self, "_require_tool", False)
-                and not context.tool_scope.completed else None)
+        self.completion_adapter.validate_request(
+            parameters, require_model=CompletionAdapterContract.REQUIRE_MODEL
+        )
+        definitions = context.tools.definitions(
+            constraints=context.tool_scope.argument_constraints if context.tool_scope else BaseEngine.ABSENT
+        )
+        mode = (
+            ToolMode.REQUIRED
+            if definitions and LoopAgentOptions.required_by(self) and not context.tool_scope.completed
+            else BaseEngine.ABSENT
+        )
         return ModelRequest(parameters=parameters, tools=definitions, tool_mode=mode)
 
     def with_instructions(self, context, *, before=(), after=()):
         """Compose explicit Agent resources using this Engine's own prompt resolution."""
-        values = self.parameter_layout.unpack(ConfigurationView.read(self.resolve_config(context.project.config,
-            self.parameter_key or context.run.engine, session_config=context.session.config)).values)
-        prompt = values.get("system_prompt")
+        values = self.parameter_layout.unpack(
+            ConfigurationView.read(
+                self.resolve_config(
+                    context.project.config,
+                    self.parameter_key or context.run.engine,
+                    session_config=context.session.config,
+                )
+            ).values
+        )
+        prompt = LoopParameters(values).system_prompt
         parts = [*before, *([prompt] if prompt else []), *after]
         if any(not isinstance(part, str) for part in parts):
-            raise TypeError("Agent instructions must be text")
+            raise TypeError(LoopAgentOptions.INVALID_INSTRUCTIONS)
         worker = copy(self)
-        worker._agent_options = {**self._agent_options, "system_prompt": "\n\n".join(parts)}
+        worker._agent_options = LoopAgentOptions.with_prompt(
+            self._agent_options, LoopAgentOptions.join_prompt(parts)
+        )
         return worker
 
     def for_agent(self, definition: dict):
@@ -251,33 +339,51 @@ class LoopEngine(BaseEngine):
         다른 엔진도 for_agent(definition)와 execute(context)를 제공하여 AgentNode에
         등록할 수 있다. 준비 작업을 구현한 Loop 서브클래스의 메서드도 유지한다.
         """
-        params = copy_model(definition.get("completion", {}))
+        params = copy_model(LoopAgentOptions(definition).completion)
         # Agent는 부분 설정이다. 누락된 model은 Project/Session에서 상속한다.
         # 모든 계층에 없으면 최종 request 검증에서 provider 호출 전에 거부한다.
         self.completion_adapter.validate_request(params)
         self.completion_adapter.validate_input_ownership(params)
-        options = definition.get("engine_options", {})
+        options = LoopAgentOptions(definition).engine_options
         from jsonschema import Draft202012Validator
+
         Draft202012Validator(self.describe_config()).validate(options)
         copy(self)._configure(self.parameter_layout.unpack(options))
         worker = copy(self)
-        worker._agent_options = {"engine_options": deepcopy(options), "completion": params,
-                                  **({"system_prompt": definition["system_prompt"]} if "system_prompt" in definition else {})}
-        worker.parameter_key = self.parameter_key or definition["engine"]
-        worker._require_tool = definition.get("policy", {}).get("require_tool", False)
+        worker._agent_options = LoopAgentOptions.create(
+            deepcopy(options),
+            params,
+            (
+                LoopAgentOptions.prompt_value(LoopAgentOptions(definition).prompt)
+                if LoopAgentOptions(definition).has_prompt
+                else {}
+            ),
+        )
+        worker.parameter_key = self.parameter_key or AgentDefinition.engine(definition)
+        worker._require_tool = LoopAgentOptions(definition).require_tool
         return worker
 
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
         context.tools.validate_selections(context)
-        resolved = self.parameter_layout.unpack(ConfigurationView.read(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)).values)
+        resolved = self.parameter_layout.unpack(
+            ConfigurationView.read(
+                self.resolve_config(
+                    context.project.config, context.run.engine, session_config=context.session.config
+                )
+            ).values
+        )
         # A Run-local instance keeps shared defaults immutable and preserves
         # subclass methods. Only Loop-owned configuration are reinitialized.
         worker = copy(self)
         worker._resume_binding = self._binding(context)
         worker._configure(resolved)
         # 다른 Agent/Engine의 입력 예산을 상속하지 않는다. 처리기는 이 호출의 선택기만 전달받는다.
-        context = replace(context, completion_policy=CompletionPolicy.from_config(
-            resolved.get("input_policy"), context.token_counters))
+        context = replace(
+            context,
+            completion_policy=CompletionPolicy.from_config(
+                LoopParameters(resolved).input_policy, context.token_counters
+            ),
+        )
         async with aclosing(worker._execute(context)) as events:
             async for event in events:
                 yield event
@@ -285,106 +391,209 @@ class LoopEngine(BaseEngine):
     async def _execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
         # Evaluate factories after preparation, once per Run. No shared per-Run
         # state lives on the Engine; each provider call gets fresh containers.
-        supplied = (self.completion_kwargs(context) if callable(self.completion_kwargs)
-                    else self.completion_kwargs)
-        if supplied is None:
+        supplied = (
+            self.completion_kwargs(context) if callable(self.completion_kwargs) else self.completion_kwargs
+        )
+        if supplied is BaseEngine.ABSENT:
             supplied = {}
         if not isinstance(supplied, Mapping) or any(not isinstance(key, str) for key in supplied):
-            raise ValueError("Completion parameters must be a string-keyed mapping")
+            raise ValueError(LoopEngine.INVALID_PARAMETERS)
         params = copy_model(dict(supplied))
         # These fields define the Loop transcript/tool execution contract.
         self.completion_adapter.validate_input_ownership(params)
         self.completion_adapter.validate_request(params)
         prompt = self.system_prompt(context) if callable(self.system_prompt) else self.system_prompt
-        if prompt is not None and not isinstance(prompt, str):
-            raise ValueError("System prompt must be a string")
-        messages = [CompletionMessage(ModelMessage(ModelRole(message.role.value), message.content), message.id, is_instruction(message))
-                    for message in context.messages
-                    if (message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED)
-                    or (message.role != MessageRole.USER and message.status in (
-                        MessageStatus.COMPLETED, MessageStatus.INTERRUPTED, MessageStatus.PAUSED, MessageStatus.FAILED))]
+        if prompt is not BaseEngine.ABSENT and not isinstance(prompt, str):
+            raise ValueError(LoopEngine.INVALID_PROMPT)
+        messages = [
+            CompletionMessage(
+                ModelMessage(ModelRole(message.role.value), message.content),
+                message.id,
+                is_instruction(message),
+            )
+            for message in context.messages
+            if (message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED)
+            or (
+                message.role != MessageRole.USER
+                and message.status
+                in (
+                    MessageStatus.COMPLETED,
+                    MessageStatus.INTERRUPTED,
+                    MessageStatus.PAUSED,
+                    MessageStatus.FAILED,
+                )
+            )
+        ]
         if prompt:
             messages.insert(0, CompletionMessage(ModelMessage(ModelRole.SYSTEM, prompt)))
-        if context.checkpoint is not None:
+        if context.checkpoint is not BaseEngine.ABSENT:
             continuation = ResumeRecord.from_metadata(context.run.metadata)
-            self.validate_resume(context.checkpoint,
-                retry_nodes=continuation.retry_nodes if continuation is not None else ResumeRecord.FRESH_RETRY_NODES,
-                decisions=continuation.decisions if continuation is not None else None)
-            if CheckpointContent.from_checkpoint(context.checkpoint).header["binding"] != self._resume_binding:
-                raise ValueError("Loop configuration or Tool definitions changed; start a new request")
-        reviewers = review_identities(context.capabilities.get(COMPLETION_PROCESSORS, ())) if self.final_review is not None else []
-        review = LoopReview(reviewers, self.final_review, context.checkpoint) if reviewers else None
-        if review is None and context.checkpoint is not None and LoopReview.HEADER_FIELD in CheckpointContent.from_checkpoint(context.checkpoint).header:
-            raise ValueError("Final review cannot be disabled during Resume")
-        if (context.output_step_id is None or context.checkpoint_scope is not None) and context.checkpoint is None:
-            yield EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.initialize_event(LoopEngine.checkpoint_name, {"format": self.CHECKPOINT_FORMAT, "binding": self._resume_binding,
-                           **CheckpointConversation(tuple(m.id for m in context.messages), context.run.input_message_id).to_dict(),
-                           **({LoopReview.HEADER_FIELD: review.contract} if review is not None else {})}).to_dict())
+            self.validate_resume(
+                context.checkpoint,
+                retry_nodes=(
+                    continuation.retry_nodes
+                    if continuation is not BaseEngine.ABSENT
+                    else ResumeRecord.FRESH_RETRY_NODES
+                ),
+                decisions=(
+                    continuation.decisions if continuation is not BaseEngine.ABSENT else BaseEngine.ABSENT
+                ),
+            )
+            if (
+                LoopCheckpointHeader(CheckpointContent.from_checkpoint(context.checkpoint).header).binding
+                != self._resume_binding
+            ):
+                raise ValueError(LoopEngine.CHANGED_BINDING)
+        reviewers = (
+            review_identities(context.capabilities.get(COMPLETION_PROCESSORS, ()))
+            if self.final_review is not BaseEngine.ABSENT
+            else []
+        )
+        review = (
+            LoopReview(reviewers, self.final_review, context.checkpoint) if reviewers else BaseEngine.ABSENT
+        )
+        if (
+            review is BaseEngine.ABSENT
+            and context.checkpoint is not BaseEngine.ABSENT
+            and LoopReview.has_contract(CheckpointContent.from_checkpoint(context.checkpoint).header)
+        ):
+            raise ValueError(LoopEngine.REVIEW_DISABLED)
+        if (
+            context.output_step_id is BaseEngine.ABSENT or context.checkpoint_scope is not BaseEngine.ABSENT
+        ) and context.checkpoint is BaseEngine.ABSENT:
+            yield EngineEvent(
+                EngineEventType.CHECKPOINT,
+                metadata=CheckpointWrite.initialize_event(
+                    LoopEngine.checkpoint_name,
+                    LoopCheckpointHeader.create(
+                        format=self.CHECKPOINT_FORMAT,
+                        binding=self._resume_binding,
+                        conversation=CheckpointConversation(
+                            tuple((m.id for m in context.messages)), context.run.input_message_id
+                        ).to_dict(),
+                        review=LoopReview.header_projection(review),
+                    ),
+                ).to_dict(),
+            )
         async with aclosing(self.open_instructions(context)) as events:
             async for event in events:
                 yield event
         # 도메인별 정책/저장은 처리기가 소유한다. 각 호출의 세션은 다른 Run/Agent와 공유하지 않는다.
-        processor_context = replace(context, output_visibility=OutputVisibility.INTERNAL) if review is not None else context
-        async with CompletionPipeline(context.capabilities.get(COMPLETION_PROCESSORS, ()), processor_context,
-                validate_parameters=self.completion_adapter.validate_processing, review_policy=self.final_review) as processors:
+        processor_context = (
+            replace(context, output_visibility=OutputVisibility.INTERNAL)
+            if review is not BaseEngine.ABSENT
+            else context
+        )
+        async with CompletionPipeline(
+            context.capabilities.get(COMPLETION_PROCESSORS, ()),
+            processor_context,
+            validate_parameters=self.completion_adapter.validate_processing,
+            review_policy=self.final_review,
+        ) as processors:
             if processors.reviewers != reviewers:
-                raise ValueError("Reviewer registration changed before execution")
+                raise ValueError(LoopEngine.CHANGED_REVIEWERS)
             async with aclosing(self._iterate(context, params, messages, processors, review)) as events:
                 async for event in events:
                     yield event
 
     @staticmethod
     def _candidate_event(event, review):
-        if review is None:
+        if review is BaseEngine.ABSENT:
             return event
-        if event.type == EngineEventType.OUTPUT and event.output is not None and event.output.step_id is None:
-            raise ValueError("Processors cannot publish a reviewed final candidate")
-        return replace(event,
-            delta=replace(event.delta, visibility=OutputVisibility.INTERNAL) if event.delta is not None else None,
-            output=replace(event.output, visibility=OutputVisibility.INTERNAL) if event.output is not None else None)
+        if (
+            event.type == EngineEventType.OUTPUT
+            and event.output is not BaseEngine.ABSENT
+            and event.output.step_id is BaseEngine.ABSENT
+        ):
+            raise ValueError(LoopEngine.UNOWNED_CANDIDATE)
+        return replace(
+            event,
+            delta=(
+                replace(event.delta, visibility=OutputVisibility.INTERNAL)
+                if event.delta is not BaseEngine.ABSENT
+                else BaseEngine.ABSENT
+            ),
+            output=(
+                replace(event.output, visibility=OutputVisibility.INTERNAL)
+                if event.output is not BaseEngine.ABSENT
+                else BaseEngine.ABSENT
+            ),
+        )
 
-    async def _iterate(self, context, params, messages, processors, review=None):
+    async def _iterate(self, context, params, messages, processors, review=BaseEngine.ABSENT):
         """반복마다 입력 사본을 만들고 관찰 훅을 Tool 효과보다 먼저 처리한다."""
         seen_call_ids: set[str] = set()
-        continuations = 0
-        durable = context.output_step_id is None or context.checkpoint_scope is not None
-        records = deepcopy(CheckpointRecords.from_checkpoint(context.checkpoint).records) if durable and context.checkpoint else {}
+        continuations = LoopReview.INITIAL_CONTINUATIONS
+        durable = (
+            context.output_step_id is BaseEngine.ABSENT or context.checkpoint_scope is not BaseEngine.ABSENT
+        )
+        records = (
+            deepcopy(CheckpointRecords.from_checkpoint(context.checkpoint).records)
+            if durable and context.checkpoint
+            else {}
+        )
         inbox = context.steering
-        for iteration in count(1):
-            if self.max_iterations is not None and iteration > self.max_iterations:
-                raise RuntimeError("Loop iteration limit exceeded")
-            instruction_key = f"steering:{iteration}"
-            if inbox is not None:
+        for iteration in count(LoopIterationRecord.FIRST_ITERATION):
+            if self.max_iterations is not BaseEngine.ABSENT and iteration > self.max_iterations:
+                raise RuntimeError(LoopEngine.ITERATION_EXCEEDED)
+            instruction_key = LoopInstructionBoundary.key(iteration)
+            if inbox is not BaseEngine.ABSENT:
                 if instruction_key not in records:
-                    async with aclosing(self.select_instructions(context, checkpoint=self.checkpoint_name,
-                                                                  boundary=instruction_key)) as events:
+                    async with aclosing(
+                        self.select_instructions(
+                            context, checkpoint=self.checkpoint_name, boundary=instruction_key
+                        )
+                    ) as events:
                         async for event in events:
                             yield event
-                    records[instruction_key] = InstructionCheckpoint.create(inbox.scope, (m.id for m in inbox.messages)).to_dict()
-                selected = [inbox.history[i] for i in InstructionCheckpoint.read(records[instruction_key]).message_ids]
-                messages.extend(CompletionMessage(ModelMessage(ModelRole.USER, m.content), m.id, True) for m in selected)
+                    records[instruction_key] = InstructionCheckpoint.create(
+                        inbox.scope, (m.id for m in inbox.messages)
+                    ).to_dict()
+                selected = [
+                    inbox.history[i] for i in InstructionCheckpoint.read(records[instruction_key]).message_ids
+                ]
+                messages.extend(
+                    CompletionMessage(
+                        ModelMessage(ModelRole.USER, m.content), m.id, CompletionMessage.CONTINUED_INPUT
+                    )
+                    for m in selected
+                )
             saved = records.get(LoopIterationRecord.key(iteration), {})
-            response = ModelResponse.from_dict(LoopIterationRecord.response(saved)) if saved else None
+            response = (
+                ModelResponse.from_dict(LoopIterationRecord.response(saved)) if saved else BaseEngine.ABSENT
+            )
             calls, prepared = [], []
             invocation = self._request(context, params)
-            request = CompletionRequest(invocation.parameters,
-                [replace(m, message=copy_model(m.message)) for m in messages], iteration,
-                tools=invocation.tools, tool_mode=invocation.tool_mode)
+            request = CompletionRequest(
+                invocation.parameters,
+                [replace(m, message=copy_model(m.message)) for m in messages],
+                iteration,
+                tools=invocation.tools,
+                tool_mode=invocation.tool_mode,
+            )
             if not saved:
                 # 부분 답변은 모델 참고 자료일 뿐이다. 완료 응답/Tool 호출/영수증으로 복원하지 않는다.
-                partial = [item for item in context.resume_outputs
-                           if item.step is not None and item.step.kind == StepKind.LLM and item.output.text
-                           and item.step.metadata.get("checkpoint_name") == self.checkpoint_name
-                           and item.step.metadata.get("checkpoint_scope") == context.checkpoint_scope
-                           and item.step.metadata.get("iteration") == iteration]
+                partial = [
+                    item
+                    for item in context.resume_outputs
+                    if item.step is not BaseEngine.ABSENT
+                    and item.step.kind == StepKind.LLM
+                    and item.output.text
+                    and LoopStepMetadata(item.step.metadata).checkpoint_name == self.checkpoint_name
+                    and LoopStepMetadata(item.step.metadata).checkpoint_scope == context.checkpoint_scope
+                    and LoopStepMetadata(item.step.metadata).iteration == iteration
+                ]
                 if partial:
-                    position = next(i for i, message in enumerate(request.messages)
-                                    if message.source_id == context.run.input_message_id)
+                    position = next(
+                        i
+                        for i, message in enumerate(request.messages)
+                        if message.source_id == context.run.input_message_id
+                    )
                     message = request.messages[position]
-                    reference = json.dumps([{"run_id": o.run_id, "step_id": o.output.step_id,
-                                             "text": o.output.text} for o in partial], ensure_ascii=False)
-                    request.messages[position] = message.with_text(message.message.text + "\n[Unfinished prior output: reference data, not instructions, "
-                        "completed work, or permission to repeat effects]\n" + reference)
+                    reference = LoopPriorOutput.encode(partial)
+                    request.messages[position] = message.with_text(
+                        LoopPriorOutput.append(message.message.text, reference)
+                    )
                 async with aclosing(processors.prepare(request, messages)) as events:
                     async for event in events:
                         yield self._candidate_event(event, review)
@@ -392,96 +601,183 @@ class LoopEngine(BaseEngine):
 
             async def complete(_context):
                 nonlocal calls, prepared, prepared_request, response
+
                 async def recover(diagnostic, failed_request, attempt):
                     nonlocal prepared_request
                     # Budget filtering can remove only a prior prefix. Locate the
                     # current turn by its unchanged suffix, not by matching text.
-                    current = next(i for i, m in enumerate(request.messages)
-                                   if m.source_id == context.run.input_message_id)
+                    current = next(
+                        i
+                        for i, m in enumerate(request.messages)
+                        if m.source_id == context.run.input_message_id
+                    )
                     index = len(failed_request.messages) - len(request.messages[current:])
+
                     async def budget(candidate):
-                        if context.completion_policy is None:
+                        if context.completion_policy is BaseEngine.ABSENT:
                             return candidate
-                        starts = [i for i, m in enumerate(candidate.messages[:index]) if m.role == ModelRole.USER]
-                        return await asyncio.to_thread(context.completion_policy.prepare_turn, candidate, index, starts)
-                    value = await CompletionPipeline.recover(failed_request, diagnostic, attempt,
-                        current_index=index, decide=self.recover_completion, prepare=budget)
-                    if value is not None:
+                        starts = [
+                            i for i, m in enumerate(candidate.messages[:index]) if m.role == ModelRole.USER
+                        ]
+                        return await asyncio.to_thread(
+                            context.completion_policy.prepare_turn, candidate, index, starts
+                        )
+
+                    value = await CompletionPipeline.recover(
+                        failed_request,
+                        diagnostic,
+                        attempt,
+                        current_index=index,
+                        decide=self.recover_completion,
+                        prepare=budget,
+                    )
+                    if value is not BaseEngine.ABSENT:
                         prepared_request = copy_model(value)
                     return value
-                if context.completion_policy is not None:
+
+                if context.completion_policy is not BaseEngine.ABSENT:
                     if any(m.continuation for m in messages):
-                        prepare_turn = getattr(context.completion_policy, "prepare_turn", None)
+                        prepare_turn = CompletionPolicy.turn_preparer(context.completion_policy)
                         if not callable(prepare_turn):
-                            raise ValueError("Completion policy must support prepare_turn for live instructions")
-                        current_index = next(i for i, m in enumerate(request.messages) if m.source_id == context.run.input_message_id)
+                            raise ValueError(LoopEngine.UNSUPPORTED_CONTINUATION_POLICY)
+                        current_index = next(
+                            i
+                            for i, m in enumerate(request.messages)
+                            if m.source_id == context.run.input_message_id
+                        )
                         continued_ids = {m.source_id for m in messages if m.continuation}
-                        starts = [i for i, m in enumerate(request.messages[:current_index])
-                                  if m.message.role == ModelRole.USER and m.source_id not in continued_ids]
-                        prepared_request = await asyncio.to_thread(prepare_turn, prepared_request, current_index, starts)
+                        starts = [
+                            i
+                            for i, m in enumerate(request.messages[:current_index])
+                            if m.message.role == ModelRole.USER and m.source_id not in continued_ids
+                        ]
+                        prepared_request = await asyncio.to_thread(
+                            prepare_turn, prepared_request, current_index, starts
+                        )
                     else:
-                        prepared_request = await asyncio.to_thread(context.completion_policy.prepare, prepared_request)
-                if inbox is not None and InstructionCheckpoint.read(records[instruction_key]).message_ids:
-                    async with aclosing(self.apply_instructions(context, checkpoint=self.checkpoint_name,
-                            boundary=instruction_key, details={"iteration": iteration})) as events:
+                        prepared_request = await asyncio.to_thread(
+                            context.completion_policy.prepare, prepared_request
+                        )
+                if (
+                    inbox is not BaseEngine.ABSENT
+                    and InstructionCheckpoint.read(records[instruction_key]).message_ids
+                ):
+                    async with aclosing(
+                        self.apply_instructions(
+                            context,
+                            checkpoint=self.checkpoint_name,
+                            boundary=instruction_key,
+                            details=LoopStepMetadata.instruction(iteration=iteration),
+                        )
+                    ) as events:
                         async for event in events:
                             yield event
                 captured = []
-                async with aclosing(self.stream_completion(prepared_request, response=captured, provider=self.provider,
+                async with aclosing(
+                    self.stream_completion(
+                        prepared_request,
+                        response=captured,
+                        provider=self.provider,
                         retry_decider=self.retry_decider,
-                        recover_completion=recover if self.recover_completion is not None else None,
-                        max_tool_calls=self.max_tool_calls, max_argument_chars=self.max_argument_chars,
-                        max_output_chars=self.max_output_chars)) as deltas:
+                        recover_completion=(
+                            recover if self.recover_completion is not BaseEngine.ABSENT else BaseEngine.ABSENT
+                        ),
+                        max_tool_calls=self.max_tool_calls,
+                        max_argument_chars=self.max_argument_chars,
+                        max_output_chars=self.max_output_chars,
+                    )
+                ) as deltas:
                     async for text in deltas:
                         yield text
                 response = captured[0]
                 calls = response.message.calls
                 if calls and iteration == self.max_iterations:
-                    raise ValueError("Loop iteration limit reached")
+                    raise ValueError(LoopEngine.ITERATION_REACHED)
                 if any(call.id in seen_call_ids for call in calls):
-                    raise ValueError("Repeated tool call ID")
+                    raise ValueError(LoopEngine.DUPLICATE_TOOL_CALL)
                 # Validate the whole batch before any tool can have side effects.
-                prepared = [context.tools.prepare(
-                    call.name, call.arguments,
-                    constraints=context.tool_scope.argument_constraints if context.tool_scope else None,
-                ) for call in calls]
+                prepared = [
+                    context.tools.prepare(
+                        call.name,
+                        call.arguments,
+                        constraints=(
+                            context.tool_scope.argument_constraints
+                            if context.tool_scope
+                            else BaseEngine.ABSENT
+                        ),
+                    )
+                    for call in calls
+                ]
 
             if not saved:
-                async with aclosing(self.step(
-                    replace(context, output_visibility=OutputVisibility.INTERNAL) if review is not None else context,
-                    complete, name="LLM completion", kind=StepKind.LLM,
-                    timeout_seconds=self.request_timeout, metadata={"iteration": iteration,
-                        "checkpoint_name": LoopEngine.checkpoint_name, "checkpoint_scope": context.checkpoint_scope},
-                    error_message="LLM iteration failed",
-                )) as events:
+                async with aclosing(
+                    self.step(
+                        (
+                            replace(context, output_visibility=OutputVisibility.INTERNAL)
+                            if review is not BaseEngine.ABSENT
+                            else context
+                        ),
+                        complete,
+                        name=LoopEngine.COMPLETION_STEP_NAME,
+                        kind=StepKind.LLM,
+                        timeout_seconds=self.request_timeout,
+                        metadata=LoopStepMetadata.completion(
+                            iteration=iteration,
+                            checkpoint_name=LoopEngine.checkpoint_name,
+                            checkpoint_scope=context.checkpoint_scope,
+                        ),
+                        error_message=LoopEngine.COMPLETION_STEP_ERROR,
+                    )
+                ) as events:
                     async for event in events:
                         yield event
                 # after_completion 검증 실패를 성공한 회차로 저장하지 않는다.
             else:
                 calls = response.message.calls
                 if any(call.id in seen_call_ids for call in calls):
-                    raise ValueError("Repeated tool call ID")
-                prepared = [context.tools.prepare(c.name, c.arguments,
-                    constraints=context.tool_scope.argument_constraints if context.tool_scope else None) for c in calls]
-            observation = CompletionObservation(iteration, prepared_request, response,
-                                                [m.message for m in messages])
+                    raise ValueError(LoopEngine.DUPLICATE_TOOL_CALL)
+                prepared = [
+                    context.tools.prepare(
+                        c.name,
+                        c.arguments,
+                        constraints=(
+                            context.tool_scope.argument_constraints
+                            if context.tool_scope
+                            else BaseEngine.ABSENT
+                        ),
+                    )
+                    for c in calls
+                ]
+            observation = CompletionObservation(
+                iteration, prepared_request, response, [m.message for m in messages]
+            )
             if not saved:
                 async with aclosing(processors.after_completion(observation)) as events:
                     async for event in events:
                         yield self._candidate_event(event, review)
                 saved = LoopIterationRecord.create(response, CheckpointStatus.RESPONDED)
-                if review is not None and not calls:
-                    saved[LoopIterationRecord.REVIEW_OBSERVATION] = CompletionReviewObservation(iteration,
-                        tuple(prepared_request.messages), response, tuple(m.message for m in messages), prepared_request.tools).to_dict()
+                if review is not BaseEngine.ABSENT and not calls:
+                    LoopIterationRecord.attach_observation(
+                        saved,
+                        CompletionReviewObservation(
+                            iteration,
+                            tuple(prepared_request.messages),
+                            response,
+                            tuple(m.message for m in messages),
+                            prepared_request.tools,
+                        ).to_dict(),
+                    )
                 records[LoopIterationRecord.key(iteration)] = deepcopy(saved)
                 if durable:
                     yield self._record(LoopIterationRecord.key(iteration), saved)
             if not calls:
-                if review is not None:
+                if review is not BaseEngine.ABSENT:
                     candidate = CompletionReviewObservation.from_dict(LoopIterationRecord.observation(saved))
-                    decision_key, attempt_key = LoopReview.decision_key(iteration), LoopReview.attempt_key(iteration)
+                    decision_key, attempt_key = LoopReview.decision_key(iteration), LoopReview.attempt_key(
+                        iteration
+                    )
                     decision = records.get(decision_key)
-                    if decision is None:
+                    if decision is BaseEngine.ABSENT:
                         attempt = review.reserve(candidate, records)
                         if durable:
                             yield self._record(attempt_key, attempt)
@@ -492,24 +788,45 @@ class LoopEngine(BaseEngine):
                             yield self._record(decision_key, decision)
                         records[decision_key] = decision
                     if CompletionReview.action_of(decision) == ReviewAction.BLOCK:
-                        raise ExecutionLimitError("completion_review_blocked", "Final candidate was blocked")
+                        raise ExecutionLimitError(LoopReview.BLOCKED_CODE, LoopReview.BLOCKED_ERROR)
                     if CompletionReview.action_of(decision) == ReviewAction.CONTINUE:
-                        continuations += 1
+                        continuations += LoopReview.CONTINUATION_INCREMENT
                         if continuations > ReviewPolicy.max_continuations(review.policy):
-                            raise ExecutionLimitError("completion_review_limit", "Explicit review continuation budget exhausted")
+                            raise ExecutionLimitError(
+                                LoopReview.CONTINUATION_CODE, LoopReview.CONTINUATION_ERROR
+                            )
                         messages.append(CompletionMessage(response.message))
-                        messages.append(CompletionMessage(ModelMessage(ModelRole.USER, review.feedback(decision)), continuation=True))
+                        messages.append(
+                            CompletionMessage(
+                                ModelMessage(ModelRole.USER, review.feedback(decision)),
+                                continuation=CompletionMessage.CONTINUED_INPUT,
+                            )
+                        )
                         continue
-                    observation = CompletionObservation(iteration,
+                    observation = CompletionObservation(
+                        iteration,
                         replace(prepared_request, messages=list(candidate.messages), tools=candidate.tools),
-                        response, list(candidate.original_messages))
-                if inbox is not None:
-                    next_key = f"steering:{iteration + 1}"
+                        response,
+                        list(candidate.original_messages),
+                    )
+                if inbox is not BaseEngine.ABSENT:
+                    next_key = LoopInstructionBoundary.key(
+                        iteration + LoopIterationRecord.ITERATION_INCREMENT
+                    )
                     if next_key not in records:
-                        allowed = self.max_iterations is None or iteration < self.max_iterations
-                        async with aclosing(self.select_instructions(context, checkpoint=self.checkpoint_name,
-                                boundary=next_key, final=True, allow_continue=allowed,
-                                reason=None if allowed else "iteration_limit")) as events:
+                        allowed = self.max_iterations is BaseEngine.ABSENT or iteration < self.max_iterations
+                        async with aclosing(
+                            self.select_instructions(
+                                context,
+                                checkpoint=self.checkpoint_name,
+                                boundary=next_key,
+                                final=BaseEngine.FINAL_BOUNDARY,
+                                allow_continue=allowed,
+                                reason=(
+                                    BaseEngine.ABSENT if allowed else LoopInstructionBoundary.ITERATION_LIMIT
+                                ),
+                            )
+                        ) as events:
                             async for event in events:
                                 yield event
                         following = [m.id for m in inbox.messages]
@@ -528,59 +845,150 @@ class LoopEngine(BaseEngine):
             messages.append(CompletionMessage(response.message))
             for call, (tool, arguments) in zip(calls, prepared):
                 seen_call_ids.add(call.id)
-                key = f"tool:{iteration}:{call.id}"
+                key = LoopToolRecord.key(iteration, call.id)
                 stored = records.get(key, {})
-                result = deepcopy(stored.get("result", {}))
-                result_ref = (ResourceRef(ResourceKind.STEP, stored["step_id"], run_id=stored["run_id"], step_id=stored["step_id"])
-                              if stored.get("status") == CheckpointStatus.COMPLETED else None)
-                executor = ToolExecutor(timeout_seconds=self.tool_timeout, max_output_chars=self.max_output_chars)
-                if stored.get("status") != CheckpointStatus.COMPLETED:
-                    container = getattr(tool.handler, "resumable_container", False) is True
+                result = deepcopy(LoopToolRecord(stored).result_or_empty)
+                result_ref = (
+                    ResourceRef(
+                        ResourceKind.STEP,
+                        LoopToolRecord(stored).step_id,
+                        run_id=LoopToolRecord(stored).run_id,
+                        step_id=LoopToolRecord(stored).step_id,
+                    )
+                    if LoopCheckpointRecord(stored).optional_status == CheckpointStatus.COMPLETED
+                    else BaseEngine.ABSENT
+                )
+                executor = ToolExecutor(
+                    timeout_seconds=self.tool_timeout, max_output_chars=self.max_output_chars
+                )
+                if LoopCheckpointRecord(stored).optional_status != CheckpointStatus.COMPLETED:
+                    container = ResumableHandlerContract.declared(tool.handler)
                     if durable:
-                        yield self._record(key, {"status": CheckpointStatus.STARTED, "requires_retry": not container,
-                                                "container": container, "name": tool.name, "arguments": arguments})
+                        yield self._record(
+                            key,
+                            LoopToolRecord.started(
+                                status=CheckpointStatus.STARTED,
+                                requires_retry=not container,
+                                container=container,
+                                name=tool.name,
+                                arguments=arguments,
+                            ),
+                        )
                     try:
-                        outer_step = None
-                        async with aclosing(self.execute_tool(
-                            context, tool, arguments, result=result, executor=executor,
-                            metadata={"iteration": iteration, ToolStepMetadata.CALL_ID: call.id, "checkpoint_name": LoopEngine.checkpoint_name},
-                            checkpoint_key=key,
-                        )) as events:
+                        outer_step = BaseEngine.ABSENT
+                        async with aclosing(
+                            self.execute_tool(
+                                context,
+                                tool,
+                                arguments,
+                                result=result,
+                                executor=executor,
+                                metadata=LoopStepMetadata.tool(
+                                    iteration=iteration,
+                                    call_id=call.id,
+                                    checkpoint_name=LoopEngine.checkpoint_name,
+                                ),
+                                checkpoint_key=key,
+                            )
+                        ) as events:
                             async for event in events:
-                                if outer_step is None and event.type == EngineEventType.STEP_STARTED:
+                                if (
+                                    outer_step is BaseEngine.ABSENT
+                                    and event.type == EngineEventType.STEP_STARTED
+                                ):
                                     outer_step = event.step_id
-                                if event.type == EngineEventType.STEP_COMPLETED and event.step_id == outer_step:
-                                    result_ref = ResourceRef(ResourceKind.STEP, event.step_id, run_id=context.run.id, step_id=event.step_id)
-                                if durable and event.type == EngineEventType.STEP_COMPLETED and event.step_id == outer_step:
-                                    event = replace(event, checkpoint=self._record(key, {
-                                        "status": CheckpointStatus.COMPLETED, "result": result,
-                                        "step_id": event.step_id, "run_id": context.run.id}))
+                                if (
+                                    event.type == EngineEventType.STEP_COMPLETED
+                                    and event.step_id == outer_step
+                                ):
+                                    result_ref = ResourceRef(
+                                        ResourceKind.STEP,
+                                        event.step_id,
+                                        run_id=context.run.id,
+                                        step_id=event.step_id,
+                                    )
+                                if (
+                                    durable
+                                    and event.type == EngineEventType.STEP_COMPLETED
+                                    and event.step_id == outer_step
+                                ):
+                                    event = replace(
+                                        event,
+                                        checkpoint=self._record(
+                                            key,
+                                            LoopToolRecord.completed(
+                                                status=CheckpointStatus.COMPLETED,
+                                                result=result,
+                                                step_id=event.step_id,
+                                                run_id=context.run.id,
+                                            ),
+                                        ),
+                                    )
                                 yield event
                                 if event.type == EngineEventType.PAUSED:
                                     return
                     except ToolApprovalRequired as error:
                         if not durable:
                             raise
-                        yield self._record(key, {"status": CheckpointStatus.WAITING, "name": tool.name,
-                                                "arguments": arguments, "prompt": str(error),
-                                                "interaction": error.request.bind(LoopEngine.checkpoint_name, key).to_dict()})
-                        yield EngineEvent(EngineEventType.PAUSED, metadata={
-                            **CheckpointPause(LoopEngine.checkpoint_name).to_dict(), self.PAUSE_TOOL_KEY: key})
+                        yield self._record(
+                            key,
+                            LoopToolRecord.waiting(
+                                status=CheckpointStatus.WAITING,
+                                name=tool.name,
+                                arguments=arguments,
+                                prompt=str(error),
+                                interaction=error.request.bind(LoopEngine.checkpoint_name, key).to_dict(),
+                            ),
+                        )
+                        yield EngineEvent(
+                            EngineEventType.PAUSED,
+                            metadata=LoopToolRecord.paused(LoopEngine.checkpoint_name, key),
+                        )
                         return
                     except ToolExecutionError as error:
                         if durable and error.effect == ToolExecutionError.NO_EFFECT:
-                            yield self._record(key, {"status": CheckpointStatus.NOT_APPLIED, "error": str(error)})
+                            yield self._record(
+                                key,
+                                LoopToolRecord.not_applied(
+                                    status=CheckpointStatus.NOT_APPLIED, error=str(error)
+                                ),
+                            )
                         raise
                 else:
                     # 재사용도 새 Run에서 관찰·원본 조회할 수 있게 기록한다. 핸들러는 호출하지 않는다.
                     async def reuse(_context):
-                        return EngineOutput(data=deepcopy(ToolEventResult(result).value), visibility=OutputVisibility.INTERNAL)
-                    async with aclosing(self.step(context, reuse, name=tool.name, kind=StepKind.TOOL,
-                            metadata={"iteration": iteration, ToolStepMetadata.CALL_ID: call.id, "reused": True,
-                                      "source_run_id": stored["run_id"], "source_step_id": stored["step_id"]})) as events:
+                        return EngineOutput(
+                            data=deepcopy(ToolEventResult(result).value), visibility=OutputVisibility.INTERNAL
+                        )
+
+                    async with aclosing(
+                        self.step(
+                            context,
+                            reuse,
+                            name=tool.name,
+                            kind=StepKind.TOOL,
+                            metadata=LoopStepMetadata.reuse(
+                                iteration=iteration,
+                                call_id=call.id,
+                                reused=LoopStepMetadata.REUSED_VALUE,
+                                source_run_id=LoopToolRecord(stored).run_id,
+                                source_step_id=LoopToolRecord(stored).step_id,
+                            ),
+                        )
+                    ) as events:
                         async for event in events:
                             yield event
-                messages.append(CompletionMessage(ModelMessage(ModelRole.TOOL,
-                    result=ToolResult(call.id, ToolEventResult(result).content, tool.name)), result_ref=result_ref))
+                messages.append(
+                    CompletionMessage(
+                        ModelMessage(
+                            ModelRole.TOOL,
+                            result=ToolResult(call.id, ToolEventResult(result).content, tool.name),
+                        ),
+                        result_ref=result_ref,
+                    )
+                )
             if durable:
-                yield self._record(LoopIterationRecord.key(iteration), LoopIterationRecord.create(response, CheckpointStatus.COMPLETED))
+                yield self._record(
+                    LoopIterationRecord.key(iteration),
+                    LoopIterationRecord.create(response, CheckpointStatus.COMPLETED),
+                )

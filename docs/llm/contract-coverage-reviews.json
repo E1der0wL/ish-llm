@@ -38202,8 +38202,8 @@
   },
   {
     "path": "llm/policies/completion.py",
-    "sha256": "bf0e2ec7abf8296459b422b298fc35a3d0d2702688fc65cd59eb741c20b2a585",
-    "reason": "Read the complete selected input-policy Schema/validator/resolution and turn selection implementation. The same Owner now declares fields, diagnostic strings, reserve/count boundaries and pinned roles. Nullable configuration, noninteger rejection, explicit reserve validation and unavailable-counter failure are unchanged. A selected counter receives detached full requests; original runtime handles retain identity. System/developer and current request/tool exchange stay intact; only older whole turns are removed with the same binary-search calls and final consistency check. No stored conversation mutation, generated SDK output limit or shared usage-quota override is introduced. Actual Loop/Graph/processing/usage and Hub Schema consumers pass.",
+    "sha256": "374c637ea53b6f896c4da29d55b5b4df3cfab927b2169fae7106c7083ec539cd",
+    "reason": "Read the complete selected input-policy Schema/validator/resolution and turn selection implementation. The same Owner now declares fields, diagnostic strings, reserve/count boundaries and pinned roles. Nullable configuration, noninteger rejection, explicit reserve validation and unavailable-counter failure are unchanged. A selected counter receives detached full requests; original runtime handles retain identity. System/developer and current request/tool exchange stay intact; only older whole turns are removed with the same binary-search calls and final consistency check. No stored conversation mutation, generated SDK output limit or shared usage-quota override is introduced. Actual Loop/Graph/processing/usage and Hub Schema consumers pass. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -38225,235 +38225,247 @@
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "9294cbf81576261cf3ce3fed6ec323415c88ea5074deb0d65c0ef2f4f48066f8",
+        "id": "7ca7f45348899f07ab7a5014096e854cb8900b691145744c6d5689b6b97d6308",
+        "classification": "declaration",
+        "owner": "CompletionPolicy",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "12f82ec5e9b7712794f60d392a9c8e033293f3b5fa70d20d55264802ccfded7e",
+        "classification": "declaration",
+        "owner": "CompletionPolicy",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "bc8324d3f5002127371470398d5a375921a5760971a17b54a41db673134c6f7e",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "ad59d562b5157420a0a9b6bd59fe8d512bad56d0a23f6c85c966a32acdbe7411",
+        "id": "ecbeb38d46bbffe9b80d2cd5eca95af7cebe0211b17a31a3c1319806cdc4f407",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "f52da9b8c6854ffbf46c20601db3cb02a546e6fb2c1da2c0fd979c5773cb945a",
+        "id": "0144429c227c9f71e5014bd15e84988a007101bb8329eb577cd4270083d18f36",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "ec55005a75181b0af610d16c717e564f49316a38192d7126717a973d6fc98eb1",
+        "id": "e0f05c8618236f2d907373d9dade5378d729b36af1ed32bdf1b1c60599cc96d1",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "53b90736e18145d71f2e990d21b2c46b3252abc3fb4aba7f380b9f07d4e1ad9e",
+        "id": "e752f86b5c71d8ebb26cb70b239e9f9ea910f491561b74ff4e68311a38bb1a40",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "6268f7c5a656d15da3be30d58b283a67150d3d4197335b4d4d0ada1776077f54",
+        "id": "47e282d341900ad5d8083de71325dc6c796a29d9d61d67f6d94847111c1334dc",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "f6a5312f0bca318139e58ea2f79f8f5fc5b0356aa50e7b7ab8a40323ca8db435",
+        "id": "353c449e41d98ddb2868377df4f50c290194bb6ea682784a935c508f385c6b4d",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "c03df9a7e935fb9a2ce592a4f5acbac67ae362975a8f4e819b73bf00af576eb3",
+        "id": "b7ff25ee5774b9d82950983256963ce6c4f7130bc088854718cbad7318a68ec5",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "17ee2722c4922c0ab4edf3a9d0597959d37af48d24b7b9953e675824cf98dc5a",
+        "id": "f836cdc16f9f5c7df25ff017fc4cf69b52dc771edbb1cd68ee87f49b74bc06d2",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "4c5d17b7a4266a63e671eac49296442f06b55797cc5b527b66121238b69bf986",
+        "id": "03217e72794caa38105acfeea8eb4c344ecdc854728eb44953b5376e3d269c26",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "b7a1dba3cb526a519b755dc58304125857d93ee4ed531f05770691ca7df38367",
+        "id": "a6045344ecfa50eb5d7b852efe07c0aa6cc940fb88f6dd1a42b127b166d19941",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "7a5d2ba23983f570f3fb96aa91c4dccd7fd709768ba7312aade9bdbab7f0de74",
+        "id": "629f7c6f1922af32b39a958b27099ce0bab13b32d8b4759cdea58f528e77e39f",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "883b505acfb82de93ea764223c8a83a8c75ecdd6d0ebdca812eef81b42975b3d",
+        "id": "78acd2ec7fd60301b4a98ecafe0c5750a42c01783db5415bcda7f91e6967fbe8",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "c7da90e0c8a4f577f1ad67b1b7c80a48b3a0921853bfaceea5a7bff43dd415b8",
+        "id": "3600ced36eb28180d0985691a339e7d38fd7cb685c03184a2d4883e2d07afad0",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "42811fc37965d7ed512858a70821e3b6d78ba90e2dd9e68b17a4e8c5f406a22a",
+        "id": "aa0be37e4bc29fb0c569ca209bfa0c8ac7e0f9edd9b8ce43cb664975ad03e54e",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "e867fb4c8e53a616b304e1b2ca1d0b269c30ce7755b8df281bde4e3e8e9201bd",
+        "id": "2003d7db467600d5e0e7866b8d2c6ef16996fea2e3405a1147818fe78d00fb04",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "23ae0c3e716224335f7b7fb3c87c839bae3c468c349ba5b036a09e8434af061e",
+        "id": "cf951a8674e148f4e6d1314ce0a5b0dbd6bcd8690dcf48d31da60f086288a152",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "6ecb54a645e7c61feff812ba6d9e21ef3e2147b4ef3c2e7e53d7a17d819a2084",
+        "id": "08d71eb142942845ea917413c2eaa69d39998dab01a3c10107c32e8b57ffcd22",
         "classification": "declaration",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Owner fields, existing numeric constraints/default reserve, pinned roles and diagnostics are declared before the implementation."
       },
       {
-        "id": "fdcf7f1ec6b3671eb840e09b9872e50e9dafede30f404fd7b03161f01f63da82",
+        "id": "88aaf252ba0092c80e1c8a5004135eac852e32127fda0e07e8b8b31b4f960fd4",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "1023d28cd7b2833e1c1f9ed8b05532441f22eaf65d159ca76a940ffa2a8c500f",
+        "id": "067b1393e2945827b5bd93ac92148c3ce3321cfbcf9496b120b0ba4a303edaca",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "95814354c32198c46269221ad71507f2d8e968ce1ada38379099f80d0edc1757",
+        "id": "f95601c174676fbf60f1cbb5c56cc9713b1dc1aa21b1a6a14125b13858d8ee27",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "62b010d4e1aa40c9d46929b2fef43301687a65e905cb22e07de930767bd537d4",
+        "id": "307e71366db76c235351782ba58fbb6175b2521ce705af745190e9a51e34d2fd",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "ee8016937e71c1ea22f3065a6aec911636ff8e4cabb49dd929a9027e87e672c8",
+        "id": "d9c9dc86ebbead0951b03f2bcda2c301579ed7b72c1ef1c7bb02b1078c3e1d60",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "c7f989c4cf61e2faa71f483827976c75e732544fb374bfd550d069799e000928",
+        "id": "25683a6bf162db3a899c2651ae9bc2bad4da7b6e43b8e10fcf4861b4323c16bb",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "81496173b6cb88645bafdea9026dcdeb4b270c60945f2253a84b2d1725ecc157",
+        "id": "e49280f6c342fe3644a4a08aa2b28a973925670878ac0c8bafdebe08736ca7ae",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "1ace44fa7fdc19d8694df798a7a1642d838df3c1c171256f94f379096171f1b0",
+        "id": "c066d26669afd8cad2947cfbaf20ea64f46380926a4a1ac608e1cdcb38a6199c",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "1f8630cc3d407bdfb27f789995112bbe741c61d20433da46ec06c4cc459c9ff3",
+        "id": "885bf7c9c3e2937cb870608a5e9c48f50207bf307c90f1869fa647020461042e",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "4465afec0122bf58634e1b6816ea4fac89bc8a9b299602c38d387d4c6b21e668",
+        "id": "c62c20c19e6cb08758712f9d873a2c58d026c8dcfb6826e15e2fad0b485b06e6",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "245f1555bdbb27d59d6bd84a94633bd32b3ad889985efa3cdcd4bcdbf5a7ae7c",
+        "id": "10f25d60fbd6fc9b3d9f0dc4099ca261ffd0ef2a2a8fe61a86a9256a7d46df66",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
       },
       {
-        "id": "569d78f62f86436a6a9e1be086117a23f3e36b9b7eb4fc774efadb68f3a3e314",
+        "id": "64a1001d576aa64324eb13e7e94e19ca9ab0bec083f59b986417023ead19ef2e",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
       },
       {
-        "id": "8794b10369534b5e8ce86bf748b9eaf6028f42d6f9359450475958162eaab094",
+        "id": "8884efb41295c7d5aea19cf4b08059c47e57e23f5de6751c135da8a2746aed8f",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
       },
       {
-        "id": "cb1bf0527d5b478313b6b442daa886b5a728603472a2dc14deb972f54c5dd621",
+        "id": "6e788517b892d361c2ae1f2703581e3d30dcd46495f5900c7ef9627d08b8fcf5",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
       },
       {
-        "id": "3645e5e03a5b3252cce228fd8c671a2749ae235513407ded28265eceaad30b71",
+        "id": "32b9d19142c2ca2181543d7569f18ce443e0b9d38437c730a809a5e014c897ae",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "69fa00aeb2ceafa88e93de493ab83e8918a073e61d5f9cb94acafec0913430a8",
+        "id": "b2a9c7711e6ab842a4ea17d1bc175a38272ae667ecb24e862ec76893fac5f652",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
       },
       {
-        "id": "18aa106a7ceadafd42d6f4504172d85860ee883d4cf7740a548e72577085c804",
+        "id": "22d79f770aa031a373ceae7cb7ef4f933d2233b327b2407b4b99551f7447862a",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Python optional request-boundary/group/configuration absence, validator sentinel or no-policy result. User null and omission remain distinct in the source; no persisted field is restored."
       },
       {
-        "id": "9a34e0726ea9b5fbe8fb13a38846b29dcc643c6271b19dd1c4c894a933375d08",
+        "id": "cef7644acd5a4e4150f35700d1949ac8fb50d52804edf680f22d320ca556959c",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
       },
       {
-        "id": "cbc49f34de462c5ff0ac3d7b998df76bdabca70e5a264f6b6b2462e62535134f",
+        "id": "2a5d85629f7920fec740cfc01f755c8fe8e6fdad3c624398b2ffd203c9759f9f",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
       },
       {
-        "id": "8e4dbb901ca227b1dc4b2c0aaab0cf3691d24941a034a01f065e7c27095c8c50",
+        "id": "5bc8cf0c70f73efd044ec254d0c2053b1fb073fb73ae65664a785e4b09bb8abe",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
       },
       {
-        "id": "eb72fbb2490853886ddb23f0101ba77746892ec12b50b146c40e727f48a862db",
+        "id": "53ad4a74f86a105b0b4f7d2b263c5191fe51c1542f16e24e390032c1fc880191",
         "classification": "non_contract",
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "reason": "Sequence indexing/reverse iteration, empty-range boundary or binary-search midpoint/advance. These numbers do not define token budget, retry or storage policy; actual token/reserve constraints are separately declared."
@@ -38464,19 +38476,46 @@
         "owner": "CompletionPolicy / CompletionPolicy.Field",
         "declaration": "llm/policies/completion.py",
         "consumers": [
-          "llm/engines/loop/engine.py",
           "llm/components/processing.py",
-          "llm/services/schema.py",
+          "llm/engines/graph/handler_contracts.py",
+          "llm/engines/loop/engine.py",
+          "llm/llm.py",
           "llm/services/runtime/runs.py",
-          "llm/llm.py"
+          "llm/services/schema.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_policy_ownership.py",
           "tests/llm/test_project_policies.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_runtime_reliability.py",
-          "tests/llm/test_work_state.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_settings_contract.py",
-          "tests/hub/test_settings.py"
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_work_state.py"
         ],
         "complete": true
       }
@@ -41233,8 +41272,8 @@
   },
   {
     "path": "llm/engines/contracts.py",
-    "sha256": "3b9b2e9bcddef5c7701551fd4c6a5a99afbdbcb61b4f2b44b8900447d8e42fa4",
-    "reason": "Read all optional Engine hook discovery, capability and mode validation, shared synchronous factory binding and selected Agent/context wrappers. Same argument deepcopy, coroutine closing, required execution/capabilities and short-circuit mode/steering/checkpoint comparisons and diagnostics. Context omission bypasses its factory; Agent additionally validates mode and consuming checkpoint/resume contract. Registration remains separately constrained. No runtime configuration or authority added. Base reexports the same public API with one implementation, not a compatibility branch. Other Engine hook consumers remain pending. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Remaining actual Engine discovery/resume hooks in RunManager now use this Owner. Same-spelled Component/Adapter/Graph-handler hooks are distinct protocols, not Engine consumers.",
+    "sha256": "e529fcdd1ff964cb52275c184783a53075f305f82ec6c5dcbadb8931002121d7",
+    "reason": "Read all optional Engine hook discovery, capability and mode validation, shared synchronous factory binding and selected Agent/context wrappers. Same argument deepcopy, coroutine closing, required execution/capabilities and short-circuit mode/steering/checkpoint comparisons and diagnostics. Context omission bypasses its factory; Agent additionally validates mode and consuming checkpoint/resume contract. Registration remains separately constrained. No runtime configuration or authority added. Base reexports the same public API with one implementation, not a compatibility branch. Other Engine hook consumers remain pending. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Remaining actual Engine discovery/resume hooks in RunManager now use this Owner. Same-spelled Component/Adapter/Graph-handler hooks are distinct protocols, not Engine consumers. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -41322,103 +41361,121 @@
         "reason": "Canonical required-Tool completion diagnostic, checkpoint context extension name or unsupported Engine resume diagnostic is declared by the corresponding Owner."
       },
       {
-        "id": "4a919d287624e1b9e5703ef102c25e526b508aedbc383d52ca8bf211092af5c9",
+        "id": "0ab7e496b684c9e25b012723379212740725c3e1ec316b04ce8e16c7d9a9816f",
+        "classification": "declaration",
+        "owner": "ResumableHandlerContract",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8b02296d017d9764a87fd4957296c5e5ec3f58a9fc0bf435c2e9eb043a2f0303",
+        "classification": "declaration",
+        "owner": "ResumableHandlerContract",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3141457b3426ce5a58f4669fb9c2c6761ee81f33ce84620c36b27398d6cf1151",
+        "classification": "declaration",
+        "owner": "ResumableHandlerContract",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "43188627492819cf3628992dbe671b070bb32c474c4d063a688c8ea4dbed8f75",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Variable-length tuple annotation, not a runtime fallback."
       },
       {
-        "id": "17acba5258ee4e513ba394069389a558649b078359406d1e650585ba63e99c19",
+        "id": "9ef59d0952317a0516105d67530113e331d4841bfd0d364345a68e8a72dacc12",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Frozen/slots dataclass layout for fixed API diagnostics, not a policy setting."
       },
       {
-        "id": "d29fcdb687cfd939df0d25878bfe6e11b6435871d35153b1b6d47765035483f6",
+        "id": "236aaa08ce5ab527f0e2e2b89f76d578c34ce8ce34d7b33d6a95316deb7eed12",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Frozen/slots dataclass layout for fixed API diagnostics, not a policy setting."
       },
       {
-        "id": "b55ce9799971e0dab779ac97a537b575723f5076fe7ffc38fb1c75e1782e3601",
+        "id": "d06d7d068e0f2878765ade054c937600b801adbe3661cc7db53079c275e3a354",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "0abe69129b0224506f9f17df1b0e8417c6390f31f6e84f6396775dca376f4250",
+        "id": "b57842f2093d1fd422b52c9cb7c13da3ba607044365fe8c6da0aa08b6b319752",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "02f05cb47f1bab0984c4bde07bcf9ace0d9a143eec159d3a98adc9c7a7008667",
+        "id": "b623f2f83602c5172b90eb0237443ef9585c4bdbf87d1d7bd39b1dbd0c160a55",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "b98ea72652627ee020953b07855b006aed0d65edf8f279223914037ba8334d2f",
+        "id": "4a6c48b6273c4f76f5f94c6f0bc7b0627bc05a4f9461d52f6b80f36f05fb451e",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "2ed6c80464670724869d6e45f01682ea42fb90a80ae340f5178a65e4c861a11b",
+        "id": "349a0cf4935f89fb0853376f7dde08486f38713314328777710285b30e57859c",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "441a4d0c917f3bcadfda0334d21d4abb241373bddc0f1193991e63eb20e490b8",
+        "id": "dcc9f04fe4d6e51a7c46dcc3e06c12706f681faf6af16c6185b66467775efd40",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "718caa43786611b159dec1e12e77a84025ae832e0d38ab11589170ba242152d4",
+        "id": "05acc43df09889f23e32d3780411f02eef1af789239b6924b1cb041b4b560f95",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "208354dfca8c932917330dc6cceb473efd10e981f8ddbe55d6992dca41ac70a2",
+        "id": "6a0eb98afaebdfda5a0a74974b872c256d968f6a4e968b61d7ee2146fefb6a62",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "43475d4cf8ef424daf13057ce71fad91d468843e9ef09b0dce3de00654e58ba1",
+        "id": "43971c979ba9ed6e9ef6a8b781a1e0472cc42870a0ec58032baa1d66329b5412",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "24622f7fb29d728d0d1fe9388bea65f29d852be99de39d6a2fb616a5d85f732a",
+        "id": "bce9587224f365987746add08232648d0a9014052283c3e50fd9ada40049d15f",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "3fabd12b12d82773efcb85e26018f3dbf7d3771974016226e74d1c49524d0afb",
+        "id": "5594c9f9408b8db304db2014ff18cb2f6fb2a113c2a63631b53d1f0cbebcc859",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "7eaacdc69cce786dc554c7c02bbc82d23a87ab18bf366ec7025acd1dfc08912f",
+        "id": "05636a63e258283a5a8a1b4c015530b439bf78b256d670014406906f347e561d",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "e85668cb74123465c58f1ff8917ee465b09da3bee9f5f5d66cf812fd5bc9ce3c",
+        "id": "a0a28b9d83bbc5342ecd9c0efa5602a99ca7f8529a8a84534a4a8ccf908e80e0",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "f4feb21565e539cfc11ca31a65128172e32046966bbf73625eca1dc24a0b105d",
+        "id": "1a30c9d7e6032dde01fbca16f2c4cfa6bd2908f70cdac38d8b453b104e68e4c3",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
@@ -41429,16 +41486,43 @@
         "owner": "EngineBindingContract / EngineContextBinding / EngineAgentBinding / required_capabilities / steering_mode / agent_mode",
         "declaration": "llm/engines/contracts.py",
         "consumers": [
-          "llm/engines/base.py",
-          "llm/engines/registry.py",
           "llm/engines/agents.py",
+          "llm/engines/base.py",
+          "llm/engines/graph/handler_contracts.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/registry.py",
           "llm/services/runtime/agents.py"
         ],
         "tests": [
-          "tests/llm/test_engine_steering.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_engine_steering.py",
           "tests/llm/test_execution_boundaries.py",
-          "tests/llm/test_execution_contexts.py"
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       },
@@ -41446,14 +41530,41 @@
         "owner": "EngineHooks",
         "declaration": "llm/engines/contracts.py",
         "consumers": [
-          "llm/engines/registry.py",
           "llm/engines/agents.py",
-          "llm/services/schema.py",
-          "llm/services/runtime/runs.py"
+          "llm/engines/graph/handler_contracts.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/registry.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/schema.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_steering.py",
-          "tests/llm/test_configuration_validation.py"
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -42616,8 +42727,8 @@
   },
   {
     "path": "llm/engines/base.py",
-    "sha256": "cbacacaa4a09a72d256578badfe2e6eed107376398f31aaa1d1cd82a77664e12",
-    "reason": "Read the complete Engine Protocol and BaseEngine: Host Agent binding, instruction route/selection and persisted ACK, delegated Tool execution, constructor/Step validation, output binding and fail-fast diagnostics, explicit Provider retry/deadline/recovery, normalized streaming observations, synchronous factory/unbound Host method reuse, operation execution/cancellation/close and final publication. Twenty non-stream method ASTs match after resolving declarations; 45 real old/new decoder paths match yields, receipts, errors and cleanup. Every semantic literal is declared or consumed through its Owner; four remaining implementation candidates are Python annotations/control syntax. Partial input prevents retry, application recovery cannot renew deadlines, no new SDK/default or usage evidence is manufactured.",
+    "sha256": "799b724bd05258188cc19164866c99b9e01f3c006b56744fc3f986bedf89fbe5",
+    "reason": "Read the complete Engine Protocol and BaseEngine: Host Agent binding, instruction route/selection and persisted ACK, delegated Tool execution, constructor/Step validation, output binding and fail-fast diagnostics, explicit Provider retry/deadline/recovery, normalized streaming observations, synchronous factory/unbound Host method reuse, operation execution/cancellation/close and final publication. Twenty non-stream method ASTs match after resolving declarations; 45 real old/new decoder paths match yields, receipts, errors and cleanup. Every semantic literal is declared or consumed through its Owner; four remaining implementation candidates are Python annotations/control syntax. Partial input prevents retry, application recovery cannot renew deadlines, no new SDK/default or usage evidence is manufactured. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -42765,193 +42876,199 @@
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "cf0f68c28d046326ac8a974d3ee68094f73eb79b29bcbbabac7948a244562729",
+        "id": "92a6185f87cf4164a8812963f8ba957fc90c4f5b6b7d4c0e4c7c60cea165e073",
+        "classification": "declaration",
+        "owner": "BaseEngine",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d9ab7707196b5bda3ac9318489c12944a552d6f166410aacbd5018fdbcd6b257",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "826da884c4b7dc5f9e05e16ef31e4d865139a24ac0916a21f7059d6d38f0318f",
+        "id": "26e92d5a92c52d3a3a1050286e6b49c71e6c78f12f885ddc45bd4ffb5a52d994",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "f84a95734d82616d5ff1443e6faabb0941afb8e14bde88858719990ef96140ec",
+        "id": "98dd096deb563e85a117943be341b719a1d005eee48c5d7ea207f08c4f16ffde",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "b5abe2c26a5fd1ab78cf26422bc2030fa4ce11540bf88790b1cf8a9f9260de41",
+        "id": "e1c4d25abcd0a7c684cf93edf1783997434a894144c6d93dd017baa15006691f",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "2a8f32158c7b73f32fff8cc2b4d6de154514e4a31b1fe9d40a54722d3b065fe4",
+        "id": "3d9bb07e216d0b8672e16445c05c896cf0c1cae20a13ac274c749cf228b3602b",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "0d16c2083bfa87d8f454d973f53dcbd7f05ca0a2f9181cccd981941898387c8e",
+        "id": "b0cfa3eebfa556c5236d9d3b7ae2a0bbc6f113b5014132f6f7106f04a3f9a061",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "da683e77661c600f49661fb0ac772f7d13f5489359cabe7e3add5b82f913551e",
+        "id": "5cbbd923225e48c89575c0d6839f58db6603451cafb94315f530e015c0347c0e",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "6280fdea117a4051113d78c50f1c20a76b720e2f5bf952647c0ccf4dfeef7907",
+        "id": "dea63a5f5edfc7976c65b1013921fca643a6e43cfc0919fd7edfd5c7d1e99b95",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "fb89048813afae6da59e3905185ec6cf6eab8226ac8b474434167bb40554375e",
+        "id": "380e501f55558693099ee82297a6a59b571108358179a70850b2a0412dfefd7d",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "f4cbe1bffd6e6454acad7365babf67a7c213a0c10b7b54a7f72017293e3dcd56",
+        "id": "dbab444bb91e6c23afcb2bd22e15bdaec036d3b85badd20be664c89baeb94d7c",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "ce3beb39faf86fb5d16f0e53d293394f62e430b0610baa1fb119fbefa9aa2d10",
+        "id": "66a82e264efa9dd13491d2305327ea4d6efb0ffddc44ba625805aedf1aae0570",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "73faa5a0f55677bd1eda29b1de010a8911284405ed833b1d02b678818c2e6f84",
+        "id": "7428abef713a0127f7571f325dca03742d3766cc6b2bbe2223a346111aebd58a",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "694a5e03098aa83eaf3c91cedc132992b5795f1fe01a28336539a95c8d4e2372",
+        "id": "359efb6ed24a03643d119153d7e20fca46017254ad4eac226e5974dc9dca9fc9",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "a876a9c4db7c3ba4c032239256470c1f0890f93f89c119a5112863e80920e0c4",
+        "id": "400905fd60716bd2347f342a472a3d72006bc84711ed9b7a65600d8c0621be12",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "0e10cf9c2833ee55f55b77c919f0173e737e70db86d31c0255e43fcf723c220d",
+        "id": "8de0ae7e4987a35e464747e6d5a0a8968067f97c115054a1d580533b14426549",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "b6f0c19cffc3e2caf1c80ced5e9212a48abf14cb1c1cd0c04cf5229ff08b8a88",
+        "id": "8f9e5b6a594eabe71a4d62a8222075b240e194bc572a08798f5fbbcd10b4cfb4",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "5bc775deb70d9675f04011b87a32e3b9ff4f17f5716dafe56ccd23cffce0454c",
+        "id": "87ec300e08cc9a15b2be0648f70a9663c7e65bd41c206ab79598d46fc39ba5a5",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "6f36facca44003f0725de17db3e8b87da31b92b7c3e37b9a15fdecb8c949e55b",
+        "id": "6d0ee27cca59814f73d8e6589ad18222d9cf90158243ceac9d1fdac531963e18",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "5da9318078bed614681ee099dd26a9a604778075c120136b584f2f1075fdd5e7",
+        "id": "719e0bd5a184b856734c218d279bb85a6689c8d02f306677c7bcdbd8fcec8215",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "00dce57fbe6a0e6bd90de15780fc7185e2d7c206a420b6f4b1ccf84f2de56c14",
+        "id": "828ba002a1a40a731e397972ec3a3486a2c7c8abefa28368c8da0d9147c07e93",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "6c7b446528f1486a760dd9e7917ffe7c972681e33fa4bcad3139cad384396764",
+        "id": "6f4831610f8c2e12ebb4a2bd83fb10d41e608805e6bbb2b2830745e4f96f0b3d",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "b41e1240713d48f079d2f1d1de7f327b7922a0267b946096fd0faf221093e074",
+        "id": "ad60819ce2548169503065f3f818d11aa1dbf7dc2e580a39528ec009a9c0cf79",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "635a3f517ee78ddb87a887e50b998395222fe21924c1890da035417c15ef627b",
+        "id": "a7b55bed140949cff081dbd5e3ac55633df522f3bfa932631681b0df28b67eab",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "abcf1e4b821931331cd448ce97a373268cb7d37bb5668fe0b620e076288a59b2",
+        "id": "986a9c178ebc7c2eb0d4c86bea71b710ed7f572c87b8aeabfafa0e3baf26e95f",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "6f7158362d1196fec71e044c288921b149455f3bc574e8730f04ba494af00400",
+        "id": "c7d88c619891dfeb5a95fa60b7d3f9b7b5341e13fe9a3837788bc8d2d54d907e",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "8f8861ea94c08d1baa8eca3cd8cb7c24d40841adc149660056b2f36335f33e0d",
+        "id": "de34acf94ac50c27fc09454bfa3a3195450f8b20f9a2682f99d903fc0d96bbf1",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "339a899e950979b51870938fe5d8ddfa65b5311bc34ed7b4d2b65723923a8f52",
+        "id": "69b692c3bd2095f293cd3cccc8b7a2671a029113cdefbf249f8587fb877f602e",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "4cb56b036fb29d3641ab9907b6df5f15d5977b37a25c0f4b0c15b15c3bb1a4d4",
+        "id": "dac7229fedc8df249177dde09add8f8309d39e645970a3c04e2a1514f58903fa",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "5f3ec534dbb8e27176eff8b6438c4057732de5ee3f395fd64ee65992ae36d494",
+        "id": "150634e9fb8cf154ed0599e51bd96b18c647fd71bfd6fb7372276097da30c856",
         "classification": "declaration",
         "owner": "BaseEngine",
         "reason": "Owning Engine API/default, optional Python absence, display diagnostic, explicit serialization flag or transient receipt declaration is located before methods. Output sequence/text, model operation, Provider configuration, diagnostic and stored observation values reference their canonical Owners."
       },
       {
-        "id": "1f5d99d24035cb7957e4793d2afc695541f3593f342e7fbe7ca33c9bd1934979",
+        "id": "8f9ef6dc4d2a934b31bb67b484f5dee54f9e7163b34dae320224d481281773e5",
         "classification": "non_contract",
         "owner": "BaseEngine.__init__",
         "reason": "Python no-result constructor return annotation."
       },
       {
-        "id": "a2a0b28532a3c77d33fe285c830a1cdebccfbb093c6552ed85fd2c081f49d27d",
+        "id": "0ef739a2e1bdfbff7bff4a95ca89181de09dbea0194573049e3eefa051322749",
         "classification": "non_contract",
         "owner": "BaseEngine.stream_completion",
         "reason": "Iterator-draining control loop exits at StopAsyncIteration/error; not a program policy or stored discriminator."
       },
       {
-        "id": "6b6dd15b6d3a9dddcc3f5951bff9ab9a373844732c823eff35be8a0dbdc14ed7",
+        "id": "73a2c7d504d5737a849aa65401c82d4e96cf4091a03b76922de0942451de7ad4",
         "classification": "non_contract",
         "owner": "BaseEngine._execute",
         "reason": "Iterator-draining control loop exits at StopAsyncIteration/error; not a program policy or stored discriminator."
@@ -42963,19 +43080,44 @@
         "declaration": "llm/engines/base.py",
         "consumers": [
           "llm/engines/agents.py",
-          "llm/engines/loop/engine.py",
           "llm/engines/graph/engine.py",
-          "llm/services/runtime/tools.py",
-          "llm/services/runtime/runs.py"
+          "llm/engines/graph/handler_contracts.py",
+          "llm/engines/loop/engine.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
           "tests/llm/test_base_engine.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_outputs.py",
-          "tests/llm/test_policy_ownership.py",
-          "tests/llm/test_provider_transport.py",
-          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
           "tests/llm/test_nested_graph.py",
-          "tests/llm/test_completion_review_crash.py"
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_ownership.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -57118,8 +57260,8 @@
   },
   {
     "path": "llm/components/completion_values.py",
-    "sha256": "03ea00bd22f5f048a7a729305c593ee08b408d4f80931d47c3f5b631709a95ba",
-    "reason": "Whole processing/review/value/input implementations reviewed, including selected hook discovery, processor identity, live SDK-handle copies, strict JSON observations, explicit policy, actual effect protection and recovery. Public type/validation bindings share the canonical implementation; no alternate Reader or silent retries. Only individually identified Python declaration/type syntax remains.",
+    "sha256": "1d7b932f61d05d95cd3ab52a9540fc8a430a0f377fe6f54f7dc9ecad3d8abd9b",
+    "reason": "Whole processing/review/value/input implementations reviewed, including selected hook discovery, processor identity, live SDK-handle copies, strict JSON observations, explicit policy, actual effect protection and recovery. Public type/validation bindings share the canonical implementation; no alternate Reader or silent retries. Only individually identified Python declaration/type syntax remains. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -57183,61 +57325,67 @@
         "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
       },
       {
-        "id": "5bddb9536ad3ceb7cef31141264b59b806e8632598b388fb8389a3baff5b7f51",
+        "id": "a9c2c19e886a2af3f3f11021bbb3800630e96877a71ada875f296d1df79ebd55",
+        "classification": "declaration",
+        "owner": "CompletionMessage",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1ca5f2b68fe37455b6c9e84de29b55a3af61ad8e488b1a1a9debc81defe77ae8",
         "classification": "declaration",
         "owner": "CompletionMessage",
         "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
       },
       {
-        "id": "2d66cc7ffe9d1fe22d89ac666fa704f7230d08aea92032bc8f1ef064fe4cb80e",
+        "id": "4825ec64123b61825e2a38908fc26f56451a2754c6cff8abd2961441f632e2cd",
         "classification": "non_contract",
         "owner": "CompletionRequest",
         "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
       },
       {
-        "id": "8ca4cc96330c9bb68bc2213eabb34d25c41c74e4cdf71aa5baf0bc45aa765127",
+        "id": "723e12d662c5a1ab94c283e774e54b0f66227d442b24107c810893045a3fbb6a",
         "classification": "declaration",
         "owner": "CompletionRequest",
         "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
       },
       {
-        "id": "8a64cfaf242d681d7755853d3fb328f5157862b8bc9d2ecf65ab7f6717c79363",
+        "id": "e78e5c09024e5bf76f25d5dddc56de39b1ff105af5beb26b4ef480b325360276",
         "classification": "declaration",
         "owner": "CompletionRequest",
         "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
       },
       {
-        "id": "8db17c8182e5288ad35dafd28498c20c7329f8524764c2b370dec847bbeaed84",
+        "id": "d4783598535c02f5388a660f93741358de6de03770e20b18991a277aaf79d1e5",
         "classification": "declaration",
         "owner": "CompletionRequest",
         "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
       },
       {
-        "id": "af4fe64e2206b53c7688499770114c50b4e9a66cce9bdee5ef0b53982341623a",
+        "id": "46113d6985837b3baa95b6768b07dd61cd919f2b412cfa359e0274e4f6e77252",
         "classification": "declaration",
         "owner": "CompletionRequest",
         "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
       },
       {
-        "id": "b5ed4bded113ee6499082065a6be47963166e429ea8e4c0670453ee678d47de3",
+        "id": "f277ac9bcfb7615053b7a389fc8c0ea445af381f4baf719f0a6a079b49dc0420",
         "classification": "non_contract",
         "owner": "CompletionObservation",
         "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
       },
       {
-        "id": "18df73b49d86b7b26b8ea24220e2be0255ba6fffca97ad33c2b1f0b5593317d6",
+        "id": "25a91f0b7e1c2955822367ee3e967e0704b5e28fc148072e00bfa15f9c4cde12",
         "classification": "non_contract",
         "owner": "CompletionObservation",
         "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
       },
       {
-        "id": "ab9333db9cc2cd4981c92ffa34105ee7a8b54d6d08d7c1826d837b4f5c81a8b7",
+        "id": "a1a87bb7983cf2df7d52f3024a288e5f5162ccafd46460601d3ce26b3b2ba8e3",
         "classification": "declaration",
         "owner": "CompletionObservation",
         "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
       },
       {
-        "id": "fb4b67c4a41afd0f1c7118da4341d64fb35d415c64d4c8e4de6447dcb0aa867e",
+        "id": "79e3895439c5e4d8d79b14b8ced445504cd5df56fbdb9f8fbc37f29bf44650d7",
         "classification": "declaration",
         "owner": "CompletionObservation",
         "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
@@ -57248,22 +57396,43 @@
         "owner": "CompletionRequest / CompletionMessage / CompletionObservation / CompletionRecovery / CompletionRepair",
         "declaration": "llm/components/completion_values.py",
         "consumers": [
-          "llm/engines/loop/engine.py",
-          "llm/engines/loop/review.py",
+          "llm/components/goals/processing.py",
           "llm/components/memory/processing.py",
-          "llm/components/goals/processing.py"
+          "llm/engines/graph/handler_contracts.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
           "tests/llm/test_completion_processing.py",
           "tests/llm/test_completion_review.py",
           "tests/llm/test_completion_review_crash.py",
-          "tests/llm/test_recovery_probe.py",
-          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
           "tests/llm/test_goals.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_loop.py",
-          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/hub/test_approval_continuation.py"
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -57472,16 +57641,10 @@
   },
   {
     "path": "llm/engines/loop/review.py",
-    "sha256": "cbda2547f778fe73a29990caf06bc7d5c075c4d349491e255206c63e64b99a8c",
-    "reason": "Whole Review and LoopReview/Iteration Reader/Writer implementations reviewed, including dynamic receipt keys, strict missing/type evidence, execution provenance, attempt/continuation preservation and original callback/effect order. Engine remains a separately incomplete whole-file scope.",
+    "sha256": "edb1ace2b16fb7e347b3c0e8d7e9586de6f724568d90bef8136f8090bb5d8b8e",
+    "reason": "Whole Review and LoopReview/Iteration Reader/Writer implementations reviewed, including dynamic receipt keys, strict missing/type evidence, execution provenance, attempt/continuation preservation and original callback/effect order. Engine remains a separately incomplete whole-file scope. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
-      {
-        "id": "042b8866c565bbf54a7ba443bc9893e914fe4c612568c0479dd38f84d41e145c",
-        "classification": "declaration",
-        "owner": "LoopIterationRecord",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
       {
         "id": "125dddaef2fc240c160c3592aee221f2571da98ed27a123beb3efadce79bc465",
         "classification": "declaration",
@@ -57495,238 +57658,286 @@
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "dcaeba376fe8900b823d54f2bb115b5fcdbb4b1c699e3094b81b48aa51883d93",
+        "id": "623cc4ce2c4198f0e7edc44b6a2280c01120317bbbcfba8f1cfc57d93df64d47",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "662cf5a11e76a58fd0071fccaf3aa60a03a2f6a8aad4302b68de9dd1c8894943",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "2729f33dcc0458d78f2b160bee6cbdc54898f20dd46d14abfc5fc2a88876992c",
         "classification": "declaration",
         "owner": "LoopIterationRecord",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "c6aed2db0f382ea5a871c29e4fc2eb4956532d8371d59a99b32e4038372451f1",
+        "id": "7389c0c7fc6435bc315b2efa0b0a231861c7558d84220b05d23cb4b4a4bcad27",
         "classification": "declaration",
         "owner": "LoopIterationRecord",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "10080c5030d560f8721070764ca9f13e0e66510c510c29f351d1d7d52aff733a",
+        "id": "89e4810f75175fdc5cd89dd11e77348e58ef1db5047678df8590c8e2f9ef4689",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "e2251c1e3edc02438a0c186f0429c91c58d845ec50ff555644791851a6874365",
+        "id": "a331f5eaebaedaa5be3e5fbaa0e89d4021a37475a73623cfa154b1acac3f014e",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "63296a3765a140da50010b677ddc92a19af87859876cec2e081b21d5c059d729",
+        "id": "2978f6ea72f4de2edd800bc14a75ce4c456a32eb1ad4d7c4c4162b26573776be",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "f974394171a279cd1b590f422354bdd83522e2768991ae2c4e969d1c82be5568",
+        "id": "1c3c7557f8e61c9ab9ef6c614f74593c3c9ca2e60b73b8c2df6caa90b25af19e",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "114911d787d37014ce0adcba248f8c32b76c5b7daa0a9032d6f0aa4499c06645",
+        "id": "4f45babdc4af66a0bb2f83d908d25548602138ca57047fb35ad3990a88a2753a",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "18ad6971e306e3dd9e7b1d1c54992a9d4f8b616abe846f9578ddace8e74e2193",
+        "id": "509328bf17fdfc657bc489677e45497895545456ac0b7419b0cdebd9139a7cff",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "183064ca023cda6325eb0be0ea3b94f665b84fa15f21dacb83504062f8187bfa",
+        "id": "f10a9dcf57ca83aaf14f70ce977c537253767c6ff6f66359df15a0d2e050e799",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "d4d1db13fc30b69fbd382e5efdf072872b5029b94d208b1d78c91bbaa71fb487",
+        "id": "3936fb63914db7758b663a6d8ef3ef8b85271601197d31fd095a86ad179de801",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "797c25c9c3c5ffcf1ddbc3e81bcc7185417a20f2772114f59a5a66829c014d91",
+        "id": "17e504e9cde1f0725785f0c60425359e41e179735d0e0dfcae8c7be25b1d7f9c",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "0d55e2658ae701f14a0430666da53d2d7d37500ba04ecbebb87148eb4792da14",
+        "id": "45d1cc529af6457c31808baa402a793280779be7048c56e7cfb05125756a00d1",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "5f3034e7bfc21b8fcd5780db0ca51208a1d3ae383e8150a6bdac1f73f451fefa",
+        "id": "193a07e77af964bc22a9159d5dd6d5360db72ad4826a3de9c1d82b7f24dc1480",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "28dcfda01da7e1e40c944ae841826d44bf6d82fefbe16b3acae37b9ca6cb14be",
+        "id": "b35845dc942eea8135e4fcd418d5e170df330504155271164302692d194b4700",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "ee3a61a93bd11e7d8671818585cee9436737a53fc6fa768b1401ac67e6056f35",
+        "id": "7248df5cb697986b6a96c082052dd272d19391ac72c263c29f6ec7479c462de0",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "70df508a882dbe335a9b118db642a85bad751dc4496d519f8b6668618e9bce6a",
+        "id": "dbd1c0ce8c0289926c93b6b8609ac44394f4199523dc56f79b967f0ede537204",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "9946f3256e87a0bc24a66e763670a8e4cc18338fe4a58ad49917fe057bb36772",
+        "id": "e8ea345f4a00ac537b6d929f82d9e23db64bbc2b6a6a73639cd22aff34f53bf8",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "906ae2e7ab8c4be5af4a500c1571cd185971b065275eeff6b8c6c7183be98b27",
+        "id": "c5e65f0e751c77540a3b12e38ef4f03cd67a2c1878f640c5d0e4b548ab74f608",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "53bd0f804c03b855fc7c973529cbc7b9458702be55be514a1af80ff4547f0184",
+        "id": "8e178a9ef97be9531bdc91f1adc93dfe8a7e621c47fab3e0b08a85188eea0656",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "3985c9d61ace43096b94c054c842b51948cfff671df59db577c8efbfd448ec0a",
+        "id": "de2f89868908d26d5a7caf70ae8011c7544d06016c19441f0bac365d269cccee",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "3c02fab5099ff2452154e201db8a4b0a25588e2669b7a34a88832822397897cd",
+        "id": "ff0ec18436add70cd9ee14da703d606928cfd8255fb67391fd9e9a2f3c0f8518",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "96685874034310ef028f61848fb33722dc3d95f6280710e2cb8fe4c71bd64a74",
+        "id": "709b2adf8743046a78c83e93269109765d9e37666cdae3be4bf6574fe7255f0f",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "70fdb4f31f9a9f87d2630f6efcc22b3901fcf3eeaf673cc251bb8b6da8d727ad",
+        "id": "009a75e6f952024e4a4cdae43b54ad005582d04d7c842ad5a0aeb70b5f3253f4",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "9b72e247647f4e573ca9aaea6f865c5039bf7c591ec97d41f74ac98742eb603f",
+        "id": "85d07abc0201529b8090c9b82db44160b03349419f002d2bcecec94d1c62630c",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "d031117bafb77ac18807c7eb2bdfff9a45f400e07c8401136a86b450565e4571",
+        "id": "5e2a50262f06aecaa817fca3d86100c04d34c54f497426bcd04ca86b4a6d4939",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "c3b0efe9d6f050d6d8a103cd4acbcfd498afe30cf8cf6896f3c95fd4ef6202ea",
+        "id": "acdf9ca295b74db7a5359f59c9c0fa6a2d2202b3e86be71dca7480d437d3e5a5",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "9d7d9daf498eafb51a8634c2ab01379a6a6322dbe1a89095255f760b9474d4f4",
+        "id": "083c8bc75533cd9e5a57d2b6f4edf1665ce97d53748f2dff32dedc72d9e1debf",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "9e024657fcbb79195d133119a7ddcca4327ff98b87b6dbfd9086ab69885e3815",
+        "id": "036181210e77ded096f9d35202e3da53711722b2d5ff1c7db89f2e158fd64fb5",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "91fc2e45deb82da98a870e8f5f35efbc9b6d5a07a5c201c711993aefad40e590",
+        "id": "e5411697586f2e445cb524c4f987ca6776345cb9bda50b8269abbcd68c62f213",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "338695343a9732f1ad096737ac6e8ce91b1bfc2d44a911f1a62555621a72f223",
+        "id": "5706e71c7249b4513c505a31acb51741a6de0b2728858f976a46532227a4e982",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "6ce9290195b91137f1169ab72a9da30ed52e2709445f5650be0e9858e720f190",
+        "id": "408b0bcf5d6b474e2d0aef8a6557192e6cb3f49029cbdd8309a020f897adab1b",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "198a5a94de0ac5d34d1493bb2fcc71080566c1f3d4ed3824ad9f4b11ab8d805f",
+        "id": "0f4e408424d9558f5b91aa658a2c32ddd1a7f913577d3b35399324b771938285",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "9e5497512a791fed5c41738249ae66f1f52b655cb2e250a2dec656d27f9ea9fc",
+        "id": "46db451a5561e5b0ed7b38df53e4620acfd2cba16a182b41230d5dd739a66cf4",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "e477ad4f6fd449af7ba1f0a79805df85c67d1ce2cc16655d3f98014cfcd36caa",
+        "id": "f45b01062f2393ccac8117ac0b394e15ff4a7acacd61ae3d02c77a68d829f865",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "b752f8c1473bc5b6abb39cd0faa4fdaa1c027877143c68f0d052b86a5f777dd7",
+        "id": "9bf7e00b724ec68e84a3ef7578618e05bcbd19575582dcc8b686a07d762fa89c",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "e7b11771765899bd899465f5343e7393c6534927dfadd56fddbfc53821fb6124",
+        "id": "ecc327f7177d4a6a168619eed347442dc64c645b807cec167633b3e04a0918b3",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "dc0401ea559addddc655a2e101008a16c8bb991b052a0e1fc91fe51e3c0248c0",
+        "id": "1b1fc2e63b4fb0691eede1c2d72edf48ad0559a8accf45cc081e66de3991b118",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "f7c02435136e7c6df288c46c24a33ced623fc4a51f4ef7786f553363fc9ea979",
+        "id": "62f88bef50f9239e24cc355352265d3645eb19591c1437479c61d42dca37e0c5",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "ce7bf1ecab63e785ae8e5c7f84f891f47eb3e1e29fbad576870b45298771a55b",
+        "id": "b96df9af3ba3e78d49eca11d7d30480662a3aea6a5f2fc8db91ca6c98302b16b",
         "classification": "declaration",
         "owner": "LoopReview",
         "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "ef4161996c61ef15b9919e04049849a624c1b7bac46245c653884bec24da6e46",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d23e0b730e730c8485d24debb8814fb52b76e4d99fcf2d2395b527094a45a441",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d426cfa783a2414aada43f471af49152c06fa46d119849ce93afe3a2f1b8eac8",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a510771b1d9f1884af3a5844f80083d357a17acd62147d3facde45ffbfeef758",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d42f2e3f7f5f315e20a40d5077ea3cefbc799786410d5e1b813f4bee7bbbe406",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "abd97e99d63851c217ae4533287e0dc282e5465685f3b0e0c508239845d607fc",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -57735,19 +57946,37 @@
         "declaration": "llm/engines/loop/review.py",
         "consumers": [
           "llm/components/processing.py",
+          "llm/engines/graph/handler_contracts.py",
           "llm/engines/loop/engine.py",
           "llm/engines/loop/review.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
           "tests/llm/test_completion_review.py",
           "tests/llm/test_completion_review_crash.py",
-          "tests/llm/test_loop.py",
-          "tests/llm/test_nested_graph.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
           "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/hub/test_approval_continuation.py"
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -63054,8 +63283,8 @@
   },
   {
     "path": "llm/engines/graph/handler_contracts.py",
-    "sha256": "29fcd44f5f7bb08ce328bad6b88977b5bb4fc971feec4b1b05501ca678f440b9",
-    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "sha256": "7f663bead050c10dbe4e7c221ee83dde46ad608d20959a9a08958231c8ffb940",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -63072,12 +63301,6 @@
       },
       {
         "id": "a6638a6b069b71ca673657fe6dfc6fd4bfa51e72959345f0cf917679a9146aa7",
-        "classification": "declaration",
-        "owner": "GraphHandlerHooks",
-        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
-      },
-      {
-        "id": "36443822d89dce530db742f96e24475a102e81e16946f67747a8f4bf793b54b6",
         "classification": "declaration",
         "owner": "GraphHandlerHooks",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
@@ -63142,15 +63365,20 @@
         "owner": "GraphHandlerHooks",
         "declaration": "llm/engines/graph/handler_contracts.py",
         "consumers": [
-          "llm/engines/graph/engine.py",
-          "llm/engines/graph/tool.py",
           "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/handler_contracts.py",
+          "llm/engines/graph/tool.py",
+          "llm/engines/loop/engine.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_stream_output.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_resource_integrity.py",
@@ -63158,6 +63386,10 @@
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_steering.py",
@@ -63171,8 +63403,12 @@
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_langgraph_engine.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_resource_references.py",
           "tests/llm/test_schema_ownership.py",
@@ -63577,6 +63813,1016 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py",
           "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/loop/engine.py",
+    "sha256": "7dcea83fca94b948d8806f5792fade52515bbb519a59564b08cfb2baa113f5f0",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "99475a05c338369a8116531e29494e317864ea16e267709a5aca81b152009570",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "e6523f6e63d232dd635d4287131dbaa080f2d9f80e44f0ef9707e08db7ccb313",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "396d15e51f6de9bf88d5a5a2f873f00fe59f75811d053962b288b14dc2e94b7b",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "207f56c296b5e26f890bf781f79bc8a4b804d70b1a24238d01e26e90e63d7a82",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "8e03ce34a26743c56cd223785719f04132fe440ae2a9962a3f850813cddb3f36",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "cd186e8881d09ac2e5c4a98182de2a7054e40b155a1fb026406a08f4e42c1057",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "9d925d03e27ee238176c608a56e9753afaf86528a04dc5de9617e88c0b47bd7b",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "c2670c812bcdb0f8d918a2ce064b1678df5a43b6d837af1a99edbd2b112188df",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "dc493a7c132d48443445451777e90b6a28e67ed632d442e39798cac5cd62c251",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "795db4f7e3a18ed47410aa838b92a5dd68ae895c544d8750a78ed642e7e2b19e",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "7f7a07917a4b43ede3013dc6dc28550b835e9629f7d297ffc2e684dbf950a548",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "0ad7175171c83ad43bd0dafb43ae5cc12e5e4be4fc6daf0220f1db3c34602432",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "f9a93ab120a05bcb5cab034f86d3f46bd0f47edc4d9727a19242a499c2261a2f",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "77b739eebddaa433f9a7dc08ee57a276edb407f1d3501bbd9317616ca9a1a7b3",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "0a7a2552fd73cf730c2c80905c8d3b869d8ee1e7b0ea7940572f7af998da5ce1",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "d060659f5f8d9c5d85235819742b175051b37e6ba34fca8fe03963a0eca9c54a",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "113d5d09ae6cd16af72458f572ece3fdd1a1354c6ac842e3cde66975bcf93a43",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "16798edc4e69be238678962ae77bfd857bb4d15bbc451d8ee312f129e5f165c8",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "a92628b288e03708ffdb75687e20f4f047e8fd5d35d299ccdbff17dc7099caca",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "3335e43010f88f06019c5a1be498958f22846edd78af949ca10b35d746fbba61",
+        "classification": "non_contract",
+        "owner": "LoopEngine.__init__",
+        "reason": "Python return annotation only."
+      },
+      {
+        "id": "8dbf0788afa5ac7654d03329a69a8cdb89434eee54a170165b05a09476ab14ef",
+        "classification": "non_contract",
+        "owner": "LoopEngine._execute",
+        "reason": "Insert the selected system message at the start of an existing ordered list; pure list position, not a policy/usage limit."
+      },
+      {
+        "id": "bba9991fb970efccd9b1caff9eb51ed98849907341b45723fd37760a1617e433",
+        "classification": "non_contract",
+        "owner": "LoopEngine._iterate.complete",
+        "reason": "Read the one captured completed response from its ordered local container; not default reconstruction."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LoopEngine execution coordination",
+        "declaration": "llm/engines/loop/engine.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/loop/configuration.py",
+    "sha256": "dd7182db395917e3d5cd26d761ec91eb5cb8e6704781439e6af4adf76e0ecdae",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "37410bef1f54103bd7c1ee926b9218a64195db9223fcbbde447c0f3baf9b67ec",
+        "classification": "declaration",
+        "owner": "LoopRegistration",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "fc7db743fa6ef1c59990973a015048e005581d7aa8a168ed032541ebf2b0703d",
+        "classification": "declaration",
+        "owner": "LoopRegistration",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "a74d69ddac42504e2876690046fb4a83732e6c326057f7458cbe54fac06c2e55",
+        "classification": "declaration",
+        "owner": "LoopRegistration",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "cb99298362f6bd3968d6333bfcfb0a6499d715060e1bf7232ed9f1946f4967b3",
+        "classification": "declaration",
+        "owner": "LoopRegistration",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "adeeb7969fd86ab1f5de8c83ee2e7116459db5c246a6ab9600c441afff9b414d",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "d77ede432952f453c96cd69573f78ed0c56c8533f6f96e07f0f7f0ac21e1acea",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "1652bbd2bce22e72e60520ae9c0c7d1a32d5c40c45d63d7207716f96a96f2a4e",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "498ebe571cbda79d0bcfeaa7791a864054f4c6e1123fa784dff2b1cd6c9d3982",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "ee75bc0e590a89e2a7e4aaef55362b97ae68aba208e567ec81b60fe7d9d1f21a",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "42ce09d52b687c205b743981651e9f3d7e2a7fa09a6b7c1cae8daf5186f4cce1",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "a1fc717a00cb09803c58a741858050c981a614e5bb2c7abde9b78f51b89a9dc3",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "961f4384cd280407499161c1cdc481d726b7e11ce5a4c71bdc7e801bf9ad2ec1",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "01c6052e5f77c2e3172dd541e5470c0db19bf14f89fa0ebd879e51c2781644a1",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "711324aec6cfd5f772c70f747823a06ebfe4da1ba22bbcd3f42169e28ec885a2",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "561436cb29456dca0df058186e9e20b96cff362d0eaa262f42a834b96b4f0a39",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "30cfdf5317c6404cc99b217c35ba89a07961732f570002212a6da3252d757ea7",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "801935003ae62087fc04279a3d5d74c32e2fbc2e061c6d724a001f9b9febba7e",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "8def39bce61748cde69914b11083b1a8840ecce67bf96d89e597fa2c0bc70b11",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "de51b75ad56db0d676d73972f0b3b70f9df4a0f4976ce3c48f22e891b73b65e1",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "c87502d56e1a59466ae355dfb46f01ce9800e14d0f32e712a514378c57d99fde",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "659102a5605c79a3ef6bf87385ba72e2c4dae2b8eb941a203805717666b858f8",
+        "classification": "declaration",
+        "owner": "LoopAgentOptions",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "2960c81b67127dfac4f9245fa0a9bc3a9ae45c926c6b7228ad93b018f1bb33de",
+        "classification": "declaration",
+        "owner": "LoopAgentOptions",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "0c0d6ec4edbc8dd6b8f3ebeb205cb7f3c23cdf98ac86e163b2031bdb25672f53",
+        "classification": "declaration",
+        "owner": "LoopAgentOptions",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "6203c44ce13b03994c2f4c19c1e4ae7ff8ecdbc23a939583cd99d14f43572b92",
+        "classification": "declaration",
+        "owner": "LoopAgentOptions",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LoopRegistration / LoopParameters / LoopPolicy / LoopAgentOptions",
+        "declaration": "llm/engines/loop/configuration.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/loop/binding.py",
+    "sha256": "4511cae3666f9a7442703f1049c9aee342918c75497d251e128970d743cec157",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ae99fe9a9c277cada8374dfc5ba099eed3b8eddfa51e1d1d7c53c6dd8fc5eae9",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "f67308a97dc2e2ff8ae7270be09fa308dd653b85f3ac5ae4cd8dfec503e6bf9f",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "bda89de2b3ceda7894f256993b07d25a9ad24e8ac3bc84927aba5fe5f3f52a6a",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "e43672734bf8f00963bec874bc930d9868a792790c0f65c6c4b26a6dda51dfd0",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "262c7bf64d8b5a7195040af269f794c3ce94e223d448464a88b4528132b37ab6",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "41ef0a9c7d94627ff083693bfff30b0b9536c3dfea76260658f5063eb53cbe9b",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "faf83c115aa0f2bda2677032d8f7de4f5d16c1609d567d3b41089f4b3b5f9335",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "0b54d438289920a306fffd664a1541df60e73ea17b28355f9bee297b94aaa292",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "07b155b34b622cf9e9478d0031f1b4961232763d1c939387cc33e09b60478539",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "08ef0ea594c622797e3ed65ee661841c80cef8f21d2060f694c5f6cf9c1ef694",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "584822ea1a1000a94448f024472bc1154b55c8ed80e7cceea3ae3906cde1a897",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "be9664f21228ee85e3c70114e76d77b7b0ba6be58fa2b901bb0e806207a24696",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "1c08832690945fa2d0cb20d9d7f672007578ac2da4a3ed96ea5b308c3061738f",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "ec0f56609a6f88d8041f848767b2f6c63f955233f25e95ed619e62116c8c3334",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LoopExecutionBinding",
+        "declaration": "llm/engines/loop/binding.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/loop/records.py",
+    "sha256": "95202acd2a92fac5357b24bce60d5cc88a03f9c6848e412c7d3f32f9a50f2435",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "522ee5533a9e1ebf73ed36c157bd27764c7aa957588a1e8ef87f8243cbc91cd4",
+        "classification": "declaration",
+        "owner": "LoopCheckpointRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "d132169140afd7909e307f9179c94044fec8ce663009cd2ba9db675cf451f6e8",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "901bc64334a11bcf94190cc0e356e158a857dd0e7a25f559344329ad3768e0d6",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "e5f3b53378302c1e0cb7d0818919b93925918f2b10b382dd8ea896f4b4f1eec0",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "cf2793cd150aeb115284a1684393ac9905b156f82565a0375b6be1604db4d9ed",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "9fd13fb486d16f757a76d1597e2e2ab6a2afb3564f08a44cc152e015035a6af1",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "02ece81e3529f1962a70708f782cfe2806a0150d39ef44b9e52c43c2e8c477af",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "32a818c7f4c9b0260e4a61b58b740d83fe4dc49b10fe221c9ebf2d45f7640936",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "38012c9a81dbe1278e4f6e249d59632139a286e81642aa9d343f52c22eafe9d1",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "032484c3d9ea80bd995bbe08376af7c82a400581593e2d94fbd811abed92dcd4",
+        "classification": "declaration",
+        "owner": "LoopToolRecord",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "34f05e1a3aa85059e76fb24a65c02f243f1cc2fc2c8496f37627401c7c16646c",
+        "classification": "declaration",
+        "owner": "LoopCheckpointHeader",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "bf06483fdcfaa123f825d4b9fb4c9a2a49bdabbe692632575c3268f4a31da18f",
+        "classification": "declaration",
+        "owner": "LoopCheckpointHeader",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "70d41b62bb2e31a4a46e528acdcafec3db8bcc0e117f0f6ef0ef7e2cc1f96f23",
+        "classification": "declaration",
+        "owner": "LoopCheckpointHeader",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "43af63508b610582c7d6a1925f7394a1f34492016e71896deb758a2ef16592ae",
+        "classification": "declaration",
+        "owner": "LoopStepMetadata",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "87df6b13a5907ba9b3e74efe6760bf4f9e2ac6c618456f8c5ca5025c6b567577",
+        "classification": "declaration",
+        "owner": "LoopStepMetadata",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "75cdade6801cbc26db83d3daeaba97767cf79392dcd7987e8e257417c5a4eb61",
+        "classification": "declaration",
+        "owner": "LoopStepMetadata",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "6f47c5e26c6285135a56ec67e58b11af66b991c4afaa40c73e388d50e3e16f85",
+        "classification": "declaration",
+        "owner": "LoopStepMetadata",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "9ceb17b92749c92761afda5e465134a29572b2606e2641fdc8bd5da59921998d",
+        "classification": "declaration",
+        "owner": "LoopStepMetadata",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "f0bf12bd3e8e45373e7cdec802a8919b498b951b118a279bd7a54b18b8226f16",
+        "classification": "declaration",
+        "owner": "LoopStepMetadata",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "69be052600d77cdc17503ef5d5a734417413e2d60c55ab02f109618aea2e1b22",
+        "classification": "declaration",
+        "owner": "LoopStepMetadata",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "772e21c88e6f46ffbfc83fc33a6a3b8376ed1c93385e51415471ea598fbb150b",
+        "classification": "declaration",
+        "owner": "LoopPriorOutput",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "1c00bf897998e017821f5eed88e57caf84555c81ed42bda3a24796e9f0c3a3e6",
+        "classification": "declaration",
+        "owner": "LoopPriorOutput",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "05bf7ec3d35f9248d811b6dd1adb48c9e7f6d5adcd9465c0ea11d15fbb1f8472",
+        "classification": "declaration",
+        "owner": "LoopPriorOutput",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "9c02cb3165f4269f907a21355dca469994eea8e06434ede4376305bd40f09e02",
+        "classification": "declaration",
+        "owner": "LoopPriorOutput",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "0efade526ada0f7cb22430de9dff95f5ba67e130711fed3efc0fdf15e85de05c",
+        "classification": "declaration",
+        "owner": "LoopPriorOutput",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "ef5bacc187c0225c9f78414b0504f8af2a5a8b3855966de9fa5c482f0aa086cb",
+        "classification": "declaration",
+        "owner": "LoopInstructionBoundary",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "5d1f09fdb9c3dbed38fe227773ef47fb5c17230b95db331a4cbd37b76e685ccd",
+        "classification": "declaration",
+        "owner": "LoopInstructionBoundary",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "9433f04e06fdf43bd12832f73cf6c9376c64f6ec11f6ca3dcc9f101b502d6f62",
+        "classification": "declaration",
+        "owner": "LoopInstructionBoundary",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LoopCheckpointRecord / LoopToolRecord / LoopCheckpointHeader / LoopStepMetadata / LoopPriorOutput / LoopInstructionBoundary",
+        "declaration": "llm/engines/loop/records.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/streaming.py",
+    "sha256": "b8b0998c617bc42029fe8d534380d6a7a9e33875c5868da1ab20e2537de95cc9",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "653e0c1c36c1cdc985c07d65cb156370aa519f8cf6e19b23b7a38f18055c2236",
+        "classification": "declaration",
+        "owner": "CompletionErrorCode",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "bb6103018ec1d48a13357eb0e75a3d4befdd870201c3a3a592fa76b362f92309",
+        "classification": "declaration",
+        "owner": "CompletionErrorCode",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "af1c837e154922f534751c10db8e02977d6c517e69552c9ddebeef1f9c1be42f",
+        "classification": "declaration",
+        "owner": "CompletionErrorCode",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "98ff5f5820c8264bb8ef5e6a00f5c4dfbadcdfda1481f54ff23d7a8456fef8a6",
+        "classification": "declaration",
+        "owner": "CompletionErrorCode",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "76db3fcb0c382c0cecc9635ebe5c6d0c26673d522e7adacbc709c015fcfe5dd1",
+        "classification": "declaration",
+        "owner": "CompletionErrorCode",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "30154747df0cd90507506659ecf1fc576aee8c51a605d2331615d7deba62c083",
+        "classification": "non_contract",
+        "owner": "CompletionTermination",
+        "reason": "Python dataclass frozen/slots type layout."
+      },
+      {
+        "id": "8f7d0efbb2526b47de801017f18ceb85908b8dc4c86f866bcb4b2c91ce276805",
+        "classification": "non_contract",
+        "owner": "CompletionTermination",
+        "reason": "Python dataclass frozen/slots type layout."
+      },
+      {
+        "id": "ae1e4eeb5860aa9c9900f888f90ca7c9075be155618460aa541f531fbc9e62ff",
+        "classification": "non_contract",
+        "owner": "CompletionDecoder.decode",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "bb3bfc45ec3a764f15858d387d1a9da065439a297f7ed90b5e55d32087b905b4",
+        "classification": "non_contract",
+        "owner": "CompletionDecoder.finish",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "67a753bf55a1614e7f091df0609b559e7ea2facd550b09185da318954e68c0e7",
+        "classification": "declaration",
+        "owner": "CompletionAdapterContract",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "25f7fb87af7a2f17a9b2a259193408ce99aecf72e1cd8a49e7564215b9835bdd",
+        "classification": "declaration",
+        "owner": "CompletionAdapterContract",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "ec892671fa691ee2ca4d14c648a87b787052993f6ae0bdae6c0dff94e24df295",
+        "classification": "declaration",
+        "owner": "CompletionAdapterContract",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "54562d28267ca9c7e46593060e7cfc2572353ae3230c60c1dce84ce61edf2ee2",
+        "classification": "declaration",
+        "owner": "CompletionAdapterContract",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "f273788db281052c037a211aa64410b6ac0c9b9a60e0731864ec7c6623dda6c3",
+        "classification": "declaration",
+        "owner": "CompletionAdapterContract",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "84d4b3466644e4ee93fa8a0a6794e813e0e052039ef3622b0dbb443a50d6ff15",
+        "classification": "declaration",
+        "owner": "CompletionAdapterContract",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "b464652dcae8ca0bafb241410478ac9878b4ec2955b2796a6c40fb9461d6f99c",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.validate_input_ownership",
+        "reason": "Python return annotation only."
+      },
+      {
+        "id": "702bec55fbf0f96b2bb9266e842060ecf575b81774e29a32b9db189ee74b501a",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.validate_input_ownership",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "02705437dad7edabd1968d02327bb14044e0da7ae80ab1c54fa54ece604c04c9",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.auxiliary_parameters",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "ef1d4bae1bba9240b0652bcc1bb1f9a44dd7f6f0d5ad58789b7e0e102daaecc9",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.prepare",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "741dc4837480c0b7232cbbd4cf46f4389e383f870c2b3c0933b6442203d08f95",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.describe_call",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "b199fa091be6014eff37437020777a46ff3bb7dc427a0a6a339c50daa5825113",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.describe_request",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "697a93667f15a7de6a40b31f36911d470ab0d7f4d1a6060d5ffe64c5f52d29f1",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.effective_attempts",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "d6416f9a806fe84072ad39070b71a4885738513372738686b23dc1557d9c7c72",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.classify_error",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "7361de1da08056803d42be77b2bf14e16b79e23cec1dc461cda8c05c04759da6",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.retryable",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "1959c3443ff46cd74c3086f7b973e28915ffe1d1b3de129325b1a8b87d179d2b",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.retry_fields",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "7243d715454a24cf8cfe0f6f76fb7026dead646d736ce1573d209dd81e022bdd",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.retry_fields",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "0f4e71d2c172539d608f5eaab9320394eb92659ca9be45edfc21f21dc6b6893c",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.validate_retry",
+        "reason": "Python return annotation only."
+      },
+      {
+        "id": "34467e72fa9bea73c517cb21ff33e43eb03e7f731280d5f294a8bff1aaa37bdf",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.validate_retry",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "365150fc889758c0ac73f21a69b4d8e54feacf7a92bb6ebfda3fab995cd6cb61",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.validate_processing",
+        "reason": "Python return annotation only."
+      },
+      {
+        "id": "274a08c403d1519a222f6c6208cc050e53587c388eb07898a6932fb54d3faac9",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.validate_processing",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "d1a3838f776147f58d6354114d8863d015146b17ca0bf125dafd1e0ee8de43de",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.decoder",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      },
+      {
+        "id": "7f4f7dfd3a7f5cb4867733de3a1b0ac091c477719a940faf9f01c1534d59221b",
+        "classification": "non_contract",
+        "owner": "CompletionAdapter.stream",
+        "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompletionAdapterContract / CompletionAdapter / CompletionDecoder / CompletionError / CompletionTermination",
+        "declaration": "llm/providers/streaming.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/loop/README.md",
+    "sha256": "cbfb8520ff7df3f9d01588f0fe1ad4f17725d846ea766533399073c585de1f3f",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Whole guide checked against common Adapter input, explicit policy precedence, original Tool authority, review/steering/resume evidence and actual storage ownership. Added Owner file map and typed payload boundaries; independent wire examples retained.",
+    "contracts": [
+      {
+        "owner": "Loop runtime guide",
+        "declaration": "llm/engines/loop/README.md",
+        "consumers": [
+          "llm/engines/loop/engine.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }

@@ -1,14 +1,14 @@
 """Optional Graph handler hooks; declaration discovery never executes a handler."""
 
 from llm.components.workflows.graph import WorkflowHandlerContract
-from llm.engines.contracts import EngineHooks
+from llm.engines.contracts import EngineHooks, ResumableHandlerContract
 
 
 class GraphHandlerHooks:
     SELECTION_BINDING = "selection_binding"
     PREPARE_CONTEXT = "prepare_context"
     CHECKPOINT_ENGINE = "checkpoint_engine"
-    RESUMABLE_CONTAINER = "resumable_container"
+    RESUMABLE_CONTAINER = ResumableHandlerContract.ATTRIBUTE
     BINDING = "binding"
     VALIDATE_SELECTION = "validate_selection"
     GRAPH_ENGINE = "graph_engine"
@@ -65,7 +65,7 @@ class GraphHandlerHooks:
 
     @classmethod
     def resumable(cls, handler):
-        return getattr(handler, cls.RESUMABLE_CONTAINER, cls.UNDECLARED) is cls.DECLARED
+        return ResumableHandlerContract.declared(handler)
 
     @classmethod
     def graph_discoverer(cls, handler, default):
@@ -73,4 +73,4 @@ class GraphHandlerHooks:
 
     @classmethod
     def required_names(cls, handler):
-        return getattr(handler, cls.REQUIRED_CAPABILITIES, cls.NO_CAPABILITIES)
+        return EngineHooks.required_names(handler)

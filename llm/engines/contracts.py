@@ -59,6 +59,22 @@ class EngineHooks:
     def schema_describer(cls, engine):
         return getattr(engine, cls.DESCRIBE_CONFIG, cls.ABSENT)
 
+    @classmethod
+    def required_names(cls, engine):
+        return getattr(engine, cls.REQUIRED_CAPABILITIES, cls.NO_CAPABILITIES)
+
+
+class ResumableHandlerContract:
+    """Explicit trusted container declaration shared by Graph and Loop handlers."""
+
+    ATTRIBUTE = "resumable_container"
+    UNDECLARED = False
+    DECLARED = True
+
+    @classmethod
+    def declared(cls, handler):
+        return getattr(handler, cls.ATTRIBUTE, cls.UNDECLARED) is cls.DECLARED
+
 
 def required_capabilities(engine) -> tuple[str, ...]:
     """An undeclared Engine needs no external capabilities."""

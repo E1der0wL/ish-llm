@@ -98,6 +98,7 @@ class BaseEngine:
     PUBLISH_OUTPUT = True
     STEP_ONLY = False
     INTERMEDIATE_BOUNDARY = False
+    FINAL_BOUNDARY = True
     ALLOW_CONTINUE = True
     CLOSE_METHOD = "aclose"
     ERROR_SEPARATOR = ": "

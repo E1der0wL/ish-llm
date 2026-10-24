@@ -54,6 +54,21 @@ class CompletionDecoder(Protocol):
     def finish(self) -> model_protocol.ModelResponse: ...
 
 
+class CompletionAdapterContract:
+    """Optional public identity and explicit adapter invocation flags; no SDK fields."""
+
+    EXECUTION_BINDING = "execution_binding"
+    ABSENT = None
+    REQUIRE_MODEL = True
+    AUXILIARY = False
+    PRESERVE_RETRIES = False
+    PRESERVE_OUTPUT_LIMITS = True
+
+    @classmethod
+    def execution_binding(cls, adapter):
+        return getattr(adapter, cls.EXECUTION_BINDING, cls.ABSENT)
+
+
 class CompletionAdapter(Protocol):
     """Selected SDK boundary. Requests and retry fields are owned by the adapter.
 
@@ -71,8 +86,8 @@ class CompletionAdapter(Protocol):
     meanings belong to the common model values.
     """
 
-    def validate_input_ownership(self, parameters: dict, *, auxiliary=False) -> None: ...
-    def auxiliary_parameters(self, parameters: dict, *, preserve_retries=False, preserve_output_limits=True) -> dict:
+    def validate_input_ownership(self, parameters: dict, *, auxiliary=CompletionAdapterContract.AUXILIARY) -> None: ...
+    def auxiliary_parameters(self, parameters: dict, *, preserve_retries=CompletionAdapterContract.PRESERVE_RETRIES, preserve_output_limits=CompletionAdapterContract.PRESERVE_OUTPUT_LIMITS) -> dict:
         """Detach adapter settings for a separate Tool-free analysis invocation."""
         ...
     def prepare(self, request: model_protocol.ModelRequest) -> model_protocol.ModelRequest: ...
