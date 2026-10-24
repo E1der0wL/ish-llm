@@ -111,3 +111,54 @@ class ProviderAttempt:
 
     def next_details(self, details):
         return {**details, self.__class__.attempt.__name__: self.next_attempt}
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderDiagnosticContext:
+    """Normalized location fields emitted at the Provider diagnostic boundary."""
+
+    operation: str
+    stage: str
+
+    def to_dict(self):
+        return {item.name: getattr(self, item.name) for item in fields(self)}
+
+
+class ProviderDiagnosticObservation:
+    """Cause-local presentation of existing diagnostics, with no SDK interpretation outside the Adapter."""
+
+    NO_VALUE = None
+    NO_TEXT = ""
+    TYPE_SEPARATOR = "."
+
+    def __init__(self, details):
+        from llm.core.contracts import DiagnosticExceptionDetails
+        from .runtime_values import ProviderExceptionRecord
+        chain = details.get(DiagnosticExceptionDetails.exceptions.__name__, ())
+        exceptions = [item for item in chain if isinstance(item, dict)] if isinstance(chain, (list, tuple)) else []
+        status_entry = next((item for item in exceptions if type(item.get(ProviderExceptionRecord.STATUS_CODE)) is int), self.NO_VALUE)
+        self._entry = status_entry if status_entry is not self.NO_VALUE else (exceptions[0] if exceptions else {})
+        self.has_http_status = status_entry is not self.NO_VALUE
+        self._details = details
+
+    @property
+    def http_status(self):
+        from .runtime_values import ProviderExceptionRecord
+        return self._entry.get(ProviderExceptionRecord.STATUS_CODE)
+
+    @property
+    def exception_type(self):
+        from .runtime_values import ProviderExceptionRecord
+        return str(self._entry.get(ProviderExceptionRecord.TYPE, self.NO_TEXT)).split(self.TYPE_SEPARATOR)[-1]
+
+    @property
+    def detail(self):
+        from .runtime import ProviderErrorDiagnostics
+        return ProviderErrorDiagnostics.observed_message(self._entry)
+
+    def operation(self, fallback):
+        return str(self._details.get(ProviderDiagnosticContext.operation.__name__) or fallback)
+
+    @property
+    def stage(self):
+        return str(self._details.get(ProviderDiagnosticContext.stage.__name__) or self.NO_TEXT)

@@ -22,6 +22,7 @@ from llm.providers.runtime import diagnostic
 from ...model import RetrySummary
 from ...errors.adapters import from_diagnostic
 from ...errors.contracts import ErrorOrigin
+from ...errors.recovery_annotation import RecoveryAnnotation
 from .recovery_input import reductions, encoded
 from .recovery_model import model_events, InvalidRecoveryResponse
 
@@ -223,12 +224,12 @@ class ProviderRecovery:
                 observed = self.monitor.states.get((state.frame.context.run.id, RetrySummary.RECOVERY))
                 rejected = observed is not None and observed.summary.phase == RetrySummary.REJECTED
                 outcome = RecoveryState.REJECTED if rejected else RecoveryState.EXHAUSTED if state.outcome == RecoveryState.RETRYING else state.outcome
-                annotation = {"explanation": state.explanation, "outcome": outcome, "attempt": state.attempts}
+                annotation = RecoveryAnnotation(state.explanation, outcome, state.attempts)
                 # Retain the original exception/code/cause. The annotation is
                 # presentation data, never a replacement diagnostic classification.
                 with suppress(AttributeError, TypeError):
-                    error.diagnostic = replace(issue, details={**issue.details, "hub_recovery": annotation})
-                diagnostic("hub_recovery", **annotation)
+                    error.diagnostic = replace(issue, details=annotation.in_details(issue.details))
+                diagnostic(RecoveryAnnotation.KEY, **annotation.to_record())
             raise
         finally:
             self.monitor.states.pop((state.frame.context.run.id, RetrySummary.RECOVERY), None)

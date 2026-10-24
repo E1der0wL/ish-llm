@@ -1,65 +1,120 @@
 """Project backend diagnostics into presentation data without reclassifying evidence."""
 
-from llm.core.contracts import DiagnosticCode, ErrorReason
-from .contracts import HubErrorCode
-
 import asyncio
 from concurrent.futures import CancelledError
 from copy import deepcopy
 from dataclasses import replace
 import traceback
 
-from llm.core.contracts import Diagnostic
-from llm.core.model_protocol import StopReason
-from .contracts import Confidence, ErrorCategory, ErrorInfo, ErrorOrigin
+from llm.core.contracts import Diagnostic, DiagnosticCode, ErrorReason, ResourceRef
+from llm.core.diagnostics import ClassificationEvidence
+from llm.providers.diagnostic_values import (
+    ProviderAttempt,
+    ProviderDiagnosticObservation,
+)
+from llm.providers.streaming import CompletionTermination
+from llm.providers.requests import ProviderFailure
+from .contracts import Confidence, ErrorCategory, ErrorInfo, ErrorOrigin, HubErrorCode
+from .recovery_annotation import RecoveryAnnotation
 
 
-def from_diagnostic(value: Diagnostic, *, origin=ErrorOrigin.UNKNOWN, operation="", source=None) -> ErrorInfo:
+class ErrorProjection:
+    NO_TEXT = ""
+    NO_SOURCE = None
+    EXCEPTION_IS_VALIDATION = False
+    REFERENCE_FIELDS = (
+        ResourceRef.project_id.__name__,
+        ResourceRef.session_id.__name__,
+        ResourceRef.run_id.__name__,
+        ResourceRef.step_id.__name__,
+        ProviderAttempt.call_id.__name__,
+    )
+
+    @classmethod
+    def references(cls, value, details, source):
+        references = value.source.to_dict() if value.source is not cls.NO_SOURCE else {}
+        references = {
+            key: item for key, item in references.items() if isinstance(item, str)
+        }
+        references.update(
+            {
+                key: details[key]
+                for key in cls.REFERENCE_FIELDS
+                if isinstance(details.get(key), str)
+            }
+        )
+        references.update(source or {})
+        return references
+
+
+def from_diagnostic(
+    value: Diagnostic,
+    *,
+    origin=ErrorOrigin.UNKNOWN,
+    operation=ErrorProjection.NO_TEXT,
+    source=ErrorProjection.NO_SOURCE
+) -> ErrorInfo:
     details = deepcopy(value.details)
     classification = value.classification
-    chain = details.get("exceptions", ())
-    exceptions = [item for item in chain if isinstance(item, dict)] if isinstance(chain, (list, tuple)) else []
-    status_entry = next((item for item in exceptions if type(item.get("status_code")) is int), None)
-    # Never combine one cause's HTTP status with another cause's error message.
-    entry = status_entry if status_entry is not None else (exceptions[0] if exceptions else {})
-    provider = entry.get("provider_error", {})
-    detail = provider.get("message") if isinstance(provider, dict) else None
-    detail = detail if isinstance(detail, str) else entry.get("message", "")
-    detail = detail if isinstance(detail, str) else ""
-    recovery = details.get("hub_recovery", {})
-    recovery = recovery if isinstance(recovery, dict) else {}
-    if origin == ErrorOrigin.UNKNOWN and value.code.startswith("provider_"):
+    provider = ProviderDiagnosticObservation(details)
+    # A status and its message always come from the same observed cause.
+    detail = provider.detail
+    recovery = RecoveryAnnotation.observe(details)
+    if origin == ErrorOrigin.UNKNOWN and ProviderFailure.owns_code(value.code):
         origin = ErrorOrigin.PROVIDER
-    references = value.source.to_dict() if value.source is not None else {}
-    references = {key: item for key, item in references.items() if isinstance(item, str)}
-    references.update({key: details[key] for key in ("project_id", "session_id", "run_id", "step_id", "call_id")
-                       if isinstance(details.get(key), str)})
-    references.update(source or {})
-    termination = details.get("termination")
-    return ErrorInfo(code=value.code, message=value.message, origin=origin,
-        operation=str(details.get("operation") or operation), stage=str(details.get("stage") or ""),
-        category=ErrorCategory(classification.category), reason=classification.reason,
-        confidence=Confidence(classification.confidence), evidence=deepcopy(classification.evidence),
-        http_status=entry.get("status_code"), exception_type=str(entry.get("type", "")).split(".")[-1],
-        raw_finish_reason=details.get("raw_finish_reason") if isinstance(details.get("raw_finish_reason"), str) else "",
-        termination=StopReason(termination) if isinstance(termination, str) and termination in StopReason else StopReason.UNKNOWN,
-        detail=detail or (value.message if status_entry is None else ""), details=details, source=references,
-        explanation=recovery.get("explanation") if isinstance(recovery.get("explanation"), str) else "",
-        recovery=recovery.get("outcome") if isinstance(recovery.get("outcome"), str) else "")
+    references = ErrorProjection.references(value, details, source)
+    termination = CompletionTermination.from_details(details)
+    return ErrorInfo(
+        code=value.code,
+        message=value.message,
+        origin=origin,
+        operation=provider.operation(operation),
+        stage=provider.stage,
+        category=ErrorCategory(classification.category),
+        reason=classification.reason,
+        confidence=Confidence(classification.confidence),
+        evidence=deepcopy(classification.evidence),
+        http_status=provider.http_status,
+        exception_type=provider.exception_type,
+        raw_finish_reason=CompletionTermination.raw_finish_reason(details),
+        termination=termination.normalized,
+        detail=detail
+        or (value.message if not provider.has_http_status else ErrorProjection.NO_TEXT),
+        details=details,
+        source=references,
+        explanation=recovery.explanation,
+        recovery=recovery.outcome,
+    )
 
 
-def from_exception(error: Exception | str | ErrorInfo, *, origin=ErrorOrigin.HUB,
-                   operation="", validation=False) -> ErrorInfo:
+def from_exception(
+    error: Exception | str | ErrorInfo,
+    *,
+    origin=ErrorOrigin.HUB,
+    operation=ErrorProjection.NO_TEXT,
+    validation=ErrorProjection.EXCEPTION_IS_VALIDATION
+) -> ErrorInfo:
     if isinstance(error, ErrorInfo):
         return error
     if isinstance(error, (asyncio.CancelledError, CancelledError)):
         raise error
     if isinstance(error, str):
         return ErrorInfo(message=error, origin=origin, operation=operation)
-    value = Diagnostic.from_exception(error, code=HubErrorCode.VALIDATION if validation else DiagnosticCode.EXECUTION_FAILED)
+    value = Diagnostic.from_exception(
+        error,
+        code=HubErrorCode.VALIDATION if validation else DiagnosticCode.EXECUTION_FAILED,
+    )
     result = from_diagnostic(value, origin=origin, operation=operation)
     # Only application-owned validation receives an application classification.
     if value.code == HubErrorCode.VALIDATION:
-        result = replace(result, category=ErrorCategory.CONTRACT, reason=ErrorReason.VALIDATION.value,
-                         confidence=Confidence.EXPLICIT, evidence={"code": value.code})
-    return replace(result, traceback="".join(traceback.format_exception(error)))
+        result = replace(
+            result,
+            category=ErrorCategory.CONTRACT,
+            reason=ErrorReason.VALIDATION.value,
+            confidence=Confidence.EXPLICIT,
+            evidence=ClassificationEvidence(value.code).to_dict(),
+        )
+    return replace(
+        result,
+        traceback=ErrorProjection.NO_TEXT.join(traceback.format_exception(error)),
+    )

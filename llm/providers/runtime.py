@@ -3,7 +3,7 @@
 from llm.providers.diagnostic_values import ProviderDiagnosticText
 
 from llm.core.contracts import ErrorReason, DiagnosticSeverity
-from .diagnostic_values import ProviderRequestFailure
+from .diagnostic_values import ProviderRequestFailure, ProviderDiagnosticContext
 
 import importlib
 import json
@@ -255,6 +255,14 @@ class ProviderErrorDiagnostics:
     REQUEST_ID = SDKError.REQUEST_ID
     REQUEST_ID_HEADERS = ("x-request-id", "request-id", "x-amzn-requestid")
     PROVIDER_ERROR = "provider_error"
+    NO_TEXT = ""
+
+    @classmethod
+    def observed_message(cls, entry):
+        provider = entry.get(cls.PROVIDER_ERROR, {})
+        detail = provider.get(SDKError.MESSAGE) if isinstance(provider, dict) else ProviderDiagnostics.UNSPECIFIED
+        detail = detail if isinstance(detail, str) else entry.get(SDKError.MESSAGE, cls.NO_TEXT)
+        return detail if isinstance(detail, str) else cls.NO_TEXT
 
     @classmethod
     def read(cls, error):
@@ -573,10 +581,9 @@ def diagnostic_failure(error, *, operation, stage, **details):
         return diagnostic(
             error_code(error),
             severity=DiagnosticSeverity.ERROR.value,
-            operation=operation,
+            **ProviderDiagnosticContext(operation, stage).to_dict(),
             boundary=ProviderFailureObservation.BOUNDARY,
             **(request_failure.details() if request_failure else {}),
-            stage=stage,
             exceptions=chain,
             sdk_versions=_sdk_versions(),
             **details,

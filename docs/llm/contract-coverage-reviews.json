@@ -32116,8 +32116,8 @@
   },
   {
     "path": "llm/core/contracts.py",
-    "sha256": "c56f8d9c3fa17f71622028d7f5b55240635df326d614c5f17475e4d6004700d2",
-    "reason": "Read complete JSON encode/decode, reference/observation/activity/progress declarations and validations. Codec errors, severity and lifecycle/progress values precede methods; fixed fallback exception shape uses declared ExceptionType/DiagnosticExceptionDetails fields. Public JSON and open metadata remain detached and identical. Unknown fields/types, trusted outer code, broken/recursive properties, source ownership, timezone and finite count checks are preserved. The three llm severity consumers reference the enum; read-only classifications and refs grant no execution/recovery authority. Narrow public Facade consumers use the Run-owned resumable candidate states, EngineEvent factory, live RunManager gauges and uncommitted operation preview. All required safety checks and original read/effect order remain.",
+    "sha256": "a71102cd766c5353106d82f099e123381a800c77441fb5ed698c3978fe6d420f",
+    "reason": "Read complete JSON encode/decode, reference/observation/activity/progress declarations and validations. Codec errors, severity and lifecycle/progress values precede methods; fixed fallback exception shape uses declared ExceptionType/DiagnosticExceptionDetails fields. Public JSON and open metadata remain detached and identical. Unknown fields/types, trusted outer code, broken/recursive properties, source ownership, timezone and finite count checks are preserved. The three llm severity consumers reference the enum; read-only classifications and refs grant no execution/recovery authority. Narrow public Facade consumers use the Run-owned resumable candidate states, EngineEvent factory, live RunManager gauges and uncommitted operation preview. All required safety checks and original read/effect order remain. Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -32935,6 +32935,12 @@
         "classification": "declaration",
         "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
         "reason": "Canonical enum/field, diagnostic, activity state map, count constraint or serialization template before implementation."
+      },
+      {
+        "id": "28f4cf46a874176201ef696cd26ba42ffc300285d5ad5d6811de7a6272819221",
+        "classification": "declaration",
+        "owner": "DiagnosticRecordObservation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -32942,6 +32948,9 @@
         "owner": "JsonValue / ResourceRef / Diagnostic / ProjectActivityEvent / OperationProgress",
         "declaration": "llm/core/contracts.py",
         "consumers": [
+          "hub/backend/execution/provider_recovery.py",
+          "hub/errors/adapters.py",
+          "hub/ui/error_presentation.py",
           "llm/core/diagnostics.py",
           "llm/core/results.py",
           "llm/engines/base.py",
@@ -32953,18 +32962,29 @@
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_http_backend.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_live.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
           "tests/llm/test_backend.py",
           "tests/llm/test_backend_contracts.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_checkpoint_lifecycle.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_contracts.py",
           "tests/llm/test_current_api.py",
           "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_error_boundaries.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_observations.py",
           "tests/llm/test_extension_contracts.py",
@@ -32980,12 +33000,44 @@
           "tests/llm/test_output_integrity.py",
           "tests/llm/test_plugin.py",
           "tests/llm/test_project_activity.py",
+          "tests/llm/test_provider_diagnostics.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_run_api.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_service_extensions.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "DiagnosticRecordObservation",
+        "declaration": "llm/core/contracts.py",
+        "consumers": [
+          "llm/core/checkpoints.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
         ],
         "complete": true
       }
@@ -33057,8 +33109,8 @@
   },
   {
     "path": "llm/providers/diagnostic_values.py",
-    "sha256": "73dcd1c1abc4fd4439cbabbc365f332106b7ce204f097f474ef911e382bc8788",
-    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved.",
+    "sha256": "7a9a87f6351f13be67bbb0b1d681a8d9077fc983334302c843fb9058a4983c9d",
+    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved. Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -33198,6 +33250,48 @@
         "classification": "declaration",
         "owner": "ProviderAttempt",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
+      },
+      {
+        "id": "0236a59401015f1586852f6f45d15164adf0e159121f0cc0483590fc269a6d7f",
+        "classification": "non_contract",
+        "owner": "ProviderDiagnosticContext",
+        "reason": "Python frozen dataclass declaration for a diagnostic context."
+      },
+      {
+        "id": "74e54b43bc1fad6146efce492d2f4d05d270ef5869d454c0cfc39ec4550a0bce",
+        "classification": "non_contract",
+        "owner": "ProviderDiagnosticContext",
+        "reason": "Python slots declaration for instance layout."
+      },
+      {
+        "id": "b9049ec3a287fb65101163a3b035733682133fd3323a4035c22038725eedae04",
+        "classification": "declaration",
+        "owner": "ProviderDiagnosticObservation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "860a1b6deccd0fbaa838106345e7bea441cc776f98cc27855f52d8519db61625",
+        "classification": "declaration",
+        "owner": "ProviderDiagnosticObservation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7b740ea60e3142048f8a422f284a9d402295ef903780c4e16d03b21c05fc2fd7",
+        "classification": "declaration",
+        "owner": "ProviderDiagnosticObservation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3c74261fe47507ddb0f1b240c2830f199d626dba2cb8a4fc88a925eef608e39e",
+        "classification": "non_contract",
+        "owner": "ProviderDiagnosticObservation.__init__",
+        "reason": "The first cause remains the presentation fallback only when no cause has an integer HTTP status."
+      },
+      {
+        "id": "0643fcaf6dc14f940eca2aa74563cd270f6f0711820d4435a36d9d36edd467e2",
+        "classification": "non_contract",
+        "owner": "ProviderDiagnosticObservation.exception_type",
+        "reason": "The final segment of a qualified Python exception name; unary minus is structural indexing, not a contract field position."
       }
     ],
     "contracts": [
@@ -33205,6 +33299,9 @@
         "owner": "ProviderRequestFailure/ProviderRequestHint/ProviderRetryObservation/ProviderAttempt",
         "declaration": "llm/providers/diagnostic_values.py",
         "consumers": [
+          "hub/backend/execution/provider_recovery.py",
+          "hub/errors/adapters.py",
+          "hub/ui/error_presentation.py",
           "llm/components/rag/extraction.py",
           "llm/components/rag/ingestion.py",
           "llm/providers/calls.py",
@@ -33215,14 +33312,24 @@
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_provider_stabilization.py",
           "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
           "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
@@ -33238,8 +33345,41 @@
           "tests/llm/test_rag_retry_presence.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ProviderDiagnosticContext / ProviderDiagnosticObservation",
+        "declaration": "llm/providers/diagnostic_values.py",
+        "consumers": [
+          "llm/providers/runtime.py",
+          "hub/errors/adapters.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
         ],
         "complete": true
       }
@@ -34607,8 +34747,8 @@
   },
   {
     "path": "llm/core/checkpoints.py",
-    "sha256": "e581dc82d46cc43c8ccdc904ea9cf58dd297c3dde91547a353e5dcdc6f993691",
-    "reason": "Read complete lifecycle/envelope/conversation, error, selection, abandonment and current-plan validation. Public lifecycle status/container projection owns allowed standard states and strict explicit shape; private states still require explicit projection. Envelope uses dataclass-declared identity fields and opaque payload copy. Actions, selection cardinality, errors and rejection detail shape have declarations before implementation. Only current plan/revision/blocker checks under the caller ownership boundary allow mutation; exact old normal/invalid results and wire remain. RAG explicit abandonment uses the existing Writer. Nested scope projection review: existing CheckpointEnvelope lifecycle validation and new construction reuse the same retry-required predicate; Reader rejects contradictory explicit evidence as before. CheckpointContent emits a validated runtime content projection in the existing header/records order. CheckpointStep owns required interaction attachment and separate nullable waiting observation, retaining original values without normalizing opaque input. No storage schema, lifecycle, authority or ACK boundary changes.",
+    "sha256": "37b200fa9ea393c417bdde6f28c7b0fb28a547c934687bcb3e91f5f055276750",
+    "reason": "Read complete lifecycle/envelope/conversation, error, selection, abandonment and current-plan validation. Public lifecycle status/container projection owns allowed standard states and strict explicit shape; private states still require explicit projection. Envelope uses dataclass-declared identity fields and opaque payload copy. Actions, selection cardinality, errors and rejection detail shape have declarations before implementation. Only current plan/revision/blocker checks under the caller ownership boundary allow mutation; exact old normal/invalid results and wire remain. RAG explicit abandonment uses the existing Writer. Nested scope projection review: existing CheckpointEnvelope lifecycle validation and new construction reuse the same retry-required predicate; Reader rejects contradictory explicit evidence as before. CheckpointContent emits a validated runtime content projection in the existing header/records order. CheckpointStep owns required interaction attachment and separate nullable waiting observation, retaining original values without normalizing opaque input. No storage schema, lifecycle, authority or ACK boundary changes. Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -34858,151 +34998,151 @@
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "b12df26387aee2feee3d7753ce41540a8d7ddeeaf6b4fc4dc3dcf49aedd9276e",
+        "id": "414f33002289d1e3242bef7331b133977529f17340d7cf1b0f25019c6ffd3aaa",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "b150db6c927d0dfadb0f80e4756984b8c2d9acea23542df889d22b08e8efca9b",
+        "id": "c0a7bd5db672e4eadbfc75422ace766b3a9f0a886e83fa29034cc6f3d0da829c",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "ae87f06cff7d56a44520d94395614eaabeb56f0efc70277fe0aa853ba3a2a2bb",
+        "id": "213c7a89e40864010ae0e833fa31b1aa53275ff8ba83fe3dd5243a2d59ac9f7d",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "48b890ea3488d102a66704ce3ed8ce3deb4e610097dc4766979f41276ec12ba8",
+        "id": "c01df207a6a6246ccd33bccf7861665e4d696f8245400cc53d88156ea7057051",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "af034a4431029a75795d3820cd7539bbf95fea15a8a1ff76f11165c6b11ecea1",
+        "id": "c516866acfe321d79a0470df58b8a225f20bc94cbf477517d2b7dd64481800d1",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "3bd893a92e23245e4d877e7159369af0aa4f5381a159d6d9f5276a707db890b0",
+        "id": "dd290e85d8b69bf6f7338cc07adfc9cb443ef9c2cc1ee4aedfc5f513fc0ad023",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "9a3de7f1f27dd1930e003b91ddcae783063c892490dd59fbcec7410f246ce8b7",
+        "id": "741249eed0283220d0b929a9bce770643cf7d9bb5dec22a1ef2fbe46a91a46d4",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "541c2e71188b107509c3838f835e0ff0876fbf374667bc467daaf0789889e461",
+        "id": "06ce30fe511d6f5e636d9393cd655d0850c1065b7dde95767ad47416d2e52ed9",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "3d9219ae28bb82d04534118b89d50d88e470e5ec145aeadc5f192056a7150e1a",
+        "id": "207090eb8e0cf1032e9186b104e30b6fe5f11b59ccf171d5e8d9a17a71474300",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "cc496c67ed8b226fdbcfeadccc4d478fb8997c907d71866c65d7ad76f6a902e0",
+        "id": "03874ae6a33e51813aad93354e94060c0a742f82660d8476141d2ee134771076",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Select the first element after declared sole-checkpoint cardinality validation; a positional index, not an independent default."
       },
       {
-        "id": "48faf5a9eb3b10c31c84fe20b8e7718a7ab258a523c5d3ada626ef3d88f57143",
+        "id": "a21621d410d2a2dbe0451bb7127b5a5a2134de006a8b1ab086b4b33af704ca85",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "c193dd72abe77fb780f7cab721840329ed688c6b8016fac153ff4dd2fcdf21db",
+        "id": "9e6fa640a282a9e9c84868757413b04c2e144a87790e088bc1c3e1094821a2b1",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "bf9fdceff9ce2685f0cf92873a1c06edd103e7a02f62a71e404b59145f23780a",
+        "id": "26bdb04f8f2a5cc530d75613dba77f9305bdf1bb80839ee5094031649f657a68",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "e5e2d2562ccb1ae95e36a778fd9db6e1a382bc79d69dea21928a4ad0710a9871",
+        "id": "0cf74a4f1cb8a3a0f038bd1b1dca614c68cd7f2515a1acb3776a42aa3051a5dc",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python dataclass frozen/slots layout, not execution policy or a stored lifecycle value."
       },
       {
-        "id": "553d5dc9efc6e8b7f7e46cdcd612bfe42393fc06d1908bdb1774402d4840be71",
+        "id": "936a2294b21c239645859c49eabde36f654a3dc96bf10c845203c84786198de7",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "9e3ea274a914f778606b810ba11dad924e670b5eb70d59420407b8eaef09895c",
+        "id": "5093df02f55c01455fe01fc2a95c213151283d87e18d0bda1ad9287b938ac8c4",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "5f0c497b433f2017b3d5f1421b785028b16517d0fea859d4617de111c4d8fa0f",
+        "id": "09bf95764a5cfd90adfa16e23c5c949d4387d7d18a379b3273de39e3c8e012b4",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "f755e366761202cdb0225382a7ac360ae3ece7e61295eab4506a07e49116d357",
+        "id": "9cf9f3c5a94d9508432d3a80e323d59da67d9e657d8f87b6c5a38300e691c145",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "1988f9ccd8e2411e6c0b1a2c25d9c99dec97717ee05075f160956a6d2c1a8989",
+        "id": "dbc4c0d22f59e3d36523bdeb128fcf601783cb8f8236cd73d2534079a5336f27",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "90bdd026022e27d758b87c44e6c5dd2def2da185013760483616d8deec4808ed",
+        "id": "9daf1b2f1167753e674ddd36c350ce8c199e1ae0bdd7c7eda1cf91a504d2b8f9",
         "classification": "declaration",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Canonical dataclass field/default, enum, lifecycle state set, file/encoding declaration, constraint or diagnostic before implementation."
       },
       {
-        "id": "c3592ef41987eab429cd744c33bfb89af866e49703b35b814b1e308539d88e04",
+        "id": "2bfa885e0cfa57b2d5fde82afe2642efe7d97c0b99cfa5c4dd0382abe0f6d857",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "f8c4108fde956b2af0054fecd7c2e75167c1f47ba6290092a7c0e6109ba57eb7",
+        "id": "5cae92310eda5ac1eb729eb28e60010e6d6163c38a88f4d6871c0158f3ec4b33",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "8fee3704c7e8176cc1a171bec350a568dacb42664e98966a0a89bb68b6cffeb3",
+        "id": "96ed53ff1fce16993b7c9cbc73c0f9660ae69d24d6e819a40d18ec239edbb745",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "14757f374974e09db024f5e7b703b7084940d9676c6f0b20f275da17d53fcdd4",
+        "id": "48073d2ea45b58d8e58290b098dd45fee660f668dce6a7a56e697057ec852979",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
       },
       {
-        "id": "0e38a2b614913a7b5a74f6d2ed5d087884235b634e597f67483fedeb62ff1967",
+        "id": "1966cb60b99e5d3d70d0c0336bb0110f4747f6f00fad65abbeaf383457db6c40",
         "classification": "non_contract",
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "reason": "Python absence/type/optional parameter or unused pop result. Missing required records/fields remain rejected; optional fresh checkpoint, explicit lifecycle, no deletion marker and root envelope scope are preserved existing meanings, with no fabricated execution evidence."
@@ -35013,21 +35153,43 @@
         "owner": "CheckpointLifecycle / CheckpointEnvelope / CheckpointConversation / CheckpointAction / ResumeAbandonment",
         "declaration": "llm/core/checkpoints.py",
         "consumers": [
+          "hub/backend/execution/provider_recovery.py",
+          "hub/errors/adapters.py",
+          "hub/ui/error_presentation.py",
+          "llm/components/rag/jobs.py",
           "llm/engines/graph/checkpoints.py",
-          "llm/services/runtime/checkpoints.py",
-          "llm/services/runtime/runs.py",
           "llm/services/lifecycle/sessions.py",
-          "llm/components/rag/jobs.py"
+          "llm/services/runtime/checkpoints.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
-          "tests/llm/test_checkpoint_values.py",
-          "tests/llm/test_checkpoint_lifecycle.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_graph_checkpoints.py",
-          "tests/llm/test_extension_contracts.py",
-          "tests/llm/test_rag_job_retention.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_rag_extensions.py",
           "tests/hub/test_rag_jobs.py",
-          "tests/hub/test_turn_deletion.py"
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_checkpoint_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -66280,8 +66442,8 @@
   },
   {
     "path": "llm/providers/streaming.py",
-    "sha256": "b8b0998c617bc42029fe8d534380d6a7a9e33875c5868da1ab20e2537de95cc9",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "sha256": "292dd269debf60891455a7fa9478007700458354cb49fd01a104bd643f1ab4e1",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -66327,151 +66489,157 @@
         "reason": "Python dataclass frozen/slots type layout."
       },
       {
-        "id": "ae1e4eeb5860aa9c9900f888f90ca7c9075be155618460aa541f531fbc9e62ff",
+        "id": "dc7540551ddb32e4753d18e284340460bb7edaf9f8cd52ebe5b5b46c2fb510d4",
+        "classification": "declaration",
+        "owner": "CompletionTermination",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f881483749c6fae4a79f3dbf1ea819d8d829c115d7ecfe363a3f397c76592073",
         "classification": "non_contract",
         "owner": "CompletionDecoder.decode",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "bb3bfc45ec3a764f15858d387d1a9da065439a297f7ed90b5e55d32087b905b4",
+        "id": "344b3145fc4f4d30029637ae913c2a0e3cb8693b75f543afe83d64610effa97e",
         "classification": "non_contract",
         "owner": "CompletionDecoder.finish",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "67a753bf55a1614e7f091df0609b559e7ea2facd550b09185da318954e68c0e7",
+        "id": "0aa942039e94f3b9240c2cea4e109d9a0668b1546b7f33e8d90e1bcf651706a0",
         "classification": "declaration",
         "owner": "CompletionAdapterContract",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "25f7fb87af7a2f17a9b2a259193408ce99aecf72e1cd8a49e7564215b9835bdd",
+        "id": "44d57621c6e833dfe9199d47c5c023317f23a2dfbdfe5ec57db11c029232bdda",
         "classification": "declaration",
         "owner": "CompletionAdapterContract",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "ec892671fa691ee2ca4d14c648a87b787052993f6ae0bdae6c0dff94e24df295",
+        "id": "628bdbd10029fc52de0e3ba055ad916797a109f1db3b840fc146a4b644c35fef",
         "classification": "declaration",
         "owner": "CompletionAdapterContract",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "54562d28267ca9c7e46593060e7cfc2572353ae3230c60c1dce84ce61edf2ee2",
+        "id": "f9496e0d9ceb558bef4d9c8ac8d975ee624ef008e62c0d36255f2c0699c693d4",
         "classification": "declaration",
         "owner": "CompletionAdapterContract",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "f273788db281052c037a211aa64410b6ac0c9b9a60e0731864ec7c6623dda6c3",
+        "id": "e3f340868f75e5c11a98961e0709bd25ba235d1d51a8d42eb287951a51953ea8",
         "classification": "declaration",
         "owner": "CompletionAdapterContract",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "84d4b3466644e4ee93fa8a0a6794e813e0e052039ef3622b0dbb443a50d6ff15",
+        "id": "0e721df22e7b3df669b0687903f36074c3fd3cf72d626e4037735d0d2e58fcd3",
         "classification": "declaration",
         "owner": "CompletionAdapterContract",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "b464652dcae8ca0bafb241410478ac9878b4ec2955b2796a6c40fb9461d6f99c",
+        "id": "9bc47d9c0f43fea0195646f19c708160202a6fdbf70714f9eaf1276c140def50",
         "classification": "non_contract",
         "owner": "CompletionAdapter.validate_input_ownership",
         "reason": "Python return annotation only."
       },
       {
-        "id": "702bec55fbf0f96b2bb9266e842060ecf575b81774e29a32b9db189ee74b501a",
+        "id": "0f338069c0b7860348f8fd0314f35beb51320c8e5eb2f117d787a5b51d53d95d",
         "classification": "non_contract",
         "owner": "CompletionAdapter.validate_input_ownership",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "02705437dad7edabd1968d02327bb14044e0da7ae80ab1c54fa54ece604c04c9",
+        "id": "247cf83df59690d757aa167145c1cf1dcc1b2ca5dfa6ed384668f901b663c559",
         "classification": "non_contract",
         "owner": "CompletionAdapter.auxiliary_parameters",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "ef1d4bae1bba9240b0652bcc1bb1f9a44dd7f6f0d5ad58789b7e0e102daaecc9",
+        "id": "f63e492c26d048429b29c7ee96778a25e2a10e1ac6e4a928755a71211347ac9d",
         "classification": "non_contract",
         "owner": "CompletionAdapter.prepare",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "741dc4837480c0b7232cbbd4cf46f4389e383f870c2b3c0933b6442203d08f95",
+        "id": "2d874a69c9740ae0b6c07f77fb10c64fd5609808fa31cc1d1996511aeed6fcfa",
         "classification": "non_contract",
         "owner": "CompletionAdapter.describe_call",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "b199fa091be6014eff37437020777a46ff3bb7dc427a0a6a339c50daa5825113",
+        "id": "8c3deb2ee68761cd83408b3ee6d7455125ab9778a8790a26ab04fa9f2a7aab8e",
         "classification": "non_contract",
         "owner": "CompletionAdapter.describe_request",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "697a93667f15a7de6a40b31f36911d470ab0d7f4d1a6060d5ffe64c5f52d29f1",
+        "id": "46b387c3331a863b649e638d7cadddadb5b4566194595d2e4e3d3f2df00e1a91",
         "classification": "non_contract",
         "owner": "CompletionAdapter.effective_attempts",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "d6416f9a806fe84072ad39070b71a4885738513372738686b23dc1557d9c7c72",
+        "id": "007299f24cda8be28df62168624eca01f409a23840da3ed2e6ce1610f981c29c",
         "classification": "non_contract",
         "owner": "CompletionAdapter.classify_error",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "7361de1da08056803d42be77b2bf14e16b79e23cec1dc461cda8c05c04759da6",
+        "id": "68d5950b7021dbcea7cf6781e20da67045cc5c2748b6b43632f93c3ee9d34f33",
         "classification": "non_contract",
         "owner": "CompletionAdapter.retryable",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "1959c3443ff46cd74c3086f7b973e28915ffe1d1b3de129325b1a8b87d179d2b",
+        "id": "d4ba71547a853e41313a3dfbb7a4b8b51022e0e0fbf288d6426db499507cdd11",
         "classification": "non_contract",
         "owner": "CompletionAdapter.retry_fields",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "7243d715454a24cf8cfe0f6f76fb7026dead646d736ce1573d209dd81e022bdd",
+        "id": "9024f68a90e40056e9d79aa07404a1f36de376075913ba933b56d60e56718745",
         "classification": "non_contract",
         "owner": "CompletionAdapter.retry_fields",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "0f4e71d2c172539d608f5eaab9320394eb92659ca9be45edfc21f21dc6b6893c",
+        "id": "a332290916728eceeb5f6e68f35299cdb3f6ebba1f8e67a11f85c401265b0756",
         "classification": "non_contract",
         "owner": "CompletionAdapter.validate_retry",
         "reason": "Python return annotation only."
       },
       {
-        "id": "34467e72fa9bea73c517cb21ff33e43eb03e7f731280d5f294a8bff1aaa37bdf",
+        "id": "87c92eae64dc56de330d3efc6ef31c36878afa52e7e4d625091c017982f5ab22",
         "classification": "non_contract",
         "owner": "CompletionAdapter.validate_retry",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "365150fc889758c0ac73f21a69b4d8e54feacf7a92bb6ebfda3fab995cd6cb61",
+        "id": "06e909cb7b121d3ff4c1acfedc9b96178f203b55edc11d6fc9f94e228ff5e414",
         "classification": "non_contract",
         "owner": "CompletionAdapter.validate_processing",
         "reason": "Python return annotation only."
       },
       {
-        "id": "274a08c403d1519a222f6c6208cc050e53587c388eb07898a6932fb54d3faac9",
+        "id": "fb3e05f777986027bd8378ca0a846bbb5c9668d2508dd3b3cae7c74cb325202d",
         "classification": "non_contract",
         "owner": "CompletionAdapter.validate_processing",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "d1a3838f776147f58d6354114d8863d015146b17ca0bf125dafd1e0ee8de43de",
+        "id": "db4cffd37b8c24960d3cccc23c88246a898be290ee532eed7f3803cd1e31d7fa",
         "classification": "non_contract",
         "owner": "CompletionAdapter.decoder",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
       },
       {
-        "id": "7f4f7dfd3a7f5cb4867733de3a1b0ac091c477719a940faf9f01c1534d59221b",
+        "id": "8eebdfcc6164c616a96b1ae43d00f9fb6b70a9aec321d075128836e8d348fea1",
         "classification": "non_contract",
         "owner": "CompletionAdapter.stream",
         "reason": "Python Protocol body or variadic tuple annotation; not an SDK/runtime value."
@@ -66482,17 +66650,32 @@
         "owner": "CompletionAdapterContract / CompletionAdapter / CompletionDecoder / CompletionError / CompletionTermination",
         "declaration": "llm/providers/streaming.py",
         "consumers": [
-          "llm/engines/loop/engine.py",
-          "llm/engines/graph/engine.py",
+          "hub/backend/execution/provider_recovery.py",
+          "hub/errors/adapters.py",
+          "hub/ui/error_presentation.py",
           "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_retry_ui.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
@@ -66500,6 +66683,8 @@
           "tests/llm/test_completion_review_crash.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_instruction_reservations.py",
           "tests/llm/test_interaction_storage.py",
@@ -66510,8 +66695,10 @@
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_steering_values.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
@@ -68784,8 +68971,8 @@
   },
   {
     "path": "llm/providers/runtime.py",
-    "sha256": "a69deb219dcb9202647e166ee992f9bca55f475d5699577eb44d9d0cddab938e",
-    "reason": "Whole runtime review covers opt-in privacy and ordering, endpoint redaction, call/result correlation counts, SDK cause/body classification, safe library records and exact native logging callback, LRU and write-error behavior, per-workspace/source contexts, observer isolation, lazy SDK import and unselected retry suppression. The existing broad observation failure boundary preserves original execution/cancellation. Only enumerated Python dataclass type syntax remains outside declarations.",
+    "sha256": "7c218c3a9b60965b5f74806410b4ce22bd8c35d25a7702cbdedf6fa9f800b527",
+    "reason": "Whole runtime review covers opt-in privacy and ordering, endpoint redaction, call/result correlation counts, SDK cause/body classification, safe library records and exact native logging callback, LRU and write-error behavior, per-workspace/source contexts, observer isolation, lazy SDK import and unselected retry suppression. The existing broad observation failure boundary preserves original execution/cancellation. Only enumerated Python dataclass type syntax remains outside declarations. Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -69113,109 +69300,115 @@
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "490190a4b149dcfbb776bf6626bcb97e8ed036bd6ffad777bb7ead81aedffeb4",
+        "id": "216fcb380151b28206e4f5af2196918043d4bc5df68b0c8f6d16ccbdb007ec2b",
+        "classification": "declaration",
+        "owner": "ProviderErrorDiagnostics",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "509bd1adf62956e73c9a9365b1c6fb00047d0889fb6c98e97b972f8253fa065a",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "050bc8732618a44e7ad69fdb61c1db3e347304e267db504f6c91e293fbf4fb83",
+        "id": "62307c6399c531ba0f7df8a88862a040039ca5af22fa742bbbca29b33cab0ae8",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "1799d7e5070b7a49d4c7dfab29f222f802ec1c750439b788be26bd6e62e733cd",
+        "id": "d52ae5ca71fd8d4ee43e95c9d2c892dbaf695b48ab2433d130a549b13af1cc1b",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "b7f3b8287de87c6a3ca88fd13fc6aa838d2114103d0bd70f9c52ff67fd49a6fb",
+        "id": "0fc1dbc72c391271258a973df1cb152650a02057254d9744b4d50cc754d4900c",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "507b8fd341cf76b457ef504b287d79d5564e15ff7a288180304ab394a578d0e1",
+        "id": "56a82fe80452a944a4326ea86a2187c2eaaf0d14d38d5bd2a44e009d1c43cf31",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "6867aeadae64a0463ff5a11a0a2b21485a6e9020f30068b1e34c9e4b0f7e5a80",
+        "id": "0bb397987156c13a7888d43d455be5b672909fdaf3efeb07d9aca5c80c2aaad8",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "d53d676ddd53a03b15cba09af225097b75c0a9fcfaa4e69a39932216b6355893",
+        "id": "6806197c2b90205386895342f842754e9a797b32698b5afc0fc110563ac33cf8",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "cfedde90fdd4be607c5e6f1f5e280d49e87faf8d9a7fbdeda60cfa9bfd08bb05",
+        "id": "0441aec6ef17657c1adbfd23c62086d106570ad1b1e5ad6e6f44eacb236f09e3",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "eb44a3ced80df39265b4cc258e6be955ca3f72b6e1bb15fae37fe9c7dd02afee",
+        "id": "092d2dadb13dc81e9ee872e7618674cfd48c4fe023aee659814f1bac71037719",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "c15e2f7abd070e1cfb2bcbb834ecbe69ed7c5d9af8a045daee6ed23083842e31",
+        "id": "efe3658737eaff0c33860c2553dc12bc6ba4ce79631eba01e710250dab0f5451",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "69378e55cf8692c6511efdffa98c298047c1d2bbd71916cb6c6150e657bd6df0",
+        "id": "c724d63081c213469489dab505593fd951e5cba06a7214791304c3832ea65050",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "e1ed608c4919dffa864d07daaa4ed8342652716ee25702719ec99c926a24d05b",
+        "id": "57c502d750ec68d9903fd878efc29740313c92f75389ff844e0c097c90dd50f7",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "29c168a7b01e155c50bc802f697a2bf84d5e22ccfba65ed187b7c94e499aac36",
+        "id": "dc97c1531e47ba1e331fefb6325c37af1f6fa0018ef871beed4ee3c437811378",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "044a2090d566f6539e349cb9856041cbc1f7634aded3d4fd715750f49fe4fae8",
+        "id": "fea47d78ad018702cb9c6c71d6c0b9732b0dfe179f925f8591a582ea5954b4d6",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "b3941a2ce5c003be461efecfcf44f217c2b8cd26ec426af6a1c3b10e67cb3629",
+        "id": "d21b99c2a6186e1ac6036e87e94fd56f23f3b398e60d9db01cfbc90dd52cda4b",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "502b6a88b4f9ae1db5a3ba595a58fb29121e4f41f1eacf096a7d6131b0bd975a",
+        "id": "5392dca1a9118647e46f527ed9e257fbbb1fcd294dba34aab9d3ea59f38382d9",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "4d00e2cf83d283ab243d3c4169e14226c562d09309b88d97d9a456e885352057",
+        "id": "379c2a7affa40edfd428619ac64fd0e537b3740b6ed2042c09cbe942c96391c9",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "fa84dfbd571b01be708571971b16b7bbdc65a8b54c40d246c4183f32353a1694",
+        "id": "7e57319ecc53b6235bc3dceb142ecdf72778f4d383e8556ffe4fae4ed6408419",
         "classification": "declaration",
         "owner": "ProviderFailureObservation",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
@@ -69226,18 +69419,32 @@
         "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
         "declaration": "llm/providers/runtime.py",
         "consumers": [
+          "hub/backend/execution/provider_recovery.py",
+          "hub/errors/adapters.py",
+          "hub/ui/error_presentation.py",
+          "llm/llm.py",
           "llm/providers/litellm.py",
           "llm/providers/requests.py",
-          "llm/services/runtime/runs.py",
-          "llm/llm.py"
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
@@ -69247,6 +69454,7 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
@@ -69256,258 +69464,246 @@
   },
   {
     "path": "llm/providers/runtime_values.py",
-    "sha256": "d846611d6d186ed1b1d1e5ad5ecc52f4e496a9b6e4c1430d7cf39e0d1f7281c3",
-    "reason": "Whole runtime review covers opt-in privacy and ordering, endpoint redaction, call/result correlation counts, SDK cause/body classification, safe library records and exact native logging callback, LRU and write-error behavior, per-workspace/source contexts, observer isolation, lazy SDK import and unselected retry suppression. The existing broad observation failure boundary preserves original execution/cancellation. Only enumerated Python dataclass type syntax remains outside declarations.",
+    "sha256": "0dc54a44544c21f055328f7570eed1edaa7f72c0a1812b92964c8f2fa1546d74",
+    "reason": "Whole runtime review covers opt-in privacy and ordering, endpoint redaction, call/result correlation counts, SDK cause/body classification, safe library records and exact native logging callback, LRU and write-error behavior, per-workspace/source contexts, observer isolation, lazy SDK import and unselected retry suppression. The existing broad observation failure boundary preserves original execution/cancellation. Only enumerated Python dataclass type syntax remains outside declarations. Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "c70633cf6a40ddd1463514c5038a19e0daabc5d5a4be01fd05f2eb4e535f9e6d",
+        "id": "5ce508687caaba31144da2d83eec65619edefa51431a2c8cc06d26d2db95d05c",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "8833e049c1999f767e79788f3c570700aa3aa0fe24e6c5cf00ef05f1a0540028",
+        "id": "dc151eb32047f308282b97ac871205cd85bd1d468f155b4138d937fd1cc18d8d",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "796afc817127a35acc170490e84ff978cb4081fd30d601d8470695e0ba0e52fb",
+        "id": "05de6911fb1c5d3797d329ef88be4d13e3177313cecdabb29c35f8631f3cd75e",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "ac24081f4a024328b4d6bde072026fb539fc5e34a3dce5b61457dc8413d8c05f",
+        "id": "dba93ba4019112a9381b0b5b4f9709c25830dbc0f252abbceaaa58902ac22bd7",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "68fb6b574544b87e88d8f8de005606c780de13422d465c7c3a59f5ea4c289300",
+        "id": "eee8a1646729b94a1dd576cd72f17f727bfb01ce441b7494565162c91e8769ef",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "02b3a9ad618e30a6ed444c6ba48ba6b566ede5510606c54d19f05510139de2e7",
+        "id": "c2a8c2acf92f75337bb5bedbcaf2e7482e8dafcf1f09e7db00a398373225d38b",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "3c2716ed2b3b2783a315301e8bb7a7815c7fdef6a20bbd67b74ac2ba062cf396",
+        "id": "e9d4cfaefa13597cf59d3862da939b28f1133721a9713071efa600a1961d006a",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "14db033c642c3d95d1cfb5365072cced898330f39b77b88c78e9ea1e559ac6d1",
+        "id": "1e83ebef9f998320fb35a723bede8a0a2e69bf301a70f02852e685d644cfc347",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "e514aa2b555570e3b60a1e3dd6d1a4d6b03dd3739b58ea4ae6116b2de0f8e087",
+        "id": "35a87465ff3ce4a91c366ca85be1dafc59803540104ba31486ab931ead7e0cf1",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "ef7563a6df9dc58756f9325184ac22f62f77a70acd9a3a7d4f43076053621d54",
+        "id": "bacdbe86e4cfb6d948dc9984bcb712bd42783332fbeac5b28498b6a790235f0a",
         "classification": "declaration",
         "owner": "SDKRuntime",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "53d541e5162e088438e848bcb5cda2450d03628409da4cdf6254a7fb191b17cd",
+        "id": "db29dc32335088b2882a25b1bc470e9adae933135f13307bb1189962715667fe",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "99c46361886d41ae7aafbd8ccac87770a5ddd59287b3b4654d7e071738ab104a",
+        "id": "3533fdcb301a4bef36ef8176fde8ab92e7fad7a9c57de1617917d27f484fdca1",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "7e6ee15239845c5b00e075336add54f939eb5a15988459d8eac9e2bf44a79bef",
+        "id": "a0627a992d2be2737b3e1e87acf5796727a437ac32b7f9697f921acbd6f8db41",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "e46a845b0600354ccd72261b7287737fa9e9b677db9a7391652021b26efa148c",
+        "id": "0209250f20da8641b0c0b4845f76d6809633e2c3b2cb70882db9dc081d4c311e",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "6d7c72267e075eeb623e53bc928a904a9685e24e00f543a6b68e5c63ba1d9afd",
+        "id": "d3fb63b4f2239c7a3a8a6b93a61d7c4ce9e0944589dd039ae0cdd4e07a3ce107",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "d93d74e5c4fd84d692a28248a14ac6b1d45860c35812f9124479c88c65c236cd",
+        "id": "2b4798c66acff82e0f46d4b517e28cd7f3c404aca729e1a4b97decc40d118516",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "f7869a71eb9a3d53c2e792b22017829c0d2db73087ebbfbef8b07899c14719ff",
+        "id": "952c64476a234b627beee96574eabc58b7f03629405a2577efeb886ed740c588",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "ff29ab1204d5461340cc3498e90f33403ab4d1a11f86bcac4f6171897a3d3569",
+        "id": "bde28281e110e78de96e414189d98c9d4021c22e56308eb8f3cf7e7f068c8d15",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "45507a6bd890cb21339d28c8e877fad8f64f98df1195df559181fb96227dc698",
+        "id": "21d4ade92b7b3afa3b38456554aa1ffd26f90cc7da10255f1aa9d6e3e034e784",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "bd10f04c19ea8edcd8937edf295527df3e07d878fc857c5e03c6d1155e3dec55",
+        "id": "c14b08c73e205f13d6d5469c815e2654aab19d33726626f3b8042e81d6f6b004",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "7ba67fa226571fcc533a378b5bfa166d844b97b5b7d1a11e0cf5e72e6bf498cb",
+        "id": "971ed111e7fb054e4aa55e229cbe9956ee6559d063453fa068a38a2d9f8b6640",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "b0c10bbb4fff7795828fb313c71d3d647607752b9cadd8a5e8ae83ae65a2205a",
+        "id": "55080ea6783e7a5d1d1b2c78c2ff7f2e9751aeaa67bd5eeea0fd8bfd46b9ea48",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "aa2caca91dc5b88bd65b43af1ca9cd58ffb3db8a928d3bec890686c64165923f",
+        "id": "2b3f010a28f63b576e71b03ad23fe9a2cbde51ebbe706b4c2d7e2bbec1357b92",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "b61b33ef075436a1ea8a925d46b8a4f264b024df04756933427cbbfc6003c827",
+        "id": "05b76adeea94f64502bf2038cad330855ade9c9a2f0a0e97f6668a20844282e3",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "43eb195f51e6a002cf00698e342b3becc577134392d205b6bdb0e7499040f8b8",
+        "id": "8f40d732f99fd9254231f407130db1ebe17bf888e9fbb136ab793b684291149c",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "b48be1150e7ce19f9939fb370dc9a86a621e20cded4906c5f7c540dceb203ba7",
+        "id": "bb1ad0a7f4fc78c747ba3cb4866e00e0b48c065949da1b4d7c0a1bf66db90163",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "d84a8b55f62aa7ba044d9e985ddec0152488659cff8511177749afa01377713f",
+        "id": "1d4c8f2f94d032e563e861362b54d121d4ea264468daa36e9386bdc6b8f81f06",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "119f9481eead297447a784d72ec9f0c7082daaf989c0cb181df0296f644dd758",
+        "id": "539f47d9a92efbd5ed29eb6cc127d36bf825d1d0bdff585fdd5897fe8d4ae63a",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "7cbfba22b49fc367af60c5d5dcda98ad3476722c37dc24f6d2a88741cb888672",
+        "id": "2331598a648377cd4005978616fb1fed4b3063b7493047056614b10f447791ab",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "71992aba2e6e6123bd367c6a2eed4f11d908808a99c04c4c74fa4d993b8940eb",
+        "id": "5dec2e6175bf9d245f14f7abcd85788a94e2f5a9f50aca65cbdd5d1c68ead1b8",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "0fdada0b3e1d85ed035faad04c9e3f6f84aff48669e2430230f9129fa817abe1",
+        "id": "3e6744700c55705e323fe5cc5af33bf0a7cadd8a9925e02cc4e2e9ca44e92f8f",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "c944297c01ecfeb2fa13c310c653a0cb664a320ba75b54c81e0c58a15c7d75ba",
+        "id": "3a1061f69ca4f7de3d05748807d2e60af188b32416178eaf9b3f74acbcf7e9dc",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "394222425c7d452f68b201ac960caa3377b77325bf38b3dd1b0b84950a2db0a5",
+        "id": "4aaad055b9286c94316605ea87781629e2cab1c26640126038d097a7bef558a5",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "d1ad92d3be377364777b40cb2689ff19cd743b45f721fa6bba3516c72e10b251",
+        "id": "602cbbaea7f94a4e50b77430ecea5c9e17aed267e2af7269942b819454791b61",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "e5f049f1aa598bee61be6f1c7164cc2c4b4b9df19928b83d9efc9cfabdd9d448",
+        "id": "18751ac93f6ae3d514a31bca36e1f2d8adaabed29fbe9016560399857e71ac33",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "8513e67ac5df1a8d3ab4bdb97579d9f5f8ee5362d886ef4fa9e99fe61365d16b",
+        "id": "e560cf36b84af71966c258308be50b2168eb91d7b0f9a8ffa63662fb2d98f110",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "977a4d3631bc6cb656e322faf21361cbcc0119282fdee0f6f4dd4c6175bf1ec4",
+        "id": "0795257781c63c4b67e810e2635678d65da576ad97b29f564bcd9c42ee0ddce4",
         "classification": "non_contract",
         "owner": "ProviderLogSource",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "8c66ed652df885b48160428a2532819bc8c20eba56922a46efec80cf2795e897",
+        "id": "d6459220542aa139d5d0d2c42663b096793b25cdee9e7bbddf104e6f41e07b54",
         "classification": "non_contract",
         "owner": "ProviderLogSource",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "11f6654bbfa6dd16b1c7f0a730139a7ef535edffc0969b14085c0e3d43904425",
+        "id": "900c5f631433c5baaf5f80b4cc7038ecb4f93cd23c0b49f5f04742eaecb1ed17",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "a977ad6811b920d0ffbe8df4e153b556557f0aea02fb0e7c1f4505f4b22f9dfc",
-        "classification": "declaration",
-        "owner": "ProviderLogSource",
-        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
-      },
-      {
-        "id": "02ae79de1ecc35ad2498bfe4388be615551cfd7fa102e3731ee9f0a95306d005",
-        "classification": "declaration",
-        "owner": "ProviderLogSource",
-        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
-      },
-      {
-        "id": "1c7689999c16cbd5ce1476f026872cc65661ebc24be52c52b09ea5e2a2d18256",
+        "id": "0dde5e4a459ea5183fbeb2a6655a00c8f3ce9859101a2be5b35c17804d7a3940",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
@@ -69525,13 +69721,13 @@
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "5b0b3f270279695cf09acd1efb3ba972e7bf9961ae01a2ed1dbbd17fe78b6f99",
+        "id": "01ea582151ef645887eb2c1b310efcabaa8d548b5b5d6a18ca3c54e413455f88",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "e462394cf05642a27cfc3b07c83c2b6282ebaa84c468b94cb636d99b40752a6a",
+        "id": "e176a566c4b56b7faa77f6a0c5f1d947316aec0d2a6fa3cacce92c86e6ed7a74",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
@@ -69549,121 +69745,121 @@
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "e86c3fc38f9fd6e95d868f15796f66021133aca3684fef3dbddc1bcfed8f1f7a",
+        "id": "4572270bfecd737b12e1c3e8512ed044104eca2728d304118889fb23b2912cd7",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "8c4bdceacb22e76771ac4787c47dda4954ee084783babad45c312e7f8dca308f",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "0bbb19e692eadd32a6151d3774f335570e1608019fdc20b1b079e21137d3f949",
         "classification": "non_contract",
         "owner": "ProviderLoggingStatus",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "28fdfa2862fae093186779c376e988b0d9c36a970da9212f68a11071750803f6",
+        "id": "3a6079cf73b4398da2a96607f36be821151be0cb7ed34c5579e95e99e9df9962",
         "classification": "non_contract",
         "owner": "ProviderLoggingStatus",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "0bdbf29623a3095f2f6de528ea8f6261412c3c1d9be96d0db704dd602c85dd74",
+        "id": "0f5618b921e8cb992a85708c84fce2736f0316e94f76cd24e416fc214a918966",
         "classification": "non_contract",
         "owner": "ProviderLibraryLog",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "13ebaf826e47f1d2edf39388949c5805ed1772f5c49d7d240fdbf55afdd72a1b",
+        "id": "bc9d1d3b42c8dd7a2b903829f99819f2ecd4a43ebaed6a13fc8f5849ea546cd0",
         "classification": "non_contract",
         "owner": "ProviderLibraryLog",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "9f46ae137ff075dd80e674e8bd78fa5f7e83df991e46347484bd0138cc4a9517",
+        "id": "31690ab6e3b78b5bad6ce4650e93b8d926e6ca14b701b707c3c80ac8783fdc06",
         "classification": "declaration",
         "owner": "ProviderLibraryLog",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "445f3a977601516aa8a7cba25d7cb5f0f833da776f7ce8385f3c2ce1e2c358ae",
+        "id": "207d689f05fae1aa22cd0174579219f0e1c9e35624a8ec4849c89b070929f606",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "c713c092c347e3e7c0e84436b11c61c298d0bf21aeae70a8d5dfab3d58ea9f36",
+        "id": "ea19c714584aedf9aac3fd3f8672abf7678d4f4054542dd4bca9a699c2422de6",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "a3e0796099caf5bc3a95eb30b3bfbbaaaefec6f627a3c4143f53b06bc31235e1",
+        "id": "f683d5394b7b8b8b22c7ee051b630f1db7ba4958bdbf4d2748c0311d3cffc11b",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "8cbd296860fd31456028b5ce4879b03ad96f10743e4dc5dba560d0f3b170fc18",
+        "id": "1d01ca54086c72192976b0a37d315c3990bf602c7c76d678053f18793447ae2b",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "50657117efb2c20209331354ace31a13daf88cab29b3997b1e205aea229b6c6c",
+        "id": "a82502a937ea27b6bb9d66bec6e577318b8596c5444183e74c039b6b7117d939",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "3cfba4e84a58fba4632553cb59a0154dd2dd7ee7fc819dc9520b22178347ebd0",
+        "id": "47692e8a4e19b5f389cfa65c87256054bfb09a9bcb000c459e369e4d274fd9e9",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "b7824e6fd309947bf03a6c301e1e057194ada4bb8b17be2398ca12d10bbe1873",
+        "id": "3ba10d069bf1914519e6038b2f69f933e803652f29021efd2c79ffe48b25d2b1",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "317c24e7e7d66c4fd863ca851fe32b6793bb72bf066d4c8736f71051b2aef2eb",
+        "id": "5a358e23a323c5f8b6c13e21c79f47d5d260a763fa466a207a86d50016bb0e45",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "3665dd44ffc615eedce329877507eb3bc852c9d6d5fc453f11e315599c964df0",
+        "id": "c6034c59c1ee88feb7954f754e0b7844cf52c082c0b3d278605fc3a2b58bb6f3",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "59e091dcb8d5f62218da30b73e61c3dea8e148f0559284e0e86cb00956baa419",
+        "id": "ff2d700de77b542ca2156da6096936a93bbb361df8c6335ab8ba75281d1900f0",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "dc95a7cd2b085a0b588fabbd795c4603cf273fac68ffbd4c9bd91e544fac3e41",
+        "id": "0bc1e528bdcba08e889b607bf72886d46ff23f313c508ecaa0a02a8b2fabba9d",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "816d00fcb7c446628d64a1daed32251233b2b85225faa462cf178d7b0db3aaf2",
+        "id": "61627aa75f2db9f06ced1f445ac7cd9d7255a8718462825c637b477b72bc5c4a",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "762d0393fe294850da1c44f0bafd39fe57d4f939d993eb0bc10115d169699618",
-        "classification": "declaration",
-        "owner": "ProviderExceptionRecord",
-        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
-      },
-      {
-        "id": "e987299574b9fd374b39efa76c2c934aab91efdb51e00a1a5cd59a7de9d62182",
-        "classification": "declaration",
-        "owner": "ProviderExceptionRecord",
-        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
-      },
-      {
-        "id": "d983e3fa67ab2a76b3859da0cfd8f3f973741acdae0371aec7f03c95f6f1f9c5",
+        "id": "44741c097b1d642d1185cb8872d424b6f0d0fa7176a7f8fd09a8a84c089300f5",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
@@ -69674,18 +69870,32 @@
         "owner": "SDKRuntime / ProviderLogPaths / ProviderLogging / ProviderLogSource / ProviderLoggingStatus / ProviderLibraryLog / ProviderLogRecord / ProviderExceptionRecord",
         "declaration": "llm/providers/runtime_values.py",
         "consumers": [
+          "hub/backend/execution/provider_recovery.py",
+          "hub/errors/adapters.py",
+          "hub/ui/error_presentation.py",
+          "llm/llm.py",
           "llm/providers/litellm.py",
           "llm/providers/requests.py",
-          "llm/services/runtime/runs.py",
-          "llm/llm.py"
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
@@ -69695,6 +69905,7 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
@@ -93166,6 +93377,674 @@
           "tests/hub/test_tool_retry.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_input_contract.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/errors/adapters.py",
+    "sha256": "384aeca2110444945e14918ec7343e3a75739efd419cfd91c73f3d5c3ddc32a8",
+    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8ff6a958fc50150480693b911f304ccd6f12193318767b92e489e37ac794c156",
+        "classification": "declaration",
+        "owner": "ErrorProjection",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "e0239720173c72ba5ef4d9a952a6fbb2ddb317622d86b1944f3fbba7ecf200f2",
+        "classification": "declaration",
+        "owner": "ErrorProjection",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "6a6ec499f5eb587944535c6eaf0819342dbcea96f99ee849fccdea53ff4561d0",
+        "classification": "declaration",
+        "owner": "ErrorProjection",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ErrorProjection / from_diagnostic / from_exception",
+        "declaration": "hub/errors/adapters.py",
+        "consumers": [
+          "hub/ui/requests.py",
+          "hub/backend/execution/provider_recovery.py",
+          "hub/backend/tools/retry.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/errors/contracts.py",
+    "sha256": "059285a429c96684565074d7afcc1b2b5b6a94353acedefedd87776ed012f981",
+    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3d62c2050c948363da46633c309992b3fed4b68558e4344d3cc5d817a3b4d463",
+        "classification": "declaration",
+        "owner": "HubErrorCode",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "e629ca0f5bb17134ecd58c9e7a3577c04774b419cdef00e4abbcb81bf8f63ec2",
+        "classification": "declaration",
+        "owner": "ErrorOrigin",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "b6723a6fe339dcf699612824a08ae3533d649a28aba2d78335c3fde7e39dd1bd",
+        "classification": "declaration",
+        "owner": "ErrorOrigin",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "b8cc33e9ffe4016114249de2b7ef8ef404694beaa2b12225e0871013ddaddbde",
+        "classification": "declaration",
+        "owner": "ErrorOrigin",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "d452dfda3f04e61692a5c8696a996b118a673033ce8e83a89096ca114770b4f5",
+        "classification": "declaration",
+        "owner": "ErrorOrigin",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "fbe7b9852506f6c529c47f52ff163c201f793eedc02728e0e009555b3d3c2e84",
+        "classification": "declaration",
+        "owner": "ErrorOrigin",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "11d4fedfec87a7ee4ee4e7f65294ddcf68c5648dc202989875102617d32797c0",
+        "classification": "declaration",
+        "owner": "ErrorOrigin",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "c7f72903f393f355c78fbeef6ba31929a8bda096407b95bce0e0f934f5a78e6b",
+        "classification": "declaration",
+        "owner": "ErrorOrigin",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "6c3959dd048e85cc4eef2704eb32ac1b6de353db87eef61c493591e366044334",
+        "classification": "non_contract",
+        "owner": "ErrorInfo",
+        "reason": "Python frozen dataclass declaration; not an execution flag."
+      },
+      {
+        "id": "1c26e7c3a44affc499492c33c4c72f12f84d0241f5befd5cbceff753262abd39",
+        "classification": "non_contract",
+        "owner": "ErrorInfo",
+        "reason": "Python slots declaration; not a runtime policy."
+      },
+      {
+        "id": "16d2869a886f853dffcd0608ffc3f4a17c8b8393c8ee24f823f47a5052ddcb5c",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "87925e080f2725a4b449acc86aaa6bba161f5cf4fdb83ceee1e203999327912d",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "54f3ae54f3bb151a7acfe1dd48599a40c847170eaf35a308f12963ba615db83d",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "ac7ae0a321f715b9ab28b15250e628c20c0ed28ba36026bc79629fc3e0655741",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "5fb22a19cf4403a766679f52b5179b442f4d7e19694c4444f101a6a27ccb0f6b",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "7b5bfa70fb8784280fafe72ad5c95778a8cdbbace7eeeb499e270243d7841ef6",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "e6ca376fc84733635a21d563df99fed1d1e70e4935549e642adfef4534e7721d",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "e60d28e1fdd08c16dbbd5fb112ea999795eae16e4176f85173778a7cd06e6c68",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "0bdf3917080f2e81f108bbcb83cb91ae11038f1e2ce18baf94626ebff8dbff2c",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "542e07d4fd33816c4bc9813cbf7881aabb83e7b78a029ce7bfc26bc9614955dc",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "d8e725ce3abe43e49814599a76547afb2479f8d1ccdf9cf7a289ce17b8e35491",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "91c36db2fbe3fa1a876e6843a0ab85abc6bb60e75c97d18c6420f81d6e716675",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "6a614496799c943ca4fbf6ded4116c1ab8fba38eba6c8832652ce8fe4e1f4392",
+        "classification": "declaration",
+        "owner": "ErrorInfo",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ErrorInfo / ErrorOrigin / HubErrorCode",
+        "declaration": "hub/errors/contracts.py",
+        "consumers": [
+          "hub/errors/adapters.py",
+          "hub/ui/error_presentation.py",
+          "hub/errors/policy.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/errors/operations.py",
+    "sha256": "8f736c0c31e939a0a6d605bf36e5ed87eb32cdc6ea8cb3936097e0102d4a2e40",
+    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "703a9598b398289f4774cc45d160f5fa72d185694628a156500cf6f688a6f20a",
+        "classification": "declaration",
+        "owner": "OperationCode",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "3db4b5633c8e7e535e8291e073461a24b181ec88e2543c3847d20f21caaac445",
+        "classification": "declaration",
+        "owner": "OperationCode",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "18aa384cb8036922afc377cb8929256bc82986826c48b032573edf6affc511d5",
+        "classification": "declaration",
+        "owner": "OperationCode",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "73b17d9b07365ab122fe63c7bf1030a2555b22613f610c91267e0514b9e3db2f",
+        "classification": "declaration",
+        "owner": "OperationCode",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "be0f732c9c2c1ac5dd69e5ded20821eb3b7d4f41076bf0c61f09f66741972092",
+        "classification": "declaration",
+        "owner": "OperationCode",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OperationCode / OperationBlocked",
+        "declaration": "hub/errors/operations.py",
+        "consumers": [
+          "hub/backend/history.py",
+          "hub/ui/error_presentation.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/errors/policy.py",
+    "sha256": "a433149aa8a3fa5286983feab4ab0d840454b0cbd38fdd77ded5ec2846279932",
+    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7932aa08cbee4683f83b5c6b077dbe7ffeefd0783da37d2f839f1446d653f6e2",
+        "classification": "declaration",
+        "owner": "RecoveryAction",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "27083660fbe8bb6137e0a992d827b395129b860d74977e76513ac3154fcc071c",
+        "classification": "declaration",
+        "owner": "RecoveryAction",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "d171c954a1cfb39bb45afcb0e9c6434c19ee944087df696df62d7868948b812b",
+        "classification": "declaration",
+        "owner": "RecoveryAction",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "b0272dc10e4090eb2825206c3306a7feebe1416e8c3bb84531cb22a640d6d6c5",
+        "classification": "declaration",
+        "owner": "Effects",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "a77e5d113d291f43a88006a19aa32fd1e14543b22f735df44f0cfdd3deab9f19",
+        "classification": "declaration",
+        "owner": "Effects",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "7322e02614524c3a06fa977427202b5c025899ac6f89960c31b6188960f5f77a",
+        "classification": "declaration",
+        "owner": "Effects",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "8fa370b6c993edf618b0b09d95af154cffe69877bc147e4dfeb3895c8bfd4c28",
+        "classification": "non_contract",
+        "owner": "RecoveryFacts",
+        "reason": "Python frozen dataclass declaration; not an execution flag."
+      },
+      {
+        "id": "37853c5e164a70ab0f3a66123b77d44c66e09e292ab8367e1302853261fd2c6c",
+        "classification": "non_contract",
+        "owner": "RecoveryFacts",
+        "reason": "Python slots declaration; not a runtime policy."
+      },
+      {
+        "id": "ba4c0f3bf0a96397961b0be74c7288316f3ffa49c39989e71089b05b18ddd832",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "cefe52a7a8fd5da19867c6f96ceddf74a69b94fbf799fe3ec1de54afeb338c13",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "2b7370e4d556861eaf03c4c492be5cb69059a9d7933348b1ed87df15833ad229",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "e431fbb47c584c1b830fb3637fd9ca6d075c9e15fc0129680ea7ec94ded17f6d",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "e14c561efcc878c9e7f1b47b53962ae9f619c202fc233a3cb7cb517a4520e212",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "bf04fbcc63955cb602d2327cbde6c658933c2b69d10f5a18aadb8c2274569c42",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "9743f93fbe3075e62f57e56c1459a5bc480a357b2993442359ae77363f0b1197",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "a2156adf8d112a19f4768fb3cb80d4e9ff4b8d7417013ef598396c61c94c3702",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "850608288fd935e080d2022bfb2579337a9e8727d48e5a1ef37eac8bfa55128d",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "7fdfcfb682c952a26fa275a74a59ad370771bca0888d6614f83ae56ac9022611",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "4eb2d6ac451f9d79900a7203bc4a7c522b3f5a1a1a15b29db3b8119973976756",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "070dfb254844b3a242f985e7b7fa47d8d4a90a0179242d65f38a9efd82d60ce2",
+        "classification": "declaration",
+        "owner": "RecoveryFacts",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "8f2fe109ade45f3d6799382f2e409f3bdd18915475a72c892f94b0e25c42f8a6",
+        "classification": "non_contract",
+        "owner": "RecoveryDecision",
+        "reason": "Python frozen dataclass declaration; not an execution flag."
+      },
+      {
+        "id": "565f766ec8e58432447a1c5f3b4fed71b50ed0324271ecab1b8076728691a373",
+        "classification": "non_contract",
+        "owner": "RecoveryDecision",
+        "reason": "Python slots declaration; not a runtime policy."
+      },
+      {
+        "id": "bb8c06c9f9ae2cc3faead9b2a4a69c0a7c1fd38134fdf64f9eb4a27498cd9d41",
+        "classification": "declaration",
+        "owner": "RecoveryReason",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "338b2c6d65f0eb14d24bc81964a52724fd931e104b73030d53a482da105f8503",
+        "classification": "declaration",
+        "owner": "RecoveryReason",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "4c8a8b2ec85028b74bc8e934501f6ca9181161b8876317a8eb59bbb810bdf4a6",
+        "classification": "declaration",
+        "owner": "RecoveryReason",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "0ae9d8101ca070e493473bc9b6e2491679a90b246b0b83f58833e90ce2dfae2b",
+        "classification": "declaration",
+        "owner": "RecoveryReason",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "c6c7af265d78db8cd3c7bdfb13fcd720b6ea7e17c590d03d108f15c62386b6ee",
+        "classification": "declaration",
+        "owner": "RecoveryReason",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RecoveryFacts / RecoveryDecision / RecoveryPolicy / RecoveryReason",
+        "declaration": "hub/errors/policy.py",
+        "consumers": [
+          "hub/backend/tools/retry.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/errors/recovery_annotation.py",
+    "sha256": "121b2ced0b4294469111976de66121c17a21706addaa69650eafbb5e7f05b363",
+    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7393fe395b15eba800fced66f940edf07d2ee18f0aecf1358aa8c49c0c750af4",
+        "classification": "non_contract",
+        "owner": "RecoveryAnnotation",
+        "reason": "Python frozen dataclass declaration; not an execution flag."
+      },
+      {
+        "id": "ef635e691608520c0b4e28ce5f859c2fc0339c33befef3b248e9d6bf0886fec7",
+        "classification": "non_contract",
+        "owner": "RecoveryAnnotation",
+        "reason": "Python slots declaration; not a runtime policy."
+      },
+      {
+        "id": "f397a2d985119489e998b899cdf3ee3c85f302f4a39e403c2a84a6be38f2240f",
+        "classification": "declaration",
+        "owner": "RecoveryAnnotation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "5c26275bc1caef793d5e6c35690a8621d06d701997c99348d4fba44e5642ac78",
+        "classification": "declaration",
+        "owner": "RecoveryAnnotationObservation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RecoveryAnnotation / RecoveryAnnotationObservation",
+        "declaration": "hub/errors/recovery_annotation.py",
+        "consumers": [
+          "hub/backend/execution/provider_recovery.py",
+          "hub/errors/adapters.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/error_presentation.py",
+    "sha256": "ffd7bba273349de41df551577c09efa1b931ff5802f6a4c9df68d3cbb5a44d56",
+    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "baff4ac22f526fa5c4f06db745fe625b1af91313871a60a7001123fd66ff0372",
+        "classification": "declaration",
+        "owner": "ErrorPresentation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "740f236e8d3ef80b335c2717b82c52887163e68380ca60f0cc08ed28c538f1bb",
+        "classification": "declaration",
+        "owner": "ErrorPresentation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "5ac108f3c24cdfd8554e791dacc3642d1cbafd1b970754e14bc7386185052956",
+        "classification": "declaration",
+        "owner": "ErrorPresentation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "7dee4375bedeb27111b3034a9ceeefd0b39a372160337d0278de3b647b792475",
+        "classification": "declaration",
+        "owner": "ErrorPresentation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "1e38f4c2c4e12d6c96cb51de06c8802233aa8533c632763f3902d77f8c92dd59",
+        "classification": "declaration",
+        "owner": "ErrorPresentation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "71cd3b5bbda5fa033bfe7650cf5edc895af835c82bf6ff5a60675a9a488151b4",
+        "classification": "declaration",
+        "owner": "ErrorPresentation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      },
+      {
+        "id": "1616148f7ee78d8e6e775714a2aa7e67962e9b1a296c44ce9b89e70977d48c0c",
+        "classification": "declaration",
+        "owner": "ErrorPresentation",
+        "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ErrorPresentation / localized error functions",
+        "declaration": "hub/ui/error_presentation.py",
+        "consumers": [
+          "hub/ui/operation_diagnostics.py",
+          "hub/ui/requests.py",
+          "hub/widget/forms/rag_manager.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_stabilization.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
         ],
         "complete": true
       }

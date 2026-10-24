@@ -4,9 +4,8 @@ from llm.core.contracts import ErrorCategory, Confidence, ErrorReason
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, ClassVar
 from llm.core.model_protocol import StopReason
-
 
 
 class HubErrorCode(StrEnum):
@@ -23,7 +22,6 @@ class ErrorOrigin(StrEnum):
     UNKNOWN = "unknown"
 
 
-
 @dataclass(frozen=True, slots=True)
 class ErrorInfo:
     """Detached evidence for one failure, never authority to repeat an action.
@@ -34,6 +32,8 @@ class ErrorInfo:
     annotation and cannot replace these fields or the evidence classification.
     """
 
+    NO_HTTP_STATUS: ClassVar[None] = None
+
     code: str = ""
     message: str = ""
     origin: ErrorOrigin = ErrorOrigin.UNKNOWN
@@ -43,7 +43,7 @@ class ErrorInfo:
     reason: str = ErrorReason.UNKNOWN.value
     confidence: Confidence = Confidence.UNKNOWN
     evidence: dict[str, Any] = field(default_factory=dict)
-    http_status: int | None = None
+    http_status: int | None = NO_HTTP_STATUS
     exception_type: str = ""
     raw_finish_reason: str = ""
     termination: StopReason = StopReason.UNKNOWN

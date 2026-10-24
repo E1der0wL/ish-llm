@@ -1,6 +1,6 @@
 """Normalized streaming observations; adapters own SDK chunks and final messages."""
 
-from typing import Any, Protocol, Iterator, AsyncIterator
+from typing import Any, Protocol, Iterator, AsyncIterator, ClassVar
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import StrEnum
@@ -21,11 +21,23 @@ class CompletionErrorCode(StrEnum):
 class CompletionTermination:
     """Optional normalized diagnostic observation; unknown values remain opaque."""
 
+    NO_TEXT: ClassVar[str] = ""
+
     termination: Any
 
     @classmethod
     def from_details(cls, details):
         return cls(deepcopy(details.get(cls.termination.__name__)))
+
+    @property
+    def normalized(self):
+        value = self.termination
+        return model_protocol.StopReason(value) if isinstance(value, str) and value in model_protocol.StopReason else model_protocol.StopReason.UNKNOWN
+
+    @classmethod
+    def raw_finish_reason(cls, details):
+        key = model_protocol.ModelResponse.raw_finish_reason.__name__
+        return details.get(key) if isinstance(details.get(key), str) else cls.NO_TEXT
 
     @property
     def output_limited(self):

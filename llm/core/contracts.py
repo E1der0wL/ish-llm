@@ -382,3 +382,20 @@ class OperationProgress(JsonValue):
                 raise ValueError(self.INVALID_COUNTS)
         if self.total is not self.UNKNOWN and (self.completed is self.UNKNOWN or self.completed > self.total):
             raise ValueError(self.INVALID_TOTAL)
+
+
+class DiagnosticRecordObservation:
+    """Read only the requested optional fields of an opaque diagnostic record."""
+
+    NO_TEXT = ""
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def message(self):
+        return self._value.get(Diagnostic.message.__name__, self.NO_TEXT)
+
+    @property
+    def code(self):
+        return self._value.get(Diagnostic.code.__name__, self.NO_TEXT)

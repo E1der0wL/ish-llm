@@ -176,6 +176,16 @@ class CheckpointRejectionDetails:
     def to_dict(self):
         return asdict(self)
 
+    @classmethod
+    def blocker_details(cls, records):
+        return {cls.blockers.__name__: records}
+
+    @classmethod
+    def observed_blockers(cls, details):
+        from .contracts import DiagnosticRecordObservation
+        records = details.get(cls.blockers.__name__, ())
+        return [DiagnosticRecordObservation(item) for item in records if isinstance(item, dict)] if isinstance(records, (list, tuple)) else []
+
 
 class CheckpointError(CodedError, ValueError):
     """Structured rejection; retains ValueError catch compatibility, never grants access."""

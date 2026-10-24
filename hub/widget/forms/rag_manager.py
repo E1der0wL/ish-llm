@@ -1,4 +1,5 @@
 """RAG document editing plus resumable registration jobs in one shared popup."""
+from llm.core.checkpoints import CheckpointRejectionDetails
 
 from hub.locales.keys import MessageKey, MessagePattern
 
@@ -140,7 +141,7 @@ class RAGManager(RecordManager):
             self.status = self.view.t(MessageKey.RAG_RETRY_UNAVAILABLE)
             if item and item.get("resume_blockers"):
                 error = ErrorInfo(code=CheckpointErrorCode.PROTECTED, operation="rag.resume",
-                                  details={"blockers": item["resume_blockers"]})
+                                  details=CheckpointRejectionDetails.blocker_details(item["resume_blockers"]))
                 self.view.operation_diagnostics.record(self.view.project_id, error)
                 self.status = operation_notice(error, self.view.t)
             self.view.notice = self.status

@@ -8159,3 +8159,50 @@ Core는 Interaction·필수 필드·결정·Tool binding/Schema 계약, Level 1�
 이번 소단계만으로 전체 통합/원격 완료를 선언하지 않는다. 공유 Interaction 관찰과 승인 소비자 변경을
 앞선 위젯·중단/삭제 관찰 변경과 묶어 다음 Level 3 전체 LLM/Hub·정적·문서·R3·실환경 검증을 수행하고,
 성공한 정확한 SHA만 Push한 뒤 원격 CI 결과를 확인한다. 실행 권한·예산·외부 효과 계약은 완화하지 않는다.
+
+
+## 오류 진단 관찰·복구 설명과 실제 표시 소비자
+
+ErrorInfo/Origin, ErrorProjection, OperationCode, RecoveryPolicy/Reason, RecoveryAnnotation,
+ErrorPresentation 여섯 파일을 완료했다. Backend classification과 Tool 실행 허가는 기존 Owner가
+계속 결정한다. ProviderDiagnosticObservation은 원인 하나의 HTTP 상태·메시지를 연결하고,
+SDK 상세 필드는 ProviderErrorDiagnostics 안에서만 읽는다. ExceptionType 선언을 Provider 기록도
+재사용한다. ProviderDiagnosticContext의 실제 Writer를 연결하고 원본 진단·상세 로깅 opt-in을 유지했다.
+CompletionTermination/ModelResponse와 CheckpointRejectionDetails/Diagnostic의 관찰 API를
+오류 화면이 사용한다. 부분 진단은 원래 관찰 범위만 읽고, 저장 Reader나 실행 근거로 사용하지 않는다.
+
+HubRecovery 설명의 단일 Writer/관찰 Owner를 실제 ProviderRecovery와 ErrorProjection 양쪽에
+연결했다. 원인·상태·권한을 설명 문구로 재분류하지 않는다. RecoveryPolicy의 분기·효과·승인·
+시도/기한 검사는 그대로이며 반환 reason만 선언으로 옮겼다. 코드 분류에서는 기존
+ProviderFailure.owns_code를 재사용한다. 최초 초안에 추가했던 중복 prefix 선언은 제거했다.
+원본 source/evidence 분리, 취소 예외 전파, bool HTTP 값과 미지의 종료값, 오류 문구·다국어 안내의
+기존 처리도 유지했다. ProviderRecovery와 RAGManager의 좁은 Writer 연결은 파일 전체 완료로 세지 않는다.
+
+297개 독립 원본/제안 관찰이 일치했다. 실제 Provider 진단의 opt-in/중복 인자 실패 처리,
+원인별 HTTP/메시지·부분 기록·미지의 코드·종료값·복구 설명·blocker·source 우선순위,
+취소 및 효과/승인/횟수 조합의 기존 RecoveryPolicy를 포함한다. 정상 진단·재시도·인자 수정과
+취소/실패 guard를 별도로 확인했다. 외부 생성 도구의 최초 괄호 문법 오류는 제품 적용 전에
+수정했고 실패 흔적을 보존했다. 최초 집중 01은 모두 완료한 뒤 중복 Owner/모듈 docstring 위치를
+정리했다. 아래 02가 최종 소스의 검증이며, 서로 다른 소스 결과를 하나로 합산하지 않는다.
+
+- `whole-hub-error-observations-core-02`: discovered/started/pass 33/33/33, exit 0, 7.954198초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-error-observations-core-02/llm.json --modules tests.llm.test_provider_diagnostics tests.llm.test_builtin_diagnostic_values tests.llm.test_error_boundaries`. source `35a4953322f3b4e085f96503c2c5daf9dccfca525c256e88404a2a01632cfde7`, input `8e35599cd571d4f2dd979afcb40311751e335d9a7c8f4f5895644962d9790dbd`.
+
+- `whole-hub-error-observations-l1-02`: discovered/started/pass 60/60/60, exit 0, 228.161087초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-error-observations-l1-02/hub.json --modules tests.hub.test_error_contract tests.hub.test_backend_diagnostics tests.hub.test_provider_activity tests.hub.test_provider_stabilization tests.hub.test_provider_recovery tests.hub.test_tool_retry`. source `35a4953322f3b4e085f96503c2c5daf9dccfca525c256e88404a2a01632cfde7`, input `8e35599cd571d4f2dd979afcb40311751e335d9a7c8f4f5895644962d9790dbd`.
+
+- `whole-hub-error-observations-l2-02`: discovered/started/pass 52/52/52, exit 0, 67.24313초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-error-observations-l2-02/hub.json --modules tests.hub.test_live tests.hub.test_retry_ui tests.hub.test_interrupt_feedback tests.hub.test_rag_jobs tests.hub.test_rag_extensions`. source `35a4953322f3b4e085f96503c2c5daf9dccfca525c256e88404a2a01632cfde7`, input `8e35599cd571d4f2dd979afcb40311751e335d9a7c8f4f5895644962d9790dbd`.
+
+- `whole-hub-error-observations-safety-02`: discovered/started/pass 84/84/84, exit 0, 36.65201초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-error-observations-safety-02/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `35a4953322f3b4e085f96503c2c5daf9dccfca525c256e88404a2a01632cfde7`, input `8e35599cd571d4f2dd979afcb40311751e335d9a7c8f4f5895644962d9790dbd`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치, 같은 suite의 선택
+중복 0, 실행 전후와 02 실행 사이 source/input 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790, 동일 의존성·실제 Linux/X11이다. 실제 명령과 exit는
+`hub-error-observations-draft/selected02-results.json`, 이전 소스의 독립 검증은
+`before-owner-refinement-selected-results.json`, 값 비교는 `proof-commands.json`/`refined.json`에 보존한다.
+R3 Mutation exit 0이며, 원래 테스트와 안전성 Assertion을 제거하거나 바꾸지 않았다.
+Core는 Provider 진단/분류·오류 경계, Level 1은 실제 진단/활동/안정화·Provider/Tool 재시도,
+Level 2는 Live/중단/재시도 화면·RAG 작업 소비자, 안전성은 승인·예산·효과·Checkpoint·원본 보존 84개다.
+
+이번 관찰 정리는 소단계 검증 완료다. 진행 중인 Gate49의 고정 SHA에는 포함되지 않는다.
+연관된 복구/재시도 Owner 소비자 정리와 묶어 후속 Level 3 전체 LLM/Hub·정적/문서/R3/실환경
+검증 및 정확한 SHA의 원격 CI를 수행한다. 정책 판단을 바꾸거나 영향 범위를 증명할 수 없는
+변경은 그 경계에서 전체 검증으로 승격한다. 전체 전수 잔여는 계속 목록에 유지한다.

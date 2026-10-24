@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import ClassVar
 
 from .contracts import ErrorCategory, ErrorInfo
 
@@ -20,13 +21,15 @@ class Effects(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class RecoveryFacts:
+    NO_DEADLINE: ClassVar[None] = None
+
     response_received: bool = False
     effects: Effects = Effects.UNKNOWN
     retry_safe: bool = False
     cancelled: bool = False
     attempts: int = 0
     maximum: int = 0
-    deadline: float | None = None
+    deadline: float | None = NO_DEADLINE
     now: float = 0
     # Only the backend Tool selector boundary supplies admission. Classification
     # and model output cannot grant it or invent a no-effect receipt.
@@ -36,8 +39,13 @@ class RecoveryFacts:
 
     @property
     def blocked(self) -> bool:
-        return (self.cancelled or self.response_received or self.attempts >= self.maximum
-                or self.deadline is not None and self.now >= self.deadline)
+        return (
+            self.cancelled
+            or self.response_received
+            or self.attempts >= self.maximum
+            or self.deadline is not self.NO_DEADLINE
+            and self.now >= self.deadline
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,15 +54,34 @@ class RecoveryDecision:
     reason: str
 
 
+class RecoveryReason(StrEnum):
+    BACKEND_ADMISSION_REQUIRED = "backend_admission_required"
+    ACCESS_REQUIRES_USER_ACTION = "access_requires_user_action"
+    BACKEND_SAFE_TRANSIENT = "backend_safe_transient"
+    BACKEND_DECLARED_FIELDS = "backend_declared_fields"
+    NO_SAFE_CORRECTION = "no_safe_correction"
+
+
 class RecoveryPolicy:
     @staticmethod
     def tool(error: ErrorInfo, facts: RecoveryFacts) -> RecoveryDecision:
         if facts.blocked or not facts.backend_admitted:
-            return RecoveryDecision(RecoveryAction.STOP, "backend_admission_required")
+            return RecoveryDecision(
+                RecoveryAction.STOP, RecoveryReason.BACKEND_ADMISSION_REQUIRED.value
+            )
         if error.category == ErrorCategory.ACCESS:
-            return RecoveryDecision(RecoveryAction.STOP, "access_requires_user_action")
+            return RecoveryDecision(
+                RecoveryAction.STOP, RecoveryReason.ACCESS_REQUIRES_USER_ACTION.value
+            )
         if facts.retryable and (facts.effects == Effects.NONE or facts.retry_safe):
-            return RecoveryDecision(RecoveryAction.RETRY, "backend_safe_transient")
+            return RecoveryDecision(
+                RecoveryAction.RETRY, RecoveryReason.BACKEND_SAFE_TRANSIENT.value
+            )
         if facts.changeable and facts.effects == Effects.NONE:
-            return RecoveryDecision(RecoveryAction.REPAIR_ARGUMENTS, "backend_declared_fields")
-        return RecoveryDecision(RecoveryAction.STOP, "no_safe_correction")
+            return RecoveryDecision(
+                RecoveryAction.REPAIR_ARGUMENTS,
+                RecoveryReason.BACKEND_DECLARED_FIELDS.value,
+            )
+        return RecoveryDecision(
+            RecoveryAction.STOP, RecoveryReason.NO_SAFE_CORRECTION.value
+        )

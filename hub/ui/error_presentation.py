@@ -11,7 +11,7 @@ from llm.core.plans import PlanBlockerCode
 
 from hub.errors.operations import OperationCode
 
-from llm.core.checkpoints import CheckpointErrorCode
+from llm.core.checkpoints import CheckpointErrorCode, CheckpointRejectionDetails
 from llm.providers.streaming import CompletionErrorCode
 from llm.core.models import RunErrorCode
 from llm.core.models import StepErrorCode
@@ -21,34 +21,106 @@ from llm.core.model_protocol import StopReason
 from llm.core.tool_codes import ToolErrorCode
 
 
-_GUIDANCE = {reason: MessagePattern.failure(reason) for reason in (
-    ErrorReason.UNKNOWN, ErrorReason.RATE_LIMIT, ErrorReason.UNAVAILABLE, ErrorReason.AUTHENTICATION, ErrorReason.PERMISSION, ErrorReason.TIMEOUT, ErrorReason.CONNECTION,
-    ErrorReason.REQUEST, ErrorReason.CONTEXT, ErrorReason.BUDGET, ErrorReason.FILE_MISSING, ErrorReason.EMPTY, ErrorReason.COMPLETION_INVALID, ErrorReason.COMPLETION_LENGTH,
-    ErrorReason.COMPLETION_FILTERED, ErrorReason.COMPLETION_INCOMPLETE, ErrorReason.COMPLETION_OUTPUT_LIMIT, ErrorReason.COMPLETION_TOOL_LIMIT,
-    ErrorReason.COMPLETION_ARGUMENT_LIMIT, ErrorReason.STEP_TIMEOUT, ErrorReason.REQUEST_SIZE, ErrorReason.DEPENDENCY, ErrorReason.COMMAND, ErrorReason.TOOL_FAILED,
-    ErrorReason.VALIDATION, ErrorReason.DISCONNECTED, ErrorReason.TOOL_ARGUMENTS, ErrorReason.TOOL_CONTRACT, ErrorReason.LIFECYCLE, ErrorReason.SANDBOX,
-    ErrorReason.OPERATION_CONFLICT, ErrorReason.OPERATION_UNCERTAIN,
-)}
-_GUIDANCE.update({
-    ErrorReason.AUTHORIZATION: MessageKey.FAILURE_PERMISSION, ErrorReason.APPROVAL: MessageKey.FAILURE_PERMISSION, ErrorReason.RESPONSE: MessageKey.FAILURE_EMPTY,
-    ErrorReason.PARAMETER: MessageKey.FAILURE_REQUEST, ErrorReason.INCOMPLETE: MessageKey.FAILURE_COMPLETION_INCOMPLETE, ErrorReason.OUTPUT: MessageKey.FAILURE_COMPLETION_OUTPUT_LIMIT,
-    ErrorReason.TOOLS: MessageKey.FAILURE_COMPLETION_TOOL_LIMIT, ErrorReason.ARGUMENTS: MessageKey.FAILURE_COMPLETION_ARGUMENT_LIMIT, ErrorReason.USAGE: MessageKey.FAILURE_BUDGET,
-    ErrorReason.REVISION: MessageKey.FAILURE_CHECKPOINT_CONFLICT, ErrorReason.CHECKPOINT: MessageKey.FAILURE_CHECKPOINT_PROTECTED,
-})
-_OUTCOMES = frozenset((RecoveryState.NO_CORRECTION, RecoveryState.SUMMARY_INCOMPLETE, RecoveryState.NOT_REDUCED, RecoveryState.INVALID_ANALYSIS,
-                       RecoveryState.ANALYSIS_FAILED, RecoveryState.EXHAUSTED, RecoveryState.REJECTED))
+_GUIDANCE = {
+    reason: MessagePattern.failure(reason)
+    for reason in (
+        ErrorReason.UNKNOWN,
+        ErrorReason.RATE_LIMIT,
+        ErrorReason.UNAVAILABLE,
+        ErrorReason.AUTHENTICATION,
+        ErrorReason.PERMISSION,
+        ErrorReason.TIMEOUT,
+        ErrorReason.CONNECTION,
+        ErrorReason.REQUEST,
+        ErrorReason.CONTEXT,
+        ErrorReason.BUDGET,
+        ErrorReason.FILE_MISSING,
+        ErrorReason.EMPTY,
+        ErrorReason.COMPLETION_INVALID,
+        ErrorReason.COMPLETION_LENGTH,
+        ErrorReason.COMPLETION_FILTERED,
+        ErrorReason.COMPLETION_INCOMPLETE,
+        ErrorReason.COMPLETION_OUTPUT_LIMIT,
+        ErrorReason.COMPLETION_TOOL_LIMIT,
+        ErrorReason.COMPLETION_ARGUMENT_LIMIT,
+        ErrorReason.STEP_TIMEOUT,
+        ErrorReason.REQUEST_SIZE,
+        ErrorReason.DEPENDENCY,
+        ErrorReason.COMMAND,
+        ErrorReason.TOOL_FAILED,
+        ErrorReason.VALIDATION,
+        ErrorReason.DISCONNECTED,
+        ErrorReason.TOOL_ARGUMENTS,
+        ErrorReason.TOOL_CONTRACT,
+        ErrorReason.LIFECYCLE,
+        ErrorReason.SANDBOX,
+        ErrorReason.OPERATION_CONFLICT,
+        ErrorReason.OPERATION_UNCERTAIN,
+    )
+}
+_GUIDANCE.update(
+    {
+        ErrorReason.AUTHORIZATION: MessageKey.FAILURE_PERMISSION,
+        ErrorReason.APPROVAL: MessageKey.FAILURE_PERMISSION,
+        ErrorReason.RESPONSE: MessageKey.FAILURE_EMPTY,
+        ErrorReason.PARAMETER: MessageKey.FAILURE_REQUEST,
+        ErrorReason.INCOMPLETE: MessageKey.FAILURE_COMPLETION_INCOMPLETE,
+        ErrorReason.OUTPUT: MessageKey.FAILURE_COMPLETION_OUTPUT_LIMIT,
+        ErrorReason.TOOLS: MessageKey.FAILURE_COMPLETION_TOOL_LIMIT,
+        ErrorReason.ARGUMENTS: MessageKey.FAILURE_COMPLETION_ARGUMENT_LIMIT,
+        ErrorReason.USAGE: MessageKey.FAILURE_BUDGET,
+        ErrorReason.REVISION: MessageKey.FAILURE_CHECKPOINT_CONFLICT,
+        ErrorReason.CHECKPOINT: MessageKey.FAILURE_CHECKPOINT_PROTECTED,
+    }
+)
+_OUTCOMES = frozenset(
+    (
+        RecoveryState.NO_CORRECTION,
+        RecoveryState.SUMMARY_INCOMPLETE,
+        RecoveryState.NOT_REDUCED,
+        RecoveryState.INVALID_ANALYSIS,
+        RecoveryState.ANALYSIS_FAILED,
+        RecoveryState.EXHAUSTED,
+        RecoveryState.REJECTED,
+    )
+)
 
 
-def plain(text: str, maximum: int = 2000) -> str:
-    return "".join(c for c in text if c.isprintable() or c == "\n")[:maximum]
+class ErrorPresentation:
+    MAXIMUM_TEXT = 2000
+    EMPTY = ""
+    NEWLINE = "\n"
+    PARAGRAPH = NEWLINE + NEWLINE
+    EVIDENCE_SEPARATOR = " · "
+    HTTP_STATUS = "HTTP {status}"
+    FINISH_REASON = "finish_reason={reason}"
+    LITERAL_INDENT = "    "
+    INCOMPLETE_GUIDANCE = {
+        StopReason.OUTPUT_LIMIT: MessageKey.FAILURE_COMPLETION_LENGTH,
+        StopReason.BLOCKED: MessageKey.FAILURE_COMPLETION_FILTERED,
+    }
+
+
+def plain(text: str, maximum: int = ErrorPresentation.MAXIMUM_TEXT) -> str:
+    return ErrorPresentation.EMPTY.join(
+        c for c in text if c.isprintable() or c == ErrorPresentation.NEWLINE
+    )[:maximum]
 
 
 def error_text(error: ErrorInfo | Exception | str) -> str:
     """Small notices retain the original validation/operation message."""
     value = from_exception(error)
-    blockers = value.details.get("blockers", ())
-    messages = [item.get("message", "") for item in blockers if isinstance(item, dict)] if isinstance(blockers, (list, tuple)) else []
-    return plain("\n".join(dict.fromkeys([str(value), *(m for m in messages if m and m not in str(value))])))
+    messages = [
+        item.message
+        for item in CheckpointRejectionDetails.observed_blockers(value.details)
+    ]
+    return plain(
+        ErrorPresentation.NEWLINE.join(
+            dict.fromkeys(
+                [str(value), *(m for m in messages if m and m not in str(value))]
+            )
+        )
+    )
 
 
 _OPERATION_GUIDANCE = {
@@ -60,7 +132,8 @@ _OPERATION_GUIDANCE = {
     CheckpointErrorCode.CONFLICT: MessageKey.OPERATION_CHANGED,
     MemoryConflictError.code: MessageKey.OPERATION_CHANGED,
     PlanBlockerCode.INTERACTION_REQUIRED: MessageKey.OPERATION_INTERACTION,
-    PlanBlockerCode.ACTIVE_RUN: MessageKey.OPERATION_BUSY, PlanBlockerCode.ACTIVE_WORKER: MessageKey.OPERATION_BUSY,
+    PlanBlockerCode.ACTIVE_RUN: MessageKey.OPERATION_BUSY,
+    PlanBlockerCode.ACTIVE_WORKER: MessageKey.OPERATION_BUSY,
     CheckpointErrorCode.CONFIGURATION: MessageKey.OPERATION_CONFIGURATION,
     CheckpointErrorCode.CORRUPT: MessageKey.OPERATION_CHECKPOINT_UNAVAILABLE,
     CheckpointErrorCode.MISSING: MessageKey.OPERATION_CHECKPOINT_UNAVAILABLE,
@@ -80,12 +153,13 @@ def operation_notice(error, t):
         return plain(error)  # Hub-owned localized validation/status text.
     value = from_exception(error)
     codes = [value.code]
-    blockers = value.details.get("blockers", ())
-    if isinstance(blockers, (list, tuple)):
-        codes.extend(b.get("code", "") for b in blockers if isinstance(b, dict))
+    codes.extend(
+        item.code
+        for item in CheckpointRejectionDetails.observed_blockers(value.details)
+    )
     keys = [_OPERATION_GUIDANCE[c] for c in codes if c in _OPERATION_GUIDANCE]
     if keys:
-        return "\n".join(t(key) for key in dict.fromkeys(keys))
+        return ErrorPresentation.NEWLINE.join(t(key) for key in dict.fromkeys(keys))
     if value.code == CheckpointErrorCode.PROTECTED:
         return t(MessageKey.OPERATION_NOT_RESUMABLE)
     if value.reason == ErrorReason.VALIDATION:
@@ -96,33 +170,55 @@ def operation_notice(error, t):
 
 
 _CODE_GUIDANCE = {
-    CompletionErrorCode.INVALID_RESPONSE: MessageKey.FAILURE_COMPLETION_INVALID, ToolErrorCode.INVOCATION_INVALID: MessageKey.FAILURE_TOOL_ARGUMENTS,
-    RunErrorCode.TOOL_CONTRACT: MessageKey.FAILURE_TOOL_CONTRACT, RunErrorCode.SANDBOX_UNAVAILABLE: MessageKey.FAILURE_SANDBOX,
-    RunErrorCode.OPERATION_UNCERTAIN: MessageKey.FAILURE_OPERATION_UNCERTAIN, RunErrorCode.OPERATION_CONFLICT: MessageKey.FAILURE_OPERATION_CONFLICT,
-    ToolErrorCode.FAILED: MessageKey.FAILURE_TOOL_FAILED, StepErrorCode.TIMEOUT: MessageKey.FAILURE_STEP_TIMEOUT,
+    CompletionErrorCode.INVALID_RESPONSE: MessageKey.FAILURE_COMPLETION_INVALID,
+    ToolErrorCode.INVOCATION_INVALID: MessageKey.FAILURE_TOOL_ARGUMENTS,
+    RunErrorCode.TOOL_CONTRACT: MessageKey.FAILURE_TOOL_CONTRACT,
+    RunErrorCode.SANDBOX_UNAVAILABLE: MessageKey.FAILURE_SANDBOX,
+    RunErrorCode.OPERATION_UNCERTAIN: MessageKey.FAILURE_OPERATION_UNCERTAIN,
+    RunErrorCode.OPERATION_CONFLICT: MessageKey.FAILURE_OPERATION_CONFLICT,
+    ToolErrorCode.FAILED: MessageKey.FAILURE_TOOL_FAILED,
+    StepErrorCode.TIMEOUT: MessageKey.FAILURE_STEP_TIMEOUT,
 }
 
 
 def failure_text(error: ErrorInfo, t) -> str:
     key = _GUIDANCE.get(error.reason, MessageKey.FAILURE_UNKNOWN)
     if error.code == CompletionErrorCode.INCOMPLETE:
-        key = {StopReason.OUTPUT_LIMIT: MessageKey.FAILURE_COMPLETION_LENGTH, StopReason.BLOCKED: MessageKey.FAILURE_COMPLETION_FILTERED}.get(error.termination, key)
+        key = ErrorPresentation.INCOMPLETE_GUIDANCE.get(error.termination, key)
     elif error.code in _CODE_GUIDANCE:
         key = _CODE_GUIDANCE[error.code]
     text = t(key)
     evidence = [error.code] if error.code else []
-    if error.http_status is not None:
-        evidence.append(f"HTTP {error.http_status}")
+    if error.http_status is not ErrorInfo.NO_HTTP_STATUS:
+        evidence.append(ErrorPresentation.HTTP_STATUS.format(status=error.http_status))
     if error.exception_type:
         evidence.append(error.exception_type)
     if error.raw_finish_reason:
-        evidence.append(f"finish_reason={error.raw_finish_reason}")
+        evidence.append(
+            ErrorPresentation.FINISH_REASON.format(reason=error.raw_finish_reason)
+        )
     if evidence:
-        text += "\n\n" + t(MessageKey.FAILURE_EVIDENCE, evidence=" · ".join(evidence))
-    for title, value in ((MessageKey.FAILURE_SERVER_DETAIL, error.detail), (MessageKey.FAILURE_MODEL_ANALYSIS, error.explanation)):
+        text += ErrorPresentation.PARAGRAPH + t(
+            MessageKey.FAILURE_EVIDENCE,
+            evidence=ErrorPresentation.EVIDENCE_SEPARATOR.join(evidence),
+        )
+    for title, value in (
+        (MessageKey.FAILURE_SERVER_DETAIL, error.detail),
+        (MessageKey.FAILURE_MODEL_ANALYSIS, error.explanation),
+    ):
         if value:
             # Evidence/model text stays literal Markdown code, never executable XML.
-            text += "\n\n" + t(title) + "\n" + "\n".join("    " + line for line in plain(value).splitlines())
+            text += (
+                ErrorPresentation.PARAGRAPH
+                + t(title)
+                + ErrorPresentation.NEWLINE
+                + ErrorPresentation.NEWLINE.join(
+                    ErrorPresentation.LITERAL_INDENT + line
+                    for line in plain(value).splitlines()
+                )
+            )
     if error.recovery in _OUTCOMES:
-        text += "\n\n" + t(MessagePattern.recovery_result(error.recovery))
-    return text + "\n" + t(MessageKey.FAILURE_DETAILS)
+        text += ErrorPresentation.PARAGRAPH + t(
+            MessagePattern.recovery_result(error.recovery)
+        )
+    return text + ErrorPresentation.NEWLINE + t(MessageKey.FAILURE_DETAILS)

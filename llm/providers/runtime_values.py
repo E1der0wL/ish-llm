@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from .request_values import SDKOperation, SDKRetryParameters
+from llm.core.contracts import ExceptionType
 
 
 class SDKRuntime:
@@ -160,7 +161,7 @@ class ProviderLogRecord:
 
 
 class ProviderExceptionRecord:
-    TYPE = "type"
+    TYPE = ExceptionType.type.__name__
     FRAMES = "frames"
     STATUS_CODE = "status_code"
     ERRNO = "errno"
@@ -169,7 +170,7 @@ class ProviderExceptionRecord:
     FILE = "file"
     LINE = "line"
     FUNCTION = "function"
-    TYPE_TEMPLATE = "{module}.{name}"
+    TYPE_TEMPLATE = ExceptionType.QUALIFIED_NAME
 
     @classmethod
     def type_name(cls, error):
