@@ -24,6 +24,10 @@ class WorkspaceJSONStore:
     def __init__(self, workspace, filename: str):
         self.path = Path(workspace).expanduser() / self.DIRECTORY / filename
 
+    @property
+    def workspace(self):
+        return self.path.parent.parent
+
     def _read_json(self, default):
         try:
             return json.loads(self.path.read_text(encoding=self.ENCODING))

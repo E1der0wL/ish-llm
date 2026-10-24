@@ -16638,8 +16638,8 @@
   },
   {
     "path": "hub/locales/keys.py",
-    "sha256": "f33a5ac23ea3aecde566c83fafaa0e99fd65213705429eeabecd0751675b9be3",
-    "reason": "Reviewed complete locale declarations, renderer, custom-pack validation and direct consumers. 612 unique canonical keys, exact bilingual tables, 65 normalized whole consumer ASTs, independent formatting/invalid-input cases and real UI consumers preserve output and storage behavior. Open lookup suffix/prefix construction remains open; same-spelling domain actions, roles and fields remain owned by their actual domain. The README documents these boundaries and grants no execution authority.",
+    "sha256": "e00c9738db89d05fc4621a976cd658e8dca8fb9a15e0e788c8d52767f7bd274d",
+    "reason": "Reviewed complete locale declarations, renderer, custom-pack validation and direct consumers. 612 unique canonical keys, exact bilingual tables, 65 normalized whole consumer ASTs, independent formatting/invalid-input cases and real UI consumers preserve output and storage behavior. Open lookup suffix/prefix construction remains open; same-spelling domain actions, roles and fields remain owned by their actual domain. The README documents these boundaries and grants no execution authority. Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -20446,16 +20446,33 @@
         "owner": "MessageKey / MessagePattern",
         "declaration": "hub/locales/keys.py",
         "consumers": [
+          "hub/backend/project/settings_descriptions.py",
+          "hub/config/presets.py",
           "hub/locales/en.py",
           "hub/locales/ko.py",
           "hub/ui/error_presentation.py",
           "hub/ui/settings/pages.py"
         ],
         "tests": [
-          "tests/hub/test_locale_keys.py",
-          "tests/hub/test_language_presence.py",
           "tests/hub/test_general_options.py",
-          "tests/hub/test_settings.py"
+          "tests/hub/test_language_presence.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_stores.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -83642,8 +83659,8 @@
   },
   {
     "path": "hub/config/store.py",
-    "sha256": "1617bd9bf1f915f672c4f95279899f1b48ce2f91b4eb3ee1b3ddc7153d5906ec",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "sha256": "2733aa5e32c6a6e04ab45a3074ab292b31894962624ed73092a99a870843cd65",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -83713,13 +83730,13 @@
         "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
       },
       {
-        "id": "d7943cd964d4b1ed3ffc4d9b40a5d92ae66929ae038c1d2afd87156dd93ecd6c",
+        "id": "05105c0dbf838e3480c4996696385975e2efb9c72f6471ef2614b2e9b9779e22",
         "classification": "non_contract",
         "owner": "WorkspaceJSONStore._write_json",
         "reason": "Python local resource variable before a temporary stream exists; no missing persisted record is accepted."
       },
       {
-        "id": "e863165d5e89828db63aec8e4bbf5a7e5f2bb16bd4d97f48d9053e29d7a11017",
+        "id": "0752616c517e16c0ba2c2cb44c4e52f72ced1940adae0285e2eaf70b8e2e8217",
         "classification": "non_contract",
         "owner": "WorkspaceJSONStore._write_json",
         "reason": "Local resource cleanup guard, not a stored state or recovery default."
@@ -83730,41 +83747,44 @@
         "owner": "WorkspaceJSONStore",
         "declaration": "hub/config/store.py",
         "consumers": [
+          "hub/backend/project/settings_descriptions.py",
           "hub/config/preferences.py",
           "hub/config/presets.py",
           "hub/config/view_state.py"
         ],
         "tests": [
-          "tests/hub/test_stores.py",
-          "tests/hub/test_reading_positions.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_workspace_presence.py",
-          "tests/hub/test_general_options.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_settings_usability.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_question_tools.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_tool_retry.py",
-          "tests/hub/test_request_history.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_coding_skill.py",
-          "tests/hub/test_provider_recovery.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_stores.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -87998,6 +88018,295 @@
           "tests/hub/test_preview.py",
           "tests/hub/test_ish_integration.py",
           "tests/hub/test_snapshot_projection.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/title_contract.py",
+    "sha256": "0b2184353762e4fc8b10264fbecacb1c273173adc59f33946a27be8530d0ba27",
+    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6073d285e36b5bfc5119c434e60c5635392546999479ef3285db85065b39b113",
+        "classification": "declaration",
+        "owner": "TitleEngineIdentity",
+        "reason": "The reserved title Engine identity is declared once independently of runtime construction; the separate reserved Agent identity is a different contract."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TitleEngineIdentity",
+        "declaration": "hub/backend/project/title_contract.py",
+        "consumers": [
+          "hub/backend/project/naming.py",
+          "hub/backend/project/defaults.py",
+          "hub/config/preset_records.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/settings_descriptions.py",
+    "sha256": "2f86557433332aed8045bb6f32728a512753b5b8157c8fb64140cc7ee6b86724",
+    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ce96be70b6313b4db63d54536dda19c128a15cd7898e37968f8bc8dadb8d8c84",
+        "classification": "declaration",
+        "owner": "Settings option descriptions",
+        "reason": "Schema recursion uses SchemaKeyword; description vocabulary derives from the declared MessageKey entries at MessagePattern. Display path punctuation and traversal order are declared here."
+      },
+      {
+        "id": "23a316486d332ee52b3b62aa9d205da271cfb95ac1241b4a87338bb67464c9e8",
+        "classification": "non_contract",
+        "owner": "describe_options",
+        "reason": "Last path segment sequence index; not a schema key, dimension or execution limit."
+      },
+      {
+        "id": "5afd4af434d4f879845e35d01492e1a8853d8a8b9a5ea2c13e32d7076b0a6cfb",
+        "classification": "non_contract",
+        "owner": "describe_options",
+        "reason": "Last path segment sequence index; not a schema key, dimension or execution limit."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Settings option descriptions",
+        "declaration": "hub/backend/project/settings_descriptions.py",
+        "consumers": [
+          "hub/backend/project/settings.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/config/preset_records.py",
+    "sha256": "9d4aec60a27af7ef47d08ac6bd7b59362292d78bb6f0a81d421d4c3ecf681b08",
+    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. PresetUI still reads the selection response fields directly; its actual consumer connection is pending, so this cross-file contract is explicitly incomplete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c105bd434ddd1e5fe257f7ca98e4d59cb9eb6d45a2bd3744ff006b8ea510bc3b",
+        "classification": "declaration",
+        "owner": "PresetProject",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "404197778301008cce72ed2b0e4ff8481dd2f2686c06b209a424a310bcc665d3",
+        "classification": "declaration",
+        "owner": "PresetProject",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "e7f31a999f1c37b3ceb7da12f6471a2af82a1b21fb33029fd02e14356ab520b2",
+        "classification": "declaration",
+        "owner": "PresetProject",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "40fa7b5d1f5d67f232f330da1133b59fcf16cea0b454beb918a54227c2581d0d",
+        "classification": "declaration",
+        "owner": "PresetProject",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "f64ce12bd566aa9cd284e9f317d97bf8feb91ccd1482215cd4dd042b8d59baeb",
+        "classification": "declaration",
+        "owner": "PresetProject",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "7144f2f6cbba96b82541d1fca349e9f4e42c8cd4999fa35c237b01928f80523e",
+        "classification": "declaration",
+        "owner": "PresetDefinition",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "6b6d4d4c32784deaade9e7c81abd4add0f14ac2a5605b279d97212e0480adb81",
+        "classification": "declaration",
+        "owner": "PresetDefinition",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "03a2e2d64598371128658c3bee929190d4fc11c306450b1f036b6b725fd284f0",
+        "classification": "declaration",
+        "owner": "PresetDefinition",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "7ca9bdd5bc93ebbb8f75e8c07dc07dc7a260a001bd87d1f064b28ca1a5737fbb",
+        "classification": "declaration",
+        "owner": "PresetDefinition",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "6822a1a0ab6b934747446ed2e39d7fadc51787926e2fa8326953a1b027658daa",
+        "classification": "declaration",
+        "owner": "PresetDefinition",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "bd7e39a03bfa19cdba3afbef34cd9e769ff556cf2962cc26d1bb75de8f2ba4dc",
+        "classification": "declaration",
+        "owner": "PresetDefinition",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "bfc34369acc08dc47a70214cfcf00b0170b8e54b69a966b16e569753002d9362",
+        "classification": "declaration",
+        "owner": "PresetDefinition",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "79a238a7330ef52b422566a0f76d0f77db12bf9e10fa044b71cbb17d3aaa69ef",
+        "classification": "non_contract",
+        "owner": "PresetSelection",
+        "reason": "Python dataclass frozen annotation, not a stored flag or application policy."
+      },
+      {
+        "id": "6ca57d249d90a713e56cdbccffdd5c65b292b1226680c90144c5f238874227f3",
+        "classification": "non_contract",
+        "owner": "PresetSelection",
+        "reason": "Python dataclass slots annotation, not a stored flag or application policy."
+      },
+      {
+        "id": "1a9f8406abf09c647bf7484a69fddd334695fbee410a9700a555af27df3163d2",
+        "classification": "declaration",
+        "owner": "PresetIndex",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "2097485e4a9b409581ddf9563f846f2b619c8eed3466c04a04db9cf286027d76",
+        "classification": "declaration",
+        "owner": "PresetIndex",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "195a3e635c4f2de12d859c16775e5247eb800c8373b689977c93051f1201a654",
+        "classification": "declaration",
+        "owner": "PresetIndex",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "9453d9c85c855352953e91829eb465e91c3fd396d519d1828e51f7914f6d31a2",
+        "classification": "declaration",
+        "owner": "PresetIndex",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "df2a2f0ce6585c08e9539854ddcd381665179066f8ba4bb5ca5e5edf234921d8",
+        "classification": "declaration",
+        "owner": "PresetIndex",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "efb66913025aa6af1e462c3865d777ba6c8db60b7f94708a98b6249e543fab47",
+        "classification": "declaration",
+        "owner": "PresetIndex",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "75c8336b183ecdf7d8776c6a783d465782c033617401b0e965d76ee501abcfef",
+        "classification": "declaration",
+        "owner": "PresetIndex",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "b05b89410e67e75068222e7693867a79bdd4873fa91eeebf776ad5bdda569f4d",
+        "classification": "declaration",
+        "owner": "PresetIndex",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "21d7fd1b7781cb81a3fb8b5d699a2fee080e2307847a0533df32cb0d14563296",
+        "classification": "declaration",
+        "owner": "PresetName",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "590069da566d7ad10f1ccda6da449a2eaf7de6eb2de07b689c361d757a1e66ec",
+        "classification": "declaration",
+        "owner": "PresetName",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      },
+      {
+        "id": "77900fce931faa8f0841bc37bf29aba083f10fafd710c0820777fadf041599fe",
+        "classification": "declaration",
+        "owner": "PresetName",
+        "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PresetDefinition / PresetProject / PresetIndex / PresetSelection / PresetName",
+        "declaration": "hub/config/preset_records.py",
+        "consumers": [
+          "hub/config/presets.py",
+          "hub/backend/project/presets.py",
+          "hub/ui/settings/presets.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_locale_keys.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",

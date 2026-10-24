@@ -11,6 +11,7 @@ from llm.components.rag.search import SearchMethod, SearchExpansion, RelationRan
 
 from ...asset.guides import STARTER_SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
 from .agents import DEFAULT_AGENT
+from .title_contract import TitleEngineIdentity
 
 
 CONVERSATION_STORAGE = ConversationStorage.FILE.value
@@ -82,7 +83,7 @@ async def create_project(backend, title, *, config, components, conversation_sto
         values = parameters.config
         values.setdefault("system_prompt", SYSTEM_PROMPT)
         project_config.set_engine_parameters("loop", parameters.with_config(values).to_dict())
-    for name in ("loop", "_hub_title"):
+    for name in ("loop", TitleEngineIdentity.NAME):
         if "provider" in engines.get(name, {}).get("properties", {}).get("policy", {}).get("properties", {}):
             parameters = project_config.parameter_targets.engine(name)
             values = parameters.policy

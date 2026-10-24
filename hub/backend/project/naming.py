@@ -22,7 +22,9 @@ import json
 from llm.engines.base import BaseEngine
 
 
-TITLE_ENGINE = "_hub_title"
+from .title_contract import TitleEngineIdentity
+
+TITLE_ENGINE = TitleEngineIdentity.NAME
 
 
 class TitleEngine(BaseEngine):

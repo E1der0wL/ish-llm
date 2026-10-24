@@ -8,6 +8,7 @@ from llm.core.models import ProjectConfig
 from .naming import TITLE_ENGINE
 
 from ...config.presets import PresetStore
+from ...config.preset_records import PresetDefinition, PresetIndex, PresetProject
 
 
 class PresetService:
@@ -19,31 +20,29 @@ class PresetService:
 
     async def list(self):
         record = await asyncio.to_thread(self.store.read)
-        return {"names": list(record["presets"]), "selected": record.get("selected", "")}
+        return PresetIndex(record).selection().to_dict()
 
     async def export(self, identifier):
         record = await self.settings.load_project(identifier)
         form = ProjectConfiguration.view(record).values
-        project = form.to_dict()
-        del project["title"]
-        project["config"] = ProjectConfig.without_engine_parameters(project["config"], TITLE_ENGINE)
-        return {"version": self.store.VERSION, "global": await asyncio.to_thread(self.store.globals, self.settings.runtime.config.user_profile),
-                "project": project}
+        project = PresetProject.export(form)
+        globals_ = await asyncio.to_thread(self.store.globals, self.settings.runtime.config.user_profile)
+        return PresetDefinition.create(self.store.VERSION, globals_, project)
 
     async def save(self, name, value):
         PresetStore.validate(value)
-        self.settings._validate({"title": "Preset", **value["project"]})
+        self.settings._validate(PresetDefinition(value).project.validation_values("Preset"))
         await asyncio.to_thread(self.store.save, name, value)
         return await self.list()
 
     async def apply(self, name, identifier):
         stored = await asyncio.to_thread(self.store.read)
-        value = PresetStore.validate(stored["presets"][name])
+        value = PresetDefinition(PresetStore.validate(PresetIndex(stored).definition(name)))
         project = await self.settings._project(identifier)
         await self.settings._idle_sessions(project)
         record = await self.settings.load_project(identifier)
         view = ProjectConfiguration.view(record)
-        candidate = {**view.values.to_dict(), **deepcopy(value["project"])}
+        candidate = value.project.overlay(view.values)
         targets = ProjectConfig.from_dict(view.values.config).parameter_targets
         if targets.has_engine(TITLE_ENGINE):
             config = ProjectConfig.from_dict(candidate["config"])
@@ -51,7 +50,7 @@ class PresetService:
             candidate["config"] = config.to_dict()
         self._check_fixed(record, candidate)
         requests = [("save_project", (identifier, candidate, view.config_version, view.values.components))]
-        requests.extend(("save_global", (section, values)) for section, values in value["global"].items())
+        requests.extend(("save_global", (section, values)) for section, values in value.globals.items())
         batch = await self.settings.save_all(requests)
         if not batch["error"]:
             await asyncio.to_thread(self.store.select, name)

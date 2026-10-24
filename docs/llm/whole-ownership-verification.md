@@ -7640,3 +7640,48 @@ R3 `python -m tests.llm.check_budget_mutation` exit 0. 실제 argv/exit/log는
 NO_STATUS 선언을 참조하게 되어 해당 S3 발생 지점이 사라졌다. 기존 표시 의미/본문 선택은 같다.
 604파일 중 미검토 159·미분류 7,805, 미완료 공유 계약 16, stale/위반/issues 0이다.
 Gate46을 수행해도 이 잔여 Hub 범위를 전체 완료로 표시하지 않는다.
+
+
+## Hub Preset 기록 Owner·선택 응답 및 설정 설명
+
+PresetDefinition/Project/Index/Selection/Name으로 현재 정의·저장 선택·이름의 검증과 변경을 모았다.
+PresetStore는 그 Owner를 사용하며, 저장 경로의 workspace 해석은 WorkspaceJSONStore에 있다.
+정규 형식·버전·필수 필드·검증 순서·atomic writer는 동일하다. 레거시 Reader를 추가하지 않는다.
+제목 Engine identity는 독립 선언을 naming/defaults/Preset 검증에서 공유한다. 별개의 Agent identity는 합치지 않는다.
+설정 설명의 13개 알려진 이름은 MessagePattern이 MessageKey에서 투영하고 SchemaKeyword로 순회한다.
+
+전체 검토는 새 Preset 기록/제목 identity 파일과 settings_descriptions에 한정한다.
+PresetStore의 globals 조합, PresetService의 다른 설정 계약, UI 선택 응답 소비자는 아직 미완료다.
+Naming/defaults/store/locale는 좁은 소비자·공개 API 변경이며 전체 파일 완료로 확대하지 않는다.
+
+독립 비교: 정의/오류 113, 복사 격리 2, 이름 15, 실제 저장 기록 38, 실제 저장·선택·bytes 흐름 1,
+dump/flush/fsync/replace 장애 후 원본·임시 파일 검사 4, 검증 callback 순서 3,
+설명 vocabulary 1 및 재귀/번역/오류 60, 서비스 응답·실행 순서·부분 실패·선택 16,
+Host 고정값 변경 시 쓰기 전 거부 1이다. 모든 비교가 일치한다.
+초기 외부 초안에서 MessageKey를 Enum으로 가정한 import 실패는 원문과 함께 보존하고,
+실제 선언 Owner의 공개 projection으로 수정한 뒤 적용했다. 제품 테스트 실패로 합산하지 않는다.
+기존 시험과 안전성 Assertion은 변경하지 않았다.
+
+- `whole-hub-preset-records-l1-01`: discovered/started/pass 19/19/19, exit 0, 53.254471초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-preset-records-l1-01/hub.json --modules tests.hub.test_stores tests.hub.test_presets_widgets tests.hub.test_settings_json tests.hub.test_settings_project_flow`. source `865e3502eaf27d8215e98b67e35f36e140ded6eea1f4c774126e48ebb66d96de`, input `c3ce5b042b5782ed179fe2b89bf61e52d8663098525a89db0acbaecca8023d3b`.
+
+- `whole-hub-preset-records-l2-01`: discovered/started/pass 26/26/26, exit 0, 35.077634초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-preset-records-l2-01/hub.json --modules tests.hub.test_settings tests.hub.test_settings_editor tests.hub.test_settings_usability tests.hub.test_workspace_settings tests.hub.test_project_authority tests.hub.test_locale_keys`. source `865e3502eaf27d8215e98b67e35f36e140ded6eea1f4c774126e48ebb66d96de`, input `c3ce5b042b5782ed179fe2b89bf61e52d8663098525a89db0acbaecca8023d3b`.
+
+- `whole-hub-preset-records-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.120203초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-preset-records-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `865e3502eaf27d8215e98b67e35f36e140ded6eea1f4c774126e48ebb66d96de`, input `c3ce5b042b5782ed179fe2b89bf61e52d8663098525a89db0acbaecca8023d3b`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치,
+선택 ID 중복 0과 전후·실행 사이 source/input manifest 동일을 확인했다.
+Python 3.12.14/Clang, Host d833790, 동일 의존성·실제 Linux/X11/Bubblewrap이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0. 실제 argv·exit·로그는
+`hub-preset-records-draft/selected-results.json`과 각 focus 결과에 보존한다.
+
+Level 1은 저장/Preset/설정 JSON/Project 흐름, Level 2는 설정 편집·workspace·권한·번역 소비자다.
+승인·예산·효과·Checkpoint·삭제/저장·실행 경계와 R3도 유지했다.
+기존 atomic writer와 의미를 보존한 제한된 Owner 이동이므로 이 소단계의 전체 회귀는 유예한다.
+이후 설정 서비스·화면 연결과 함께 다음 Level 3 게이트에서 검증한다.
+진행 중인 Gate46의 고정 소스에는 이번 변경이 포함되지 않으며 결과를 승계하지 않는다.
+
+정적 감사 S1–S7 exit 0(개별 검토 84), 감사기 자체 시험 16 pass/3.493초,
+문서 검사 exit 0(168문서/183 Python fence/1263 링크/37 anchor)다.
+추가된 버전 비교 두 곳은 exact int 검사와 정규 VERSION 전달을 각각 검토했다.
+현재 인벤토리는 606파일, 미검토 158, 미분류 7703, 미완료 소비자 계약 17,
+stale/위반/issues 0이다. 미완료를 정적 검사 통과와 혼동하지 않는다.

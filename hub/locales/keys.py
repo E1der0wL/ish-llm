@@ -694,6 +694,12 @@ class MessagePattern:
         return cls.SETTINGS_THEME_PREFIX + value
 
     @classmethod
+    def settings_description_names(cls):
+        return {value.removeprefix(cls.SETTINGS_DESCRIPTION_PREFIX)
+                for value in vars(MessageKey).values()
+                if isinstance(value, str) and value.startswith(cls.SETTINGS_DESCRIPTION_PREFIX)}
+
+    @classmethod
     def settings_description(cls, value):
         return cls.SETTINGS_DESCRIPTION_PREFIX + value
 
