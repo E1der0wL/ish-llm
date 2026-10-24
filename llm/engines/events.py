@@ -35,6 +35,8 @@ class EngineEvent:
     INTERACTIONS: ClassVar[str] = "interactions"
     NO_CHECKPOINT: ClassVar[None] = None
     NO_INTERACTION: ClassVar[None] = None
+    NO_COMPLETION: ClassVar[None] = None
+    NO_TYPE: ClassVar[None] = None
     NO_OUTPUT: ClassVar[None] = None
     NO_DIAGNOSTIC: ClassVar[None] = None
     NO_PROGRESS: ClassVar[None] = None
@@ -61,7 +63,7 @@ class EngineEvent:
     name: str = ""
     metadata: dict = field(default_factory=dict)
     error: Optional[str] = None
-    completion: Optional[CompletionResult] = None
+    completion: Optional[CompletionResult] = NO_COMPLETION
     output: Optional[EngineOutput] = NO_OUTPUT
     interaction: Optional[InteractionRequest] = NO_INTERACTION
     diagnostic: Optional[Diagnostic] = NO_DIAGNOSTIC
@@ -72,6 +74,14 @@ class EngineEvent:
     # A completed Step and its resume receipt commit in one service transaction.
     # Only record operations are attachable; initialization remains a separate boundary.
     checkpoint: Optional["EngineEvent"] = NO_CHECKPOINT
+
+    @classmethod
+    def observed_type(cls, event):
+        return getattr(event, cls.type.__name__, cls.NO_TYPE)
+
+    @classmethod
+    def observed_completion(cls, event):
+        return getattr(event, cls.completion.__name__, cls.NO_COMPLETION)
 
     @classmethod
     def changed_interactions(cls, values):

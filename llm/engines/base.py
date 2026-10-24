@@ -1,6 +1,7 @@
 """Engine 이벤트 계약과 BaseEngine의 공통 Step/스트리밍 처리를 정의한다. Engine은 이벤트를 생성하며 영속 파일에는 직접 쓰지 않는다.
 
 Engine contract, Step event lifecycle, and adapter-owned model streaming."""
+from llm.engines.completion_state import CompletionInvocationOptions
 
 from llm.core.models import ResourceKind, StepKind
 
@@ -42,7 +43,7 @@ from .context import EngineContext, SteeringInbox
 from llm.components.tools import ToolRegistry
 from llm.providers.streaming import CompletionError, CompletionAdapter
 from llm.core.model_protocol import CompletionUpdate, ModelRequest, ModelResponse, ModelOperation, copy_model
-from llm.providers.diagnostic_values import ProviderAttempt, ProviderRetryObservation, ProviderDiagnosticText
+from llm.providers.diagnostic_values import ProviderAttempt, ProviderRetryObservation, ProviderDiagnosticText, CompletionReception
 from .completion_state import CompletionProgress
 from llm.providers.runtime import diagnostic_context, diagnostic_failure
 from llm.services.runtime.usage import current_usage
@@ -78,7 +79,7 @@ class BaseEngine:
 
     required_capabilities = ()
     ABSENT = None
-    INCLUDE_COMPLETION_EVENTS = True
+    INCLUDE_COMPLETION_EVENTS = CompletionInvocationOptions.EVENTS_INCLUDED
     RETRYABLE_REQUEST = True
     MINIMUM_COMPLETION_LIMIT = 1
     INVALID_MODEL_REQUEST = 'Completion requires ModelRequest'
@@ -408,7 +409,7 @@ class BaseEngine:
                 if isinstance(error, (CompletionError, ProviderError)) and getattr(error, DiagnosticObservation.ATTRIBUTE, BaseEngine.ABSENT) is BaseEngine.ABSENT:
                     error.diagnostic = diagnostic_failure(error, operation=ModelOperation.COMPLETION.value,
                         stage=ProviderRetryObservation.RESPONSE_VALIDATION if isinstance(error, CompletionError) else ProviderRetryObservation.DEADLINE,
-                        **call_details, response_received=progress.received,
+                        **call_details, **CompletionReception.response_details(progress.received),
                         raw_finish_reason=result.finish_reason, termination=result.termination,
                         response_id=result.response_id)
                 result.status = RunStatus.FAILED

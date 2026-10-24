@@ -162,3 +162,23 @@ class ProviderDiagnosticObservation:
     @property
     def stage(self):
         return str(self._details.get(ProviderDiagnosticContext.stage.__name__) or self.NO_TEXT)
+
+
+@dataclass(frozen=True, slots=True)
+class CompletionReception:
+    """Observed response evidence; neither a retry decision nor a persisted receipt."""
+
+    chunks_received: int
+    response_received: bool
+
+    @classmethod
+    def stream_details(cls, count):
+        return {cls.chunks_received.__name__: count}
+
+    @classmethod
+    def response_details(cls, received):
+        return {cls.response_received.__name__: received}
+
+    @classmethod
+    def observed(cls, details):
+        return bool(details.get(cls.chunks_received.__name__) or details.get(cls.response_received.__name__))

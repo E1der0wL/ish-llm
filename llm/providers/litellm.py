@@ -1,6 +1,7 @@
 """LiteLLM의 동기 스트림을 유한 버퍼의 비동기 스트림으로 연결한다. 공급자 호출은 도메인 수명 주기나 저장을 소유하지 않는다.
 
 Adapt synchronous LiteLLM streaming without blocking the application's loop."""
+from llm.providers.diagnostic_values import CompletionReception
 
 from llm.providers.diagnostic_values import ProviderDiagnosticText
 
@@ -272,7 +273,7 @@ async def stream_completion(
                 error,
                 operation=SDKOperation.COMPLETION,
                 stage=stage,
-                chunks_received=chunks_received,
+                **CompletionReception.stream_details(chunks_received),
                 tool_count=ProviderSDKObservation.tool_count(request),
                 elapsed_seconds=time.monotonic() - started,
                 **details,

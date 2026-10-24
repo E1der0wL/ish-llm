@@ -8206,3 +8206,51 @@ Level 2는 Live/중단/재시도 화면·RAG 작업 소비자, 안전성은 승�
 연관된 복구/재시도 Owner 소비자 정리와 묶어 후속 Level 3 전체 LLM/Hub·정적/문서/R3/실환경
 검증 및 정확한 SHA의 원격 CI를 수행한다. 정책 판단을 바꾸거나 영향 범위를 증명할 수 없는
 변경은 그 경계에서 전체 검증으로 승격한다. 전체 전수 잔여는 계속 목록에 유지한다.
+
+
+## 복구 모델 입력·응답과 실행 관찰 경계
+
+ProviderRecovery·RecoveryModel·RecoveryInput·ToolRecovery 네 파일을 완료했다. 분석 요청·요약 요청은
+지정된 Record가 직렬화하고 RecoveryChoice가 기존 exact-key/action/800자 검증을 소유한다.
+소비자는 속성으로 읽는다. 암묵 분석의 기존 빈 설명은 보존하며 모델 응답 검증을 우회하는
+추가 Reader로 사용하지 않는다. Prompt template이 정규 필드·동작·상한 선언을 참조하지만
+실제 ANALYZE/SUMMARIZE 문자열과 모델 요청은 이전 값과 같다.
+
+CompletionInvocationOptions는 BaseEngine의 기존 include_events/provider 선택만 관찰한다.
+기본 이벤트 플래그와 RetryPolicy가 정한 총 시도 횟수를 재사용하며 원본 kwargs를 수정하지 않는다.
+EngineEvent의 선택적 completion/type 조회와 CompletionReception의 chunks/response 증거를
+실제 LiteLLM/Engine Writer와 Hub 소비자에 연결했다. 부분 응답 이후 추가 시도·요약·Tool 재실행을
+허용하는 변경은 없다. RecoveryStepMetadata의 helper 종류는 진단의 RecoveryAnnotation과
+서로 다른 의미를 가진 각 Owner의 관찰이다. Queue acknowledgement는 Backend 소비 이후에
+해제되고 취소·중단 시 producer/reader cleanup과 중첩 Engine의 ContextVar 소유를 유지한다.
+
+독립 원본/제안 48개 관찰이 일치했다. 프롬프트·JSON 오류·분석 선택/잘못된 응답·실제 요약 알고리즘,
+실제 helper의 요청/메타데이터/출력 상한·Tool 금지·정상/오류 출력, 활성/비활성 relay 및 중단을 포함한다.
+초기 relay 비교 도구의 잘못된 정책 section을 수정하고 실제 producer context guard를 추가했다.
+추가 helper 비교의 임의 출력 UUID 차이는 동일 UUID generator 입력으로 고정했다. 최초 자료는
+보존하며 그 결과를 최종 활성 경로/동일성 증거로 사용하지 않는다. 정상 helper 출력과 취소 완료를
+별도 Assertion으로 확인했다. kind의 잘못된 타입도 원래 문자열 연결 TypeError를 유지한다.
+
+- `whole-hub-recovery-execution-core-01`: discovered/started/pass 75/75/75, exit 0, 24.583939초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-recovery-execution-core-01/llm.json --modules tests.llm.test_completion_processing tests.llm.test_completion_integrity tests.llm.test_provider_diagnostics tests.llm.test_provider_choices tests.llm.test_common_provider_acceptance tests.llm.test_summarization`. source `18e0dab3900588de2e523b140e97f5319ef08924f37164fa93f93d092973944a`, input `f6cb59b2a39dbb37bef93b8b08ccb9acd70a889afcf4d2333e6e7e64d92d1b42`.
+
+- `whole-hub-recovery-execution-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.04035초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-recovery-execution-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `18e0dab3900588de2e523b140e97f5319ef08924f37164fa93f93d092973944a`, input `f6cb59b2a39dbb37bef93b8b08ccb9acd70a889afcf4d2333e6e7e64d92d1b42`.
+
+- `whole-hub-recovery-execution-l1-01`: discovered/started/pass 44/44/44, exit 0, 143.37514초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-recovery-execution-l1-01/hub.json --modules tests.hub.test_provider_recovery tests.hub.test_tool_retry tests.hub.test_retry_observations tests.hub.test_provider_stabilization`. source `18e0dab3900588de2e523b140e97f5319ef08924f37164fa93f93d092973944a`, input `f6cb59b2a39dbb37bef93b8b08ccb9acd70a889afcf4d2333e6e7e64d92d1b42`.
+
+- `whole-hub-recovery-execution-l2-01`: discovered/started/pass 27/27/27, exit 0, 100.74394초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-recovery-execution-l2-01/hub.json --modules tests.hub.test_live tests.hub.test_retry_ui tests.hub.test_provider_activity tests.hub.test_approval_continuation`. source `18e0dab3900588de2e523b140e97f5319ef08924f37164fa93f93d092973944a`, input `f6cb59b2a39dbb37bef93b8b08ccb9acd70a889afcf4d2333e6e7e64d92d1b42`.
+
+실행별 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치, 같은 suite의 선택
+중복 0과 모든 집중 실행 전후/사이 source/input 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790 및 같은 의존성/실제 Linux/X11 환경이다. 명령/exit/log는
+`hub-recovery-execution-draft/selected-results.json`, 독립 비교는 `proof-commands.json`에 보존한다.
+R3 Mutation exit 0이며 기존 테스트와 실제 효과/예산/승인 Assertion은 변경하지 않았다.
+Core는 completion 처리/영수증/Provider 진단·선택/실제 Adapter/요약, Level 1은 Provider/Tool 복구·
+재시도 관찰·안정화, Level 2는 Live/재시도 화면·실제 활동·승인 연속 실행, 공통 안전성은 84개다.
+환경 전환으로 대기 프로세스가 종료됐지만 완료된 Core/안전성/R3의 source/input Hash가 현재와 일치했다.
+해당 세 결과는 조건부 재사용하고 아직 실행하지 않은 Hub 집중 단계만 새 프로세스에서 이어갔다.
+각 실행 출처는 focused-resumption.json에 보존한다. Hub 집중 검증은 Gate49의 별도 Hub 전체
+재실행 완료 후 실행해 화면 검증의 경쟁을 피했다. 서로 다른 실행을 연속 전체 실행으로 표현하지 않는다.
+
+이번 소단계의 결과를 전체/원격 통과로 표현하지 않는다. Gate49 동결 SHA에는 이 변경이 포함되지
+않는다. 오류 진단 및 남은 재시도 소비자 정리와 묶은 다음 Level 3 전체 회귀·정적/문서/R3/실환경
+검증과 정확한 SHA 원격 CI가 후속 게이트다. 기존 권한·한도·저장·재개·외부 효과 계약은 유지한다.
