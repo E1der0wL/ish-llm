@@ -10,14 +10,20 @@ from prompt_toolkit.mouse_events import MouseEventType, MouseButton
 
 from ..asset import icon
 from .section import section
+from .input_contract import MouseResult
+from ..config.theme_style import ThemeSelector
 
 
 class SidebarHeading(HSplit):
     """Keep section titles and rules identical across pages and focus changes."""
 
+    PREFIX = " "
+
     def __init__(self, title):
-        super().__init__([section(lambda: " " + (title() if callable(title) else title))],
-                         style="class:hub.sidebar-heading")
+        super().__init__(
+            [section(lambda: self.PREFIX + (title() if callable(title) else title))],
+            style=ThemeSelector.SIDEBAR_HEADING.style,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,11 +35,37 @@ class SidebarItem:
 
 
 class SidebarList(FormattedTextControl):
-    def __init__(self, items, selected, on_select, *, key_bindings=None, on_activate=None):
+    NO_BINDINGS = None
+    NO_ACTIVATE = None
+    FOCUSABLE = True
+    SHOW_CURSOR = False
+    ROW_HEIGHT = 1
+    DETAIL_HEIGHT = 3
+    DETAIL_CLICK_HEIGHT = 2
+    CURSOR_COLUMN = 0
+    NEWLINE = "\n"
+    UNSELECTED = " "
+    TITLE_FORMAT = " {marker} {title}\n"
+    DETAIL_FORMAT = "   {detail}\n\n"
+
+    def __init__(
+        self,
+        items,
+        selected,
+        on_select,
+        *,
+        key_bindings=NO_BINDINGS,
+        on_activate=NO_ACTIVATE
+    ):
         self.items, self.selected, self.on_select = items, selected, on_select
         self.on_activate = on_activate
-        super().__init__(self.fragments, focusable=True, show_cursor=False,
-                         key_bindings=key_bindings, get_cursor_position=self.cursor_position)
+        super().__init__(
+            self.fragments,
+            focusable=self.FOCUSABLE,
+            show_cursor=self.SHOW_CURSOR,
+            key_bindings=key_bindings,
+            get_cursor_position=self.cursor_position,
+        )
 
     def move(self, direction):
         """Arrow movement stays inside this category, including its boundaries."""
@@ -54,39 +86,65 @@ class SidebarList(FormattedTextControl):
         for item in self.items():
             line += item.margin_top
             if item.key == self.selected():
-                return Point(x=0, y=line)
-            line += 3 if item.detail else 1
-        return Point(x=0, y=0)
+                return Point(x=self.CURSOR_COLUMN, y=line)
+            line += self.DETAIL_HEIGHT if item.detail else self.ROW_HEIGHT
+        return Point(x=self.CURSOR_COLUMN, y=0)
 
     def mouse_handler(self, event):
         # Handle the entire row, including whitespace beyond its title.
-        if event.event_type == MouseEventType.MOUSE_UP and event.button == MouseButton.LEFT:
+        if (
+            event.event_type == MouseEventType.MOUSE_UP
+            and event.button == MouseButton.LEFT
+        ):
             get_app().layout.focus(self)
             row = 0
             for item in self.items():
                 row += item.margin_top
-                height = 3 if item.detail else 1
-                if row <= event.position.y < row + (2 if item.detail else 1):
+                height = self.DETAIL_HEIGHT if item.detail else self.ROW_HEIGHT
+                if (
+                    row
+                    <= event.position.y
+                    < row
+                    + (self.DETAIL_CLICK_HEIGHT if item.detail else self.ROW_HEIGHT)
+                ):
                     self.on_select(item.key)
                     if self.on_activate:
                         self.on_activate()
-                    return None
+                    return MouseResult.HANDLED
                 row += height
             # Empty rows only focus the category; never select the last item.
-            return None
-        return NotImplemented
+            return MouseResult.HANDLED
+        return MouseResult.UNHANDLED
 
     def fragments(self):
         fragments = []
         for item in self.items():
             if item.margin_top:
-                fragments.append(("class:hub.sidebar", "\n" * item.margin_top))
+                fragments.append(
+                    (ThemeSelector.SIDEBAR.style, self.NEWLINE * item.margin_top)
+                )
             selected = item.key == self.selected()
-            fragments.append(("class:hub.selected" if selected else "class:hub.sidebar",
-                              f" {icon.SELECTED if selected else ' '} {item.title}\n"))
+            fragments.append(
+                (
+                    (
+                        ThemeSelector.SELECTED.style
+                        if selected
+                        else ThemeSelector.SIDEBAR.style
+                    ),
+                    self.TITLE_FORMAT.format(
+                        marker=icon.SELECTED if selected else self.UNSELECTED,
+                        title=item.title,
+                    ),
+                )
+            )
             if item.detail:
-                fragments.append(("class:hub.muted", f"   {item.detail}\n\n"))
+                fragments.append(
+                    (
+                        ThemeSelector.MUTED.style,
+                        self.DETAIL_FORMAT.format(detail=item.detail),
+                    )
+                )
         if fragments:
             style, text = fragments[-1]
-            fragments[-1] = (style, text.rstrip("\n"))
+            fragments[-1] = (style, text.rstrip(self.NEWLINE))
         return fragments

@@ -16,6 +16,7 @@ class ThemeSelector(StrEnum):
     SYSTEM = "hub.system"
     MUTED = "hub.muted"
     SIDEBAR = "hub.sidebar"
+    SIDEBAR_HEADING = "hub.sidebar-heading"
     SELECTED = "hub.selected"
     FOCUSED = "hub.focused"
     SETTINGS_INPUT = "hub.settings-input"

@@ -10,6 +10,7 @@ from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.screen import WritePosition
 
 from ..controls import ScrollablePane
+from ..input_contract import ContainerControl
 
 
 class SettingsBody(HSplit):
@@ -17,8 +18,6 @@ class SettingsBody(HSplit):
     UNMEASURED = None
     NO_CONTROL_ROW = None
     MAX_MEASURE_HEIGHT = 10000
-    WINDOW_CONTENT = "content"
-    FOCUSABLE = "is_focusable"
 
     def __init__(self, children, fields):
         super().__init__(children)
@@ -27,11 +26,10 @@ class SettingsBody(HSplit):
         self._measure_key = self.UNMEASURED
         self._offsets = [0]
         self._control_rows = {
-            window.content: index
+            ContainerControl.required(window): index
             for index, child in enumerate(self.children)
             for window in walk(child)
-            if hasattr(window, self.WINDOW_CONTENT)
-            and hasattr(window.content, self.FOCUSABLE)
+            if ContainerControl.has_focusable_content(window)
         }
 
     def _measure(self, width):

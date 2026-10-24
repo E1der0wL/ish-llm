@@ -6,6 +6,7 @@ from prompt_toolkit.keys import Keys
 class KeyName:
     # These aliases intentionally retain the spelling accepted by existing Hub
     # callbacks. PTK's canonical ControlI/ControlM names are not substituted.
+    SPACE = " "
     TAB = "tab"
     SHIFT_TAB = "s-tab"
     ENTER = "enter"
@@ -51,6 +52,9 @@ class KeyName:
 
 
 class ShortcutAction:
+    RETURN = "return"
+    TABS = "tabs"
+    MAIN = "main"
     NONE = ""
     EDITOR = "editor"
     EDIT = "edit"
@@ -63,6 +67,7 @@ class ShortcutAction:
 
 
 class ShortcutLabel:
+    ENTER_SPACE = "Enter/Space"
     HIDDEN = ""
     MOVEMENT = "movement"
     ENTER = "Enter"

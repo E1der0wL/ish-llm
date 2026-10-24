@@ -1,17 +1,32 @@
 """Shared right/bottom spacing and optional fixed heading for page content."""
 
+from ..config.theme_style import ThemeSelector
+
 from prompt_toolkit.layout import HSplit, VSplit, Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
 
 
 class ContentInset(VSplit):
-    def __init__(self, content, *, heading=None, **kwargs):
+    NO_HEADING = None
+    MINIMUM_PADDING = 0
+    PADDING = 1
+    HEADING_HEIGHT = 1
+
+    def __init__(self, content, *, heading=NO_HEADING, **kwargs):
         # Preserve the body and controls on short terminals; spacing yields
         # before a required row disappears.
-        padding_height = Dimension(min=0, preferred=1, max=1)
+        padding_height = Dimension(
+            min=self.MINIMUM_PADDING, preferred=self.PADDING, max=self.PADDING
+        )
         rows = []
-        if heading is not None:
-            rows.append(Window(FormattedTextControl(heading), height=1, style="class:hub.title"))
+        if heading is not self.NO_HEADING:
+            rows.append(
+                Window(
+                    FormattedTextControl(heading),
+                    height=self.HEADING_HEIGHT,
+                    style=ThemeSelector.TITLE.style,
+                )
+            )
         rows.extend([content, Window(height=padding_height)])
-        super().__init__([HSplit(rows), Window(width=1)], **kwargs)
+        super().__init__([HSplit(rows), Window(width=self.PADDING)], **kwargs)

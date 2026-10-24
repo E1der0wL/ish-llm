@@ -85485,8 +85485,8 @@
   },
   {
     "path": "hub/config/theme_style.py",
-    "sha256": "8922ab28008f9d5226ccfb06834e26aa9bc38a5cf8fa60923355f7d6a967cb35",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "sha256": "ea7413b96c4905a922f70760b6dadedf0683cb4762e0e57bf7d91ec2be576939",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -85544,457 +85544,457 @@
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "7a1a452f65349b9eaed63dfb3e511b257e299c996e57152beba33ae1d8dc7723",
+        "id": "9d8f3631f6bd1cb37d3133bc150c305c0c480a371d06c1f199ebaade99c2a9bd",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "982869070dd59fdc0109378b5261dafa8200cec61764b7289642ba46ecb8c6aa",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "3e7ff7b33fc47be99518267559c7885faaffb902fd1e3521ddf652c6bd299678",
+        "id": "569edefe941b486ac706f0a1818a2cbc2b565da4f2a2b2d00bb4d747ae46f7b2",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "20d80347c8ca613ae7968b0e3454f06274b5f17bca69a548e9ab5a1a85799b70",
+        "id": "4feb877da712643feb76659d61e280ba3f090e752a2f524e0f3043feddb34f3d",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "b6504e02e96960176e78414b30d77248ead865f0e2b5102e0d43d0ba66940de3",
+        "id": "ba3c8b154fa7053f436e317e899419599bacf462ea5c06430a5c45f15d4e0dc4",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "db398317ae393cb401ec137869767380ea22edd0f1bc4cf8e8466531c131231a",
+        "id": "beab1366aec55b36f418e16ab4c67e3db15af8f5e2866e8e7f222b24d536bd4f",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "73cecdcbe935636108ffe514acf8fcc98bd6b621824648ce135c031175c89138",
+        "id": "d9e5646dc12446cfb39c5e8cd8a50d6509a69f7f989a0741bfd1d6db258d2373",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "34b106cddd23606c4403140a89870df3adc1035faf18228a1f39310efed42f37",
+        "id": "a6a4420b36accc943faab0b4eec69b3b8d863ba136246feac4d8a2a1cf9cadb2",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "22779d7850c489b89a2f1a0d34ff3ad5c672015071245b56c34c0902a9bbbdfd",
+        "id": "90d30088e5252a3387dae248c60bc26f6c0a6b96c2360949a4f67240f576e638",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "7579fc8ddfeb14e0ab88df2cd3f02ab0723e7de01d476e4078a1512fca55afaf",
+        "id": "36f54fe5bbf0719ba1d8139abc176d5f18b6bb958c5bf13ac15b94f2c65a83d4",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e5a43a6ecea3415bdfddabdb7cbdacf4ab90d8275bd1154760fbbadfd7ffb3c8",
+        "id": "bd42193f8a174c57206e14093ca9e0840bf18e3e04abfc41eeb1524a047d3506",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "5cc03e6e99357d37a258446998760378b9ac5330cb6f2a09680882fe7aa19505",
+        "id": "7418d432215210c77a1b9fb287463cc90aebf5e3eb44f1296cadb261ceea4409",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "5f8a3b6904f11910780c25061387d67f91d26f76cf2627b20061c7d7d5a50cd9",
+        "id": "eb999bb13845d8e4d247e550d0dd4ee42894abc3ccd33f2508b56d27e30444ab",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "62c5b55c1ace5038ca6ccac3929ec0ef319d0af5be2c00ecb3631f0cda722715",
+        "id": "f82df47219b6a3fb8d073804966ffe3e88495cb05d17c159adc758e129d5c68a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1808587b57de8620f119c96de0a0eb9309f876786b069318116e5d00828869dc",
+        "id": "f6918122f165d40990865cd6e60538e957788344168feace7416dfc263738dd5",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "2d7586de4e22ed8b7448e080805c90b55f2c9dd77661818efd99b215f7574155",
+        "id": "97c511d81f5c24afa50a40665413594926297cce25acc76dbcd908100d009aae",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "69013dd67093298844631f5326689d0fc3a37052f82fbe8985d86484284e8c71",
+        "id": "d002013c14e16bfad7b6f78f89d45bca09f9fb9adc1753605304b997db383834",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "4762d04226ef91f0b25c28eced6965dd49ba6133b6f236e005d07203075d10c0",
+        "id": "df1ee3707d60d7c7f4b7b249560cbebb15a6ad11ffa77295b45ef764a9e3219c",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "8f96f81dd3695d12fb2ec53bd21f456cd8965ecc168fee75737c058d1ff15908",
+        "id": "1cdb0569e804217284e194a3b0696d49551f6487355886814d115739bcbeb6e8",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "bb888dd25ac7c98dac598fa3f99fb2ac70536ed25e0886a0cd5068788f8bf536",
+        "id": "2b401a3f370b33a086f6645110ac45c7b9667e93f3baaa5e5277d3dedbbc215d",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "16480a1814d09388fc4170dbd066be8d656b6df9ac67eb832d15fa44f70df324",
+        "id": "bf6f5380101d8e659b1850af9b384a2539725d60e5c6c977f4ce6213957c896e",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "58257b90a9534362d5c1723c3751c5fe91e8a24a7b248b170d7994d30bfc1cdc",
+        "id": "a0130c144fa582a69ce2042b13a2fc1122d048c124627981cf2010d8484c4c5b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "a96b5226ad10798e9e5d25ab1d633802a02df6e8143dbbb33c9062c820da77f2",
+        "id": "c923086ab26a0534272fabed93cd182aa8672edb6ef4b6d7b3499bfc294b82a7",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "0c97ad6933e675dba8607c84d0c2dfd90b44144e95559393cbf9627c437897bc",
+        "id": "2748e36522ce247b11c5fdac795fac4a4a285f7eb00b2b0ec29c4b6bbccd3027",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "b5b06d276248f5723c1de1f20d721ac00be5512272388e84490abc688ea58718",
+        "id": "b7efa5d50c25cea5b5d43eed3346d5dafc659633ddbe2c45f2fc90492b9230d6",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "86afce7ab22f1eba57af4ebb8f36d8b74086b96aaa6bc63cbe4731d1f73f9d06",
+        "id": "2ce1ee529fa870e02eff7c3a41be95574aa82dbd406bd6131e39132259d19abc",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1e44e8f04044e00dea88dce32ef121b56f99227de9f52c4dc50c3582ea689d09",
+        "id": "736933445753db81f071a5401dadea795e195e0d3cb441ed042bc91191bb13ab",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "c528fa03118ddc485ed6122a88a26a64d297454d327e7655f8109a08097c65c2",
+        "id": "acbba2cf71e0a72bf0f9d29bfb02efa247c74a92bb7341672e361ab96e425277",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "ee4a737a52abef8621560ecc49b49d3c1296bea510c507eaafe0a40b0509bfc8",
+        "id": "ba38b8fc213b79237d9a19530a91ed43aa2f1f6b61239d0fe12784826eb9f10a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "f8b99f72f595506c0fbba5305fbfb0b5c03bb9fae6de5d27d4ca03c3c2c2104c",
+        "id": "4312ded19de6a8904d448bfebc6af87f05c7272da1ef19f66ae53a3b52d08789",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "5b44a5439c9c88c9d11a52f727b5eaa6d3292d92e3d8e46528f89abeb3ebc080",
+        "id": "42318621ed54d44fcb8970a422b030d90281e97b5baaf7cd40294cef1e098d2d",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "a93a85875294518a214b8cf1529d1366cc654e7de0e83f5b646ae85caeb8a908",
+        "id": "b6b6a63e75e467bcb0aa0bbbda0f9405c750211f504c4a4c2db37c6f21c0d538",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "953c357fd4600e731c48e5ebcae80a670866743fca474fd47a93fda6a71dee0a",
+        "id": "6314ffc3584097fe9462f4a7dab0fef7cc7e6f19d68e24b9cfd68af6bb40e168",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "2a87d8e4055c0ead1dd91e4bbb7ce1430c11f8c7988d0985de056b38dd25f1e9",
+        "id": "62b077ea3f68f66cc6bb67263d79fda52d0640f9979c820431a6c1823b4faa0b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "bc06581be259015b239a852cf6d96afc87c3993d073e5df908fe010911bcf937",
+        "id": "f57a260193b2f4492226a612cf6350ea947dd57741b78f473215521439cac017",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "4758a0083456b9c4b53bf99a33eb45152114b9210cd8b94521897f6fae91ad0a",
+        "id": "d0974cac59b2830633f442327a8ed076b8d10a8570f854bf8391d044eef0d9ee",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "43e002d62ea4550e369fec65916dc5d720e82983f32d18a62cfc6cbfc3233aa4",
+        "id": "16727e1c09a7d86c40319c808ca5df040358085e0eb3ff9c0b37323df517d715",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "d119f52f527d341ca923bdb7acddf22d14ce1fb95b24a80ff06b4933a2beab32",
+        "id": "fe13bf29f22d9c8e3ac902e9b589596edeca89273974051aa0a78ec90badee79",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "31f84094ab3858797f56dab1ecc175f58c4e7a6d64e5626555821d88dd7f0acb",
+        "id": "8afe4fef11f18b285e2b47436ad92fa1d4e8865839e8b9f3a37a366c649fe16f",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "064f505fb90fcf94d8456cfff3f344544f4f292ba4f44a5d38098684dec89da7",
+        "id": "76426c8d3edf6a7ffdf8da932fbc7b6410d162f6ffe0288ed2f2d7a8adac0b8a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "497a0391bd3b4cd0963b904d6662a706a0a1711582605b5a3eb60f0efde80df8",
+        "id": "90cfcdb151e66c046b0b31ee98cd820662c41b8d3663628c1d1055d405dc2a9b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "62a9325f0328e5c8aa7ebb3bd8684c60e539976be4ec9fc4afabc162e5923888",
+        "id": "a9725fbada46d67fc4264cbac01d51750fa375e00bea935d15d7cbaa8af4b2cc",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "ebf618935e5a90f07f4e008434c83982c9036c6853f2f2a65090846ed6753689",
+        "id": "cf4eea0124ef6d7e4ae3f1d2452787df59fa16a91545634dce9b63d3909dbebe",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "2e98a3d9b74441038bd0e7d2cf03303af64ccf28bf4c540e495f5e783e5f4094",
+        "id": "13cd5d72abafab4a21180123ab95ccfc0c2b572b9bca99d8b10a69403ccdcd76",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "eb0f6570dfd0678606672adad5531f5c797fbc3884f15baf9ebfd4cc3ed0653f",
+        "id": "19e58b408fb6bf73dc7bd3acdb7169a9346efe6afe2fd95ed1d04afe96032acb",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "97eef56a15f06d6942bbe435332c41f20ca2c20bfb79ab2a4a6a6963762f2a4f",
+        "id": "67471f699594dd07a44ef402430fcb26ea4de354fc7a7e4a32bbffd37236a0fb",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "5d815b007727124102500daa80d0823ba75425e2b48742aaeb73220bf3f7d61b",
+        "id": "038cc18587224d5bc7d7a1da17d7743924b2bd8771f39400a8a233c911feaa6c",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e0a56aeceb3d6db9cb4b3b6f541070386fb7d1fa0449057bd6f306ef53da560f",
+        "id": "10f4e68d4516779dfc067e273e56cf7547f2dcd95c8293724a8d5b9b4c4f7298",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "79746a56c38999bd8f1728dc1c64254720586bdc89ed9af7de909d2272f355be",
+        "id": "aa33ffb59ecf7868b82577f510b64220d3c67957a75468bea7683c39ac3d1bfe",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "10ffdcdcc6dda302c5ad684bc7c8051f2f526fd01b2aa7c54501644cf8aee23e",
+        "id": "31bb2dfcfd27f924acd008060aabc9b967c052f912b2705caf4aa1f931945c0a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "9512582bc27638f9487c36b0513a56ef9f0c38ac36bdf9f91695d2af2ccef3cb",
+        "id": "d03a018c92c434265335b2a9cc600bbb4bae91ad896a3e26225ca4a638182176",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "6b74443d053d9aece0bd666c3c43ebaa9a9a4d726c56f6e1a3bc60ec27622537",
+        "id": "bcf577323d313d4306e10ddbe842cd62ea71e93a8ab9ce78b8f69695aba7d06b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1af67ad67aeb6d9a07a5ca31b6c39d12ea023aa80a70dd2e045f328489f06ff8",
+        "id": "129708ce6115383729e6a0a449916c8cace048f46643865deb620690c1aae7ec",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1718f74b96e60fd1aa87f5a0d7a926eec0219f8e5b49aa9d069df8612371cf91",
+        "id": "6c63935b063d087ee4949ced665055609aad4764935c89a3be8eaf6fa4ae64db",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "46db34c3bda630713ba1ab6b8de88ca1310d0cc826cdc145dc782a3996f4ff72",
+        "id": "20c9ab12d308d38ec863c5bc93495b0acdf315b272367e170022e4e228cfd84d",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "50498008248b87093e4cf4eeeb9ec202395c29d398c12957fc83259144bf0fef",
+        "id": "0fc0f79bd67b325baca8e884305d6daf2a1cccb8d6b815aea9890a40bd1e18f5",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "951af0194ea1e9276d0e02c9a9a5c461102b11e295092b0cfa8b868a034a2efe",
+        "id": "a60745507b5660d92ddab418272fac3ffe4b6c3cd5528194a502e15805b35bc5",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "fff20ad230e7e9cd38603ae7976fb168ad916fc50189fa3ae3652eaf907c1c0b",
+        "id": "27f5b0edf2390f775f487f9397c4271ab37f0cfef1b610b22ac53e0e50d190e9",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1e6f4c8520b29e0acf3a427cdad01c6da75c1e841d1a15c2f3aa08c7d8e4dbe6",
+        "id": "4ecffc8f8c8b0643ed6b204d4361438ef0fcdf3d252ab3f1eb1a9f15ed88a5d0",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "a9d997e71b5869e408fd1412f617c3547b002fc193580dcb5f4453bb72565da7",
+        "id": "fc683a5981d677ffd635567fa53176c7d0ab4b1eda8bdb9134c383eae3d2fc60",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "163bc5de400493a4e8249058ee5f5bd815ec36aeb52d784976789f5933591f05",
+        "id": "298e5c5bf1641c9c61bc01cb3f6cec6b58e03ee2babf7a89d3db27999ae41d71",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "271863906d8dfa6093452556ba53dd53d74eac39aac643414f42030968d88b6d",
+        "id": "e41e1dbc2916a33df7616b26cf6824e4ea1fba1b469e62d24b2f273e32911b67",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "8def30d83672bd8c5e181549806f53407bcdc96c7f82238628d1f9d33cc9f740",
+        "id": "6e2115288fb8652122a10a10592ade32ad686d56fbf8ca2ff900720277fedfdf",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "eea6a82c145b33edeb20d42222e191c7910cd5e7a3bc49918ea8893ded338a02",
+        "id": "eeefd5929ad1b7b02d272396e3965194334c1c97f8ea1cc7855de7bb82df375b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ce0a761bd4a9d0a97a2ac5168250a3dbba8a9d703a27fc1ca8ef1ca3526f51ba",
+        "id": "a5dce36904658193d5e65103fa89308092258b05e0b91a359b81f4ee120d5824",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "86955f30ba9e129e33b322651d8329e37222f35be070b9059364e7a1dea658c7",
+        "id": "cfc2f643e4ea12c3e4eca6b06d17fe626c77734df987d76d57fdd37e0b71dfc4",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6559dc8b53d048c070842f1ec597d0fe96cbf66cb45486f0e9d05e0325ff8adc",
+        "id": "864d195ebdc9ab55b397bcffee0fc5be854e0e4e6a2da55ac474ff2fd4cb5a53",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "46471221f3a7aa0c69f6d598c8f371a3ceecd7e61dc25f93cbcf8383b8067004",
+        "id": "4fa0cfb3c8d9ca91872fe2278d7338b5ee3814a6c4d3281981f6f58e06cbb49f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2bc0a2382cabfbb619b232c82638e0060620c6a96cc680076fa7317c060ffe63",
+        "id": "e961f14e2361321bb2800bd573ac86945c3fb2e4bc9c05bb0de23e04d17136df",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "dc00052975a32669ec7278e7638e29d2bc1bcf353acd61a3455728c4d6ea7b3d",
+        "id": "54e528e44a595c6a99f002a22166c836407bf5515c9cb495d61e87a5b56576ef",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7a02056651e659bee025ec66fe4ee310bc5b8a942155808f28a8064454013833",
+        "id": "c9dc80b5193a869cfd5d50399425a9f1ba6dca3d58a27694e5d6d9982c019875",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "afca8a6f6722ba7b0da63caa18d93c84141e2330869db6bd046286947d1195e9",
+        "id": "6af4aa1ae20a2f3e025f26303433f851333b49342a873d21db7611f50accadea",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9467d3ca4b98ded05ca23002ae0b0823d7a8953460d9ba75b176711b38f10bd2",
+        "id": "3acfb0b89eb08578da23c6c9a4f0114b83c5bd12a2c58741814970dfe2bc50ea",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "19de22c652a48a444b476a74fc2153dba5f357a164ecd206a2e4c17c898f3442",
+        "id": "48fab4b61ba8c98338f8307588ce0485dfe7766a29d3289966fcf094fddde538",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "84b1c22c08052017bfdb1684c0a048fd35959158d3fb30f27f6e6c8261973fd2",
+        "id": "1e2e003cf614f0267dca5ade86d0f63b75347d3b89bd292490069f358013382a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "706b99089978fbaa4b606c42d071180966568b8127cea38fbc190df9f7e4671b",
-        "classification": "declaration",
-        "owner": "ThemeStyle",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "f2898da7f0d0c3dff766c53140f6b8765f03af1141cb929c95a745bb9a713948",
+        "id": "d65f896d1d1635427d8581ec073319171d4cb36a578d1602e8be071bfaa2c735",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -86006,349 +86006,355 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cef8324b35ae4dc5e24fc33cd524bd7df09cce93f1117c796c299dff90974464",
+        "id": "cc55a2eb8eb57c53ec77250fa41cf49a0ac105f40cdaa1d50c38fc983fc1f8b2",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e229d6d7d588efd111f6991d761629c8279964f4c00355cf2d07166502ffd3e9",
+        "id": "2bec276776dcdb25818f7f1746442689e6e5a40927b8ea0be69293fc764c596e",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "73407cad9f7f81b815a5f71972b019eb60cdec2e2a14ee192fe001a6d22bd666",
+        "id": "54f3df7be3831ca02c334faa61a92389d6c3021e9799344cff35f3077bc91698",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c3d05019a42c8375a1d2f14810229d20b5ff78e7c6667fbc6aa493dfea94b0e1",
+        "id": "554c48b794a1c90a14a2bc805b311e5df3492d7a734e3f9074647bd9b2f80bcd",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ab49ea3e4bd34ac925ac0ac49cd663b8e256aa4f5c46a4534dd08d2000f4e6f3",
+        "id": "6324820872dba602116e5f1570df3c7cb3508897321fd6376bc028742fac78ac",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "36a8d856daff5cbb1d00503754eef66bb4805e590838548a50b1563582b78e33",
+        "id": "693261561671385f5f2ec40127e69625dbfe5a1beb8510b5d1b601cc9effc80a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "633d72a7f20a744a0b09f3a5b8a27ff789399889c40f36e9e76098a9454cfc82",
+        "id": "92fba3a30c037228e2e49c844e31921014c3f3d1babf2288a06798eca60698d9",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4cae4ce281c824a09a6a6f75d705b718ac071542647ed5ac6c35c5a4e2185251",
+        "id": "caea697fe8161342e1149662b09312d6db716ea2909fa0d070b407d8ec347032",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5f820e5019b607bcba160b4c7550f9a7b7216b0560ea02d4bd90e58b36f4e432",
+        "id": "137da52825a67bc3943be4b0a8adf45829750bc7c8b32818133997551e158a50",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "688fa39f1f788d26418f2d77201fdf01e4c5c44eae6ad5b22f1c7bec8b246eed",
+        "id": "d2eaa20c150a874545423ed246a946c7885f3279cfa127e0a7bf8f4b1876c55b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5c3d986437e84e66c6abbef81a89b8398081c72cbd1d74135e1d40537f9250bd",
+        "id": "874b09cf3891ea4caa5ff96506f090b911dd30a021d1d5da5edd84a266bf5d87",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3c96ae0b098b3c2562168a3863658f0744baa8a4fb9fe3fc1fdc2baf1924256f",
+        "id": "fd358f582155f2fccd857ef0628100769f5e6737c4688b80c778f346bb1b288c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d3de4d4c0e802cd27c573f7798205d19a726e0284bbbd31e2b0015ed11daa865",
+        "id": "50d4e1007b574bd54cc0921f2084c7d17a332553e2010c0530ad8cee823b4178",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "58f9df711769d7d60ee7b3bcbe4ea4d89d6f1df3fec30cbbcdf789c43d297cce",
+        "id": "562ccd1faf85661496a6a8736ec2cfe35e6b45a50462e3c32602fde4ecc43156",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c40ec1095a585b7053322954cfad746dcf40c0b0876ba61b5e3c41fff859fa22",
+        "id": "73f101b2953a63f939d4bcefb947243d618861a65e37574edef3550070335302",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d7da85aa8782a30fb2cedbbbf38060e49cdbf86137948537a134e7681f213b5b",
+        "id": "8a52885809b819ea89e1a078a55293d78d6d35786662953e3ccdd46d5fe7f17d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9ac931985eab3dc0dad7c1ad778246c31497d52e5b832518bc6cffdd294aef17",
+        "id": "2db5a2c52fe944100e78665bc0d90984aa87ae6e78c4ff505f1162f83da7b211",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2895d438ba3ef2fb89279da6548813a94db6bd227485599c7f3752855aa54aa2",
+        "id": "6f9b6aa1dccf646f69a463baa1a15f1fd4ee599e57a7133d74be7331a70065e6",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7896eea632c981be906a5fefdb0fbe29c95bf565614a8bafdb10ab4a3cc4bf40",
+        "id": "1fe4d818c8e667a54bbad2816a52c47df07b7109ab4c3da241a346eb81c7cc6d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "67649197a0632d9264b8363f4f9b9d80b42f82ae8263c38d4aa5473797ba8a68",
+        "id": "6e7577d833ec0fa95aa1d70c8d938a04118dcdbb98363a0fe7350403fbb81bec",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c3453a55d58526225e5369cc9b334fec2ae2a493f4ae9d3e53db89d01deb8f6a",
+        "id": "441329da7536d4c80d46d86bb04139270e7bc94442e966b9da6170c6f3a5a503",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cb2a72c87815fa78c81c5ccfddafc57fb9cc9ecd0777b5f3c0a51a22b96e8638",
+        "id": "92602c060a9fcb6d2b7663b79ad5b2f9992238fd5fc724c239df7bd094f3e9fc",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "25639f19a96e4cfcebba7745ee4d76e14fa4e37c75cea93b7f0634eba80e5b1c",
+        "id": "e1acb2dc4136d753805f4f316c0f48af9e64d2a938145d3c991a3b837eabf118",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d992c3cc3008d3e03570badc23030bbee6b9fcf064b862ea411d8779a191b2ca",
+        "id": "a4760b5d8fa6b4c110f9b76b4b956036f26daa0996b2d1e12f02f515ff33c1a1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d7f582bd56f1eb244101fb05e4d41820fb0f107daf9567447bee8e53bf475cd9",
+        "id": "aef3daef5f5f447a716e73e8eb1fcf1aadd7d1909d475ede83179cac6fd9b975",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "26d32a0cc6a3ab86f901de9aff6dd1136be4c549b735bfc905127a364b782cc1",
+        "id": "f1c7708d8c7ab6aa1e4e8fe3605e7d81c9855a7948b4f801a53d836e2608f46b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e6c03c7827db59dab59bac08bdb6f63134c472887791cee0623a40cab9fc1a66",
+        "id": "9093243a66bed1bba96c69fd7d77b629fca264fa372dcfbb04a0ce60299da807",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "97245337953e7885243edc91b35b6260575caf8ee0ed776b904a7a0839af6c0b",
+        "id": "c34fda68e5292691a70f95a7c91a502549b32e4e6f251ab45f6c42951285d8c2",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "893bbf766d42f10a3b4c8483a5a98ed9fc1fa8b9c369ccdee7213a6b2a4a9318",
+        "id": "9468e853336179ebd83348f7ea415f7cd71efc98f379d540e854b32b07f5e0a3",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "06ddd87b5b272466abea4ef921284a6f871eeb19ca6310345ab2c9b6a07382ed",
+        "id": "35c22a555161cabb9a8537e7eafb7a729c0cbe84b5ccdb847cfbd2f928deed44",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3090efe27f5065244c8a6694a73a4e10dc28743cb57f99607c2fa08f9310d7a4",
+        "id": "b664843b5ce579a826ebfa5664e58acc80149965831eda012191679485f7c745",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "592b50da2f15362ba76d171b6d410f32b30a328690ac13811e34f2ff90793877",
+        "id": "3e1b94d7b1fb372f3d75e972934ade37ffb44fb70c2adfeee83130ebab1c92bb",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f7b05ec3eed96c7ee04a707dd4299bde269e9bceb3f37f9837cb506bb24c95bb",
+        "id": "93bd6e4767f7d32f86ae521cd37535acfc42501a71c3f0ff9e26986027442ea1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a47fce95d1090a40f3b2cbc3e6ca7581c1724aca93e780968f7cf1fe9df3dd5c",
+        "id": "d818f6d2d03facb6c18c1a0313fd9b3e6a0893a304a348d837dfc77a16f828ae",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c4d6ed586c748e3d20c2ae1336abe8f6b1176779accde22f3b0bfab9afef88ec",
+        "id": "088b1e446bad6b9e093085af3416b8c979eebc74698cf8e357807d311c04afca",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a7e0a551ab8375e9da35893664c7194bfc6680a40c2e58fc134aa9b14b896dba",
+        "id": "1245353c64a639348ada3cd72f6915f76763f341a46d1557fae5290c30417aeb",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d0645ab011a408d11cca5c7bc241ddc9aa60552054665f2b7c3bf31151d52856",
+        "id": "f35db45cbad68d83a25d00ad8c8b79ca77268b4c47aaa7ac922258438e2a070c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e33925fe2653b82157fde4932c9b97dd690dc94f211c0c9094019d502573b0bf",
+        "id": "9400a81823e3e8c0fc1cf4af46251a3ea3a4edfbe0cdd54d3d8793f81e638519",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1ff2c1c6068d44be47beb69ee6fab0ae1381ffb8ee728308915b5c2ce0be362d",
+        "id": "03954d503f773a0dde7eae77189f853d7bc5688952b391c9f19da2dd8d3990ed",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f15a1c613bf0dfb191ed60eaa8a71e7728b6a4008071cf33802e7e902f3bff5b",
+        "id": "cf6baf215eef513caf92944bb12fd87234687506d52ec7095d307cd3e938d702",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "848ccbf439563ed71ae1c9b4fb6d575c9b404930d063a09da571a97f9e5f69b6",
+        "id": "e36712f96be2a780bd52f5077df559fcade6e49303ff1069314f50cb3e443035",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1f3276e8838fa2f0465ed5cf9945e19565975ce05d369a2d6fbafa9ac311cad4",
+        "id": "9cebc45e445a8a1bc45188b4239cee4a37907d0a842843b4b24a09ce232691ef",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fe3c9410768e96e7a90720d25be3a9d3dfd9f2c8fc700bb81b54aa09ad0291b7",
+        "id": "fa80a18757687dedaa130ed030f3e439d07faf564a90c1aad54ee590c8a1cda1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0bd74f737a7d91e1c0dc365608d01c4346ce0f01e2ddfbf7ae1b46e8428fa51f",
+        "id": "9d6121818c8cbcf525a9b7b26475f722a50a361b9851b52dc0d1d5c8610e7182",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "851551d269af7a0f9245ddfe2ab45af5d519d4e1a8e3d4b921ed62db89a57063",
+        "id": "62caae454476914ad022ad2c6a13fdd1a145edce34d51f02768754bb357b01ec",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "31f558d97947ef9dbd93d252cecacb1ad4516aacb6fbc49ec46e689e94b808fe",
+        "id": "0ca7d0c6d6ca7696d170635af47989ac821ca044c6a2090340e1e0e3e15886d0",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1904659281ba9f6bd9dacecabd485cee7874a9fe067ee08613ae0e0087246e5f",
+        "id": "7ce582e4719f6684c87c635944004ee7c76f84baebd41b8deb56c100efd27232",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "260700e1590f6678f99882febb283227ab0babcfdc27b330d4d0b478ea37098a",
+        "id": "49cc2c8ddcc600164263038148b1b02b62bf8e510b45aad8d1540b329de27d28",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ba4a579c4f055e36b14b50722954c42fc5801ef46931363bf7a833144676bab1",
+        "id": "de5dfce92f1986dd01985f68259e329e4e3380220babe2ba4640ffbc3d8bb597",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "88e6c945569c6aef020ece610f29a595638437771159c6a05bf772322f17d6c9",
+        "id": "55b91c17c7e1d71b709aaa752f499d7a83db8bd906e28d88e9b5317aba052925",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "dcfd4ccc965f25f579187594fd1bf940eb47309e58c63b3f194d5d1cd9d24b07",
+        "id": "47f658c9bfcdde0d7f4775a6db03e2caf194cc28258e4b5a719c7656903b0880",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8daf8bc43418c17f9a86033406e20dc49f2e995bdf88fe440cab899c24762449",
+        "id": "ad34066d3a3581f4e071021349362f1a94bb461ad13c194d4cdefda9cf85002f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1faa01eabf508a66866ebae8c3132800bcbf5b1144b34f2b1c153315d4c8ee1d",
+        "id": "63bc52f74b54e3edbea90628a462d8dc5ca58400027e8d8ccea279974be486da",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3064e50201b763598f8854dca17a6899ceddc65390f038224eaa8eb45f3d9e8b",
+        "id": "15f285e344129fdc3089eaafc9bdcfdd43face202943d8c1ddcc1e345317c4f5",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a632b658fc427016af37db790faefba9800e22a70f06e961b807fc6ca56ea10d",
+        "id": "8d8fb0ab747a04d25077b9e7d2c5ec4f27d3c6f83e008d914efc64072114bcc3",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "65da9d08ad46aef47b311a14c79b7aac0fe85134ba24b8e78e340a0a5dc8bfca",
+        "id": "2bd1e7cb05b7c93e49aef2907a902ac7fe289ff6749bdf0f69a9bcf1dcfa6f70",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f5f50cfb33d36a4908faa886b52db6e95d111d85650bbf7d9bf5b8339e87ce88",
+        "id": "7ad5b01601cc7cc264c44f221e43d65f902fb396d81c1596c6c263a0fb1830b0",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e8c74c05e8d1c31afc96623be271a715fe55aeb7a1db06d96490e4e412d1bfca",
+        "id": "8df18b87f59a6dd7e3591ad8c332713791e2ccb9f42f1bb90f5357180c5b5309",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c9f48ff55e1757f1c35c86a9fd3a2db47c0ace93e9f9192e3442a10c6b7e499f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -86362,11 +86368,17 @@
           "hub/config/theme.py",
           "hub/ui/settings/pages.py",
           "hub/widget/actions.py",
+          "hub/widget/auxiliary.py",
+          "hub/widget/content_inset.py",
           "hub/widget/feedback/notifications.py",
           "hub/widget/forms/general_settings.py",
+          "hub/widget/header.py",
+          "hub/widget/panel_edge.py",
           "hub/widget/profile.py",
           "hub/widget/section.py",
           "hub/widget/shortcuts.py",
+          "hub/widget/sidebar.py",
+          "hub/widget/tab_page.py",
           "hub/widget/transcript/conversation.py"
         ],
         "tests": [
@@ -86378,9 +86390,13 @@
           "tests/hub/test_component_managers.py",
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_escape_navigation.py",
           "tests/hub/test_general_options.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_home_navigation.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_ish_integration.py",
+          "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output.py",
           "tests/hub/test_page_layout.py",
@@ -86399,7 +86415,9 @@
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stores.py",
@@ -86953,186 +86971,216 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "a3f6c8b2d7fdcc68afd07e6cd807c0fa30e2ecceafce2e58b85239e4725f8361",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition.",
+    "sha256": "d4ba896d96e46daeda5bed1a5530fdd84ce21a5b606314b6da756771c65db777",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "9b70fafad331942135abe754feaec79d6dd9746038b04ad78777e409c8996aa1",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "2f9af7d2ff2b3bbad9d8023176f936bc08c495ddf083d6e3752301081508e77c",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "96dfeb171353b57f3f54b6341b46fb5721357e1c883196bc719ce3170688b383",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "76e9a3ba241e3c531da007319d4555c87303441087e474cb7f962626b27e21dc",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "e2c1bea9436c89f6ce919cc1eb477edbe50644274164ba6348e669f590ba36f7",
+        "id": "7ca48777d9275fde645e07bd5c55185a2de5f68e1e8e649f57038df69fe3adeb",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4598aa1ca249ef86eace393643bb3056b40c1ab7bfab5a5ee93d3263bfb400eb",
+        "id": "60500ebab8fefb8d66f83cd9605f1ed6773908c9b29e9453ee1402164d1b3d11",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "904b9bd9d94887b6dce7af4090af192ab20e4298fc6ca1b01c4f95c0d7d38801",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "3c45d43a6475d604030b4d7c0da90e8d7e0f1c3c3ed47ed4d9f6e682c9dbc961",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "6d07d443ab340f9017db50ccffe9d3e9cc61eacf3c0a62c9c3f8ebc272a4444a",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "0aaa8d3f157c084c20e6f4b134621cf3fa19b80024fd41f056e777daac609de5",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "96f63eb0a13f97c805eb475ebdf09a0b629675c4d3baeddd0e0434b2aa757927",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "b6ad8cc9c8e3525a8a05f6c6ba70131a100a47b513935018fbe287176ab51bce",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "e810c9e51ae1ba0e7946a446b64f02fdfbebcbfefc4f14c98934b32ed014fd44",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "610a2d7f649931b3477ad2efcac33a5522cd8261cce6400af3deb4169837f275",
+        "id": "4874ba9d8b7eae49e178a419ea4f8b3d54128519e3a4299b4b912ba64ad87658",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fdcfb7dc9998e1bdabd329591d90844f119e184402463d7ef930f22743ff411e",
+        "id": "66e835c617af00f1e121c02188cce6dee0e6571ab8f78a02475c487305056d0e",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "49ddc366fce7e4be28226014b3c6a07d2c2f8d99aa40aff7405ff13537f758af",
+        "id": "17ce389d9853dfc92f849ad6f83fadce65bc64bc3a3b5c921956fac28de79ca8",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "8a4a24c35b07f952d87985c0305ad4fe3a8ccf97d4cd613fd8ad7d557f322963",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "33d0aead494b48c371735321407b4b59850ce6672d4a4d55caee9d565bce3e77",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0c7b164b32cf1a781044510ef1e0c063c1a0f6e01210048330d15ee9e8fa06b4",
+        "id": "6f9a8315289f7c13f236e4a0a2940d3a8d6d658f97fcbfd2bf8bd18d6a15872a",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "3630f0e3205958e978c975cecbe6109068e30e4e87a843961c16744296c0c81f",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2490ed7be21c0f7ca6be5837ecf08e7e002a0d608f87ec2cd0f76cb3dff38bd9",
+        "id": "df873c2cd3a51dd5c2093fb644f9f3a350ebc79919b8550c1317e7a5646099d1",
         "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+        "owner": "KeyName",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b03f5bc3e80a89324ead15f87b70f37f65204d30fc0d379be816583942ac5435",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "a026b85a55afc1cbacf2815b827e7f8845affd26ec3734e89ac454c7ecc9cc40",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "cde7a23d8394b7c229aac31d3e38d4469647f994a3447f80db5e9b144e4b88e7",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "9facd8f725c257a5709d3d3e3af08215902b71ccb68051b23aec957c75f91c6b",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "40796da6b5f3bac4f2b0e57a17f181ed280429b7b9e18e77e656ae3a86c1d927",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "9b20b1af1b40ff8a9400534fe8b18c560b84d598f61c883cc24b868eb7bd8128",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "7fa2c477cfac72624c14a528bf67385a7532760bf08a3ab1ac8d2215c719c426",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "6f96b2e55d56b1a3b6d8905649851f1eb53b64cd1a349c1a50196d189ff57c6e",
+        "id": "4d69d69cc520fecefe79bec35a8ee7631c9c2344a537751c3f5da09e94991f99",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "01d97209bbee22db7b1c78ffa3024591b42212bad49468977bbec8913ac91471",
+        "id": "98e05afca6469a2ee5470d9c02a294d12e8058c802a45dae556c76e60fdef566",
         "classification": "declaration",
-        "owner": "ShortcutLabel",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ae59cfd3b29ee6df14caa64f800811e1506631c995e30ed0660b9f2440263af6",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "13b2af61be81fe31cd05b00e0c8fbeddbec6c036aa5a2d98f91c8137549ac7f7",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "68d21528df3d356281a6bc26c5b1b6a8bed7949f68d571a17c40e8b929d2a958",
+        "id": "1ac1fd9ee7b0e01648865d1fd44b3e1a98daec96c34a113dcc4288a53f6464cc",
         "classification": "declaration",
-        "owner": "ShortcutLabel",
+        "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "695fd7cac35fb5f234c1c315acb5a960439ed8099e9f3e717867034890a41b12",
+        "id": "cf5b276a38b3edfeb7d9943f04b87b76628ea00043473e2401effa3ee537c2ae",
         "classification": "declaration",
-        "owner": "ShortcutLabel",
+        "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "70dea8f3af0ecf8bbd59c3792400dc50b576193a05360788621a9b8ff0937b92",
+        "id": "1f8f91b2b2ba858c52ec7ed1ed0cee5e3f3ddb4c1068182d01e6efae54670ca6",
         "classification": "declaration",
-        "owner": "ShortcutLabel",
+        "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "30e9a9c86727edd31cf0275bfe1e010a017d46afd0a5694761b8d95488e4a11b",
+        "id": "314f617af47653d09155be1f95d33f310f98ec778e4acb1ace5e64a896c47b34",
         "classification": "declaration",
-        "owner": "ShortcutLabel",
+        "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "5f0d7e9c5436afdb06811fb930c4eef0a298f73e9b9e3a8aa511039fa58ab695",
+        "id": "e0c73423a10278a8848ca8b2f0e8368ad1ff19cff6c0a9c79dbdae318623b73a",
         "classification": "declaration",
-        "owner": "ShortcutLabel",
+        "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "638338dc93b6d8f47622d70e9c4c2d891cef2ae5e8b3afa29191eaf53cbed7a2",
+        "id": "23279ba048e55c85de1bf27099d44f5ffb77f52fd27a1575063567e641227b09",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "4b13339719feb7ceb21b64140c142697c89dc40053c73e6db70e3055f333d915",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "80fbf15ed09b26f0092a503780a7f52806c3bb08b8d23b8b5876719d09a617f4",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a69829a0cf1b73d313df9e3cb4cdd9844cfaeb96886a021e910f17c89b2e6940",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6cebf4c1ad75db075eea1d0331584cf1e9c0424986eb0f0abaac9901c486f2e4",
+        "id": "c3799a131e77b7f6a48428c9ff28ca97f97520e475848ccbd2a11ac82ac31e12",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "33f2b5f706a246b6c5517b17633a70362c9e2f321e3a5bd48d6b4ff44c04d9ff",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "7385f13235a425d93cc4b06ec62510764cd9faa770964faa7b43bd16d51621cb",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "89bc508275aba4d888a34e566ece2de1ef9ec3514c0a60bf05ebb65a40c8c33b",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "5c5a094c8dc36f25876bc9cd60d339618c34145d11075aa1d0cbcaa6fa0cae51",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "c1e1b634012fbbb35eb00ece5d12f30c16a06d744655569efc1d801c288fff84",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "82e929f5d0845f2deb539e187f68ae63642a551a14f7d40f476d46c4e3cf975c",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "498a07ee00f50b0ed3c3da3c08f88a5934cd22200cc6b3b8be86045ca0e076e9",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -87151,11 +87199,17 @@
           "hub/ui/settings/navigation.py",
           "hub/ui/settings/screen.py",
           "hub/widget/actions.py",
+          "hub/widget/auxiliary.py",
+          "hub/widget/content_inset.py",
           "hub/widget/feedback/notifications.py",
           "hub/widget/forms/settings.py",
+          "hub/widget/header.py",
+          "hub/widget/panel_edge.py",
           "hub/widget/profile.py",
           "hub/widget/section.py",
           "hub/widget/shortcuts.py",
+          "hub/widget/sidebar.py",
+          "hub/widget/tab_page.py",
           "hub/widget/text_editing.py"
         ],
         "tests": [
@@ -87166,6 +87220,7 @@
           "tests/hub/test_escape_navigation.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
+          "tests/hub/test_header_actions.py",
           "tests/hub/test_home_navigation.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_ish_integration.py",
@@ -89645,8 +89700,8 @@
   },
   {
     "path": "hub/widget/input_contract.py",
-    "sha256": "cb029a386bfe34b915d4a7848447618e69e71d13ba30e39ec36a7f959f593ab6",
-    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
+    "sha256": "b99ac50e9281618c1ee85c663654b15e00e2433d2b6d5345f31f5bd30968d006",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -89672,6 +89727,30 @@
         "classification": "declaration",
         "owner": "EditableControl",
         "reason": "The PTK input boundary owns the Hub writable marker, registration state and widget/control projection. Writer and all actual readers use this API; read-only checks and short circuit order are preserved."
+      },
+      {
+        "id": "b1480b744389df8ce04c85a214b348dd1a55319f76d9b52c08f986d56d71153f",
+        "classification": "declaration",
+        "owner": "ContainerControl",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d972868a9a2e343633725aaca80a123964006260321bc8314718b50c48372b68",
+        "classification": "declaration",
+        "owner": "ContainerControl",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3ad1e4859f22e3c8c706ad316a23b5474d2adb3b2d10438c6fe70ca4b02f424f",
+        "classification": "declaration",
+        "owner": "ContainerControl",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "683fbc48c4a1a2075fe7c7c2b5c7f41852c0a602aabe42eef38f805e8a0d7121",
+        "classification": "declaration",
+        "owner": "MouseResult",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -89679,33 +89758,75 @@
         "owner": "EditableControl",
         "declaration": "hub/widget/input_contract.py",
         "consumers": [
+          "hub/ui/settings/navigation.py",
+          "hub/widget/auxiliary.py",
+          "hub/widget/content_inset.py",
           "hub/widget/controls.py",
           "hub/widget/focus.py",
+          "hub/widget/header.py",
           "hub/widget/mouse.py",
-          "hub/widget/text_editing.py",
-          "hub/ui/settings/navigation.py"
+          "hub/widget/panel_edge.py",
+          "hub/widget/sidebar.py",
+          "hub/widget/tab_page.py",
+          "hub/widget/text_editing.py"
         ],
         "tests": [
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_text_editing.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ContainerControl / MouseResult",
+        "declaration": "hub/widget/input_contract.py",
+        "consumers": [
+          "hub/widget/tab_page.py",
+          "hub/widget/sidebar.py",
+          "hub/widget/forms/settings_viewport.py"
+        ],
+        "tests": [
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_text_editing.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_mouse_widgets.py",
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_home_navigation.py",
-          "tests/hub/test_escape_navigation.py",
-          "tests/hub/test_popup_completion.py",
-          "tests/hub/test_settings_usability.py"
+          "tests/llm/test_execution_boundaries.py"
         ],
         "complete": true
       }
@@ -89887,102 +90008,90 @@
   },
   {
     "path": "hub/widget/forms/settings_viewport.py",
-    "sha256": "50dc1a06c0e0d4e2549eaf4d466868d668049239b0368dfac80041d456a9852f",
-    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
+    "sha256": "aea5fa2794392508b990d60de3886038c3773a792c5c0fd545f4206f7144fdc4",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "27d9b6ee30ade18fae3ee5dce2f82945ad14b628539c4f15c76d8a93a3e24166",
+        "id": "225173b54c842d3884481693b856f79e399d818735e77a7c0ed3a763d335d934",
         "classification": "declaration",
         "owner": "SettingsBody",
         "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
       },
       {
-        "id": "8a4d00142a4dd593a91be971f238c6be5f6e0467344071db1dfe9191fd360d33",
+        "id": "02ebc9e2169ce126098d0f0d44c6f596423504c760229a134f9b1f7c1e2250f2",
         "classification": "declaration",
         "owner": "SettingsBody",
         "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
       },
       {
-        "id": "4b5ae9e6cc5ebba70fed3cee939b59b746165531e3bbc8c1d3d8ec1f31f12134",
+        "id": "a238b20bd98d6fe392b200fc697ea1d0a71ef78be61727fa8a135303a88810d7",
         "classification": "declaration",
         "owner": "SettingsBody",
         "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
       },
       {
-        "id": "535f9f083f1ea6b64fae946ff1762be4c223afdcf32da664e70880185cf1fb14",
+        "id": "9fabab3e53d48968b996cf02dcf5060012354840a96b3acc3c11aabcb366dbb4",
         "classification": "declaration",
         "owner": "SettingsBody",
         "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
       },
       {
-        "id": "032fc78da731f24d245f13b9db345da29b7e6e42f7432e69ce38a6a1aba0bc12",
-        "classification": "declaration",
-        "owner": "SettingsBody",
-        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
-      },
-      {
-        "id": "dce68d348a1e79408774c1b906754ad74e5846bba02341e7e1efe4412f83493d",
-        "classification": "declaration",
-        "owner": "SettingsBody",
-        "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
-      },
-      {
-        "id": "00d5d30d7b9709f1b7055f3cf2dd6c055f83e27ac1cf7acfe652719600120925",
+        "id": "5c43eb0d7653d68a6397006dde33a568019f9215fc58a32b66c1f672f39565a6",
         "classification": "non_contract",
         "owner": "SettingsBody.__init__",
         "reason": "Initial cumulative offsets start at the arithmetic additive identity; no stored or public policy is represented."
       },
       {
-        "id": "eace3f3fe00cd45ea8d0d28938a3b78f364e892bfe40c8aae5f17bb901696b17",
+        "id": "04dec13a8cb02b2f646d3e78fb1ede08ec58f7017e858b6b0b962b8b8d91abd0",
         "classification": "non_contract",
         "owner": "SettingsBody._measure",
         "reason": "This is the cumulative-height accumulator origin, not a user setting or state code."
       },
       {
-        "id": "647a09ec6fafb7499f82fc609921e455cb5f2ba5f817d7c89acc41bae20321bd",
+        "id": "de5c8ac6521b6fc2ac58870999a801ad7dfa6ad036cb333fb922f1faf98d6357",
         "classification": "non_contract",
         "owner": "SettingsBody._measure",
         "reason": "Negative indexing selects the previous cumulative offset for the next arithmetic sum."
       },
       {
-        "id": "f0c9695baadaa47319785a6219da6e70b8020bbe3a5d45445df40bc653e1ccb6",
+        "id": "ad85ddc027f4ce70cdeb97d5d6e584225b4bdd1309a6a4c9febd4b205c72d1cd",
         "classification": "non_contract",
         "owner": "SettingsBody.preferred_height",
         "reason": "Negative indexing selects the terminal cumulative height."
       },
       {
-        "id": "1a0c125fb5e2a9ea2c675883059bde9c61fa2ace18bcc567ae2e0b4219b19269",
+        "id": "67aab280513f62a8eed95f199c1b8a13734a249922f83b371d8a44dc77b76128",
         "classification": "non_contract",
         "owner": "SettingsBody.write_to_screen",
         "reason": "The next offset bounds the focused row; this is adjacent-index arithmetic."
       },
       {
-        "id": "88b76aba963dd96853c4e6855b4c44af374363f7fc85fa0533470091c477d539",
+        "id": "5e3ca1d4bafa022099013a7431b96f7509f7f7e69bd5cb414bb67b40739619e5",
         "classification": "non_contract",
         "owner": "SettingsBody.write_to_screen",
         "reason": "Clamp the binary-search index to the beginning of the list."
       },
       {
-        "id": "19bfc7d3770c6243265262a3c85e758d814d6dc651934ba3a2d86689de8710ac",
+        "id": "736817aedb8b545ffbbcdbdfc047cc99ba77f9902119aa5f4a88306fbc908398",
         "classification": "non_contract",
         "owner": "SettingsBody.write_to_screen",
         "reason": "Subtract one from the binary-search insertion point to identify the covering interval."
       },
       {
-        "id": "5567c5ee4366a811b88fa3d45a960a212a01b47f17c10ff95621e61b17a0ce4c",
+        "id": "29fdf3a6110a826e34a8fbe3b8ac2634f1e54f7cda477da04732a440d942cb44",
         "classification": "non_contract",
         "owner": "SettingsBody.write_to_screen",
         "reason": "Subtract adjacent cumulative offsets to obtain the rendered row height."
       },
       {
-        "id": "204316c0d83b47130d787d6b888606c10824c578b9fbae13dd0567b7ca508b31",
+        "id": "5016a0b4d8beff103e0e9b72d3e762c7a0ea0b614734d1be5985c8d22503944b",
         "classification": "declaration",
         "owner": "SettingsPane",
         "reason": "Viewport absence, measurement cache state, PTK member observations, maximum measurement height and scrollbar gap are declared with the layout Owner. Offset geometry remains ordinary arithmetic."
       },
       {
-        "id": "bc569a3999c408cebfc05577f7cd694f9579b251f94f91c88c1f2d60391d6be9",
+        "id": "7d37a25d73ba7c7da92126acededcff6d1c097f1695f415004359112ccb975d3",
         "classification": "non_contract",
         "owner": "SettingsPane.write_to_screen",
         "reason": "Select the sole resolved child returned by the PTK DynamicContainer traversal; no new schema or discriminator is defined."
@@ -89994,29 +90103,40 @@
         "declaration": "hub/widget/forms/settings_viewport.py",
         "consumers": [
           "hub/ui/settings/pages.py",
-          "hub/ui/settings/screen.py"
+          "hub/ui/settings/screen.py",
+          "hub/widget/auxiliary.py",
+          "hub/widget/content_inset.py",
+          "hub/widget/header.py",
+          "hub/widget/panel_edge.py",
+          "hub/widget/sidebar.py",
+          "hub/widget/tab_page.py"
         ],
         "tests": [
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_text_editing.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_home_navigation.py",
           "tests/hub/test_input_contract.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_home_navigation.py",
-          "tests/hub/test_escape_navigation.py",
-          "tests/hub/test_popup_completion.py",
-          "tests/hub/test_settings_usability.py"
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_text_editing.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -91179,6 +91299,606 @@
           "tests/hub/test_settings_usability.py",
           "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/content_inset.py",
+    "sha256": "775923a135b0675ea42b3be6d34cbaed9f28e21c11cd60a75dbdc6f32b5abb43",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "260134e8978476f1f8ce8503837dd5080b29e3549e7304563f3633e5ff8a8bdb",
+        "classification": "declaration",
+        "owner": "ContentInset",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "3838c48b55b03738a83e22b075e226a0258338d87cf773f419cdc31998972b4b",
+        "classification": "declaration",
+        "owner": "ContentInset",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "6d6e155bec8a6bc4d454684fcd65c9bc5d61584776db2c9d798c616fa930e224",
+        "classification": "declaration",
+        "owner": "ContentInset",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "b7ff3f5bf5d249cb55fdf9013beefcfa48d6641b8261a1226273246140f88a38",
+        "classification": "declaration",
+        "owner": "ContentInset",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ContentInset",
+        "declaration": "hub/widget/content_inset.py",
+        "consumers": [
+          "hub/ui/layout/page.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/header.py",
+    "sha256": "4be7656e13c7b03412fe3cc177d567c5a2107c8c31dd4681499f6fb08238502b",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6297023758059f0d894a4a5cd7daff7b4c769ce960b353c4ffdf1b713f6c78a3",
+        "classification": "declaration",
+        "owner": "HeaderBar",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "c79cd30a445a87a37eb92c39eee705bbdb68d09c25c8b3c6fc8f7e661cfb2130",
+        "classification": "declaration",
+        "owner": "HeaderBar",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "fa396c29f33831e9abe62c638a3a1b04ced646289d5894bfe8607d9e22ec5400",
+        "classification": "declaration",
+        "owner": "HeaderBar",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "31260201b51395b4562ee7f296ef1270e1b8ba4308d1763e1701e56157c9d2de",
+        "classification": "declaration",
+        "owner": "HeaderActions",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "3fd95cd8cefae6af5a2d58185a7fc2246c93ff6af96f19445459fc5ced769b42",
+        "classification": "declaration",
+        "owner": "HeaderActions",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "0ff6237f6107eab8cd0fa74d772a3b27924738ae8516c7e29d6e630763f7816a",
+        "classification": "declaration",
+        "owner": "HeaderActions",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HeaderBar / HeaderActions",
+        "declaration": "hub/widget/header.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/panel_edge.py",
+    "sha256": "22e81fa34b7d511e5eb3e174bb6d29a8367ec8f1c99cd266a974d401246bf509",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "979c93e71904e5187bb9470edfb5e34b320187cc8b0e34d010d7ccda31d0c30b",
+        "classification": "declaration",
+        "owner": "PanelEdge",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "b8a73ef612283e1cffc46e753ec44953d035a371cb39b390197f6dfa573c5b41",
+        "classification": "declaration",
+        "owner": "PanelEdge",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "30d435dcd5b96e5b83a266676ed5c1b0ec6a1518a1f51efd708ed8e7d5f97b96",
+        "classification": "declaration",
+        "owner": "PanelEdge",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PanelEdge",
+        "declaration": "hub/widget/panel_edge.py",
+        "consumers": [
+          "hub/ui/layout/page.py"
+        ],
+        "tests": [
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/auxiliary.py",
+    "sha256": "97e08f4235f9bf51cd263582d1985bc1c4261ec8f1b187b154145e3c4eed6499",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b5f5890addd6534cb0a43faaa27c5b6c5ee89053c27d595e7dec51818c072828",
+        "classification": "declaration",
+        "owner": "AuxiliaryButton",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "77424c6f6368781748e12ccf9d422798fbf61a0d2a491207b1a97b3d3d896f70",
+        "classification": "declaration",
+        "owner": "AuxiliaryBar",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "13bbadb669b3413ca94b953cd948cfa6c8c6da1dbb8a1441dd1f5a33655875db",
+        "classification": "declaration",
+        "owner": "AuxiliaryBar",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "b6f3e8abe04b4711ad2b2512079cc2905c22da6df38aaf883f86d5cf20cc1e94",
+        "classification": "declaration",
+        "owner": "AuxiliaryBar",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "4fe87e05d256264172ba8968cbed8f4d285379be0f0dc37e7baaa3d73269c079",
+        "classification": "declaration",
+        "owner": "AuxiliaryBar",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "20812e136c6c277fdec461f60a1ba571c0942778fbf4e2001948af4062bb9ad1",
+        "classification": "non_contract",
+        "owner": "AuxiliaryBar.__init__",
+        "reason": "A disabled Tab shortcut uses a no-op Python callback; its return value is ignored rather than interpreted as domain state."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AuxiliaryButton / AuxiliaryBar",
+        "declaration": "hub/widget/auxiliary.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/settings/screen.py",
+          "hub/widget/composer_actions.py"
+        ],
+        "tests": [
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/tab_page.py",
+    "sha256": "6328fb2d4a0038c6e8a6deb3bdab8633cc173790f91ae471ebb793bad5230ab8",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "47700ca13288e7389b47ec87112ab4539d06a3c0544c463dd2c9c6fa0d6c9b81",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "3f9516039e4a502008fb6312c93d81ec14aa3ee8c6a6f0dcb0b22b63a24ebca0",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "f146073ede2f93e26272ba39ce121a8a3205451a7ba051e3ff33b349b0f89ef5",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "8b99005f8559517ba674580e2b0dd8a6acda17d51453e01235242c206fba18ed",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "eb4d10a70f5f17928bcdc2045344e0c515ab241209246efb5ffaf486b6b6115c",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "8533fcef34d21aa486bce86bc0d65054c037b02465cc91d21dfb2032ca1ea5f1",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "455bf433196fd388b82fd8ccc8edb016338005021435d2f78a4455a7d6bec8ce",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "0f57553ac83c68c3a25790de7e2459afd875a67e0e4a2607d1e89e464adca868",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "ffb01ef82174c89f29df08a5ab53a4f0559c8d7bbfc5d3ca35a165f46b73b24f",
+        "classification": "declaration",
+        "owner": "TabPage",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "62cdb4196d1b7e29b641c73a2712965c89a468870a4674411adbe3c77fbf6532",
+        "classification": "non_contract",
+        "owner": "TabPage.__init__",
+        "reason": "Select the first row when selection is omitted; the row key position is separately declared and interpreted by key_at."
+      },
+      {
+        "id": "be72cda7b08f7bd052db4316d487d2ee5932d153c1a9c12e4320a13206a7d1ac",
+        "classification": "non_contract",
+        "owner": "TabPage.__init__",
+        "reason": "Signed one-step left movement is list-navigation arithmetic."
+      },
+      {
+        "id": "c87b1f7a4c1c9282b18f0cd94a4c7f418d96bb6791b84a4b3ea74ed57972ce12",
+        "classification": "non_contract",
+        "owner": "TabPage.__init__",
+        "reason": "Read the final key event in a nonempty PTK sequence using negative list indexing."
+      },
+      {
+        "id": "649f20dfad5c5a545a460cf196cf77e9c656872cd35cb904e808232fe81f9846",
+        "classification": "non_contract",
+        "owner": "TabPage.__init__",
+        "reason": "One-step right movement is list-navigation arithmetic."
+      },
+      {
+        "id": "d416fbb1156556d8cd276eafd2b45bd3858e682842ed3a60699aa2381e808581",
+        "classification": "non_contract",
+        "owner": "TabPage.move",
+        "reason": "Clamp the computed list index to its first valid position."
+      },
+      {
+        "id": "52a9bdda1ff17987c8c5e399dc1d63705b79d7d05de6f2243bf9f6dcc28a898a",
+        "classification": "non_contract",
+        "owner": "TabPage.move",
+        "reason": "The last valid list index is its length minus one."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TabPage",
+        "declaration": "hub/widget/tab_page.py",
+        "consumers": [
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/sidebar.py",
+    "sha256": "520d450bd2e8ab12a52da86db740b66de762b4b725e23929e2758192955ef042",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d769edb7d683b515458a3a45c3394bace641fbf765114056e3ecbc5538df9d34",
+        "classification": "declaration",
+        "owner": "SidebarHeading",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "66153f589217182ac81f6019b8358406f7172359aa5a2032fb308eb051fcf3d9",
+        "classification": "non_contract",
+        "owner": "SidebarItem",
+        "reason": "Python frozen dataclass declaration; not a serialized state."
+      },
+      {
+        "id": "7e2a5077be8d3cea65e7058d83ee67e743fd5fcd63d8dd62a7b87dee43752c59",
+        "classification": "non_contract",
+        "owner": "SidebarItem",
+        "reason": "Python dataclass slots declaration for instance layout."
+      },
+      {
+        "id": "331d34e4567e0a72d31768f7f61803ab8462183454ed895fbb6e5da7ea0398bc",
+        "classification": "declaration",
+        "owner": "SidebarItem",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "62ac8e3789659c6dffa971dd17896ed437577a63c099ac47145ee13623bfa8de",
+        "classification": "declaration",
+        "owner": "SidebarItem",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "c1a7eed5ab5fcc43a9f25a605faecfc78435481a646c55a0020cdcb13f13b305",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "c00f5fc4c5596ab4b37885959c3265b1dcef796006196b9e9cc2ad446bc0c1c5",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "5af3519ef9131b11a45347c51fb010a8fd55f91dbfd9b8bb37e22eb1b9c297fc",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "8e9a164417c1b3100e895c45323bdd0e3cd46f56d2f7510b6c3e764cfde5fe47",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "54110cd0932a0e778b2be8a5c0e17a5e3e30f03d48d30364705323d80b89d7d8",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "4084cad9677164a90814354c5b597a753eca1f1000ca251b38ffcda504f5d0ac",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "414197c56183032498518be79e259e74fdb6ea55a8a8542f3fbced16110fef73",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "8bcf4aee6d6efceb918eba0141e4d3f54bb9c52a799b68d85d0bd31ae395316a",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "60bf30eeea0db7443340fcb0ed5f257f87de924154af404418cb91fecd4da524",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "13231308ed355232e93e8426f01e040ed8288a88d1c298c6cb461698d1f81bc6",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "1e5bfd441b93294990969e3ed1f06e9e7c58f57b3d8cfeab35e1520a5e17911b",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "765b6c8a9ff12d065bd1f6186eb6f373a374555c632fee1bf875427a0afe7813",
+        "classification": "declaration",
+        "owner": "SidebarList",
+        "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
+      },
+      {
+        "id": "a4e185171203d98eb40730fad222e0d04b1dc363dbed9c1c75a6bd246ae44bce",
+        "classification": "non_contract",
+        "owner": "SidebarList.move",
+        "reason": "Navigation starts at the first list index when its remembered key is absent."
+      },
+      {
+        "id": "2344f993649797195f7523d3e875e25465aed70fe6816d459856abb4fc278b3c",
+        "classification": "non_contract",
+        "owner": "SidebarList.move",
+        "reason": "Clamp the computed list index to the first element."
+      },
+      {
+        "id": "d2095ec9c5234d39dec360820de7b4822e734338135a76c90646cc64d9ec12b2",
+        "classification": "non_contract",
+        "owner": "SidebarList.move",
+        "reason": "Translate list length to its last valid index."
+      },
+      {
+        "id": "a9c2b488b8f7005e2adf7896024734a58deb8b8663d1834f1987c0d6ac5df429",
+        "classification": "non_contract",
+        "owner": "SidebarList.activate",
+        "reason": "Select the first existing key of the category."
+      },
+      {
+        "id": "0410ffd8a95efb5817a125b05726ffdc509915b17f6e369e4d07053775acde86",
+        "classification": "non_contract",
+        "owner": "SidebarList.cursor_position",
+        "reason": "Initialize the row-offset accumulator before summing margins and row heights."
+      },
+      {
+        "id": "4f899d1e20762f54e7cb0177e113f4096b8b5a5276e6389fb6e661f0ff5fb537",
+        "classification": "non_contract",
+        "owner": "SidebarList.cursor_position",
+        "reason": "Return the coordinate origin for a list without the selected row; pure geometry."
+      },
+      {
+        "id": "ba964022c21d0401ad5bb0966e2611fe6744a7ae44c9aca51f0cf4c104e8418d",
+        "classification": "non_contract",
+        "owner": "SidebarList.mouse_handler",
+        "reason": "Initialize hit-test row-offset accumulation."
+      },
+      {
+        "id": "e6aad6b153b6dd72a9c16aa6d595237849e49f50935fea0f74a021b2a2d1bc17",
+        "classification": "non_contract",
+        "owner": "SidebarList.fragments",
+        "reason": "Read the final fragment via negative indexing to remove only its trailing line break."
+      },
+      {
+        "id": "419dc53e3891974196d59f7dd2d334f4e1af6bc86fe5848b603788b7488e10df",
+        "classification": "non_contract",
+        "owner": "SidebarList.fragments",
+        "reason": "Replace that same final list fragment after trimming."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SidebarHeading / SidebarItem / SidebarList",
+        "declaration": "hub/widget/sidebar.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/chat/projects.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_header_actions.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",

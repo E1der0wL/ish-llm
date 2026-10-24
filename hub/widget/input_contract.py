@@ -21,3 +21,30 @@ class EditableControl:
     @classmethod
     def resolve(cls, widget):
         return getattr(widget, cls.CONTROL, widget)
+
+
+class ContainerControl:
+    """Observe the optional PTK control held by a walked layout container."""
+
+    CONTENT = "content"
+    FOCUSABLE = "is_focusable"
+    ABSENT = None
+
+    @classmethod
+    def resolve(cls, container):
+        return getattr(container, cls.CONTENT, cls.ABSENT)
+
+    @classmethod
+    def required(cls, container):
+        return getattr(container, cls.CONTENT)
+
+    @classmethod
+    def has_focusable_content(cls, container):
+        return hasattr(container, cls.CONTENT) and hasattr(cls.required(container), cls.FOCUSABLE)
+
+
+class MouseResult:
+    """PTK mouse dispatch result; None consumes an event."""
+
+    HANDLED = None
+    UNHANDLED = NotImplemented

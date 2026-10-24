@@ -8034,3 +8034,41 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 154파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## 공통 내비게이션 위젯 선언·입력 경계
+
+AuxiliaryBar/Button·ContentInset·HeaderBar/Actions·PanelEdge·Sidebar·TabPage 여섯 파일을 완료했다.
+기존 ThemeSelector/KeyName/ShortcutAction/ShortcutLabel을 실제 소비자에 연결한다.
+ContainerControl은 PTK container의 content 관찰을 소유하고 Tab/SettingsBody가 사용한다.
+MouseResult는 PTK 이벤트 소비/미처리 반환 계약을 소유한다. 스타일·폭·간격·표시 문자열·callback
+absence는 해당 위젯 선언에 두며 순회·좌표 누적·리스트 인덱스는 개별 기술적 표현으로 분류한다.
+TabPage의 입력 tuple 키 위치는 KEY_POSITION과 key_at 경계에 모아 순회 인덱스와 구분했다.
+공개 tuple 입력, 기존 상태/콜백 순서와 렌더링은 유지한다.
+
+고정 baseline에서 실제 렌더링·마우스·탭·폭 변경·헤더 오류를 포함한 59개 관찰 결과가 최종 제안과
+일치한다. 정상 탭 12경로와 잘못된 선택/입력 거부를 별도로 확인했다. Header는 비문자열 title을
+새 문자열로 강제변환하지 않고 원래 TypeError를 유지한다. 최초 비교 도구의 PTK history render에
+실행 중인 event loop가 없던 오류를 도구에서 수정했고 최초 로그를 보존한다.
+
+초기 집중 검증 성공 후 탭의 의미 있는 키 위치 두 곳을 추가로 선언/API로 옮겼다.
+초기 결과를 보존하고 영향받는 UI 두 묶음은 최종 소스로 다시 실행했다. LLM 안전성 84개와 R3는
+변경 없는 기존 결과를 제한적으로 재사용한다. 두 실행의 전체 source/input 차이는
+`hub/widget/tab_page.py` 하나뿐이며 LLM 제품·테스트·Fixture·발견 목록·환경·의존성·Host·실행 파일이
+동일함을 hash로 검증했다. 아래 결과는 서로 다른 소스 버전의 별도 실행이며 전체 회귀로 합산하지 않는다.
+
+- `whole-hub-navigation-widgets-l1-02`: discovered/started/pass 28/28/28, exit 0, 18.406009초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-navigation-widgets-l1-02/hub.json --modules tests.hub.test_widget_chrome tests.hub.test_header_actions tests.hub.test_mouse_widgets tests.hub.test_page_layout`. source `4dc30add88fb94e3a6b5e698621211f3213481ccc9bc84e37e26ac9357e2ced4`, input `de8173a7bb5998e2898d4f17e87d7067a5fe8eac59c6912a92708346f205811d`.
+
+- `whole-hub-navigation-widgets-l2-02`: discovered/started/pass 30/30/30, exit 0, 29.759731초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-navigation-widgets-l2-02/hub.json --modules tests.hub.test_home_navigation tests.hub.test_settings_tabs tests.hub.test_settings_viewport tests.hub.test_input_contract tests.hub.test_escape_navigation tests.hub.test_chrome tests.hub.test_settings_navigation tests.hub.test_presets_widgets`. source `4dc30add88fb94e3a6b5e698621211f3213481ccc9bc84e37e26ac9357e2ced4`, input `de8173a7bb5998e2898d4f17e87d7067a5fe8eac59c6912a92708346f205811d`.
+
+- `whole-hub-navigation-widgets-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.947957초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-navigation-widgets-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `a04590915227f70fa0776e5ed531263d4c4f52843a53af2e0a3c3b2ff7c8315b`, input `85858fa32334927b6c5c46bbbdc5923dfb36d94a1e4aed3f1169b02c9ddc2c10`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치이다.
+최종 UI 선택 모듈의 발견 목록은 초기 실행과 같고 두 UI 묶음 간 중복은 없다.
+실행 명령/exit와 초기·최종 검증은 `hub-navigation-widgets-draft/selected-results.json`,
+`selected-ui-final-results.json`, `before-key-position-selected-results.json` 및 각 strict 실행 디렉터리에 보존한다.
+독립 비교는 `proof-commands.json`, 재사용 검사는 이 소단계 finalizer에서 source/input 전체 항목을 대조한다.
+Level 1은 위젯/헤더/마우스/배치, Level 2는 Home·설정 탭/viewport·입력/escape/단축키·Preset 소비자이다.
+저장·승인·예산·효과 계약 변경이 없어 전체 회귀는 관련 후속 UI 변경을 묶은 다음 게이트에서 실행한다.
+진행 중인 Gate48에는 이 변경이 포함되지 않는다. 최종 전체 회귀·정적·R3·문서·실환경 및 정확한 SHA
+원격 CI 완료 조건은 그대로 유지한다.

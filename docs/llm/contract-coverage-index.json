@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 612,
-    "unreviewed_files": 143,
+    "unreviewed_files": 137,
     "stale_files": 0,
-    "unclassified": 6905,
+    "unclassified": 6782,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 143,
+    "unreviewed_dynamic_paths": 137,
     "unreadable_files": 0,
-    "candidates": 18967,
+    "candidates": 18912,
     "issues": 0
   },
   "files": [
@@ -574,8 +574,8 @@
     {
       "path": "hub/config/theme_style.py",
       "status": "reviewed",
-      "sha256": "8922ab28008f9d5226ccfb06834e26aa9bc38a5cf8fa60923355f7d6a967cb35",
-      "candidates": 144
+      "sha256": "ea7413b96c4905a922f70760b6dadedf0683cb4762e0e57bf7d91ec2be576939",
+      "candidates": 145
     },
     {
       "path": "hub/config/view_records.py",
@@ -784,8 +784,8 @@
     {
       "path": "hub/ui/input/keys.py",
       "status": "reviewed",
-      "sha256": "a3f6c8b2d7fdcc68afd07e6cd807c0fa30e2ecceafce2e58b85239e4725f8361",
-      "candidates": 30
+      "sha256": "d4ba896d96e46daeda5bed1a5530fdd84ce21a5b606314b6da756771c65db777",
+      "candidates": 35
     },
     {
       "path": "hub/ui/input/registry.py",
@@ -999,9 +999,9 @@
     },
     {
       "path": "hub/widget/auxiliary.py",
-      "status": "unreviewed",
-      "sha256": "ca8228b1334e6be3260bbab7ccfef76047832dff2556a1965f33a38b486c24d0",
-      "candidates": 19
+      "status": "reviewed",
+      "sha256": "97e08f4235f9bf51cd263582d1985bc1c4261ec8f1b187b154145e3c4eed6499",
+      "candidates": 6
     },
     {
       "path": "hub/widget/buttons.py",
@@ -1023,9 +1023,9 @@
     },
     {
       "path": "hub/widget/content_inset.py",
-      "status": "unreviewed",
-      "sha256": "658148e2814f360b5a1d69e6718614557a7d94ea858969a5b9e87a3f624c12ec",
-      "candidates": 8
+      "status": "reviewed",
+      "sha256": "775923a135b0675ea42b3be6d34cbaed9f28e21c11cd60a75dbdc6f32b5abb43",
+      "candidates": 4
     },
     {
       "path": "hub/widget/controls.py",
@@ -1198,8 +1198,8 @@
     {
       "path": "hub/widget/forms/settings_viewport.py",
       "status": "reviewed",
-      "sha256": "50dc1a06c0e0d4e2549eaf4d466868d668049239b0368dfac80041d456a9852f",
-      "candidates": 16
+      "sha256": "aea5fa2794392508b990d60de3886038c3773a792c5c0fd545f4206f7144fdc4",
+      "candidates": 14
     },
     {
       "path": "hub/widget/forms/tool_manager.py",
@@ -1209,15 +1209,15 @@
     },
     {
       "path": "hub/widget/header.py",
-      "status": "unreviewed",
-      "sha256": "8fca4ed67fc04f8d94a50e865bd87464d7ff4897c668321ee3ef42dc51be7620",
-      "candidates": 11
+      "status": "reviewed",
+      "sha256": "4be7656e13c7b03412fe3cc177d567c5a2107c8c31dd4681499f6fb08238502b",
+      "candidates": 6
     },
     {
       "path": "hub/widget/input_contract.py",
       "status": "reviewed",
-      "sha256": "cb029a386bfe34b915d4a7848447618e69e71d13ba30e39ec36a7f959f593ab6",
-      "candidates": 4
+      "sha256": "b99ac50e9281618c1ee85c663654b15e00e2433d2b6d5345f31f5bd30968d006",
+      "candidates": 8
     },
     {
       "path": "hub/widget/input_field.py",
@@ -1311,9 +1311,9 @@
     },
     {
       "path": "hub/widget/panel_edge.py",
-      "status": "unreviewed",
-      "sha256": "b383b0479798f9d5140022fabd3c29319061536d6aaa8a880d073341dad170a4",
-      "candidates": 4
+      "status": "reviewed",
+      "sha256": "22e81fa34b7d511e5eb3e174bb6d29a8367ec8f1c99cd266a974d401246bf509",
+      "candidates": 3
     },
     {
       "path": "hub/widget/profile.py",
@@ -1335,9 +1335,9 @@
     },
     {
       "path": "hub/widget/sidebar.py",
-      "status": "unreviewed",
-      "sha256": "7f35592f248ba350cea04c4cbb355a4c21802b375263950ad0d376839be8dbc8",
-      "candidates": 41
+      "status": "reviewed",
+      "sha256": "520d450bd2e8ab12a52da86db740b66de762b4b725e23929e2758192955ef042",
+      "candidates": 26
     },
     {
       "path": "hub/widget/sidebar_panel.py",
@@ -1353,9 +1353,9 @@
     },
     {
       "path": "hub/widget/tab_page.py",
-      "status": "unreviewed",
-      "sha256": "37dad10e669287596ca9667a5a1b5d50764d55130dc664057ec4ae048ba5649f",
-      "candidates": 40
+      "status": "reviewed",
+      "sha256": "6328fb2d4a0038c6e8a6deb3bdab8633cc173790f91ae471ebb793bad5230ab8",
+      "candidates": 15
     },
     {
       "path": "hub/widget/text_editing.py",
