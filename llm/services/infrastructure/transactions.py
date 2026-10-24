@@ -22,7 +22,9 @@ from typing import Callable, Iterator, Optional
 from uuid import uuid4
 
 
-_current = ContextVar("llm_storage_transaction", default=None)
+NO_TRANSACTION = None
+
+_current = ContextVar("llm_storage_transaction", default=NO_TRANSACTION)
 
 
 def current_transaction() -> Optional["Transaction"]:

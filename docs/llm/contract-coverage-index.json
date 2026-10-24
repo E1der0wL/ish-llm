@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 579,
-    "unreviewed_files": 218,
+    "files": 580,
+    "unreviewed_files": 217,
     "stale_files": 0,
-    "unclassified": 12315,
+    "unclassified": 12137,
     "violations": 0,
     "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 220,
+    "unreviewed_dynamic_paths": 219,
     "unreadable_files": 0,
-    "candidates": 21922,
+    "candidates": 21813,
     "issues": 0
   },
   "files": [
@@ -2578,7 +2578,7 @@
     {
       "path": "llm/core/models.py",
       "status": "reviewed",
-      "sha256": "f74efa51315b3085d4270d17bcbd3b5e343373f24498d4696dcf77c4d8607433",
+      "sha256": "af92884ac4a777a7eb96dfc76adae1a5e20be9271435fa64e10a8dd83bdd14a3",
       "candidates": 164
     },
     {
@@ -3148,7 +3148,7 @@
     {
       "path": "llm/services/history/README.md",
       "status": "reviewed",
-      "sha256": "fbd81b68c2afdcd602fc9fc2f294cb2d9310a168b671e4553be6ca0711c383e9",
+      "sha256": "e81ea9bccb7a97540892efa9f60c2f9810dba567ff42b181c7cf23a182d8827e",
       "candidates": 0
     },
     {
@@ -3165,9 +3165,15 @@
     },
     {
       "path": "llm/services/history/conversation.py",
-      "status": "unreviewed",
-      "sha256": "8486f78b941beb886c97872ccdbbc96e03b2813a6c9781c116aaf768b812bc32",
-      "candidates": 178
+      "status": "reviewed",
+      "sha256": "1c41f24df41fad9d58e9a341731aa49a816ff43df72def81fbd26ffce34cfb43",
+      "candidates": 45
+    },
+    {
+      "path": "llm/services/history/conversation_records.py",
+      "status": "reviewed",
+      "sha256": "ee87f18d0ff0e3be2362f621b4f7b6f65eb27c8a84b771e1ce584486f1e51537",
+      "candidates": 24
     },
     {
       "path": "llm/services/history/recovery.py",
@@ -3292,7 +3298,7 @@
     {
       "path": "llm/services/infrastructure/transactions.py",
       "status": "unreviewed",
-      "sha256": "3d58c85c8b045b2ae7037f83bc54f6a5340c07b017e9d34e3bf54fac6fdd049e",
+      "sha256": "bdce3a5b77218d72f5bd47456a331593e3e90bdc78140785b21572fa0dfe242d",
       "candidates": 183
     },
     {

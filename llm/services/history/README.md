@@ -8,6 +8,7 @@ Session의 대화 저장과 모델에 전달할 문맥을 관리합니다. 재�
 | --- | --- |
 | [__init__.py](__init__.py) | 대화·이력 서비스 패키지 설명입니다. |
 | [conversation.py](conversation.py) | append-only JSONL 및 memory ConversationStore, 공유 factory와 Project별 저장 선택을 구현합니다. |
+| [conversation_records.py](conversation_records.py) | 대화 이벤트의 정규 필드·Writer/Reader·사전 검증과 JSONL 기술 형식을 소유합니다. |
 | [context.py](context.py) | ContextPolicy에 따른 공통 대화 선택입니다. 모델 입력 예산은 공용 CompletionPolicy가 담당합니다. |
 | [turns.py](turns.py) | Run별 요청·응답·추가 지시의 조회 묶음과 시점 복제 범위를 선택합니다. 새 저장소를 만들지 않습니다. |
 | [recovery.py](recovery.py) | stale Run/Step/Assistant 상태를 복구하고 대기 요청 재구성을 지원합니다. |
@@ -57,3 +58,17 @@ ConversationTurns는 Run별 요청/응답 묶음과 포함 시점 선택을 소�
 보호하는 ContextBuilder의 선택 알고리즘은 목적과 입력 순서가 다르므로 하나로 합치지 않는다.
 기존 system/developer 문맥 유지와 일반 user 역할 비교는 각각 공통 역할 Owner를 참조하며
 저장 Message의 허용 역할을 확대하지 않는다. 이 정리는 저장·재개·삭제 규칙을 변경하지 않는다.
+
+
+## 대화 이벤트 검증과 원본 보존
+
+ConversationEvent가 고정 이벤트 종류·필드와 변이 검증을 소유하며, Conversation은 메시지
+존재·중복·스트리밍/출력 소유권을 확인한다. 생성은 Message.from_record, Run 연결·metadata
+변경은 Message.validate_changes를 통해 기존 완전한 Message 계약을 재사용한다. 공개 변경은
+주입 저장소의 쓰기 훅을 부르기 전에 검증하며 기본 파일/메모리 저장소는 직렬화한 스냅샷도
+효과 발생 전에 검사한다. 재열기에도 같은 검증을 적용해 잘못된 Run ID·operation을 정상으로
+받아들이지 않는다. 기존 생략 operation의 append 의미와 명시적 null Run 연결은 유지한다.
+
+ConversationJournal은 기존 JSONL 바이트 형식을, ConversationFileStamp는 증분 읽기의 파일
+identity·크기·수정 시각을 소유한다. fsync 후 상태 적용·rollback 무효화·부분 끝줄 거부·명시적
+prune의 원자 교체 순서는 유지하며, 토큰마다 전체 대화나 누적 본문을 복사하지 않는다.

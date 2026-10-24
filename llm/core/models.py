@@ -565,6 +565,10 @@ class Message:
         """Clear the source Run link on an already detached conversation copy."""
         self.run_id = self.UNBOUND_RUN
 
+    def validate_changes(self, **changes):
+        """Validate a proposed mutation with the complete stored Message contract."""
+        self.from_record({**DomainRecord.serialize(self), **changes})
+
     @classmethod
     def deletion_metadata(cls) -> dict:
         return {cls.CONVERSATION_DELETED: cls.DELETION_MARKER}

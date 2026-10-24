@@ -80,6 +80,11 @@ H2-a에서 ConversationStore의 근거 없는 끝줄 수리 경로를 제거했�
 [H2-a 검증](lifecycle-verification.md#h2-a-도메인-필수-기록사용량refinement)을 따른다.
 H2-d는 출력 저널에도 같은 원본 보존 경계를 적용하고 필수 manifest로 전체 바이트를 검증한다.
 모든 JSONL owner의 감사 완료를 뜻하지 않는다.
+대화 이벤트는 ConversationEvent와 Message의 기존 타입/필드 계약을 쓰기 전과 재생 시
+같이 검증한다. 잘못된 생성·delta·상태·Run 연결·metadata는 원본 JSONL이나 메모리 상태를
+변경하지 않는다. 부분 metadata update도 사본에서 먼저 검증하며, 손상된 기존 기록을
+기본값으로 복원하거나 자동 절단하지 않는다. JSONL 형식과 명시적 null Run 연결,
+기존 생략 operation의 append 의미는 유지한다.
 스트리밍 중 전체 대화를 복사하거나 재작성하지 않는다.
 명시적 보관 prune의 원자 교체는 기존 파일 hard link로 보호한다. 삭제는 트리를
 저널로 rename한 뒤 확정하고 물리 삭제는 재시도 가능한 GC로 수행한다. GC 실패는

@@ -6529,3 +6529,78 @@ Run 참조와 승인·예산·효과·삭제/저장·RAG 무결성, Hub 이력·
 기존 공유 의존 근거 39개를 이번 함수/소비자 증거로 갱신했다. 문서 168·Python fence 183·
 링크 1244·anchor 37, 오류 0. inventory는 579개 파일, 미검토 218(llm 41/Hub 177),
 미분류 12315, 미완 계약 3, stale/확정 위반/도구 issues 0이며 전수 완료는 아직 아니다.
+
+
+## llm 대화 이벤트·저장 Owner 및 쓰기 전 무결성 수정 — Level 1·2, Level 3 승격
+
+기준 09b8142. ConversationEvent/ConversationCreation이 JSONL 필드·종류·Writer/Reader를,
+ConversationJournal이 기존 바이트 형식을, ConversationFileStamp가 증분 파일 identity를
+소유한다. Conversation의 상태/캐시/저장 선택은 기존 Owner에 유지한다. transactions.py는
+기존 ContextVar의 None에 NO_TRANSACTION 선언을 연결한 것뿐이며 해당 파일 전수 완료가 아니다.
+
+전환 중 실제 파일 probe로 잘못된 delta·상태·metadata가 기록된 뒤 오류가 나서 재열기가
+차단되고 정수 Run ID가 정상으로 수용되는 기존 결함을 발견했다. 원본 bytes 변경과 재열기
+오류를 `conversation-store-draft/invalid-mutation-probe.json`에 보존했다. Message의 기존
+완전한 Reader를 재사용하는 validate_changes 및 공유 이벤트 사전/재생 검증으로 수정했다.
+주입 저장소 쓰기 훅 이전, 기본 파일/메모리 직렬화 스냅샷의 효과 이전에 같은 규칙을 적용한다.
+metadata의 부분 update는 사본에서 검증한다. 생략 operation의 append 및 명시적 null
+Run 연결은 유지한다. 저장 형식·승인·예산·효과·재개 정책을 추가하지 않았다.
+
+새 `tests.llm.test_conversation_mutation_integrity` 10개는 실제 파일 bytes/트리·메모리 상태,
+쓰기 훅 0회·재열기·후속 정상 쓰기, 생성/단일/묶음 입력 거부, 손상 기록의 반복 거부,
+쓰기 실패와 기존 생략/null 의미를 독립 리터럴 Fixture로 확인한다. 기존 시험/Assertion은
+수정하지 않았다. 이전 구현에 7개 재현 메서드를 적용하면 assertion failure 19건과 이미
+손상된 journal 때문에 후속 조회 error 5건을 재현한다. 이것은 고의 결함 재현이며 통과
+시험으로 집계하지 않는다. `original-regression-failures.log/json`에 원래 증거를 보존한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/conversation-store-draft/ast-proof.py`
+exit 0: 변경하지 않은 기존 전체 함수 113개만 Owner 전개 동등성을 확인했다. 의도적으로
+바뀐 사전/재생 검증 관련 9개 함수는 동등성에서 명시적으로 제외하고 새 회귀로 검증한다.
+같은 경로 `values-proof.py` exit 0: 정상 입력 differential valid_state 1600, counts 1600, exact_journal 800, reopen 800, completed 64, prune_journal 32, prune_reopen 32.
+초기 `whole-conversation-store-l1-01`의 91개 통과는 결함 수정 전 증거로만 보존하고 아래
+수정 후 실행의 통과 근거로 재사용하지 않는다.
+
+- `whole-conversation-store-l1-02`: discovered/started/pass 101/101/101, exit 0, 36.648891초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-conversation-store-l1-02/llm.json --modules tests.llm.test_conversation_mutation_integrity tests.llm.test_memory_conversation tests.llm.test_project_conversation_storage tests.llm.test_runtime_reliability tests.llm.test_transactions tests.llm.test_memory_history_integrity tests.llm.test_history_retention_integrity`. source `e3e959c8eb28c3f3b2f4b931046632f6bf0ebd031f56d36ea20b45f84f1a9f26`, input `bf652bcb450624d041db2383022699c291d2c6b5c1ed539018092174ccf7d189`.
+
+- `whole-conversation-store-l2-01`: discovered/started/pass 79/79/79, exit 0, 44.297091초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-conversation-store-l2-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_run_reference_integrity tests.llm.test_turn_deletion tests.llm.test_conversation_turns`. source `e3e959c8eb28c3f3b2f4b931046632f6bf0ebd031f56d36ea20b45f84f1a9f26`, input `bf652bcb450624d041db2383022699c291d2c6b5c1ed539018092174ccf7d189`.
+
+두 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치.
+실행 전후 및 실행 간 source/input·시험/Fixture·의존성·discovery·Python3.12.14/Clang·
+Host d833790·격리 환경이 같고 선택한 LLM ID 중복 0. R3
+`python -m tests.llm.check_budget_mutation` exit 0, 한도 누락이 실제 효과 Assertion으로 검출된다.
+
+범위는 파일/메모리 대화·주입 저장소·실행 신뢰성·실제 트랜잭션 중단/롤백·이력 보관,
+Run 참조·턴 삭제와 승인·예산·Tool 효과·Checkpoint·RAG·수명주기 무결성이다.
+저장 무결성 결함 수정이므로 **Gate42 전체 Level 3로 즉시 승격**한다. 이 기록은 집중/관련
+안전성 검증 완료이며 안전성 수정의 최종 완료·Push·원격 성공 선언이 아니다. Gate42 성공
+전에는 후속 제품 단계로 넘어가지 않는다. 전체 LLM/Hub와 정적 감사·문서·R3·실제 환경을
+현재 통합 소스에서 검증하고 그 SHA를 원격 CI로 확인해야 한다.
+
+
+## Gate41 전체 로컬 검증 및 Push — 원격 CI 진행 중
+
+고정 SHA 05bf5cf9c93a9016514b241e7c35f902a51e7e5c에서 Loop/Provider 묶음을 검증했다.
+`python /workspace/llm-clean-resume/whole-ownership/gate-sequential.py whole-owners-group41-l3`
+exit 0. LLM discovered/started/pass 2492/2492/2492 (1449.853833초), 이어서 Hub
+588/588/588 (1100.069639초), 모두 scope=full이며 failure/error/skip/xfail/xpass/누락/추가/중복 0.
+동일 고정 checkout에서 전후 source
+`2dcd6d11c5ebbcf9f91aaeb74f36a7f30e7e33d2c9ad71e89012003356ba5e7c`, input
+`92a25a5f2bd6569a4f4422cd99fa2d3191cf36e56b87d0ad150e24eafe5d4190` 일치.
+`python /workspace/llm-clean-resume/whole-ownership/auxiliary.py group41-auxiliary`의 정적 S1–S7,
+문서, R3, 실제 SDK 환경, LLM/Hub 환경 6개 명령 모두 exit 0. Python3.12.14/Clang,
+Host d833790 및 기존 namespace/X11 환경을 유지했다. `verify-gate41-local.py` exit 0으로
+원본 보고서의 발견/실행 ID와 모든 필수 집계를 확인했다.
+
+보호 main/backend ref와 원격 작업 브랜치의 조상을 확인한 뒤 이 SHA만 refactor/llm-clean에
+Push했다. main·refactor/llm-backend·Draft PR #1은 변경하지 않았다. 2026-10-24 11:18 UTC 조회에서
+[CI 40089353972](https://github.com/E1der0wL/ish-llm/actions/runs/40089353972)는 정확한 SHA의
+LLM/Hub Job 진행 중이며 아직 원격 통과가 아니다. 이후 Query/Context/Conversation 변경은
+이 고정 게이트에 포함되지 않으며 Gate42에서 별도로 검증한다.
+
+정적 종료 검사 `python /workspace/llm-clean-resume/whole-ownership/close-checks.py conversation-store-draft`:
+S1–S7 exit 0 (기존 finding 84, new/stale 0), 감사 회귀 16개 pass (3.354초), 문서 검사
+exit 0 (168문서/183 Python fence/1245 링크/37 anchor). `git diff --check` exit 0.
+전수 분류는 580파일, 미검토 217(llm 40/Hub 177), 미분류 12137, 미완료 연결 계약 3,
+stale/확정 위반/검사 issue 0이다. 이 수치는 남은 범위를 나타내며 전수 완료가 아니다.
+관련 변경을 로컬 커밋으로 고정하여 Gate42를 실행하되, 안전성 수정의 최종 완료와 Push는
+전체 게이트 성공 뒤에만 선언한다. Hub 제품 변경은 llm 전수 완료 이후 진행한다.

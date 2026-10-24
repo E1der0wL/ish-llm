@@ -36275,8 +36275,8 @@
   },
   {
     "path": "llm/core/models.py",
-    "sha256": "f74efa51315b3085d4270d17bcbd3b5e343373f24498d4696dcf77c4d8607433",
-    "reason": "Read complete model file and consumer connections: current-format field/version validation, timezone requirements, pure transition validation, extensible configuration and its closed sections, every Project/Session/Message/Run/Step declaration and Reader. Run edges now use a read-only map of frozensets; Step edges a frozenset; exact allowed transitions/reasons/diagnostics remain. ConversationStorage schema uses canonical Schema declarations and input policy; llm bootstrap and ProjectConversations explicit choice paths share it. Project/Session JSON copies/target validation, components initialization, Agent binding and active Run identity/evidence remain. Dynamic configuration/record fields derive from their schema/type declarations. Step observations delegate the existing typed envelope Owner; clocks/UUIDs are generated only by creation, never missing-record repair. Context-specific mode categories now have one predicate declaration; Message unbound Run and detached-copy mutation are explicit. All prior methods and current stored fields/defaults remain unchanged; prior shared contract decisions are retained.",
+    "sha256": "af92884ac4a777a7eb96dfc76adae1a5e20be9271435fa64e10a8dd83bdd14a3",
+    "reason": "Read complete model file and consumer connections: current-format field/version validation, timezone requirements, pure transition validation, extensible configuration and its closed sections, every Project/Session/Message/Run/Step declaration and Reader. Run edges now use a read-only map of frozensets; Step edges a frozenset; exact allowed transitions/reasons/diagnostics remain. ConversationStorage schema uses canonical Schema declarations and input policy; llm bootstrap and ProjectConversations explicit choice paths share it. Project/Session JSON copies/target validation, components initialization, Agent binding and active Run identity/evidence remain. Dynamic configuration/record fields derive from their schema/type declarations. Step observations delegate the existing typed envelope Owner; clocks/UUIDs are generated only by creation, never missing-record repair. Context-specific mode categories now have one predicate declaration; Message unbound Run and detached-copy mutation are explicit. All prior methods and current stored fields/defaults remain unchanged; prior shared contract decisions are retained. Message.validate_changes delegates complete proposed-record validation to its existing Reader without new fields, defaults or mutable state. Existing consumers and their prior decisions are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -37120,55 +37120,37 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fc454772f63f25d8826c3d2e398c33ad2997ffbdc9a7fd8dc3f51831dec68071",
+        "id": "5386d0e053abcb7f7a462b5b2ff79bb96ab9cd4ad4b4c056ce09bcd233ab8490",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "6bf929283dcc638a260fc51fa81d36780d77a0cfb4b6899d49448577d4c45acc",
+        "id": "a5b487da87d1a3ed0c3001ac29b3b9385b7d261130b922f644aeda071c017507",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "717982cc0854655d81da1dce9485c9dd618515aaf7cf8e801b842877cb7a4e86",
+        "id": "772feecf8784a392e209896fb1a1b0c484ea340191da674d3773891a7c66d6ac",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "1dcfda320b209db9e2d5f18d39ab60334bfed156acc72d7a1b147835d9268943",
+        "id": "d4c702c5f668aea0afb0c1eb49c282871ca35a9b498e195dab6309c7183ff4be",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "5d0ac6aa5bb8012819ecedf79aae04ebb0709864f474023de9bacdd7f394d8cc",
+        "id": "dd40e5d2f6674ce068210a1869908737278a1cb85bee1f6218cc0a1f9ab8b45f",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "70f9e0a25027d5569ef0685e2c6786949ad2004e8ff7cca6cf9147df96b205dd",
-        "classification": "declaration",
-        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
-        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
-      },
-      {
-        "id": "c8cf85c43584edc57a1b8beb5aabcf8f79cfc4ac6bfe9e92a2800875fee2f993",
-        "classification": "declaration",
-        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
-        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
-      },
-      {
-        "id": "8da9fcc48497f4f519b78ed10e421ac5b46d481c1058f63bd8021fe31dcc790b",
-        "classification": "declaration",
-        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
-        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
-      },
-      {
-        "id": "f84f1e2d50a23dd9c19fcacd3aea7606ec993f42d4937db88a9f155634e5ae8f",
+        "id": "2cef6b230e6ddde47d5631e1f8d22fd06ffaedd3fea288dc4a7788e5745c13e4",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
@@ -37180,85 +37162,103 @@
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "dd87f95b6c9ea8fcd4a549ff03138791ff508be03642d9fff79c0bc912833f08",
+        "id": "e51ff866922384df7204ae7cc14f828c081483e3bde31ccbfc56ba9d44ba3e78",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "5694af8e14b4452b85d815c9d572d59489338178181ad4be348bc568373280af",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "ed4f5779df8eb5ed334b8ce72390a97f9d55beaa1300c820e4cad3b9a7bf3609",
+        "classification": "declaration",
+        "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
+        "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
+      },
+      {
+        "id": "84f6a4d9cd77ca7a8679e7cf3675d7f0968b2148a5cdc322bc762fed880c77b4",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "2d52119fce158702ca3efbeac45349b8bd3bc8f466b7039f29e53010e722c433",
+        "id": "46930532f594fe6c0dba6bbb276061d22cc0fcd30405aa5febce9a4961612213",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "4b7a8dafd6863534329ba4a9d4d41152fa3498fbed2f355164bf9a1395c37d04",
+        "id": "c6a4ccf6984193983c8fad85b73424b94181f7a79f14943225334355d287536f",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "a4d69a3756ee13d8d3033de7f1d9f693aea544a5bbcc048b7de2a0bd0d2bb2a5",
+        "id": "30bd75eb4f3acbcb1d6d90004cf2a245257d8db861d7c75322db6b30f0d9f511",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python dataclass slots/frozen declaration, not policy or stored state."
       },
       {
-        "id": "dc2c16e68be747925330c379ce1cd0e15a4de9668641668b3b80f2488aab58fd",
+        "id": "5a6668c158d0b6f4e685f8d0ca52986f6b66b7f654595a3e95b64d969141afba",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "c8d8d8c0158de1d21f9af50b1892d5fcafc99b8483b74b914e66ac78a7cdb7b4",
+        "id": "742aacd7194bd16166c87bf5ef8c7c1ed8ba0d6f37fc55e2934ad890759a0c8f",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "fb9d65af1c8a56b5914dc506e824c325a3da865c3b1c47c3fb164457e96cda42",
+        "id": "57e8030a3a4008a3dc1bdbd3e0d6f8845335fd28b25ccabbd33434b2c4d4f422",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "2a95f6f6d726af1578c663f9a945b7b0459527ebdbbbbb5f2b9fda9943921bd2",
+        "id": "141e55a1f8a52df77a24ec6f0f26ad736fb915bb98f654e6583c104b36d1536c",
         "classification": "declaration",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Canonical domain/version/role/state/transition/input/schema/configuration/field/default/error declaration before implementation."
       },
       {
-        "id": "8e31dd4b67cbb4245e12fae209bfa90b48116b0e44f64a8a55541a1332471eeb",
+        "id": "99048800b18b8fc748744ab28baa9bec00ebf1e366bc84394a2b40497357b5f5",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "cbf08372248fa66aab6db647356e478fb5504ca85b1a4e8ac2aba50235aefb9d",
+        "id": "b674a6352bc76b223cac227d2fbd03e00774446a6e9ca3dc6cc7aa965e82aaf3",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "c8aff4835b39ef53e485f5c1b291e8e99940cdaa29e1ed6dcc1cced4dbeb993e",
+        "id": "d6982f70ecda821aff8eb9a0f99acdd28faaca53e038f84d71f348748d2f0b94",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "ff00ec7dd88910f224bd25af7c4adab845f9b8fd513857b39b5653ab685d405f",
+        "id": "0a527e94b1af504b49fd48578dd7dbdc1ee5e19206e9d1f7b9571af3d431545d",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "cdfab3335e402c87dc0f9f5a0df845b4c55013a2d842cac3e4291f75e8ebbba5",
+        "id": "51fd9bbdb0838e1514f3aad7c41935a559d3f7c899713abd600c3e6619c9d585",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python optional pointer/type/default for absence or chained exception suppression. Storage injected-null meaning has its own declaration; required stored fields remain checked before construction and are never replaced by creation defaults."
       },
       {
-        "id": "bb6637f94ad98f342bc759a15a976f4b7c7213bffb1844b803689faa938a9e7f",
+        "id": "11b88a64e245fe1da2e82fab09432720a0dfd7ce07220155c0ddd69eb3c26322",
         "classification": "non_contract",
         "owner": "DomainRecord / ConversationStorage / RunLifecycle / StepLifecycle / ProjectConfig / Project / Session / Message / Run / Step",
         "reason": "Python forward type annotation, not a reflection key or external protocol name."
@@ -37272,6 +37272,7 @@
           "llm/llm.py",
           "llm/services/history/context.py",
           "llm/services/history/conversation.py",
+          "llm/services/history/conversation_records.py",
           "llm/services/history/recovery.py",
           "llm/services/history/turns.py",
           "llm/services/lifecycle/projects.py",
@@ -37290,15 +37291,18 @@
           "tests/llm/test_checkpoint_lifecycle.py",
           "tests/llm/test_completion_integrity.py",
           "tests/llm/test_continuation_values.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_domain_record_values.py",
           "tests/llm/test_domain_state_integrity.py",
           "tests/llm/test_engine_steering.py",
+          "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_instruction_values.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_loop_steering.py",
           "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_owner_declarations.py",
           "tests/llm/test_policy_consumers.py",
@@ -37308,8 +37312,10 @@
           "tests/llm/test_repositories.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_run_transitions.py",
+          "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_service_boundaries.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_turn_deletion.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
@@ -69094,10 +69100,10 @@
   },
   {
     "path": "llm/services/history/README.md",
-    "sha256": "fbd81b68c2afdcd602fc9fc2f294cb2d9310a168b671e4553be6ca0711c383e9",
+    "sha256": "e81ea9bccb7a97540892efa9f60c2f9810dba567ff42b181c7cf23a182d8827e",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Read the complete guide and checked storage/factory, Run recovery, scoped instructions and protected turn deletion claims against current contracts; added exact context/turn Owner paths without claiming other History files complete.",
+    "reason": "Read the complete guide and checked storage/factory, Run recovery, scoped instructions and protected turn deletion claims against current contracts; added exact context/turn Owner paths without claiming other History files complete. Added current event/journal Owner and prewrite/replay preservation boundary, after reading the complete guide; no claim that recovery/retention/transactions are fully reviewed.",
     "contracts": [
       {
         "owner": "History storage/context/recovery/retention guide",
@@ -69345,6 +69351,498 @@
           "tests/llm/test_turn_deletion.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/conversation.py",
+    "sha256": "1c41f24df41fad9d58e9a341731aa49a816ff43df72def81fbd26ffce34cfb43",
+    "reason": "Complete file review includes fixed dictionaries and dynamic event kind dispatch, injected hooks, file/memory factories, exact JSONL encoding, incremental replay/refresh, streaming buffers, count/cache invalidation, prune and transaction rollback. Existing semantics are preserved for valid input; invalid mutation acceptance is intentionally corrected by canonical preflight/replay validation. Full Gate42 and remote CI remain outstanding; this review does not mark the entire refactor or other infrastructure files complete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ee8e81d9a23436884840c9c9292cea3e172737105582e9180da82fe9e26d3691",
+        "classification": "declaration",
+        "owner": "Conversation",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "6c827b774a40330f1516d0b79641ee93ce62d2ccdaff6b3ce32efa1fd9f62cfd",
+        "classification": "declaration",
+        "owner": "Conversation",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "e7340b6c37059700d9fb5a64d8fcc2d6057406b7a703f0274b338dccf98fd7d3",
+        "classification": "declaration",
+        "owner": "Conversation",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "49a7f22d4f69b7e00e81a492c3ee32a604e258cf6592ccd420aff26537d0e6e6",
+        "classification": "declaration",
+        "owner": "Conversation",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "c6c7588a8b8e717b4d96012f0a108f1b6d9e05a259c0ab4e1a697f96b86f3c67",
+        "classification": "declaration",
+        "owner": "Conversation",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "353085f7869011a794ec1352462ab56e78e091a824a18093d595972c1835c350",
+        "classification": "declaration",
+        "owner": "Conversation",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "d8a4a219571544ddee6288b45ce197440775aaf0e42bfb77f5b4e86e66e1de55",
+        "classification": "declaration",
+        "owner": "Conversation",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "1f652dbec0e39b9809b71230bf5ba3c795acae161b78777ac9f34200d83cfef0",
+        "classification": "declaration",
+        "owner": "Conversation",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "b97c650f586012207ddf80fa22893aa324e68041df9807bfd9819444389cfca1",
+        "classification": "non_contract",
+        "owner": "Conversation.__init__",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "50950e1e2b47a79400e1dba62f28f563d031b9d9b76bbd4044cace61beac4c02",
+        "classification": "non_contract",
+        "owner": "Conversation._refresh",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "23c938a6f18b3bcc4a092671ec4e96f65509f7c5086ba22790c1d399b25d1a4d",
+        "classification": "non_contract",
+        "owner": "Conversation._append",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "ef156f4a60abbd2d359c07a4fe27f55b823e815d2b7d5fca4551a88b569db8b1",
+        "classification": "non_contract",
+        "owner": "Conversation._apply",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "9db5e9090eff9ecd1fb0b5247bb7763423797e9cad4a06edf51530c1b80dbfe6",
+        "classification": "non_contract",
+        "owner": "Conversation.delta",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "a257b95bed411c627c83092785ab5a14d93f3c195cee4ed7f155fa68fa1d4585",
+        "classification": "non_contract",
+        "owner": "Conversation.reconcile",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "da44d2d8fb8e304eafe8a08b34738eae55e156df7905b9d48deb71a95f245397",
+        "classification": "non_contract",
+        "owner": "Conversation.deltas",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "a90b7b7a4e1361a968b0e24bdfc6dd8e8c19356d582f0b57a34ec3658d461845",
+        "classification": "non_contract",
+        "owner": "Conversation.set_status",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "94643c7535bd5003ba51fa14d62edcf3f6c03473d82193bfacd75f10dc397fe8",
+        "classification": "non_contract",
+        "owner": "Conversation.bind_run",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "3d880e940858dfff6aa313ef74040ab8cea6ea6d7a7ab7ec651f92a362761ee2",
+        "classification": "non_contract",
+        "owner": "Conversation.update_metadata",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "31a0d7e495cb53e85498e40938a8710839f2d4538d90b5ce35e53ccae8dfa9ae",
+        "classification": "declaration",
+        "owner": "ConversationStore",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "57d711551cb237362968737dbc25a4b586916f1ac36697771f34ba9ed4cf9ee3",
+        "classification": "declaration",
+        "owner": "ConversationStore",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "37f92f66a30c66991355c61f21f94414bb6e63d5d855c2c29dc2dff4b869b0a0",
+        "classification": "declaration",
+        "owner": "ConversationStore",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "3585b976a1e64339b073f05905b5d57d3b06db5ef719ff08cf0ab2a694e47157",
+        "classification": "declaration",
+        "owner": "ConversationStore",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "d9a403bf1f7f2b9e6c03111523f3eaed6c9de8a109cf93dc623bc5060a8b9f2f",
+        "classification": "declaration",
+        "owner": "ConversationStore",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "a6e989c708044a1fff91cd8ac6355d55045180d7f4bbc565adbb85c97e6c9da4",
+        "classification": "non_contract",
+        "owner": "ConversationStore.__init__",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "3dc87d9c9f8377350acfa34b7d0c3728eca4e493b49230678a3b5cfbe87c3b51",
+        "classification": "non_contract",
+        "owner": "ConversationStore._append",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "af0265a226c3dcd47f82e1a0ce525f7044f43f10f70901f9ba895a794aa0cd8a",
+        "classification": "non_contract",
+        "owner": "ConversationStore._refresh",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "0a0b8c6f40d9ebba1bd7c3613e0d7f4ad267aa2c6a2668efdebe8b3c5a65f703",
+        "classification": "declaration",
+        "owner": "MemoryConversationStore",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "1eeed53146fc0df25ebc86921c2a264bbf1136a824295e53df7ace84cb3f4dbb",
+        "classification": "declaration",
+        "owner": "MemoryConversationStore",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "79da004b20c79b23333dd68a45a806b34f4fa2f0f3394cd1e4e3fb19f3f358a6",
+        "classification": "non_contract",
+        "owner": "MemoryConversationStore._refresh",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "2275507fd68c9b0ee5dfd0c781b29472d5393ed95df85e65791ea90bed95aa76",
+        "classification": "non_contract",
+        "owner": "MemoryConversationStore._append",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "40f89b9da029822b1e849b5461595a71ff9b968881969c17db72ad1645f00fc3",
+        "classification": "non_contract",
+        "owner": "MemoryConversationStore.clear",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "a750631a380fc21ed8679e5b81d8ad7356132005fd66db4015dd16ad2e952519",
+        "classification": "declaration",
+        "owner": "MemoryConversations",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "352693e0b8c5f020afbc26f041ad088caad55677e9f2324845f2971049330aa6",
+        "classification": "non_contract",
+        "owner": "MemoryConversations.__init__",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "d54b12469441aceab5556968dd1f8ae0d5a6bbf063c07b6c72c1f19a0384c108",
+        "classification": "non_contract",
+        "owner": "MemoryConversations.discard",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "481afe96c1bbea9c73d32802a680b79897521c4f469726f8bba9a8793a316173",
+        "classification": "non_contract",
+        "owner": "MemoryConversations.clear",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "dc77a984d209d9cbb6d814a0c4df3b1e2dc43e1b48dd548166b8fccba0901425",
+        "classification": "declaration",
+        "owner": "ProjectConversations",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "b21058dff76bb8407a15a42d13cd38188d039f6a70ceeb4be3f059f86562e279",
+        "classification": "declaration",
+        "owner": "ProjectConversations",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "26d5004991d0bca2396ccec0fdb28271e3748743bf2559222da2d038138e3fa2",
+        "classification": "declaration",
+        "owner": "ProjectConversations",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "e3d45429e89a9f1a3acf265ced6862209b607c8bb4012d46e8fa39bff9c8090b",
+        "classification": "declaration",
+        "owner": "ProjectConversations",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "a6dce7f1ea634a5781228678f0770051cc5be44e62820bb10431b6764adfc2b6",
+        "classification": "declaration",
+        "owner": "ProjectConversations",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "bd494d40ba3f775ad008f5b2f4e9966657225882b2d634dd39704447d2b7683c",
+        "classification": "declaration",
+        "owner": "ProjectConversations",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "24e0125f03be54e9a4fedaf262b51637103a157cb65379431f3232a46864601c",
+        "classification": "declaration",
+        "owner": "ProjectConversations",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "6dc830f3135f779040229377346cf2c8cb87c10dea4327f5e917536ae326d78b",
+        "classification": "non_contract",
+        "owner": "ProjectConversations.__init__",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "e2eb1cccf5e9ddfcbc452c5808b7e3b56c9925649f7b8107c6db859ccb2bfe69",
+        "classification": "non_contract",
+        "owner": "ProjectConversations.discard",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      },
+      {
+        "id": "cda5228d9315fd5fb32569ce335733bd00816bfa277749b0cea6e9314d87daa8",
+        "classification": "non_contract",
+        "owner": "ProjectConversations.clear_owned",
+        "reason": "Python None return annotation only; no stored, wire, policy or runtime sentinel value is declared here."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Conversation / ConversationStore / MemoryConversationStore / ProjectConversations",
+        "declaration": "llm/services/history/conversation.py",
+        "consumers": [
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/context.py",
+          "llm/services/history/retention.py"
+        ],
+        "tests": [
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_conversation_storage.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/history/conversation_records.py",
+    "sha256": "ee87f18d0ff0e3be2362f621b4f7b6f65eb27c8a84b771e1ce584486f1e51537",
+    "reason": "Complete file review includes fixed dictionaries and dynamic event kind dispatch, injected hooks, file/memory factories, exact JSONL encoding, incremental replay/refresh, streaming buffers, count/cache invalidation, prune and transaction rollback. Existing semantics are preserved for valid input; invalid mutation acceptance is intentionally corrected by canonical preflight/replay validation. Full Gate42 and remote CI remain outstanding; this review does not mark the entire refactor or other infrastructure files complete.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "69956b4322c2d522bb8c0ca3953bb4513f68c8820432565fedb143c62f37af3f",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "bdc37cf862a24c52519907ca2872e104fb3fb78efcf333997a2828121ff39578",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "f340216e32d742b4853cb884396776f70048111cc43dd28e001f5d07e3b402e1",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "a05b1ffe6ef949a519a81a0ca54799c1035d08c6647860c653b114988eb1bce5",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "47181f5652b14b2165813744a58413186940d8238925c21f2c01223828d67e43",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "736c8d880b30df2597560dd6268c8b2b4d3bebaebb7fb3a6807f3ef2907baa02",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "b58f0756003e9e1de1a1d980a5963e6f6cad211d54a20eb6ad7c88d6768a214d",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "543aeb2011e3d3194e6266c9495eac8f678c903d3a8362d347cb65e7fd8c92ed",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "1ec302c53f3e8ddeadce9c4da5a9fd7ddac689681cf0b1f2bf1911af5e1ce026",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "8b9eec535e7bae015a5a0a011d2c414bc32857f1a1a959dfe4b55312d09fcb66",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "e877513586529e21ddc71cf49d79cd1fd0693607f00e1a3b04d54f5e2d539986",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "a132d30ec69986d60bc98b2ca836c4528272dc212f3939822a73ac9f808708ef",
+        "classification": "declaration",
+        "owner": "ConversationEvent",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "acff1f3f4ac53b649740cfdedd3c697ae76bc69f0569d235340fb7405286fb37",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "92e8713886a907af76a2cae60b380ee0a1d2d63ce8965fc544f9a8e678bcc447",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "2ac3e62af42c33dc791dd10b48758503615e2cf9f086c4a3d4bde3d4ca09d5c2",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "f5d8e64e431184a2cf893ec25dac51b9ab9be2bdc7b93ff8e5a47453120109dc",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "dec9656335150b17af9b55c6dfa2c9fc74c691b6822d608d4cefd2093611f5fa",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "a51335391b652c06a3de55fff08e7aea87726f2c15f892c401df7c9236643125",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "9cc620acf0782ebbe5322560d73aed8c50cc50840c0be82e33a0c988b12f2187",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "8cf9f1b7a5f39a497fc9f83626949d82e132cff1f3a51ceb6e02995ff19cdac6",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "655697a814bacdb53cfea32c27bff129ddcf8535bc71ff63c42c2ce43a1a1b8a",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "925bbd497d3cd5cd32484105fbe7f61a5a55839bf1d998a0801bec542c468a86",
+        "classification": "declaration",
+        "owner": "ConversationJournal",
+        "reason": "Event/journal/schema field names, event kinds, technical file/cache bounds and errors are declared at their Owner head; domain role/status/output/transaction meanings reference their existing Owner."
+      },
+      {
+        "id": "9161a635abae15bc794ab74db66bb631143f2078081ae09186507273d7391d7f",
+        "classification": "non_contract",
+        "owner": "ConversationFileStamp",
+        "reason": "Python dataclass frozen/slots declaration syntax for a transient typed stat projection; not a product setting or stored schema."
+      },
+      {
+        "id": "53d74f8c37fb139222324000f9632d3276b3aa59de8d3ee9862497f6cdc2ce8d",
+        "classification": "non_contract",
+        "owner": "ConversationFileStamp",
+        "reason": "Python dataclass frozen/slots declaration syntax for a transient typed stat projection; not a product setting or stored schema."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ConversationEvent / ConversationCreation / ConversationJournal / ConversationFileStamp",
+        "declaration": "llm/services/history/conversation_records.py",
+        "consumers": [
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/history/context.py",
+          "llm/services/history/retention.py"
+        ],
+        "tests": [
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_mutation_integrity.py",
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_memory_conversation.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_conversation_storage.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
