@@ -26,7 +26,8 @@ from .data import RAGData
 from .identity import RAGIdentity
 from .indexing import build_index, update_index
 from .search import search, search_schema
-from .splitting import split_markdown, CHUNK_FIELDS
+from .splitting import split_markdown
+from .chunk_records import RAGChunk, RAGSection, SplitDocument
 from .extraction import validate_graph, validate_extraction_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import ExtractionFailurePolicy, extraction_schema
 from .graph_indexing import build_graph, update_graph
@@ -171,7 +172,7 @@ class RAGComponent(DefinitionComponent):
         else:
             validate_extraction_checkpoint(value, receipt["signature"])
             actual = value["chunks"]
-        chunks = split_markdown(source["content"], source["identifier"], chunk_size=value["chunk_size"])["chunks"]
+        chunks = SplitDocument(split_markdown(source["content"], source["identifier"], chunk_size=value["chunk_size"])).chunks
         offset = int(batch[3])
         if revision_token(chunks[offset:offset + len(actual)]) != revision_token(actual):
             raise ValueError("RAG checkpoint differs from its original input chunks")
@@ -204,28 +205,15 @@ class RAGComponent(DefinitionComponent):
                 continue  # Standalone preparation has no bound Project configuration.
             if not isinstance(value, str) or re.fullmatch(r"[a-f0-9]{64}", value) is None:
                 raise ValueError("Invalid prepared RAG configuration evidence")
-        sections, chunks = document["sections"], document["chunks"]
+        sections, chunks = SplitDocument(document).sections, SplitDocument(document).chunks
         if not isinstance(sections, dict) or not sections or not isinstance(chunks, list) or not chunks:
             raise ValueError("Prepared RAG document requires sections and chunks")
-        if sections.keys() != {f"{identifier}:s{position}" for position in range(1, len(sections) + 1)}:
+        if sections.keys() != {RAGSection.identifier_for(identifier, position) for position in range(RAGSection.FIRST_ORDINAL, len(sections) + RAGSection.FIRST_ORDINAL)}:
             raise ValueError("Invalid prepared RAG section identities")
         for key, section in sections.items():
-            if (not isinstance(section, dict) or section.keys() != {"id", "heading", "heading_path", "text"}
-                    or section["id"] != key
-                    or not isinstance(section["heading"], str) or not isinstance(section["heading_path"], list)
-                    or any(not isinstance(item, str) for item in section["heading_path"])
-                    or not isinstance(section["text"], str) or not section["text"]
-                    or section["text"] not in document["content"]):
-                raise ValueError("Invalid prepared RAG section")
-        for position, chunk in enumerate(chunks, 1):
-            if (not isinstance(chunk, dict)
-                    or chunk.keys() != CHUNK_FIELDS
-                    or chunk["id"] != f"{identifier}:c{position}" or chunk["document_id"] != identifier
-                    or not isinstance(chunk["section_id"], str) or chunk["section_id"] not in sections
-                    or chunk["heading"] != sections[chunk["section_id"]]["heading"]
-                    or not isinstance(chunk["text"], str) or not chunk["text"].strip()
-                    or chunk["text"] not in sections[chunk["section_id"]]["text"]):
-                raise ValueError("Invalid prepared RAG chunk source")
+            RAGSection.validate_source(section, key, SplitDocument(document).content)
+        for position, chunk in enumerate(chunks, RAGChunk.FIRST_ORDINAL):
+            RAGChunk.validate_source(chunk, document_id=identifier, ordinal=position, sections=sections)
         profile = document["profile"]
         if (not isinstance(profile, dict) or profile.keys() != {"model", "dimensions"}
                 or not isinstance(profile["model"], str) or not profile["model"]
@@ -704,9 +692,9 @@ class RAGComponent(DefinitionComponent):
                 vectors = validate(vectors, **self.document_kwargs)
             dimensions = getattr(self, "_embedding_dimensions", None)
             vectors = validate_vectors(vectors, dimensions=previous["profile"]["dimensions"] if dimensions is None else dimensions)
-            if len(vectors) != len(previous["chunks"]):
+            if len(vectors) != len(SplitDocument(previous).chunks):
                 raise ValueError("Stored chunk/vector count mismatch")
-            validate_graph(previous["graph"], previous["chunks"],
+            validate_graph(previous["graph"], SplitDocument(previous).chunks,
                            relation_types=self.extraction_options.get("relation_types", ()))
             document = deepcopy(previous)
             document.update(title=title, metadata=metadata, revision=revision,
@@ -731,7 +719,7 @@ class RAGComponent(DefinitionComponent):
         manifest, reused_sources = [], set()
         previous_batches = {entry["signature"]: entry for entry in previous.get("extraction_manifest", [])} if previous else {}
         previous_graph = group_evidence(previous["graph"]) if previous_batches else None
-        extraction_total = ((len(document["chunks"]) + self.extraction_batch_size - 1) // self.extraction_batch_size
+        extraction_total = ((len(SplitDocument(document).chunks) + self.extraction_batch_size - 1) // self.extraction_batch_size
                             if policy != ExtractionFailurePolicy.DISABLED.value else 0)
         extraction_done = 0
         async def extraction_progress():
@@ -743,8 +731,8 @@ class RAGComponent(DefinitionComponent):
         def observe_extraction(event):
             if event.code == ProviderRetryObservation.RETRY:
                 document["ingestion"]["provider_retries"] += 1
-        for offset in (range(0, len(document["chunks"]), self.extraction_batch_size) if policy != ExtractionFailurePolicy.DISABLED.value else ()):
-            batch = document["chunks"][offset:offset + self.extraction_batch_size]
+        for offset in (range(0, len(SplitDocument(document).chunks), self.extraction_batch_size) if policy != ExtractionFailurePolicy.DISABLED.value else ()):
+            batch = SplitDocument(document).chunks[offset:offset + self.extraction_batch_size]
             # Keep the existing Job checkpoint binding unchanged. Cross-update reuse has
             # its own implementation identity; it is not a replacement checkpoint format.
             signature = revision_token({"chunks": batch, "extractor": type(self.extractor).__qualname__,
@@ -761,7 +749,7 @@ class RAGComponent(DefinitionComponent):
                                      relation_types=self.extraction_options.get("relation_types", ()))
                 if revision_token(graph) != entry["digest"]:
                     raise GraphValidationError("Stored extraction batch integrity mismatch")
-                reused_sources.update(chunk["id"] for chunk in batch)
+                reused_sources.update(RAGChunk(chunk).identifier for chunk in batch)
                 document["ingestion"]["extraction_batches_reused"] += 1
                 if progress:
                     await progress(key, signature, {"chunks": batch, "chunk_size": self.chunk_size, "graph": graph})
@@ -800,12 +788,12 @@ class RAGComponent(DefinitionComponent):
             manifest.append({"signature": reuse_signature, "entity_ids": [e["id"] for e in graph["entities"]],
                              "offset": offset, "count": len(batch)})
         document["graph"] = enrich_graph(validate_graph(
-            {"entities": list(entities.values()), "relations": relations}, document["chunks"],
+            {"entities": list(entities.values()), "relations": relations}, SplitDocument(document).chunks,
             relation_types=self.extraction_options.get("relation_types", ())), identifier)
         # Manifest stores identities/digests, not a second copy of the graph.
         grouped = group_evidence(document["graph"])
         for entry in manifest:
-            batch = document["chunks"][entry["offset"]:entry["offset"] + entry["count"]]
+            batch = SplitDocument(document).chunks[entry["offset"]:entry["offset"] + entry["count"]]
             entry["digest"] = revision_token(select_graph(grouped, entry["entity_ids"], batch,
                 relation_types=self.extraction_options.get("relation_types", ())))
         if reused_sources:
@@ -972,9 +960,9 @@ class RAGComponent(DefinitionComponent):
             doc = documents[identifier]
             # 같은 문서를 근거로 하는 관계마다 전체 문단을 다시 순회하지 않는다.
             if identifier not in chunk_indexes:
-                chunk_indexes[identifier] = {c["id"]: c for c in doc["chunks"]}
+                chunk_indexes[identifier] = {RAGChunk(c).identifier: c for c in SplitDocument(doc).chunks}
             chunk = chunk_indexes[identifier][relation["source_id"]]
-            sources[chunk["id"]] = {**chunk, "title": doc["title"], "generation": doc["generation"], "revision": doc["revision"],
+            sources[RAGChunk(chunk).identifier] = {**chunk, "title": doc["title"], "generation": doc["generation"], "revision": doc["revision"],
                                      "metadata": doc["metadata"]}
         incomplete = [identifier for identifier, doc in documents.items() if doc.get("graph_complete") is False]
         return {"query": query, "documents": hits, **graph, "sources": list(sources.values()),

@@ -1,5 +1,7 @@
 """BM25·벡터 순위 결합과 출처/부모 문맥 확장. 저장이나 모델 호출은 하지 않는다."""
 
+from .chunk_records import RAGChunk, RAGSection, SplitDocument
+
 import re
 from enum import StrEnum
 from jsonschema import Draft202012Validator
@@ -90,8 +92,8 @@ class LexicalCache:
             if existing is not None:
                 self.entries[path] = existing
                 return existing[1]
-            size = max(1, sum(len(c["text"]) for c in chunks.values()))
-            model = BM25Okapi([tokens(c["text"]) or ["__empty__"] for c in chunks.values()])
+            size = max(1, sum(len(RAGChunk(c).text) for c in chunks.values()))
+            model = BM25Okapi([tokens(RAGChunk(c).text) or ["__empty__"] for c in chunks.values()])
             if size <= maximum:
                 while self.entries and self.used + size > maximum:
                     _, (removed, _) = self.entries.popitem(last=False)
@@ -103,7 +105,7 @@ class LexicalCache:
 
 def search(path, documents: dict, query: str, vector, *, method: str, expand: str, limit: int,
            lexical_cache=None, cache_chars=None, candidate_count, rrf_constant) -> list:
-    chunks = {c["id"]: c for doc in documents.values() for c in doc["chunks"]}
+    chunks = {RAGChunk(c).identifier: c for doc in documents.values() for c in SplitDocument(doc).chunks}
     if not chunks:
         return []
     order, rankings = list(chunks), []
@@ -126,9 +128,9 @@ def search(path, documents: dict, query: str, vector, *, method: str, expand: st
     # 후보 전체의 RRF 점수는 유지하고 반환할 상위 항목만 정렬한다. 동점 순서도 유지한다.
     for identifier in nlargest(limit, scores, key=scores.get):
         chunk = chunks[identifier]
-        doc = documents[chunk["document_id"]]
-        context = (doc["content"] if expand == SearchExpansion.DOCUMENT else
-                   doc["sections"][chunk["section_id"]]["text"] if expand == SearchExpansion.SECTION else chunk["text"])
+        doc = documents[RAGChunk(chunk).document_id]
+        context = (SplitDocument(doc).content if expand == SearchExpansion.DOCUMENT else
+                   RAGSection(SplitDocument(doc).sections[RAGChunk(chunk).section_id]).text if expand == SearchExpansion.SECTION else RAGChunk(chunk).text)
         hits.append({**chunk, "title": doc["title"], "metadata": doc["metadata"],
                      "generation": doc["generation"], "revision": doc["revision"], "context": context, "score": scores[identifier]})
     return hits

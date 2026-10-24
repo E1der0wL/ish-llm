@@ -2,6 +2,8 @@
 
 from llm.providers.diagnostic_values import ProviderRetryObservation
 
+from .chunk_records import RAGChunk, SplitDocument
+
 import asyncio
 import hashlib
 import threading
@@ -60,10 +62,9 @@ def validate_chunk_checkpoint(value, signature):
     """Validate a stored single-chunk receipt without reconstructing missing fields."""
     if not isinstance(value, dict) or value.keys() != CHECKPOINT_FIELDS:
         raise ValueError("Incomplete embedding chunk checkpoint")
-    from .splitting import validate_chunk
-    chunk = validate_chunk(value["chunk"])
+    chunk = RAGChunk.validate(value["chunk"])
     if (type(value["chunk_size"]) is not int or value["chunk_size"] < 1
-            or hashlib.sha256(chunk["text"].encode("utf-8")).hexdigest() != value["text_hash"]):
+            or hashlib.sha256(RAGChunk(chunk).text.encode("utf-8")).hexdigest() != value["text_hash"]):
         raise ValueError("Embedding checkpoint original chunk changed")
     for key in ("fingerprint", "text_hash"):
         if not isinstance(value[key], str) or re.fullmatch(r"[a-f0-9]{64}", value[key]) is None:
@@ -85,13 +86,12 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
     concurrency = component.embedding_concurrency
     if type(concurrency) is not int or concurrency < 1:
         raise ValueError("embedding_concurrency must be a positive integer")
-    texts = [chunk["text"] for chunk in document["chunks"]]
+    texts = [RAGChunk(chunk).text for chunk in SplitDocument(document).chunks]
     if progress:
-        from .splitting import validate_chunk
         if type(component.chunk_size) is not int or component.chunk_size < 1:
             raise ValueError("Checkpoint source requires a positive chunk_size")
-        for chunk in document["chunks"]:
-            validate_chunk(chunk)
+        for chunk in SplitDocument(document).chunks:
+            RAGChunk.validate(chunk)
     fingerprint = revision_token({"contract": "single-chunk-v1", "model": component._identity(),
         "params": getattr(component.embedding, "params", {}), "document_kwargs": component.document_kwargs,
         "query_kwargs": component.query_kwargs, "client": type(component.embedding).__qualname__})
@@ -115,10 +115,10 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
     reused = {}
     if previous and previous.get("embedding_fingerprint") == fingerprint:
         vectors = validate_vectors(previous["vectors"], dimensions=previous["profile"]["dimensions"])
-        if len(vectors) != len(previous["chunks"]):
+        if len(vectors) != len(SplitDocument(previous).chunks):
             raise ValueError("Stored chunk/vector count mismatch")
-        for chunk, vector in zip(previous["chunks"], vectors):
-            key = vector_key(fingerprint, chunk["text"])
+        for chunk, vector in zip(SplitDocument(previous).chunks, vectors):
+            key = vector_key(fingerprint, RAGChunk(chunk).text)
             if key in reused and reused[key] != vector:
                 raise ValueError("Stored identical chunks have conflicting vectors")
             reused[key] = vector
@@ -190,7 +190,7 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
             if progress and position not in saved_positions:
                 await progress(f"embedding_{position}", signature, validate_chunk_checkpoint(
                     {"fingerprint": fingerprint, "text_hash": text_hash, "vector": vector,
-                     "chunk": document["chunks"][position], "chunk_size": component.chunk_size}, signature))
+                     "chunk": SplitDocument(document).chunks[position], "chunk_size": component.chunk_size}, signature))
             vectors[position] = list(vector)
             stats["chunks_completed"] += 1
         component.vector_cache.put(vector_key(cache_prefix, text), vector, maximum)

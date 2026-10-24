@@ -27,7 +27,8 @@ Agent 선택은 같은 선언을 사용하며 모델/저장 경계에는 기존 
 | [__init__.py](__init__.py) | RAGComponent/RAGConflictError와 EmbeddingModel/RerankModel/TripleExtractor의 공개 import입니다. |
 | [component.py](component.py) | 설정 검증과 문서·색인 generation의 원자적 공개·복제를 담당합니다. |
 | [data.py](data.py) | Project 수명·잠금 경계를 유지하는 문서 CRUD·검색·Job 공개 API입니다. |
-| [splitting.py](splitting.py) | Markdown 제목·섹션·청크와 위치 메타데이터를 구성합니다. |
+| [chunk_records.py](chunk_records.py) | 분할 문서·섹션·청크의 형식·순서/ID·내용 digest와 원본/섹션 연결 검증을 소유합니다. |
+| [splitting.py](splitting.py) | MarkdownSplitter가 fence·제목 계층·문단 분할을 소유하며 정규 섹션/청크 Writer로 결과를 구성합니다. |
 | [embedding.py](embedding.py) | LiteLLM 단일 입력 임베딩 클라이언트와 SDK 캐시 차단 계약입니다. |
 | [rerank.py](rerank.py) | 검색 후보 재정렬 클라이언트와 결과 index·score 검증입니다. |
 | [_client.py](_client.py) | 모델 클라이언트의 공통 파라미터·provider 정책 연결입니다. |

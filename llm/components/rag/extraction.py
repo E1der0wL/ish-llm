@@ -12,7 +12,7 @@ from llm.core.model_protocol import ModelMessage, ModelRole
 from .prompts import EXTRACTION_CONTRACT, ExtractionJSONMode
 from llm.components.prompts.records import PromptDefinition
 from llm.errors import CodedError
-from .splitting import validate_chunk
+from .chunk_records import RAGChunk
 
 CHECKPOINT_FIELDS = frozenset(("chunks", "chunk_size", "graph"))
 
@@ -26,7 +26,7 @@ def validate_graph(graph: dict, chunks: list, *, relation_types=()) -> dict:
     """관계의 양 끝과 정확한 원문 인용을 검증하고 이름 기반 ID로 정규화한다."""
     if not isinstance(graph, dict) or not isinstance(graph.get("entities"), list) or not isinstance(graph.get("relations"), list):
         raise GraphValidationError("Extraction requires entities and relations lists")
-    source = {c["id"]: c["text"] for c in chunks}
+    source = {RAGChunk(c).identifier: RAGChunk(c).text for c in chunks}
     canonical_types = {kind.casefold(): kind for kind in relation_types}
     identities, entities = {}, {}
     for index, entity in enumerate(graph["entities"]):
@@ -122,7 +122,7 @@ def validate_extraction_checkpoint(value, signature):
             or not isinstance(signature, str) or re.fullmatch(r"[a-f0-9]{64}", signature) is None):
         raise GraphValidationError("Invalid stored extraction request chunks or signature")
     for chunk in value["chunks"]:
-        validate_chunk(chunk)
+        RAGChunk.validate(chunk)
     graph = validate_graph_checkpoint(value["graph"])
     canonical = validate_graph(graph, value["chunks"])
     if revision_token(canonical) != revision_token(graph):
@@ -170,7 +170,7 @@ def select_graph(grouped, entity_ids, chunks, *, relation_types=()):
     if set(entity_ids) - entities.keys():
         raise GraphValidationError("Extraction manifest references unknown entities")
     return validate_graph({"entities": [entities[key] for key in entity_ids],
-        "relations": [edge for chunk in chunks for edge in by_source.get(chunk["id"], ())]},
+        "relations": [edge for chunk in chunks for edge in by_source.get(RAGChunk(chunk).identifier, ())]},
         chunks, relation_types=relation_types)
 
 

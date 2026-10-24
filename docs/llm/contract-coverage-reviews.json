@@ -49670,5 +49670,292 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/rag/chunk_records.py",
+    "sha256": "8eddcce77edafee01cc81d8e50f2c44fa8ca82943ae4cace32f3ebe72fe8e5ee",
+    "reason": "Complete split and record implementations and all direct chunk consumers reviewed. Independent old/new wire, original validation-body comparisons and full method expansion preserve source bytes, identities, current typed/shape errors, field presence and original-source relationships. Real index/search/Job/corruption and core safety regressions retain original assertions. Other contracts within the larger consumer files are explicitly still pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cf1f6e87994f50ee332646cfed1a4710a291cc4b82d8ac99a5641eea3268fbe8",
+        "classification": "declaration",
+        "owner": "RAGContent",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "370093bf17eb801ee05506820fe6a9b504547beacc011d3097f6f29b78de8a19",
+        "classification": "declaration",
+        "owner": "RAGSection",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "527dc9afef65dabad205275e3b661e592b311d6cdf25c290a8742efcde5add0f",
+        "classification": "declaration",
+        "owner": "RAGSection",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "c310b509e62bdceedaed6ad2992bbe9dfe45e1decd20a97a75a9fca3b32111cc",
+        "classification": "declaration",
+        "owner": "RAGSection",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "503ed606e7061589410ec1c849ef11d503ac0b3a8c63cd15d8dca2e7a2185254",
+        "classification": "declaration",
+        "owner": "RAGSection.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "9dd5783a73fe8e0abf68953d8c89c220dfe54c32d856be99691b55ffcf86e4b1",
+        "classification": "declaration",
+        "owner": "RAGSection.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "d0f08a8ac698f69d93ac04c43eaa342ee09e0de77068ca0a9b2180bec7c6f407",
+        "classification": "declaration",
+        "owner": "RAGSection.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "0734411799004412376568aa568d9c698c9b5037cdacfb00e6d54275e102d2db",
+        "classification": "declaration",
+        "owner": "RAGSection.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "080740fc976d688aa29042d2519a2fb4f9a1e93f7a6f0aac52b6e85d9ebec5bd",
+        "classification": "declaration",
+        "owner": "RAGChunk",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "af4b2ad480ef2cc9afe79bcb6ad46827b4525131df097ceafbb1ebac4e19acd7",
+        "classification": "declaration",
+        "owner": "RAGChunk",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "9d20c036d7d7d5e4ceb3ea648a17d471947741485d1b6427f5dff6736e384ee7",
+        "classification": "declaration",
+        "owner": "RAGChunk",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "bce53356175de0a2ba328a0da557830d9f89cccb93f9d5d82eba51a009a9be23",
+        "classification": "declaration",
+        "owner": "RAGChunk",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "58271f472573e9ae9d85f83fc22a0dd192e90d596d99fdb5b7a08cd3f04dd148",
+        "classification": "declaration",
+        "owner": "RAGChunk.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "df7b69502dca8fa25b201aaa88bb0072a119620532977be123f3c2d04c792cd8",
+        "classification": "declaration",
+        "owner": "RAGChunk.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "3c2edda816868d2e96d9cbce0086d53e1933ffb6e69c0cdf62f0730d8bd47c0f",
+        "classification": "declaration",
+        "owner": "RAGChunk.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "2bd44d5cc377de3200b45f0fee5dd563e254e021334c7ebadb38d543b4d0d8c0",
+        "classification": "declaration",
+        "owner": "RAGChunk.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "ae68d2a2da6cbe41be3ddc7d36f4bc6313cfa7abe9398fb150adfb428046a171",
+        "classification": "declaration",
+        "owner": "RAGChunk.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "4b2c4ddc8b12f94027ee2eb4429a005520db5d7a659031a96629c112d4228240",
+        "classification": "declaration",
+        "owner": "SplitDocument.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "924da8163529f4d3aeb1e7ef9854dee6bfff04ed77b0ee088434ecb3aae78e98",
+        "classification": "declaration",
+        "owner": "SplitDocument.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "623d989c2c38a2d8458ca43016f9ff93fe0fd5a1c66a13317b19681723a7bfbd",
+        "classification": "declaration",
+        "owner": "SplitDocument.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "4b8842c8d26a300730d011f77e1a1c5285d282e299e5750567a8104bee8cecef",
+        "classification": "declaration",
+        "owner": "SplitDocument.Field",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGContent / RAGSection / RAGChunk / SplitDocument",
+        "declaration": "llm/components/rag/chunk_records.py",
+        "consumers": [
+          "llm/components/rag/splitting.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/ingestion.py",
+          "llm/components/rag/extraction.py",
+          "llm/components/rag/indexing.py",
+          "llm/components/rag/search.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_embedding_checkpoint.py",
+          "tests/llm/test_rag_graph_checkpoint.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/splitting.py",
+    "sha256": "4f76f4b9a73764acdd89a336b3ccfabd51dd01ea55efad39b9b2d26f9a84d871",
+    "reason": "Complete split and record implementations and all direct chunk consumers reviewed. Independent old/new wire, original validation-body comparisons and full method expansion preserve source bytes, identities, current typed/shape errors, field presence and original-source relationships. Real index/search/Job/corruption and core safety regressions retain original assertions. Other contracts within the larger consumer files are explicitly still pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3512a96ca0d67ba99a5203741188129f42104e34216454eea03c1a6c10d34241",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "0086bccee0fc34e55ad35f75146f7cf26e2b80967c8d32de2ca20e75540b9d19",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "f52a195a2ba6a81e3d8819fd153956dfe7c04c21ca2acd9cde3d6cb07068efde",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "4f6665b19c032626a83788dafb007661ee4c8296dde66bc98814dfb2969a7e1f",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "ef0224bebc414b9cdf8bd70d412b81a97db196a41fc3a729a7fcccb3f3921d8f",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "94bb348ac185ccf39ad3b60fef22e6c8b85eb77efd969fafa21d52e87242c281",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "05e42c748e2192640288ee4dbbf0edd5903a759f84d32525bf8669189619b7bc",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "8c2d94c2afaeb148adbc22afe3033ade7ad20f8b7988ba7ba3453c022b73bbb6",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "ca5bc90cb9b78e7b2f236748ec4939a6c24198ad93112c0ec1951e7f2d6117c7",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "743e98871053b6060901c644eea8c55a50250434ad410e2f7a38d8966e85dd79",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "1dad92920b2f4fa548a21f5f5317ab26e605768e7b3a75d8cade3b23a7962fbe",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "76008b4fd86d34742c26a4bbd864e82697224fa2ff3d6a89b4e3d550b2bb6e39",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "d8598b539bb15ed1d2af473937cafb8f385f46a18490c1582b8493f69fd466f7",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "6102742a911f22631979d36e4111298905ebc0cc5d565d6f40c3a232fdb0f8e1",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "99e1f09722ce4c76b5a349c96a7f468811874a55dc8b1109c7969a7a76ba46a7",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      },
+      {
+        "id": "2f26bf07dc4192516d6554c200dc7ba2d1ab7ef49f9673c7de7eda2a5aa66c06",
+        "classification": "declaration",
+        "owner": "MarkdownSplitter",
+        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MarkdownSplitter / MarkdownHeading / HeadingAncestor",
+        "declaration": "llm/components/rag/splitting.py",
+        "consumers": [
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_embedding_checkpoint.py",
+          "tests/llm/test_rag_graph_checkpoint.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

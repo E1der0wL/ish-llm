@@ -4561,3 +4561,81 @@ S1–S7 정적 검사 exit 0, 기존 finding 112개·new/stale/미검토 0; 실�
 다음 group33 전체 게이트는 File(f494fd1)·Data(515e67e)·Memory Component(0daef71)와
 이번 Data/처리기 변경을 한 현재 소스로 검증한다. 전체 LLM 2,492·Hub 588개, 정적 감사,
 R3 Mutation, 문서·Provider·실제 Host/namespace/X11 환경 검증을 유지한다.
+
+
+### 이전 group32의 정확한 SHA 원격 CI 완료
+
+2026-10-24 00:29 UTC, SHA `0dd6499f2d3a04d486be033f2076c07b22582b03`의
+[GitHub run 40042631053](https://github.com/E1der0wL/ish-llm/actions/runs/40042631053), 필수 Job·
+단계와 실제 전체 artifact를 확인했다. LLM 2,491/2,491 pass(1666.683794839초),
+Hub 588/588 pass(1438.604167274초), failure/error/skip/xfail/xpass/누락/추가/중복 0.
+원격 Python 3.12.14/GCC이며 기존 로컬 실행과 별도 결과다. 해당 SHA의 전체 게이트는 완료다.
+후속 File·Data·Memory 및 새 Data 회귀 시험은 이 SHA에 포함되지 않는다.
+
+### group33 통합 검증 시작
+
+SHA `a03a2bbee04f62b66b3a3ce67172d90384f22091`을
+`/workspace/ish-llm-group33-validation`에 고정했다. Host d833790의 실제 소스 링크와
+Python 3.12.14/Clang·고정 의존성·namespace/X11 환경에서 `auxiliary.py group33-auxiliary`의
+정적 S1–S7·문서·R3·Provider·LLM 환경·Hub 환경 6개 모두 exit 0을 확인했다.
+`gate.py whole-owners-group33-l3`로 전체 LLM/Hub 검증을 시작했다. 결과는 실행 완료 후
+각 suite의 원본 JSON·실행 누락·중복·입력 전후 동일성을 확인한다. 아직 Push하지 않았다.
+주 작업 트리의 후속 변경은 이 고정 실행에 포함하지 않는다.
+
+
+## llm RAG 분할·섹션·청크와 전체 직접 소비 연결 — Level 2
+
+기준 a03a2bb. RAGSection/RAGChunk/SplitDocument가 원본 분할의 필드·ID·Writer·Reader를,
+RAGContent가 UTF-8 내용 digest를, MarkdownSplitter가 fence·ATX·제목 계층·문단/길이 분할을
+소유한다. 인덱스 metadata는 indexing의 ChunkIndexMetadata가 기존 참조 필드 선언을 사용한다.
+RAG Component·임베딩 준비·추출·Chroma 색인·BM25/vector/section 확장 조회는 이 Owner의
+속성·검증·Projection을 사용한다. 기존 validate_chunk/CHUNK_FIELDS를 별도 경로로 남기지
+않았으며 정규 검증 하나로 연결했다. split_markdown 공개 함수는 단일 분할 구현을 호출한다.
+
+독립 저장 청크의 필수 형식 검사와 준비 문서 안의 ID·원본·섹션 연결 검사는 경계별로 유지했다.
+두 검사를 동일한 조건으로 바꾸지 않았고 형식 오류·연결 오류의 기존 메시지와 순서를 보존했다.
+빈 본문을 정상 자료로 복구하거나 손상된 원본을 새 분할 결과로 대체하지 않는다. 기존 전체
+문서·벡터·graph/추출 영수증 검증과 generation/CAS·활성 포인터·Job 권한 검사는 그대로다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-chunks-draft/ast-proof.py`
+(한 셸 명령), exit 0. 원본 분할 알고리즘과 4,560개 입력/크기/identifier 조합의 JSON wire 순서·
+ID·digest·오류가 같았다. Unicode·CRLF·다양한 fence·제목·빈 입력·잘못된 크기를 포함했다.
+원래 검증 함수/루프를 직접 실행한 저장 형식 51개, 섹션 원본 연결 126개, 청크 연결 204개와
+독립 Writer/ID 기대값이 통과했다. 실제 typed getter/검증/Projection을 확장한 Component 41개,
+ingestion 8개, extraction 10개, indexing 3개, search 8개 전체 메서드 AST도 같다. Owner 이동에
+따른 import 위치만 정규화했고 조건·분기·실제 함수 본문을 제외해 비교하지 않았다.
+초기 비교 도구가 생성한 AST Name의 Load context 누락을 보완했다. 제품 오류가 아니며
+consumer-proof.log의 초기 비교 실패와 완전한 최종 비교 로그를 모두 보존했다.
+
+- `whole-rag-chunks-l1-01`: discovered/started/pass 36/36/36, exit 0, 21.037002초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-chunks-l1-01/llm.json --modules tests.llm.test_rag_components tests.llm.test_rag_storage`. source `99b94f146aa73bd92cd5e2ca513146efafc6d12b8398096a5b3b69f09fde8663`, input `7f066a74283327a1ecc46071519ac3ca04431e4ff9dfdfa4d860223c1d064ed5`.
+
+- `whole-rag-chunks-l2-01`: discovered/started/pass 255/255/255, exit 0, 248.795835초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-chunks-l2-01/llm.json --modules tests.llm.test_rag_batch_identity tests.llm.test_rag_prepared_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_corpus_integrity tests.llm.test_rag_catalog_integrity tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_optimization tests.llm.test_rag_retention_policy tests.llm.test_rag_input_integrity tests.llm.test_rag_storage tests.llm.test_rag_job_state_integrity tests.llm.test_rag_batch_source tests.llm.test_rag_models tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_query_evidence tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_components tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `c6e0250b830928f29e3d540a1187a66b5d9a027cb28c195a1a96523a4d87dc51`, input `d617e92f7af066542ec336cbf82c8c5109f3477a737acbbd4c149537afccad6a`.
+
+- `whole-rag-chunks-hub-01`: discovered/started/pass 32/32/32, exit 0, 156.447585초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-chunks-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools`. source `c6e0250b830928f29e3d540a1187a66b5d9a027cb28c195a1a96523a4d87dc51`, input `d617e92f7af066542ec336cbf82c8c5109f3477a737acbbd4c149537afccad6a`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+L1 36개는 최초 Writer/검증 연결 상태이고, 이후 나머지 실제 소비자를 이관했으므로 최종
+상태의 관련 모듈을 Level 2에서 다시 검증했다. 서로 다른 소스 결과를 하나의 전체 실행으로
+합산하지 않는다. 현재 전체 발견 수 LLM 2,492·Hub 588은 유지한다.
+Python 3.12.14/Clang·Host d833790·고정 의존성·실제 namespace/X11 환경이다.
+
+전체 RAG 모듈의 원본·필수 영수증·Job/재개·입력 binding·실제 색인/검색·포인터/identity 손상과
+삭제 원본 보존, 공통 승인·예산·외부 효과·Checkpoint·수명주기, 직접 Hub Job/retention/검색/
+자료 Tool을 포함한다. 기존 테스트·독립 기대값·안전성 Assertion은 모두 유지했다.
+소비자 메서드의 전체 동등성과 실제 RAG/공통 안전성으로 영향 범위를 입증했으므로 이
+소단계마다 전체 LLM/Hub 회귀를 반복하지 않는다. 진행 중인 group33 고정 SHA에는 RAG 변경이
+포함되지 않는다. 관련 RAG 후속 변경을 다음 현재 통합 소스 Level 3 게이트로 묶는다.
+
+이번 전수 종료 범위는 chunk_records.py와 splitting.py 및 청크 계약의 직접 소비 연결이다.
+다른 RAG 파일의 남은 설정·graph·Job·영수증·공개 응답 계약을 완료로 분류하지 않는다.
+llm/ 전수와 이후 hub/ 단계 및 최종 정확한 SHA CI 완료 조건은 유지한다.
+
+이번 소단계 최종 감사 `python -m unittest tests.llm.test_contract_coverage
+ tests.llm.test_architecture_reviews`: 16/16 pass, 3.305초, exit 0.
+정적 S1–S7 exit 0, 기존 finding 112개·new/stale/미검토 0; 관련 Component/ingestion와
+README 의존 증거 14개를 실제 비교/소비 검증에 따라 갱신했다. 문서 검사 exit 0.
+R3 Mutation exit 0, 원래 두 실제 효과 Assertion에서 의도적 호출 한도 누락을 검출했다.
+전체 inventory 529개, 미검토 272개(llm 95/hub 177), 미분류 18,966개,
+미완료 계약 4개·stale/분류 오류 0이다. 결과는
+`/workspace/llm-clean-resume/whole-ownership/rag-chunks-draft/`에 보존했다.
