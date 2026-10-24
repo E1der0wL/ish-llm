@@ -3,6 +3,59 @@
 from .embeddings import value
 from llm.core.model_protocol import ModelRole, ModelResponse, EmbeddingResult, RankedDocument, RerankResult
 from .request_values import ModelParameters, EmbeddingParameters
+from collections.abc import Mapping
+from llm.core.model_protocol import copy_model, ModelJson
+
+
+class SDKValue:
+    """SDK Mapping/attribute boundary, including opaque streamed fragments."""
+
+    MODEL_DUMP = "model_dump"
+    ATTRIBUTE_STORAGE = "__dict__"
+    EXCLUDE_NONE = True
+    UNSPECIFIED = None
+    MINIMUM_USAGE = ModelJson.MINIMUM_COUNT
+
+    @classmethod
+    def field(cls, value, key, default=UNSPECIFIED):
+        return value.get(key, default) if isinstance(value, Mapping) else getattr(value, key, default)
+
+    @classmethod
+    def usage(cls, value):
+        if callable(getattr(value, cls.MODEL_DUMP, cls.UNSPECIFIED)):
+            value = value.model_dump()
+        if not isinstance(value, Mapping):
+            return {}
+        result = {}
+        for key, item in value.items():
+            if not isinstance(key, str):
+                continue
+            if type(item) is int and item >= cls.MINIMUM_USAGE:
+                result[key] = item
+            elif isinstance(item, Mapping) or callable(getattr(item, cls.MODEL_DUMP, cls.UNSPECIFIED)):
+                nested = cls.usage(item)
+                if nested:
+                    result[key] = nested
+        return result
+
+    @classmethod
+    def merge_opaque(cls, previous, fragment):
+        if isinstance(previous, Mapping) and isinstance(fragment, Mapping):
+            return {
+                **copy_model(dict(previous)),
+                **{key: cls.merge_opaque(previous.get(key), value) for key, value in fragment.items()},
+            }
+        if isinstance(previous, list) and isinstance(fragment, list):
+            return copy_model(previous + fragment)
+        return copy_model(fragment)
+
+    @classmethod
+    def mapping(cls, value):
+        if callable(getattr(value, cls.MODEL_DUMP, cls.UNSPECIFIED)):
+            return value.model_dump(exclude_none=cls.EXCLUDE_NONE)
+        if not isinstance(value, Mapping) and hasattr(value, cls.ATTRIBUTE_STORAGE):
+            return vars(value)
+        return value
 
 
 class SDKMessage:
@@ -14,6 +67,10 @@ class SDKMessage:
     FIELDS = frozenset((ROLE, CONTENT, TOOL_CALLS, TOOL_CALL_ID, NAME))
     DEFAULT_ROLE = ModelRole.ASSISTANT.value
     UNSPECIFIED = None
+
+    @classmethod
+    def accounting_wire(cls, text):
+        return {cls.ROLE: ModelRole.USER.value, cls.CONTENT: text}
 
     def __init__(self, message):
         self._value = message
@@ -67,6 +124,12 @@ class SDKOperationResponse:
 
     def __init__(self, response):
         self._value = response
+
+    def observed_usage(self):
+        usage = value(self._value, self.USAGE)
+        if callable(getattr(usage, SDKValue.MODEL_DUMP, self.UNSPECIFIED)):
+            usage = usage.model_dump()
+        return usage if isinstance(usage, dict) else {}
 
     def opaque(self, fields):
         from .litellm import _sdk_mapping

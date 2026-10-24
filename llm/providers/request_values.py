@@ -115,12 +115,39 @@ class LiteLLMParameters(SDKRetryParameters):
     INPUT = "input"
     QUERY = "query"
     DOCUMENTS = "documents"
+    PARALLEL_TOOL_CALLS = "parallel_tool_calls"
+    JSON_SCHEMA = "json_schema"
+    STOP = "stop"
     CACHE_NO_READ = "no-cache"
     CACHE_NO_WRITE = "no-store"
     FORMAT_TYPE = "type"
     JSON_OBJECT = "json_object"
     NONSTREAMING = False
+    STREAMING = True
     SINGLE_CHOICE = 1
+    INPUT_FIELDS = (MESSAGES, TOOLS, FUNCTIONS, FUNCTION_CALL)
+    PROCESSOR_FIELDS = (
+        *SDKRetryParameters.RETRY_FIELDS,
+        SDKRetryParameters.RETRY_POLICY,
+        SDKRetryParameters.CLIENT,
+        TOOLS,
+        TOOL_CHOICE,
+        FUNCTIONS,
+        FUNCTION_CALL,
+        STREAM,
+        N,
+    )
+    AUXILIARY_FIELDS = (
+        *INPUT_FIELDS,
+        TOOL_CHOICE,
+        PARALLEL_TOOL_CALLS,
+        RESPONSE_FORMAT,
+        JSON_SCHEMA,
+        STOP,
+        N,
+        *SDKRetryParameters.RETRY_FIELDS,
+    )
+    OUTPUT_LIMIT_FIELDS = (MAX_TOKENS, MAX_COMPLETION_TOKENS)
     EMBEDDING_ENFORCED = {CACHING: False, CACHE: {CACHE_NO_READ: True, CACHE_NO_WRITE: True}}
     VISION_ENFORCED = {STREAM: NONSTREAMING, N: SINGLE_CHOICE}
     RETRY_CHANGEABLE = (TIMEOUT,)
@@ -139,6 +166,99 @@ class LiteLLMParameters(SDKRetryParameters):
         CACHE,
     )
     INVALID_RETRY = "Retry cannot change provider contract: {key}"
+    INVALID_ACCOUNTING = "SDK accounting requires message and Tool arrays"
+    INVALID_STREAM = "Completion requires stream=True and n=1"
+    INPUT_OWNERSHIP = "Model messages and registered Tools belong to the caller"
+    INVALID_AUXILIARY = "Auxiliary parameters require an object"
+    INVALID_PROCESSING = "Completion processor cannot change {key}"
+
+    def accounting_request(self):
+        from llm.core.model_protocol import ModelRequest, ToolMode
+        from .wire_codec import decode_message, decode_tool_definition
+
+        parameters = copy_model(self._value)
+        messages = parameters.pop(self.MESSAGES)
+        tools = parameters.pop(self.TOOLS, self.UNSPECIFIED)
+        if not isinstance(messages, list) or (tools is not self.UNSPECIFIED and not isinstance(tools, list)):
+            raise TypeError(self.INVALID_ACCOUNTING)
+        choice = parameters.get(self.TOOL_CHOICE)
+        mode = self.UNSPECIFIED
+        if isinstance(choice, str) and choice in ToolMode:
+            mode = ToolMode(parameters.pop(self.TOOL_CHOICE))
+        return ModelRequest(
+            [decode_message(message) for message in messages],
+            parameters,
+            tuple(decode_tool_definition(tool) for tool in ([] if tools is self.UNSPECIFIED else tools)),
+            mode,
+        )
+
+    def accounting_payload(self, operation):
+        return (
+            self._value.get(self.INPUT)
+            if operation == SDKOperation.ASYNC_EMBEDDING
+            else [self._value.get(self.QUERY), self._value.get(self.DOCUMENTS)]
+        )
+
+    def set_accounting_content(self, text):
+        from .response_values import SDKMessage
+
+        self._value[self.MESSAGES] = [SDKMessage.accounting_wire(text)]
+
+    @property
+    def output_limit(self):
+        return self._value.get(self.MAX_COMPLETION_TOKENS, self._value.get(self.MAX_TOKENS))
+
+    def stream_request(self):
+        if (
+            self._value.get(self.STREAM, self.STREAMING) is not self.STREAMING
+            or self._value.get(self.N, self.SINGLE_CHOICE) != self.SINGLE_CHOICE
+        ):
+            raise ValueError(self.INVALID_STREAM)
+        return {**self._value, self.STREAM: self.STREAMING}
+
+    def validate_input_ownership(self, input_fields, *, auxiliary=SDKRetryParameters.NOT_ENABLED):
+        fields = (*input_fields, self.TOOL_CHOICE) if auxiliary else input_fields
+        if not isinstance(self._value, dict) or any(key in self._value for key in fields):
+            raise ValueError(self.INPUT_OWNERSHIP)
+
+    def auxiliary_parameters(
+        self,
+        fields,
+        sdk_retries,
+        *,
+        preserve_retries=SDKRetryParameters.NOT_ENABLED,
+        preserve_output_limits=SDKRetryParameters.ENABLED,
+    ):
+        if not isinstance(self._value, dict):
+            raise TypeError(self.INVALID_AUXILIARY)
+        result = copy_model(self._value)
+        for key in fields:
+            if not preserve_retries or key not in self.RETRY_FIELDS:
+                result.pop(key, self.UNSPECIFIED)
+        if not preserve_retries:
+            result.update({key: sdk_retries for key in self.RETRY_FIELDS})
+        if not preserve_output_limits:
+            for key in self.OUTPUT_LIMIT_FIELDS:
+                result.pop(key, self.UNSPECIFIED)
+        return result
+
+    def validate_processing(self, original, fields):
+        for key in fields:
+            changed = (
+                self._value.get(key) is not original.get(key)
+                if key == self.CLIENT
+                else self._value.get(key) != original.get(key)
+            )
+            if (key in self._value) != (key in original) or changed:
+                raise ValueError(self.INVALID_PROCESSING.format(key=key))
+
+    def count_tokens(self, sdk):
+        return sdk.token_counter(
+            model=self._value.get(self.MODEL),
+            messages=self._value.get(self.MESSAGES),
+            tools=self._value.get(self.TOOLS),
+            tool_choice=self._value.get(self.TOOL_CHOICE),
+        )
 
     @property
     def optional_api_base(self):

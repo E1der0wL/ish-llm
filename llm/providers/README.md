@@ -31,6 +31,8 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | [retry.py](retry.py) | 일시적 오류와 명시적 SDK retry를 판단하고 중첩 retry를 방지합니다. |
 | [calls.py](calls.py) | ProviderCalls/ProviderLimits가 호스트의 명시적 동시 호출·대기 제한을 적용합니다. |
 | [litellm.py](litellm.py) | SDK 함수 선택, bounded async 스트림/취소 연결, LiteLLM chunk 해석과 토큰 계산입니다. |
+| [stream_records.py](stream_records.py) | SDK stream metadata/choice/delta Reader와 Tool 조각·완성 메시지 Writer입니다. 미완 조각을 실행 기록으로 취급하지 않습니다. |
+| [stream_values.py](stream_values.py) | bounded bridge의 메시지/단계·worker 수명 선언과 SDK 요청·토큰 계수 관측을 소유합니다. |
 | [streaming.py](streaming.py) | CompletionAdapter의 요청/재시도/SDK 경계, CompletionDecoder/CompletionUpdate와 응답 검증 오류 계약입니다. |
 | [observations.py](observations.py) | 어댑터가 제공한 ModelCall의 사용량 해석을 기존 실행 문맥과 연결합니다. |
 | [embeddings.py](embeddings.py) | 단일 입력 응답의 벡터 개수·차원·유한성·zero-vector 무결성 검사입니다. |
@@ -329,4 +331,22 @@ SDKRuntime은 bundled cost map·기본 retry 0·배너 억제의 기존 초기�
 실제 import와 lock, ContextVar 격리, 관찰자 복사·오류 격리와 I/O 순서는 runtime에 남는다.
 로그 장애가 원래 실행 실패/취소를 바꾸거나 진단 데이터가 실행 허가·저장 증거가 되지 않는다.
 
-남은 직접 SDK 소비자 전환은 litellm.py의 요청 준비·스트림 bridge·decoder다.
+LiteLLMCompletionAdapter의 입력 소유권·보조 호출 필터·processor 보호는 LiteLLMParameters의
+정규 해석을 사용한다. 기존 Adapter의 주입 함수·decoder와 클래스 필드 선택을 보존한다.
+SDKValue는 Mapping/attribute 조회·model_dump·usage/opaque 정규화의 단일 구현이다.
+기존 private helper 위치는 같은 구현에 위임하며 저장 형식의 이중 Reader를 만들지 않는다.
+
+SDKStreamMetadata/Choice/Delta가 선택적 SDK 조각을 읽고, SDKToolFragment가 부분 Tool의
+ID/name/arguments·opaque 확장 결합과 길이를 소유한다. Decoder의 호출 map은 이 객체를
+보관하며 고정 wire dict를 직접 해석하지 않는다. 완성 메시지는 SDKStreamMessage Writer와
+기존 codec/공통 모델 검증을 거쳐야 한다. metadata를 choice 검증보다 먼저 관찰하는 순서,
+부분 응답의 이벤트·오류·누적 상태, 미완/중복 Tool 거부와 원본 서명을 유지한다.
+
+StreamBridge의 큐 이벤트·poll 간격·daemon/정리 프로토콜은 실행 불변식이며 사용자 retry나
+새 deadline을 만들지 않는다. admission 취득 후 같은 worker에서 stream을 읽고 닫으며,
+worker의 실제 종료 때만 release한다. 취소 시 전달 중단, 원래 실패 우선과 부수 cleanup
+진단, ContextVar 전파 순서는 그대로다. ProviderTokenAccounting은 Adapter별 예약 입력만
+해석하고 승인·예산 집행은 기존 공통 Owner에 남는다.
+
+Provider의 기존 요청/응답/진단/codec 실제 소비 연결은 로컬 전수 검토를 마쳤다. 전체 통합
+상태와 원격 완료는 별도 Gate41 결과를 따른다.
