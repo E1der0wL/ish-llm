@@ -14,8 +14,12 @@ class SidebarWidth:
     ABSENT = None
 
     @staticmethod
+    def observe(value):
+        return value[HubTheme.sidebar_width.__name__]
+
+    @staticmethod
     def read(value):
-        width = value[HubTheme.sidebar_width.__name__]
+        width = SidebarWidth.observe(value)
         HubTheme(sidebar_width=width)
         return width
 

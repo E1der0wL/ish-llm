@@ -5,17 +5,22 @@ from hub.locales.keys import MessageKey
 from llm.services.schema import ProjectConfiguration
 
 from copy import deepcopy
-from llm.core.models import ProjectConfig
+from llm.services.configuration_records import ProjectConfigForm
+from typing import NamedTuple
+from ...config.metadata import SettingMetadata
+from ...asset.icon import AuxiliaryIcon
+from .state import SettingsActivity
 from ..input.json_document import JsonDocument
 import subprocess
 
 from jsonschema import Draft202012Validator, ValidationError
 from prompt_toolkit.application.current import get_app
 
-from .pages import GlobalPage, ProjectPage
+from .pages import Page, GlobalPage, ProjectPage
+from .sections import SettingsSection
 from .. import host
 from ...backend.project.naming import TITLE_ENGINE
-from ...widget.forms.settings import MISSING, at_path, put_path
+from ...widget.forms.settings import MISSING, at_path, put_path, FieldDisplay
 
 
 def same_json(left, right):
@@ -26,29 +31,40 @@ def page_values(page):
     return page.values() if isinstance(page, ProjectPage) else page.form.values()
 
 
+class JsonEditRecovery(NamedTuple):
+    page: Page
+    text: str
+
+
 class SettingsJsonEditor:
+    NO_RECOVERY = None
+    NO_PAGE = None
+    NOT_EDITED = None
+    ROOT_PATH = "$"
+
     def __init__(self, screen):
         self.screen = screen
-        self.recovery = None
+        self.recovery = self.NO_RECOVERY
 
     def open(self):
         screen = self.screen
-        if screen.page is None or screen.busy:
+        if screen.page is self.NO_PAGE or screen.busy:
             return
         screen.finish_edit()
         try:
             values = page_values(screen.page)
             exported = deepcopy(values)
             if isinstance(screen.page, ProjectPage):
-                if "config" in exported:
-                    exported["config"] = ProjectConfig.without_engine_parameters(exported["config"], TITLE_ENGINE)
-            text = JsonDocument.render(exported, allow_non_finite=JsonDocument.STRICT_NON_FINITE)
+                ProjectConfigForm.omit_engine(exported, TITLE_ENGINE)
+            text = JsonDocument.render(
+                exported, allow_non_finite=JsonDocument.STRICT_NON_FINITE
+            )
         except (ValueError, TypeError) as error:
             screen.error(error)
             return
-        if self.recovery and self.recovery[0] is screen.page:
-            text = self.recovery[1]
-        screen.busy = True
+        if self.recovery and self.recovery.page is screen.page:
+            text = self.recovery.text
+        screen.busy = SettingsActivity.BUSY
         get_app().create_background_task(self.edit(screen.page, values, text))
 
     def candidate(self, page, before, text):
@@ -65,8 +81,15 @@ class SettingsJsonEditor:
         try:
             Draft202012Validator(schema).validate(values)
         except ValidationError as error:
-            path = ".".join(str(part) for part in error.absolute_path) or "$"
-            raise ValueError(f"{path}: {error.message}") from error
+            path = (
+                SettingMetadata.PATH_SEPARATOR.join(
+                    str(part) for part in error.absolute_path
+                )
+                or self.ROOT_PATH
+            )
+            raise ValueError(
+                FieldDisplay.PATH_ERROR.format(path=path, error=error.message)
+            ) from error
         if isinstance(page, ProjectPage):
             # Validate parents before restoring hidden data: put_path must not
             # silently turn an invalid null/string parent into an object.
@@ -77,46 +100,65 @@ class SettingsJsonEditor:
         for form in page.forms():
             for path in form.locked:
                 if not same_json(at_path(before, path), at_path(values, path)):
-                    raise ValueError(f"{'.'.join(path)}: {self.screen.t(MessageKey.SETTINGS_HOST_LOCKED)}")
+                    raise ValueError(
+                        FieldDisplay.PATH_ERROR.format(
+                            path=SettingMetadata.PATH_SEPARATOR.join(path),
+                            error=self.screen.t(MessageKey.SETTINGS_HOST_LOCKED),
+                        )
+                    )
         if isinstance(page, ProjectPage):
             record = ProjectConfiguration.with_values(page.record, values)
-            candidate = ProjectPage(self.screen, record, suggest_defaults=False)
+            candidate = ProjectPage(
+                self.screen, record, suggest_defaults=ProjectPage.NO_SUGGESTIONS
+            )
             candidate.record = page.record
-            candidate.set_section(page.section if page.section in (
-                "project:general", *("engine:" + key for key in candidate.engine_forms),
-                *("component:" + key for key in candidate.component_forms)) else "project:general")
+            candidate.set_section(
+                page.section
+                if page.section in candidate.section_choices()
+                else SettingsSection.GENERAL
+            )
         else:
             candidate = GlobalPage(self.screen, page.name, values)
             candidate.save_request()  # Validate global value types without saving.
             candidate.original = page.original
-        candidate.json_baseline = deepcopy(getattr(page, "json_baseline", page.form.original))
-        candidate.json_changed = not same_json(page_values(candidate), candidate.json_baseline)
+        baseline = deepcopy(page.json_baseline_for(page.form.original))
+        candidate.set_json_baseline(baseline)
+        candidate.set_json_changed(not same_json(page_values(candidate), baseline))
         return candidate
 
     async def edit(self, page, before, text):
         screen = self.screen
-        edited = None
+        edited = self.NOT_EDITED
         try:
-            edited = await host.edit_text(text, screen.view.general, suffix=JsonDocument.SUFFIX)
+            edited = await host.edit_text(
+                text, screen.view.general, suffix=JsonDocument.SUFFIX
+            )
             if edited != text or self.recovery:
                 candidate = self.candidate(page, before, edited)
                 key = page.identifier if isinstance(page, ProjectPage) else page.name
                 screen.drafts.pages[key] = candidate
                 screen.selected = screen.navigation.left_key = (
-                    candidate.section if isinstance(candidate, ProjectPage) else candidate.name)
+                    candidate.section
+                    if isinstance(candidate, ProjectPage)
+                    else candidate.name
+                )
                 screen.show_page(candidate)
                 screen._sidebar()
                 screen.status = screen.t(MessageKey.SETTINGS_JSON_UPDATED)
-            self.recovery = None
+            self.recovery = self.NO_RECOVERY
         except subprocess.CalledProcessError as error:
-            screen.error(screen.t(MessageKey.SETTINGS_EDITOR_FAILED, code=error.returncode))
+            screen.error(
+                screen.t(MessageKey.SETTINGS_EDITOR_FAILED, code=error.returncode)
+            )
         except Exception as error:
-            if edited is not None:
-                self.recovery = (page, edited)
+            if edited is not self.NOT_EDITED:
+                self.recovery = JsonEditRecovery(page, edited)
             screen.error(error)
         finally:
-            screen.busy = False
+            screen.busy = SettingsActivity.IDLE
             if screen.view.visible and screen.view.settings_open:
                 # Rebuilt fields/buttons are new controls, so restore a stable target.
-                get_app().layout.focus(screen.auxiliary.buttons["json"])
+                get_app().layout.focus(
+                    screen.auxiliary.buttons[AuxiliaryIcon.JSON.value]
+                )
             get_app().invalidate()

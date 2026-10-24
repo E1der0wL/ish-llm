@@ -5,6 +5,20 @@ from enum import StrEnum
 from dataclasses import dataclass, field
 from collections.abc import Mapping
 
+class AuxiliaryIcon(StrEnum):
+    HISTORY = 'history'
+    TAGS = 'tags'
+    FIND = 'find'
+    ATTACH = 'attach'
+    LOGS = 'logs'
+    SETTINGS = 'settings'
+    FILTER = 'filter'
+    JSON = 'json'
+    STOP = 'stop'
+    RESUME = 'resume'
+    SEND = 'send'
+
+
 class IconStyle(StrEnum):
     NERD = "nerd"
     UNICODE = "unicode"
@@ -61,8 +75,8 @@ class IconSet:
     minimize: str = "⊘"
     dropdown: str = "▾"
     auxiliary: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({
-        "history": "☷", "tags": "▤", "find": "⌕", "attach": "📎", "logs": "≡",
-        "settings": "⚙", "filter": "⚲", "json": "⌘", "stop": "■", "resume": "▶", "send": "↑"}))
+        AuxiliaryIcon.HISTORY.value: "☷", AuxiliaryIcon.TAGS.value: "▤", AuxiliaryIcon.FIND.value: "⌕", AuxiliaryIcon.ATTACH.value: "📎", AuxiliaryIcon.LOGS.value: "≡",
+        AuxiliaryIcon.SETTINGS.value: "⚙", AuxiliaryIcon.FILTER.value: "⚲", AuxiliaryIcon.JSON.value: "⌘", AuxiliaryIcon.STOP.value: "■", AuxiliaryIcon.RESUME.value: "▶", AuxiliaryIcon.SEND.value: "↑"}))
 
     @property
     def values(self):
@@ -76,9 +90,9 @@ NERD = IconSet(HEADER_MARK, SESSIONS, "", "", "", ALERT, MappingProxyTy
     "paused": "", "waiting_approval": "", "preparing": "",
 }), tool="", question="", output=OUTPUT_NERD, settings="", project="", collapse="",
     restart="", minimize="", dropdown="",
-    auxiliary=MappingProxyType({"history": "", "tags": "", "find": "", "attach": "",
-                               "logs": "", "settings": "", "filter": "", "json": "",
-                               "stop": "", "resume": "", "send": ""}))
+    auxiliary=MappingProxyType({AuxiliaryIcon.HISTORY.value: "", AuxiliaryIcon.TAGS.value: "", AuxiliaryIcon.FIND.value: "", AuxiliaryIcon.ATTACH.value: "",
+                               AuxiliaryIcon.LOGS.value: "", AuxiliaryIcon.SETTINGS.value: "", AuxiliaryIcon.FILTER.value: "", AuxiliaryIcon.JSON.value: "",
+                               AuxiliaryIcon.STOP.value: "", AuxiliaryIcon.RESUME.value: "", AuxiliaryIcon.SEND.value: ""}))
 UNICODE = IconSet("•", "☷", REASONING, WAITING, EDIT,
                   MappingProxyType({"error": "❌", "info": "ℹ", "warning": "⚠", "success": "✅"}), STATUS)
 

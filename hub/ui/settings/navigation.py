@@ -9,6 +9,7 @@ from ...config.sections import PreferenceSection
 from ..input.keys import KeyName
 from ...widget.input_contract import EditableControl
 from .pages import GlobalPage
+from .state import SettingsActivity
 from prompt_toolkit.application.current import get_app
 from .. import host
 from ..input.json_document import JsonDocument
@@ -28,8 +29,6 @@ class SettingsNavigation:
     FIRST_POSITION = 0
     REVERSE = False
     NO_KEY = None
-    BUSY = True
-    IDLE = False
     EMPTY_STATUS = ""
 
     def __init__(self, screen):
@@ -130,7 +129,7 @@ class SettingsNavigation:
     def edit_field(self, field):
         if self.screen.busy or field.readonly:
             return
-        self.screen.busy = field.editing = self.BUSY
+        self.screen.busy = field.editing = SettingsActivity.BUSY
         get_app().create_background_task(self._edit_field(field))
 
     async def _edit_field(self, field):
@@ -154,7 +153,7 @@ class SettingsNavigation:
         except Exception as error:
             self.screen.error(error)
         finally:
-            self.screen.busy = self.IDLE
+            self.screen.busy = SettingsActivity.IDLE
             field.finish()
 
     def switch_panel(self):

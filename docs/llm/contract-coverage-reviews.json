@@ -80549,8 +80549,8 @@
   },
   {
     "path": "llm/services/schema.py",
-    "sha256": "ef67e8699aeadc40418903b54099fd67a30aeed6efbf36ce0b0df390790a2c47",
-    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
+    "sha256": "a88b6ab552e82b502dc03b6fab1173cc2aa3ec6516da33659e12096e1c473757",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -80614,19 +80614,19 @@
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "d720ceb21587483b252b74122798c9eb97fdd772300246094fa11c470f6a248f",
+        "id": "f240c0124811abf381762602ac00ad9971818295b07486febb43ba253e151f2a",
         "classification": "non_contract",
         "owner": "ProjectFormSchemas",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "f4cc566aa75beb9f2e29082ccc10ff040332297f6549115acd7739459f0d6b5f",
+        "id": "c83caf0ad7198c4cfee4c8f76759d2abd58df90da9f4e859ece370f7a254ca70",
         "classification": "declaration",
         "owner": "ProjectConfiguration",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "1288e017cf3c1f25f1cfa2a5b1abb96710970b54c04482acade389e9a97ac8b2",
+        "id": "3d0fbdd4a8745d7b639e2bd9a2e8aaecd72ae9c86117154e8ac50acbfcb5ce79",
         "classification": "declaration",
         "owner": "ProjectConfiguration",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
@@ -80638,9 +80638,11 @@
         "declaration": "llm/services/schema.py",
         "consumers": [
           "hub/ui/input/json_document.py",
+          "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
+          "hub/ui/settings/screen.py",
           "hub/widget/forms/definition_manager.py",
           "llm/services/api.py",
           "llm/services/lifecycle/projects.py"
@@ -80649,6 +80651,7 @@
           "tests/hub/test_component_managers.py",
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_presets_widgets.py",
@@ -80657,8 +80660,11 @@
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_objects.py",
           "tests/llm/test_configuration_results.py",
@@ -80682,6 +80688,7 @@
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_consistency.py",
           "tests/llm/test_settings_contract.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
@@ -80693,15 +80700,18 @@
         "declaration": "llm/services/schema.py",
         "consumers": [
           "hub/ui/input/json_document.py",
+          "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
+          "hub/ui/settings/screen.py",
           "hub/widget/forms/definition_manager.py"
         ],
         "tests": [
           "tests/hub/test_component_managers.py",
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_presets_widgets.py",
@@ -80710,8 +80720,11 @@
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_objects.py",
           "tests/llm/test_configuration_results.py",
@@ -80735,6 +80748,7 @@
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_consistency.py",
           "tests/llm/test_settings_contract.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
@@ -80932,8 +80946,8 @@
   },
   {
     "path": "llm/services/configuration_records.py",
-    "sha256": "98d11fd13e7bec3cc0cf234cec2d0540c9b4bb04f757e18f86f64cd043ba0dfb",
-    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. Narrow lifecycle consumers now use existing domain state/error/path declarations, optional Component hooks and explicit model-observation contract. Pure guards/projections preserve required lookup and live-client semantics; no stored format or execution permission change.",
+    "sha256": "db8c9ffd5a17b1ae89ba46d0b1caf64e0caa198bc2853589c0c575f56aaf1b9d",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. Narrow lifecycle consumers now use existing domain state/error/path declarations, optional Component hooks and explicit model-observation contract. Pure guards/projections preserve required lookup and live-client semantics; no stored format or execution permission change. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -80967,85 +80981,85 @@
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "7a5acf7ef3528b0ece97731237ac6b358d38f4bf0cb547dd5f19e0362c6bdd80",
+        "id": "9769c6cdd968b847a9c49273be3775172b2b2af0cf48202856a01a4e60dd873b",
         "classification": "non_contract",
         "owner": "ProjectConfigurationView",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "13350bdd5653c72052d9edcdb269993c0ce50408d195abce2d36bb743b811a06",
+        "id": "50913355961655ebb769b737675163b96ff2f0cafac608b672d3c51873320ce7",
         "classification": "non_contract",
         "owner": "SessionConfigurationView",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "4c6bf1c94227fe0e9fe528d39361edeb413bc6d6b071542ee84b3c1db50309a2",
+        "id": "2b526611cc9f5130fffbfce147dd9741810f58372a03a0ab5a69a4a27d840e9d",
         "classification": "non_contract",
         "owner": "ComponentConfigurationObservation",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "d63bc2dd7472a0000b3699cf93c1523dd8119e0bdb6654e1dadc2ca3cbd87ddf",
+        "id": "8a512b8108df6da4252d6816331b7455059b20f9b5c4f80dea9ddf15065d20a7",
         "classification": "non_contract",
         "owner": "ComponentConfigurationObservation",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "68bd18cdab712b7645b10e9787c29b2b581a7de8886c2c716209857a53f40d56",
+        "id": "12c377e1e64c4bcff8f0f3e70e5d971095767fc8c659d9fd07f4bd5b102ce461",
         "classification": "non_contract",
         "owner": "ComponentSchemaObservation",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "a57a5a94633f9212865926c19998370527b2852bf52da7b85a744681266e4a84",
+        "id": "86510cfd2450df4a00659d32a189ba4fbc01de2b31158d54b0f35e8137e2aba9",
         "classification": "non_contract",
         "owner": "ComponentSchemaObservation",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "fd8dcfe3daa6517e1c0bc5618adac6d8dbd446bb7ed4603515eceb609a13456c",
+        "id": "20ce80cb4ea9e7da19accc3f15180f9a940044e1d7310b2bda76f39554501f29",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "e606f5e3efcacb636fd419e295a8864f70f8971e16251e8ec88c3badd85e4e11",
+        "id": "0632a5fe94575f25c03be7ad98c38fffa6dfa4d1da70944eaa00a97d06d1d548",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "8af3693d34b96b8775dd6aa237598556266de67a40d2f60cc223bef56f41c463",
+        "id": "f94b4a1da8977fa138117a11c74b34f359f30265be7c09c992f52bed83d7b544",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "0d0c213caa3a2de4c04bdb8850e1302f7c439e452b97e2efb16f5a9a01d4ce04",
+        "id": "680cd7e6573c0e9fb7aa616c998684c84f901513e5c9e5512b822b3c272ec2a0",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "6840e4224a84bcf528da4d8627d627e5ecef3426909ca857a676ec303867cdda",
+        "id": "e27a30b23f3ea64933983b2b9317cb76a24f36482abfba209bf39fad3779bb82",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "41e94049dcc64f395d2058e7a89b41098b1a4b96e1ab2c6349b89d506ce9556d",
+        "id": "0ca87c4073431d24b8913077b7e37b6e22b828ce5a04c14150a4c9f5a5d4fc1c",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "5275b8f6ff0a7e2efe7d175ba55953b932565bd81a7aebe2b7b8514d731ef3f9",
+        "id": "0405e64c8e5086197e7c04278bd0c4e4f68e859100255a66986286cce4893cc2",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "11f6556004d6d91ded1905e363638220f65b513379974a513847ab63fdde05a9",
+        "id": "d1bc9e120102aee7f72c35e2a79ce9f0744373569e1f00a1d89607e4bf822746",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
@@ -81056,6 +81070,10 @@
         "owner": "ProjectConfigForm / ProjectConfigurationSnapshot / ProjectRecordSnapshot / ComponentConfigurationObservation / ComponentSchemaObservation",
         "declaration": "llm/services/configuration_records.py",
         "consumers": [
+          "hub/ui/settings/global_schema.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/screen.py",
           "llm/services/api.py",
           "llm/services/lifecycle/components.py",
           "llm/services/lifecycle/projects.py",
@@ -81068,10 +81086,17 @@
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
           "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_global_preferences.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_turn_deletion.py",
           "tests/hub/test_usage_definitions_system.py",
           "tests/llm/test_backup_owner_integrity.py",
@@ -81107,6 +81132,7 @@
           "tests/llm/test_service_extensions.py",
           "tests/llm/test_session_agents.py",
           "tests/llm/test_session_domain.py",
+          "tests/llm/test_settings_consistency.py",
           "tests/llm/test_settings_contract.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_turn_deletion.py",
@@ -84556,8 +84582,8 @@
   },
   {
     "path": "hub/config/general.py",
-    "sha256": "c62591656e9ced897e3285b1f185bf0b65a4ddb400035fe4b31eb8ff02f978d1",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved.",
+    "sha256": "b23e52db67da14b523dbb03514baadb960c0a2c32485e632a6850f55326e09f0",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -84805,7 +84831,10 @@
           "hub/config/preference_records.py",
           "hub/config/preferences.py",
           "hub/config/presets.py",
+          "hub/ui/settings/global_schema.py",
+          "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
+          "hub/ui/settings/screen.py",
           "hub/widget/forms/general_settings.py"
         ],
         "tests": [
@@ -84813,6 +84842,7 @@
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_coding_skill.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_naming.py",
@@ -84829,19 +84859,26 @@
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_stores.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_widget_chrome.py",
           "tests/hub/test_workspace_presence.py",
           "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_observation_values.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_settings_consistency.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_declarations.py",
           "tests/llm/test_usage_deletion.py",
@@ -85197,8 +85234,8 @@
   },
   {
     "path": "hub/config/preference_records.py",
-    "sha256": "a7aceebb900cab4e2f342d26d2010f7d706f3f9a3f6c4750d701bbea6f7022fa",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior.",
+    "sha256": "eec48aa0c550f439b4885b183994fd10828f4b5d0317b022d902ba57a80f8e5e",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -85214,37 +85251,37 @@
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "fdd478e9c7ce6b6c01ff882e8195440b1e50633ddb9f0a87b95bbb0e11497dd3",
+        "id": "379ab6ff73c899a067d207ff76c2ec65e24b46bade53f454c8f4c6509dbd0187",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "7bf79525b57c010fbc16f09c093c3e800860bd1f1838e2e3b7649b554658c29b",
+        "id": "8d276a67601d4339547d2b053c2e579f3bbadebf711bd899b8d087011a879e7a",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "530b8800d0e964fb41012ba643310e5bb9a4d18a6a03565636efc3c21ab16393",
+        "id": "cda3523c310c8621ca4211d83c822628e94f542a89392f88e8d6ab40815bac1f",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "92dddc4ea2107b189aed18c8cfc268266dc869a3afe8643b1e4cd7b2fb9c91e9",
+        "id": "b4505ddd6f31e5dba12d601db60d8a519010277efb03adafe9b2f79c8c4cf4ab",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "f82d847941dd1c865c32261845226a9274f6b28444bbb24cf6d38780c4cc2d93",
+        "id": "e1dabe86eba1d64bf6865c6f9ee3b10b70e8dacab8efe8abea6c9a5b4a1de3dc",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "1a45b26b835a027ba481232890a1dab63b73d42ef2c9217a082dc797b9f1d878",
+        "id": "4a05c913fad42aed227ee4f5df7b5cbfb3073bcac48f1c37fa1e66776f73a632",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
@@ -85263,7 +85300,11 @@
           "hub/config/restart.py",
           "hub/ui/live.py",
           "hub/ui/settings/drafts.py",
-          "hub/ui/settings/presets.py"
+          "hub/ui/settings/global_schema.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/presets.py",
+          "hub/ui/settings/screen.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
@@ -85288,19 +85329,26 @@
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_stores.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_widget_chrome.py",
           "tests/hub/test_workspace_presence.py",
           "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_observation_values.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_settings_consistency.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_declarations.py",
           "tests/llm/test_usage_deletion.py",
@@ -87265,7 +87313,7 @@
   {
     "path": "hub/widget/forms/settings.py",
     "sha256": "fb5029b4c0b446e867eda6fa9cc6d8f0caf336915ac4a58ac6dbcdfe8552b1d6",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior.",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -87486,15 +87534,18 @@
         "consumers": [
           "hub/ui/input/json_document.py",
           "hub/ui/settings/drafts.py",
+          "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/navigation.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
+          "hub/ui/settings/screen.py",
           "hub/widget/forms/definition_manager.py",
           "hub/widget/forms/general_settings.py"
         ],
         "tests": [
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_input_contract.py",
@@ -87511,6 +87562,7 @@
           "tests/hub/test_settings_usability.py",
           "tests/hub/test_settings_viewport.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
@@ -87523,6 +87575,7 @@
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_settings_consistency.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -88536,8 +88589,8 @@
   },
   {
     "path": "hub/backend/project/settings_contracts.py",
-    "sha256": "f5284157b068231a5111139c607c767f0181c95df7b27d9a4c9071eee40cf226",
-    "reason": "Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Actual UI command/catalog/Project/batch consumers still need connection; producer migration alone is not closure. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior.",
+    "sha256": "b2c0a003cabe3b839df93d176e85b136cef92d7a4a03f4bb130842168a86063b",
+    "reason": "Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Actual UI command/catalog/Project/batch consumers still need connection; producer migration alone is not closure. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88709,79 +88762,91 @@
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "cac477bd1bbd7d33257acb83ceb5f9afa60561a51a8691dcf6616d383badc281",
+        "id": "697610406eaf4ef17a7d46df5718b3cafa21778dc88b1cb3fde342f866e4ffcf",
+        "classification": "non_contract",
+        "owner": "ProjectUsageObservation",
+        "reason": "Python dataclass frozen declaration on the public observation type, not a serialized or policy literal."
+      },
+      {
+        "id": "ed8819c074d2f4e215a844a67dac873cc26768f35a56f36b11e51559d78973c9",
+        "classification": "non_contract",
+        "owner": "ProjectUsageObservation",
+        "reason": "Python dataclass slots declaration choosing instance layout, not an execution value."
+      },
+      {
+        "id": "1ee248c2ea401c26cb0be167777bff1b29ef71791ef1c0310aba8b48b2eb1848",
         "classification": "non_contract",
         "owner": "SettingsCatalog",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "ce86afc4ba9d0d4036e8eed2164a8e945a4bf53dfa348c165faaf80972390a0a",
+        "id": "8d4fd72f489349f398200b8b7028d63eeaa055698033cd92abc0ec8631050321",
         "classification": "non_contract",
         "owner": "SettingsCatalog",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "50a380f5190d3aaef3de189d9a25daeeed54745bca3b977759ac29fb24f7d6fd",
+        "id": "73557ded6c27ea05a5893bdbac4b54f899808d44d26eaa678b9fe38dad4b5f99",
         "classification": "declaration",
         "owner": "SettingsCatalog",
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "8b6f11e9e50df8c7e2b52bdd5b9e4f721ccaa475ab189f2aa2a66a84510d88e6",
+        "id": "1c23f9cc31eb132814ec4e92f2197259c1a95ceadbfd50a1d4ae2e38e55d1d6b",
         "classification": "non_contract",
         "owner": "SettingsBatch",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "004c7f7770febe7593aaeceb1d939a8c47b4efe2d2c4cb285c974377019c99af",
+        "id": "e84a16aab30bea522a1b0d719041b2bb95b91903903178946796eb1648842c51",
         "classification": "non_contract",
         "owner": "SettingsBatch",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "07d9dde2fe25ac93393032820c2e49b8ca7613055b3130d29973200034369201",
+        "id": "34699eb3c4399c0d9ccb388bfc92e7876678665cae063c5d02a6641da6c17fdb",
         "classification": "declaration",
         "owner": "SettingsBatch",
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "2632cef0e960f1e5c1b31e169371c9839b30802333ec48989345954f08c99fdc",
+        "id": "1953100321bc4ae4ba197184efb83c6e328f9c33b01d95e253848d3f66d3f95b",
         "classification": "declaration",
         "owner": "SettingsBatch",
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "17fdbbbdd71f41bf9157987cc5344870dca835727fbab19c57feb7ed68affb01",
+        "id": "b697c864f646d20e3f16a5576a89bd980e5b1520b15f525bdb820a4dadb05cad",
         "classification": "non_contract",
         "owner": "PresetApplication",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "1ac9e9da52e49d0ebe48c11d0ef491008ee4f50705c93b2873e23defa1982528",
+        "id": "778e9af955e00f42f8f29019a98e625111b34ab649389902aade1b1b59df9b78",
         "classification": "non_contract",
         "owner": "PresetApplication",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "d830c376c36df3a10fe7fd8628b1049db70a2cf6cecf5646225feb024c3cb5b1",
+        "id": "b4761e1c264e15d3c0095dced201fa789b08b41f785566c70dff80415f7b80ba",
         "classification": "non_contract",
         "owner": "SettingsCatalogObservation",
         "reason": "This occurrence is the Python dataclass frozen declaration on the observation type; it carries no serialized field, policy or execution value."
       },
       {
-        "id": "e8df84476cf5df71e71b21bb65e51e1063723cf8b884b1fe23635d9ca1626ba1",
+        "id": "08c7ace83a81d914d7950a1c68d58a3c3dd009efcf9a5ecc22eda348349dd5d8",
         "classification": "non_contract",
         "owner": "SettingsCatalogObservation",
         "reason": "This occurrence is the Python dataclass slots declaration on the observation type; it chooses instance layout, not a domain literal in an implementation body."
       },
       {
-        "id": "fe12aef814d223df32c9004b51356cb094decbc321482f5427e9790968fea1c2",
+        "id": "f20ea65624b282134763df83683a36f8774943c5b5c610ad4c15674ef3ee3b12",
         "classification": "non_contract",
         "owner": "PresetApplicationObservation",
         "reason": "This occurrence is the Python dataclass frozen declaration on the observation type; it carries no serialized field, policy or execution value."
       },
       {
-        "id": "409182e21e0321245046c9306d5729ef83736f8e2f9b3b580624a0f6c91b1a01",
+        "id": "5a2adec00544d7700b74165cbdf0ff141ae11cf38c4f8bb5c2c7ee1d7934187e",
         "classification": "non_contract",
         "owner": "PresetApplicationObservation",
         "reason": "This occurrence is the Python dataclass slots declaration on the observation type; it chooses instance layout, not a domain literal in an implementation body."
@@ -88796,6 +88861,8 @@
           "hub/backend/project/settings.py",
           "hub/ui/chat/projects.py",
           "hub/ui/settings/drafts.py",
+          "hub/ui/settings/global_schema.py",
+          "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
           "hub/ui/settings/screen.py"
@@ -88813,16 +88880,23 @@
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_stores.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_workspace_presence.py",
           "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_observation_values.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_settings_consistency.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_declarations.py",
           "tests/llm/test_usage_deletion.py",
@@ -88834,20 +88908,66 @@
         "owner": "PresetApplicationObservation / SettingsCatalogObservation",
         "declaration": "hub/backend/project/settings_contracts.py",
         "consumers": [
-          "hub/ui/settings/presets.py"
+          "hub/ui/settings/global_schema.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/presets.py",
+          "hub/ui/settings/screen.py"
         ],
         "tests": [
-          "tests/hub/test_presets_widgets.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
           "tests/hub/test_rag_jobs.py",
           "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ProjectUsageObservation",
+        "declaration": "hub/backend/project/settings_contracts.py",
+        "consumers": [
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_global_preferences.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_project_authority.py",
-          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
-          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_error_contract.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",
@@ -89773,90 +89893,78 @@
   },
   {
     "path": "hub/ui/settings/navigation.py",
-    "sha256": "278eae0a74ed971d58a1b0833e86d73a59704ce19684a26a5ceec2f7947939d4",
-    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants.",
+    "sha256": "2c3bebf6dead1af8bc57f245022e679d6bab298b703aa65472c23e254b395851",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "d721219a5ce91799e60f4d9660c5243a5b1464273af8aeac14daad1ce6f6108c",
+        "id": "2e4549b8937562c37ee55b75b8345ba2563775c465c71adaa1a015dfbbcd4de3",
         "classification": "declaration",
         "owner": "SettingsZone",
         "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
       },
       {
-        "id": "0783f07fdaae421ffb129bd1eee6d06a24eeaa7c4f977d07240993fab8835475",
+        "id": "91d4b93cb1841f2b49c2bf3be3a396eef7d57f7032242dc03ad1644cf796e5d6",
         "classification": "declaration",
         "owner": "SettingsZone",
         "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
       },
       {
-        "id": "4f156f3a5d5697f01984aa0ac3d4bd5e02e8c811d724d25907f4a86d0b563ca9",
+        "id": "196b3fc3c766d56cacbe3f07b175a3fbfee153fb4ab2d3e32cb95ed1796dfe03",
         "classification": "declaration",
         "owner": "SettingsNavigation",
         "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
       },
       {
-        "id": "35de9d7badfaac1b4328564e02e5ef26dc17f8b614bf8a17eed6ffe440b0dd6a",
+        "id": "e4e3e2128699be8316f2de9a03d5c283c5cacf050a7a765fd018111b7deea5e1",
         "classification": "declaration",
         "owner": "SettingsNavigation",
         "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
       },
       {
-        "id": "afc04f235b43d809774ac04adc88ce38f99f41b443da165c2ca4d5feb401f041",
+        "id": "a5c2714f86156d889ac1a861d21f79ef66bc4cc126f279888a32e19119437e2a",
         "classification": "declaration",
         "owner": "SettingsNavigation",
         "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
       },
       {
-        "id": "3bc1a3682918f089380d08291b64e3a39fa0996d15ca93597825c31f5287d81a",
+        "id": "a5b74639000eec0c5111b7029b611ac7778f30a67136714c018ae73c5cce3b20",
         "classification": "declaration",
         "owner": "SettingsNavigation",
         "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
       },
       {
-        "id": "1a13b73f49b7547a455fd65f0f64da360f3f396d8e8ec715744a6c931483333a",
-        "classification": "declaration",
-        "owner": "SettingsNavigation",
-        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
-      },
-      {
-        "id": "a155b6456f8a3b99b7caa0d95c0bd32b26b7b55e4e568dbb3a94fdbd811b9e38",
-        "classification": "declaration",
-        "owner": "SettingsNavigation",
-        "reason": "Settings field/action zones, initial focus state, busy/editor status and absent selection are declared with navigation; preferences, Schema keywords, key names, JSON suffix and optional usage output are observed through their Owners."
-      },
-      {
-        "id": "214e4f10e0051a2beb2a1ddfb6eea176ae956b3a1cedc88168e9cb3a0ba12a78",
+        "id": "37d049b7a0f6cfa6e6d504a14b41d8adf08e8d28c7f7574e7edf3b7e3f16c57b",
         "classification": "non_contract",
         "owner": "SettingsNavigation.focus_zone",
         "reason": "Convert a list length to its final valid index before clamping the remembered position."
       },
       {
-        "id": "6df1607c873dc3f95a584e4d30d558e86eeea8d6f83c71486848b8157e94dbaf",
+        "id": "f45300b1030e6d01336cadbfb48f8ea79f7cc8a1d405212ff1a9ecab33056171",
         "classification": "non_contract",
         "owner": "SettingsNavigation.focus",
         "reason": "One predecessor step in modular iteration; no independent state code or policy is declared."
       },
       {
-        "id": "28cdca4516a7aaab4b57898ef5511b9b288310f716e5410fff08804071ca8440",
+        "id": "112f18aa28332591bcb5b7709ad7d446f82704c08c617f4efed84a454ff122b8",
         "classification": "non_contract",
         "owner": "SettingsNavigation.focus",
         "reason": "One successor step in modular iteration."
       },
       {
-        "id": "f4e91305e1c3c4ef07e6fa037f9d64f34a8bd574734bba532d0c039e149d1927",
+        "id": "6cb18239f913812e123ae1a1731f22d4ca6f36c53073554e115ab005fac9bcfb",
         "classification": "non_contract",
         "owner": "SettingsNavigation.move",
         "reason": "Move to the adjacent predecessor in the field list."
       },
       {
-        "id": "ab8cd08cf473ddb01793500eb72204dff024bca94eecdf317b045ccc4826fea5",
+        "id": "b82ef25ddef63860cbbeed62b0c681e0612ed962be1604d80a60975609e0f191",
         "classification": "non_contract",
         "owner": "SettingsNavigation.move",
         "reason": "Move to the adjacent successor in the field list."
       },
       {
-        "id": "f25c1c2f3c6823c8b69a72ecf9250345d82dc4b9b1d6001ef86c03e3abcbbafe",
+        "id": "c840a991f5622a56ef248fb3e1ff59a93ea55943643c3dd592c0174f108aaf54",
         "classification": "non_contract",
         "owner": "SettingsNavigation.move",
         "reason": "Convert the field count to its last valid index for boundary clamping."
@@ -89867,29 +89975,575 @@
         "owner": "SettingsNavigation / SettingsZone",
         "declaration": "hub/ui/settings/navigation.py",
         "consumers": [
+          "hub/ui/settings/global_schema.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/pages.py",
           "hub/ui/settings/screen.py"
         ],
         "tests": [
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_text_editing.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/settings/sections.py",
+    "sha256": "5dae18603e3372819f941c59d0631392d271691fd6246ec2f1ec186de015edae",
+    "reason": "Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "808d2bdce3f2c8484522cf39072d4761d253821f5632b5d0994fbf63b3dc5232",
+        "classification": "declaration",
+        "owner": "SettingsSection",
+        "reason": "UI section identity and its builders/classification have one declaration. Unknown, no-colon, empty and nested suffix behavior and declared ordering are preserved."
+      },
+      {
+        "id": "9b1f315b612ed81354e861a8b6b9cea3977cc31d1e479f49b5f99bc4b57c7952",
+        "classification": "declaration",
+        "owner": "SettingsSection",
+        "reason": "UI section identity and its builders/classification have one declaration. Unknown, no-colon, empty and nested suffix behavior and declared ordering are preserved."
+      },
+      {
+        "id": "e0cd18f355a24dd399a3f1f7401eac50afb534e44e4903ffcffb6b90582f8e28",
+        "classification": "declaration",
+        "owner": "SettingsSection",
+        "reason": "UI section identity and its builders/classification have one declaration. Unknown, no-colon, empty and nested suffix behavior and declared ordering are preserved."
+      },
+      {
+        "id": "ba74d2698b23818c7f179dbb4babe76e8c933c302266510c9fb1688268cbc74a",
+        "classification": "declaration",
+        "owner": "SettingsSection",
+        "reason": "UI section identity and its builders/classification have one declaration. Unknown, no-colon, empty and nested suffix behavior and declared ordering are preserved."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SettingsSection",
+        "declaration": "hub/ui/settings/sections.py",
+        "consumers": [
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_error_contract.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_text_editing.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/settings/state.py",
+    "sha256": "3ca68f62963017b1cab1726dc2d9193dd352ce551808f3754fcc5378e99c8cea",
+    "reason": "Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c8b522f812172f8cc81db45f008bef7385d9f2d56a49c16df7598fbbba40e3dc",
+        "classification": "declaration",
+        "owner": "SettingsActivity",
+        "reason": "The existing shared settings busy/idle boolean state is declared here; work start/finally cleanup and the public boolean representation stay unchanged."
+      },
+      {
+        "id": "ab7f767e7f2d4babf6e0578b8ef260d20cf1618b7f5c813bc83ae5f9a2d2ce25",
+        "classification": "declaration",
+        "owner": "SettingsActivity",
+        "reason": "The existing shared settings busy/idle boolean state is declared here; work start/finally cleanup and the public boolean representation stay unchanged."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SettingsActivity",
+        "declaration": "hub/ui/settings/state.py",
+        "consumers": [
+          "hub/ui/settings/navigation.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_mouse_widgets.py",
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_error_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/settings/global_schema.py",
+    "sha256": "d0d3cf63b9d64f8901170a01461ec566b6799b2ee6cf8fc67d198ca3f3c7102d",
+    "reason": "Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "54513c92a15619374b89689958c1795cb4c43da57a323dc6ebdd816a90056dba",
+        "classification": "declaration",
+        "owner": "GlobalSettingsSchema",
+        "reason": "Localized UI form composition uses setting descriptors/default metadata, Theme/Icon enums and bounds, and the ChoiceField extension Owner. Only the original four appearance defaults are materialized. UI width minimum remains lazy and distinct from stored Theme minimum."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GlobalSettingsSchema",
+        "declaration": "hub/ui/settings/global_schema.py",
+        "consumers": [
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_configuration_results.py",
           "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
           "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_home_navigation.py",
-          "tests/hub/test_escape_navigation.py",
-          "tests/hub/test_popup_completion.py",
-          "tests/hub/test_settings_usability.py"
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_error_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/settings/json_editor.py",
+    "sha256": "42b1ebb80671b34f677f4aeb7635112f404705bee713f2e7cfe9b1366b621c46",
+    "reason": "Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6c2d1eaf7cfb11caea60b8f5bdc411c0ebd7c4f05ecd0764583426184e43c88d",
+        "classification": "declaration",
+        "owner": "SettingsJsonEditor",
+        "reason": "JSON draft state, recovery absence and root-path display are owned here. Named recovery retains tuple equality; Page baseline/change state and section identity use Page/section APIs. Projection/validation precedes hidden Engine restoration, locks remain type-sensitive, and actual persistence stays outside the editor."
+      },
+      {
+        "id": "594fffec0b8ccb41c44ba7daa62fe7b743d8d852647b1525b0723cf816d8e763",
+        "classification": "declaration",
+        "owner": "SettingsJsonEditor",
+        "reason": "JSON draft state, recovery absence and root-path display are owned here. Named recovery retains tuple equality; Page baseline/change state and section identity use Page/section APIs. Projection/validation precedes hidden Engine restoration, locks remain type-sensitive, and actual persistence stays outside the editor."
+      },
+      {
+        "id": "92e7e36e32e3d122467d486615c68d1862732a03fdb5b1ae73b8a95d388d22a4",
+        "classification": "declaration",
+        "owner": "SettingsJsonEditor",
+        "reason": "JSON draft state, recovery absence and root-path display are owned here. Named recovery retains tuple equality; Page baseline/change state and section identity use Page/section APIs. Projection/validation precedes hidden Engine restoration, locks remain type-sensitive, and actual persistence stays outside the editor."
+      },
+      {
+        "id": "c67bcd2dab3dbe74b73d6b892220d57b0eddfa508d955d12bc1f3e0633f71449",
+        "classification": "declaration",
+        "owner": "SettingsJsonEditor",
+        "reason": "JSON draft state, recovery absence and root-path display are owned here. Named recovery retains tuple equality; Page baseline/change state and section identity use Page/section APIs. Projection/validation precedes hidden Engine restoration, locks remain type-sensitive, and actual persistence stays outside the editor."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SettingsJsonEditor / JsonEditRecovery",
+        "declaration": "hub/ui/settings/json_editor.py",
+        "consumers": [
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_error_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/settings/pages.py",
+    "sha256": "c763ee2180416dc15eb7f9068b50ec9e9da5602c7417d3b0d6eb856b20b1e7b3",
+    "reason": "Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "efdabadbd168e5b30bb089cbb5c1a60c7580ebcf7f2b55fa0ba3786ec2effb4e",
+        "classification": "declaration",
+        "owner": "SettingsTab",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "b0fbdaa250d39025a48acdee8e4e81329e141d606581923d2983693b6227313e",
+        "classification": "declaration",
+        "owner": "SettingsTab",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "277ffcc2489e765631236871765155836a5fe8614a688a5a3159c5c8ae59acb6",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "0ef91b454479148dbfaec05d684296016570a4760da9b8fc69105136d06670b2",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "c9e714bf4a9db45f4cbb45ce7c44864e6c18faa7dc69d66d9bcb3717670718a6",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "7aa23839fdfa50065d42d30605d6fc0599f22ca6dc7ac423a93e080a48acb981",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "9a42006c7f9e035bd9ddfdaf8175a2ae009e24ea9d6502c0ee96ca477082d7c7",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "39dbfb449b9cac7a7613760b7fcdc6322082fa0a05e1ef5585167fec6b64493d",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "748c7b82c076ccaf1112886e12d2601761466b0c8724064cdfccfd363dbf38cf",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "17f3a2ff5309bce74c2bd67b361322159bcd6321d9cf2266d32f67fe9c1e3ba9",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "cdf046e5a1b8e52145221736ed5829458d9a4b9fa15341165ed518735961ef84",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "867948782c9eb8c4231a1eeb74d3e502b9be575332a6da8fa807989ed135b607",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "071ce6999d8ea3222db1e84a75526ca565538ffe45970cd100e3e9ef3bf5771c",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "4503e15326af53b14a9fbe56181eb447839040e76371a43a88e4ff637e06fd64",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "50f3c54f57a4de3ef332fd5d449184fd190b114804e517f8a29cac323c79bad1",
+        "classification": "declaration",
+        "owner": "Page",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "5495d7adb6c59ec1064ce855695855ad84c532d487ca1ded77407764af6bdeb2",
+        "classification": "declaration",
+        "owner": "ProjectPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "690364110892960a715167bacd227505158afc137fe3c917385dba57554902ca",
+        "classification": "declaration",
+        "owner": "ProjectPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "57c783b92279b453f173daf58b83de3aa88ea0ecc2b177b7d3f74cbec9eb1be9",
+        "classification": "declaration",
+        "owner": "ProjectPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "90651c65a451fcf9a9076a08df8fdf0a413ab24088e458cfcf2dd53b1e390730",
+        "classification": "declaration",
+        "owner": "ProjectPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "9e81ea6c512323f1fe61edc01499b1a0537ce219e9d705f35a51fafb4c0f7514",
+        "classification": "declaration",
+        "owner": "ProjectPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "03183e69769c113807f2de260be0e56d7d873f2693e4223b224ab095a2a62c48",
+        "classification": "declaration",
+        "owner": "ProjectPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "682a80503ee8f8f68a5f197728844767eaed3c6457a877f563502b67ba9298ab",
+        "classification": "declaration",
+        "owner": "ProjectPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "a3709fc7e4f828d955c7193fab3c81005f1132119dfe49f282bf450302f62d9d",
+        "classification": "declaration",
+        "owner": "ProjectPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "8d2419449ade11dd3a73a773c3ef848d48529388758392bc0cca4b2ab21ff453",
+        "classification": "non_contract",
+        "owner": "ProjectPage.__init__",
+        "reason": "Walk nonempty ancestor prefixes starting at the first path segment; this is indexing arithmetic, not an independently declared policy."
+      },
+      {
+        "id": "6ff2ebcd5015f4a8a06ebec458aa21c04cde387e7b7781c679e0736fc9c962a0",
+        "classification": "non_contract",
+        "owner": "ProjectPage.__init__",
+        "reason": "Use an exclusive range endpoint one past the full prefix length so the final ancestor is inspected."
+      },
+      {
+        "id": "90b0aede70a3fecfa8c592a920f01d4eab22459d8aa6d2aecd3954e3eebfe364",
+        "classification": "non_contract",
+        "owner": "ProjectPage.set_section",
+        "reason": "Read the single visible form selected by visible_forms; this is list indexing."
+      },
+      {
+        "id": "e958fd6ef9808feaf9ef62e1f2e0a0144cbc76956fc18985bdaa796bca914293",
+        "classification": "non_contract",
+        "owner": "ProjectPage.set_section",
+        "reason": "Distinguish a multi-segment relative path from its leaf for display grouping."
+      },
+      {
+        "id": "97d59ac61c8fc6b216367e7007f9254755253eb72339030c816639e5ddff55cd",
+        "classification": "non_contract",
+        "owner": "ProjectPage.set_section",
+        "reason": "Select the first category segment of a multi-segment path."
+      },
+      {
+        "id": "dedea008aeb59e9bffaf1a31fc295d7a4d629c7f96c5bc10117f1160b9c6b786",
+        "classification": "non_contract",
+        "owner": "ProjectPage.set_section",
+        "reason": "Slice off that category segment before composing its remaining display label."
+      },
+      {
+        "id": "8d9b5c4b92888ca0ef979ef21a9ec5fe09ee0ef0d7e204e9fb66699de671247f",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "9d4be69f54d04de5eb2be77ace9b4ce22f41171a554fdfb450013d6a12e8b0ab",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "95576c70313b8b641330f0bae868fc2d85ef88a08dbb911b68f7560bd38a5d43",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "80bd94ba567c7574812240a5ce9dbcdf53b93d53bcde1a3aa0ecff15b6201a7c",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "0794715b0d0917bcf5f480df87a06560158cc8157a6a7323da3cd8ec503718f1",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "232b062859b1eb63d4c8a02cf16854459213e141991b80a442c517c9381733d5",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "44d2a0063ec2fb0cb7cd86df6558c5a90a37e2dbc026f5b74d6c86450a44078b",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "c966537d4a6682de2f591e6662cc8bf2d943eea2e281dbc4ccb377e981751304",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "712bdba5aa9959d760ccb30c4d53c6f649e2014170f8eed9d563a8bb3212d33d",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "c167b0426af9ec5368b81fbe856e5e9da656ad966d8c2b5303b6cf403f854731",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "96bd1684f0e4624d47e4c0bafa74af4197844423dd593447ed6f325c6c1178d9",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      },
+      {
+        "id": "a33f91d04f536e86076879d7e958b5ca8fa6fa5ea77b6cbde8a6ce8696b1de84",
+        "classification": "declaration",
+        "owner": "GlobalPage",
+        "reason": "Page owns field grouping/filtering, actions, JSON draft state and presentation declarations. Fixed Backend/global preference response structure is consumed through its Owner projections; JSON Schema and dynamic form-field maps remain open data. Configured values, CAS tokens, explicit nulls, Host-fixed leaves and opaque extensions are preserved."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Page / ProjectPage / GlobalPage",
+        "declaration": "hub/ui/settings/pages.py",
+        "consumers": [
+          "hub/ui/settings/screen.py",
+          "hub/ui/settings/drafts.py",
+          "hub/ui/settings/json_editor.py",
+          "hub/ui/settings/navigation.py"
+        ],
+        "tests": [
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_error_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
         ],
         "complete": true
       }

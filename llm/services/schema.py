@@ -50,6 +50,14 @@ class ProjectSchemaDescription:
     TARGET_PARAMETERS = "대상별 전달 인자. 같은 이름의 인자를 다른 대상으로 자동 전달하지 않는다."
 
     @classmethod
+    def engine_catalog(cls, schema):
+        return schema.get(cls.ENGINES, {})
+
+    @classmethod
+    def component_requirements(cls, schema, name):
+        return ComponentSchemaObservation.requirements(schema.get(cls.COMPONENTS, {}).get(name, {}))
+
+    @classmethod
     def metadata(cls, components, engines, selected):
         return {
             SchemaKeyword.SCHEMA: cls.DIALECT,

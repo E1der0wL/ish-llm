@@ -7905,3 +7905,61 @@ Preset UI 및 후속 설정 Pages 묶음의 Level 3로 유예한다. 이번 변�
 마감 검사: S1–S7 개별 검토 82, new/stale/outstanding/review error 0; 감사 회귀 16개와 문서 검사 exit 0이다.
 현황 609파일/미검토 148/미분류 7,366/미완료 공유 계약 18, stale/위반/issues 0이다.
 선행 Gate46의 실제 원격 CI 통과 기록도 함께 보존했으며, 현재 소스의 원격 통과로 승계하지 않는다.
+
+
+## 설정 Pages·공개 설정 Projection·JSON 초안
+
+ProjectConfigurationView/ProjectConfigForm과 Schema observation Owner가 편집 값, 선택 Component의
+effective 관찰, 요구 Component 목록, 관리 Engine 생략 및 Component 선택 기록을 제공한다.
+기존 stored_config 우선순위와 필수 값/CAS를 유지하고 optional effective의 None/False/빈 객체를
+구별한다. 새 값 복원이나 저장 Reader 우회가 없고 공개 응답·저장 형식은 그대로다.
+
+GlobalSettingsSchema는 로컬화한 UI Schema를 구성하되 필드명·기본값·허용값·제약은 실제 Owner에서
+가져온다. appearance의 원래 네 기본값만 적용하고 색상 Schema를 더 엄격하게 만들지 않는다.
+UI sidebar 최소 폭은 ProfileBar에서 필요한 시점에만 조회한다. SettingsSection과 SettingsActivity는
+Page/Screen/Navigation/JSON 편집의 실제 소비자를 연결한다. AuxiliaryIcon 선언과 실제 두 icon map도
+같은 식별자를 쓰며, 나머지 asset/Screen 소비자는 전수 작업에서 계속 추적한다.
+
+Page는 JSON baseline/change 상태를 소유하고 JsonEditRecovery는 이름 있는 tuple로 원래 tuple 비교를
+유지한다. 실패 텍스트의 보관·재수정, 취소·finally 상태 해제, 페이지/선택 갱신 순서가 동일하다.
+JSON Schema 검증 후에만 숨긴 Engine 값을 복원하고 Host 고정값·true/1 구분을 유지한다.
+SidebarWidth의 공개 관찰은 원래 필드를 그대로 반환하고 기존 저장 Reader의 타입/범위 검증을 유지한다.
+ProjectUsageObservation은 UI가 요청한 필드만 관찰하고 영수증·예산 산술을 해석하거나 복구하지 않는다.
+
+전체 파일 완료는 Pages/JSON editor와 global_schema/sections/state 다섯 파일이다.
+Screen/Navigation/icon 및 공통 Owner는 이번에 연결한 경로만 갱신했다.
+독립 비교: 실제 전역 폼 34, 폭 제약 4, usage 필수성/오류 표시 16, 관리 Engine 생략 5,
+optional effective 5, Engine catalog/Component 요구값 각 7, section 해석 27과 순서 2,
+실제 Backend Project snapshot 기반 폼/탭/제안 26, Project JSON 검증/숨긴 값/Host lock 20,
+전역 JSON 검증 14, 편집 콜백/보관/복구 24와 guard 2, 실제 Screen 선택 경로 3, icon wire map 2가 일치한다.
+정상 세 전역 폼과 실제 Project가 성공적으로 구성되는 것도 명시적으로 확인했다.
+
+추가로 원본 SHA의 SidebarWidth Reader와 현재 Reader를 실제 19개 정상/손상 파일로 비교했다.
+거부/수용 결과가 같고 모든 파일의 바이트·존재 상태가 그대로다.
+초기 Screen 비교 도구는 표시하지 않는 화면을 기본 PTK layout에 focus하여 오류가 났다.
+해당 callback 경계에서 실제 대상 필드를 관찰하도록 도구를 수정했고, 전체 UI 동작은 기존 회귀로 확인한다.
+첫 오류 로그를 보존하며 제품 테스트·독립 Fixture·안전성 Assertion은 변경하지 않았다.
+
+- `whole-hub-settings-pages-core-01`: discovered/started/pass 43/43/43, exit 0, 9.205424초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-settings-pages-core-01/llm.json --modules tests.llm.test_schema_ownership tests.llm.test_configuration_targets tests.llm.test_settings_consistency tests.llm.test_configuration_results`. source `4a39f5371b54ef2c2f3558aee5d321a86ee306213ff0fa434f7e1908b1bb1ca9`, input `68f871bd4ed34032cc68a9f212b779b0a5101c919a48624d7b36c1d63651f587`.
+
+- `whole-hub-settings-pages-l1-01`: discovered/started/pass 13/13/13, exit 0, 43.448101초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-pages-l1-01/hub.json --modules tests.hub.test_settings_json tests.hub.test_settings_tabs tests.hub.test_settings_project_flow`. source `4a39f5371b54ef2c2f3558aee5d321a86ee306213ff0fa434f7e1908b1bb1ca9`, input `68f871bd4ed34032cc68a9f212b779b0a5101c919a48624d7b36c1d63651f587`.
+
+- `whole-hub-settings-pages-l2-01`: discovered/started/pass 56/56/56, exit 0, 52.779692초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-pages-l2-01/hub.json --modules tests.hub.test_global_preferences tests.hub.test_settings tests.hub.test_settings_editor tests.hub.test_presets_widgets tests.hub.test_usage_definitions_system tests.hub.test_settings_navigation tests.hub.test_settings_viewport tests.hub.test_settings_usability tests.hub.test_error_contract`. source `4a39f5371b54ef2c2f3558aee5d321a86ee306213ff0fa434f7e1908b1bb1ca9`, input `68f871bd4ed34032cc68a9f212b779b0a5101c919a48624d7b36c1d63651f587`.
+
+- `whole-hub-settings-pages-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.433697초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-settings-pages-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `4a39f5371b54ef2c2f3558aee5d321a86ee306213ff0fa434f7e1908b1bb1ca9`, input `68f871bd4ed34032cc68a9f212b779b0a5101c919a48624d7b36c1d63651f587`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+같은 suite의 선택 중복 0, 전후 및 실행 사이 source/input manifest 동일을 확인했다.
+명령·exit·로그는 `hub-settings-pages-draft/selected-results.json`, 다섯 독립 비교 명령은
+`proof-commands.json`에 보존한다. Sidebar 비교는 고정 baseline의 소스를 따로 읽었다.
+Python 3.12.14/Clang, Host d833790 및 동일 의존성·Linux/X11/Bubblewrap이다. R3 Mutation exit 0이다.
+
+Level 1은 공개 설정/Schema/Target/저장 일관성과 Pages/JSON/탭/Project 흐름,
+Level 2는 전역 설정·외부 편집기·Preset·사용량/오류·입력/viewport 소비자이다.
+승인·예산·효과·Checkpoint·삭제/저장·실행 경계 안전성 회귀를 유지한다.
+공개 Projection의 좁은 추가와 관찰 경로 재사용이며 실행 정책·저장 제약을 바꾸지 않았다.
+관련 설정 Screen/Drafts/Project 소비자까지 묶은 다음 Level 3에서 전체 LLM/Hub·정적·문서·R3·실환경을
+검증하고 해당 SHA만 Push/원격 CI 확인한다. 이번 소단계는 전체 회귀 및 원격 완료가 아니다.
+
+마감 검사: S1–S7 개별 검토 82, new/stale/outstanding/review error 0; 감사 회귀 16개와 문서 검사 exit 0이다.
+현황 612파일/미검토 146/미분류 7,131/미완료 공유 계약 18, stale/위반/issues 0이다.

@@ -18,6 +18,9 @@ from ...config.theme import HubTheme
 from ...widget.controls import TextArea
 from ...widget.forms.settings_viewport import SettingsPane
 from .navigation import SettingsNavigation, SettingsZone
+from .sections import SettingsSection
+from .state import SettingsActivity
+from ...asset.icon import AuxiliaryIcon
 from .drafts import SettingsDrafts
 from ...widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from ..layout import TwoPanelPage
@@ -36,7 +39,7 @@ class SettingsScreen:
         from .json_editor import SettingsJsonEditor
         self.json_editor = SettingsJsonEditor(self)
         self.request = None
-        self.busy = False
+        self.busy = SettingsActivity.IDLE
         self.status = ""
         self.query = ""
         self.schema = None
@@ -66,7 +69,7 @@ class SettingsScreen:
         bottom = DynamicContainer(lambda: self.page.bottom if self.page else Label(""))
         self.actions = ActionFrame(bottom, width=self.main_dimension, title=self.action_title)
         from ...widget.auxiliary import AuxiliaryBar
-        self.auxiliary = AuxiliaryBar([("filter", self.search), ("json", self.show_json)],
+        self.auxiliary = AuxiliaryBar([(AuxiliaryIcon.FILTER.value, self.search), (AuxiliaryIcon.JSON.value, self.show_json)],
                                       lambda: view.icons, lambda: self.navigation.focus_zone(SettingsZone.ACTIONS))
         self.layout = TwoPanelPage(
             header=HeaderActions(HeaderBar(lambda: self.t(MessageKey.SETTINGS_TITLE), icons=lambda: view.icons), view),
@@ -152,17 +155,16 @@ class SettingsScreen:
         return ("* " if page and page.dirty else "") + title
 
     def _item_title(self, key: str) -> str:
-        kind, _, name = key.partition(":")
-        if kind in ("engine", "component"):
+        kind, name = SettingsSection.parts(key)
+        if kind in SettingsSection.NAMED_KINDS:
             return self.t(MessagePattern.settings_item(kind), name=name)
         return self.t(MessagePattern.settings(name or kind))
 
     def project_items(self):
-        keys = ["project:general"]
+        keys = [SettingsSection.GENERAL]
         page = self.drafts.pages.get(self.drafts.current_project_id)
         if isinstance(page, ProjectPage):
-            keys.extend("engine:" + key for key in page.engine_forms)
-            keys.extend("component:" + key for key in page.component_forms)
+            keys = page.section_choices()
         return [SidebarItem(key, self._item_title(key)) for key in keys]
 
     def project_changed(self, identifier):
@@ -172,7 +174,7 @@ class SettingsScreen:
             self._engine_target = self._component_target = None
         if isinstance(self.page, ProjectPage) and self.page.identifier != identifier:
             self.page = None
-            self.selected = self.navigation.left_key = "project:general"
+            self.selected = self.navigation.left_key = SettingsSection.GENERAL
 
     def filter(self, query):
         if self.page is None:
@@ -271,13 +273,13 @@ class SettingsScreen:
         if self.request is None:
             self.error(self.t(MessageKey.NOT_CONNECTED))
             return
-        self.busy = True
+        self.busy = SettingsActivity.BUSY
         self.status = ""
         progress = self.view.progress.start(self.t(
             MessageKey.PROGRESS_SETTINGS_LOAD if operation in ("catalog", "load_project") else MessageKey.PROGRESS_SETTINGS_WORK))
         def done(value, error=None):
             self.view.progress.finish(progress)
-            self.busy = False
+            self.busy = SettingsActivity.IDLE
             self.status = ""
             if error is not None:
                 self.error(error)
@@ -336,7 +338,7 @@ class SettingsScreen:
             return
         self.navigation.finish_edit()
         if key == self.drafts.current_project_id:
-            key = "project:general"
+            key = SettingsSection.GENERAL
         if key not in (*self.global_keys, *[item.key for item in self.project_items()]):
             return
         self.selected = key
@@ -366,7 +368,7 @@ class SettingsScreen:
         if self._engine_target and getattr(page, "identifier", None) == self._engine_target[0]:
             _, engine = self._engine_target
             self._engine_target = None
-            section = "engine:" + page.engine_keys.get(engine, engine)
+            section = SettingsSection.engine(page.engine_keys.get(engine, engine))
             if section in {item.key for item in self.project_items()}:
                 self.tabs.selected = SettingsTab.CONFIG.value
                 page.set_section(section)
@@ -375,7 +377,7 @@ class SettingsScreen:
         if self._component_target and getattr(page, "identifier", None) == self._component_target[0]:
             _, name = self._component_target
             self._component_target = None
-            section = "component:" + name
+            section = SettingsSection.component(name)
             if section in {item.key for item in self.project_items()}:
                 self.tabs.selected = SettingsTab.CONFIG.value
                 page.set_section(section)
@@ -392,7 +394,7 @@ class SettingsScreen:
             query = getattr(self.drafts.pages.get(identifier), "query", "")
             section = getattr(self.drafts.pages.get(identifier), "section", self.selected)
             page = self.drafts.pages[identifier] = ProjectPage(self, record)
-            section = section if section in {item.key for item in self.project_items()} else "project:general"
+            section = section if section in {item.key for item in self.project_items()} else SettingsSection.GENERAL
             page.set_section(section)
             if query:
                 page.filter(query)

@@ -109,6 +109,29 @@ class ProjectUsageFailure(ProjectSummary):
 
 
 @dataclass(frozen=True, slots=True)
+class ProjectUsageObservation:
+    """Observe a public usage row without repairing or reading stored receipts."""
+
+    record: dict
+
+    @property
+    def has_error(self):
+        return ProjectUsageFailure.error.__name__ in self.record
+
+    @property
+    def error(self):
+        return self.record[ProjectUsageFailure.error.__name__]
+
+    @property
+    def title(self):
+        return self.record[ProjectSummary.title.__name__]
+
+    @property
+    def period_seconds(self):
+        return self.record[UsageSummary.period_seconds.__name__]
+
+
+@dataclass(frozen=True, slots=True)
 class SettingsCatalog(SettingsResponse):
     RISK_SCHEME_FIELD: ClassVar[str] = "x-hub-risk-scheme"
     projects: list

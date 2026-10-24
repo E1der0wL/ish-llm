@@ -68,6 +68,15 @@ class ProjectConfigForm:
     def from_dict(cls, values):
         return cls(**{item.name: deepcopy(values[item.name]) for item in fields(cls)})
 
+    @classmethod
+    def store_components(cls, value, components):
+        value[cls.components.__name__] = components[:]
+
+    @classmethod
+    def omit_engine(cls, value, name):
+        if cls.config.__name__ in value:
+            value[cls.config.__name__] = ProjectConfig.without_engine_parameters(value[cls.config.__name__], name)
+
     def to_dict(self):
         return asdict(self)
 
@@ -83,6 +92,14 @@ class ProjectConfigurationView:
     config_version: str
     effective_engines: dict
     components: dict
+
+    def edit_values(self):
+        result = self.values.to_dict()
+        result[ProjectConfigForm.config.__name__] = self.stored_config
+        return result
+
+    def component_effective(self, name):
+        return ComponentConfigurationObservation.optional_effective(self.components.get(name, {}))
 
 
 @dataclass(frozen=True)
@@ -148,6 +165,10 @@ class ComponentConfigurationObservation:
     def effective_or_empty(cls, value):
         return value.get(cls.effective.__name__) or {}
 
+    @classmethod
+    def optional_effective(cls, value):
+        return value.get(cls.effective.__name__)
+
     def to_dict(self):
         return {item.name: getattr(self, item.name) for item in fields(self)}
 
@@ -159,6 +180,10 @@ class ComponentSchemaObservation:
     required_components: list
     record_schema: dict | bool
     project_configuration: bool
+
+    @classmethod
+    def requirements(cls, value):
+        return value.get(cls.required_components.__name__, [])
 
     def to_dict(self):
         return {item.name: getattr(self, item.name) for item in fields(self)}

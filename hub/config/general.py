@@ -244,6 +244,10 @@ class GeneralSettingsDraft:
         return self._value.get(GeneralSettings.workspace_root.__name__,
                                SettingMetadata.initial(GeneralSettings, GeneralSettings.workspace_root))
 
+    @staticmethod
+    def same_language_packs(left, right):
+        return left.get(GeneralSettings.language_packs.__name__, {}) == right.get(GeneralSettings.language_packs.__name__, {})
+
     def initialize_packs(self):
         self._value.setdefault(GeneralSettings.language_packs.__name__, {})
 
