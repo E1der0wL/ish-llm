@@ -494,7 +494,7 @@ class LoopEngine(BaseEngine):
                         raise ExecutionLimitError("completion_review_blocked", "Final candidate was blocked")
                     if decision["action"] == ReviewAction.CONTINUE:
                         continuations += 1
-                        if continuations > review.policy["max_continuations"]:
+                        if continuations > ReviewPolicy.max_continuations(review.policy):
                             raise ExecutionLimitError("completion_review_limit", "Explicit review continuation budget exhausted")
                         messages.append(CompletionMessage(response.message))
                         messages.append(CompletionMessage(ModelMessage(ModelRole.USER, review.feedback(decision)), continuation=True))

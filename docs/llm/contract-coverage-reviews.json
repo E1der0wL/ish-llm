@@ -56435,5 +56435,845 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/processing.py",
+    "sha256": "f7f5e9c4030e783a8846e26cfe8e77d8bebf5195d09d5f5655a9d2c48601aaae",
+    "reason": "Whole processing/review/value/input implementations reviewed, including selected hook discovery, processor identity, live SDK-handle copies, strict JSON observations, explicit policy, actual effect protection and recovery. Public type/validation bindings share the canonical implementation; no alternate Reader or silent retries. Only individually identified Python declaration/type syntax remains.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "729e64fb23ff7bfe0eb180ade160d8c9c5c46f7b439e50ab14208a9b48de2e8c",
+        "classification": "declaration",
+        "owner": "CompletionPipeline / CompletionSession / CompletionProcessor",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "42d81a2213cfa357aa70676f4a148786b383adb42bf83338ba98fee0fca7ec51",
+        "classification": "declaration",
+        "owner": "CompletionSession",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "944a2d261929f60d46e520e135b8f28c197e5c8d53d5aee23f1c50e4c23b2def",
+        "classification": "declaration",
+        "owner": "CompletionSession",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "ba7c088b68f9d54d77305039d2d8f80b6ed453275b1d378d5f034c1d0ae4f400",
+        "classification": "non_contract",
+        "owner": "CompletionSession.prepare",
+        "reason": "Python forward type annotation for AsyncIterator to avoid an Engine import cycle; the actual event contract remains EngineEvent."
+      },
+      {
+        "id": "627a468757c9e2d4db4e268a4a70f9b0045e1d7605fa07899adfa2a0cb0dd18d",
+        "classification": "non_contract",
+        "owner": "CompletionSession.after_completion",
+        "reason": "Python forward type annotation for AsyncIterator to avoid an Engine import cycle; the actual event contract remains EngineEvent."
+      },
+      {
+        "id": "3bf3ebbe34d519e06acb98998de4c15d80a740fe8e1ab43aeb83eecb0df471d2",
+        "classification": "non_contract",
+        "owner": "CompletionSession.finish",
+        "reason": "Python forward type annotation for AsyncIterator to avoid an Engine import cycle; the actual event contract remains EngineEvent."
+      },
+      {
+        "id": "b82db6561796f5a3f73c4d551966e910d01bb586917aa695cba3308bf8305d5e",
+        "classification": "non_contract",
+        "owner": "CompletionSession.aclose",
+        "reason": "Python return type annotation -> None, not a runtime omission default."
+      },
+      {
+        "id": "77dc1211fde1cd217d119e9d17c11e485e827a8d868b166fb33ce44bf1883ea5",
+        "classification": "declaration",
+        "owner": "CompletionProcessor",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "7940fefe8daed2d247310c51cf8c28919ed272cfe1a79a9b295107c0d023a57d",
+        "classification": "non_contract",
+        "owner": "CompletionProcessor.session",
+        "reason": "Python forward type annotation for EngineContext, not a dynamic API lookup or execution field."
+      },
+      {
+        "id": "e3bd6674393676ff017ba9c5f6787e5df77abf7f5fc84df97d03d699b43d685f",
+        "classification": "non_contract",
+        "owner": "CompletionProcessor.session",
+        "reason": "Python Protocol method stub; selected processor supplies the runtime implementation."
+      },
+      {
+        "id": "24e6bd23a507c994a86eb8eb54cd4912a10a554bce760b6115c196fa0be58b80",
+        "classification": "declaration",
+        "owner": "CompletionHook",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "dba0365384752558861afe83d821f9eaeb0a69dfe1b918c0fe7d83c5f01c306e",
+        "classification": "declaration",
+        "owner": "ProcessorRegistration",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "c409de282f6f6dc5f97b5a2f5c8ac35f5647eed2cad7e7ec6a34d236ad11a1a5",
+        "classification": "declaration",
+        "owner": "ProcessorRegistration",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "090701e1dc39f73541b177e0c522165b623b367d01f9efc570a5eadffbdaa460",
+        "classification": "declaration",
+        "owner": "ProcessorRegistration",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "2743e60e601d08c9b87d0474181bbddac1b397bfe4b199c4d54708d793a9fe73",
+        "classification": "declaration",
+        "owner": "ProcessorRegistration",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "a0287a8eda89d8cc00b51d91f946b1404aaef5c34fec985aeb4c79d8e00144cb",
+        "classification": "declaration",
+        "owner": "ProcessorRegistration",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "2e14de069b316226c57601adc0422c4e602349dec3f47d04fea145370acdecce",
+        "classification": "declaration",
+        "owner": "ProcessorRegistration",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "40565f1f6f56689e491ef1fcb207a58f79e8f68b5aaf74fef307018e2f21e029",
+        "classification": "declaration",
+        "owner": "ProcessorRegistration",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "85227fd5638b43037f6c9f306b431ff5654b9542fc23b5915ef293d1113a76d5",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "45840db98712f02844a09236c4bdad67e05b2dfd6539cf6b502107f9f01f26cb",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "390ef754ef5705f228aa5e2871acf09e49c12bf1f24c42d84bd338d0746ee7c2",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "06abdd7f818dfe4e778927462d9ac0ca0d937fb6f0c33640b8a7ef4c59c32886",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "9d46ae2c20b7dcc7f2898ea0b2dbeac8723629bbb24381bd59915c0ec4e1a51c",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "7d4b24d782dbc3f3e1e917f4d31705a911bce3c13c9c277dc4b412893bb2fc2e",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "78103045697f3cab14e83555984519a1ad339112faf737849e60743702eaf0ea",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "ea1dc8023ba871355440cda09bb02657b239cbf3939199ec57d78bfdf83d62f7",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "bc5ea431b26e78503aeabb07c71c8453fe0cd4e7da2ebb72adff98546723b9fd",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "6c024e4ce0aceaa998d3ebd0c0e4c9e09297034d80d492f16e4d1b9ad5b3bf81",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "44f5acefc6d3bfc131162816cd43bcfca5972bf979a48383f6b879693d4f03dd",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "e9cab8092c561f333fc5640b7a02e925c20a8423d6ec2c5941394ce892218c3e",
+        "classification": "declaration",
+        "owner": "CompletionPipeline",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompletionPipeline / CompletionSession / CompletionProcessor",
+        "declaration": "llm/components/processing.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py",
+          "llm/components/memory/processing.py",
+          "llm/components/goals/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/review.py",
+    "sha256": "6d4aadb625c62c0cafa83e62f40e7ba169fb504776c80e326c2c96d49c10cefb",
+    "reason": "Whole processing/review/value/input implementations reviewed, including selected hook discovery, processor identity, live SDK-handle copies, strict JSON observations, explicit policy, actual effect protection and recovery. Public type/validation bindings share the canonical implementation; no alternate Reader or silent retries. Only individually identified Python declaration/type syntax remains.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7f60e6e8480ea3316301ca071396cc2b9fba5938fcc57b3cf101c44a78506daa",
+        "classification": "declaration",
+        "owner": "ReviewAction",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "2614a44a0b7f3ac6aec587a1cdfbb58bb9cc6ab4bb0e8aea613ce73596064022",
+        "classification": "declaration",
+        "owner": "ReviewAction",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "db8bd13dadcdad8d3cae4e70305948a8545512345533a47c07faaf212bc4717b",
+        "classification": "declaration",
+        "owner": "ReviewAction",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "348f2716f2d541207f7172170080c3a3010adad782cfba9cfc8267bc947431f1",
+        "classification": "non_contract",
+        "owner": "CompletionReview",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "4a75771cdbc7c57e1a5de87f6868102bf1a48ed7f5f8061114b59f6ac14aba04",
+        "classification": "non_contract",
+        "owner": "CompletionReview",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "ed2f4a669abf49efe8a5f6c760a30d91d006f6d9ececf7be20f1af91eaef292b",
+        "classification": "declaration",
+        "owner": "CompletionReview",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "55b64071e770a15bfad2d55c55f65f4f72d78c2ab3df1c4cd7b2f2c9c4097a2b",
+        "classification": "non_contract",
+        "owner": "CompletionReviewObservation",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "bee14a386762b6436ea924f8be7d271a98af41383c8ff29ed371796d3e8b87e0",
+        "classification": "non_contract",
+        "owner": "CompletionReviewObservation",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "cee34022496a0233f42d225f4ca77b3dc9b74701c708fefc2ae6586d382271ba",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "57416f685a089fbf2da410d61f0e19b3657975fe4458b0cd2e3ee4c824adf8a1",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "a533ee7433d8e986cb0ebc14a15c7d860eb7f19a2af72bf28348dbbb70d4b019",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "6a21d0183f85e2a2d73bb8d1090b78150397798a645c02fd400e6c9db06bd25c",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "908e02b66ebfa97229c077baeb183b1d0685650762ade80fcda641ddb1228c39",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "367bf80f134399cf3a3fb77297b9e4715eb6bb925ef793c6dd0cc4c824e25a0a",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "71f066507fecfd10d4fb237892366ff3b1aa3a983d37701399a70c67a2ffd46c",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "24f10eb6d2e909ba457e0390ee9d2c9b3c122b7188bd245e2824a524650c8daf",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "809d9ae45d793e9e44d97d7384a92d23214d99ce7aab1c8b439ccceac136d00f",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "55aa2e27a1219e11f01fb6194a5247a605f88cd5c150111b0d2d78d913ba3511",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "221292bc43e41e1a7bb5830944e52b72ec009855214bc580329311e50c17ea56",
+        "classification": "declaration",
+        "owner": "CompletionReviewObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "76a2d8646ea71512e3ae99c62bae5586e193214f95246c9b027fa6f9a3382ec9",
+        "classification": "declaration",
+        "owner": "ReviewPolicy.Field",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "eaf77010dbf5e1a7bf29df6625fc7333e53694a3c987a270b478f0ef15e741ca",
+        "classification": "declaration",
+        "owner": "ReviewPolicy.Field",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "1e5dbdcc6af78800ab9474b7b423a676a4efdb16f373144216d7d658a44fd248",
+        "classification": "declaration",
+        "owner": "ReviewPolicy.Field",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "26076581f1d45ba4d016685c384499b31df489a2e2cfd7afc68f1de39d9494d4",
+        "classification": "declaration",
+        "owner": "ReviewPolicy.Field",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "2f1e2ed01898d6823d8399b08ca485e9fbfe299bc74707279d123ddb623fd9de",
+        "classification": "declaration",
+        "owner": "ReviewPolicy",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "86326e9e1495a47941f7a3622bfec65e33abf8449a499c58c2828c23517589f3",
+        "classification": "declaration",
+        "owner": "ReviewPolicy",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "0874b53f4b63e5254ef1622f1a9865e78ced1d00f0f773ef47262aff9c3c2d96",
+        "classification": "declaration",
+        "owner": "ReviewPolicy",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "124c29296aa197a6195cca40e082f22f5cb4c272b5e615ec06e7730ef8f03674",
+        "classification": "declaration",
+        "owner": "ReviewPolicy",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "5f1de8906845fdaddf937d631d4d93a64fdfd8edcbb18059868447b7d63dce6e",
+        "classification": "declaration",
+        "owner": "ReviewPolicy",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "4c65ca79391465f2726d564e5106e10dc2795d9fe4e75f6d9aa7cef077730e6f",
+        "classification": "declaration",
+        "owner": "ReviewPolicy",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "785cbb208b947cce365209771a25e8f4f431a849091259100622aea775ac7975",
+        "classification": "declaration",
+        "owner": "ReviewPolicy",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "d5b0f8b665130d2ba21feda65874727a7b548558c40b8357810dffce2e8c2cc5",
+        "classification": "declaration",
+        "owner": "ReviewPolicy",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "0046f1446ff45a7182e49006f0c3fa40ee2f5ad6c055ccf836ada22aee151d03",
+        "classification": "declaration",
+        "owner": "ReviewDecision",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "8427183af887587d12fe4fb31b503832da3c62e51798b930f4a514822bec5392",
+        "classification": "declaration",
+        "owner": "ReviewDecision",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "b7df644ab22fa754b7a65fe3ac8b9274241fc539e74700e275bf0ca661f7f1b3",
+        "classification": "declaration",
+        "owner": "ReviewFingerprint",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "c310fc460e581abbaef9253d3a98ef961619a036e1bc5f57110f49f1ddc6c421",
+        "classification": "declaration",
+        "owner": "ReviewFingerprint",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "62f0dc59719df4641c11e35e4590b217fa17475b3791a020894844ea583f6fa6",
+        "classification": "declaration",
+        "owner": "ReviewFingerprint",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "9e852884f3695327e119542cc0d7780d916cbcd6217db1b42fc5f5a46fa1da5b",
+        "classification": "non_contract",
+        "owner": "ReviewerIdentity",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "c25fffa67c94807d6ca9255764fff9f3b7defebc97b44f699d95131c8aff5a73",
+        "classification": "non_contract",
+        "owner": "ReviewerIdentity",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "6d5dc0ed4d4735816deafc01feeb98ac5683388e20bc5ce8e04fa57e8b49528a",
+        "classification": "declaration",
+        "owner": "ReviewerIdentity",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "51234bf8c701ba9c61e2cfc026bec30c20815d69537f00af6f615314be3b8c7f",
+        "classification": "declaration",
+        "owner": "ReviewerIdentity",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ReviewPolicy / CompletionReview / CompletionReviewObservation / ReviewerIdentity",
+        "declaration": "llm/components/review.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py",
+          "llm/components/memory/processing.py",
+          "llm/components/goals/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/completion_values.py",
+    "sha256": "03ea00bd22f5f048a7a729305c593ee08b408d4f80931d47c3f5b631709a95ba",
+    "reason": "Whole processing/review/value/input implementations reviewed, including selected hook discovery, processor identity, live SDK-handle copies, strict JSON observations, explicit policy, actual effect protection and recovery. Public type/validation bindings share the canonical implementation; no alternate Reader or silent retries. Only individually identified Python declaration/type syntax remains.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "48e395afb93cdaef7e7cbe2f06ed4caf1bff1f6b7fe57109cff4e3f1d385f96a",
+        "classification": "non_contract",
+        "owner": "CompletionRecovery",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "9419b660cf850c38989dc7541ed9d673d8d3cdbdd6e9c1c346858d86fe46dd64",
+        "classification": "non_contract",
+        "owner": "CompletionRecovery",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "33d035f864c4241f3581f2e51808480e5ec5f7481f368fc5057f438691e3afb6",
+        "classification": "declaration",
+        "owner": "CompletionRecovery",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "cdf133ff8774f349c58c9fd502496c1a11ae642e32aa72474c6c8d189e3dc67b",
+        "classification": "non_contract",
+        "owner": "CompletionRepair",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "5ae32d95aa3837b4509f994d23228c406156121a91cb097b30b7a6e4c0357112",
+        "classification": "non_contract",
+        "owner": "CompletionRepair",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "d016ee521118009507b2cd9d04d270113f1c5c068f115f00bea8a31b71f4724d",
+        "classification": "non_contract",
+        "owner": "CompletionMessage",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "9f0169fb48cc85ee3f92f8e669bd16e1c2e5a670b0bf5d2c7fc71349d8c77fa9",
+        "classification": "non_contract",
+        "owner": "CompletionMessage",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "8cffa19a1cecc9d6c0abd83b640dcc7fd4b4679833566bc2bf4de6153e5e85ae",
+        "classification": "declaration",
+        "owner": "CompletionMessage",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "0012ee15b2b1d2ad6daaedf4ce39e61f57f41c6687f47b7d02c67ded9d01c570",
+        "classification": "declaration",
+        "owner": "CompletionMessage",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "086b2df0a917e6d24f09c85f02badcfb61fceb77c2fa1c7a028391d798b881c6",
+        "classification": "declaration",
+        "owner": "CompletionMessage",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "5bddb9536ad3ceb7cef31141264b59b806e8632598b388fb8389a3baff5b7f51",
+        "classification": "declaration",
+        "owner": "CompletionMessage",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "2d66cc7ffe9d1fe22d89ac666fa704f7230d08aea92032bc8f1ef064fe4cb80e",
+        "classification": "non_contract",
+        "owner": "CompletionRequest",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "8ca4cc96330c9bb68bc2213eabb34d25c41c74e4cdf71aa5baf0bc45aa765127",
+        "classification": "declaration",
+        "owner": "CompletionRequest",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "8a64cfaf242d681d7755853d3fb328f5157862b8bc9d2ecf65ab7f6717c79363",
+        "classification": "declaration",
+        "owner": "CompletionRequest",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "8db17c8182e5288ad35dafd28498c20c7329f8524764c2b370dec847bbeaed84",
+        "classification": "declaration",
+        "owner": "CompletionRequest",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "af4fe64e2206b53c7688499770114c50b4e9a66cce9bdee5ef0b53982341623a",
+        "classification": "declaration",
+        "owner": "CompletionRequest",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "b5ed4bded113ee6499082065a6be47963166e429ea8e4c0670453ee678d47de3",
+        "classification": "non_contract",
+        "owner": "CompletionObservation",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "18df73b49d86b7b26b8ea24220e2be0255ba6fffca97ad33c2b1f0b5593317d6",
+        "classification": "non_contract",
+        "owner": "CompletionObservation",
+        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+      },
+      {
+        "id": "ab9333db9cc2cd4981c92ffa34105ee7a8b54d6d08d7c1826d837b4f5c81a8b7",
+        "classification": "declaration",
+        "owner": "CompletionObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "fb4b67c4a41afd0f1c7118da4341d64fb35d415c64d4c8e4de6447dcb0aa867e",
+        "classification": "declaration",
+        "owner": "CompletionObservation",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompletionRequest / CompletionMessage / CompletionObservation / CompletionRecovery / CompletionRepair",
+        "declaration": "llm/components/completion_values.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py",
+          "llm/components/memory/processing.py",
+          "llm/components/goals/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/completion_input.py",
+    "sha256": "c59665c60e6d42da2156651c6394a381a9232f7b79c34e09bec53b30a01e4752",
+    "reason": "Whole processing/review/value/input implementations reviewed, including selected hook discovery, processor identity, live SDK-handle copies, strict JSON observations, explicit policy, actual effect protection and recovery. Public type/validation bindings share the canonical implementation; no alternate Reader or silent retries. Only individually identified Python declaration/type syntax remains.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f147edaf366f26a11e3627dec842c22250c7a176ba1ce8535c546191bdd5e9d8",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "e2dec15480c1966e82e09152bf74e88a206b03a96b72a0f713edb757f7087685",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "e9f1342d1ec3eac78e8012cc73244faa65a82dd596394f38f901cf89a998c603",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "6a662572b43e4cf89c9f8450cc02e8f889aa86b2e279772b6afca18b7ab30083",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "5e06d60c326a6e28af8f62825669415038996f8f7747ae167fec5f254b6f9dcb",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "fced3d0bed792f4d0cda2f1bfab8aad891141f0f0f14bae4b7ad4d68d1149bd5",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "9a32a41fc0cbe139704d9a8f05c3e1a2112425effe3aa717094f3f45203f85a4",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "0664edbbbe2470ab274bded34244c1373d630c123b93118e0e7e51c161d5c67f",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "d121dc2981cee6fc3bc2b7e32be17b1536f627f8664129ca7e0469f0017f26e0",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "e2abf557dbc8b0041468f9e2d1e5bcc309f9579f74abfb9e20598612fdf26dc3",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "b188caf8244d06a050d1089924217f176e5a0c38309fb5ddd69590dcd89e6130",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "1053a9dbfb4c69d5ff462255109ccba02990506dd97babe1e122133e57100bd3",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "d729f9d9aae10f863e9e7800309bc368c48d07909b3605edf7c00e4cbb85b6b3",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "053fa4b177613b92995b696f5c37e6895bbe6f4fe00bda987047afb29980a730",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "2d45adddf6abea4193c383dca0e8a02edd8adf582a7aa6409d81e51fac3acd79",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "6316c383c9e9717dccc5f37db08bfb0122efae8ffb79e9fd8ad5d6b08a4010f8",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "c2dd14f3d8dd2b6004a802b7fbbcba2d8ea0afe9f13e3a1d88c4badcd2d5693c",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "22aff080caa1a0a4a3fe77e51e4631daeab9d37d458667bfb41932a9fd88da39",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "be6e9cb8ebebdec72fb4325a32c0311341db7d69c010bf380ef12d90846534fd",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "8682e2620181aebff6aaf008fdca0b35a6b14b7af2ab2c5debf94914d5e4b21d",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "7357e6924ae1bdfe821a66049bedeeecc5f2aefddf5a02cd4043b12ff8757e77",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "136ea76489bf88c35648fdfeafeb627d68782729d62a4572f58bf424b2fcbd0f",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "39a38cbd3dc6bf7b43f922ec7e488019f50afc06b2eda6e53a0151d904d165f3",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "efc2bb4a170d26d21e8d42ffea964f91ffef6a241f585db1a6de617672cba241",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "04f32df68c1771ba91fc12370f6b0388edf4fd3e7440d0136caf0e65ba75dade",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "b4a70c93bba11ff289b952860385207d59acc4ddd11aed0ea8907cb1dc633710",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "571072576898a9b78922106098b6a2f3eb03abab0cd52edb6cdfa02ca22f0213",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      },
+      {
+        "id": "67348b3708c9143eac0956d8fd66392410f174a1ede14501eeb0965480d29e85",
+        "classification": "declaration",
+        "owner": "CompletionInput",
+        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CompletionInput",
+        "declaration": "llm/components/completion_input.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py",
+          "llm/components/memory/processing.py",
+          "llm/components/goals/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_recovery_probe.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

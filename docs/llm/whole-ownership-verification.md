@@ -5575,3 +5575,48 @@ exit 0: 기존 전체 함수 110개, 실제 등록 결과/예외/속성 조회 �
 2개를 검출했다. 정적 dependency 17건 재검토. 전수 inventory 547개·미검토 255
 (llm 78/hub 177)·미분류 16,426·미완 계약 3·issues 0. 남은 구현부 후보는 개별 확인한
 Python 타입/Protocol/예외 체인 문법이며 런타임 필드/정책의 예외를 추가하지 않았다.
+
+
+## llm 모델 처리 입력·수명·검토 계약 — Level 1·2
+
+기준 ef9ad0c. completion_values가 공통 요청·출처·복구 제안·독립 관찰 값을,
+CompletionInput이 원본 지시·역할/순서·완전한 과거 턴/활성 Tool 교환과 명시적 복구
+검증을 소유한다. Pipeline은 등록과 세션 수명·hook 호출·관찰/정리만 조율한다.
+기존 공개 processing 타입과 정적 입력 검증 진입점은 단일 정규 구현을 그대로 가리킨다.
+
+검토 관찰/verdict/Reviewer identity는 타입 선언에서 필드명을 파생한다. ReviewPolicy는
+명시 정책의 단일 Reader·schema·조회 API를 제공하고 Pipeline/Loop 소비자가 사용한다.
+원본 요청·SDK 핸들·서명 정보·Tool 선택/인자/ID·원본 지시와 예산·순수 검토 시도·
+Checkpoint 필수 증거·사본 격리·취소/역순 정리는 그대로다. 새 기본값·재시도·허가나
+레거시 Reader가 없다. 제품 테스트·Fixture·Assertion은 변경하지 않았다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/completion-contract-draft/proof.py`
+(한 셸 명령) exit 0. 기존 전체 함수 57개(Processing 23·Review 9·Loop Review 8·Engine 17)
+동등, 실제 엄격한 정책/schema 60개·관찰 Reader/Writer 47개·Reviewer 속성 조회/오류
+9개·공개 타입/함수 연결 7개를 검증했다. Reviewer factory 하나는 실제 전체 결과와 속성
+조회 순서로 검증했으며 다른 함수의 AST 동등 수에 합산하지 않았다.
+
+- `whole-completion-contract-l1-01`: discovered/started/pass 49/49/49, exit 0, 57.827499초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-completion-contract-l1-01/llm.json --modules tests.llm.test_completion_processing tests.llm.test_completion_review tests.llm.test_completion_review_crash tests.llm.test_recovery_probe`. source `6795f3fc65a518f8162e0fc8d863129fad66c2efc64702f189b6e027bd340aa9`, input `11b80aa098d390634c5a89704882b6fd8a0df8e097faee5782e97753665f8e48`.
+
+- `whole-completion-contract-l2-01`: discovered/started/pass 227/227/227, exit 0, 297.715539초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-completion-contract-l2-01/llm.json --modules tests.llm.test_memory_processing tests.llm.test_memory_processing_config tests.llm.test_goals tests.llm.test_loop tests.llm.test_loop_steering tests.llm.test_graph_engine tests.llm.test_graph_checkpoints tests.llm.test_nested_graph tests.llm.test_completion_integrity tests.llm.test_execution_contexts tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `6795f3fc65a518f8162e0fc8d863129fad66c2efc64702f189b6e027bd340aa9`, input `11b80aa098d390634c5a89704882b6fd8a0df8e097faee5782e97753665f8e48`.
+
+- `whole-completion-contract-hub-01`: discovered/started/pass 21/21/21, exit 0, 28.617861초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-completion-contract-hub-01/hub.json --modules tests.hub.test_components tests.hub.test_engine_output tests.hub.test_stream_output tests.hub.test_approval_continuation tests.hub.test_usage_definitions_system`. source `6795f3fc65a518f8162e0fc8d863129fad66c2efc64702f189b6e027bd340aa9`, input `11b80aa098d390634c5a89704882b6fd8a0df8e097faee5782e97753665f8e48`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 일치.
+실행 전후 및 실행 간 source/input 동일, L1/L2 ID 중복 없음. Python 3.12.14/Clang,
+고정 의존성·Host d833790·namespace/X11·전체 발견 목록을 보존했다.
+검토/처리/복구·Memory/Goal·Loop/Graph와 직접 Hub 소비자, 실제 fsync 효과·프로세스
+중단·명시 재개·승인·예산·Checkpoint·삭제/저장 무결성을 선정했다. 원래 입력 보호와
+필수 증거 알고리즘의 동등성이 확인된 책임 분리이며 다음 관련 Loop 검토 저장 Owner
+정리까지 묶어 게이트 37 전체 검증으로 승격한다. 이 소단계는 전체 회귀/원격 완료가 아니다.
+Loop Engine/Review 전체 파일 검토는 별도 미완 상태를 유지한다.
+
+처리기 소단계 최종 보조 검사: 정적 S1–S7 reviewed 107·new/stale/outstanding/review_errors 0.
+정규 Owner 키 조회로 바뀐 close_timeout 검사와 세 정수 하한의 이전 literal occurrence
+4개는 현행 검출에서 사라졌으며 원래 근거는 Git 이력과 retired-static-reviews.json에 보존했다.
+검사기·원래 안전성 Assertion은 그대로다. dependency 7건 재검토. 문서 168개·fence 183개·
+링크 1,212개·anchor 37개 오류 0, 계약/architecture 감사 16 pass / 3.237초 / exit 0.
+R3 mutation exit 0(의도된 한도 누락 2개를 실제 효과 Assertion으로 검출).
+전수 inventory 549개·미검토 253(llm 76/hub 177)·미분류 16,209·미완 계약 3·issues 0.
+구현부 남은 후보는 개별 확인한 dataclass 선언 옵션·forward type·Protocol 문법뿐이다.

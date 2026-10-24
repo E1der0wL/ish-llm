@@ -81,3 +81,9 @@ Project 누적 사용량·미정산 예약, 논리 Agent Tool 예산, 검토 att
 실제 fsync 파일 효과, 승인/Resume, Reviewer 오류/취소, checkpoint 쓰기 실패와 프로세스 강제 종료를
 검증한다. Reviewer가 악의적으로 임의 Python I/O를 하지 못하도록 sandbox하는 기능은 아니다.
 명시 Reviewer 순수성·revision의 소유 책임과 기존 Tool 실행 권한 경계는 유지한다.
+
+
+구현의 정규 선언: 관찰/verdict/Reviewer identity의 필드명은 해당 타입 선언에서 파생한다.
+`ReviewPolicy`가 필드·유효 범위·schema와 조회 API를 제공하며 Pipeline/Loop는 정책 키를
+재선언하지 않는다. read는 원래 명시 객체의 독립 사본을 반환하고 생략/Null은 비활성 그대로다.
+저장 JSON 필드·정책·digest·판정 우선순위·예약/완료 경계는 유지한다.

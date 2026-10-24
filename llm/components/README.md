@@ -43,7 +43,10 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
 | [file_manifest.py](file_manifest.py) | 패키지 정의의 files 필드·존재/조회/갱신·마지막 항목 삭제와 schema 위임을 소유합니다. 실제 파일 효과와 정책은 해석하지 않습니다. |
 | [files.py](files.py) | Skill/Data 파일 패키지, manifest 검증, 파일과 정의의 원자적 변경입니다. |
-| [processing.py](processing.py) | 모델 입력 변환·응답 관찰을 조합하는 completion processor 계약입니다. |
+| [processing.py](processing.py) | 처리기 등록·순서와 세션/관찰/정리 수명을 조율합니다. |
+| [completion_values.py](completion_values.py) | 요청·원본 출처·수정 제안·독립 관찰 사본의 정규 타입입니다. |
+| [completion_input.py](completion_input.py) | 입력 변환/명시적 복구의 원본 지시·순서·Tool 교환 보호를 소유합니다. |
+| [review.py](review.py) | 최종 후보 관찰·verdict·Reviewer identity와 명시적 검토 예산을 소유합니다. |
 | [summarization.py](summarization.py) | 공통 SummaryAnswer 응답·검증과 명시적 입력 예산에 맞춘 분할·점진 요약을 소유합니다. 모델 어댑터를 주입받고 저장소나 실행 수명을 소유하지 않습니다. |
 
 ## 사용자/API 관점

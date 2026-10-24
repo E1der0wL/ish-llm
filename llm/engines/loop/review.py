@@ -84,7 +84,7 @@ class LoopReview:
                 required |= {"action", "decisions"}
             if (value.keys() != required or value["status"] != CheckpointStatus.COMPLETED
                     or observation is None or value["candidate"] != review_digest(observation.to_dict())
-                    or type(value["attempt"]) is not int or not 1 <= value["attempt"] <= contract["policy"]["max_attempts"]):
+                    or type(value["attempt"]) is not int or not 1 <= value["attempt"] <= ReviewPolicy.max_attempts(contract["policy"])):
                 raise ValueError("Invalid final review receipt")
             if not decision:
                 continue
@@ -101,7 +101,7 @@ class LoopReview:
                         or verdict["action"] not in tuple(ReviewAction) or not isinstance(verdict["feedback"], str)):
                     raise ValueError("Review verdict provenance or action is invalid")
                 size += len(verdict["feedback"])
-            if size > contract["policy"]["max_feedback_chars"] or value["action"] != review_action(decisions):
+            if size > ReviewPolicy.max_feedback_chars(contract["policy"]) or value["action"] != review_action(decisions):
                 raise ValueError("Review precedence or feedback bound is invalid")
 
     @classmethod
@@ -114,18 +114,18 @@ class LoopReview:
         decisions = [value for key, value in records.items() if key.startswith("review:")]
         if any(value["action"] == ReviewAction.BLOCK for value in decisions):
             raise ValueError("Blocked final review cannot be resumed")
-        if sum(value["action"] == ReviewAction.CONTINUE for value in decisions) > contract["policy"]["max_continuations"]:
+        if sum(value["action"] == ReviewAction.CONTINUE for value in decisions) > ReviewPolicy.max_continuations(contract["policy"]):
             raise ValueError("Final review continuation budget exhausted")
         for key, value in records.items():
             if key.startswith("review_attempt:"):
                 decision_key = "review:" + key.split(":")[1]
-                if decision_key not in records and value["attempt"] >= contract["policy"]["max_attempts"]:
+                if decision_key not in records and value["attempt"] >= ReviewPolicy.max_attempts(contract["policy"]):
                     raise ValueError("Final review attempt budget exhausted")
 
     def reserve(self, observation, records):
         previous = records.get(f"review_attempt:{observation.iteration}")
         attempt = previous["attempt"] + 1 if previous is not None else 1
-        if attempt > self.policy["max_attempts"]:
+        if attempt > ReviewPolicy.max_attempts(self.policy):
             raise ExecutionLimitError("completion_review_attempts", "Explicit review attempt budget exhausted")
         return {"status": CheckpointStatus.COMPLETED, "candidate": review_digest(observation.to_dict()), "attempt": attempt}
 

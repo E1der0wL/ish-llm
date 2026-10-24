@@ -167,3 +167,10 @@ GoalProcessor도 같은 capability를 사용한다. `goals.policy.inject=true`�
 중첩 Agent에는 `goals.config.nested_agent_ids`로 지정한 Agent만 전달한다.
 Memory의 구조화 요약도 이 입력 처리 계약 안에서 실행되며 current input, steering,
 완료되지 않은 Tool pair를 제거하지 않는다. 최종 입력 예산은 여전히 CompletionPolicy가 검사한다.
+
+
+구현 책임: 요청/관찰 값의 유일한 정의는 `components.completion_values`, 입력 출처·원본 지시·
+완전한 Tool 교환과 명시적 복구 검증의 유일한 구현은 `CompletionInput`이다.
+`CompletionPipeline`은 등록·세션 수명·관찰/검토 순서와 역순 정리를 조율한다. 기존 processing
+공개 타입/입력 검증 진입점은 이 같은 정의/함수에 연결되며 별도 Reader나 호환 알고리즘이 아니다.
+`CompletionHook`은 실제 공개 메서드의 이름을 선언하고 선택 구현의 hook 검사를 유지한다.
