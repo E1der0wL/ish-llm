@@ -18,7 +18,6 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [rag/](rag/README.md) | 문서·청크·벡터·관계와 출처 | 검색 Tool, embedding/rerank/관계 추출 |
 | [vision/](vision/README.md) | 이미지 원본·가공본·출처 | 전처리/OCR/VLM Tool, RAG 문서 추출 |
 | [memory/](memory/README.md) | 장기 기억·후보·출처·요약 | Memory Tool, completion processor |
-| [agents/](agents/README.md) | 목적·Engine·모델·리소스·정책 | Graph AgentNode, 저장 ID 기반 agent_run Tool |
 | [workflows/](workflows/README.md) | 노드·간선·입출력 mapping | GraphEngine |
 | [skills/](skills/README.md) | 지침·참고 파일·Tool/Data 버전 참조 | skill_list/skill_read/skill_read_resource, Agent 지침 주입 |
 | [data/](data/README.md) | 학습 자료·참고 자료·임시 결과 등의 파일 패키지 | 공개 파일 API, Skill의 명시적 자료 조회 |
@@ -27,7 +26,9 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [goals/](goals/README.md) | 장기 목적·진행·Run 참조 | CRUD, 읽기/승인 대상 쓰기 Tool, 선택적 문맥 주입 |
 | [refinement/](refinement/README.md) | 리소스 개선 제안·승인·적용 이력 | 일반 Run의 근거 분석, 단일 대상 CAS 적용/되돌리기 |
 
-기본 `LargeLanguageModel`은 위 종류를 등록합니다. `projects.acreate()`는 `components`로 선택한 종류만 연결합니다. 초기 선택 목록은 hub 등 호출 애플리케이션이 정합니다. 선택만으로 모델 인증, MCP connector, RAG 필수 설정까지 생성되지는 않습니다.
+Agent는 Component가 아닌 독립 도메인이며 `project.agents`로 관리합니다. [Agent 안내](agents/README.md)를 참고하세요.
+
+기본 `LargeLanguageModel`은 위 Component 종류를 등록합니다. `projects.acreate()`는 `components`로 선택한 종류만 연결합니다. 초기 선택 목록은 hub 등 호출 애플리케이션이 정합니다. 선택만으로 모델 인증, MCP connector, RAG 필수 설정까지 생성되지는 않습니다.
 
 ## 공통 파일
 
@@ -42,7 +43,7 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [registry.py](registry.py) | 이름·디렉터리 충돌을 검사하고 선택한 capability를 해석합니다. |
 | [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
 | [file_manifest.py](file_manifest.py) | 패키지 정의의 files 필드·존재/조회/갱신·마지막 항목 삭제와 schema 위임을 소유합니다. 실제 파일 효과와 정책은 해석하지 않습니다. |
-| [files.py](files.py) | Skill/Data 파일 패키지, manifest 검증, 파일과 정의의 원자적 변경입니다. |
+| [files.py](files.py) | Data 파일 패키지의 manifest 검증과 파일·정의의 원자적 변경입니다. Skill의 표준 디렉터리와 운영 기록은 SkillStorage가 별도로 소유합니다. |
 | [processing.py](processing.py) | 처리기 등록·순서와 세션/관찰/정리 수명을 조율합니다. |
 | [completion_values.py](completion_values.py) | 요청·원본 출처·수정 제안·독립 관찰 사본의 정규 타입입니다. |
 | [completion_input.py](completion_input.py) | 입력 변환/명시적 복구의 원본 지시·순서·Tool 교환 보호를 소유합니다. |
@@ -119,7 +120,7 @@ Registry와 설정/수명 소비자는 이 선언을 공유하며 기존 선택 
   <component>/usage/<id>.json       # 모델 호출 예약·종료 증거
   <json-owner>/records.manifest.json # JSON 기록의 필수 ID 집합·원본 해시
   prompts/records/guide.json       # 공통 JSON 레코드
-  agents/records/reviewer.json
+  agents/records/reviewer.json    # Component 외부의 독립 Agent 도메인
   workflows/records/review.json
   tools/packages.manifest.json    # Tool owner의 패키지 목록·파일 해시
   tools/search/search.py           # Tool 전용 Python 패키지

@@ -2632,8 +2632,8 @@
   {
     "path": "llm/core/implementation_parameters.py",
     "sha256": "6dc5baecdb278d643cb4da0f6b09277c3df8a043c5fd93000537a25fa1b3fc7f",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Target-stage review: added detached config/policy replacements through the same validation; no new literals/candidates. Remaining selected-implementation envelope writers keep this contract incomplete.",
-    "dynamic_paths_reviewed": false,
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Target-stage review: added detached config/policy replacements through the same validation; no new literals/candidates. Remaining selected-implementation envelope writers keep this contract incomplete. Final llm scope review read the entire 82-line module: strict envelope validation, detached Reader/config/policy/select/to_dict/with replacements, no unknown/default section restoration, explicit path presence and dataclass field declarations. All llm envelope/layout/config consumers now have their own whole-file review; dynamic parameter names remain selected-owner data. Hub retry consumption stays explicitly incomplete.",
+    "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "f466847925cf68f6826a3c11cb98c13a501b7ed7d2b876a7ff70a1ba99fa223c",
@@ -2749,8 +2749,8 @@
   {
     "path": "llm/core/schema.py",
     "sha256": "a29ed68ea7ae069dafffa11bbc2bf3687254903ac96fb48b180b54ecdcf49e83",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved. Configuration service schema vocabulary now connected; Hub form consumer remains pending.",
-    "dynamic_paths_reviewed": false,
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved. Configuration service schema vocabulary now connected; Hub form consumer remains pending. Final llm scope review read the entire 322-line module: schema vocabulary, explicit open-owner categories, local reference traversal, annotation vs Schema separation, no generated defaults, config/policy envelope projection, Host observation markers and numeric-only inline narrowing. Recursive dynamic property/schema paths and empty structural containers reviewed against current llm consumers. The two None literals are local validation iterator exhaustion sentinels, not stored/policy fallback. Hub Schema form traversal stays explicitly incomplete.",
+    "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "e88c20cd8084893261e263f17a5c71617b2307e7304acff5e4bb6664a5de739c",
@@ -83330,6 +83330,281 @@
           "tests/llm/test_service_extensions.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/CONFIGURATION.md",
+    "sha256": "d70551d1d5b06ada8c412dade5dedbcb9220e5a672942186f267487db2ccbd77",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole missing/null/value, configuration ownership/narrowing, SDK transport vs original request, client injection, Provider limits, RAG/Vision and retention contracts. Corrected current retry omission and independent Agent descriptions; preserved examples and established safety choices.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/CONFIGURATION.md",
+        "declaration": "llm/CONFIGURATION.md",
+        "consumers": [
+          "llm/core/configuration.py",
+          "llm/core/implementation_parameters.py",
+          "llm/providers/retry.py",
+          "llm/providers/request_values.py"
+        ],
+        "tests": [
+          "tests/llm/test_explicit_configuration.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/README.md",
+    "sha256": "4bcf43d08aace62a0c3f4b09fb9777426718a76ff56c9a62cc4cd6edd387fa0d",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole public async API, actual deployment/CLI, recipients/Session membership, factory extensions, steering, settings and lifecycle. Corrected obsolete Session serialization and retention/retry wording; examples retain independent literals.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/README.md",
+        "declaration": "llm/README.md",
+        "consumers": [
+          "llm/llm.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/llm/test_plugin.py",
+          "tests/llm/test_multi_agent_parallel.py",
+          "tests/llm/test_current_api.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/README.md",
+    "sha256": "2bd06932fd834143d2e6d8055b1fff3565f26221baa54841833ed4b355898c08",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole selection/initialization, JSON CRUD vs specialized stores, explicit config, public capabilities/references, backup/clone/deletion and owner hooks. Removed obsolete AgentComponent and Skill FileComponent descriptions; no new storage architecture.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/components/README.md",
+        "declaration": "llm/components/README.md",
+        "consumers": [
+          "llm/components/base.py",
+          "llm/components/storage.py",
+          "llm/components/registry.py",
+          "llm/components/skills/storage.py"
+        ],
+        "tests": [
+          "tests/llm/test_components.py",
+          "tests/llm/test_component_dependencies.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/agents/README.md",
+    "sha256": "325cafdac9ee7497685ac66b3e60111fec82708ac093c9e6fabb6fe4352ee002",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole independent Agent CRUD/CAS, current manifest, root/nested binding, selected resources, child narrowing and explicit resume. Current guide matches implementation; unchanged.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/components/agents/README.md",
+        "declaration": "llm/components/agents/README.md",
+        "consumers": [
+          "llm/core/agents.py",
+          "llm/services/lifecycle/agents.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/data/README.md",
+    "sha256": "1631b191cce383082a100c4f9ae4214c5118b5508df63102209587bdb30bf9ad",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole file package/CAS, Skill/Memory references, quarantine and explicit deletion. Required evidence, current execution protection, cancellation and atomic publication remain accurately described; unchanged.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/components/data/README.md",
+        "declaration": "llm/components/data/README.md",
+        "consumers": [
+          "llm/components/data/component.py",
+          "llm/components/data/records.py",
+          "llm/components/files.py"
+        ],
+        "tests": [
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/README.md",
+    "sha256": "7e32ae69510214f45e84c7584cdbcc4e1f073216fa1d0a9fa4a1eb3cda9f7f4e",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole model/search injection, explicit prompts and processing policies, shared summary algorithm, compaction/checkpoints, raw Tool references, statuses/usage/CAS/cancellation. Clarified required extraction Prompt; no implicit fallback.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/components/memory/README.md",
+        "declaration": "llm/components/memory/README.md",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/processing.py",
+          "llm/components/memory/extraction.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_processing_config.py",
+          "tests/llm/test_memory_compaction_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/refinement/README.md",
+    "sha256": "a08b010c1f1dbb4a35cc160fb2b288d75a055a34cf496e446cc1e9c2eb56d02f",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole proposal/approval/apply/rollback, evidence/history, evaluation, Skill Markdown/fork and Agent binding. Corrected obsolete submit engine argument and Component grouping; explicit recipient must exist and belong to Session. Preserved approval, effect and CAS boundaries.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/components/refinement/README.md",
+        "declaration": "llm/components/refinement/README.md",
+        "consumers": [
+          "llm/components/refinement/data.py",
+          "llm/components/refinement/targets.py",
+          "llm/components/refinement/records.py"
+        ],
+        "tests": [
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/README.md",
+    "sha256": "43e90380e8a99b6a2656fce5a441e42c03c4b3fdba900186246f9cbf7c784d94",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole package paths/manifest, signature/schema/defaults, static CRUD vs child import, Host preparation, execution fingerprint, environment/protocol and error/approval/cancellation boundaries. Existing descriptions match current contracts; unchanged.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/components/tools/README.md",
+        "declaration": "llm/components/tools/README.md",
+        "consumers": [
+          "llm/components/tools/packages.py",
+          "llm/components/tools/process.py",
+          "llm/components/tools/registry.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/builtin/README.md",
+    "sha256": "02afde9e9568997c13c1afff54ebe9e9869156cd5d7c09ac5458ba67ed0b73af",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole registration/selection, approved writes/processes, explicit limits/env, source binding, system observations and Bubblewrap test workspace routing. Existing descriptions match current contracts; unchanged.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/components/tools/builtin/README.md",
+        "declaration": "llm/components/tools/builtin/README.md",
+        "consumers": [
+          "llm/components/tools/builtin/catalog.py",
+          "llm/components/tools/builtin/workspaces.py"
+        ],
+        "tests": [
+          "tests/llm/test_builtin_tools.py",
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_builtin_file_values.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/core/README.md",
+    "sha256": "c98d780c97bad63d1f46481c70e73f9c5c72cc737eac2f9f396f5ee39c71b28b",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole domain/config/model/event/interaction projection responsibilities. Expanded Tool metadata and derived receipt scope; clarified canonical declarations without assigning storage authority to observations.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/core/README.md",
+        "declaration": "llm/core/README.md",
+        "consumers": [
+          "llm/core/models.py",
+          "llm/core/agents.py",
+          "llm/core/step_tool_metadata.py"
+        ],
+        "tests": [
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/check_docs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/README.md",
+    "sha256": "d8b2c5a5674882f036197451b886a19dc6bb33e0741aa1893b4631cf201cfd98",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed whole extension hooks, registration, selected Agent, model Adapter/decoder, Step/checkpoint/output ownership, Tool approval/resume, steering and error classification. Clarified common Adapter and actual submit/resume parameters; contracts unchanged.",
+    "contracts": [
+      {
+        "owner": "Developer guide — llm/engines/README.md",
+        "declaration": "llm/engines/README.md",
+        "consumers": [
+          "llm/engines/base.py",
+          "llm/engines/agents.py",
+          "llm/engines/events.py",
+          "llm/engines/graph/agent.py"
+        ],
+        "tests": [
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_engine_requests.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_tool_selection.py",
+          "tests/llm/check_docs.py"
         ],
         "complete": true
       }

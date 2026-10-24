@@ -2,12 +2,12 @@
   "complete": false,
   "counts": {
     "files": 597,
-    "unreviewed_files": 188,
+    "unreviewed_files": 177,
     "stale_files": 0,
     "unclassified": 8755,
     "violations": 0,
     "incomplete_contracts": 5,
-    "unreviewed_dynamic_paths": 190,
+    "unreviewed_dynamic_paths": 177,
     "unreadable_files": 0,
     "candidates": 20039,
     "issues": 0
@@ -1329,14 +1329,14 @@
     },
     {
       "path": "llm/CONFIGURATION.md",
-      "status": "unreviewed",
-      "sha256": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+      "status": "reviewed",
+      "sha256": "d70551d1d5b06ada8c412dade5dedbcb9220e5a672942186f267487db2ccbd77",
       "candidates": 0
     },
     {
       "path": "llm/README.md",
-      "status": "unreviewed",
-      "sha256": "50a0395e480c6883c3816c38875aeef1249a55c020aa101450f2c9e512591f29",
+      "status": "reviewed",
+      "sha256": "4bcf43d08aace62a0c3f4b09fb9777426718a76ff56c9a62cc4cd6edd387fa0d",
       "candidates": 0
     },
     {
@@ -1353,8 +1353,8 @@
     },
     {
       "path": "llm/components/README.md",
-      "status": "unreviewed",
-      "sha256": "6c075d38bb0a29dc13a259bdca88af8360a6374fe9714e1463dfa1a7f146c060",
+      "status": "reviewed",
+      "sha256": "2bd06932fd834143d2e6d8055b1fff3565f26221baa54841833ed4b355898c08",
       "candidates": 0
     },
     {
@@ -1365,7 +1365,7 @@
     },
     {
       "path": "llm/components/agents/README.md",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "325cafdac9ee7497685ac66b3e60111fec82708ac093c9e6fabb6fe4352ee002",
       "candidates": 0
     },
@@ -1389,7 +1389,7 @@
     },
     {
       "path": "llm/components/data/README.md",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "1631b191cce383082a100c4f9ae4214c5118b5508df63102209587bdb30bf9ad",
       "candidates": 0
     },
@@ -1527,8 +1527,8 @@
     },
     {
       "path": "llm/components/memory/README.md",
-      "status": "unreviewed",
-      "sha256": "f2fd867a7f2d71c08c11bfb3623fb177f502c6f77fc9ba44662d048b07f0ee6b",
+      "status": "reviewed",
+      "sha256": "7e32ae69510214f45e84c7584cdbcc4e1f073216fa1d0a9fa4a1eb3cda9f7f4e",
       "candidates": 0
     },
     {
@@ -1989,8 +1989,8 @@
     },
     {
       "path": "llm/components/refinement/README.md",
-      "status": "unreviewed",
-      "sha256": "81425e843c36e2e25703ea797b7b8bfc2c8f771231117c76ae842f47447cf0e2",
+      "status": "reviewed",
+      "sha256": "a08b010c1f1dbb4a35cc160fb2b288d75a055a34cf496e446cc1e9c2eb56d02f",
       "candidates": 0
     },
     {
@@ -2121,7 +2121,7 @@
     },
     {
       "path": "llm/components/tools/README.md",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "43e90380e8a99b6a2656fce5a441e42c03c4b3fdba900186246f9cbf7c784d94",
       "candidates": 0
     },
@@ -2145,7 +2145,7 @@
     },
     {
       "path": "llm/components/tools/builtin/README.md",
-      "status": "unreviewed",
+      "status": "reviewed",
       "sha256": "02afde9e9568997c13c1afff54ebe9e9869156cd5d7c09ac5458ba67ed0b73af",
       "candidates": 0
     },
@@ -2439,8 +2439,8 @@
     },
     {
       "path": "llm/core/README.md",
-      "status": "unreviewed",
-      "sha256": "bbdf131b7452c90c7ad3515655b68ec4bf1e54a169dea7efa2dcb87730fce25d",
+      "status": "reviewed",
+      "sha256": "c98d780c97bad63d1f46481c70e73f9c5c72cc737eac2f9f396f5ee39c71b28b",
       "candidates": 0
     },
     {
@@ -2715,8 +2715,8 @@
     },
     {
       "path": "llm/engines/README.md",
-      "status": "unreviewed",
-      "sha256": "ed6c3fbf250bc05372bd577d4be91130136594fd1a17b7d47ebff16bbc76430b",
+      "status": "reviewed",
+      "sha256": "d8b2c5a5674882f036197451b886a19dc6bb33e0741aa1893b4631cf201cfd98",
       "candidates": 0
     },
     {

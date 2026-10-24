@@ -61,7 +61,7 @@ MemoryProcessor는 `completion_adapter`와 callable 계수기를 받으며 false
 알 수 없는 처리 필드와 허용되지 않은 null/모드는 실행·저장 전에 거부합니다.
 압축의 상태·재개/취소 가능 집합·Tool 결과 모드는 Compactions가 소유하며, 참조 보호와
 Reader/Writer·처리 소비자가 같은 선언을 사용합니다. 값과 상태 전이·저장 형식은 동일합니다.
-둘 다 없으면 추출을 실행하지 않고 오류를 반환합니다. 처리기 시작 시 지침/버전을 고정하고
+추출을 활성화했지만 `extract_prompt_id`가 없으면 실행하지 않고 오류를 반환합니다. 처리기 시작 시 지침/버전을 고정하고
 candidate metadata에 출처를 남깁니다. JSON 형태, replaces의 id/generation/revision, 근거 없는 성공 금지는
 backend 계약입니다. 무엇을 기억할지는 애플리케이션이 결정합니다.
 

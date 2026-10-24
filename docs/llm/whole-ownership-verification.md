@@ -7382,3 +7382,41 @@ Python3.12.14/Clang·Host d833790·동일 의존성과 격리 환경이다.
 `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` exit 0, 16 tests/3.406초.
 `python -m tests.llm.check_docs` exit 0, 문서 168·Python 예제 183·상대 링크 1257·anchor 37, 오류 0.
 전수 inventory 597파일, 미검토 188=llm 가이드 11+Hub 177, 미분류 8755, 미연결 계약 5(기존 Hub 후속), stale/위반/감사 오류 0. 구현 검토가 끝난 llm과 Hub 소비자 전환/전체 통합 완료를 구분한다.
+
+
+## llm 개발 가이드 전수 및 Gate45 준비
+
+기준 75f58e8. 남은 llm 가이드 11개를 전체 읽고 실제 공개 API/Owner와 대조했다.
+README/CONFIGURATION, Component 전체/Agent/Data/Memory/Refinement/Tool/BuiltinTool,
+Core/Engine 안내가 대상이다. 다른 기존 검토는 재독하지 않고 변경된 설명만 확인했다.
+같은 Session의 Agent별 FIFO·서로 다른 Agent 병렬성, 독립 Agent 도메인, recipients API,
+Application 보관 정책, SDK 재시도 전송 사본 및 원본 생략 보존, Skill 직접 디렉터리 저장을
+현재 확정 계약에 맞췄다. Core의 Tool metadata와 파생 영수증 책임도 명확히 했다.
+
+이 소단계는 문서/검토 증거만 변경했다. 실행 제품·테스트·Fixture·의존성은 변경하지 않았다.
+문서 예제의 독립 리터럴과 과거 실제 실패·성공 기록은 보존했다. 앞선 소단계의 실제 제품
+검증을 새 SHA의 실행으로 표현하지 않으며, 문서의 구문/링크 검사와 정적 근거 검사를 수행한다.
+전체 제품 회귀를 문서 소단계에서 반복하지 않고 바로 다음 Gate45의 동결 소스에서 수행한다.
+
+inventory는 597파일, llm 파일 미검토/미분류/확정 위반/stale 0이다. 남은 미검토 177파일은
+Hub에 있으며 전체 작업은 계속된다. 다섯 계약의 미완료 표시는 유지한다: Hub retry의
+ImplementationParameters, 설정 폼의 JSON Schema, Project Agent 편집의 AgentDefinition,
+구독 선택/통계, Project Schema catalog 소비 연결이다. 이들은 llm 선언이 끝나도 Hub 소비자가
+끝나기 전 complete로 바꾸지 않는다. 전체 DC3 완료나 원격 CI 완료를 선언하지 않는다.
+
+Gate45는 Gate44 이후 Events/Steps → Run → Configuration/Host → Lifecycle → Public
+Facade/CLI → 가이드의 관련 변경을 묶는다. 전체 LLM/Hub, S1–S7·R3·문서·offline Provider·
+실제 Linux/Host/X11/sandbox를 확인하고 정확한 SHA를 Push한 후 실제 원격 CI를 조회한다.
+main·refactor/llm-backend·Draft PR #1은 계속 보호한다.
+
+최종 범위 대조에서 ImplementationParameters와 core.schema의 기존 동적 경로 검토 표시는
+Hub 미완료와 함께 열려 있었다. 두 모듈 전체(82/322행)를 읽어 현재 llm의 사본·presence·열린
+설정·Schema 재귀/annotation/local ref/narrowing 경로를 확인했다. 기존 각 llm 소비자의 전수
+검토와 연결하여 로컬 동적 경로 검토를 닫았고 Hub 소비 계약의 incomplete 표시는 유지했다.
+코드 변경은 없으며 검증 iterator의 두 None은 필수 기록 복원이 아닌 비계약 구문으로 유지한다.
+
+가이드 마감 명령: `python -m tests.llm.check_docs` exit 0(168문서/183 Python 예제/1263 상대 링크/37 anchor, 오류 0).
+`python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7` exit 0(기존 82건 개별 검토).
+`python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` exit 0(16 tests/3.409초).
+최종 llm 378파일/9372후보, 미검토·미분류·위반·stale·미확인 동적 경로·감사 오류 0.
+Hub 소비 연결 5건과 Hub 미검토 177파일은 다음 단계에 남는다. 이 문서 소단계에서 제품 전체 회귀는 실행하지 않았으며 바로 Gate45에서 실행한다.

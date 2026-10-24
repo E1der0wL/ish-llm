@@ -51,7 +51,7 @@ UI / ish 명령
   → UI 이벤트 / 저장된 결과 조회
 ```
 
-한 Session의 Run은 순서대로 실행됩니다. 다른 Session은 동시에 실행할 수 있습니다. 일반 입력은 현재 작업을 중단하지 않고 대기열에 들어갑니다. 중단은 별도의 `interrupt()` 호출입니다.
+같은 Session의 같은 Agent는 FIFO로 실행되고 서로 다른 Agent는 병렬로 실행할 수 있습니다. 다른 Session도 동시에 실행할 수 있습니다. 일반 입력은 현재 작업을 중단하지 않고 명시한 수신자별 실행 대기열에 들어갑니다. 중단은 별도의 `interrupt()` 호출입니다.
 
 Engine과 Component는 소유 계층의 중간 도메인이 아닙니다. Engine은 실행하고, Component는 기능별 자료를 관리하며, 서비스가 Run/Step의 저장과 수명을 담당합니다.
 
@@ -200,7 +200,7 @@ if __name__ == "__main__":
 
 `ProjectConfig`의 최상위 계약은 `policies`, `parameters`, `data`로 닫혀 있습니다. 구현체 인자는 `parameters.engines`/`parameters.components`의 선택 구현체가 검증하고, Application 데이터는 `data`에 둡니다. 여기에 넣은 API 키도 Project 설정 JSON에 저장됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다. [설정 소유권과 확장 경계](../docs/llm/schema-ownership.md)를 참고하세요.
 
-공통 실행·사용량·보관 정책은 `policies`, 구현체별 인자는 `parameters`에 둡니다.
+공통 실행·사용량·출력 정책은 `policies`, 구현체별 인자는 `parameters`에 둡니다. 보관 대상·시점·한도는 Application이 정하여 명시적 HistoryRetentionPolicy와 정리 API로 전달합니다.
 Loop 입력 예산은 `parameters.engines[이름].policy.completion`, 모델 호출 재시도는
 `parameters.engines[이름].policy.provider`로 지정합니다. Memory/RAG/Vision의 provider는 각 Component 정책에 따로 둡니다.
 실행 제한 객체는 `RunPolicy`, 모델 입력 선택기는 `CompletionPolicy`입니다. 설정값마다
@@ -278,13 +278,13 @@ Graph는 `await run.ainstruction_targets()`의 실행 목록을 UI에 표시하�
 
 ### 설정과 UI 연결
 
-- `policies`: 문맥, Run, Tool 허용·승인·조건부 재시도, 사용량·보관·출력 정책. Host의 기술적 허가·실행 어댑터는 BackendServices/ToolRuntime로 연결합니다.
+- `policies`: 문맥, Run, Tool 허용·승인·조건부 재시도, 사용량·출력 정책. Host의 기술적 허가·실행 어댑터는 BackendServices/ToolRuntime로 연결합니다.
 - `parameters.engines.<parameter_key 또는 등록 이름>`: 해당 Engine이 해석할 전달 인자. Loop는 `config.completion`에서 LiteLLM 모델·인증·추론 옵션을, `policy.completion`에서 입력·완료 토큰 정책을 읽습니다.
 - `parameters.components.<이름>`: 해당 Component가 해석할 전달 인자. RAG 모델 설정은 `rag.config.embedding_params` 등 RAG의 스키마를 따릅니다.
 
 최상위 공용 `completion`은 없습니다. 같은 `model` 키라도 다른 엔진·컴포넌트에 자동 전달하지 않습니다. `project.components.rag.aconfigure(...)`와 `project.asave(config=...)`는 동일한 ProjectConfig 저장 위치를 수정합니다. `await project.adescribe_config()`으로 선택한 모든 컴포넌트의 설정·스키마·출처와 엔진별 최종 설정을 계속 한 번에 조회할 수 있습니다.
 
-설정이 없으면 임의의 사용자 정책을 만들지 않습니다. SDK 옵션은 생략하여 SDK 동작에 맡깁니다. 설정 누락은 상위 명시값을 상속하고, 지원되는 필드의 명시적 `null`은 상위 값을 덮어씁니다. 상세 우선순위와 강제 불변식은 [설정 계약](CONFIGURATION.md)에 있습니다.
+설정이 없으면 임의의 사용자 정책을 만들지 않습니다. 일반 SDK 옵션은 생략하여 SDK 동작에 맡깁니다. 추가 호출을 막기 위해 생략된 SDK 재시도는 Adapter 전송 사본에서 0회로 보장하며 원본 요청·저장 설정과 명시 SDK 재시도·주입 client 계약을 보존합니다. 설정 누락은 상위 명시값을 상속하고, 지원되는 필드의 명시적 `null`은 상위 값을 덮어씁니다. 상세 우선순위와 강제 불변식은 [설정 계약](CONFIGURATION.md)에 있습니다.
 
 상시 UI에서는 백엔드를 유지하고 종료 시 `await backend.shutdown()`을 호출합니다. `backend.events.subscribe`의 `engine` 채널은 Engine 진행, `run` 채널은 저장 후 Run 수명 알림입니다. 느린 UI에는 queued 구독을 사용하고, 화면 해제 시 `await subscription.aclose()`로 자원을 정리합니다. 이벤트 누락 가능성이 있는 관찰 구독은 `run.aview()`, `run.aoutput_events()`, `run.steps.alist()`로 저장 상태를 다시 읽어야 합니다. [서비스](services/README.md)와 [이벤트·구독](services/runtime/README.md)을 참고하세요.
 
@@ -345,6 +345,8 @@ notes = await project.components.aget("notes")
 identifier = await notes.acreate({"text": "회의 메모"}, identifier="meeting")
 record = await notes.aload(identifier)
 ```
+
+계약 필드·상태·오류·경로는 [정규 Owner 선언](../docs/llm/contract-ownership.md)에 모으고 소비자는 Owner 타입/API를 사용합니다. 문서 예제의 독립 리터럴을 제품의 두 번째 선언으로 사용하지 않습니다.
 
 확장 계약은 다음과 같습니다.
 

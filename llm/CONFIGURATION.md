@@ -1,10 +1,10 @@
 # 명시적 설정 계약
 
-기준은 main `94229cb865374d99f20ec48c5e48269488041a4e`의 명시적 설정 계약이다.
-아래 계약을 [클린 리팩터링](../docs/llm/clean-refactor.md)에서도 보존한다.
+main `94229cb865374d99f20ec48c5e48269488041a4e`에서 시작한 명시적 설정 원칙을 보존하며,
+현재 `refactor/llm-clean`의 [확정 계약](../docs/llm/clean-refactor.md)과 아래 보강을 적용한다.
 Schema·validator·Reader/Writer의 선언은 해당 구현체가 소유하며 전역 상수 모음이나
-자동 migration으로 대체하지 않는다. 코드에 남은 타입 구별·중복 선언·숨은 fallback 문제는
-[검토표](../docs/llm/documentation-review.md)의 미완료 구현 과제다.
+자동 migration으로 대체하지 않는다. 전수 적용 범위와 미완료 소비자는
+[소유권 작업 목록](../docs/llm/ownership-refactor.md)과 [실행 기록](../docs/llm/whole-ownership-verification.md)으로 추적한다.
 
 `ProjectConfig.policies.tools.argument_constraints`로 Tool 인자를 fixed/bounded/selectable로
 제한한다. ToolRuntime는 Host의 실행·분류 어댑터만 주입한다.
@@ -13,7 +13,7 @@ Schema·validator·Reader/Writer의 선언은 해당 구현체가 소유하며 �
 Backend는 호출자가 전달하지 않은 실행 정책을 숨은 기본값으로 만들지 않는다.
 호출자는 사용자 입력뿐 아니라 Hub가 소유한 생성 프리셋을 정규 Project 설정으로 저장해 전달할 수 있다.
 매번 수동 선택을 요구하는 계약이 아니다. [Hub 초기값 계약](../docs/hub/presets-and-resume.md#hub-초기값의-소유권과-저장-계약)을 따른다.
-SDK 옵션을 생략하면 SDK의 native behavior를 사용하며, 프로토콜·저장 무결성·취소 회수에 필요한 강제값은 구분한다.
+일반 SDK 옵션 생략은 SDK native behavior를 사용한다. 추가 호출을 만들지 않도록 생략된 SDK 재시도는 Adapter 전송 사본에서 0회로 보장한다. 원본 요청·저장 설정의 생략은 보존하고 명시 SDK retry와 주입 client 계약은 유지한다. 프로토콜·저장 무결성·취소 회수에 필요한 강제값은 구분한다.
 
 Backend가 소유한 설정은 closed by default다. ProjectConfig 최상위는 `policies`, `parameters`,
 `data`이며, Application 확장은 `data`에 둔다. 각 구현체는 자기 설정만 해석한다.
@@ -72,14 +72,14 @@ ProjectConfig
 | Memory | cache_records, search_status/search_limit, processing.completion/priority/extract_scope/summary_chars/recall_limit/recall_query_chars | tool_write_status, max_search_results, processing의 자동 실행 여부·입력/출력/시간 한도·실패 방식·provider |
 | Vision | completion, ocr.backend/backends | limits.max_bytes/max_pixels, ocr.timeout, provider |
 | Tool/BuiltinTool | enabled | 현재 없음 |
-| Skill/MCP/Agent/Workflow/Prompt | 확장 구현체가 선언한 기능 설정 | 확장 구현체가 선언한 처리 정책 |
+| Skill/MCP/Workflow/Prompt | 확장 구현체가 선언한 기능 설정 | 확장 구현체가 선언한 처리 정책 |
 
 숫자라는 이유로 policy에 넣지는 않는다. search.limit은 원하는 검색 결과의 크기이고,
 embedding_concurrency는 실제 동시 실행 상한이다. SDK의 timeout/num_retries/max_retries는
 SDK 인자이므로 config의 모델 dict에 남는다. provider.wall_timeout/max_attempts는
 ish가 집행하는 제한이므로 policy에 둔다. 서로 복사하거나 자동 연동하지 않는다.
 
-Agent/Workflow의 **정의 레코드**, Tool parameter schema, 요청별 engine_options.workflow는
+독립 Agent/Workflow의 **정의 레코드**와 Tool parameter schema는
 이 envelope의 적용 대상이 아니다. Agent.engine_options에는 선택한 Engine의 config/policy를
 넣으며 Graph Agent의 workflow 선택은 같은 engine_options의 workflow에 둔다.
 내장 생성자는 구현 함수/client/runner와 자원을 주입한다. Project 실행 값의 host override는 없으며
@@ -138,8 +138,8 @@ Loop policy.completion/policy.provider 전체의 null은 상속값을 해제한�
 | Loop | 반복·요청·Tool 시간 및 출력/인자/Tool 수 제한 없음 |
 | ToolExecutor | 추가 deadline·출력 잘림·자동 재시도 없음; 취소·승인·효과 원장 유지 |
 | Graph / node | 자체 deadline 없음. max_steps/max_parallelism/depth 미설정 시 자체 제한 없음; LangGraph 옵션은 생략 |
-| Completion SDK | timeout/temperature/max_tokens/top_p/retry/stream_options/tool_choice 등 미설정 키 생략 |
-| Non-streaming provider | 최초 호출 한 번. outer retry와 wall deadline 없음 |
+| Completion SDK | timeout/temperature/max_tokens/top_p/stream_options/tool_choice 등 일반 미설정 키 생략; SDK retry 미설정은 Adapter 전송에서 0회 |
+| Backend Provider | 기존 RetryPolicy가 max_attempts 생략을 최초 호출 포함 총 1회로 해석. 추가 outer retry와 wall deadline 없음 |
 | Streaming bridge | 자체 deadline 없음. SDK timeout을 전체 스트림 시간으로 재해석하지 않음 |
 | Context/Loop policy.completion/usage | 필터·토큰 상한·사용량 상한 없음 |
 | Retention | 자동 보관 상한 없음. 명시적 정리 상한에는 unit도 명시해야 함 |
@@ -148,6 +148,8 @@ Loop policy.completion/policy.provider 전체의 null은 상속값을 해제한�
 
 Loop의 `config.completion.timeout`, `policy.request_timeout`, `policy.provider.wall_timeout`, Component의 자체 provider 기한,
 Run/Graph/node/Tool timeout은 서로 독립이다. Wrapper 시간을 SDK 인자에 복사하지 않는다.
+
+Backend `provider.max_attempts`는 최초 호출을 포함한 최대 시도 횟수이며 기존 RetryPolicy가 단일 해석을 소유한다. SDK 재시도까지 생략하면 실제 HTTP는 1회, `provider.max_attempts=2`만 명시하면 최대 2회다. 명시 SDK 재시도가 있으면 Backend 중첩 재시도를 막으며 max_attempts는 하위 HTTP 총수가 아닌 Backend 시도의 상한이다. 부분 응답 후 자동 재시도·취소 후 추가 호출 금지와 사용량 예약 계약을 유지한다. [재시도 계약](../docs/llm/retry.md)을 참고한다.
 
 Step의 명시 기한은 provider 진행을 중단하지만 yield된 이벤트를 저장하는 서비스 Task를 타이머로 취소하지 않는다. 저장 후 Engine이 다시 진행할 때 같은 절대 기한을 검사해 timeout 실패로 기록한다. 따라서 기한이 초기화되지 않으며 사용자 interrupt와 혼동되지 않는다.
 

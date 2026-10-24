@@ -15,7 +15,7 @@ Engine은 하나의 Run을 어떻게 실행할지 정의합니다. 모델을 반
 | [agent_resources.py](agent_resources.py) | Root·Graph·Tool 위임이 공유하는 자원 선택/연결과 기존 binding 자원 snapshot의 타입입니다. |
 | [../policies/](../policies/README.md) | Engine/Component가 재사용하는 CompletionPolicy 알고리즘입니다. |
 | [registry.py](registry.py) | 실행 객체 등록, 이름 조회와 실행 전 설정 검증입니다. |
-| [loop/](loop/README.md) | LiteLLM completion → Tool → 다음 completion을 반복합니다. |
+| [loop/](loop/README.md) | 공통 Completion Adapter → Tool → 다음 completion을 반복합니다. 기본 Adapter는 LiteLLM입니다. |
 | [graph/](graph/README.md) | LangGraph로 Workflow를 실행하고 Agent/Tool·중첩 체크포인트를 연결합니다. |
 
 현재 공개 구현은 LoopEngine, GraphEngine입니다. 단일 동작은 BaseEngine으로 구현할 수 있으며 별도 SingleEngine 구현은 없습니다. 순차 작업과 중첩 Engine 실행은 Graph Workflow로 구성합니다.
@@ -55,7 +55,7 @@ engines = {"assistant": LoopEngine()}
 # await session.run.submit("안녕하세요", recipients=["assistant"])
 ```
 
-등록 이름이 설정 키입니다. Project 설정은 `parameters.engines.assistant`에 둡니다. 이름이나 파일 위치만으로 자동 발견하지 않으며, 등록한 Engine을 선택한 Agent를 저장하고 실제 Agent ID를 submit/resume에 전달합니다.
+등록 이름이 설정 키입니다. Project 설정은 `parameters.engines.assistant`에 둡니다. 이름이나 파일 위치만으로 자동 발견하지 않으며, 등록한 Engine을 선택한 Agent를 저장하고 실제 Agent ID를 submit의 recipients 및 resume의 agent_id에 전달합니다.
 
 ## 새 Engine의 최소 계약
 

@@ -8,7 +8,7 @@ Run을 다시 실행하지 않습니다. 분석은 일반 Loop/Agent/Workflow Ru
 Run/Step 원본 조회 → 모델 분석 → proposal → structural validation → evaluation → approval → apply
 ```
 
-대상은 같은 Project에서 선택한 skills/prompts/agents/memory의 **저장된 레코드 한 개**입니다.
+대상은 같은 Project의 skills/prompts/memory Component 또는 독립 Agent 도메인의 **저장된 정의·레코드 한 개**입니다. 대상 Component는 Project에서 선택되어 있어야 합니다.
 Engine 생성자 system prompt, Runtime 코드, Tool/승인 정책은 대상이 아닙니다.
 Agent의 일반 update에서는 purpose/description만 변경할 수 있습니다. Skill resource 설명은
 실행 권한을 부여하지 않습니다. 각 patch는 최상위 키 교체이며 일반 JSON Patch 문법이 아닙니다.
@@ -16,7 +16,7 @@ Agent의 일반 update에서는 purpose/description만 변경할 수 있습니�
 ## UI / Python API
 
 ```python
-# Project 생성/선택 시 refinement와 수정할 대상 컴포넌트를 명시합니다.
+# Project에서 refinement와 대상 Component를 선택합니다. Agent 대상은 project.agents가 소유합니다.
 refine = await project.components.aget("refinement")
 target = {"component": "skills", "identifier": "review-guide"}
 current = await refine.atarget_snapshot(target)
@@ -57,14 +57,14 @@ proposal 생성 Tool의 source에는 분석 Run/Step ID가 자동으로 기록�
 그 Run의 Completion 기록에서 확인합니다. 별도 trajectory 저장소는 만들지 않습니다.
 
 예를 들어 호출 애플리케이션은 일반 요청으로 분석을 시작할 수 있습니다. 프롬프트와
-실행 엔진 선택은 호출자가 정하며 라이브러리가 자동 생성하지 않습니다.
+실행 Agent 선택은 호출자가 정하며 라이브러리가 자동 생성하지 않습니다. 아래 reviewer는 Loop Engine을 선택한 실제 Agent로 저장되어 있고 현재 Session의 참여자로 등록되어 있어야 합니다.
 
 ```python
 handle = await session.run.submit(
     f"Run {prior_run.id}의 실패 근거를 refinement_evidence로 읽고, "
     "skills/review-guide를 refinement_target으로 조회하세요. "
     "검증 순서 개선이 필요하면 refinement_propose로 제안만 저장하세요.",
-    engine="loop",
+    recipients=["reviewer"],
 )
 analysis_run, = await handle.wait()
 ```
