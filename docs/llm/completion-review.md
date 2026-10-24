@@ -87,3 +87,9 @@ Project 누적 사용량·미정산 예약, 논리 Agent Tool 예산, 검토 att
 `ReviewPolicy`가 필드·유효 범위·schema와 조회 API를 제공하며 Pipeline/Loop는 정책 키를
 재선언하지 않는다. read는 원래 명시 객체의 독립 사본을 반환하고 생략/Null은 비활성 그대로다.
 저장 JSON 필드·정책·digest·판정 우선순위·예약/완료 경계는 유지한다.
+
+`LoopIterationRecord`가 iteration 키와 응답/검토 관찰 증거의 필드 및 Writer를 소유한다.
+LoopReview는 header 계약·예약/결정의 필수 증거·digest·대응 관계·재개 한도를 검사한다.
+Reviewer identity와 개별 verdict의 provenance 검증은 각각 ReviewerIdentity와
+CompletionReview가 제공하며 저장/실행 소비자는 이 단일 검증을 호출한다.
+서비스 논리 Tool 사용량 필드는 ToolUsageCheckpoint 선언을 참조하고 그 의미는 해석하지 않는다.

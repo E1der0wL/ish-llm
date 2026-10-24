@@ -47,9 +47,9 @@ from llm.providers.parameters import merge_params
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 from llm.policies import CompletionPolicy, ExecutionLimitError
-from llm.components.review import CompletionReviewObservation, ReviewAction, ReviewPolicy
+from llm.components.review import CompletionReview, CompletionReviewObservation, ReviewAction, ReviewPolicy
 from llm.components.processing import review_identities
-from llm.engines.loop.review import LoopReview
+from llm.engines.loop.review import LoopReview, LoopIterationRecord
 from llm.providers.requests import provider_schema, resolve_provider_options
 
 
@@ -110,8 +110,8 @@ class LoopEngine(BaseEngine):
         LoopReview.require_resume(checkpoint)
         uncertain = set()
         for key, value in CheckpointRecords.from_checkpoint(checkpoint).records.items():
-            if key.startswith("iteration:"):
-                ModelResponse.from_dict(value["response"])
+            if key.startswith(LoopIterationRecord.KEY_PREFIX):
+                ModelResponse.from_dict(LoopIterationRecord.response(value))
             if key.startswith("steering:"):
                 validate_instruction_record(value)
             if value["status"] == CheckpointStatus.STARTED:
@@ -313,12 +313,12 @@ class LoopEngine(BaseEngine):
                 raise ValueError("Loop configuration or Tool definitions changed; start a new request")
         reviewers = review_identities(context.capabilities.get(COMPLETION_PROCESSORS, ())) if self.final_review is not None else []
         review = LoopReview(reviewers, self.final_review, context.checkpoint) if reviewers else None
-        if review is None and context.checkpoint is not None and "review" in CheckpointContent.from_checkpoint(context.checkpoint).header:
+        if review is None and context.checkpoint is not None and LoopReview.HEADER_FIELD in CheckpointContent.from_checkpoint(context.checkpoint).header:
             raise ValueError("Final review cannot be disabled during Resume")
         if (context.output_step_id is None or context.checkpoint_scope is not None) and context.checkpoint is None:
             yield EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.initialize_event(LoopEngine.checkpoint_name, {"format": self.CHECKPOINT_FORMAT, "binding": self._resume_binding,
                            **CheckpointConversation(tuple(m.id for m in context.messages), context.run.input_message_id).to_dict(),
-                           **({"review": review.contract} if review is not None else {})}).to_dict())
+                           **({LoopReview.HEADER_FIELD: review.contract} if review is not None else {})}).to_dict())
         async with aclosing(self.open_instructions(context)) as events:
             async for event in events:
                 yield event
@@ -362,8 +362,8 @@ class LoopEngine(BaseEngine):
                     records[instruction_key] = InstructionCheckpoint.create(inbox.scope, (m.id for m in inbox.messages)).to_dict()
                 selected = [inbox.history[i] for i in InstructionCheckpoint.read(records[instruction_key]).message_ids]
                 messages.extend(CompletionMessage(ModelMessage(ModelRole.USER, m.content), m.id, True) for m in selected)
-            saved = records.get(f"iteration:{iteration}", {})
-            response = ModelResponse.from_dict(saved["response"]) if saved else None
+            saved = records.get(LoopIterationRecord.key(iteration), {})
+            response = ModelResponse.from_dict(LoopIterationRecord.response(saved)) if saved else None
             calls, prepared = [], []
             invocation = self._request(context, params)
             request = CompletionRequest(invocation.parameters,
@@ -468,17 +468,17 @@ class LoopEngine(BaseEngine):
                 async with aclosing(processors.after_completion(observation)) as events:
                     async for event in events:
                         yield self._candidate_event(event, review)
-                saved = {"status": CheckpointStatus.RESPONDED, "response": response.to_dict()}
+                saved = LoopIterationRecord.create(response, CheckpointStatus.RESPONDED)
                 if review is not None and not calls:
-                    saved["review_observation"] = CompletionReviewObservation(iteration,
+                    saved[LoopIterationRecord.REVIEW_OBSERVATION] = CompletionReviewObservation(iteration,
                         tuple(prepared_request.messages), response, tuple(m.message for m in messages), prepared_request.tools).to_dict()
-                records[f"iteration:{iteration}"] = deepcopy(saved)
+                records[LoopIterationRecord.key(iteration)] = deepcopy(saved)
                 if durable:
-                    yield self._record(f"iteration:{iteration}", saved)
+                    yield self._record(LoopIterationRecord.key(iteration), saved)
             if not calls:
                 if review is not None:
-                    candidate = CompletionReviewObservation.from_dict(saved["review_observation"])
-                    decision_key, attempt_key = f"review:{iteration}", f"review_attempt:{iteration}"
+                    candidate = CompletionReviewObservation.from_dict(LoopIterationRecord.observation(saved))
+                    decision_key, attempt_key = LoopReview.decision_key(iteration), LoopReview.attempt_key(iteration)
                     decision = records.get(decision_key)
                     if decision is None:
                         attempt = review.reserve(candidate, records)
@@ -490,9 +490,9 @@ class LoopEngine(BaseEngine):
                         if durable:
                             yield self._record(decision_key, decision)
                         records[decision_key] = decision
-                    if decision["action"] == ReviewAction.BLOCK:
+                    if CompletionReview.action_of(decision) == ReviewAction.BLOCK:
                         raise ExecutionLimitError("completion_review_blocked", "Final candidate was blocked")
-                    if decision["action"] == ReviewAction.CONTINUE:
+                    if CompletionReview.action_of(decision) == ReviewAction.CONTINUE:
                         continuations += 1
                         if continuations > ReviewPolicy.max_continuations(review.policy):
                             raise ExecutionLimitError("completion_review_limit", "Explicit review continuation budget exhausted")
@@ -582,4 +582,4 @@ class LoopEngine(BaseEngine):
                 messages.append(CompletionMessage(ModelMessage(ModelRole.TOOL,
                     result=ToolResult(call.id, ToolEventResult(result).content, tool.name)), result_ref=result_ref))
             if durable:
-                yield self._record(f"iteration:{iteration}", {"status": CheckpointStatus.COMPLETED, "response": response.to_dict()})
+                yield self._record(LoopIterationRecord.key(iteration), LoopIterationRecord.create(response, CheckpointStatus.COMPLETED))

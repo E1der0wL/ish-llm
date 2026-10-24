@@ -20,6 +20,7 @@ class ReviewAction(StrEnum):
 @dataclass(frozen=True, slots=True)
 class CompletionReview:
     INVALID = "Review requires an explicit ReviewAction and text feedback"
+    INVALID_RECORD = "Review verdict provenance or action is invalid"
     action: ReviewAction
     feedback: str
 
@@ -33,6 +34,21 @@ class CompletionReview:
             type(self).action.__name__: str(self.action),
             type(self).feedback.__name__: self.feedback,
         }
+
+    @classmethod
+    def validate_record(cls, verdict, identity):
+        if (
+            not isinstance(verdict, dict)
+            or verdict.keys() != {*identity, cls.action.__name__, cls.feedback.__name__}
+            or any(verdict[k] != v for k, v in identity.items())
+            or verdict[cls.action.__name__] not in tuple(ReviewAction)
+            or not isinstance(verdict[cls.feedback.__name__], str)
+        ):
+            raise ValueError(cls.INVALID_RECORD)
+
+    @classmethod
+    def feedback_of(cls, value):
+        return value[cls.feedback.__name__]
 
     @classmethod
     def action_of(cls, value):
@@ -231,9 +247,31 @@ def review_digest(value):
 class ReviewerIdentity:
     REVISION_ATTRIBUTE = "review_revision"
     INVALID_REVISION = "Final reviewer requires an explicit immutable review_revision"
+    INVALID_RECORD = "Invalid reviewer identity"
     name: str
     priority: int
     revision: str
+
+    @classmethod
+    def validate_record(cls, identity):
+        if (
+            not isinstance(identity, dict)
+            or identity.keys() != {cls.name.__name__, cls.priority.__name__, cls.revision.__name__}
+            or any(
+                not isinstance(identity[k], str) or not identity[k].strip()
+                for k in (cls.name.__name__, cls.revision.__name__)
+            )
+            or type(identity[cls.priority.__name__]) is not int
+        ):
+            raise ValueError(cls.INVALID_RECORD)
+
+    @classmethod
+    def name_of(cls, identity):
+        return identity[cls.name.__name__]
+
+    @classmethod
+    def order_key(cls, identity):
+        return identity[cls.priority.__name__], identity[cls.name.__name__]
 
     @classmethod
     def from_processor(cls, processor):

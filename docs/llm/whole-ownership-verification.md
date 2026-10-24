@@ -5620,3 +5620,44 @@ Loop Engine/Review 전체 파일 검토는 별도 미완 상태를 유지한다.
 R3 mutation exit 0(의도된 한도 누락 2개를 실제 효과 Assertion으로 검출).
 전수 inventory 549개·미검토 253(llm 76/hub 177)·미분류 16,209·미완 계약 3·issues 0.
 구현부 남은 후보는 개별 확인한 dataclass 선언 옵션·forward type·Protocol 문법뿐이다.
+
+
+## llm Loop 검토 영수증·재개 Owner — Level 1·2 / Level 3 승격
+
+기준 36e0826. LoopIterationRecord가 iteration 키·응답/검토 관찰 필드·Writer/조회 API를,
+LoopReview가 header 계약·예약/결정의 필수 증거와 재개 한도를 소유한다. Engine은 이 API를
+사용한다. ReviewerIdentity와 CompletionReview는 기존 identity/verdict 검증의 단일 구현이며
+Loop는 호출 결과로 provenance·순서·feedback 총량·판정 우선순위와 원본 digest를 확인한다.
+서비스 Tool 사용량 필드는 ToolUsageCheckpoint 선언을 공유하며 의미 검증은 기존 서비스에 둔다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/loop-review-draft/proof.py`
+(한 셸 명령) exit 0. 기존 전체 함수 43개(Review 18·LoopReview 8·Engine 17) 동등,
+계약/Reviewer 변형 37개, 필수 기록 누락·손상/타입·명시 재개 변형 168개, 예약/결정/feedback
+직렬화 9개를 실제 이전/현행 구현으로 비교했다. 모든 기존 정책·필드·digest·실행/쓰기 순서를
+유지했다. 적용 보조기의 Engine import 경로 가정을 실제 절대 import로 수정한 뒤 소비자
+편집만 이어서 적용했으며 제품 시험/Assertion은 바꾸지 않았다.
+
+- `whole-loop-review-l1-01`: discovered/started/pass 26/26/26, exit 0, 25.351395초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-loop-review-l1-01/llm.json --modules tests.llm.test_completion_review tests.llm.test_completion_review_crash`. source `67c37a40a6d3bd2a660a7df3ac56287b27ab158e19007efcc203e7aff2eddc08`, input `ad505699da140217a63bd939f7d838c6b6b6c6733e483ac1d7542e0cd9047279`.
+
+- `whole-loop-review-l2-01`: discovered/started/pass 162/162/162, exit 0, 102.31909초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-loop-review-l2-01/llm.json --modules tests.llm.test_loop tests.llm.test_loop_steering tests.llm.test_graph_checkpoints tests.llm.test_nested_graph tests.llm.test_checkpoint_integrity tests.llm.test_operation_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_completion_integrity`. source `67c37a40a6d3bd2a660a7df3ac56287b27ab158e19007efcc203e7aff2eddc08`, input `ad505699da140217a63bd939f7d838c6b6b6c6733e483ac1d7542e0cd9047279`.
+
+- `whole-loop-review-hub-01`: discovered/started/pass 14/14/14, exit 0, 16.063048초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-loop-review-hub-01/hub.json --modules tests.hub.test_engine_output tests.hub.test_stream_output tests.hub.test_approval_continuation`. source `67c37a40a6d3bd2a660a7df3ac56287b27ab158e19007efcc203e7aff2eddc08`, input `ad505699da140217a63bd939f7d838c6b6b6c6733e483ac1d7542e0cd9047279`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 일치.
+각 실행 전후 및 실행 간 source/input 동일, L1/L2 ID 중복 없음. Python 3.12.14/Clang,
+Host d833790·고정 의존성·namespace/X11·전체 발견 목록을 보존했다.
+실제 승인 후 파일 효과 횟수·fsync·검토 예외/취소·Checkpoint 강제 중단·완료 후보 재사용·
+명시 시도/계속 예산·Graph 중첩/병렬·삭제/저장 무결성과 직접 Hub 소비자를 포함한다.
+
+공통 저장·등록·입력/수명·검토 기록의 관련 변경을 게이트 37로 묶어 즉시 Level 3 전체
+LLM/Hub·정적·R3·문서·실제 환경 검증을 수행한다. 성공한 고정 SHA만 Push하고 원격 필수
+CI의 실제 결과를 확인한다. 이번 소단계 통과는 전체/원격 완료를 뜻하지 않는다.
+Loop Engine 전체 파일과 llm 전수, 이후 hub 전수의 남은 범위는 유지한다.
+
+Loop 검토 소단계 최종 보조 검사: 정적 S1–S7 reviewed 107·new/stale/outstanding/review_errors 0,
+dependency 7건 재검토. 문서 168개·Python fence 183개·링크 1,213개·anchor 37개 오류 0.
+계약/architecture 감사 16 pass / 3.252초 / exit 0. R3 mutation exit 0, 원래 실제 효과
+Assertion으로 의도된 호출 한도 누락 2개 검출. 전수 inventory 549개·미검토 252
+(llm 75/hub 177)·미분류 16,072·미완 계약 3·issues 0. Loop Review 구현부 리터럴 후보 0,
+공통 Review의 dataclass 선언 옵션 6개는 기존 개별 기술 분류를 유지했다.

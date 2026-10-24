@@ -56651,249 +56651,261 @@
   },
   {
     "path": "llm/components/review.py",
-    "sha256": "6d4aadb625c62c0cafa83e62f40e7ba169fb504776c80e326c2c96d49c10cefb",
-    "reason": "Whole processing/review/value/input implementations reviewed, including selected hook discovery, processor identity, live SDK-handle copies, strict JSON observations, explicit policy, actual effect protection and recovery. Public type/validation bindings share the canonical implementation; no alternate Reader or silent retries. Only individually identified Python declaration/type syntax remains.",
+    "sha256": "c90c9202fa913bbdb76801917d6750dcdb1dd97bab84bcd1db84a6ded8f198bc",
+    "reason": "Whole Review and LoopReview/Iteration Reader/Writer implementations reviewed, including dynamic receipt keys, strict missing/type evidence, execution provenance, attempt/continuation preservation and original callback/effect order. Engine remains a separately incomplete whole-file scope.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "7f60e6e8480ea3316301ca071396cc2b9fba5938fcc57b3cf101c44a78506daa",
         "classification": "declaration",
         "owner": "ReviewAction",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
         "id": "2614a44a0b7f3ac6aec587a1cdfbb58bb9cc6ab4bb0e8aea613ce73596064022",
         "classification": "declaration",
         "owner": "ReviewAction",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
         "id": "db8bd13dadcdad8d3cae4e70305948a8545512345533a47c07faaf212bc4717b",
         "classification": "declaration",
         "owner": "ReviewAction",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
         "id": "348f2716f2d541207f7172170080c3a3010adad782cfba9cfc8267bc947431f1",
         "classification": "non_contract",
         "owner": "CompletionReview",
-        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+        "reason": "Python dataclass frozen/slots layout at the type declaration; no runtime state, stored field or policy value."
       },
       {
         "id": "4a75771cdbc7c57e1a5de87f6868102bf1a48ed7f5f8061114b59f6ac14aba04",
         "classification": "non_contract",
         "owner": "CompletionReview",
-        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+        "reason": "Python dataclass frozen/slots layout at the type declaration; no runtime state, stored field or policy value."
       },
       {
         "id": "ed2f4a669abf49efe8a5f6c760a30d91d006f6d9ececf7be20f1af91eaef292b",
         "classification": "declaration",
         "owner": "CompletionReview",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "55b64071e770a15bfad2d55c55f65f4f72d78c2ab3df1c4cd7b2f2c9c4097a2b",
+        "id": "6be98728c47ad012d83e4ead405c0fe483c45d7e6b7842935f3f3b28601aa8a7",
+        "classification": "declaration",
+        "owner": "CompletionReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "9f9c8602832b4c5de4e9cd11622ef9cc719debd6b095fe34aef93adb3cf85cb4",
         "classification": "non_contract",
         "owner": "CompletionReviewObservation",
-        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+        "reason": "Python dataclass frozen/slots layout at the type declaration; no runtime state, stored field or policy value."
       },
       {
-        "id": "bee14a386762b6436ea924f8be7d271a98af41383c8ff29ed371796d3e8b87e0",
+        "id": "2df58122457727118c27b2c33debffca9bfdbb3e97981f47d37ee53b26dfdaa6",
         "classification": "non_contract",
         "owner": "CompletionReviewObservation",
-        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+        "reason": "Python dataclass frozen/slots layout at the type declaration; no runtime state, stored field or policy value."
       },
       {
-        "id": "cee34022496a0233f42d225f4ca77b3dc9b74701c708fefc2ae6586d382271ba",
+        "id": "e60894ede5cdec7974374f71bfc81c378d28cb6a9e688de0f9680fff3bd1231a",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "57416f685a089fbf2da410d61f0e19b3657975fe4458b0cd2e3ee4c824adf8a1",
+        "id": "d3572bb67de31e0c540862d2a50ccf190bd4cf519d81e4b2c68b4e3bf76d63fb",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "a533ee7433d8e986cb0ebc14a15c7d860eb7f19a2af72bf28348dbbb70d4b019",
+        "id": "7a8065eaa0e7df95e711a9c086cffad53d2e085286ee2cfad704ef95b2bdc5c1",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "6a21d0183f85e2a2d73bb8d1090b78150397798a645c02fd400e6c9db06bd25c",
+        "id": "b866ca369c81cfc18ba81f9e04eb32851c3ab4098a7266a491eba3a8e63b8a5d",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "908e02b66ebfa97229c077baeb183b1d0685650762ade80fcda641ddb1228c39",
+        "id": "9766a698fac0a5063ef793b2b8000c036e6c4f926cf9a7d1c4c772b4ad273867",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "367bf80f134399cf3a3fb77297b9e4715eb6bb925ef793c6dd0cc4c824e25a0a",
+        "id": "5f126408eea72a6e245491fa25ee38142d73f5baccc32f57521011cf53f582dc",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "71f066507fecfd10d4fb237892366ff3b1aa3a983d37701399a70c67a2ffd46c",
+        "id": "4f96a1b4c35a2ded8c6ca7a27e94b7d8331b4c0b48b121bd1dd9d40292524620",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "24f10eb6d2e909ba457e0390ee9d2c9b3c122b7188bd245e2824a524650c8daf",
+        "id": "472f800d3345af14c54d9b7279ed19c21c9abc0e194977bc1b0994269ba5c72b",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "809d9ae45d793e9e44d97d7384a92d23214d99ce7aab1c8b439ccceac136d00f",
+        "id": "4221ff200be86bc991fe9d7f0e8a7b58fd51b71c912fa5cc906a55fc64bc4e4d",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "55aa2e27a1219e11f01fb6194a5247a605f88cd5c150111b0d2d78d913ba3511",
+        "id": "749b1eae232a1fa4b767f8354bee0c229bebb3cb99926907736a13decc287f42",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "221292bc43e41e1a7bb5830944e52b72ec009855214bc580329311e50c17ea56",
+        "id": "dee958542367b3a8d13e7a263dad9f8a9ed2c3761240ad021e7297efe3632c7e",
         "classification": "declaration",
         "owner": "CompletionReviewObservation",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "76a2d8646ea71512e3ae99c62bae5586e193214f95246c9b027fa6f9a3382ec9",
+        "id": "a2c7905b1795d8219fff7155d4daef9368c4f84a727bf8e8d19b9e09b3e05f41",
         "classification": "declaration",
         "owner": "ReviewPolicy.Field",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "eaf77010dbf5e1a7bf29df6625fc7333e53694a3c987a270b478f0ef15e741ca",
+        "id": "5def32a7f23fd6734c481b9560cfd64382d7c7e44148e7af025e29e4bac19a33",
         "classification": "declaration",
         "owner": "ReviewPolicy.Field",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "1e5dbdcc6af78800ab9474b7b423a676a4efdb16f373144216d7d658a44fd248",
+        "id": "7f66ce4431c7857c68dfff1d456212ade4bcad8506866fdcac70f3009b88b1c3",
         "classification": "declaration",
         "owner": "ReviewPolicy.Field",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "26076581f1d45ba4d016685c384499b31df489a2e2cfd7afc68f1de39d9494d4",
+        "id": "3cf0ffca988081f9242d18be5679569ef323f2ce6d9c712572be6bc34adcce0b",
         "classification": "declaration",
         "owner": "ReviewPolicy.Field",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "2f1e2ed01898d6823d8399b08ca485e9fbfe299bc74707279d123ddb623fd9de",
+        "id": "69b9e625d2067b02aee29fbd90cf65095cdc7516fb41ad1f29d0fb2b41594171",
         "classification": "declaration",
         "owner": "ReviewPolicy",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "86326e9e1495a47941f7a3622bfec65e33abf8449a499c58c2828c23517589f3",
+        "id": "faeb8585f82d7df220ade9182926c6d9f7a12007ffa788017c3969453086d930",
         "classification": "declaration",
         "owner": "ReviewPolicy",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "0874b53f4b63e5254ef1622f1a9865e78ced1d00f0f773ef47262aff9c3c2d96",
+        "id": "e9b4ccdef01fe7ae1b01345386b0bf44a60620e978b9be9d4a6b1bdb9c28b0c7",
         "classification": "declaration",
         "owner": "ReviewPolicy",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "124c29296aa197a6195cca40e082f22f5cb4c272b5e615ec06e7730ef8f03674",
+        "id": "ff31b968a9bfab065eafdc3daaeb04652f0a41fe424ca13d36549e8d568e4f67",
         "classification": "declaration",
         "owner": "ReviewPolicy",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "5f1de8906845fdaddf937d631d4d93a64fdfd8edcbb18059868447b7d63dce6e",
+        "id": "7b343e5a53e0910d275189cfabe5f50ed3a32a13ce5e52230105335272168d00",
         "classification": "declaration",
         "owner": "ReviewPolicy",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "4c65ca79391465f2726d564e5106e10dc2795d9fe4e75f6d9aa7cef077730e6f",
+        "id": "1b22a95887a8b6f641bafa3f9db2ea7e5bf2e1ec2b1deb14057baa00955e1589",
         "classification": "declaration",
         "owner": "ReviewPolicy",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "785cbb208b947cce365209771a25e8f4f431a849091259100622aea775ac7975",
+        "id": "b3f89c8452e0cd1dfb5e619c7e0af98fd22cff45fa65a47e60b49252b85e01e4",
         "classification": "declaration",
         "owner": "ReviewPolicy",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "d5b0f8b665130d2ba21feda65874727a7b548558c40b8357810dffce2e8c2cc5",
+        "id": "64049fac6b7f0bf95201d00812af410df9501ee345b9768113bf5a840163e2ef",
         "classification": "declaration",
         "owner": "ReviewPolicy",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "0046f1446ff45a7182e49006f0c3fa40ee2f5ad6c055ccf836ada22aee151d03",
+        "id": "11d3fb3342c22d59aeaf47378b8e45d0947507d53601f4b70b303976c98b72c5",
         "classification": "declaration",
         "owner": "ReviewDecision",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "8427183af887587d12fe4fb31b503832da3c62e51798b930f4a514822bec5392",
+        "id": "5d5e4f5d495d9d79f6bff75d1b5588bd1a042ef56ac00c7f68cda6aea2412406",
         "classification": "declaration",
         "owner": "ReviewDecision",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "b7df644ab22fa754b7a65fe3ac8b9274241fc539e74700e275bf0ca661f7f1b3",
+        "id": "3c69f3ef65585647087654e68bd71ec0e93fffebba348e963a70ef507734aa0c",
         "classification": "declaration",
         "owner": "ReviewFingerprint",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "c310fc460e581abbaef9253d3a98ef961619a036e1bc5f57110f49f1ddc6c421",
+        "id": "fa4b16186073388eea2148e39f297969833c6f7eab2fc8d637ed61b33a4b68c6",
         "classification": "declaration",
         "owner": "ReviewFingerprint",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "62f0dc59719df4641c11e35e4590b217fa17475b3791a020894844ea583f6fa6",
+        "id": "727d9bb8ca2b3ef663e452bf58b3be9d71c6c89a7e817248841c6fd446e6dc2f",
         "classification": "declaration",
         "owner": "ReviewFingerprint",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "9e852884f3695327e119542cc0d7780d916cbcd6217db1b42fc5f5a46fa1da5b",
+        "id": "fefc687afaa9f24450841a2d6bd0b09a1a290f8e02ee943e467fcf61abb16f25",
         "classification": "non_contract",
         "owner": "ReviewerIdentity",
-        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+        "reason": "Python dataclass frozen/slots layout at the type declaration; no runtime state, stored field or policy value."
       },
       {
-        "id": "c25fffa67c94807d6ca9255764fff9f3b7defebc97b44f699d95131c8aff5a73",
+        "id": "14e4e1cf352bf659655eb407592a6d657c9e76c484cb1eabc3ee79f39eef58c9",
         "classification": "non_contract",
         "owner": "ReviewerIdentity",
-        "reason": "Python dataclass frozen/slots layout at the value type declaration; not a runtime policy, stored state or field interpretation."
+        "reason": "Python dataclass frozen/slots layout at the type declaration; no runtime state, stored field or policy value."
       },
       {
-        "id": "6d5dc0ed4d4735816deafc01feeb98ac5683388e20bc5ce8e04fa57e8b49528a",
+        "id": "97cdb8d936f815078ef905ad607168d55363d671bf9ae17451cf4f1bed43defd",
         "classification": "declaration",
         "owner": "ReviewerIdentity",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       },
       {
-        "id": "51234bf8c701ba9c61e2cfc026bec30c20815d69537f00af6f615314be3b8c7f",
+        "id": "01c412fb9a149f570c2ec8cedf56eb9964ceb131715031613ee1df3480b069c6",
         "classification": "declaration",
         "owner": "ReviewerIdentity",
-        "reason": "Owner-head typed fields/defaults, schema/bounds, hooks and diagnostics; consumers use typed attributes or explicit policy/verdict APIs. Input protection has one implementation and the pipeline owns its lifecycle only."
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "ea92f94dbc8f599a7fe85d462a1c6c122b74133607c5f0951f34e24f5af9c364",
+        "classification": "declaration",
+        "owner": "ReviewerIdentity",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
       }
     ],
     "contracts": [
@@ -56901,20 +56913,18 @@
         "owner": "ReviewPolicy / CompletionReview / CompletionReviewObservation / ReviewerIdentity",
         "declaration": "llm/components/review.py",
         "consumers": [
+          "llm/components/processing.py",
           "llm/engines/loop/engine.py",
-          "llm/engines/loop/review.py",
-          "llm/components/memory/processing.py",
-          "llm/components/goals/processing.py"
+          "llm/engines/loop/review.py"
         ],
         "tests": [
-          "tests/llm/test_completion_processing.py",
           "tests/llm/test_completion_review.py",
           "tests/llm/test_completion_review_crash.py",
-          "tests/llm/test_recovery_probe.py",
-          "tests/llm/test_memory_processing.py",
-          "tests/llm/test_goals.py",
           "tests/llm/test_loop.py",
+          "tests/llm/test_nested_graph.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/hub/test_approval_continuation.py"
         ],
@@ -57269,6 +57279,289 @@
           "tests/llm/test_goals.py",
           "tests/llm/test_loop.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/engines/loop/review.py",
+    "sha256": "cbda2547f778fe73a29990caf06bc7d5c075c4d349491e255206c63e64b99a8c",
+    "reason": "Whole Review and LoopReview/Iteration Reader/Writer implementations reviewed, including dynamic receipt keys, strict missing/type evidence, execution provenance, attempt/continuation preservation and original callback/effect order. Engine remains a separately incomplete whole-file scope.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "042b8866c565bbf54a7ba443bc9893e914fe4c612568c0479dd38f84d41e145c",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "125dddaef2fc240c160c3592aee221f2571da98ed27a123beb3efadce79bc465",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "57b4ac5da63dfa1dde543f5e9313b95470f14cc980248a003fd01c57dbe23f93",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "dcaeba376fe8900b823d54f2bb115b5fcdbb4b1c699e3094b81b48aa51883d93",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "c6aed2db0f382ea5a871c29e4fc2eb4956532d8371d59a99b32e4038372451f1",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "10080c5030d560f8721070764ca9f13e0e66510c510c29f351d1d7d52aff733a",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "e2251c1e3edc02438a0c186f0429c91c58d845ec50ff555644791851a6874365",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "63296a3765a140da50010b677ddc92a19af87859876cec2e081b21d5c059d729",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "f974394171a279cd1b590f422354bdd83522e2768991ae2c4e969d1c82be5568",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "114911d787d37014ce0adcba248f8c32b76c5b7daa0a9032d6f0aa4499c06645",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "18ad6971e306e3dd9e7b1d1c54992a9d4f8b616abe846f9578ddace8e74e2193",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "183064ca023cda6325eb0be0ea3b94f665b84fa15f21dacb83504062f8187bfa",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "d4d1db13fc30b69fbd382e5efdf072872b5029b94d208b1d78c91bbaa71fb487",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "797c25c9c3c5ffcf1ddbc3e81bcc7185417a20f2772114f59a5a66829c014d91",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "0d55e2658ae701f14a0430666da53d2d7d37500ba04ecbebb87148eb4792da14",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "5f3034e7bfc21b8fcd5780db0ca51208a1d3ae383e8150a6bdac1f73f451fefa",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "28dcfda01da7e1e40c944ae841826d44bf6d82fefbe16b3acae37b9ca6cb14be",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "ee3a61a93bd11e7d8671818585cee9436737a53fc6fa768b1401ac67e6056f35",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "70df508a882dbe335a9b118db642a85bad751dc4496d519f8b6668618e9bce6a",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "9946f3256e87a0bc24a66e763670a8e4cc18338fe4a58ad49917fe057bb36772",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "906ae2e7ab8c4be5af4a500c1571cd185971b065275eeff6b8c6c7183be98b27",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "53bd0f804c03b855fc7c973529cbc7b9458702be55be514a1af80ff4547f0184",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "3985c9d61ace43096b94c054c842b51948cfff671df59db577c8efbfd448ec0a",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "3c02fab5099ff2452154e201db8a4b0a25588e2669b7a34a88832822397897cd",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "96685874034310ef028f61848fb33722dc3d95f6280710e2cb8fe4c71bd64a74",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "70fdb4f31f9a9f87d2630f6efcc22b3901fcf3eeaf673cc251bb8b6da8d727ad",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "9b72e247647f4e573ca9aaea6f865c5039bf7c591ec97d41f74ac98742eb603f",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "d031117bafb77ac18807c7eb2bdfff9a45f400e07c8401136a86b450565e4571",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "c3b0efe9d6f050d6d8a103cd4acbcfd498afe30cf8cf6896f3c95fd4ef6202ea",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "9d7d9daf498eafb51a8634c2ab01379a6a6322dbe1a89095255f760b9474d4f4",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "9e024657fcbb79195d133119a7ddcca4327ff98b87b6dbfd9086ab69885e3815",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "91fc2e45deb82da98a870e8f5f35efbc9b6d5a07a5c201c711993aefad40e590",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "338695343a9732f1ad096737ac6e8ce91b1bfc2d44a911f1a62555621a72f223",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "6ce9290195b91137f1169ab72a9da30ed52e2709445f5650be0e9858e720f190",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "198a5a94de0ac5d34d1493bb2fcc71080566c1f3d4ed3824ad9f4b11ab8d805f",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "9e5497512a791fed5c41738249ae66f1f52b655cb2e250a2dec656d27f9ea9fc",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "e477ad4f6fd449af7ba1f0a79805df85c67d1ce2cc16655d3f98014cfcd36caa",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "b752f8c1473bc5b6abb39cd0faa4fdaa1c027877143c68f0d052b86a5f777dd7",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "e7b11771765899bd899465f5343e7393c6534927dfadd56fddbfc53821fb6124",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "dc0401ea559addddc655a2e101008a16c8bb991b052a0e1fc91fe51e3c0248c0",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "f7c02435136e7c6df288c46c24a33ced623fc4a51f4ef7786f553363fc9ea979",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "ce7bf1ecab63e785ae8e5c7f84f891f47eb3e1e29fbad576870b45298771a55b",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LoopReview / LoopIterationRecord",
+        "declaration": "llm/engines/loop/review.py",
+        "consumers": [
+          "llm/components/processing.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/hub/test_approval_continuation.py"
         ],

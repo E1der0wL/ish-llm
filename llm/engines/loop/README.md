@@ -12,6 +12,7 @@ schema를 제공해야 하며 승인·Tool 실행·저장 책임은 가지지 �
 | --- | --- |
 | [__init__.py](__init__.py) | LoopEngine 공개 import를 제공합니다. |
 | [engine.py](engine.py) | 설정 해석, 스트리밍, Tool 호출, 반복 제한, 체크포인트·명시적 재개를 구현합니다. |
+| [review.py](review.py) | Loop 반복 증거·검토 계약/예약/결정의 정규 필드·키·Writer/검증과 재개 제한을 소유합니다. |
 
 ## 등록과 실행
 
