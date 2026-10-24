@@ -7285,3 +7285,63 @@ Run 참조·트랜잭션·RAG·데이터 수명 안전성 및 Hub 설정/프리�
 영향 범위의 불확실성이 발견되면 전체 검증으로 즉시 승격한다.
 
 설정 서비스 마감 검사: `python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7` exit 0, 현행 82개 감사의 새/누락 항목 0. `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` 16/16, 3.390초, exit 0. `python -m tests.llm.check_docs` exit 0, 168문서/183Python fence/1256상대링크/37anchor, 오류 0. 전수 inventory 595파일, 미검토 194(llm17/Hub177), 미분류 9395, 미완료 계약 5, issues 0. 새 미완료 계약은 Hub 편집기 catalog 소비자로 명시했다.
+
+
+## llm 수명 관리 전수 — 중간 검증 보존
+
+기준 de54d23. ComponentData, ProjectRepository/Manager, SessionRepository/Manager 및
+RunRuntime/SessionRuntime 전체를 검토했다. 최초 Owner 연결 소스의 결과를 아래에 보존한다.
+
+- `whole-lifecycle-owners-l1-01`: discovered/started/pass 158/158/158, exit 0, 61.300459초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-lifecycle-owners-l1-01/llm.json --modules tests.llm.test_repositories tests.llm.test_domain_hardening tests.llm.test_lifecycle_logging tests.llm.test_project_creation tests.llm.test_project_component_settings tests.llm.test_component_dependencies tests.llm.test_session_domain tests.llm.test_session_agents tests.llm.test_components tests.llm.test_turn_deletion tests.llm.test_backup_owner_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_vision tests.llm.test_rag_models tests.llm.test_usage_ownership`. source `b6475d9b8d9e1b9bd43a9ba3c592bc1f23538dde64acefc32f5d030f9d829098`, input `4defdc3c17e590afde5bf1fd3120df95c7188ce0305017141e5b1d0344ba809b`.
+
+- `whole-lifecycle-owners-l2-01`: discovered/started/pass 95/95/95, exit 0, 45.047578초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-lifecycle-owners-l2-01/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_interaction_storage tests.llm.test_run_reference_integrity tests.llm.test_cross_session_crash tests.llm.test_component_storage_integrity`. source `b6475d9b8d9e1b9bd43a9ba3c592bc1f23538dde64acefc32f5d030f9d829098`, input `4defdc3c17e590afde5bf1fd3120df95c7188ce0305017141e5b1d0344ba809b`.
+
+- `whole-lifecycle-owners-hub-01`: discovered/started/pass 17/17/17, exit 0, 42.30735초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-lifecycle-owners-hub-01/hub.json --modules tests.hub.test_components tests.hub.test_component_managers tests.hub.test_deletion_feedback tests.hub.test_turn_deletion tests.hub.test_usage_definitions_system`. source `b6475d9b8d9e1b9bd43a9ba3c592bc1f23538dde64acefc32f5d030f9d829098`, input `4defdc3c17e590afde5bf1fd3120df95c7188ce0305017141e5b1d0344ba809b`.
+
+이 소스의 각 exit 0 및 R3 exit 0. 마감 검토에서 Session 삭제 오류, 없는 대화 턴 오류,
+이미 붙은 런타임 오류를 기존 Session/ConversationTurns/WorkspaceLock Owner와 연결했다.
+소스가 바뀌었으므로 이 결과를 최종 소스의 검증으로 승계하지 않았다.
+
+
+## llm 수명 관리 전수 — 최종 Level 1·2
+
+필수 Project/Session identity, 백업 metadata, 삭제 복구 응답, 턴 삭제 진단과 CAS 입력은
+각 Owner Projection을 사용한다. Component 활성화·설정 검증기·영구 삭제 인자 검사는
+각 Owner의 같은 함수로 연결했다. Component optional backup/usage/data hook과 모델 관찰
+marker, 도메인 경로, 수명 로그와 오류/선택값 선언을 해당 Owner로 연결했다.
+기존 제품 테스트와 실제 효과·원본 보존·중단·재개 Assertion은 변경하지 않았다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/lifecycle-owners-draft/ast-proof.py`
+exit 0: 공유 Owner와 좁게 연결한 Run을 포함하여 기존 전체 함수 453개가 선언/단순 Owner
+함수 전개 후 동일하다. 네 표현 변경은 개별 검토하고 별도로 비교했다.
+같은 경로 values-proof.py exit 0: required_identity 24, shared_guards 16, model_observation_marker 16, public_layouts 7, deletion_recovery 6, callback_faults 35, backup_projection 2, component_removal 20, turn_plan_cas 30.
+필수 키 조회의 단락 순서, 선언된 True만 인정하는 모델 관찰, 공개 시그니처/슬롯/기본값,
+삭제 복구/백업/Component 제거/턴 삭제의 결과·오류·호출 순서와 CAS 입력을 비교했다.
+callback 장애 비교는 주입 경계의 순서 검증이며 실제 파일 장애 검증을 대체하지 않는다.
+아래 기존 실제 저장·복구·트랜잭션·process-death 시험을 함께 실행했다.
+
+초기 import smoke에서 같은 클래스의 기본 인자를 클래스 이름으로 참조하여 NameError가
+발생했다. 클래스 선언 내부의 기본값을 로컬 선언명으로 연결한 뒤 import를 확인했으며,
+그 이후에만 테스트를 실행했다. 비교 보조 도구의 초기 시그니처 검사는 격리해서 불러온
+기준 모듈의 클래스명 차이를 만났고, 동일 클래스 대응을 명시해 수정했다. 최초 로그/결과를
+보존하며 제품 정책이나 테스트 기대값을 변경하지 않았다.
+
+- `whole-lifecycle-owners-l1-02`: discovered/started/pass 190/190/190, exit 0, 68.088652초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-lifecycle-owners-l1-02/llm.json --modules tests.llm.test_repositories tests.llm.test_domain_hardening tests.llm.test_lifecycle_logging tests.llm.test_project_creation tests.llm.test_project_component_settings tests.llm.test_component_dependencies tests.llm.test_session_domain tests.llm.test_session_agents tests.llm.test_components tests.llm.test_turn_deletion tests.llm.test_backup_owner_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_vision tests.llm.test_rag_models tests.llm.test_usage_ownership tests.llm.test_runtime_reliability`. source `b89069c4456bfe88dafa1ff4a5ee01a3f9cf74c401513ac151c3f80899a3de15`, input `9ce71defa5ff4e158f5ce0533cbb2682d022fd9e0518dd3a531c6f8714e3c68e`.
+
+- `whole-lifecycle-owners-l2-02`: discovered/started/pass 95/95/95, exit 0, 45.16139초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-lifecycle-owners-l2-02/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_interaction_storage tests.llm.test_run_reference_integrity tests.llm.test_cross_session_crash tests.llm.test_component_storage_integrity`. source `b89069c4456bfe88dafa1ff4a5ee01a3f9cf74c401513ac151c3f80899a3de15`, input `9ce71defa5ff4e158f5ce0533cbb2682d022fd9e0518dd3a531c6f8714e3c68e`.
+
+- `whole-lifecycle-owners-hub-02`: discovered/started/pass 17/17/17, exit 0, 42.769075초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-lifecycle-owners-hub-02/hub.json --modules tests.hub.test_components tests.hub.test_component_managers tests.hub.test_deletion_feedback tests.hub.test_turn_deletion tests.hub.test_usage_definitions_system`. source `b89069c4456bfe88dafa1ff4a5ee01a3f9cf74c401513ac151c3f80899a3de15`, input `9ce71defa5ff4e158f5ce0533cbb2682d022fd9e0518dd3a531c6f8714e3c68e`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견/실행/통과 ID 일치,
+LLM 선택 집합 간 중복 0, source/input은 최종 실행 전후 및 실행 간 동일하다.
+Python3.12.14/Clang·Host d833790·동일 의존성과 격리 환경이다.
+`python -m tests.llm.check_budget_mutation` exit 0으로 실제 효과 횟수 기반 R3 누락 검출 유지.
+
+직접 Repository/도메인 수명/로그/설정/Component 참조/Session Agent/백업/삭제/턴 삭제,
+모델 관찰 소비자와 승인·Checkpoint·예산·원장·Run 참조·트랜잭션·RAG·실제 중단 및
+Hub 관리/삭제/사용량 소비자를 검증했다. 표현/Projection과 같은 predicate 위임이므로
+정책·상태 전이·영속 형식·실행 경계를 변경하지 않는다. 전체 회귀는 남은 llm 공개 API와
+Facade/가이드를 묶은 Gate45에서 수행한다. 이는 로컬 소단계 완료이며 전체 llm/Hub 또는
+원격 CI 완료가 아니다. 안전성 결함이 발견되면 검증 범위를 즉시 승격한다.
+
+수명 관리 마감 검사: `python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7` exit 0, 현행 82개 감사의 새/누락 항목 0. `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` 16/16, 3.464초, exit 0. `python -m tests.llm.check_docs` exit 0, 168문서/183Python fence/1257상대링크/37anchor, 오류 0. 전수 inventory 596파일, 미검토 190(llm13/Hub177), 미분류 9038, 미완료 계약 5, issues 0. 남은 llm 파일은 공개 API/Facade 두 구현 파일과 11개 가이드다.

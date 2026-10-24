@@ -11,11 +11,14 @@ Project, Session, Step과 Component 데이터 핸들의 수명을 관리합니�
 | [projects.py](projects.py) | ProjectRepository/ProjectManager: 생성, 설정, Component 선택, 복제·삭제·복원·백업을 조율합니다. |
 | [sessions.py](sessions.py) | SessionRepository/SessionManager와 런타임 상태 컨테이너 SessionRuntime을 정의합니다. |
 | [steps.py](steps.py) | StepRepository/StepManager가 Step 수명을 관리하고 StepEventRecorder가 EngineEvent를 저장으로 연결합니다. |
+| [lifecycle_records.py](lifecycle_records.py) | 필수 identity 조회, 삭제 복구 응답, 백업 metadata, 턴 삭제 계획/CAS Projection과 수명 로그 선언입니다. 원본 저장소가 아닙니다. |
 | [components.py](components.py) | ComponentData가 CRUD·설정 API에 잠금, 최신 Project 확인, 비동기 I/O와 충돌 검사를 적용합니다. |
 
 ## 책임 경계
 
 ProjectManager는 Component에 초기화·복제·삭제를 위임하며 각 Component의 내부 파일 구조를 알지 않습니다. SessionManager는 Engine을 실행하지 않습니다. SessionRuntime은 메모리 객체이며 Session JSON에 저장되지 않고 RunManager가 실행 수명을 관리합니다.
+
+ComponentRegistry는 활성화 여부를, ConfigurationValidator는 주입 검증기의 호출 가능 여부를, LifecycleDeletion은 명시적 영구 삭제 인자의 형식을 각각 검사합니다. 호출자는 기존 잠금·최신 상태·참조·예산 검사를 같은 순서로 수행합니다. 원본의 완전한 Reader를 필수 identity/상태 Projection으로 대체하지 않습니다.
 
 ComponentData의 `configure/aconfigure`는 ProjectConfig의 해당 설정을 교체합니다. 저장 설정의 유일한 위치는 `parameters.components`입니다. 사용자 정의 핸들도 이 경계를 유지해야 합니다.
 

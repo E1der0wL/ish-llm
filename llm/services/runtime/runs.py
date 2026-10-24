@@ -1090,7 +1090,7 @@ class RunManager:
     MISSING_TARGET = "Instruction target unavailable: {identifier}"
     EMPTY_INSTRUCTION = "Live instruction must be nonempty text"
     SESSION_MISMATCH = "Session does not match this RunManager"
-    SESSION_DELETED = "Session is deleted"
+    SESSION_DELETED = Session.DELETED_ERROR
     PROVENANCE_COLLISION = "Request provenance cannot replace admission evidence"
     ORIGINAL_AGENT_REQUIRED = "Resume requires the original Agent"
     MISSING_ADMISSION = "Run is absent from its original request admission"

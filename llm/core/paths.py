@@ -42,6 +42,7 @@ class WorkspacePaths:
 @dataclass(frozen=True, slots=True)
 class ProjectPaths:
     RECORD: ClassVar[str] = 'project.json'
+    CHILD_RECORD_PATTERN: ClassVar[str] = '*/' + RECORD
     AGENTS: ClassVar[str] = "agents"
     SESSIONS: ClassVar[str] = "sessions"
     STATE: ClassVar[str] = "state"

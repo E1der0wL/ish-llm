@@ -19,6 +19,7 @@ class ModelUsageStatus(StrEnum):
 
 @dataclass(frozen=True)
 class ModelUsageRecord:
+    STATUS_FIELD = "status"
     SCHEMA_VERSION = 1
     DIRECTORY = "usage"
     MANIFEST = "manifest.json"
@@ -62,6 +63,11 @@ class ModelUsageRecord:
     reserved_tokens: int | None = field(default=None, metadata={RESERVATION: True})
     error: str | None = None
     diagnostic_code: str | None = None
+
+    @classmethod
+    def status_from_record(cls, value):
+        """Required scalar projection after the Component's receipt reader."""
+        return value[cls.STATUS_FIELD]
 
     @classmethod
     def filename(cls, identifier):

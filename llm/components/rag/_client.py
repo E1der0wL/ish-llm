@@ -2,6 +2,8 @@
 
 Shared request mechanics; no scheduler, lifecycle events or domain writes."""
 
+from llm.providers.observations import ModelObservationContract
+
 from llm.core.model_protocol import ModelOperation, ModelRequest, ModelResponse, copy_model
 
 from copy import copy
@@ -10,7 +12,7 @@ from llm.providers.parameters import merge_params
 
 
 class ModelClient:
-    observes_model_calls = True
+    observes_model_calls = ModelObservationContract.SUPPORTED
     operation = ModelOperation.COMPLETION
     ABSENT = None
     RUNTIME_OPTIONS = False

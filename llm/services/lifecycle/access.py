@@ -17,6 +17,7 @@ class ProjectReader(Protocol):
 
 class ProjectAccess:
     ALLOW_DELETED = False
+    INCLUDING_DELETED = True
     DELETED = "Project is deleted"
     WRONG_OWNER = "Project path ownership mismatch"
 

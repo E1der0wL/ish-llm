@@ -7,6 +7,16 @@ from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean
 from llm.core.configuration import resolve_component_config
 
 
+class ConfigurationValidator:
+    ABSENT = None
+    INVALID = "Configuration validator must be callable"
+
+    @classmethod
+    def require(cls, validator):
+        if validator is not cls.ABSENT and not callable(validator):
+            raise TypeError(cls.INVALID)
+
+
 class FormSchema:
     KEY = "schema"
 

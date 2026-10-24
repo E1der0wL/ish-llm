@@ -276,6 +276,9 @@ class Component:
 class ComponentHook:
     """Stable optional hook names derived from their actual Component declarations."""
 
+    BACKUP_SCOPE = Component.backup_scope.__name__
+    VALIDATE_BACKUP = Component.validate_backup.__name__
+    MODEL_USAGE = Component.model_usage.__name__
     DESCRIBE_CONFIG = Component.describe_config.__name__
     REFERENCES = Component.references.__name__
     VALIDATE_PROJECT_CONFIG = Component.validate_project_config.__name__

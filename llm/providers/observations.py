@@ -12,6 +12,16 @@ import time
 _observer = ContextVar("llm_model_observer", default=None)
 
 
+class ModelObservationContract:
+    ATTRIBUTE = "observes_model_calls"
+    UNSUPPORTED = False
+    SUPPORTED = True
+
+    @classmethod
+    def supported(cls, client):
+        return getattr(client, cls.ATTRIBUTE, cls.UNSUPPORTED) is cls.SUPPORTED
+
+
 @dataclass(frozen=True, slots=True)
 class ModelCall:
     """Adapter-owned usage interpretation; services own quotas and persistence.

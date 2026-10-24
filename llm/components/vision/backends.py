@@ -1,5 +1,7 @@
 """교체 가능한 OCR 구현과 LiteLLM 이미지 해석. 저장/Tool 승인/Run 수명을 소유하지 않는다."""
 
+from llm.providers.observations import ModelObservationContract
+
 from llm.core.model_protocol import (
     ContentKind,
     ContentPart,
@@ -119,7 +121,7 @@ image_part = InlineImage.part
 
 
 class VisionModel:
-    observes_model_calls = True
+    observes_model_calls = ModelObservationContract.SUPPORTED
     ABSENT = None
     REQUIRE_MODEL = True
     OPTIONS_ARE_JSON = False

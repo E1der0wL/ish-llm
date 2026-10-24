@@ -230,3 +230,22 @@ EngineHooks가 명시적 재개 결정 인자를 조립하고 CapabilityResolver
 InteractionOperation은 취소/갱신 명령을 선언하고 Facade와 Repository가 함께 소비한다.
 History와 Checkpoint 계획의 같은 차단 코드는 PlanBlockerCode를 공유한다.
 RunObservedFailure는 원래 관찰 오류를 보존하는 파생 상세이며 재시도 권한이 아니다.
+
+
+## Project·Session·Component 수명 Owner
+
+Project/Session Repository의 필수 identity Projection은 기존 경로/소유권 확인에 필요한
+키만 같은 순서로 읽는다. 완전한 도메인 Reader와 Agent/Operation/Transfer 검증은 원래
+경계에서 계속 실행한다. ModelUsageRecord.status_from_record는 이미 Component Reader가
+반환한 영수증의 필수 상태 조회이며 필수 영수증을 복구하거나 생략하는 Reader가 아니다.
+
+Component 활성화, 설정 검증기 형식, 영구 삭제 bool 인자 검사만 각 Owner의 단일 함수로
+연결한다. Manager의 잠금·수명·참조·원장·누적 사용량 검사와 실제 쓰기/삭제/로그 순서는
+유지한다. ModelObservationContract는 원래 주입 클라이언트의 명시적 True marker만 인정한다.
+메모리 런타임과 callable을 복사·직렬화하거나 새 실행 권한을 만들지 않는다.
+
+DeletionRecoveryResults/ProjectBackupMetadata는 원래 공개 응답과 백업 관찰의 Projection이다.
+ResumeTurnDetails/TurnResumeEvidence/TurnDeletionEvidence는 원래 진단 상세와 CAS 입력을
+같은 순서의 얕은 dict로 투영한다. 별도 저장본이나 재개 권한이 아니며 Run/Message/Interaction
+Reader가 제공한 원본 증거를 보존한다. Runtime attachment rollback, after_commit 정리,
+폐기 전 참조/예산 보호 및 원본 데이터 보존 계약은 그대로 적용한다.

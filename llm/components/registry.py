@@ -45,6 +45,12 @@ class ComponentRegistry:
     UNAVAILABLE = "Unavailable Project component"
     INVALID_SELECTION = "Component selection must be a sequence of identities"
     UNAVAILABLE_SELECTION = "Duplicate or unavailable Project component"
+    NOT_ENABLED = "Component is not enabled for this Project"
+
+    @staticmethod
+    def require_enabled(project, name):
+        if name not in project.components:
+            raise ValueError(ComponentRegistry.NOT_ENABLED)
 
     def __init__(self, components: tuple[ProjectComponent, ...] = NO_COMPONENTS) -> None:
         self._components: dict[str, ProjectComponent] = {}

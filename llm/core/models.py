@@ -432,6 +432,8 @@ class ProjectConfig(dict):
 @dataclass(slots=True)
 # 프로젝트의 영속 데이터. 직접 실행하거나 런타임 객체를 저장하지 않는다.
 class Project:
+    ACTIVE = False
+    DELETED = True
     STORED_CONFIG = 'Stored Project configuration requires policies, parameters and data'
     INVALID_DELETED = 'Project deleted must be a boolean'
     INVALID_COMPONENTS = 'Invalid Project Component identities'
@@ -445,7 +447,7 @@ class Project:
     paths: ProjectPaths
     config: ProjectConfig = field(default_factory=ProjectConfig)
     created_at: str = field(default_factory=now)
-    deleted: bool = False
+    deleted: bool = ACTIVE
     # Component identities only. Each component owns its configuration and paths.
     components: tuple[str, ...] = ()
     # Managed storage lifetime, retained when a Component is disabled.
@@ -504,6 +506,7 @@ class Project:
 @dataclass(slots=True)
 # 대화 세션의 영속 데이터. 큐와 실행 태스크는 SessionRuntime에 둔다.
 class Session:
+    DELETED_ERROR = "Session is deleted"
     INVALID_AGENTS = 'Session agent_ids must be a list'
     NONCANONICAL_AGENTS = 'Session agent_ids must be unique and canonical'
     INVALID_EXECUTION_STATE = 'Session execution state requires its exact active Run declarations'
