@@ -328,11 +328,11 @@ class RAGJobs:
             if EmbeddingEvidence(item).profile.model != component._identity():
                 raise CheckpointError(CheckpointErrorCode.CONFIGURATION, "Embedding model changed since the job was prepared")
             from llm.core.embeddings import validate_vectors
-            from .extraction import validate_graph
+            from .graph_records import GraphRecord, validate_graph
             vectors = validate_vectors(EmbeddingEvidence(item).vectors, dimensions=EmbeddingEvidence(item).profile.dimensions)
             if len(vectors) != len(item["chunks"]):
                 raise ValueError("Prepared chunk/vector count mismatch")
-            validate_graph(item["graph"], item["chunks"], relation_types=component.extraction_options.get("relation_types", ()))
+            validate_graph(item[GraphRecord.Field.GRAPH], item["chunks"], relation_types=component.extraction_options.get("relation_types", ()))
             existing = documents.get(item["id"])
             # Publication may have succeeded before the completion receipt failed.
             if existing is not None and existing != item:

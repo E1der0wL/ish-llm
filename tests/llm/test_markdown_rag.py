@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 from examples.llm import rag_components
 from llm.components.rag import RAGComponent
-from llm.components.rag.extraction import validate_graph
+from llm.components.rag.graph_records import validate_graph
 from llm.components.rag import EmbeddingModel
 from llm.components.rag.splitting import split_markdown
 from llm.engines.loop import LoopEngine

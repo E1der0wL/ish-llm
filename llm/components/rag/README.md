@@ -319,6 +319,14 @@ embedding_seconds는 준비 단계 벽시계 시간이다. active/peak는 admiss
 
 ## 추출과 그래프 실패
 
+`graph_records.py`가 엔티티·관계·정규 응답·영속 근거의 필드와 검증을 소유한다.
+모델 추론·명시 repair는 `extraction.py`에 남는다. 저장 검증은 원문 인용·identity·
+필수 필드·시각·지지 개수를 확인하며 누락된 근거를 정규화로 복구하지 않는다.
+`graph_indexing.GraphQueries`는 Kuzu 저장/조회 문법과 파라미터 Projection을,
+`GraphSearchResult`는 공개 검색 응답을 소유한다. 탐색 함수는 순서·frontier·한도를
+결정한다. 공개 support_count와 기존 저장 weight의 역할 및 wire 형식은 유지한다.
+
+
 관계 검색은 `config.search.relation_ranking`을 지정하지 않으면 출처/ID의 안정 순서를
 사용합니다. `"source"`는 그 순서를 명시하고, `"support_count"`는 각 탐색 frontier 안에서
 근거 개수 내림차순을 선택합니다. 문서 hit 순서와 BFS 깊이의 계약은 유지합니다.

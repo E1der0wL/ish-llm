@@ -49673,160 +49673,164 @@
   },
   {
     "path": "llm/components/rag/chunk_records.py",
-    "sha256": "8eddcce77edafee01cc81d8e50f2c44fa8ca82943ae4cace32f3ebe72fe8e5ee",
-    "reason": "Complete split and record implementations and all direct chunk consumers reviewed. Independent old/new wire, original validation-body comparisons and full method expansion preserve source bytes, identities, current typed/shape errors, field presence and original-source relationships. Real index/search/Job/corruption and core safety regressions retain original assertions. Other contracts within the larger consumer files are explicitly still pending.",
+    "sha256": "cedc475f78e8bc0e3775ea90161feaa9bce457a99071361d791b3d6ab73f72ef",
+    "reason": "Complete graph data, store and traversal implementations plus all changed direct consumers reviewed. Actual expanded method equivalence, independent invalid evidence/query/result traces, current strict L1/L2 and actual file/database/fault/cancellation/safety consumers pass. Explicit SQL parameter binding, finite JSON, source and support integrity, model repair policy and test assertions remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "cf1f6e87994f50ee332646cfed1a4710a291cc4b82d8ac99a5641eea3268fbe8",
         "classification": "declaration",
         "owner": "RAGContent",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "370093bf17eb801ee05506820fe6a9b504547beacc011d3097f6f29b78de8a19",
+        "id": "287733d17129c101141b3b362d41733fd9376941c8225bde7f2c24c1727fa02d",
+        "classification": "declaration",
+        "owner": "RAGDocument.Field",
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+      },
+      {
+        "id": "c48221e6d7035eb43c7c1a52bb427ea660607f4d930c786aced658c61b6bb9b6",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "527dc9afef65dabad205275e3b661e592b311d6cdf25c290a8742efcde5add0f",
+        "id": "95b74ebb44aa602108539d5d47cc70ea270e3986a0de60d48667aa8c27cb96af",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "c310b509e62bdceedaed6ad2992bbe9dfe45e1decd20a97a75a9fca3b32111cc",
+        "id": "00034e8eac505087aa3620f75df851245d3a4cb07253a324c65225fa10c83b8f",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "503ed606e7061589410ec1c849ef11d503ac0b3a8c63cd15d8dca2e7a2185254",
+        "id": "119b106a344ffea69a91acdba1278fdc72137fe33f1060b7278f174b915a0c61",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "9dd5783a73fe8e0abf68953d8c89c220dfe54c32d856be99691b55ffcf86e4b1",
+        "id": "ba5dc9e96b7cba4ea754590ae80757ee7387d7f25f302ba439d97879474aa39f",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "d0f08a8ac698f69d93ac04c43eaa342ee09e0de77068ca0a9b2180bec7c6f407",
+        "id": "6ee647b1b691c5dd56cdc5a43c5cc9b22471998ca363524f37b3e61e4a652c59",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "0734411799004412376568aa568d9c698c9b5037cdacfb00e6d54275e102d2db",
+        "id": "01f193d3a6323dd77640011e05bbcfd563b32489c25dc368c436abdf5969c96c",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "080740fc976d688aa29042d2519a2fb4f9a1e93f7a6f0aac52b6e85d9ebec5bd",
+        "id": "75761182f93787eeb571edd63e10e839bf26432ba15b71595e1a35bc05a099f2",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "af4b2ad480ef2cc9afe79bcb6ad46827b4525131df097ceafbb1ebac4e19acd7",
+        "id": "3b1a2b2d457c55c23001f9266919b6caa6f762024807adff5fa4d9dad1d2cf6d",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "9d20c036d7d7d5e4ceb3ea648a17d471947741485d1b6427f5dff6736e384ee7",
+        "id": "cb67e38baaab9efeec0b065bbb23912bf6e7a0d22e60402226ced473b23e81c3",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "bce53356175de0a2ba328a0da557830d9f89cccb93f9d5d82eba51a009a9be23",
+        "id": "c17c5d2325617129504a62cfc7dece9ad2d3c8af2938260d10b442580eb8cb58",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "58271f472573e9ae9d85f83fc22a0dd192e90d596d99fdb5b7a08cd3f04dd148",
+        "id": "391dddcd124c5f1c6caf7e4cd2661d82136ebd58ce7b9e713135440a5ff23e4b",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "df7b69502dca8fa25b201aaa88bb0072a119620532977be123f3c2d04c792cd8",
+        "id": "aed56edbd880400af16089d4a236d49c52ffbaa2235da435be0df84eeaaa7e3d",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "3c2edda816868d2e96d9cbce0086d53e1933ffb6e69c0cdf62f0730d8bd47c0f",
+        "id": "d83bf81c34df96d2f3cf1c005c259d4b5c8272d4a8511fc69732501d8f568524",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "2bd44d5cc377de3200b45f0fee5dd563e254e021334c7ebadb38d543b4d0d8c0",
+        "id": "bb24d5f2c4902010478eb796f69f043034852726255007f948f42e26e67ef2e7",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "ae68d2a2da6cbe41be3ddc7d36f4bc6313cfa7abe9398fb150adfb428046a171",
+        "id": "f54a9fac3c4ef4d19f7e88ae8bb0e7ea8b274b1fd851c44f5b175bc2fc74d5f2",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "4b2c4ddc8b12f94027ee2eb4429a005520db5d7a659031a96629c112d4228240",
+        "id": "8bdb84198f886841f650261448d6dbc4d0e1cbb4e0cd576b2e9d737e5fc120ec",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "924da8163529f4d3aeb1e7ef9854dee6bfff04ed77b0ee088434ecb3aae78e98",
+        "id": "d17c20940081c2a495118477e497352b71d29e51f0413b4ffcad87441f61ae83",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "623d989c2c38a2d8458ca43016f9ff93fe0fd5a1c66a13317b19681723a7bfbd",
+        "id": "5c19dcc739169b51dc9aac8f2f7b1c71cba4205b22acda7b59adb9b3842b421d",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       },
       {
-        "id": "4b8842c8d26a300730d011f77e1a1c5285d282e299e5750567a8104bee8cecef",
+        "id": "7fefeeb882f9b75ffc17b83b9d0432c7d67eba781162d705dc3a3944e95e255e",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Read the entire split/record Owner. Field names, hash encoding, identifier format, exact record/source checks, Markdown grammar and local algorithm parameters are declared before methods. Actual Writer/Reader/index/search/extraction consumers use the canonical properties and projections."
+        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
       }
     ],
     "contracts": [
       {
-        "owner": "RAGContent / RAGSection / RAGChunk / SplitDocument",
+        "owner": "RAGContent/RAGDocument/RAGSection/RAGChunk/SplitDocument",
         "declaration": "llm/components/rag/chunk_records.py",
         "consumers": [
-          "llm/components/rag/splitting.py",
           "llm/components/rag/component.py",
           "llm/components/rag/ingestion.py",
-          "llm/components/rag/extraction.py",
-          "llm/components/rag/indexing.py",
-          "llm/components/rag/search.py"
+          "llm/components/rag/graph_records.py",
+          "llm/components/rag/graph_indexing.py",
+          "llm/components/rag/indexing.py"
         ],
         "tests": [
-          "tests/llm/test_rag_components.py",
-          "tests/llm/test_rag_prepared_integrity.py",
-          "tests/llm/test_rag_input_integrity.py",
-          "tests/llm/test_rag_storage.py",
-          "tests/llm/test_rag_embedding_checkpoint.py",
+          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_extraction_repair.py",
           "tests/llm/test_rag_graph_checkpoint.py",
-          "tests/llm/test_rag_optimization.py",
-          "tests/llm/test_rag_query_evidence.py",
-          "tests/hub/test_rag_jobs.py",
-          "tests/hub/test_rag_retention.py"
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_unified_rag.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }
@@ -50632,6 +50636,596 @@
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/graph_records.py",
+    "sha256": "0f5f80750a4d9dd908822805bc0fc19134b9b39fe4c133b6bee91208f7366331",
+    "reason": "Complete graph data, store and traversal implementations plus all changed direct consumers reviewed. Actual expanded method equivalence, independent invalid evidence/query/result traces, current strict L1/L2 and actual file/database/fault/cancellation/safety consumers pass. Explicit SQL parameter binding, finite JSON, source and support integrity, model repair policy and test assertions remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4edb9cf7abb516dcb46a495ff20ca8b3cd5501e921741f9adc57aedebc6a456c",
+        "classification": "declaration",
+        "owner": "GraphEntity.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "5a5947bd099cbc4ee7a9ebefb206d5294916e72b29afd0a0c9e49b64f22b7986",
+        "classification": "declaration",
+        "owner": "GraphEntity.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "15225146499e0cda4207063140e348f16bdb8dd3d48460db7499fcab095765f9",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "4c6041d5d2ed78d864b1fd2e44faf016a8b065939928be6fe74c03687a64c068",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "53731cbf61384400ab48df81b129fd1b144cdda73a8c4a74a60d82ba4bd1cc39",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "36236e15f98a23a999aab8ed301cef0e76a9798c22c7de1066b71e5f083a51e0",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "02c1e7cefed0a9376ca9080368be858913b5823b60b4da65f3b6e372b11e3fee",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "09d2895cc07f60745af89bb76a4d061f8f928961bb1175232c7a4206c6ca1379",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "300e4bfdeca9a4db3998b40df012e082ac32b344edf8838cd46b5f7d1e6de332",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "5419e87cc9d05e936062f7bab425b5f404c3402e01563b0e4d60639bdf9f236f",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "5bce0fcec828db59bf5c980f996feb2a90ee6cf46bfb9085468df043e6d21edb",
+        "classification": "declaration",
+        "owner": "GraphRelation.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "010c7132945e9f0004e6afedce98a4a41fb5a60ebd6615c544e4710de9a014d2",
+        "classification": "declaration",
+        "owner": "GraphRelation",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "8564d36237d4c0d4fffcbc28abf0714bc27ec5346d7f84bbb362a8b5f2c69acd",
+        "classification": "declaration",
+        "owner": "GraphRecord.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "694dee3605659e50c2bc268874c6e3e5128b902f717f8f68ce3a308d0a451b58",
+        "classification": "declaration",
+        "owner": "GraphRecord.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "2735cde08f4957b3922ed7f5933a2f258103f057dd66fc71311aa5645d86eda8",
+        "classification": "declaration",
+        "owner": "GraphRecord.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "441ac55c8ca79ae64b839cf2163a4e67dd7af3f3c4a9ef2832b8b5a11cdd898e",
+        "classification": "declaration",
+        "owner": "GraphSearchResult.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "60912ee43bc4aaa9db7501e9bd9b675a0fee97f13fb19a09599b339c00375d17",
+        "classification": "declaration",
+        "owner": "GraphSearchResult.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "6cb0eb271836553d12819a49e0ddfbf76ead3c4ef486d9c1701b51165d3ab35e",
+        "classification": "declaration",
+        "owner": "GraphSearchResult.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "c3757290d7952a2afdd2bf2e56e0c8ccc30fb9245aea7c5fe28b7dfc4dfae23d",
+        "classification": "declaration",
+        "owner": "ExtractionCheckpoint.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "aa68800a80fc95697611264e815001336da0fbbe1b56720a220a7c40e0c659e4",
+        "classification": "declaration",
+        "owner": "ExtractionCheckpoint.Field",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "e20ecc4872f39099405f99e87c57a176b19f4179d870482d7d253550381c4b08",
+        "classification": "declaration",
+        "owner": "ExtractionCheckpoint",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "88820c39e0c87661163a4b06d4e590bc703e6298b0c1b7dd6f1ad5b6b26b9524",
+        "classification": "declaration",
+        "owner": "ExtractionCheckpoint",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "0aa216ac865da7e4ad44607d31d9c3d6a0fdd43b7ebfd0cc0d31c160f6f2db12",
+        "classification": "declaration",
+        "owner": "GraphEncoding",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "1664d83ad7455faa02e33a275e233b7d824fe367eec4ebfb48e2c5981ea14e99",
+        "classification": "declaration",
+        "owner": "GraphEncoding",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "7edfe7abc4aa8adae0545bb1884ae95dfc5218411d237a945c6779f1945164d4",
+        "classification": "declaration",
+        "owner": "GraphEncoding",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "03f9133d0fdab8753362810efa6eaba155666c34a70b3db3337cbf79eb8483f1",
+        "classification": "declaration",
+        "owner": "GraphEncoding",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "4003ffb66996ce1659fdec6bcfe991497475e10a621e087973e3cc67e2e4a7da",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "c270112b3e8ad593be9a5cbfbd699d383a9c10d99ebbf35e0f8a5660d7fcdef0",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "ab7809f0fa1107eb9a7e234088729a89d54c9976c105147d0c1e4fc001935781",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "cc1d771256f178f8d8db65ee19c307ee31ca03b8ad41b7cc155aa7f8ca441e8e",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "a5c82d68623a5ac49b358b62c32425688ac9edde58af314f1cbcb83a9fb933a1",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "77fe09d98b32423e669f6c2da93016c5daad517848ac0b0924131bccdcf73788",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "d225ba0860a90daac1d518f5f952900f153089cd5fb65dba5e78a468afe1fd7a",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "667a2766041aa62e3928746994888321d98ff8b6f57f7f67159ab82b434764d1",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "3ba5f510e7484878475547e6a00e1e36ecf9fa9013fbc3c5321b2f4726c4ab13",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "67a60eb46dc6495968a641a94e3c9cb3a83902815baa37c8427674e6e1c1ae9d",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "05709dd84cede84add01d855004a6407c7f782920065859d8c18d24a518cd5ae",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "d20bb1ddbde7b6826e9b0130641d1d750ef5d2a746ed2784e3cd771b6983589e",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "81b90b2563024bc740e24fd218b70252e05737da420b3537a525944b9250dc9f",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "ec2cf8e4f3b73d2f91078edb941253398c4b685e65afed7292b011584507042d",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "4862b10ef2ede005f4554b6db24174edbaae8f9b1d15cf4b21d2c7d7993464ba",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "5b8706fe941e8248f8d440d2f8d6c17e18576be43e34413aa36a0d8a864c2966",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "1382b11917b4818b15ff65885a04447db958d527d6244e75a35ea187c0969c6c",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "0d8bd444fd6b8e53e7ba18158c45014777c3773dc6664c89878176f9da245060",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "0697c1dff2597d7a5fc138e1f7c9ad419774d601ab055535fd6b5bc2c539bbee",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "db65357d2620d654c2efe6ba8cd235ff0108ce7797ea6c6bf28a1d53cf45a3c2",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "d635d71f166ca7e38cc3993356d26e2ad36b3e7b9ab3f890610cbda6742e6116",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "72d06cbcb86ecabac3ccbacebc14e84e40c62a5694c1c15ec4d429d89683000c",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "7a43bbcf87a4e4f75e97910a1de4cff88b1fafb1598d59fc5cbc75a25b20e643",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "8234ac6bc426b373c308dbc2b131f50f309f6538dc34a2946b6d05ed90b0db65",
+        "classification": "declaration",
+        "owner": "GraphValidationText",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      },
+      {
+        "id": "a34bbb78a29e12a00399dce9c75d52f13f24103f4c408982974d18a078978d4c",
+        "classification": "declaration",
+        "owner": "GraphValidationError",
+        "reason": "All graph field sets, identity/evidence keys, typed projections, exact stored and model-response error contracts and JSON flags are declared at their Owner head. Shared text digest uses RAGContent. Strict stored fields are not inferred from creation defaults; validators preserve every original guard and order."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphEntity/GraphRelation/GraphRecord/ExtractionCheckpoint/GraphSearchResult",
+        "declaration": "llm/components/rag/graph_records.py",
+        "consumers": [
+          "llm/components/rag/extraction.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/jobs.py",
+          "llm/components/rag/graph_indexing.py",
+          "llm/components/rag/graph_search.py"
+        ],
+        "tests": [
+          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_graph_checkpoint.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_unified_rag.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/graph_indexing.py",
+    "sha256": "bc617f6601d83f6b0ccc31d823f52770ed21683f0f0a042ab7838ea563f4dacb",
+    "reason": "Complete graph data, store and traversal implementations plus all changed direct consumers reviewed. Actual expanded method equivalence, independent invalid evidence/query/result traces, current strict L1/L2 and actual file/database/fault/cancellation/safety consumers pass. Explicit SQL parameter binding, finite JSON, source and support integrity, model repair policy and test assertions remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "19b5c64cd007b7228de0580db6fa257bf48a82611d78e580ada90fa8947d3a09",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "d8da20069f75315b9c244a18d8ca6fa40c5c95e1c5c707bc98a616d4f6d2199d",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "f3ba56bd06270bc0775f7cc20a43375a8aa7b42ed2a252e8d017b21ff900fdb2",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "877df93ba6db9b41a0215d67c39b69a61f29fe4a08a5b87a04c1c26115c0595f",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "66b42f85353a783519af5e3447171579e672b838db35db41249a031d484977e6",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "16dc69b9683e0b8480d5f6e0ec384df2c70c4a710d87faeb3b31bc9917c4553e",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "7d59b10dcf73b2b8471945534046e5aa691978d70d59764fd8188ca328cc96e4",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "1f928839d66a12cbd69cc5e79a779017441b20b0bf113475fea90753c7301946",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "b2142342eeeff322211d6ab5f8a6f7fb62569bac582506ca4538747f72afba34",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "006c8511729c3a4bde1a9758c1d8ad75c2611f09d277a3687673131fb30f75b5",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "baa35a015aef1821f7667bae74d7f93f255ae24db53186a618c0eb5989c5c1dd",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "a869094507801a84876b2aca02dede70b7574b2a986f7d8e21cba3f33fb2013e",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "0cd39ac3f3aaaadcd2e01589f5603dfb470ce2e4ccf017276763845427bb7886",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "c7fdf7059ee76186dd01de5d70ed6fc3e4f9caa94f3ed7962148b54fc71df704",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "230261144c4725fb7c396058480bc658d1ea0fff8182b3467b83dced4970baba",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "a6cdb52a8668473d5bb6ce5a74fb89f0caccdf7721c1ed7874e3838f673f8116",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "0aa16e5131ce0abf9bac93bb55415bf91602198f07875c2ca0f4885472da40a1",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "8ebcade610a3a621fda345b86c6ed8da00ad164b3dac6b1abd52af330daef0d8",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "fff71d4fec36c000342b7c01e27295fb75a2422f2893392b614003c8afa24520",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "c684eed5dfbb4dc8ea3c033e6711e4f2a87fa87f0e39515bc61ee7cd0f083b94",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "2c8465f22f31745e20e980709d05859f037278495aac97df0cd495c965dec6a0",
+        "classification": "declaration",
+        "owner": "GraphQueries",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "664d69b3f4ca314388ec56a5967f58563151881dc0a3021577942f068388cd00",
+        "classification": "declaration",
+        "owner": "GraphStore",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "6acbf953210da76f07fcd7a5bb024104bf5c34bfc520691c16a55dd3f1f492b9",
+        "classification": "declaration",
+        "owner": "GraphStore",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "f771d50786b3dabb28a8890701bad69f4c1513f4d34087649b9b8020c232c3cf",
+        "classification": "declaration",
+        "owner": "GraphStore",
+        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+      },
+      {
+        "id": "5cff72cbe9a99036daff7067fb8441757b3315bdaabe9a8762ee6f06ef366b17",
+        "classification": "non_contract",
+        "owner": "build_graph",
+        "reason": "Python return annotation only; no execution policy or stored/API fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphQueries/GraphStore",
+        "declaration": "llm/components/rag/graph_indexing.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/graph_search.py"
+        ],
+        "tests": [
+          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_graph_checkpoint.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_unified_rag.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/graph_search.py",
+    "sha256": "e6dac4701df625d4a3270b9452a0b646ff769064578f228128b196e4d65fd6af",
+    "reason": "Complete graph data, store and traversal implementations plus all changed direct consumers reviewed. Actual expanded method equivalence, independent invalid evidence/query/result traces, current strict L1/L2 and actual file/database/fault/cancellation/safety consumers pass. Explicit SQL parameter binding, finite JSON, source and support integrity, model repair policy and test assertions remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5cb4160dca4a0edca2ad365112a42f8312c354d19629edec876e6891db9b1290",
+        "classification": "declaration",
+        "owner": "GraphTraversal",
+        "reason": "Traversal control and errors are declared at its Owner head. All SQL and parameter names use the graph store/record Owners; both traversal paths serialize the same public result projection. Ordered frontiers, seen sets, seed binding and explicit support ranking retain original behavior."
+      },
+      {
+        "id": "aeb4296a2eb39dc3f879026e68fca748d487e5198a07a3f28a3c929dc831fd8e",
+        "classification": "declaration",
+        "owner": "GraphTraversal",
+        "reason": "Traversal control and errors are declared at its Owner head. All SQL and parameter names use the graph store/record Owners; both traversal paths serialize the same public result projection. Ordered frontiers, seen sets, seed binding and explicit support ranking retain original behavior."
+      },
+      {
+        "id": "02f9f539ddd55c296673043014738cabfcb89a5ae1186072716eaeb6ad995ca1",
+        "classification": "declaration",
+        "owner": "GraphTraversal",
+        "reason": "Traversal control and errors are declared at its Owner head. All SQL and parameter names use the graph store/record Owners; both traversal paths serialize the same public result projection. Ordered frontiers, seen sets, seed binding and explicit support ranking retain original behavior."
+      },
+      {
+        "id": "496e2b38b3ae55f8e19656e8b8da1e039f9d028f428829d043ff856534e77012",
+        "classification": "declaration",
+        "owner": "GraphTraversal",
+        "reason": "Traversal control and errors are declared at its Owner head. All SQL and parameter names use the graph store/record Owners; both traversal paths serialize the same public result projection. Ordered frontiers, seen sets, seed binding and explicit support ranking retain original behavior."
+      },
+      {
+        "id": "73b6a683553b1be11fbfa396c34bae9d9506120dab3f5b7a67ea1a5c52df1f29",
+        "classification": "declaration",
+        "owner": "GraphTraversal",
+        "reason": "Traversal control and errors are declared at its Owner head. All SQL and parameter names use the graph store/record Owners; both traversal paths serialize the same public result projection. Ordered frontiers, seen sets, seed binding and explicit support ranking retain original behavior."
+      },
+      {
+        "id": "b5f91e5a56f84a65a36ab74488cef56e2b4257ee9b2b73719c75582db05209fb",
+        "classification": "declaration",
+        "owner": "GraphTraversal",
+        "reason": "Traversal control and errors are declared at its Owner head. All SQL and parameter names use the graph store/record Owners; both traversal paths serialize the same public result projection. Ordered frontiers, seen sets, seed binding and explicit support ranking retain original behavior."
+      },
+      {
+        "id": "0df73645a3539f508228b6e1d87e1227a984228e0807ec37ec57f692646cc2e3",
+        "classification": "declaration",
+        "owner": "GraphTraversal",
+        "reason": "Traversal control and errors are declared at its Owner head. All SQL and parameter names use the graph store/record Owners; both traversal paths serialize the same public result projection. Ordered frontiers, seen sets, seed binding and explicit support ranking retain original behavior."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GraphTraversal/GraphSearchResult",
+        "declaration": "llm/components/rag/graph_search.py",
+        "consumers": [
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_graph_checkpoint.py",
+          "tests/llm/test_architecture_boundaries.py",
+          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_unified_rag.py",
           "tests/hub/test_resource_tools.py"
         ],
         "complete": true

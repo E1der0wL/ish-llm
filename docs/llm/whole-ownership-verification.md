@@ -4756,3 +4756,63 @@ R3 Mutation exit 0, 원래 두 실제 효과 Assertion에서 의도적 호출 �
 전체 inventory 530개, 미검토 269개(llm 92/hub 177), 미분류 18,710개,
 미완료 계약 4개·stale/분류 오류 0. 결과는
 `/workspace/llm-clean-resume/whole-ownership/rag-ingestion-draft/`에 보존했다.
+
+
+## llm RAG 그래프 정의·검증·색인·검색 — Level 1·2
+
+기준 c37341f. 모델 추론 코드에서 그래프 의미와 저장 검증을 graph_records로 옮겼다.
+GraphEntity/GraphRelation/GraphRecord는 필드·identity·Projection을 소유하고,
+ExtractionCheckpoint는 실제 요청 청크와 정규 응답의 필수 증거를 검사한다.
+기존 model-response 정규화와 strict stored Reader의 서로 다른 계약·검사 순서는 유지한다.
+단일 구현을 현재 소비자가 직접 사용하며 이중 Reader를 두지 않는다. RAGDocument가
+문서 identity 조회를, GraphSearchResult가 공개 관계 응답을 소유한다. Kuzu query와
+SQL 파라미터 Projection은 GraphQueries로 모으고 BFS의 순서·깊이·한도는 탐색 함수에 둔다.
+
+공개 support_count와 저장 weight, 원문·엔티티 참조·metadata 유한 JSON·추출 시각·중복·
+근거 수 검증, 색인 수정/삭제 후 다른 문서의 근거 보존은 그대로다. SQL 파라미터 바인딩과
+연결/결과 close도 유지했다. GraphRecords/Indexing/Search 전체와 변경된 ChunkRecords를
+검토했다. 아직 남은 모델 repair·설정·Job/Component/API 계약은 별도 미완료 범위다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-graph-draft/ast-proof.py`
+(한 셸 명령), exit 0. 실제 선언·getter·Projection 확장 시 기존 전체 함수 동등성:
+Extraction 10(이동된 검증 포함)·GraphIndexing 6·GraphSearch 3·Component 41·Jobs 29·
+Data 40·Indexing 4·ChunkRecords 22개. 시험 3개 파일은 canonical Owner import만 바뀌었고
+나머지 전체 소스가 같다. 기존 Assertion·Fixture·발견 목록은 유지했다.
+같은 환경의 `proof.py` exit 0: 모델 응답 정규화/오류 332개, strict checkpoint 245개·
+stored graph 323개·추출 청크 영수증 156개, 저장 배치 선택 9개, 독립 hash/출처/wire 검사,
+완전한 색인 query/파라미터 실행 10개, BFS/정렬/한도/query/결과 trace 216개가 일치했다.
+
+- `whole-rag-graph-l1-01`: discovered/started/pass 36/36/36, exit 0, 33.052778초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-graph-l1-01/llm.json --modules tests.llm.test_markdown_rag tests.llm.test_rag_extraction_repair tests.llm.test_rag_graph_checkpoint tests.llm.test_architecture_boundaries`. source `c779739517b576cc242d0a645eb2fecfd891f5a91c97c3e1f95d5529f19bb314`, input `cfee1ee79ef45258ca44d8d6d8a8584d999436120dd1aaaf480a8ed9a68594d7`.
+
+- `whole-rag-graph-l2-01`: discovered/started/pass 246/246/246, exit 0, 221.305539초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-graph-l2-01/llm.json --modules tests.llm.test_rag_batch_identity tests.llm.test_rag_prepared_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_job_retention tests.llm.test_rag_corpus_integrity tests.llm.test_rag_catalog_integrity tests.llm.test_rag_optimization tests.llm.test_rag_retention_policy tests.llm.test_rag_input_integrity tests.llm.test_rag_storage tests.llm.test_rag_job_state_integrity tests.llm.test_rag_batch_source tests.llm.test_rag_models tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_query_evidence tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_components tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_unified_rag`. source `c779739517b576cc242d0a645eb2fecfd891f5a91c97c3e1f95d5529f19bb314`, input `cfee1ee79ef45258ca44d8d6d8a8584d999436120dd1aaaf480a8ed9a68594d7`.
+
+- `whole-rag-graph-hub-01`: discovered/started/pass 32/32/32, exit 0, 139.405001초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-graph-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools`. source `c779739517b576cc242d0a645eb2fecfd891f5a91c97c3e1f95d5529f19bb314`, input `cfee1ee79ef45258ca44d8d6d8a8584d999436120dd1aaaf480a8ed9a68594d7`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및 실행 간 동일.
+L1 36개는 제품·시험·Fixture·의존성·환경이 같은 상태에서 재사용했다. 추가 L2와 선택된
+ID 중복이 없으며 이를 한 번의 전체 회귀로 표현하지 않는다. 전체 발견 LLM 2,492·Hub 588.
+Python 3.12.14/Clang·Host d833790·고정 의존성·실제 namespace/X11 환경이다.
+실제 Kuzu/Chroma 구축·검색·정렬·삭제·재시작, 영수증/원본 위변조·보존, explicit repair·
+사용량·공통 승인/예산/외부 효과/Checkpoint 무결성, 통합 Agent 및 Hub Job/retention/
+리소스 소비자를 포함한다. 전체 함수와 저장/조회 형식의 동등성 및 영향 범위를 확인했으므로
+이번 소단계 L3는 반복하지 않는다. 앞선 RAG 변경과 후속 관련 변경의 통합 게이트에서 수행한다.
+
+### 앞선 group33 정확한 SHA 원격 CI 확인
+
+2026-10-24 01:33:57 UTC, SHA `a03a2bbee04f62b66b3a3ce67172d90384f22091`의
+[CI run 40047468953](https://github.com/E1der0wL/ish-llm/actions/runs/40047468953)를
+필수 Job/Step 및 실제 JSON artifact까지 확인했다(`verified: true`).
+전체 LLM 2,492/2,492 pass, 2034.7124490350002초;
+Hub 588/588 pass, 1103.092563589초. 실패/오류/Skip/xfail/xpass/누락/추가/중복 모두 0.
+원격 Python 3.12.14/GCC 증거는 로컬 Clang 실행과 구분했다. 이 성공은 a03a2bb만 대상으로
+하며 이후 로컬 RAG 커밋의 원격 성공으로 승계하지 않는다.
+
+이번 소단계 최종 감사 `python -m unittest tests.llm.test_contract_coverage
+ tests.llm.test_architecture_reviews`: 16/16 pass, 3.486초, exit 0.
+정적 S1–S7 exit 0, finding 112개·new/stale/미검토 0; 실제 동등성·소비자 검증으로
+변경 소스 및 README 의존 증거 17개를 갱신했다. 문서 검사 exit 0.
+R3 Mutation exit 0, 원래 두 실제 효과 Assertion에서 의도적 호출 한도 누락을 검출했다.
+전체 inventory 531개, 미검토 267개(llm 90/hub 177), 미분류 18,383개,
+미완료 계약 4개·stale/분류 오류 0. 결과 경로는
+`/workspace/llm-clean-resume/whole-ownership/rag-graph-draft/`이다.

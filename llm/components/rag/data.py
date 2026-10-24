@@ -1,5 +1,6 @@
 """UI/Tool에서 사용하는 문서 API. 모델 준비는 잠금 밖, 공개/조회는 잠금 안에서 수행한다."""
 
+from .graph_records import GraphRecord
 from .ingestion_records import EmbeddingEvidence
 
 from .status import RAGJobStatus
@@ -18,7 +19,7 @@ from llm.providers.observations import observe_component_models
 def document_view(document: dict) -> dict:
     """벡터 같은 내부 색인 데이터를 공개 문서 응답에서 제외한다."""
     return deepcopy({key: value for key, value in document.items() if key not in (
-        EmbeddingEvidence.Field.VECTORS, "graph", EmbeddingEvidence.Field.PROFILE, "preparation_configuration", "preparation_fingerprint", "extraction_manifest")})
+        EmbeddingEvidence.Field.VECTORS, GraphRecord.Field.GRAPH, EmbeddingEvidence.Field.PROFILE, "preparation_configuration", "preparation_fingerprint", "extraction_manifest")})
 
 
 def validate_documents(documents):

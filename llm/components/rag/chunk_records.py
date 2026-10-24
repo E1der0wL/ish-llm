@@ -11,6 +11,18 @@ class RAGContent:
         return hashlib.sha256(text.encode(cls.ENCODING)).hexdigest()
 
 
+class RAGDocument:
+    class Field:
+        ID = "id"
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def identifier(self):
+        return self._value[self.Field.ID]
+
+
 class RAGSection:
     FIRST_ORDINAL = 1
     ID_FORMAT = "{document_id}:s{ordinal}"

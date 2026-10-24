@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock
 
 from llm.components.prompts import PromptComponent
 from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor, RAGConflictError
-from llm.components.rag.extraction import validate_graph
+from llm.components.rag.graph_records import validate_graph
 from llm.components.rag.prompts import default_prompt, RELATION_TYPES
 from llm.llm import LargeLanguageModel, ProjectConfig
 from llm.services.infrastructure.storage import read_json, atomic_json

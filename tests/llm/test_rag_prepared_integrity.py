@@ -5,7 +5,7 @@ from copy import deepcopy
 from hashlib import sha256
 from unittest.mock import patch
 from llm.components.rag import RAGComponent
-from llm.components.rag.extraction import GraphValidationError
+from llm.components.rag.graph_records import GraphValidationError
 from tests.llm.configuration_fixtures import rag_settings
 from tests.llm import test_rag_job_state_integrity as state
 

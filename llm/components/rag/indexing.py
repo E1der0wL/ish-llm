@@ -2,7 +2,7 @@
 
 from .ingestion_records import EmbeddingEvidence
 
-from .chunk_records import RAGChunk, SplitDocument
+from .chunk_records import RAGChunk, RAGDocument, SplitDocument
 
 from contextlib import contextmanager
 
@@ -40,7 +40,7 @@ def build_index(path, documents: dict, *, batch_size=None) -> None:
                 batch = chunks[offset:offset + size]
                 index.add(ids=[RAGChunk(c).identifier for c in batch], documents=[RAGChunk(c).text for c in batch],
                           embeddings=EmbeddingEvidence(document).vectors[offset:offset + size],
-                          metadatas=[ChunkIndexMetadata.project(document["id"], c)
+                          metadatas=[ChunkIndexMetadata.project(RAGDocument(document).identifier, c)
                                      for c in batch])
 
 

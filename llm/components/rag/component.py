@@ -28,7 +28,7 @@ from .indexing import build_index, update_index
 from .search import search, search_schema
 from .splitting import split_markdown
 from .chunk_records import RAGChunk, RAGSection, SplitDocument
-from .extraction import validate_graph, validate_extraction_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
+from .graph_records import GraphEntity, GraphRelation, GraphRecord, GraphSearchResult, ExtractionCheckpoint, validate_graph, validate_extraction_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import ExtractionFailurePolicy, extraction_schema
 from .graph_indexing import build_graph, update_graph
 from .graph_search import graph_search, related_graph
@@ -72,7 +72,7 @@ class RAGComponent(DefinitionComponent):
     INPUT_FIELDS = frozenset(("identifier", "title", "content", "metadata"))
     DOCUMENT_FIELDS = frozenset(("id", "title", "content", "metadata", "revision", "generation",
         "sections", "chunks", "sha256", EmbeddingEvidence.Field.VECTORS, EmbeddingEvidence.Field.FINGERPRINT, EmbeddingEvidence.Field.INGESTION, EmbeddingEvidence.Field.PROFILE,
-        "graph_complete", "graph_diagnostics", "graph", "extraction_manifest",
+        "graph_complete", "graph_diagnostics", GraphRecord.Field.GRAPH, "extraction_manifest",
         "preparation_configuration", "preparation_fingerprint"))
 
     name = directory = RAGIdentity.CAPABILITY
@@ -188,8 +188,8 @@ class RAGComponent(DefinitionComponent):
             raise ValueError("Stored RAG document must be an object")
         identifier = validate_name(document.get("id"))
         cls._validate_versions({identifier: document})
-        graph = document.get("graph")
-        if not isinstance(graph, dict) or not {"entities", "relations"} <= graph.keys():
+        graph = document.get(GraphRecord.Field.GRAPH)
+        if not isinstance(graph, dict) or not GraphRecord.FIELDS <= graph.keys():
             raise ValueError("RAG documents require graph entities and relations")
         if (not cls.DOCUMENT_FIELDS <= document.keys()
                 or document.keys() - cls.DOCUMENT_FIELDS - {"description"}):
@@ -224,7 +224,7 @@ class RAGComponent(DefinitionComponent):
         vectors = validate_vectors(document[EmbeddingEvidence.Field.VECTORS], dimensions=EmbeddingProfile(profile).dimensions)
         if len(vectors) != len(chunks):
             raise ValueError("Prepared RAG chunk/vector count mismatch")
-        validate_stored_graph(document["graph"], chunks, identifier)
+        validate_stored_graph(document[GraphRecord.Field.GRAPH], chunks, identifier)
         if type(document["graph_complete"]) is not bool or not isinstance(document["graph_diagnostics"], list):
             raise ValueError("Invalid prepared RAG graph observations")
         for value in document["graph_diagnostics"]:
@@ -238,7 +238,7 @@ class RAGComponent(DefinitionComponent):
         manifest = document["extraction_manifest"]
         if not isinstance(manifest, list):
             raise ValueError("Invalid prepared RAG extraction manifest")
-        grouped, covered = group_evidence(document["graph"]), set()
+        grouped, covered = group_evidence(document[GraphRecord.Field.GRAPH]), set()
         for entry in manifest:
             if (not isinstance(entry, dict) or entry.keys() != {"signature", "entity_ids", "offset", "count", "digest"}
                     or type(entry["offset"]) is not int or type(entry["count"]) is not int
@@ -695,7 +695,7 @@ class RAGComponent(DefinitionComponent):
             vectors = validate_vectors(vectors, dimensions=EmbeddingEvidence(previous).profile.dimensions if dimensions is None else dimensions)
             if len(vectors) != len(SplitDocument(previous).chunks):
                 raise ValueError("Stored chunk/vector count mismatch")
-            validate_graph(previous["graph"], SplitDocument(previous).chunks,
+            validate_graph(previous[GraphRecord.Field.GRAPH], SplitDocument(previous).chunks,
                            relation_types=self.extraction_options.get("relation_types", ()))
             document = deepcopy(previous)
             document.update(title=title, metadata=metadata, revision=revision,
@@ -716,7 +716,7 @@ class RAGComponent(DefinitionComponent):
         entities, relations = {}, []
         manifest, reused_sources = [], set()
         previous_batches = {entry["signature"]: entry for entry in previous.get("extraction_manifest", [])} if previous else {}
-        previous_graph = group_evidence(previous["graph"]) if previous_batches else None
+        previous_graph = group_evidence(previous[GraphRecord.Field.GRAPH]) if previous_batches else None
         extraction_total = ((len(SplitDocument(document).chunks) + self.extraction_batch_size - 1) // self.extraction_batch_size
                             if policy != ExtractionFailurePolicy.DISABLED.value else 0)
         extraction_done = 0
@@ -749,7 +749,7 @@ class RAGComponent(DefinitionComponent):
                 reused_sources.update(RAGChunk(chunk).identifier for chunk in batch)
                 EmbeddingEvidence(document).observations[IngestionObservation.Field.EXTRACTION_REUSED] += 1
                 if progress:
-                    await progress(key, signature, {"chunks": batch, "chunk_size": self.chunk_size, "graph": graph})
+                    await progress(key, signature, {ExtractionCheckpoint.Field.CHUNKS: batch, ExtractionCheckpoint.Field.CHUNK_SIZE: self.chunk_size, ExtractionCheckpoint.Field.GRAPH: graph})
             if graph is None:
                 started = time.monotonic()
                 try:
@@ -765,7 +765,7 @@ class RAGComponent(DefinitionComponent):
                         raise
                     document["graph_complete"] = False
                     document["graph_diagnostics"].append(diagnostic("graph_incomplete", severity=DiagnosticSeverity.WARNING.value,
-                        batch_offset=offset, cause=code if code != ProviderErrorCode.FAILED.value else "graph_validation_failed").to_dict())
+                        batch_offset=offset, cause=code if code != ProviderErrorCode.FAILED.value else GraphValidationError.code).to_dict())
                     continue
                 finally:
                     extraction_done += 1
@@ -774,33 +774,33 @@ class RAGComponent(DefinitionComponent):
                     diagnostic(IngestionObservation.EXTRACTION_EVENT, **EmbeddingEvidence(document).observations)
                     await extraction_progress()
                 if progress:
-                    await progress(key, signature, {"chunks": batch, "chunk_size": self.chunk_size, "graph": graph})
+                    await progress(key, signature, {ExtractionCheckpoint.Field.CHUNKS: batch, ExtractionCheckpoint.Field.CHUNK_SIZE: self.chunk_size, ExtractionCheckpoint.Field.GRAPH: graph})
             else:
                 graph = validate_graph(graph, batch,
                                        relation_types=self.extraction_options.get("relation_types", ()))
                 extraction_done += 1
                 await extraction_progress()
-            entities.update({e["id"]: e for e in graph["entities"]})
-            relations.extend(graph["relations"])
-            manifest.append({"signature": reuse_signature, "entity_ids": [e["id"] for e in graph["entities"]],
+            entities.update({e[GraphEntity.Field.ID]: e for e in graph[GraphRecord.Field.ENTITIES]})
+            relations.extend(graph[GraphRecord.Field.RELATIONS])
+            manifest.append({"signature": reuse_signature, "entity_ids": [e[GraphEntity.Field.ID] for e in graph[GraphRecord.Field.ENTITIES]],
                              "offset": offset, "count": len(batch)})
-        document["graph"] = enrich_graph(validate_graph(
-            {"entities": list(entities.values()), "relations": relations}, SplitDocument(document).chunks,
+        document[GraphRecord.Field.GRAPH] = enrich_graph(validate_graph(
+            GraphRecord.create(list(entities.values()), relations), SplitDocument(document).chunks,
             relation_types=self.extraction_options.get("relation_types", ())), identifier)
         # Manifest stores identities/digests, not a second copy of the graph.
-        grouped = group_evidence(document["graph"])
+        grouped = group_evidence(document[GraphRecord.Field.GRAPH])
         for entry in manifest:
             batch = SplitDocument(document).chunks[entry["offset"]:entry["offset"] + entry["count"]]
             entry["digest"] = revision_token(select_graph(grouped, entry["entity_ids"], batch,
                 relation_types=self.extraction_options.get("relation_types", ())))
         if reused_sources:
             def edge_key(edge):
-                return tuple(edge[key] for key in ("source", "type", "target", "source_id", "evidence"))
-            stamps = {edge_key(edge): edge["extracted_at"] for edge in previous["graph"]["relations"]
-                      if edge["source_id"] in reused_sources}
-            for edge in document["graph"]["relations"]:
+                return GraphRelation.evidence_key(edge)
+            stamps = {edge_key(edge): edge[GraphRelation.Field.EXTRACTED_AT] for edge in previous[GraphRecord.Field.GRAPH][GraphRecord.Field.RELATIONS]
+                      if edge[GraphRelation.Field.SOURCE_ID] in reused_sources}
+            for edge in document[GraphRecord.Field.GRAPH][GraphRecord.Field.RELATIONS]:
                 if edge_key(edge) in stamps:
-                    edge["extracted_at"] = stamps[edge_key(edge)]
+                    edge[GraphRelation.Field.EXTRACTED_AT] = stamps[edge_key(edge)]
         document["extraction_manifest"] = manifest
         document["preparation_configuration"] = getattr(self, "_configuration_version", None)
         document["preparation_fingerprint"] = fingerprint
@@ -932,7 +932,7 @@ class RAGComponent(DefinitionComponent):
         path = (self._generation_path(project, snapshot["generation"]) / "graph.kuzu"
                 if snapshot["generation"] else None)
         if path is None:
-            return {"seed": seed, "entities": [], "relations": [], **status}
+            return {**GraphSearchResult.seeded(seed, [], []), **status}
         return {**graph_search(path, seed, max_hops=max_hops, limit=limit, options=self.graph_options,
                               ranking=self.search_options.get("relation_ranking")), **status}
 
@@ -940,7 +940,7 @@ class RAGComponent(DefinitionComponent):
         """동일한 불변 세대에서 문서 검색 결과와 근거 관계를 묶는다."""
         path = (self._generation_path(project, snapshot["generation"]) / "graph.kuzu"
                 if snapshot["generation"] else None)
-        graph = {"entities": [], "relations": []}
+        graph = GraphRecord.create([], [])
         if path is not None and hits:
             graph = related_graph(path, [hit["id"] for hit in hits], max_hops=max_hops, limit=relation_limit,
                                   options=self.graph_options, ranking=self.search_options.get("relation_ranking"))
@@ -950,15 +950,15 @@ class RAGComponent(DefinitionComponent):
                 "id", "document_id", "section_id", "heading", "text", "title", "generation", "revision", "metadata")}
         documents = snapshot["documents"]
         chunk_indexes = {}
-        for relation in graph["relations"]:
-            if relation["source_id"] in sources:
+        for relation in graph[GraphRecord.Field.RELATIONS]:
+            if relation[GraphRelation.Field.SOURCE_ID] in sources:
                 continue
             identifier = relation["document_id"]
             doc = documents[identifier]
             # 같은 문서를 근거로 하는 관계마다 전체 문단을 다시 순회하지 않는다.
             if identifier not in chunk_indexes:
                 chunk_indexes[identifier] = {RAGChunk(c).identifier: c for c in SplitDocument(doc).chunks}
-            chunk = chunk_indexes[identifier][relation["source_id"]]
+            chunk = chunk_indexes[identifier][relation[GraphRelation.Field.SOURCE_ID]]
             sources[RAGChunk(chunk).identifier] = {**chunk, "title": doc["title"], "generation": doc["generation"], "revision": doc["revision"],
                                      "metadata": doc["metadata"]}
         incomplete = [identifier for identifier, doc in documents.items() if doc.get("graph_complete") is False]
