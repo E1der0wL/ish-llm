@@ -7546,3 +7546,54 @@ Theme 소단계 마감: S1–S7 정적 검사 83개 finding의 신규 미검토/
 전수 감사 16개와 문서 검사 모두 exit 0이다. 전체 603파일 중 미검토 167·미분류 8,127,
 미완료 공유 계약 14, stale/위반/issues 0이다. 새 Theme 필드·enum 소비자 연결을 남은 계약에
 추가했으므로 단순히 미완료 수를 줄여 전체 완료처럼 표시하지 않았다.
+
+
+## Hub 설정 폼·단축키 입력 계약
+
+SchemaForm·SettingField·ChoiceField와 ShortcutRegistry 전체를 정리하고 입력 경계의 KeyName,
+ShortcutAction/Label 선언을 추가했다. PTK 공개 별칭 enter/tab/s-tab/c-space는 기존 철자를 유지한다.
+SchemaKeyword에 누락된 maxLength 선언 하나를 추가했으며 기존 LLM 실행/검증 구현은 같다.
+SettingMetadata는 requires_restart 조회를 소유한다. 고정 Project/정책 경로는 원본 필드 선언에서
+파생하고, JSON Schema의 열린 문법은 정규 keyword/type/extension을 참조한다.
+
+누락/null/명시값·미지의 열린 키·nullable/ref/union JSON 편집·Host 고정 필드/부분 잠금,
+원본 사본·검증 후 한 번에 반영하는 apply 순서, 키 dispatch/legend 정렬/중복 제거를 유지했다.
+clear 동작은 동적 setattr 문자열 대신 직접 속성 변경 메서드를 사용한다. 공개 입력/출력은 같다.
+
+제안 비교 중 array 타입 표시를 format으로 바꾸면 잘못된 하위 타입을 문자열로 수용하는 차이를
+발견했다. 실제 제품에 적용하기 전에 기존 문자열 결합과 오류를 보존하도록 수정했다. 실패 제안과
+로그를 보존하고 None/bool/int/dict/list 등의 하위 타입을 비교에 추가했다. 이는 검증 완화가 아니다.
+초기 자동 편집의 토큰 경계 오류도 적용 전에 발견·보존했고, 최종 Python 토큰별 치환과 동작을 검증했다.
+
+전체 기존 함수 20개의 정규화 AST가 같으며 한 생성자의 clear 위임·style 결합·restart Owner 위임은
+별도로 확인했다. 독립 비교: 타입 표시 19, 실제 필드 초기값/읽기/단축키 171, 편집 값 1,539,
+선택 callback 4·원본 보존 clear 2, 폼 구조/초기값 76, Host 잠금/원자적 편집 6,
+키 등록/정렬/legend 4. 독립 비교와 아래 실제 제품 회귀를 구분한다.
+
+Level 1은 입력/설정·JSON·외부 Editor·일반 폼·레이아웃, Level 2는 navigation/tab/프로젝트
+설정·viewport·팝업 갱신·질문 소비자다. LLM Schema/설정 계약과 승인·예산·효과·Checkpoint·
+삭제/저장·실행 경계, R3를 추가 검증했다. 기존 시험과 assertion은 수정하지 않았다.
+
+- `whole-hub-schema-l1-01`: discovered/started/pass 35/35/35, exit 0, 71.413466초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-schema-l1-01/hub.json --modules tests.hub.test_input_contract tests.hub.test_settings tests.hub.test_settings_json tests.hub.test_settings_editor tests.hub.test_settings_usability tests.hub.test_general_options tests.hub.test_page_layout`. source `bac12fc10583aa2f64c8d5e19680ffc673e4ecfe85df553a5a29b33efafdde65`, input `03825324d4300cc8de5535c723a4609e7b6262319f7ce81b50cf05bfcd82408c`.
+
+- `whole-hub-schema-l2-01`: discovered/started/pass 23/23/23, exit 0, 30.673017초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-schema-l2-01/hub.json --modules tests.hub.test_settings_navigation tests.hub.test_settings_tabs tests.hub.test_settings_project_flow tests.hub.test_settings_viewport tests.hub.test_popup_settings_updates tests.hub.test_question_card`. source `bac12fc10583aa2f64c8d5e19680ffc673e4ecfe85df553a5a29b33efafdde65`, input `03825324d4300cc8de5535c723a4609e7b6262319f7ce81b50cf05bfcd82408c`.
+
+- `whole-hub-schema-schema-01`: discovered/started/pass 43/43/43, exit 0, 6.945129초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-schema-schema-01/llm.json --modules tests.llm.test_schema_ownership tests.llm.test_configuration_validation tests.llm.test_configuration_results tests.llm.test_configuration_targets`. source `bac12fc10583aa2f64c8d5e19680ffc673e4ecfe85df553a5a29b33efafdde65`, input `03825324d4300cc8de5535c723a4609e7b6262319f7ce81b50cf05bfcd82408c`.
+
+- `whole-hub-schema-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.215551초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-schema-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `bac12fc10583aa2f64c8d5e19680ffc673e4ecfe85df553a5a29b33efafdde65`, input `03825324d4300cc8de5535c723a4609e7b6262319f7ce81b50cf05bfcd82408c`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/pass ID 일치,
+동일 suite 선택 중복 0, 실행 전후/실행 사이 source/input manifest 동일을 확인했다.
+Python 3.12.14/Clang·Host d833790·동일 의존성/실제 Linux/X11/Bubblewrap 환경이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0. 정확한 argv/exit/log와 source 증거는
+`hub-schema-form-draft/selected-results.json` 및 각 focus 디렉터리에 보존한다.
+
+전체 회귀는 관련 Hub 설정·입력 변경을 묶는 후속 Level 3에서 수행한다. 추가한 LLM 항목은
+SchemaKeyword 선언이며 다른 LLM 구현은 변경하지 않았다. 기존 safety·Host 고정값 검증을
+줄이지 않았다. requires_restart의 남은 직접 Reader 연결은 닫았지만, 다른 Hub Schema 소비자,
+다른 단축키/입력 action과 GlobalPage의 ChoiceField extension은 계속 incomplete로 추적한다.
+
+설정 폼 소단계 마감: 정적 S1–S7 83개 finding의 신규 미검토/invalid review 0,
+전수 감사 16개·문서 검사 모두 exit 0이다. 604파일 중 미검토 165·미분류 7,953,
+미완료 공유 계약 15, stale/위반/issues 0이다. 새 입력 경계와 ChoiceField의 남은 소비자를
+명시적으로 열었고, Schema의 다른 Hub 소비자는 계속 추적한다. 전체 완료 기록이 아니다.

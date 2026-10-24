@@ -8,11 +8,22 @@ from collections.abc import Callable
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.key_binding import KeyBindings
 
-MOVEMENT_KEYS = ("up", "down", "left", "right", "home", "end", "pageup", "pagedown")
+from .keys import KeyName, ShortcutAction, ShortcutLabel
+
+MOVEMENT_KEYS = KeyName.MOVEMENT
+
+
+class ShortcutOrder:
+    ESCAPE = 0
+    CONTROL = 1
+    ALT = 2
+    ORDINARY = 3
 
 
 @dataclass(slots=True)
 class Shortcut:
+    ACTIVE = True
+
     sequences: tuple[tuple[str, ...], ...]
     label: str | Callable
     action: str | Callable
@@ -20,28 +31,74 @@ class Shortcut:
 
     def order(self):
         key = self.sequences[0]
-        category = 0 if key == ("escape",) else 1 if key[0].startswith("c-") else 2 if key[0] == "escape" else 3
-        name = "movement" if self.label == "movement" else key[-1].removeprefix("c-").casefold()
+        category = (
+            ShortcutOrder.ESCAPE
+            if key == (KeyName.ESCAPE,)
+            else (
+                ShortcutOrder.CONTROL
+                if key[0].startswith(KeyName.CONTROL_PREFIX)
+                else (
+                    ShortcutOrder.ALT
+                    if key[0] == KeyName.ESCAPE
+                    else ShortcutOrder.ORDINARY
+                )
+            )
+        )
+        name = (
+            ShortcutLabel.MOVEMENT
+            if self.label == ShortcutLabel.MOVEMENT
+            else key[-1].removeprefix(KeyName.CONTROL_PREFIX).casefold()
+        )
         return category, name
 
 
 class ShortcutRegistry:
+    EAGER = True
+    GLOBAL = False
+    VISIBLE = True
+
     def __init__(self):
         self.bindings = KeyBindings()
         self.shortcuts = []
 
-    def add(self, sequences, label, action, handler, *, when=lambda: True, eager=True, global_=False):
-        sequences = tuple((keys,) if isinstance(keys, str) else tuple(keys) for keys in sequences)
+    def add(
+        self,
+        sequences,
+        label,
+        action,
+        handler,
+        *,
+        when=lambda: Shortcut.ACTIVE,
+        eager=EAGER,
+        global_=GLOBAL
+    ):
+        sequences = tuple(
+            (keys,) if isinstance(keys, str) else tuple(keys) for keys in sequences
+        )
         self.shortcuts.append(Shortcut(sequences, label, action, when))
         for keys in sequences:
-            self.bindings.add(*keys, filter=Condition(when), eager=eager and keys != ("escape",), is_global=global_)(handler)
+            self.bindings.add(
+                *keys,
+                filter=Condition(when),
+                eager=eager and keys != (KeyName.ESCAPE,),
+                is_global=global_
+            )(handler)
 
-    def scroll(self, handler, *, when=lambda: True, visible=True):
-        self.add([("escape", key) for key in MOVEMENT_KEYS],
-                 "movement" if visible else "", "scroll", handler, when=when)
+    def scroll(self, handler, *, when=lambda: Shortcut.ACTIVE, visible=VISIBLE):
+        self.add(
+            [(KeyName.ESCAPE, key) for key in MOVEMENT_KEYS],
+            ShortcutLabel.MOVEMENT if visible else ShortcutLabel.HIDDEN,
+            ShortcutAction.SCROLL,
+            handler,
+            when=when,
+        )
 
     def active(self):
-        return [shortcut for shortcut in self.shortcuts if shortcut.label and shortcut.when()]
+        return [
+            shortcut
+            for shortcut in self.shortcuts
+            if shortcut.label and shortcut.when()
+        ]
 
 
 def legend(shortcuts, t):
@@ -49,7 +106,14 @@ def legend(shortcuts, t):
     for shortcut in sorted(shortcuts, key=lambda item: item.order()):
         label = shortcut.label() if callable(shortcut.label) else shortcut.label
         action = shortcut.action() if callable(shortcut.action) else shortcut.action
-        pair = (t(MessageKey.SHORTCUT_ALT_MOVEMENT) if label == "movement" else label, t(MessagePattern.shortcut(action)))
+        pair = (
+            (
+                t(MessageKey.SHORTCUT_ALT_MOVEMENT)
+                if label == ShortcutLabel.MOVEMENT
+                else label
+            ),
+            t(MessagePattern.shortcut(action)),
+        )
         if pair not in result:
             result.append(pair)
     return result

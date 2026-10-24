@@ -14,6 +14,7 @@ class SchemaKeyword:
     MAXIMUM = "maximum"
     EXCLUSIVE_MINIMUM = "exclusiveMinimum"
     MIN_LENGTH = "minLength"
+    MAX_LENGTH = "maxLength"
     MIN_ITEMS = "minItems"
     MAX_ITEMS = "maxItems"
     MIN_PROPERTIES = "minProperties"

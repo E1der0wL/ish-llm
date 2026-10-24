@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 603,
-    "unreviewed_files": 167,
+    "files": 604,
+    "unreviewed_files": 165,
     "stale_files": 0,
-    "unclassified": 8127,
+    "unclassified": 7953,
     "violations": 0,
-    "incomplete_contracts": 14,
-    "unreviewed_dynamic_paths": 167,
+    "incomplete_contracts": 15,
+    "unreviewed_dynamic_paths": 165,
     "unreadable_files": 0,
-    "candidates": 19765,
+    "candidates": 19668,
     "issues": 0
   },
   "files": [
@@ -496,7 +496,7 @@
     {
       "path": "hub/config/metadata.py",
       "status": "reviewed",
-      "sha256": "c419661ce6e78a6b7d3ed42c7b5d6a2c6d494a54897a1c8a7441fce042535253",
+      "sha256": "53feba022cbc524453716540b9be27217501ad0a2a0142be083111a9d0c500d4",
       "candidates": 5
     },
     {
@@ -758,10 +758,16 @@
       "candidates": 24
     },
     {
+      "path": "hub/ui/input/keys.py",
+      "status": "reviewed",
+      "sha256": "3018c66daf3382af1910af10ee8fbe53ecda69493ae05d01b6af77fb284e031d",
+      "candidates": 22
+    },
+    {
       "path": "hub/ui/input/registry.py",
-      "status": "unreviewed",
-      "sha256": "076a86eb80648fdfa380acfc86e80dbb9787ac2076c033ee1c6da74a870d5ffd",
-      "candidates": 36
+      "status": "reviewed",
+      "sha256": "15d89c06883354cd2b11deac0f6fe91a1d54a364df4f16d6cbc01cebca724576",
+      "candidates": 15
     },
     {
       "path": "hub/ui/input/submission.py",
@@ -1143,9 +1149,9 @@
     },
     {
       "path": "hub/widget/forms/settings.py",
-      "status": "unreviewed",
-      "sha256": "6ad823eae6e09cdc6340329dc6803e66d055feb7552015fa4cf7494730a083bf",
-      "candidates": 138
+      "status": "reviewed",
+      "sha256": "3801fa0cf3943ede3be43e250fbc937b3fe8918ec441d48d91e63e9cd17f90be",
+      "candidates": 39
     },
     {
       "path": "hub/widget/forms/settings_viewport.py",
@@ -2656,8 +2662,8 @@
     {
       "path": "llm/core/schema.py",
       "status": "reviewed",
-      "sha256": "a29ed68ea7ae069dafffa11bbc2bf3687254903ac96fb48b180b54ecdcf49e83",
-      "candidates": 90
+      "sha256": "a9893e6a01b43ec56b6625da15d1c4cdb1cd0e885ba4c3debe6d0e9d2e9ed55d",
+      "candidates": 91
     },
     {
       "path": "llm/core/skills.py",

@@ -2748,8 +2748,8 @@
   },
   {
     "path": "llm/core/schema.py",
-    "sha256": "a29ed68ea7ae069dafffa11bbc2bf3687254903ac96fb48b180b54ecdcf49e83",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved. Configuration service schema vocabulary now connected; Hub form consumer remains pending. Final llm scope review read the entire 322-line module: schema vocabulary, explicit open-owner categories, local reference traversal, annotation vs Schema separation, no generated defaults, config/policy envelope projection, Host observation markers and numeric-only inline narrowing. Recursive dynamic property/schema paths and empty structural containers reviewed against current llm consumers. The two None literals are local validation iterator exhaustion sentinels, not stored/policy fallback. Hub Schema form traversal stays explicitly incomplete.",
+    "sha256": "a9893e6a01b43ec56b6625da15d1c4cdb1cd0e885ba4c3debe6d0e9d2e9ed55d",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved. Configuration service schema vocabulary now connected; Hub form consumer remains pending. Final llm scope review read the entire 322-line module: schema vocabulary, explicit open-owner categories, local reference traversal, annotation vs Schema separation, no generated defaults, config/policy envelope projection, Host observation markers and numeric-only inline narrowing. Recursive dynamic property/schema paths and empty structural containers reviewed against current llm consumers. The two None literals are local validation iterator exhaustion sentinels, not stored/policy fallback. Hub Schema form traversal stays explicitly incomplete. Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. SchemaForm consumer is migrated; other known Hub Schema grammar consumers remain pending and are not silently treated as complete.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -2789,505 +2789,511 @@
         "reason": "Single standard JSON Schema keyword declaration; policy field schemas and constraint bounds consume it."
       },
       {
-        "id": "3a967dcc62195f12974da98a448b4b3a98c5ac280b17cff8edae84ca2f50c443",
+        "id": "3f9f2fd6d5b2286e2b5cf4319e6cc26a1227db90066ede655ed0954632c486cf",
+        "classification": "declaration",
+        "owner": "SchemaKeyword",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "59fbf0587d822a09e8075efe7248c7ead69778e94f2c545b3b0dc04d75bde115",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Single standard JSON Schema keyword declaration; policy field schemas and constraint bounds consume it."
       },
       {
-        "id": "001ea139d121f0ba59445f593c8b96f41dceb8714c2cf36b631433ceab154404",
+        "id": "cf876537b85e8ce14c33d8914883926f26590e2e4db8f4f0d7c1f57f37fc6f66",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Canonical JSON Schema maximum-array-length keyword, used by the ordered image operation schema; no traversal/default interpretation changed."
       },
       {
-        "id": "9be486c29c591369f2ae5470ce08d29f8ec99a0a5cf312492edbb3c12fa17b35",
+        "id": "166eb6d6f05dd201e793bf2b3b0f6cf0535ca27e8c10525cecb31195ecfd11ec",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Name the existing standard minProperties and pattern keywords; no Schema algorithm or constraint changed."
       },
       {
-        "id": "9ef3f9de011e63c039766c5516d363e06ab03ddfbd59715e9e6754302047733e",
+        "id": "85eb8bb030a448c2a95782456dfa066bd20976e14ade15debb87d65347fbfdfc",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Name the existing standard minProperties and pattern keywords; no Schema algorithm or constraint changed."
       },
       {
-        "id": "6ab02cc97867f03da4090a4fd62dd799647d49399c34f0cc6df77cbb81325322",
+        "id": "53f744c64a4ee2da9f1510d45840ba9f5d867c1c9a6c13222cf35217b3e03f80",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Canonical JSON Schema vocabulary, shared by selection field metadata and Schema consumers."
       },
       {
-        "id": "5ac080ac562b66b05be56ed1c46d9913510cf196f14ca0b7935eb6a98261aefd",
+        "id": "571f650fca5acf81e545217077d29966ce521ce3df2d1d50a0618757ff3a8ad8",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Canonical JSON Schema vocabulary, shared by selection field metadata and Schema consumers."
       },
       {
-        "id": "bf6185c805513416c590034436703cb8c1338c5ae6fca6e0781e2baf427d198b",
+        "id": "78db3f6b798b52e471fb252ab2a6046d67c6326266e3f75d3992d8174d299700",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4709b99de853b176cfbbcac94068ba8e9d37b67cbadcc932d2758bcc35d1e704",
+        "id": "2bb0df62139b6eab7b47f1d32b58a8cdd9e27cb4ca16d498f11d26e6988ad9a5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7049b0ba3f8e654020c52a64e46cb85ce4ee6a8ce45f0de696446219e124cc08",
+        "id": "138e7f6e2d35691dfaf303b8daa16ae4b938b0c3e964b28fb041ec8d7c243078",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5df9be72d381c858d3603893179333a3be65ae5aac03721e7d7b44c485f1440d",
+        "id": "93d4b553cd59f16e004b184c0cdb8f913cf663bdaccb7ede46dd1a3db8f52843",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "6456488b42df664b306d3003dd5069fc4e874b8ab6c1c3dfb4b642528d14f00e",
+        "id": "3e7e00d2c8916d8d54e418be1eb4f093d82fb3d128856d51b03a93eed2ba0af7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2ff3c15507f79fc2601c657a4bf9c4cb93baf4eeff9136fba377cac7c9f83ea0",
+        "id": "26e6623c3d59587e3e29f648bf73ed5337cd4a62c3a9a7cc8a0b36c5bfd827bd",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ccfdc3f1d1cde785805b741915e19f32ef612ebebee3ff261701471958778aa6",
+        "id": "d9b72b830bde17e1600db78704dd643b57b1cd2ac95c16f3131129c6e2ee93aa",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "23be94df7ed89842c16385fdd5fcb7400434afbf4040c365f81802deb57d8b67",
+        "id": "e23fe08f0db1f7c1ae75ac4c5db04e07e09adb1be2c40f414026db5765f9ec57",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "de1c481c93536d52bbc40de8da1897c40f2e5f198593f9867b430f0ce1c2d27f",
+        "id": "49d119e02930a0aef8a8c892fe10c03aa374923c3a6b74f02f91db744df26474",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "95bb8c217efe9438a3ff02e6230a1468058bfd1ff1a358f180c658fdd6f75e70",
+        "id": "bb4ce94f4b3a040aa8e1ab16738afaa01bd8771da66f5b8348350262772bf618",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8ffc39a8dfca86c585f5c36634d9df059e502bd6a2cf2f5c4c3db165746c2a58",
+        "id": "b9e3c7716256a8516ce7182b6f656374ba51031af81bd1555735f12d67f3d063",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "80a1962ad2f2eae8eebcb2561864937dff94ffab2ed59084c716a0dc13645b4f",
+        "id": "464f1649d5b1a9e581fa07efc3cb0ec781f9a607f2499c495b7964f18aa654cf",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "abf1bb123d95c48a29ec96a45ed9b58398e37a642d6e52a71ea2f75ccd1d81c1",
+        "id": "1267984f00730aa290f27c546ce3f05b459cf4918f79c960921af37891224f6c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1717258e312e224f89dc70a1385daaee1eb943af635b60b42d625ec1dedb0953",
+        "id": "b42cec1664ae6d5138e3e574808c6b173c3799a60ad5c304891acce7cce7950c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "eb8bd9c04fe7841d09b1c73eaf5a7191635129f9b30500acd6df5a1847a95aae",
+        "id": "e80eb49964aef5bca7505c2d1cbe202e8e6c46ce21c7c30e78d00af1c7e7adb9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c0a9636863a2f48f7c10f1e12629a310136affa11ca9f52d2532c447fe1a2597",
+        "id": "da16e28652d9bf485e2d0427cf108a836bc3c180004679612a12712d34e60b39",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "bf07b824ac559bd0eb2405aae13a04c3211335f1824441c30e4dbd131d1acf05",
+        "id": "90e085039433e12500f32e67d59e893101d42d466046d85edd0db4210fa817f6",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ad862b33ef99e489e0cace08756f32a92ab0343e04cc5a5cf0e35b8418345728",
+        "id": "9576a0aa5116701a62f37b2dadc66c479b6804796a6fe7cd7239c4d45191bb51",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "6e08a57a6482943493c1b57bcf6c5f41f807a21f21f0c9c17b1864f16ad6583c",
+        "id": "23cd1545cc39ac6a6ca587b5bed6ff04d5127477ca86f986622641b5d6bc5629",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fc301848bc60d889ff32f066d5234f83b0c4e4c8e39dde6d35460e2a26de1dc6",
+        "id": "4c2635504a12ca2b481415066426f3f919d5b9d154ab3dfb67419486c14a24bc",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3240090831f34024193b5ef569de59919ec9154e27db19e16ceab5f9cb720848",
+        "id": "ae5be16d5e76c46c2eaa1a9fe72d9fb4904571be6b9b5dc0440a898592fe4eee",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1c6645a897f0a64431d3ad9d4b0650bd05ebba0fbed7c84c332febc718c46d9d",
+        "id": "26ec41039d497bf073f1e033739dc4eac050e69dfc63c65346ffa1e9a4771187",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f97e9d93f26966a4bca4a8abb905ba25ba9e52f48e552f6add6cb8d06923a8e0",
+        "id": "d2db83247d0ab581e3ea4effecb7a9796fb0d0d9d223918ae3efa16f515e111b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "72c69fc130cd21ca9c5bae38920285e5b6583d812a430c417b42cbdf99b7c8f7",
+        "id": "909114df1882a223069c8caedc431d9d8107018b5336f75301043d1d2ab6118d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "43457b6c2e41fa76a1298c4164d1243113177a8573f37c824e920fb82902b62e",
+        "id": "94e1fa9580bd696eb73831ec4c7442ad22cace63e265ff6c05dcd928875aae64",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "be198c8e27e086013a89218962be9d878a70288c24e7a5a84af7f0827ba8a33b",
+        "id": "cde1c96a4ae62d65a3e81e7c7f4daf5aa52cf3e63cb2bf629c2ed0774a29fdd8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e78a38c49dd15699b5b91f9794227e77f0baeb5c3bd20f3e3947b72f028d2775",
+        "id": "103a5bf14cf39ef678899b5ecb1d516ca950e3669bdddbb5e0a33e25923984ea",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ae6f67eba3e2c98acda6352d6b6477643cbead56740d5076552bb10a8751df15",
+        "id": "b0963dd0455067cf0616ddab318692de59e4af8003a97c58f0a1214bb1a0b7cc",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4c7e2b42f6e3b98204606c7755707288cf2016faffc3d7a1e669e946efeab994",
+        "id": "049a19e00e60386e555db6457c21647864026fcf63ede6f19ac69be9ed06d5ee",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "0d78fece16cc1c8e404baf536449c68ffb3b75a7e258d0beff2e7f6fa8f38703",
+        "id": "a146628eda30ccc52bcb9e1d5b2b6abf4827c0073a6729741444ab51f29ea673",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a83e352fbf8efac8b2cedd18dd61f632d486e7267d28e947c5d04072d9545c7f",
+        "id": "cb65e3815f7cce50c7507c47b778598349bce39bdb9d1e0c740962db9c3a709e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "908c5779f35b60d82805a8d7f62dc751f8f0631536cd29b64858f724c4c1b216",
+        "id": "b808000230696540738b074f0972292a41a474620c7810c0c5116e61922037cf",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "c0b4c33a36b8b79c3404abdc2840c0c6e7a91784b142e8b912e2619690379c7c",
+        "id": "5bbc090ab65f874f32169a33f6d8ef9025716abe6d92a6ac716ccbe7334046a5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "04fb83b9c07ad6eb16c81afd42e23015b6845af855722d8f2932eea84887f3af",
+        "id": "99d39032ccc539ff0ada7cfdaf7bf23b04150c27baadcd033b93bd2d004f0fb8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f6c8e1a874a2c5fe3f88e1ecf79da37d23e7fea291824f9a4bf00d3743bdbc54",
+        "id": "d394b5f726cdd3c33beb5d54b70ef4d7b774e3a41334434fe736cc15736fc613",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "9534a3b40c08967d5ac97cfcb91b765b68ed1ffe757da82f7f87d906be6e9284",
+        "id": "e6b9e44493ccc05b2b24b16146991c5c6be7766d7c1e6ee9c3bfe5ef4b92b50c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b4a37d41bdf23a2f5dfb7a5b1e85860706ad45037eb6aa0b14457f9f72e779d3",
+        "id": "cdbfa0bba4bb9c4b7bd07594e44ce5eecc3c25979eefe04485ee07ff54d5129c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f4e6e7640ec117f9deb8ae3e85e7c2f836a1bf8b3827c1f3b8422f9c67fff061",
+        "id": "f90b43556dd49e4a4ed2d719601b2b2fff58afb141a9e9c019829806727d0da7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f9477fb76677c494a65fa85055378a75d99037ab3410d5179ce9e2bd258307c2",
+        "id": "925ec1710c7210e55b7e8a586aec6b8daeef429267f266fdfbb38d03963832ff",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "85d5b84fe44e7166ee989d817fcdacc7069602c9585627d67b8a91db00be7314",
+        "id": "0d01b247cff208e214f35ff859fce909f107cb4336fc322b2c8548db787542a7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "42be9c53692d5dbec25b398015f48ac0c2496f22cae4eadc2a40423349bc720e",
+        "id": "0c4f66580845cbf57d709da31cfaae8d0538b7c8d28a19f0c4102b9cf7a821aa",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7fb76c85c7b4095e807842ffd1ce4c2c56268691e9878a98c064577063cc78e7",
+        "id": "da8fe94d5671419a77566cf625118608087037604d437b5c9b9ddf21124449a5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "6779c86806a278126afeae62451792e96cc5ae48c5d11afb3ca7162a5efb85a8",
+        "id": "4c7e4865362e23e319a8ce055dde8d46c687f78dab6edcc51f7c129183636388",
         "classification": "declaration",
         "owner": "SchemaExtension",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "508474471da79d8c272c8b32bf0c777094f224a84ef12f26b8a4b5504ba41744",
+        "id": "b3f9f8ceb1b2ddaa0fb0ef814bd24c1eb8a76dd084a0091915bb8a195225736c",
         "classification": "declaration",
         "owner": "SchemaExtension",
         "reason": "Canonical runtime configuration schema annotation now shared by the existing RAG and Graph schema writers; complete unchanged schema and Graph methods and consumer tests preserve its wire value."
       },
       {
-        "id": "5d814357eeb98fd249ffaab7497835e6c712b044d379e39309aefc4933d64ef4",
+        "id": "2f8d5686b117a7388a5a6a0520f6ad62aa62b338335083285c20938fecf04caf",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "25c6803589e089ffde871f63bc9386d4596744d5cdb4c76479a13c1f41a4a3ec",
+        "id": "ad91b91fb6b4827efcc3b47ace9c9db1476493ba84472766c8133c059e0f178b",
         "classification": "declaration",
         "owner": "SchemaExtension",
         "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
       },
       {
-        "id": "54757ff35528c10502ace05607dd329f572c517b530fa99353d4a9ebfd10473b",
+        "id": "87025374c2e61b8e4a0ef59182bf5cdd2a176a08800c0a2221ffa230146f9039",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "786946a2889a2149b7a9ba7bdacaba21b090a7ea54178b10f5156fa0db98f268",
+        "id": "b1fba3dc0c9dda48d3c3fd9b363cdbc5c4325fda6f070f4b7cf4208f9c9e0230",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "9bd6892fed5776f3e2b9b452771d6fb887ddc06351a7fffa05f5a442bebeaa44",
+        "id": "16279308fbbad4a152ca5a3bb0af8864ea378c4ed5929957c2482c1294772da5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5e471bb4fdf2893bc4006bb23c67cd7258137a598e6e2931c83b8f2e5b2cdef8",
+        "id": "b896de9cb6f471bad52fccfb2df961709c6f90d151af26e2ecd9a6c201fa33e4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1a5800d0c0688c0ba28a04203e47a3dba9fc3234167afa39179f3799dbebfd51",
+        "id": "1249c1edc424c2950110a8396423c3859ce8c56173f155d6f32a5da109cd1302",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b0dd842deb4c2de195c45c683bee0494a98520ea92445fa91b2dc85b11dc0693",
+        "id": "d0b36b096d77ac5029dafc560df492c732e163fdf0265d4452e5f70db542c21d",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "2140155798338a458b49760442a1cb0f54381126a5cb0ea81002583cf56cc3ce",
+        "id": "567e13815edea892f622ed6eecf20a2290f91f2d2eaadb578bce3ca4663824f8",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "593d089a9d80885bf12e89beb0c63a6e86fd1646b002dd305ed8bf67c6a91b8c",
+        "id": "5115e19eb38cc2132c7ce2f5c93acb4ba69e0c7950e2543caedf6cac415cf4aa",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "02bfd081091311e8ef9a9907de83bbe4ff012a7568288ea329f9dbf1663c979e",
+        "id": "5dac1c4f5f3c20f948dc2d73418309cf5fdaa7c294ab58c097283f49b7858807",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3303d452f0ba3de70dceca8b0518bfdda3a42337be67488c8ee0cd6c66294737",
+        "id": "f39d57de47bf4d81a9b92cd2b519a54d5d1ba8c1b54c55597a91840ff90c9796",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1d762735de4cda35d6c5c690fe8a3fa287659645d5acaaa0cf4244c8ba208c72",
+        "id": "e6c42a516f331434de5e89090831ff9d10c1c6db596e07a1eef56d07f47187f7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d2c82e47980c8c9fca807bae791bd60b300c3075cbb0eff41721bd4f589ddcb6",
+        "id": "1675b119aab39845bb27745c0035aec98fe7e88d366faa03addd1a7c11b1dc1f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b2816c84d12edd89196799df0cf5bc89c9f2a1c26e84aa2569e16be80539b598",
+        "id": "67079b9d323c31915f6a7ae37e9037490cf31661b8a5a7a3120d9a42399df8b7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "631b375fbc132b88b21cc0b542504ef733fc68617686b1bd463818088b21f024",
+        "id": "be79c029edfeb8e9a1efccffd2b1000f1040b187091ae4f476462542cc733193",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b06d06edcd1244427416dd376c2935d9641fff022fff9ebda1c0443aca7b2055",
+        "id": "f31ef6435518dba63d4ee7ddad07703c6e2ec8decaacdd45e8e05163a38be510",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "bce8a143ce33e01585da0faedf37441e24a0d53582c3af8e60f264bdc5425fca",
+        "id": "5459d675b68536ac19ab9ffcfbf18bd8cc12d417922eac43a984873110d8ba7a",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "61635df319453ca57a8094da4bba34537c008f6913d832f207b3616705747dd2",
+        "id": "e72b7814b5e0b855462581d31a2b9b1e492f21502b661161964b138330b33741",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ee5f80a51a8b7fa2478e575c83dde7c840b42b756dc7b651fe6129b7642a8fac",
+        "id": "8eedc6cb0bc99e2738f2b2c9c8687fc10404409eeae8f6db402c0dbda751e3e1",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "cdba6000caf01bccc8d800af270807995b784657088f7c1e791e9952b7b1b56c",
+        "id": "6197aae38acadd4f87801ac33824c5ec00285533a43c56fb22b0310ec5e29b51",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4576faa02fdd5e76afbefff71a7abcbdbef9182d34ae572e76a3c292f4f2e4b4",
+        "id": "c6550fe207399b3cba654b0d5feed7b0ea89f71a2475e2e8034d32b284856042",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1f649063521e3fc9b7a71805e0ab3ed20b2c0d9169d85a5799aaff69ce8e2385",
+        "id": "e2fb29eb0efbb2d365bc16f8266e75945e5a0242d314267fd7e42e558c9f370f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "86993c413a4c60f10190d504640cd916145678c87c4036d9e0bb9d16aedd0279",
+        "id": "540ec9ba40506f5b02407fe2426278df3aa868288875b4fe1ed4f3ce5a619bd6",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "0fa305a774069eef53c627b02d721ff340693b66a5794fb663a64114d50e71b3",
+        "id": "c21fac834be3967c3b487d45a91fc393352efd46123cc13e1d5a1588d92adbe5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "55d2b402cfafc5286d372e4359c5743f1f6391accf1ef573840e6fa01c24bf42",
+        "id": "5b8bd8267d4bda46a9561074ab0a1d83b1c56a4dc73f3feeae6c0911f9e3347b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d8815794074b5ae07a46b2b5c20b7fb3b3999e6fa7b78f9015fdce34568621e8",
+        "id": "dad215b575ab3898fd27fd5681ae889b18ba069f2c5e447efa2a66ae262268bd",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8e0b85b76a4a5b92fe800e168123cad11592a580ccad00b83c9d3b1473c91aec",
+        "id": "54fe9318982007cf4811a24b337d0537b8e363e9c0bfb98b385b993a82bb7e84",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b224974a0c49eafbbe3117e557fc8ba029edd90f6f864f1a9792c060850f0fbb",
+        "id": "451f18dc00e8cb08c679365cee531b89c0ebd3309541c32588cbe8ee68ceb90f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a1f1bc906df5b0395c826ba96b855f6712cafc5d5c0c961dad963a59eb9057b7",
+        "id": "1d50cc2e35431cbb87d4a181561d2b1d86603322d20568b0db779d1eef0fd2e4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "43aec4a8997a9e60a53b76c39e0e5eae2bf8ad876a1a9a7366c55db2ad56f276",
+        "id": "98194c0b2b61a0e10d1e816945e8958b120b4a75ce8dd0f91bf7444865d9e717",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ee5f9b8a447316c261650bbd2f418119fe2250627d1c813193a447acc7bbf366",
+        "id": "0160a49a3236a2d8a9f21dd29dd7d954bfe5de3b3b3625a9b8e71cb4b0bc42cb",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "6803d39de8bd668d1e524ba64d1af134d548a81e0a8571c96cb57996d19ffb49",
+        "id": "f1f30c7ea955b73e022c6001f6860ee5561b1f0eddc82e94e89a6f5516d94447",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
       },
       {
-        "id": "2209e487687b75f4eebcb6981c27b0b2c3cbb6bfeb8bb515e6439e5cc4ebb301",
+        "id": "a3fb300e029f7cc0bdbe3685145cb41a17898e38c2f5e63de49b7ced11e904c0",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
@@ -3298,6 +3304,13 @@
         "owner": "JSON Schema vocabulary and traversal",
         "declaration": "llm/core/schema.py",
         "consumers": [
+          "hub/backend/project/settings.py",
+          "hub/backend/project/settings_descriptions.py",
+          "hub/backend/tools/advice.py",
+          "hub/backend/tools/resources.py",
+          "hub/ui/settings/navigation.py",
+          "hub/ui/settings/pages.py",
+          "hub/widget/forms/question.py",
           "hub/widget/forms/settings.py",
           "llm/components/vision/image_contracts.py",
           "llm/core/configuration.py",
@@ -3311,12 +3324,28 @@
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_provider_activity.py",
+          "tests/hub/test_question_card.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
@@ -3333,6 +3362,7 @@
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
@@ -84741,8 +84771,8 @@
   },
   {
     "path": "hub/config/metadata.py",
-    "sha256": "c419661ce6e78a6b7d3ed42c7b5d6a2c6d494a54897a1c8a7441fce042535253",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: SchemaForm SettingField still directly reads the requires_restart extension.",
+    "sha256": "53feba022cbc524453716540b9be27217501ad0a2a0142be083111a9d0c500d4",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: SchemaForm SettingField still directly reads the requires_restart extension. Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -84788,38 +84818,48 @@
           "hub/widget/forms/settings.py"
         ],
         "tests": [
-          "tests/hub/test_stores.py",
-          "tests/hub/test_reading_positions.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_workspace_presence.py",
-          "tests/hub/test_general_options.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_settings_usability.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_question_tools.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_tool_retry.py",
-          "tests/hub/test_request_history.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_coding_skill.py",
-          "tests/hub/test_provider_recovery.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_stores.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -86611,6 +86651,604 @@
           "tests/hub/test_render_intervals.py",
           "tests/hub/test_question_card.py",
           "tests/hub/test_ish_integration.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/input/keys.py",
+    "sha256": "3018c66daf3382af1910af10ee8fbe53ecda69493ae05d01b6af77fb284e031d",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9b70fafad331942135abe754feaec79d6dd9746038b04ad78777e409c8996aa1",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "2f9af7d2ff2b3bbad9d8023176f936bc08c495ddf083d6e3752301081508e77c",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "96dfeb171353b57f3f54b6341b46fb5721357e1c883196bc719ce3170688b383",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "76e9a3ba241e3c531da007319d4555c87303441087e474cb7f962626b27e21dc",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "dee8bc9d6936e8fa6f1dc9cd785cb91dc3b4d60c0016b4fcf6e6b5ac2c59fc66",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "26e55a53e07f04e69254d5b69966ca2d58ea7a914273247a52977a7b738c7569",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "c75934644f89ec46bcf07634b7c6e62662eaf0c649f4891fd62cb24c4e8012b4",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "2a1dbe3f04c0449f25271e178dcf4c422934ff55e4581cf59460c8ef06d6830d",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "914345f4f93f61c7fd324d705cd8fbdc47186efce4ac778059b1231112d9e77b",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "83fcf98018a73d1d8469a15c7fb90efa9e65049899230e337e2931ae57e2f6ff",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "11d6561df6e3baf7922901b6e7e10d3845e5c9036d21ecb1e869c000573d29f9",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "df53710505ad1273b2850947320f263ec01e92bd691687ecd0d18213717976ba",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "49db89e0a1630cc955307f27436ed1638ae84bac4d66ef83f54ed761526e92cf",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "3c66bd98df1746d61e2e4b2d9f10e8ceeb7f3a90652a4d8f4dbb7f31b894e8bb",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "32a6c6d18b365b73ca4f8fd4790fcf2f2d6b4278699463b088c8015f932482ed",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "c01f8247f91c0ba7aa7cfa025eb468b07195603ae7cc7d3ef4fb57470ad10dc8",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "8e079a6bad05d0e23cb6efb0db5eea62a93a2c436a80569075985472fec747f7",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "2a217734ba60adc0961a5dae802cb2147f03fbf879e9eb8bb87bd26715ac8f28",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "ccf8ebf0faa11210e3a194cfc1c98bf54956966e74650bce56d0f2d708d742d0",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "11b75a751dfb5302641c307955269be0bfe733065cdd1f3a9af9ba9acf1a9e11",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "c004224e866283c5428989446218d1d2a0cc088bce00ed55750d9811791f3a9a",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "bd442a41f7d4a8e1763f52a999e11c91a96e988dfb851ce3b3cef58555a26f38",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "KeyName / ShortcutAction / ShortcutLabel",
+        "declaration": "hub/ui/input/keys.py",
+        "consumers": [
+          "hub/ui/input/registry.py",
+          "hub/widget/forms/settings.py",
+          "hub/ui/input/bindings.py",
+          "hub/widget/profile.py",
+          "hub/widget/actions.py"
+        ],
+        "tests": [
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_question_card.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/input/registry.py",
+    "sha256": "15d89c06883354cd2b11deac0f6fe91a1d54a364df4f16d6cbc01cebca724576",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a1b834012c01b84a9efa5db4acd8b6fb94eca24b5cf1fcc9afbb256a60282ac6",
+        "classification": "declaration",
+        "owner": "ShortcutOrder",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "df392658e403fbe60bc37d92a392ae89c62e2b7bdcd61fcdecbf798667cc4956",
+        "classification": "declaration",
+        "owner": "ShortcutOrder",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "b22f8befa83736f9894f2b9829ada0ebf6b790d0d209f7c70b1cc6c4b6f58544",
+        "classification": "declaration",
+        "owner": "ShortcutOrder",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "b0a26b6ed24b14dce3484d4eb519ff9cde3cf641aafadb90ff0beccec799a15c",
+        "classification": "declaration",
+        "owner": "ShortcutOrder",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "55e487c80462d9db844a5f48dd285b863e29d7cda92692e5b670970bd75dbaf2",
+        "classification": "non_contract",
+        "owner": "Shortcut",
+        "reason": "Python dataclass slot layout annotation, not dispatch or execution policy."
+      },
+      {
+        "id": "81164e8d54f85b6e35fe036152bd4c11272c0cadcbe77ab6bf628823b6e54a0f",
+        "classification": "declaration",
+        "owner": "Shortcut",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "d187e061b30ce499b32d60d69b03d24140853c47bd75b9b93602a1c4d19ecf05",
+        "classification": "declaration",
+        "owner": "Shortcut",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "96a27fb4d12917f56fcad546e098b6afd161df5c0996772eb787fab8f133b110",
+        "classification": "declaration",
+        "owner": "Shortcut",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "137e2cba7f1a2a1c0852b883ef5cf2026e096a7300fb08aeccc806413cb83994",
+        "classification": "non_contract",
+        "owner": "Shortcut.order",
+        "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
+      },
+      {
+        "id": "7eae4f4441a5da7cd5b6484ffbcd1713aedbb06a4c16fa6eaf7db443d3b120ec",
+        "classification": "non_contract",
+        "owner": "Shortcut.order",
+        "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
+      },
+      {
+        "id": "8266a24f2623d06087a7ddf331b6688d5d7bef565e85cc24596cc88c72439f4a",
+        "classification": "non_contract",
+        "owner": "Shortcut.order",
+        "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
+      },
+      {
+        "id": "0fab9896e995b3056f267607162a7d8a9fc9481b9ed56beb58db3b2ea0a06243",
+        "classification": "non_contract",
+        "owner": "Shortcut.order",
+        "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
+      },
+      {
+        "id": "ebc5a5e555e40fa4ccd053b1974fecbb486f6f469cddbaacbce28ed6ffe13a68",
+        "classification": "declaration",
+        "owner": "ShortcutRegistry",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "37ef51fdd0d388b4d16bcf87d7fddcf7d43e9d7fbc235a622ab98651fab994fe",
+        "classification": "declaration",
+        "owner": "ShortcutRegistry",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      },
+      {
+        "id": "1e95de24777302a957f9e59b8f929aa5ef156afe7ac73bce48e90915b65d2a08",
+        "classification": "declaration",
+        "owner": "ShortcutRegistry",
+        "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Shortcut / ShortcutOrder / ShortcutRegistry",
+        "declaration": "hub/ui/input/registry.py",
+        "consumers": [
+          "hub/ui/input/bindings.py",
+          "hub/widget/forms/settings.py",
+          "hub/widget/actions.py",
+          "hub/widget/profile.py"
+        ],
+        "tests": [
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_question_card.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/settings.py",
+    "sha256": "3801fa0cf3943ede3be43e250fbc937b3fe8918ec441d48d91e63e9cd17f90be",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "54e8ba1b1e2a2a65cc168e50a02d620b37294f6944c63fde63aea92d81cfdc40",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "c4af70bbeffecda5d7a1e45e204172790b14de9dc8989851115255631089eafa",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "a423f83bf5141118df1007fc896984ef5b4ab8f77c2afaabb21f6638a5ee45cf",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "85083248a1c650930969ec7b4190fcac377aca79748e3098132d2f3ca4fe5398",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "991366a6ac63b51b67287a28627d1cc8e2501128617e680d90f45e016a15a37b",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "c2223076f96d0a22eb57f55e11cafdf727db8333b6d50c2687ba0fb663fac483",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "c2b9d5047875f13f2d2e1871aa45e111dce3f6b84984809cac289b19a455e36a",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "70214ee546eb0483cbb384016795f759ea7bc7f178ddf001f295761dd74f0a6d",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "0309f74fb68ba3cb8d0124b7dddd6b127dc68e9fccfa75cc3916b22b88a367fe",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "bbb76e4c8327d41c7810b8f298b7d06d8b94131ee83d701996a2384b7489afa8",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "35ad92ac426322276f14736c3731ae68919c54d9f8f609c8a085c95104345761",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "f566f3c811d9b4bc3f939580ce44f2d88997e45087f60061b3ef492a8ae56591",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "bb7b0fa7a6640aa6f731d6dec6fc5a474a884065288f7ae89e98fa3a8f9549a7",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "6239d0e9536c4e76c52c255be2a255e7a0fa4df19286a210ee9358bb385a562d",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "18fc4d57c8e7fc7dd17fc6d93b33eff4b7d9a4a61ca9373d8fd03e6b2d497bd2",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "d59561642af56a1e0ee3934e928324ac2510a6ebd8910c4734f547049c58eafc",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "23a45fc71fea858ca58042cf727864a5e8da8dd2e6449c7216fe213036aa4bfb",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "5ab72dc386f269cd18440a2a372a263ceee5623df919ee68aad2f7876c86b8cb",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "c556ecdf52578861a99e916568cdaaa25a80bbf35da9de7094ec43549d64380e",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "5324de03bbb6e540feb18224e0d73d217d49683c80083653a90efbbe5b4ef589",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "6c557acd1bc5c4d0d1af2d6c0dbcf3048b08802694afcd7420adec21abe29565",
+        "classification": "declaration",
+        "owner": "FieldDisplay",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "e4d7a6c443e8a325344a76f7ed3aa5cdf7b3f6029943cb8b59f31627469c0bbf",
+        "classification": "non_contract",
+        "owner": "put_path",
+        "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
+      },
+      {
+        "id": "f48ccbeb297b8f7bcc0fe1a6c98622f0aa72ff366fa8ad27f532f1719c6d87ca",
+        "classification": "non_contract",
+        "owner": "put_path",
+        "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
+      },
+      {
+        "id": "be8b20b2b754b6fe656833bd7084e8ccd5dae5fcc07b9fca07d5acf5da6376d4",
+        "classification": "non_contract",
+        "owner": "put_path",
+        "reason": "Unused pop return value for deleting an already-absent editor path; never a stored field/default or evidence repair."
+      },
+      {
+        "id": "86c0e4294293eda423235636e1feee9b681d8a49830b8d9213d6845d12f76a46",
+        "classification": "non_contract",
+        "owner": "put_path",
+        "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
+      },
+      {
+        "id": "3d4922e0c1acf64bca6a7c10c6d0961d0efacb561b1e1131b5bdaf8c10a9777a",
+        "classification": "declaration",
+        "owner": "SettingField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "dbc9a0cc6675fb310c151dc3a552bf8c0dad0ce46d92615ce92ff9bec900d022",
+        "classification": "declaration",
+        "owner": "SettingField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "880cad919fff1999d02a15ee32e7c118922ecee870edbdc884b1fe26ce4c9219",
+        "classification": "declaration",
+        "owner": "SettingField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "262d62f68bd8240882eb731d29a9d36e4a20c375996b13b4a8ad5029b423792a",
+        "classification": "declaration",
+        "owner": "SettingField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "40d289bdac50cfad49123de8692a41691a20cf8e328519939805bb3fa3a000f9",
+        "classification": "declaration",
+        "owner": "SettingField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "3ac5ea9f4b5bf3f2ce4e14299f132065ceabce7ec9be49e4edd5439a0473ffc0",
+        "classification": "declaration",
+        "owner": "SettingField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "0f28ccaf4ae18cf2e102a4511509f3e4a9264b5151208c67552ea9a94c0f9429",
+        "classification": "declaration",
+        "owner": "ChoiceField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "d58874e8e05efd72b79ccea08634ec49cedc159a1ab9b914fd11423d6d40f470",
+        "classification": "declaration",
+        "owner": "ChoiceField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "ff17cd9507b99783572088451e3f6ef0eebb1870d1512de2bb3efd0bd582ad87",
+        "classification": "declaration",
+        "owner": "ChoiceField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "4be86211c11e644218987501f79ab0c47c81917491d268b9f97b87dd3a07f628",
+        "classification": "declaration",
+        "owner": "ChoiceField",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      },
+      {
+        "id": "bc4faa7ca1a8f1758cb3972146b4e8595220ef4ced5958c7a4a103a23ff15111",
+        "classification": "non_contract",
+        "owner": "ChoiceField.__init__.choose",
+        "reason": "Previous-item movement in a finite displayed choice sequence."
+      },
+      {
+        "id": "a17c203824abdf9d46d6606073ed49d58749864393caacb4ccb235d570158c15",
+        "classification": "non_contract",
+        "owner": "ChoiceField.__init__.choose",
+        "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
+      },
+      {
+        "id": "ec6c0b9662001e15971dd10f9c8099491026c46c5762cd4dd499cf38e78a77ee",
+        "classification": "non_contract",
+        "owner": "ChoiceField.__init__.choose",
+        "reason": "Next-item movement in the same displayed choice sequence."
+      },
+      {
+        "id": "e93bd1595d4ce9f09ea1113ae67a983c30a65ed26aea054dba1d8be274434c44",
+        "classification": "declaration",
+        "owner": "SchemaForm",
+        "reason": "Form rendering/input notation and finite-choice extension have explicit declarations. Open JSON Schema grammar, host hints and Project/implementation paths use canonical Owners; typed settings snapshots are not independently interpreted here."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FieldDisplay / SettingField / ChoiceField / SchemaForm",
+        "declaration": "hub/widget/forms/settings.py",
+        "consumers": [
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/navigation.py",
+          "hub/widget/forms/general_settings.py",
+          "hub/ui/settings/drafts.py"
+        ],
+        "tests": [
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_question_card.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",

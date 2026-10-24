@@ -2,7 +2,14 @@
 
 from hub.locales.keys import MessageKey
 
-from llm.core.json_data import JsonPointer
+from llm.core.json_data import JsonPointer, JsonObject
+from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean, SchemaExtension
+from llm.core.models import ProjectConfig
+from llm.core.implementation_parameters import ImplementationParameters
+from llm.services.configuration_records import ProjectConfigForm
+from ...config.metadata import SettingMetadata
+from ...config.theme_style import ThemeSelector
+from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 from llm.core.configuration_views import ConfigurationView
 
 
@@ -18,6 +25,39 @@ from ..controls import TextArea
 
 
 MISSING = object()
+
+
+class FieldDisplay:
+    JSON_LABEL = "JSON"
+    TYPE_SEPARATOR = " | "
+    DESCRIPTION_SEPARATOR = " · "
+    ENUM_SEPARATOR = ", "
+    ARRAY_OPEN = "["
+    ARRAY_CLOSE = "]"
+    EMPTY = ""
+    SPACE = " "
+    NEWLINE = "\n"
+    DESCRIPTION_PREFIX = "- "
+    JSON_INDENT = 2
+    JSON_ASCII = False
+    JSON_SORT_KEYS = True
+    JSON_NULL = json.dumps(JsonObject.NULL)
+    JSON_STRING_PREFIX = '"'
+    INVALID_JSON = "Invalid JSON: "
+    PATH_ERROR = "{path}: {error}"
+    MAX_EDITOR_LINES = 3
+    GAP_HEIGHT = 1
+    MULTILINE = True
+    WRAP_LINES = True
+    FOCUS_ON_CLICK = True
+    CONSTRAINTS = (
+        SchemaKeyword.MINIMUM,
+        SchemaKeyword.MAXIMUM,
+        SchemaKeyword.EXCLUSIVE_MINIMUM,
+        SchemaKeyword.MIN_LENGTH,
+        SchemaKeyword.MAX_LENGTH,
+        SchemaKeyword.PATTERN,
+    )
 
 
 def at_path(value, path):
@@ -48,74 +88,171 @@ def put_path(value, path, item):
 
 def type_hint(schema):
     if not isinstance(schema, dict):
-        return "JSON"
-    kind = schema.get("type", "JSON")
-    text = " | ".join(kind) if isinstance(kind, list) else kind
-    if kind == "array" and isinstance(schema.get("items"), dict):
-        text += "[" + type_hint(schema["items"]) + "]"
-    if "enum" in schema:
-        text += " · " + ", ".join(json.dumps(item, ensure_ascii=False) for item in schema["enum"])
+        return FieldDisplay.JSON_LABEL
+    kind = schema.get(SchemaKeyword.TYPE, FieldDisplay.JSON_LABEL)
+    text = FieldDisplay.TYPE_SEPARATOR.join(kind) if isinstance(kind, list) else kind
+    if kind == SchemaType.ARRAY and isinstance(schema.get(SchemaKeyword.ITEMS), dict):
+        text += (
+            FieldDisplay.ARRAY_OPEN
+            + type_hint(schema[SchemaKeyword.ITEMS])
+            + FieldDisplay.ARRAY_CLOSE
+        )
+    if SchemaKeyword.ENUM in schema:
+        text += FieldDisplay.DESCRIPTION_SEPARATOR + FieldDisplay.ENUM_SEPARATOR.join(
+            json.dumps(item, ensure_ascii=FieldDisplay.JSON_ASCII)
+            for item in schema[SchemaKeyword.ENUM]
+        )
     return text
 
 
 class SettingField:
     external_editable = True
+    VIEWING = False
+    EDITING = True
+    DEFAULT_READ_ONLY = False
+    ENABLED = True
+    NO_CALLBACK = None
 
-    def __init__(self, key, schema, value, t, *, readonly=False, observations=()):
+    def __init__(
+        self, key, schema, value, t, *, readonly=DEFAULT_READ_ONLY, observations=()
+    ):
         self.label = key
         self.schema = schema if isinstance(schema, dict) else {}
         self.original = deepcopy(value) if value is not MISSING else MISSING
-        self.initial = ("" if value is MISSING else value if isinstance(value, str) and value else
-                        json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
-        self.editing = False
+        self.initial = (
+            FieldDisplay.EMPTY
+            if value is MISSING
+            else (
+                value
+                if isinstance(value, str) and value
+                else json.dumps(
+                    value,
+                    ensure_ascii=FieldDisplay.JSON_ASCII,
+                    indent=FieldDisplay.JSON_INDENT,
+                    allow_nan=JsonObject.ALLOW_NON_FINITE,
+                )
+            )
+        )
+        self.editing = self.VIEWING
         self.readonly = readonly
         self.observations = tuple(observations)
-        self.enabled = lambda: True
-        self.on_edit = None
-        self.input = TextArea(text=self.initial, multiline=True,
-                              height=lambda: min(3, self.input.buffer.document.line_count),
-                              read_only=Condition(lambda: self.readonly or not self.editing or not self.enabled()),
-                              wrap_lines=True, style="class:hub.settings-input", focus_on_click=True)
+        self.enabled = lambda: self.ENABLED
+        self.on_edit = self.NO_CALLBACK
+        self.input = TextArea(
+            text=self.initial,
+            multiline=FieldDisplay.MULTILINE,
+            height=lambda: min(
+                FieldDisplay.MAX_EDITOR_LINES, self.input.buffer.document.line_count
+            ),
+            read_only=Condition(
+                lambda: self.readonly or not self.editing or not self.enabled()
+            ),
+            wrap_lines=FieldDisplay.WRAP_LINES,
+            style=ThemeSelector.SETTINGS_INPUT.style,
+            focus_on_click=FieldDisplay.FOCUS_ON_CLICK,
+        )
         self.input.window.always_hide_cursor = Condition(
-            lambda: not self.editing or self.readonly or not self.enabled())
+            lambda: not self.editing or self.readonly or not self.enabled()
+        )
         registry = ShortcutRegistry()
         editable = lambda: self.enabled() and not self.readonly
-        registry.add(["e", "E"], "e", "editor", lambda e: self.on_edit and self.on_edit(self),
-                     when=lambda: editable() and not self.editing)
-        registry.add(["enter"], "Enter", lambda: "done" if self.editing else "edit",
-                     lambda e: self.finish() if self.editing else self.begin(), when=editable)
-        registry.add(["d"], "d", "clear", lambda e: setattr(self.input, "text", ""),
-                     when=lambda: editable() and not self.editing)
-        registry.add(["c-space"], "Ctrl+Space", "newline", lambda e: self.input.insert_text("\n"),
-                     when=lambda: editable() and self.editing)
-        registry.add([("escape", "enter")], "Alt+Enter", "newline", lambda e: self.input.insert_text("\n"),
-                     when=lambda: editable() and self.editing)
+        registry.add(
+            [KeyName.EDIT, KeyName.EDIT_UPPER],
+            KeyName.EDIT,
+            ShortcutAction.EDITOR,
+            lambda e: self.on_edit and self.on_edit(self),
+            when=lambda: editable() and not self.editing,
+        )
+        registry.add(
+            [KeyName.ENTER],
+            ShortcutLabel.ENTER,
+            lambda: ShortcutAction.DONE if self.editing else ShortcutAction.EDIT,
+            lambda e: self.finish() if self.editing else self.begin(),
+            when=editable,
+        )
+        registry.add(
+            [KeyName.CLEAR],
+            KeyName.CLEAR,
+            ShortcutAction.CLEAR,
+            lambda e: self.clear(),
+            when=lambda: editable() and not self.editing,
+        )
+        registry.add(
+            [KeyName.CONTROL_SPACE],
+            ShortcutLabel.CONTROL_SPACE,
+            ShortcutAction.NEWLINE,
+            lambda e: self.input.insert_text(FieldDisplay.NEWLINE),
+            when=lambda: editable() and self.editing,
+        )
+        registry.add(
+            [(KeyName.ESCAPE, KeyName.ENTER)],
+            ShortcutLabel.ALT_ENTER,
+            ShortcutAction.NEWLINE,
+            lambda e: self.input.insert_text(FieldDisplay.NEWLINE),
+            when=lambda: editable() and self.editing,
+        )
         self.input.control.key_bindings = registry.bindings
         self.input.control.hub_shortcuts = registry
-        self.input.window.style = lambda: "class:hub.settings-input" + (
-            " class:hub.focused" if get_app().layout.has_focus(self.input) else "")
-        description = self.schema.get("description") or t(MessageKey.SETTINGS_NO_DESCRIPTION)
-        if self.schema.get("requires_restart"):
-            description += " · " + t(MessageKey.SETTINGS_REQUIRES_RESTART)
-        constraints = {name: self.schema[name] for name in ("minimum", "maximum", "exclusiveMinimum",
-                       "minLength", "maxLength", "pattern") if name in self.schema}
+        self.input.window.style = lambda: ThemeSelector.SETTINGS_INPUT.style + (
+            FieldDisplay.SPACE + ThemeSelector.FOCUSED.style
+            if get_app().layout.has_focus(self.input)
+            else FieldDisplay.EMPTY
+        )
+        description = self.schema.get(SchemaKeyword.DESCRIPTION) or t(
+            MessageKey.SETTINGS_NO_DESCRIPTION
+        )
+        if SettingMetadata.schema_restart(self.schema):
+            description += FieldDisplay.DESCRIPTION_SEPARATOR + t(
+                MessageKey.SETTINGS_REQUIRES_RESTART
+            )
+        constraints = {
+            name: self.schema[name]
+            for name in FieldDisplay.CONSTRAINTS
+            if name in self.schema
+        }
         if constraints:
-            description += " · " + json.dumps(constraints, ensure_ascii=False)
-        self.container = HSplit([Label(lambda: (t.icons.edit + " " if self.editing else "") + self.label, style="class:hub.title"),
-                                 Label("- " + description, style="class:hub.muted"),
-                                 Label(t(MessageKey.SETTINGS_TYPE, type=type_hint(self.schema)), style="class:hub.muted"),
-                                 self.input,
-                                 *[Label(note, style="class:hub.muted") for note in self.observations],
-                                 Window(height=1)])
+            description += FieldDisplay.DESCRIPTION_SEPARATOR + json.dumps(
+                constraints, ensure_ascii=FieldDisplay.JSON_ASCII
+            )
+        self.container = HSplit(
+            [
+                Label(
+                    lambda: (
+                        t.icons.edit + FieldDisplay.SPACE
+                        if self.editing
+                        else FieldDisplay.EMPTY
+                    )
+                    + self.label,
+                    style=ThemeSelector.TITLE.style,
+                ),
+                Label(
+                    FieldDisplay.DESCRIPTION_PREFIX + description,
+                    style=ThemeSelector.MUTED.style,
+                ),
+                Label(
+                    t(MessageKey.SETTINGS_TYPE, type=type_hint(self.schema)),
+                    style=ThemeSelector.MUTED.style,
+                ),
+                self.input,
+                *[
+                    Label(note, style=ThemeSelector.MUTED.style)
+                    for note in self.observations
+                ],
+                Window(height=FieldDisplay.GAP_HEIGHT),
+            ]
+        )
+
+    def clear(self):
+        self.input.text = FieldDisplay.EMPTY
 
     def begin(self):
         if self.enabled() and not self.readonly:
-            self.editing = True
+            self.editing = self.EDITING
             self.input.buffer.cursor_position = len(self.input.text)
         get_app().invalidate()
 
     def finish(self):
-        self.editing = False
+        self.editing = self.VIEWING
         get_app().invalidate()
 
     def value(self):
@@ -124,53 +261,93 @@ class SettingField:
             return deepcopy(self.original) if self.original is not MISSING else MISSING
         if not raw.strip():
             return MISSING
-        kind = self.schema.get("type")
+        kind = self.schema.get(SchemaKeyword.TYPE)
         kinds = kind if isinstance(kind, list) else [kind]
-        if "string" in kinds:
-            if raw.strip() == "null" and "null" in kinds:
-                return None
-            return json.loads(raw) if raw.lstrip().startswith('"') else raw
-        return json.loads(raw, parse_constant=lambda value: (_ for _ in ()).throw(ValueError("Invalid JSON: " + value)))
+        if SchemaType.STRING in kinds:
+            if raw.strip() == FieldDisplay.JSON_NULL and SchemaType.NULL in kinds:
+                return JsonObject.NULL
+            return (
+                json.loads(raw)
+                if raw.lstrip().startswith(FieldDisplay.JSON_STRING_PREFIX)
+                else raw
+            )
+        return json.loads(
+            raw,
+            parse_constant=lambda value: (_ for _ in ()).throw(
+                ValueError(FieldDisplay.INVALID_JSON + value)
+            ),
+        )
 
 
 class ChoiceField(SettingField):
     """A finite choice in the same field region: Enter, arrows, Enter."""
 
     external_editable = False
+    SCHEMA_KEY = "x-hub-choices"
+    READ_ONLY = True
+    CURSOR_HIDDEN = True
 
     def __init__(self, key, schema, value, t, **kwargs):
         super().__init__(key, schema, value, t, **kwargs)
-        self.choices = schema["x-hub-choices"]
+        self.choices = schema[ChoiceField.SCHEMA_KEY]
         self.input.text = self.initial = self.choices[value]
-        self.input.buffer.read_only = Condition(lambda: True)
-        self.input.window.always_hide_cursor = Condition(lambda: True)
+        self.input.buffer.read_only = Condition(lambda: self.READ_ONLY)
+        self.input.window.always_hide_cursor = Condition(lambda: self.CURSOR_HIDDEN)
         registry = ShortcutRegistry()
         editable = lambda: self.enabled() and not self.readonly
-        registry.add(["enter"], "Enter", lambda: "done" if self.editing else "edit",
-                     lambda e: self.finish() if self.editing else self.begin(), when=editable)
+        registry.add(
+            [KeyName.ENTER],
+            ShortcutLabel.ENTER,
+            lambda: ShortcutAction.DONE if self.editing else ShortcutAction.EDIT,
+            lambda e: self.finish() if self.editing else self.begin(),
+            when=editable,
+        )
+
         def choose(event):
             labels = list(self.choices.values())
-            delta = -1 if event.key_sequence[-1].key in ("up", "left") else 1
-            self.input.text = labels[(labels.index(self.input.text) + delta) % len(labels)]
-        registry.add(["up", "down", "left", "right"], "↑↓←→", "select", choose,
-                     when=lambda: editable() and self.editing)
+            delta = (
+                -1 if event.key_sequence[-1].key in (KeyName.UP, KeyName.LEFT) else 1
+            )
+            self.input.text = labels[
+                (labels.index(self.input.text) + delta) % len(labels)
+            ]
+
+        registry.add(
+            [KeyName.UP, KeyName.DOWN, KeyName.LEFT, KeyName.RIGHT],
+            ShortcutLabel.DIRECTIONS,
+            ShortcutAction.SELECT,
+            choose,
+            when=lambda: editable() and self.editing,
+        )
         self.input.control.key_bindings = registry.bindings
         self.input.control.hub_shortcuts = registry
 
     def value(self):
-        return next(key for key, label in self.choices.items() if label == self.input.text)
+        return next(
+            key for key, label in self.choices.items() if label == self.input.text
+        )
 
 
 class SchemaForm:
-    CONFIG_PATH = ("config",)
-    POLICY_PATH = ("policy",)
-    PROJECT_POLICY_PATH = (*CONFIG_PATH, "policies")
+    CONFIG_PATH = (ProjectConfigForm.config.__name__,)
+    POLICY_PATH = (ImplementationParameters.POLICY,)
+    PROJECT_POLICY_PATH = (*CONFIG_PATH, ProjectConfig.POLICIES)
+    NO_EFFECTIVE = None
+    OPAQUE_FIELDS = (
+        SchemaKeyword.ONE_OF,
+        SchemaKeyword.ANY_OF,
+        SchemaKeyword.ALL_OF,
+        SchemaKeyword.REF,
+    )
 
-    def __init__(self, schema, values, t, *, prefix=(), effective=None):
+    def __init__(self, schema, values, t, *, prefix=(), effective=NO_EFFECTIVE):
         self.schema, self.original, self.t = schema, deepcopy(values), t
         # 적용값은 고정 경로와 확장 키 조회에만 사용하고 저장할 값과 혼합하지 않는다.
         self.prefix = prefix
-        self.effective = {name: ConfigurationView.read(view) for name, view in (effective or {}).items()}
+        self.effective = {
+            name: ConfigurationView.read(view)
+            for name, view in (effective or {}).items()
+        }
         self.locked = set()
         for view in self.effective.values():
             for pointer, editable in view.editable.items():
@@ -180,51 +357,87 @@ class SchemaForm:
         self.fields = {}
         self.children = []
         self._walk(schema, prefix)
-        self.container = HSplit(self.children or [Label(t(MessageKey.SETTINGS_NO_FIELDS))])
+        self.container = HSplit(
+            self.children or [Label(t(MessageKey.SETTINGS_NO_FIELDS))]
+        )
 
     def _schema_locks(self, schema, path):
         if isinstance(schema, dict):
-            if schema.get("x-host-override"):
+            if schema.get(SchemaExtension.HOST_OVERRIDE):
                 self.locked.add(path)
-            for key, child in schema.get("properties", {}).items():
+            for key, child in schema.get(SchemaKeyword.PROPERTIES, {}).items():
                 self._schema_locks(child, (*path, key))
-            for child in schema.get("allOf", ()):
+            for child in schema.get(SchemaKeyword.ALL_OF, ()):
                 self._schema_locks(child, path)
 
     def _observations(self, path):
         notes = []
-        if any(path[:len(locked)] == locked for locked in self.locked):
+        if any(path[: len(locked)] == locked for locked in self.locked):
             notes.append(self.t(MessageKey.SETTINGS_HOST_LOCKED))
-        elif any(locked[:len(path)] == path for locked in self.locked):
+        elif any(locked[: len(path)] == path for locked in self.locked):
             notes.append(self.t(MessageKey.SETTINGS_HOST_PARTIAL))
         return notes
 
     def _walk(self, schema, path):
-        if schema is False:
+        if schema is SchemaBoolean.REJECT:
             return
         schema = schema if isinstance(schema, dict) else {}
-        properties = schema.get("properties", {})
+        properties = schema.get(SchemaKeyword.PROPERTIES, {})
         # Nullable objects, unions and refs stay JSON editors so their semantics
         # are not lost by flattening an arbitrary branch of the schema.
-        if properties and schema.get("type") == "object" and not any(
-                name in schema for name in ("oneOf", "anyOf", "allOf", "$ref")):
+        if (
+            properties
+            and schema.get(SchemaKeyword.TYPE) == SchemaType.OBJECT
+            and not any(name in schema for name in self.OPAQUE_FIELDS)
+        ):
             properties = dict(properties)
-            if self.effective and schema.get("additionalProperties", True) is not False:
+            if (
+                self.effective
+                and schema.get(
+                    SchemaKeyword.ADDITIONAL_PROPERTIES, SchemaBoolean.ACCEPT
+                )
+                is not SchemaBoolean.REJECT
+            ):
                 # 이미 저장됐거나 주입된 열린 SDK 키도 조회/편집 가능하게 한다.
-                candidates = [at_path(self.original, path), *(at_path(view.values, path[len(self.prefix):])
-                              for view in self.effective.values())]
+                candidates = [
+                    at_path(self.original, path),
+                    *(
+                        at_path(view.values, path[len(self.prefix) :])
+                        for view in self.effective.values()
+                    ),
+                ]
                 for value in candidates:
                     if isinstance(value, dict):
                         for key in value:
-                            properties.setdefault(key, schema.get("additionalProperties", {}))
+                            properties.setdefault(
+                                key, schema.get(SchemaKeyword.ADDITIONAL_PROPERTIES, {})
+                            )
             for key, spec in properties.items():
                 self._walk(spec, (*path, key))
         else:
-            if not schema.get("description") and (self.prefix or path[:1] == SchemaForm.CONFIG_PATH):
-                schema = {**schema, "description": self.t(MessageKey.SETTINGS_OPTION_DESCRIPTION, name=".".join(path))}
-            field_type = ChoiceField if "x-hub-choices" in schema else SettingField
-            field = field_type(schema.get("title", ".".join(path)), schema, at_path(self.original, path), self.t,
-                readonly=any(path[:len(locked)] == locked for locked in self.locked), observations=self._observations(path))
+            if not schema.get(SchemaKeyword.DESCRIPTION) and (
+                self.prefix or path[: len(SchemaForm.CONFIG_PATH)] == SchemaForm.CONFIG_PATH
+            ):
+                schema = {
+                    **schema,
+                    SchemaKeyword.DESCRIPTION: self.t(
+                        MessageKey.SETTINGS_OPTION_DESCRIPTION,
+                        name=SettingMetadata.PATH_SEPARATOR.join(path),
+                    ),
+                }
+            field_type = (
+                ChoiceField if ChoiceField.SCHEMA_KEY in schema else SettingField
+            )
+            field = field_type(
+                schema.get(
+                    SchemaKeyword.TITLE, SettingMetadata.PATH_SEPARATOR.join(path)
+                ),
+                schema,
+                at_path(self.original, path),
+                self.t,
+                readonly=any(path[: len(locked)] == locked for locked in self.locked),
+                observations=self._observations(path),
+            )
             self.fields[path] = field
             self.children.append(field.container)
 
@@ -241,16 +454,36 @@ class SchemaForm:
             try:
                 put_path(candidate, path, field.value())
             except (ValueError, TypeError) as error:
-                raise ValueError(f"{'.'.join(path)}: {error}") from error
+                raise ValueError(
+                    FieldDisplay.PATH_ERROR.format(
+                        path=SettingMetadata.PATH_SEPARATOR.join(path), error=error
+                    )
+                ) from error
         # Nullable object/ref/union는 JSON 편집기를 유지한다. 부분 고정된 객체도
         # sibling은 편집하되 고정 경로는 원래 저장값 그대로 두어야 한다.
         for path in self.locked:
             before, after = at_path(self.original, path), at_path(candidate, path)
             # Python의 True == 1과 달리 JSON 타입 변경도 고정값 변경이다.
-            unchanged = (before is after if before is MISSING or after is MISSING else
-                         json.dumps(before, sort_keys=True, allow_nan=False) ==
-                         json.dumps(after, sort_keys=True, allow_nan=False))
+            unchanged = (
+                before is after
+                if before is MISSING or after is MISSING
+                else json.dumps(
+                    before,
+                    sort_keys=FieldDisplay.JSON_SORT_KEYS,
+                    allow_nan=JsonObject.ALLOW_NON_FINITE,
+                )
+                == json.dumps(
+                    after,
+                    sort_keys=FieldDisplay.JSON_SORT_KEYS,
+                    allow_nan=JsonObject.ALLOW_NON_FINITE,
+                )
+            )
             if not unchanged:
-                raise ValueError(f"{'.'.join(path)}: {self.t(MessageKey.SETTINGS_HOST_LOCKED)}")
+                raise ValueError(
+                    FieldDisplay.PATH_ERROR.format(
+                        path=SettingMetadata.PATH_SEPARATOR.join(path),
+                        error=self.t(MessageKey.SETTINGS_HOST_LOCKED),
+                    )
+                )
         values.clear()
         values.update(candidate)

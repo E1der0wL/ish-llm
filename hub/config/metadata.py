@@ -27,6 +27,10 @@ class SettingMetadata:
         return bool(declaration.metadata.get(cls.REQUIRES_RESTART, cls.LIVE))
 
     @classmethod
+    def schema_restart(cls, schema):
+        return schema.get(cls.REQUIRES_RESTART)
+
+    @classmethod
     def describe(cls, model):
         return {
             item.name: {cls.REQUIRES_RESTART: cls.restart(item)}
